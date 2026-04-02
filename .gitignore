@@ -1,0 +1,39 @@
+# Unity generated
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+UserSettings/
+MemoryCaptures/
+Recordings/
+
+# Unity cache
+[Cc]rashes/
+[Ee]xportedObj/
+*.pidb
+*.unityproj
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.csproj
+*.sln
+
+# Packages lock (optional: keep if you want reproducible builds)
+# Packages/packages-lock.json
