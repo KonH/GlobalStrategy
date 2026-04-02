@@ -4,6 +4,10 @@
 - **Engine:** Unity 6000.4.1f1
 - **Language:** C#
 
+## Shell
+
+- The shell starts in the project root — never use `cd` before git commands, run them directly
+
 ## Configuration Index
 - **Commit rules:** `.claude/commands/commit.md`
 - **Plan command:** `.claude/commands/plan.md` — saves plans to `Docs/Plans/`
