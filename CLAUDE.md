@@ -16,4 +16,5 @@
 - **Unity asmdef format:** `.claude/rules/unity/asmdef.md`
 - **Unity prefabs:** `.claude/rules/unity/prefabs.md`
 - **Unity scenes:** `.claude/rules/unity/scenes.md`
+- **Unity MCP usage:** `.claude/rules/unity/mcp_usage.md`
 - **Learning workflow:** `.claude/skills/learn.md`

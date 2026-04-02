@@ -38,6 +38,21 @@ SceneRoots:
   - {fileID: <transform-or-prefabinstance-fileID>}
 ```
 
+## MCP Workflow (preferred)
+
+When Unity Editor is connected via UnityMCP, use MCP tools instead of hand-editing YAML:
+
+- **Inspect scene:** `manage_scene` (action `get_hierarchy`) or `mcpforunity://scene/gameobject-api`
+- **Add prefab instance:** `manage_gameobject` (action `create`, param `prefab_path`)
+- **Add plain GameObject:** `manage_gameobject` (action `create`)
+- **Modify object:** `manage_gameobject` (action `modify`) or `manage_components` (action `set_property`)
+- **Remove object:** `manage_gameobject` (action `delete`)
+- **Save scene:** `manage_scene` (action `save`)
+
+Scene registration in `EditorBuildSettings.asset` has no MCP tool — edit that file directly (see Scene Registration section below).
+
+Fall back to the manual YAML workflow below only when MCP is unavailable.
+
 ## Modifying Scenes via Text
 
 Scene files can be modified by hand if the rules below are followed precisely.

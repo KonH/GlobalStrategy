@@ -48,7 +48,18 @@ PrefabInstance:
 - `m_RemovedGameObjects` lists GameObjects from the base that are stripped in this variant
 - To override a field: add an entry to `m_Modifications` with the correct `propertyPath`
 
-## Workflow
+## MCP Workflow (preferred)
+
+When Unity Editor is connected via UnityMCP, use MCP tools instead of hand-writing YAML:
+
+- **Create prefab:** `manage_asset` (action `create`) or `manage_gameobject` + `manage_prefabs` (action `create_from_gameobject`)
+- **Instantiate prefab in scene:** `manage_gameobject` (action `create`, param `prefab_path`)
+- **Edit prefab fields:** `manage_components` (action `set_property`) targeting the prefab asset
+- **Create prefab variant:** `manage_prefabs` (action `create_variant`)
+
+Fall back to the manual YAML workflow below only when MCP is unavailable.
+
+## Manual Workflow
 
 ### Create a prefab
 
