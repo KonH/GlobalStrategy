@@ -1,0 +1,16 @@
+{
+    "name": "GS.Unity.Map",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a3b1c2d4e5f67890abcdef1234567801"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
