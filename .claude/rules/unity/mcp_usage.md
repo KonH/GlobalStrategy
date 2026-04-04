@@ -4,8 +4,8 @@ When Unity Editor is connected via UnityMCP, prefer MCP tools over file operatio
 
 ## Scripts
 
-- Use `create_script` (not `Write`) for new `.cs` files — auto-triggers import and compilation
-- To modify existing `.cs` files: use `Edit` (after `Read`) + `refresh_unity` — `script_apply_edits` and `apply_text_edits` have unclear parameter shapes and are unreliable
+- DO NOT use `create_script` for new `.cs` files — just `Write`, put all required content and `refresh_unity`
+- To modify existing `.cs` files: DO NOT use `Edit`, just modify file and `refresh_unity`
 - `Edit` requires reading the file first (`Read`) before it will accept edits
 - Path is project-relative: `Assets/Scripts/[Feature]/ClassName.cs`
 - After any script create or edit, call `read_console(types=["error"])` before proceeding — it correctly surfaces compilation errors after `refresh_unity`
@@ -35,6 +35,7 @@ When Unity Editor is connected via UnityMCP, prefer MCP tools over file operatio
 
 - After a domain reload, numeric instance IDs can go stale — prefer targeting by name string
 - Use `find_gameobjects` to resolve current instance IDs when needed
+- Pay extra attention to setup references - when some prefab instance parts are used in prefab/scene context, use references to instance parts, not prefab parts
 
 ## Console Warnings to Ignore
 

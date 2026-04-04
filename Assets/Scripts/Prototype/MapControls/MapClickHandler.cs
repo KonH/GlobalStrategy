@@ -1,6 +1,8 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using GS.Unity.Map;
+using GS.Unity.Map.UI;
 
 namespace GS.Prototype.MapControls {
 	[RequireComponent(typeof(Camera))]
@@ -8,6 +10,9 @@ namespace GS.Prototype.MapControls {
 		Camera _camera;
 		[SerializeField] MapController _mapController;
 		[SerializeField] CountryConfig _countryConfig;
+		[SerializeField] CountryInfoPanelController _panelController;
+
+		Action<CountryEntry> _onCountrySelectionChanged;
 
 		void Awake() {
 			_camera = GetComponent<Camera>();
@@ -26,21 +31,21 @@ namespace GS.Prototype.MapControls {
 			var id = _mapRenderer.FindFeatureAt(new Vector2(world.x, world.y));
 			if (id == null) {
 				Debug.Log("[MapClick] ocean");
+				_panelController?.HandleSelectionChanged(null);
 				return;
 			}
 
 			string mapFeatureId = id.gameObject.name;
-			if (_countryConfig != null) {
-				var country = _countryConfig.FindByFeatureId(mapFeatureId);
-				if (country != null) {
-					bool isMain = country.mainMapFeatureIds.Contains(mapFeatureId);
-					string role = isMain ? "main" : "secondary";
-					Debug.Log($"[MapClick] {country.displayName} (id: {country.countryId}, role: {role})");
-					return;
-				}
-			}
+			var country = _countryConfig != null ? _countryConfig.FindByFeatureId(mapFeatureId) : null;
+			_panelController?.HandleSelectionChanged(country);
 
-			Debug.Log($"[MapClick] {id.FeatureName} (id: {mapFeatureId})");
+			if (country != null) {
+				bool isMain = country.mainMapFeatureIds.Contains(mapFeatureId);
+				string role = isMain ? "main" : "secondary";
+				Debug.Log($"[MapClick] {country.displayName} (id: {country.countryId}, role: {role})");
+			} else {
+				Debug.Log($"[MapClick] {id.FeatureName} (id: {mapFeatureId})");
+			}
 		}
 	}
 }

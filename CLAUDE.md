@@ -15,6 +15,7 @@
 - **Unity project structure:** `.claude/rules/unity/project_structure.md`
 - **Unity asmdef format:** `.claude/rules/unity/asmdef.md`
 - **Unity prefabs:** `.claude/rules/unity/prefabs.md`
+- **Unity UI implementation:** `.claude/rules/unity/ui_implementation.md`
 - **Unity scenes:** `.claude/rules/unity/scenes.md`
 - **Unity MCP usage:** `.claude/rules/unity/mcp_usage.md`
 - **Map system architecture:** `.claude/rules/unity/map_system.md`
