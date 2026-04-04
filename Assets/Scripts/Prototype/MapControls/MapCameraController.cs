@@ -6,6 +6,9 @@ namespace GS.Prototype.MapControls {
 	[RequireComponent(typeof(Camera))]
 	public class MapCameraController : MonoBehaviour {
 		[SerializeField] float _panSpeed = 80f;
+		[SerializeField] float _zoomSpeed = 10f;
+		[SerializeField] float _minZoom = 20f;
+		[SerializeField] float _maxZoom = 200f;
 
 		Camera _camera;
 		bool _dragging;
@@ -17,8 +20,18 @@ namespace GS.Prototype.MapControls {
 
 		void Update() {
 			HandleKeyboard();
+			HandleZoom();
 			UpdateDragState();
 			WrapX();
+			ClampY();
+		}
+
+		void HandleZoom() {
+			var mouse = Mouse.current;
+			if (mouse == null) return;
+			float scroll = mouse.scroll.ReadValue().y;
+			if (scroll == 0f) return;
+			_camera.orthographicSize = Mathf.Clamp(_camera.orthographicSize - scroll * _zoomSpeed, _minZoom, _maxZoom);
 		}
 
 		void HandleKeyboard() {
@@ -48,6 +61,16 @@ namespace GS.Prototype.MapControls {
 			Vector3 current = _camera.ScreenToWorldPoint(new Vector3(cur.x, cur.y, 0f));
 			Vector3 delta = _dragOriginWorld - current;
 			transform.position += new Vector3(delta.x, delta.y, 0f);
+		}
+
+		void ClampY() {
+			float halfMap = CoordinateConverter.MapHeight / 2f;
+			float margin = _camera.orthographicSize;
+			float minY = -halfMap + margin;
+			float maxY = halfMap - margin;
+			Vector3 pos = transform.position;
+			pos.y = Mathf.Clamp(pos.y, Mathf.Min(minY, maxY), Mathf.Max(minY, maxY));
+			transform.position = pos;
 		}
 
 		void WrapX() {

@@ -1,25 +1,28 @@
+using System.Collections.Generic;
 using UnityEngine;
 using GS.Core.Map;
 
 namespace GS.Unity.Map {
 	public class MapLoader : MonoBehaviour {
+		[SerializeField] Map _mapPrefab;
 		[SerializeField] TextAsset _geoJsonAsset;
 		[SerializeField] Texture2D _mapTexture;
-		[SerializeField] MapRenderer _mapRenderer;
-		[SerializeField] MapImageOverlay _imageOverlay;
 
-		void Start() {
-			if (_geoJsonAsset == null) {
-				Debug.LogError("MapLoader: GeoJSON asset not assigned.");
-				return;
+		List<MapFeature> _features;
+
+		public Map Load() {
+			if (_features == null) {
+				if (_geoJsonAsset == null) {
+					Debug.LogError("MapLoader: GeoJSON asset not assigned.");
+					return null;
+				}
+				_features = GeoJsonParser.Parse(_geoJsonAsset.text);
+				Debug.Log($"MapLoader: parsed {_features.Count} features.");
 			}
 
-			var features = GeoJsonParser.Parse(_geoJsonAsset.text);
-			Debug.Log($"MapLoader: parsed {features.Count} features.");
-			_mapRenderer.Render(features);
-
-			if (_mapTexture != null && _imageOverlay != null)
-				_imageOverlay.Setup(_mapTexture);
+			var map = Instantiate(_mapPrefab);
+			map.Initialize(_features, _mapTexture);
+			return map;
 		}
 	}
 }
