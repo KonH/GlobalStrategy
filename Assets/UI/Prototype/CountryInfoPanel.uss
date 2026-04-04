@@ -1,0 +1,19 @@
+.country-panel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 8px 16px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.country-name {
+    font-size: 54px;
+    color: white;
+    -unity-font-style: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 1);
+    bottom: 10px;
+}

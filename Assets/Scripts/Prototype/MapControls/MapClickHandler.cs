@@ -1,8 +1,7 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using GS.Unity.Map;
-using GS.Unity.Map.UI;
+using GS.Unity.VisualState;
 
 namespace GS.Prototype.MapControls {
 	[RequireComponent(typeof(Camera))]
@@ -10,9 +9,7 @@ namespace GS.Prototype.MapControls {
 		Camera _camera;
 		[SerializeField] MapController _mapController;
 		[SerializeField] CountryConfig _countryConfig;
-		[SerializeField] CountryInfoPanelController _panelController;
-
-		Action<CountryEntry> _onCountrySelectionChanged;
+		[SerializeField] VisualStateHolder _stateHolder;
 
 		void Awake() {
 			_camera = GetComponent<Camera>();
@@ -31,13 +28,13 @@ namespace GS.Prototype.MapControls {
 			var id = _mapRenderer.FindFeatureAt(new Vector2(world.x, world.y));
 			if (id == null) {
 				Debug.Log("[MapClick] ocean");
-				_panelController?.HandleSelectionChanged(null);
+				_stateHolder?.State.SelectedCountry.Set(null, false);
 				return;
 			}
 
 			string mapFeatureId = id.gameObject.name;
 			var country = _countryConfig != null ? _countryConfig.FindByFeatureId(mapFeatureId) : null;
-			_panelController?.HandleSelectionChanged(country);
+			_stateHolder?.State.SelectedCountry.Set(country?.displayName, country != null);
 
 			if (country != null) {
 				bool isMain = country.mainMapFeatureIds.Contains(mapFeatureId);

@@ -20,5 +20,6 @@
 - **Unity MCP usage:** `.claude/rules/unity/mcp_usage.md`
 - **Map system architecture:** `.claude/rules/unity/map_system.md`
 - **Map config generator:** `.claude/rules/unity/map_config_generator.md`
+- **UI Toolkit architecture:** `.claude/rules/unity/uitoolkit.md`
 - **Temporary scripts:** `.claude/rules/temp_scripts.md`
 - **Learning workflow:** `.claude/skills/learn.md`
