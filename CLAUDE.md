@@ -7,6 +7,7 @@
 ## Shell
 
 - The shell starts in the project root — never use `cd` before git commands, run them directly
+- Never chain shell commands with `&&` — run each as a separate Bash tool call
 
 ## Configuration Index
 - **Commit rules:** `.claude/commands/commit.md`

@@ -38,6 +38,12 @@ Thumbs.db
 *.csproj
 *.sln
 
+# src/ C# solution — track project files, ignore build artifacts
+!src/**/*.csproj
+!src/**/*.sln
+src/**/bin/
+src/**/obj/
+
 # Packages lock (optional: keep if you want reproducible builds)
 # Packages/packages-lock.json
 .claude/settings.local.json
