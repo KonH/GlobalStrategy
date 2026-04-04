@@ -152,6 +152,8 @@ MonoBehaviour:
   _mapPrefab: {fileID: 1768836903777052187, guid: fb641cb516b6f4d448bae962f59efb51, type: 3}
   _geoJsonAsset: {fileID: 4900000, guid: be898760bb70a164eb980db0f1dfb849, type: 3}
   _mapTexture: {fileID: 2800000, guid: 60aa18b86bbf8954ab48bdc29b21a13b, type: 3}
+  _mapFeatureConfig: {fileID: 11400000, guid: c28cf3613ba922d48a328d268f94108a, type: 2}
+  _countryConfig: {fileID: 11400000, guid: 0298907c3e0f21148bfed8d87ce48008, type: 2}
 --- !u!4 &141594272
 Transform:
   m_ObjectHideFlags: 0
@@ -212,6 +214,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8efb1538d43782245beb9ad448dc7c98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GS.Prototype.MapControls::GS.Prototype.MapControls.MapClickHandler
+  _mapController: {fileID: 141594273}
+  _countryConfig: {fileID: 11400000, guid: 0298907c3e0f21148bfed8d87ce48008, type: 2}
 --- !u!114 &1826548612
 MonoBehaviour:
   m_ObjectHideFlags: 0

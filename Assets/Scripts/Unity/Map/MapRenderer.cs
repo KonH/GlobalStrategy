@@ -9,10 +9,10 @@ namespace GS.Unity.Map {
 		Shader _shader;
 
 		void Awake() {
-			_shader = Shader.Find("Unlit/Color");
+			_shader = Shader.Find("Sprites/Default");
 		}
 
-		public void Render(List<MapFeature> features) {
+		public void Render(List<MapFeature> features, MapFeatureConfig featureConfig, CountryConfig countryConfig) {
 			foreach (var obj in _featureObjects)
 				Destroy(obj);
 			_featureObjects.Clear();
@@ -21,13 +21,27 @@ namespace GS.Unity.Map {
 				var mesh = MapMeshBuilder.BuildFeatureMesh(feature);
 				if (mesh == null) continue;
 
-				var go = new GameObject(feature.Name);
+				var featureEntry = featureConfig != null ? featureConfig.Find(feature.Name) : null;
+				if (featureConfig != null && featureEntry == null) continue;
+				string mapFeatureId = featureEntry != null ? featureEntry.mapFeatureId : feature.Name;
+
+				var go = new GameObject(mapFeatureId);
 				go.transform.SetParent(transform, false);
 
 				go.AddComponent<MeshFilter>().mesh = mesh;
 
+				Color color = Color.grey;
+				color.a = 0.5f;
+				if (countryConfig != null) {
+					var countryEntry = countryConfig.FindByFeatureId(mapFeatureId);
+					if (countryEntry != null) {
+						color = countryEntry.color;
+						color.a = 0.5f;
+					}
+				}
+
 				var mat = new Material(_shader);
-				mat.color = FeatureColor(feature.Name);
+				mat.color = color;
 				go.AddComponent<MeshRenderer>().material = mat;
 
 				go.AddComponent<FeatureIdentifier>().SetFeature(feature);
@@ -68,11 +82,6 @@ namespace GS.Unity.Map {
 					inside = !inside;
 			}
 			return inside;
-		}
-
-		static Color FeatureColor(string name) {
-			float hue = (float)(Math.Abs(name.GetHashCode()) % 1000) / 1000f;
-			return Color.HSVToRGB(hue, 0.55f, 0.80f);
 		}
 
 #if UNITY_EDITOR

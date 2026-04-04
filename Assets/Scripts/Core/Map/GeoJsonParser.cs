@@ -21,10 +21,12 @@ namespace GS.Core.Map {
 
 		static MapFeature ParseFeature(Dictionary<string, object> el, int fallbackIndex) {
 			string name = null;
+			string partOf = null;
 			if (el.TryGetValue("properties", out var propsObj) && propsObj is Dictionary<string, object> props) {
 				foreach (var key in _nameKeys) {
 					if (props.TryGetValue(key, out var v) && v is string s) { name = s; break; }
 				}
+				if (props.TryGetValue("PARTOF", out var pv) && pv is string ps) partOf = ps;
 			}
 			string id = name ?? $"feature_{fallbackIndex}";
 
@@ -34,7 +36,7 @@ namespace GS.Core.Map {
 			var polygons = ParseGeometry(geom);
 			if (polygons == null || polygons.Count == 0) return null;
 
-			return new MapFeature(id, name ?? id, polygons);
+			return new MapFeature(id, name ?? id, polygons) { PartOf = partOf ?? (name ?? id) };
 		}
 
 		static List<Polygon> ParseGeometry(Dictionary<string, object> geom) {

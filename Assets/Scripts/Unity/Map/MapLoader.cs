@@ -7,6 +7,8 @@ namespace GS.Unity.Map {
 		[SerializeField] Map _mapPrefab;
 		[SerializeField] TextAsset _geoJsonAsset;
 		[SerializeField] Texture2D _mapTexture;
+		[SerializeField] MapFeatureConfig _mapFeatureConfig;
+		[SerializeField] CountryConfig _countryConfig;
 
 		List<MapFeature> _features;
 
@@ -21,7 +23,7 @@ namespace GS.Unity.Map {
 			}
 
 			var map = Instantiate(_mapPrefab);
-			map.Initialize(_features, _mapTexture);
+			map.Initialize(_features, _mapTexture, _mapFeatureConfig, _countryConfig);
 			return map;
 		}
 	}

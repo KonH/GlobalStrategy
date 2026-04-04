@@ -6,16 +6,17 @@ namespace GS.Prototype.MapControls {
 	[RequireComponent(typeof(Camera))]
 	public class MapClickHandler : MonoBehaviour {
 		Camera _camera;
-		MapRenderer _mapRenderer;
+		[SerializeField] MapController _mapController;
+		[SerializeField] CountryConfig _countryConfig;
 
 		void Awake() {
 			_camera = GetComponent<Camera>();
-			_mapRenderer = FindObjectOfType<MapRenderer>();
 		}
 
 		void Update() {
 			var mouse = Mouse.current;
 			if (mouse == null || !mouse.leftButton.wasPressedThisFrame) return;
+			var _mapRenderer = _mapController != null ? _mapController.ActiveRenderer : null;
 			if (_mapRenderer == null) return;
 
 			var sp = mouse.position.ReadValue();
@@ -23,10 +24,23 @@ namespace GS.Prototype.MapControls {
 			var world = _camera.ScreenToWorldPoint(new Vector3(sp.x, sp.y, 0f));
 
 			var id = _mapRenderer.FindFeatureAt(new Vector2(world.x, world.y));
-			if (id != null)
-				Debug.Log($"[MapClick] {id.FeatureName} (id: {id.FeatureId})");
-			else
+			if (id == null) {
 				Debug.Log("[MapClick] ocean");
+				return;
+			}
+
+			string mapFeatureId = id.gameObject.name;
+			if (_countryConfig != null) {
+				var country = _countryConfig.FindByFeatureId(mapFeatureId);
+				if (country != null) {
+					bool isMain = country.mainMapFeatureIds.Contains(mapFeatureId);
+					string role = isMain ? "main" : "secondary";
+					Debug.Log($"[MapClick] {country.displayName} (id: {country.countryId}, role: {role})");
+					return;
+				}
+			}
+
+			Debug.Log($"[MapClick] {id.FeatureName} (id: {mapFeatureId})");
 		}
 	}
 }

@@ -8,6 +8,8 @@ namespace GS.Unity.Map {
 		Map _current;
 		Map _forward;
 
+		public MapRenderer ActiveRenderer => _current != null ? _current.Renderer : null;
+
 		void Start() {
 			_current = _loader.Load();
 			_current.transform.position = new Vector3(0f, 0f, 0f);

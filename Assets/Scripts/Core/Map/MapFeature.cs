@@ -4,6 +4,7 @@ namespace GS.Core.Map {
 	public class MapFeature {
 		public string Id;
 		public string Name;
+		public string PartOf;
 		public List<Polygon> Polygons;
 
 		public MapFeature(string id, string name, List<Polygon> polygons) {

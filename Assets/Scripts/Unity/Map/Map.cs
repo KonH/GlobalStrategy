@@ -7,8 +7,10 @@ namespace GS.Unity.Map {
 		[SerializeField] MapRenderer _renderer;
 		[SerializeField] MapImageOverlay _overlay;
 
-		public void Initialize(List<MapFeature> features, Texture2D texture) {
-			_renderer.Render(features);
+		public MapRenderer Renderer => _renderer;
+
+		public void Initialize(List<MapFeature> features, Texture2D texture, MapFeatureConfig mapFeatureConfig, CountryConfig countryConfig) {
+			_renderer.Render(features, mapFeatureConfig, countryConfig);
 			if (texture != null)
 				_overlay.Setup(texture);
 		}

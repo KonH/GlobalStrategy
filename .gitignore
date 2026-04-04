@@ -1,3 +1,6 @@
+# Temporary scripts
+.tmp/
+
 # Unity generated
 Library/
 Temp/

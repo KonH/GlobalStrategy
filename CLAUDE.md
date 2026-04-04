@@ -17,4 +17,7 @@
 - **Unity prefabs:** `.claude/rules/unity/prefabs.md`
 - **Unity scenes:** `.claude/rules/unity/scenes.md`
 - **Unity MCP usage:** `.claude/rules/unity/mcp_usage.md`
+- **Map system architecture:** `.claude/rules/unity/map_system.md`
+- **Map config generator:** `.claude/rules/unity/map_config_generator.md`
+- **Temporary scripts:** `.claude/rules/temp_scripts.md`
 - **Learning workflow:** `.claude/skills/learn.md`
