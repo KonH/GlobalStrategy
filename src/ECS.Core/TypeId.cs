@@ -6,7 +6,7 @@ namespace ECS {
 		internal static int Next() => Interlocked.Increment(ref _next);
 	}
 
-	static class TypeId<T> {
+	public static class TypeId<T> {
 		public static readonly int Value = TypeIdCounter.Next();
 	}
 }

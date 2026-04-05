@@ -1,0 +1,4 @@
+{
+  "geoJsonSourcePath": "../../../../Assets/Map/world_1880.json",
+  "outputPath": "../../../../Assets/StreamingAssets/Configs"
+}

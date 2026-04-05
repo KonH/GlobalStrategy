@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latestMajor</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Game.Systems/Game.Systems.csproj" />
+    <ProjectReference Include="../Game.Commands/Game.Commands.csproj" />
+    <ProjectReference Include="../Game.Components/Game.Components.csproj" />
+    <ProjectReference Include="../Game.Configs/Game.Configs.csproj" />
+    <ProjectReference Include="../Core.Configs/Core.Configs.csproj" />
+    <ProjectReference Include="../ECS.Core/ECS.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Game.SourceGenerators/Game.SourceGenerators.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

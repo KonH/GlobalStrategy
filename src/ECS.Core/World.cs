@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 namespace ECS {
-	public sealed partial class World {
+	public sealed partial class World : IReadOnlyWorld {
 		EntityRecord[] _records = new EntityRecord[256];
 		int _entityCount;
 		readonly Stack<int> _freeList = new Stack<int>();
