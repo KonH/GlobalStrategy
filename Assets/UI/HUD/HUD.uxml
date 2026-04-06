@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/HUD/HUD.uss" />
+    <ui:Template src="project://database/Assets/UI/HUD/CountryInfo/CountryInfo.uxml" name="CountryInfo" />
+    <ui:VisualElement name="hud-root">
+        <ui:Instance template="CountryInfo" name="country-info" class="country-info-panel" />
+    </ui:VisualElement>
+</ui:UXML>

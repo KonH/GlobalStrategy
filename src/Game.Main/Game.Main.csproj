@@ -6,6 +6,11 @@
     <LangVersion>latestMajor</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <OutputPath>../../Assets/Plugins/Core/</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="../Game.Systems/Game.Systems.csproj" />
     <ProjectReference Include="../Game.Commands/Game.Commands.csproj" />

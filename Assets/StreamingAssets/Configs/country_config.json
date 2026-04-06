@@ -1,0 +1,1261 @@
+{
+  "countries": [
+    {
+      "countryId": "Afghanistan",
+      "displayName": "Afghanistan",
+      "mainMapFeatureIds": [
+        "Afghanistan"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Algeria",
+      "displayName": "Algeria",
+      "mainMapFeatureIds": [],
+      "secondaryMapFeatureIds": [
+        "Algeria_FR"
+      ]
+    },
+    {
+      "countryId": "American_Samoa",
+      "displayName": "American Samoa",
+      "mainMapFeatureIds": [
+        "American_Samoa"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Anguilla",
+      "displayName": "Anguilla",
+      "mainMapFeatureIds": [
+        "Anguilla"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Annam",
+      "displayName": "Annam",
+      "mainMapFeatureIds": [
+        "Annam"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Antigua_and_Barbuda",
+      "displayName": "Antigua and Barbuda",
+      "mainMapFeatureIds": [
+        "Antigua_and_Barbuda"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Arabia",
+      "displayName": "Arabia",
+      "mainMapFeatureIds": [
+        "Arabia"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Argentina",
+      "displayName": "Argentina",
+      "mainMapFeatureIds": [
+        "Argentina"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Asante",
+      "displayName": "Asante",
+      "mainMapFeatureIds": [
+        "Asante"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Ato_trading_confederacy",
+      "displayName": "Ato trading confederacy",
+      "mainMapFeatureIds": [
+        "Ato_trading_confederacy"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Austria_Hungary",
+      "displayName": "Austria Hungary",
+      "mainMapFeatureIds": [
+        "Austria_Hungary"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Barotse",
+      "displayName": "Barotse",
+      "mainMapFeatureIds": [
+        "Barotse"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Basutoland",
+      "displayName": "Basutoland",
+      "mainMapFeatureIds": [
+        "Basutoland"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Belgium",
+      "displayName": "Belgium",
+      "mainMapFeatureIds": [
+        "Belgium"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Belize",
+      "displayName": "Belize",
+      "mainMapFeatureIds": [
+        "Belize"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Benin",
+      "displayName": "Benin",
+      "mainMapFeatureIds": [
+        "Benin"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Bhutan",
+      "displayName": "Bhutan",
+      "mainMapFeatureIds": [
+        "Bhutan"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Bokhara_Khanate",
+      "displayName": "Bokhara Khanate",
+      "mainMapFeatureIds": [
+        "Bokhara_Khanate"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Bolivia",
+      "displayName": "Bolivia",
+      "mainMapFeatureIds": [
+        "Bolivia"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Borgu_States",
+      "displayName": "Borgu States",
+      "mainMapFeatureIds": [
+        "Borgu_States"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Bosnia_Herzegovina",
+      "displayName": "Bosnia-Herzegovina",
+      "mainMapFeatureIds": [
+        "Bosnia_Herzegovina"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "British_Guiana",
+      "displayName": "British Guiana",
+      "mainMapFeatureIds": [
+        "British_Guiana"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "British_Raj",
+      "displayName": "British Raj",
+      "mainMapFeatureIds": [
+        "British_Raj"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Brunei",
+      "displayName": "Brunei",
+      "mainMapFeatureIds": [
+        "Brunei"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Buganda",
+      "displayName": "Buganda",
+      "mainMapFeatureIds": [
+        "Buganda"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Bulgaria",
+      "displayName": "Bulgaria",
+      "mainMapFeatureIds": [
+        "Bulgaria"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Bunyoro",
+      "displayName": "Bunyoro",
+      "mainMapFeatureIds": [
+        "Bunyoro"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Burundi",
+      "displayName": "Burundi",
+      "mainMapFeatureIds": [
+        "Burundi"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Calabar",
+      "displayName": "Calabar",
+      "mainMapFeatureIds": [
+        "Calabar"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Canada",
+      "displayName": "Canada",
+      "mainMapFeatureIds": [
+        "Canada"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Cape_Colony",
+      "displayName": "Cape Colony",
+      "mainMapFeatureIds": [
+        "Cape_Colony"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Ceylon",
+      "displayName": "Ceylon",
+      "mainMapFeatureIds": [
+        "Ceylon"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Chile",
+      "displayName": "Chile",
+      "mainMapFeatureIds": [
+        "Chile"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Colombia",
+      "displayName": "Colombia",
+      "mainMapFeatureIds": [
+        "Colombia"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Congo",
+      "displayName": "Congo",
+      "mainMapFeatureIds": [
+        "Congo"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Costa_Rica",
+      "displayName": "Costa Rica",
+      "mainMapFeatureIds": [
+        "Costa_Rica"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Cotonou",
+      "displayName": "Cotonou",
+      "mainMapFeatureIds": [
+        "Cotonou"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Dahomey",
+      "displayName": "Dahomey",
+      "mainMapFeatureIds": [
+        "Dahomey"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Dendi_Kingdom",
+      "displayName": "Dendi Kingdom",
+      "mainMapFeatureIds": [
+        "Dendi_Kingdom"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Denmark",
+      "displayName": "Denmark",
+      "mainMapFeatureIds": [
+        "Denmark"
+      ],
+      "secondaryMapFeatureIds": [
+        "Iceland",
+        "Greenland"
+      ]
+    },
+    {
+      "countryId": "Dominica",
+      "displayName": "Dominica",
+      "mainMapFeatureIds": [
+        "Dominica"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Dominican_Republic",
+      "displayName": "Dominican Republic",
+      "mainMapFeatureIds": [
+        "Dominican_Republic"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Dutch_Guiana",
+      "displayName": "Dutch Guiana",
+      "mainMapFeatureIds": [
+        "Dutch_Guiana"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Ecuador",
+      "displayName": "Ecuador",
+      "mainMapFeatureIds": [
+        "Ecuador"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Egypt",
+      "displayName": "Egypt",
+      "mainMapFeatureIds": [
+        "Egypt"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "El_Salvador",
+      "displayName": "El Salvador",
+      "mainMapFeatureIds": [
+        "El_Salvador"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Ethiopia",
+      "displayName": "Ethiopia",
+      "mainMapFeatureIds": [
+        "Ethiopia"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Fiji",
+      "displayName": "Fiji",
+      "mainMapFeatureIds": [
+        "Fiji"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "France",
+      "displayName": "France",
+      "mainMapFeatureIds": [
+        "France",
+        "France"
+      ],
+      "secondaryMapFeatureIds": [
+        "Senegal_FR",
+        "Wallis_and_Futuna_Islands"
+      ]
+    },
+    {
+      "countryId": "French_Guiana",
+      "displayName": "French Guiana",
+      "mainMapFeatureIds": [
+        "French_Guiana"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "French_Indochina",
+      "displayName": "French Indochina",
+      "mainMapFeatureIds": [
+        "French_Indochina"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Futa_Jalon",
+      "displayName": "Futa Jalon",
+      "mainMapFeatureIds": [
+        "Futa_Jalon"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Futa_Toro",
+      "displayName": "Futa Toro",
+      "mainMapFeatureIds": [
+        "Futa_Toro"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Gabon",
+      "displayName": "Gabon",
+      "mainMapFeatureIds": [
+        "Gabon"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Gambia",
+      "displayName": "Gambia",
+      "mainMapFeatureIds": [
+        "Gambia"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Germany",
+      "displayName": "Germany",
+      "mainMapFeatureIds": [
+        "Germany",
+        "Germany"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Greece",
+      "displayName": "Greece",
+      "mainMapFeatureIds": [
+        "Greece"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Griqualand_West",
+      "displayName": "Griqualand West",
+      "mainMapFeatureIds": [
+        "Griqualand_West"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Guadeloupe",
+      "displayName": "Guadeloupe",
+      "mainMapFeatureIds": [
+        "Guadeloupe"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Guatemala",
+      "displayName": "Guatemala",
+      "mainMapFeatureIds": [
+        "Guatemala"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Haiti",
+      "displayName": "Haiti",
+      "mainMapFeatureIds": [
+        "Haiti"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Harer_Egypt",
+      "displayName": "Harer (Egypt)",
+      "mainMapFeatureIds": [
+        "Harer_Egypt"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Honduras",
+      "displayName": "Honduras",
+      "mainMapFeatureIds": [
+        "Honduras"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Ibadan",
+      "displayName": "Ibadan",
+      "mainMapFeatureIds": [
+        "Ibadan"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Imerina",
+      "displayName": "Imerina",
+      "mainMapFeatureIds": [
+        "Imerina"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Imperial_Japan",
+      "displayName": "Imperial Japan",
+      "mainMapFeatureIds": [
+        "Imperial_Japan"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Italy",
+      "displayName": "Italy",
+      "mainMapFeatureIds": [
+        "Italy"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Ivory_Coast",
+      "displayName": "Ivory Coast",
+      "mainMapFeatureIds": [
+        "Ivory_Coast"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Kanem_Bornu",
+      "displayName": "Kanem-Bornu",
+      "mainMapFeatureIds": [
+        "Kanem_Bornu"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Kingdom_of_Brazil",
+      "displayName": "Kingdom of Brazil",
+      "mainMapFeatureIds": [
+        "Kingdom_of_Brazil"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Kingdom_of_Hawaii",
+      "displayName": "Kingdom of Hawaii",
+      "mainMapFeatureIds": [
+        "Kingdom_of_Hawaii"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Kong_Empire",
+      "displayName": "Kong Empire",
+      "mainMapFeatureIds": [
+        "Kong_Empire"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Korea",
+      "displayName": "Korea",
+      "mainMapFeatureIds": [
+        "Korea"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Kuba",
+      "displayName": "Kuba",
+      "mainMapFeatureIds": [
+        "Kuba"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Lagos",
+      "displayName": "Lagos",
+      "mainMapFeatureIds": [
+        "Lagos"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Liberia",
+      "displayName": "Liberia",
+      "mainMapFeatureIds": [
+        "Liberia"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Lozi",
+      "displayName": "Lozi",
+      "mainMapFeatureIds": [
+        "Lozi"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Luba",
+      "displayName": "Luba",
+      "mainMapFeatureIds": [
+        "Luba"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Lunda",
+      "displayName": "Lunda",
+      "mainMapFeatureIds": [
+        "Lunda"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Luxembourg",
+      "displayName": "Luxembourg",
+      "mainMapFeatureIds": [
+        "Luxembourg"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "M_ori",
+      "displayName": "M?ori",
+      "mainMapFeatureIds": [
+        "M_ori"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Madagascar",
+      "displayName": "Madagascar",
+      "mainMapFeatureIds": [
+        "Madagascar"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Malaya",
+      "displayName": "Malaya",
+      "mainMapFeatureIds": [
+        "Malaya"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Malta",
+      "displayName": "Malta",
+      "mainMapFeatureIds": [
+        "Malta"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Manchu_Empire",
+      "displayName": "Manchu Empire",
+      "mainMapFeatureIds": [
+        "Manchu_Empire"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Mbailundu",
+      "displayName": "Mbailundu",
+      "mainMapFeatureIds": [
+        "Mbailundu"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Mexico",
+      "displayName": "Mexico",
+      "mainMapFeatureIds": [
+        "Mexico"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Mirambo_Unyanyembe_Ukimbu",
+      "displayName": "Mirambo Unyanyembe Ukimbu",
+      "mainMapFeatureIds": [
+        "Mirambo_Unyanyembe_Ukimbu"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Montenegro",
+      "displayName": "Montenegro",
+      "mainMapFeatureIds": [
+        "Montenegro"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Montserrat",
+      "displayName": "Montserrat",
+      "mainMapFeatureIds": [
+        "Montserrat"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Morocco",
+      "displayName": "Morocco",
+      "mainMapFeatureIds": [
+        "Morocco"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Mossi_States",
+      "displayName": "Mossi States",
+      "mainMapFeatureIds": [
+        "Mossi_States"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Mozambique",
+      "displayName": "Mozambique",
+      "mainMapFeatureIds": [
+        "Mozambique"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Natal",
+      "displayName": "Natal",
+      "mainMapFeatureIds": [
+        "Natal"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Ndebele",
+      "displayName": "Ndebele",
+      "mainMapFeatureIds": [
+        "Ndebele"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Nepal",
+      "displayName": "Nepal",
+      "mainMapFeatureIds": [
+        "Nepal"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Netherlands",
+      "displayName": "Netherlands",
+      "mainMapFeatureIds": [
+        "Netherlands"
+      ],
+      "secondaryMapFeatureIds": [
+        "Netherlands_Indies"
+      ]
+    },
+    {
+      "countryId": "Netherlands_Antilles",
+      "displayName": "Netherlands Antilles",
+      "mainMapFeatureIds": [
+        "Netherlands_Antilles"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Nguni",
+      "displayName": "Nguni",
+      "mainMapFeatureIds": [
+        "Nguni"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Ngwato",
+      "displayName": "Ngwato",
+      "mainMapFeatureIds": [
+        "Ngwato"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Nicaragua",
+      "displayName": "Nicaragua",
+      "mainMapFeatureIds": [
+        "Nicaragua"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Niue",
+      "displayName": "Niue",
+      "mainMapFeatureIds": [
+        "Niue"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Oman",
+      "displayName": "Oman",
+      "mainMapFeatureIds": [
+        "Oman"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Opobo",
+      "displayName": "Opobo",
+      "mainMapFeatureIds": [
+        "Opobo"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Orange_Free_State",
+      "displayName": "Orange Free State",
+      "mainMapFeatureIds": [
+        "Orange_Free_State"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Ottoman_Empire",
+      "displayName": "Ottoman Empire",
+      "mainMapFeatureIds": [
+        "Ottoman_Empire"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Ovimbundu",
+      "displayName": "Ovimbundu",
+      "mainMapFeatureIds": [
+        "Ovimbundu"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Oyo",
+      "displayName": "Oyo",
+      "mainMapFeatureIds": [
+        "Oyo"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Papua_New_Guinea",
+      "displayName": "Papua New Guinea",
+      "mainMapFeatureIds": [
+        "Papua_New_Guinea"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Paraguay",
+      "displayName": "Paraguay",
+      "mainMapFeatureIds": [
+        "Paraguay"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Persia",
+      "displayName": "Persia",
+      "mainMapFeatureIds": [
+        "Persia"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Peru",
+      "displayName": "Peru",
+      "mainMapFeatureIds": [
+        "Peru"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Philippines",
+      "displayName": "Philippines",
+      "mainMapFeatureIds": [
+        "Philippines"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Polynesians",
+      "displayName": "Polynesians",
+      "mainMapFeatureIds": [
+        "Polynesians"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Portugal",
+      "displayName": "Portugal",
+      "mainMapFeatureIds": [
+        "Portugal"
+      ],
+      "secondaryMapFeatureIds": [
+        "Angola_Portugal"
+      ]
+    },
+    {
+      "countryId": "Portuguese_Guinea",
+      "displayName": "Portuguese Guinea",
+      "mainMapFeatureIds": [
+        "Portuguese_Guinea"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Qatar",
+      "displayName": "Qatar",
+      "mainMapFeatureIds": [
+        "Qatar"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Rabih_az_Zubayr",
+      "displayName": "Rabih az-Zubayr",
+      "mainMapFeatureIds": [
+        "Rabih_az_Zubayr"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Rattanakosin_Kingdom",
+      "displayName": "Rattanakosin Kingdom",
+      "mainMapFeatureIds": [
+        "Rattanakosin_Kingdom"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Romania",
+      "displayName": "Romania",
+      "mainMapFeatureIds": [
+        "Romania"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Russian_Empire",
+      "displayName": "Russian Empire",
+      "mainMapFeatureIds": [
+        "Russian_Empire",
+        "Russian_Empire"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Rwanda",
+      "displayName": "Rwanda",
+      "mainMapFeatureIds": [
+        "Rwanda"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Saint_Barthelemy",
+      "displayName": "Saint Barthelemy",
+      "mainMapFeatureIds": [
+        "Saint_Barthelemy"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Saint_Kitts_and_Nevis",
+      "displayName": "Saint Kitts and Nevis",
+      "mainMapFeatureIds": [
+        "Saint_Kitts_and_Nevis"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Saint_Martin",
+      "displayName": "Saint Martin",
+      "mainMapFeatureIds": [
+        "Saint_Martin"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Samoa",
+      "displayName": "Samoa",
+      "mainMapFeatureIds": [
+        "Samoa"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Serbia",
+      "displayName": "Serbia",
+      "mainMapFeatureIds": [
+        "Serbia"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Shona",
+      "displayName": "Shona",
+      "mainMapFeatureIds": [
+        "Shona"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Sierra_Leone",
+      "displayName": "Sierra Leone",
+      "mainMapFeatureIds": [
+        "Sierra_Leone"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Sokoto_Caliphate",
+      "displayName": "Sokoto Caliphate",
+      "mainMapFeatureIds": [
+        "Sokoto_Caliphate"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Spain",
+      "displayName": "Spain",
+      "mainMapFeatureIds": [
+        "Spain",
+        "Spain"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Spanish_Guinea",
+      "displayName": "Spanish Guinea",
+      "mainMapFeatureIds": [
+        "Spanish_Guinea"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Sultanate_of_Damagaram",
+      "displayName": "Sultanate of Damagaram",
+      "mainMapFeatureIds": [
+        "Sultanate_of_Damagaram"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Sultanate_of_Utetera",
+      "displayName": "Sultanate of Utetera",
+      "mainMapFeatureIds": [
+        "Sultanate_of_Utetera"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Sultinate_of_Zanzibar",
+      "displayName": "Sultinate of Zanzibar",
+      "mainMapFeatureIds": [
+        "Sultinate_of_Zanzibar"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Swaziland",
+      "displayName": "Swaziland",
+      "mainMapFeatureIds": [
+        "Swaziland"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "SwedenNorway",
+      "displayName": "SwedenNorway",
+      "mainMapFeatureIds": [
+        "SwedenNorway"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Switzerland",
+      "displayName": "Switzerland",
+      "mainMapFeatureIds": [
+        "Switzerland"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Taiwan",
+      "displayName": "Taiwan",
+      "mainMapFeatureIds": [
+        "Taiwan"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Teke",
+      "displayName": "Teke",
+      "mainMapFeatureIds": [
+        "Teke"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Tonga",
+      "displayName": "Tonga",
+      "mainMapFeatureIds": [
+        "Tonga"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Transvaal",
+      "displayName": "Transvaal",
+      "mainMapFeatureIds": [
+        "Transvaal"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Trucial_Oman",
+      "displayName": "Trucial Oman",
+      "mainMapFeatureIds": [
+        "Trucial_Oman"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Tukular_Caliphate",
+      "displayName": "Tukular Caliphate",
+      "mainMapFeatureIds": [
+        "Tukular_Caliphate"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "United_Kingdom_of_Great_Britain_and_Ireland",
+      "displayName": "United Kingdom of Great Britain and Ireland",
+      "mainMapFeatureIds": [
+        "United_Kingdom_of_Great_Britain_and_Ireland"
+      ],
+      "secondaryMapFeatureIds": [
+        "Victoria_UK",
+        "Gold_Coast_GB",
+        "Hong_Kong",
+        "New_South_Wales_UK",
+        "Northern_Territory_UK",
+        "Queensland_UK",
+        "South_Australia_UK",
+        "Western_Australia_UK"
+      ]
+    },
+    {
+      "countryId": "United_States_of_America",
+      "displayName": "United States of America",
+      "mainMapFeatureIds": [
+        "United_States_of_America"
+      ],
+      "secondaryMapFeatureIds": [
+        "United_States_Virgin_Islands"
+      ]
+    },
+    {
+      "countryId": "Uruguay",
+      "displayName": "Uruguay",
+      "mainMapFeatureIds": [
+        "Uruguay"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Venezuela",
+      "displayName": "Venezuela",
+      "mainMapFeatureIds": [
+        "Venezuela"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Wadai_Empire",
+      "displayName": "Wadai Empire",
+      "mainMapFeatureIds": [
+        "Wadai_Empire"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Wassoulou_Empire",
+      "displayName": "Wassoulou Empire",
+      "mainMapFeatureIds": [
+        "Wassoulou_Empire"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Yaka",
+      "displayName": "Yaka",
+      "mainMapFeatureIds": [
+        "Yaka"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Yeke",
+      "displayName": "Yeke",
+      "mainMapFeatureIds": [
+        "Yeke"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Zululand",
+      "displayName": "Zululand",
+      "mainMapFeatureIds": [
+        "Zululand"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "central_Asian_khanates",
+      "displayName": "central Asian khanates",
+      "mainMapFeatureIds": [
+        "central_Asian_khanates"
+      ],
+      "secondaryMapFeatureIds": []
+    }
+  ]
+}

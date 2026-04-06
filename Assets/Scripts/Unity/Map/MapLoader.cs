@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 using GS.Core.Map;
 
 namespace GS.Unity.Map {
@@ -7,10 +8,17 @@ namespace GS.Unity.Map {
 		[SerializeField] Map _mapPrefab;
 		[SerializeField] TextAsset _geoJsonAsset;
 		[SerializeField] Texture2D _mapTexture;
-		[SerializeField] MapFeatureConfig _mapFeatureConfig;
-		[SerializeField] CountryConfig _countryConfig;
+
+		CountryConfig _countryConfig;
+		CountryVisualConfig _visualConfig;
 
 		List<MapFeature> _features;
+
+		[Inject]
+		void Construct(CountryConfig countryConfig, CountryVisualConfig visualConfig) {
+			_countryConfig = countryConfig;
+			_visualConfig = visualConfig;
+		}
 
 		public Map Load() {
 			if (_features == null) {
@@ -23,7 +31,7 @@ namespace GS.Unity.Map {
 			}
 
 			var map = Instantiate(_mapPrefab);
-			map.Initialize(_features, _mapTexture, _mapFeatureConfig, _countryConfig);
+			map.Initialize(_features, _mapTexture, _countryConfig, _visualConfig);
 			return map;
 		}
 	}

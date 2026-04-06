@@ -1,0 +1,6 @@
+.country-name {
+    font-size: 54px;
+    color: white;
+    -unity-font-style: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 1);
+}

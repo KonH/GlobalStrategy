@@ -1,14 +1,21 @@
 using UnityEngine;
+using VContainer;
 
 namespace GS.Unity.Map {
 	public class MapController : MonoBehaviour {
-		[SerializeField] MapLoader _loader;
-		[SerializeField] Camera _camera;
+		MapLoader _loader;
+		Camera _camera;
 
 		Map _current;
 		Map _forward;
 
 		public MapRenderer ActiveRenderer => _current != null ? _current.Renderer : null;
+
+		[Inject]
+		void Construct(MapLoader loader, Camera camera) {
+			_loader = loader;
+			_camera = camera;
+		}
 
 		void Start() {
 			_current = _loader.Load();

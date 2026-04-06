@@ -22,5 +22,7 @@
 - **Map system architecture:** `.claude/rules/unity/map_system.md`
 - **Map config generator:** `.claude/rules/unity/map_config_generator.md`
 - **UI Toolkit architecture:** `.claude/rules/unity/uitoolkit.md`
+- **VContainer / DI:** `.claude/rules/unity/vcontainer.md`
+- **Unity plugins (DLLs):** `.claude/rules/unity/plugins.md`
 - **Temporary scripts:** `.claude/rules/temp_scripts.md`
 - **Learning workflow:** `.claude/skills/learn.md`

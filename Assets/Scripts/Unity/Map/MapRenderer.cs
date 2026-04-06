@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using GS.Core.Map;
 
@@ -12,30 +13,33 @@ namespace GS.Unity.Map {
 			_shader = Shader.Find("Sprites/Default");
 		}
 
-		public void Render(List<MapFeature> features, MapFeatureConfig featureConfig, CountryConfig countryConfig) {
+		public void Render(List<MapFeature> features, CountryConfig countryConfig, CountryVisualConfig visualConfig) {
 			foreach (var obj in _featureObjects)
 				Destroy(obj);
 			_featureObjects.Clear();
 
 			foreach (var feature in features) {
-				var mesh = MapMeshBuilder.BuildFeatureMesh(feature);
-				if (mesh == null) continue;
+				string mapFeatureId = DeriveMapFeatureId(feature.Name);
 
-				var featureEntry = featureConfig != null ? featureConfig.Find(feature.Name) : null;
-				if (featureConfig != null && featureEntry == null) continue;
-				string mapFeatureId = featureEntry != null ? featureEntry.mapFeatureId : feature.Name;
+				var countryEntry = countryConfig != null ? countryConfig.FindByFeatureId(mapFeatureId) : null;
+				if (countryConfig != null && countryEntry == null) continue;
 
 				var go = new GameObject(mapFeatureId);
 				go.transform.SetParent(transform, false);
 
+				var mesh = MapMeshBuilder.BuildFeatureMesh(feature);
+				if (mesh == null) {
+					Destroy(go);
+					continue;
+				}
 				go.AddComponent<MeshFilter>().mesh = mesh;
 
 				Color color = Color.grey;
 				color.a = 0.5f;
-				if (countryConfig != null) {
-					var countryEntry = countryConfig.FindByFeatureId(mapFeatureId);
-					if (countryEntry != null) {
-						color = countryEntry.color;
+				if (countryEntry != null && visualConfig != null) {
+					var visual = visualConfig.Find(countryEntry.countryId);
+					if (visual != null) {
+						color = visual.color;
 						color.a = 0.5f;
 					}
 				}
@@ -43,14 +47,12 @@ namespace GS.Unity.Map {
 				var mat = new Material(_shader);
 				mat.color = color;
 				go.AddComponent<MeshRenderer>().material = mat;
-
 				go.AddComponent<FeatureIdentifier>().SetFeature(feature);
 
 				_featureObjects.Add(go);
 			}
 		}
 
-		// Returns the FeatureIdentifier whose polygon contains worldPos (XY in world units).
 		public FeatureIdentifier FindFeatureAt(Vector2 worldPos) {
 			float lon = worldPos.x / CoordinateConverter.Scale;
 			float lat = worldPos.y / CoordinateConverter.Scale;
@@ -64,6 +66,38 @@ namespace GS.Unity.Map {
 				}
 			}
 			return null;
+		}
+
+		static string DeriveMapFeatureId(string geoJsonName) {
+			var ascii = new StringBuilder();
+			foreach (char c in geoJsonName) {
+				if (c < 128) { ascii.Append(c); continue; }
+				switch (c) {
+					case 'é': case 'è': case 'ê': case 'ë': ascii.Append('e'); break;
+					case 'à': case 'á': case 'â': case 'ä': ascii.Append('a'); break;
+					case 'ì': case 'í': case 'î': case 'ï': ascii.Append('i'); break;
+					case 'ò': case 'ó': case 'ô': case 'ö': ascii.Append('o'); break;
+					case 'ù': case 'ú': case 'û': case 'ü': ascii.Append('u'); break;
+					case 'ø': ascii.Append('o'); break;
+					case 'ñ': ascii.Append('n'); break;
+					case 'ç': ascii.Append('c'); break;
+					case 'ß': ascii.Append("ss"); break;
+				}
+			}
+			var id = new StringBuilder();
+			bool lastUnderscore = false;
+			foreach (char c in ascii.ToString()) {
+				if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
+					id.Append(c);
+					lastUnderscore = false;
+				} else if (!lastUnderscore && id.Length > 0) {
+					id.Append('_');
+					lastUnderscore = true;
+				}
+			}
+			if (id.Length > 0 && id[id.Length - 1] == '_')
+				id.Length--;
+			return id.ToString();
 		}
 
 		static bool PointInRing(Ring ring, float lon, float lat) {
@@ -88,7 +122,6 @@ namespace GS.Unity.Map {
 		void OnDrawGizmos() {
 			Gizmos.color = Color.green;
 			Gizmos.DrawWireCube(Vector3.zero, new Vector3(CoordinateConverter.MapWidth, CoordinateConverter.MapHeight, 0f));
-
 			if (_featureObjects == null) return;
 			Gizmos.color = Color.yellow;
 			foreach (var go in _featureObjects) {

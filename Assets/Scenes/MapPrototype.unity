@@ -152,8 +152,6 @@ MonoBehaviour:
   _mapPrefab: {fileID: 1768836903777052187, guid: fb641cb516b6f4d448bae962f59efb51, type: 3}
   _geoJsonAsset: {fileID: 4900000, guid: be898760bb70a164eb980db0f1dfb849, type: 3}
   _mapTexture: {fileID: 2800000, guid: 60aa18b86bbf8954ab48bdc29b21a13b, type: 3}
-  _mapFeatureConfig: {fileID: 11400000, guid: c28cf3613ba922d48a328d268f94108a, type: 2}
-  _countryConfig: {fileID: 11400000, guid: 0298907c3e0f21148bfed8d87ce48008, type: 2}
 --- !u!4 &141594272
 Transform:
   m_ObjectHideFlags: 0
@@ -181,9 +179,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebae5acbba6ac904aafc3c45ff47cabd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GS.Unity.Map::GS.Unity.Map.MapController
-  _loader: {fileID: 141594271}
-  _camera: {fileID: 1826548613}
---- !u!1 &504954012
+--- !u!1 &404031396
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -191,34 +187,58 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 504954014}
-  - component: {fileID: 504954013}
+  - component: {fileID: 404031399}
+  - component: {fileID: 404031398}
+  - component: {fileID: 404031397}
   m_Layer: 0
-  m_Name: VisualStateHolder
+  m_Name: GameHUD
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &504954013
+--- !u!114 &404031397
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 504954012}
+  m_GameObject: {fileID: 404031396}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ad534fc53214b44eba79066845b7951, type: 3}
+  m_Script: {fileID: 11500000, guid: f505d1089a3aa554bad42e0cbd55082d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: GS.Unity.VisualState::GS.Unity.VisualState.VisualStateHolder
---- !u!4 &504954014
+  m_EditorClassIdentifier: GS.Unity.UI::GS.Unity.UI.HUDDocument
+--- !u!114 &404031398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 404031396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
+  m_PanelSettings: {fileID: 11400000, guid: a52ac28cceb58ba4db172389975ccca7, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: 4f453281608ede241bca5c448513699d, type: 3}
+  m_SortingOrder: 0
+  m_Position: 0
+  m_WorldSpaceSizeMode: 1
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+  m_PivotReferenceSize: 0
+  m_Pivot: 0
+  m_WorldSpaceCollider: {fileID: 0}
+--- !u!4 &404031399
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 504954012}
+  m_GameObject: {fileID: 404031396}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -306,7 +326,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1131655093
+--- !u!1 &1124233455
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -314,59 +334,44 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1131655096}
-  - component: {fileID: 1131655095}
-  - component: {fileID: 1131655094}
+  - component: {fileID: 1124233457}
+  - component: {fileID: 1124233456}
   m_Layer: 0
-  m_Name: UIToolkitPanel
+  m_Name: GameLifetimeScope
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1131655094
+--- !u!114 &1124233456
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1131655093}
+  m_GameObject: {fileID: 1124233455}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c1402f9297931942b02a6c2c74d7dfb, type: 3}
+  m_Script: {fileID: 11500000, guid: c7a48fbc43281b44980666c42adb1aab, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: GS.Prototype.UIToolkit::GS.Prototype.UIToolkit.CountryInfoUIDocument
-  _stateHolder: {fileID: 504954013}
---- !u!114 &1131655095
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1131655093}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
-  m_PanelSettings: {fileID: 11400000, guid: b645a10b00d712a4c93335b58095de79, type: 2}
-  m_ParentUI: {fileID: 0}
-  sourceAsset: {fileID: 9197481963319205126, guid: a96568f6bd2cbce4c81ea152ab85afbc, type: 3}
-  m_SortingOrder: 1
-  m_Position: 0
-  m_WorldSpaceSizeMode: 1
-  m_WorldSpaceWidth: 1920
-  m_WorldSpaceHeight: 1080
-  m_PivotReferenceSize: 0
-  m_Pivot: 0
-  m_WorldSpaceCollider: {fileID: 0}
---- !u!4 &1131655096
+  m_EditorClassIdentifier: GS.Unity.DI::GS.Unity.DI.GameLifetimeScope
+  parentReference:
+    TypeName: 
+  autoRun: 1
+  autoInjectGameObjects:
+  - {fileID: 1826548610}
+  - {fileID: 141594270}
+  - {fileID: 404031396}
+  _countryConfig: {fileID: 11400000, guid: 0298907c3e0f21148bfed8d87ce48008, type: 2}
+  _countryVisualConfig: {fileID: 11400000, guid: ef0b0960b0c336745a2ea01586c5d114, type: 2}
+  _mapCameraConfig: {fileID: 11400000, guid: b7258d2dc8369da45aa39abdcb4b282c, type: 2}
+--- !u!4 &1124233457
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1131655093}
+  m_GameObject: {fileID: 1124233455}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -385,8 +390,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1826548614}
   - component: {fileID: 1826548613}
-  - component: {fileID: 1826548612}
-  - component: {fileID: 1826548611}
+  - component: {fileID: 1826548616}
+  - component: {fileID: 1826548615}
   m_Layer: 0
   m_Name: MapCamera
   m_TagString: Untagged
@@ -394,37 +399,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1826548611
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1826548610}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8efb1538d43782245beb9ad448dc7c98, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: GS.Prototype.MapControls::GS.Prototype.MapControls.MapClickHandler
-  _mapController: {fileID: 141594273}
-  _countryConfig: {fileID: 11400000, guid: 0298907c3e0f21148bfed8d87ce48008, type: 2}
-  _stateHolder: {fileID: 504954013}
---- !u!114 &1826548612
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1826548610}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d32620dbd60fc64ca287cc7d6815733, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: GS.Prototype.MapControls::GS.Prototype.MapControls.MapCameraController
-  _panSpeed: 80
-  _zoomSpeed: 10
-  _minZoom: 20
-  _maxZoom: 200
 --- !u!20 &1826548613
 Camera:
   m_ObjectHideFlags: 0
@@ -491,12 +465,36 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1826548615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1826548610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0a9b99b555d1dd4fb70e5e9788bdee9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GS.Unity.Map::GS.Unity.Map.MapClickHandler
+--- !u!114 &1826548616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1826548610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0780b7feec1dd4f4c9b6712a854c2fcd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GS.Unity.Map::GS.Unity.Map.MapCameraController
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 1124233457}
   - {fileID: 1826548614}
   - {fileID: 141594272}
   - {fileID: 859106909}
-  - {fileID: 504954014}
-  - {fileID: 1131655096}
+  - {fileID: 404031399}

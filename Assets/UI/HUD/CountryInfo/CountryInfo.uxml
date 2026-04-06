@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/HUD/CountryInfo/CountryInfo.uss" />
+    <ui:Label name="country-name" class="country-name" text="" />
+</ui:UXML>

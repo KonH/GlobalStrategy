@@ -1,0 +1,477 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 360691b3552607843bd8c3038f830af3, type: 3}
+  m_Name: CountryVisualConfig
+  m_EditorClassIdentifier: GS.Unity.Map::GS.Unity.Map.CountryVisualConfig
+  Entries:
+  - countryId: Afghanistan
+    displayName: Afghanistan
+    color: {r: 0.8, g: 0.44000003, b: 0.44000003, a: 1}
+  - countryId: Algeria
+    displayName: Algeria
+    color: {r: 0.8, g: 0.45553958, b: 0.44000003, a: 1}
+  - countryId: American_Samoa
+    displayName: American Samoa
+    color: {r: 0.8, g: 0.47107914, b: 0.44000003, a: 1}
+  - countryId: Anguilla
+    displayName: Anguilla
+    color: {r: 0.8, g: 0.48661873, b: 0.44000003, a: 1}
+  - countryId: Annam
+    displayName: Annam
+    color: {r: 0.8, g: 0.5021583, b: 0.44000003, a: 1}
+  - countryId: Antigua_and_Barbuda
+    displayName: Antigua and Barbuda
+    color: {r: 0.8, g: 0.5176979, b: 0.44000003, a: 1}
+  - countryId: Arabia
+    displayName: Arabia
+    color: {r: 0.8, g: 0.5332374, b: 0.44000003, a: 1}
+  - countryId: Argentina
+    displayName: Argentina
+    color: {r: 0.8, g: 0.548777, b: 0.44000003, a: 1}
+  - countryId: Asante
+    displayName: Asante
+    color: {r: 0.8, g: 0.5643166, b: 0.44000003, a: 1}
+  - countryId: Ato_trading_confederacy
+    displayName: Ato trading confederacy
+    color: {r: 0.8, g: 0.5798561, b: 0.44000003, a: 1}
+  - countryId: Austria_Hungary
+    displayName: Austria Hungary
+    color: {r: 0.9098039, g: 0.84705883, b: 0.47058824, a: 1}
+  - countryId: Barotse
+    displayName: Barotse
+    color: {r: 0.8, g: 0.5953957, b: 0.44000003, a: 1}
+  - countryId: Basutoland
+    displayName: Basutoland
+    color: {r: 0.8, g: 0.6109353, b: 0.44000003, a: 1}
+  - countryId: Belgium
+    displayName: Belgium
+    color: {r: 0.8, g: 0.6264748, b: 0.44000003, a: 1}
+  - countryId: Belize
+    displayName: Belize
+    color: {r: 0.8, g: 0.6420144, b: 0.44000003, a: 1}
+  - countryId: Benin
+    displayName: Benin
+    color: {r: 0.8, g: 0.657554, b: 0.44000003, a: 1}
+  - countryId: Bhutan
+    displayName: Bhutan
+    color: {r: 0.8, g: 0.6730935, b: 0.44000003, a: 1}
+  - countryId: Bokhara_Khanate
+    displayName: Bokhara Khanate
+    color: {r: 0.8, g: 0.6886331, b: 0.44000003, a: 1}
+  - countryId: Bolivia
+    displayName: Bolivia
+    color: {r: 0.8, g: 0.7041727, b: 0.44000003, a: 1}
+  - countryId: Borgu_States
+    displayName: Borgu States
+    color: {r: 0.8, g: 0.7197122, b: 0.44000003, a: 1}
+  - countryId: Bosnia_Herzegovina
+    displayName: Bosnia-Herzegovina
+    color: {r: 0.8, g: 0.7352518, b: 0.44000003, a: 1}
+  - countryId: British_Guiana
+    displayName: British Guiana
+    color: {r: 0.8, g: 0.7507914, b: 0.44000003, a: 1}
+  - countryId: British_Raj
+    displayName: British Raj
+    color: {r: 0.8, g: 0.76633096, b: 0.44000003, a: 1}
+  - countryId: Brunei
+    displayName: Brunei
+    color: {r: 0.8, g: 0.7818705, b: 0.44000003, a: 1}
+  - countryId: Buganda
+    displayName: Buganda
+    color: {r: 0.8, g: 0.7974101, b: 0.44000003, a: 1}
+  - countryId: Bulgaria
+    displayName: Bulgaria
+    color: {r: 0.78705037, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Bunyoro
+    displayName: Bunyoro
+    color: {r: 0.7715108, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Burundi
+    displayName: Burundi
+    color: {r: 0.75597125, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Calabar
+    displayName: Calabar
+    color: {r: 0.74043167, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Canada
+    displayName: Canada
+    color: {r: 0.7248921, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Cape_Colony
+    displayName: Cape Colony
+    color: {r: 0.70935255, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Ceylon
+    displayName: Ceylon
+    color: {r: 0.69381297, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Chile
+    displayName: Chile
+    color: {r: 0.6782734, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Colombia
+    displayName: Colombia
+    color: {r: 0.6627338, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Congo
+    displayName: Congo
+    color: {r: 0.64719427, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Costa_Rica
+    displayName: Costa Rica
+    color: {r: 0.6316547, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Cotonou
+    displayName: Cotonou
+    color: {r: 0.6161151, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Dahomey
+    displayName: Dahomey
+    color: {r: 0.60057557, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Dendi_Kingdom
+    displayName: Dendi Kingdom
+    color: {r: 0.585036, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Denmark
+    displayName: Denmark
+    color: {r: 0.5694964, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Dominica
+    displayName: Dominica
+    color: {r: 0.55395687, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Dominican_Republic
+    displayName: Dominican Republic
+    color: {r: 0.5384173, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Dutch_Guiana
+    displayName: Dutch Guiana
+    color: {r: 0.52287775, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Ecuador
+    displayName: Ecuador
+    color: {r: 0.50733817, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Egypt
+    displayName: Egypt
+    color: {r: 0.49179858, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: El_Salvador
+    displayName: El Salvador
+    color: {r: 0.476259, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Ethiopia
+    displayName: Ethiopia
+    color: {r: 0.4607194, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: Fiji
+    displayName: Fiji
+    color: {r: 0.4451799, g: 0.8, b: 0.44000003, a: 1}
+  - countryId: France
+    displayName: France
+    color: {r: 0.54901963, g: 0.7058824, b: 0.8627451, a: 1}
+  - countryId: French_Guiana
+    displayName: French Guiana
+    color: {r: 0.44000003, g: 0.8, b: 0.4503597, a: 1}
+  - countryId: French_Indochina
+    displayName: French Indochina
+    color: {r: 0.44000003, g: 0.8, b: 0.4658993, a: 1}
+  - countryId: Futa_Jalon
+    displayName: Futa Jalon
+    color: {r: 0.44000003, g: 0.8, b: 0.48143888, a: 1}
+  - countryId: Futa_Toro
+    displayName: Futa Toro
+    color: {r: 0.44000003, g: 0.8, b: 0.49697846, a: 1}
+  - countryId: Gabon
+    displayName: Gabon
+    color: {r: 0.44000003, g: 0.8, b: 0.512518, a: 1}
+  - countryId: Gambia
+    displayName: Gambia
+    color: {r: 0.44000003, g: 0.8, b: 0.5280576, a: 1}
+  - countryId: Germany
+    displayName: Germany
+    color: {r: 0.78431374, g: 0.7058824, b: 0.47058824, a: 1}
+  - countryId: Greece
+    displayName: Greece
+    color: {r: 0.44000003, g: 0.8, b: 0.54359716, a: 1}
+  - countryId: Griqualand_West
+    displayName: Griqualand West
+    color: {r: 0.44000003, g: 0.8, b: 0.55913675, a: 1}
+  - countryId: Guadeloupe
+    displayName: Guadeloupe
+    color: {r: 0.44000003, g: 0.8, b: 0.5746763, a: 1}
+  - countryId: Guatemala
+    displayName: Guatemala
+    color: {r: 0.44000003, g: 0.8, b: 0.5902158, a: 1}
+  - countryId: Haiti
+    displayName: Haiti
+    color: {r: 0.44000003, g: 0.8, b: 0.6057554, a: 1}
+  - countryId: Harer_Egypt
+    displayName: Harer (Egypt)
+    color: {r: 0.44000003, g: 0.8, b: 0.621295, a: 1}
+  - countryId: Honduras
+    displayName: Honduras
+    color: {r: 0.44000003, g: 0.8, b: 0.63683456, a: 1}
+  - countryId: Ibadan
+    displayName: Ibadan
+    color: {r: 0.44000003, g: 0.8, b: 0.6523741, a: 1}
+  - countryId: Imerina
+    displayName: Imerina
+    color: {r: 0.44000003, g: 0.8, b: 0.6679137, a: 1}
+  - countryId: Imperial_Japan
+    displayName: Imperial Japan
+    color: {r: 0.78431374, g: 0.47058824, b: 0.627451, a: 1}
+  - countryId: Italy
+    displayName: Italy
+    color: {r: 0.5647059, g: 0.78431374, b: 0.5647059, a: 1}
+  - countryId: Ivory_Coast
+    displayName: Ivory Coast
+    color: {r: 0.44000003, g: 0.8, b: 0.68345326, a: 1}
+  - countryId: Kanem_Bornu
+    displayName: Kanem-Bornu
+    color: {r: 0.44000003, g: 0.8, b: 0.69899285, a: 1}
+  - countryId: Kingdom_of_Brazil
+    displayName: Kingdom of Brazil
+    color: {r: 0.47058824, g: 0.78431374, b: 0.627451, a: 1}
+  - countryId: Kingdom_of_Hawaii
+    displayName: Kingdom of Hawaii
+    color: {r: 0.44000003, g: 0.8, b: 0.71453243, a: 1}
+  - countryId: Kong_Empire
+    displayName: Kong Empire
+    color: {r: 0.44000003, g: 0.8, b: 0.7300719, a: 1}
+  - countryId: Korea
+    displayName: Korea
+    color: {r: 0.44000003, g: 0.8, b: 0.7456115, a: 1}
+  - countryId: Kuba
+    displayName: Kuba
+    color: {r: 0.44000003, g: 0.8, b: 0.7611511, a: 1}
+  - countryId: Lagos
+    displayName: Lagos
+    color: {r: 0.44000003, g: 0.8, b: 0.77669066, a: 1}
+  - countryId: Liberia
+    displayName: Liberia
+    color: {r: 0.44000003, g: 0.8, b: 0.79223025, a: 1}
+  - countryId: Lozi
+    displayName: Lozi
+    color: {r: 0.44000003, g: 0.7922302, b: 0.8, a: 1}
+  - countryId: Luba
+    displayName: Luba
+    color: {r: 0.44000003, g: 0.77669066, b: 0.8, a: 1}
+  - countryId: Lunda
+    displayName: Lunda
+    color: {r: 0.44000003, g: 0.76115113, b: 0.8, a: 1}
+  - countryId: Luxembourg
+    displayName: Luxembourg
+    color: {r: 0.44000003, g: 0.7456115, b: 0.8, a: 1}
+  - countryId: M_ori
+    displayName: M?ori
+    color: {r: 0.44000003, g: 0.73007196, b: 0.8, a: 1}
+  - countryId: Madagascar
+    displayName: Madagascar
+    color: {r: 0.44000003, g: 0.7145323, b: 0.8, a: 1}
+  - countryId: Malaya
+    displayName: Malaya
+    color: {r: 0.44000003, g: 0.69899285, b: 0.8, a: 1}
+  - countryId: Malta
+    displayName: Malta
+    color: {r: 0.44000003, g: 0.6834533, b: 0.8, a: 1}
+  - countryId: Manchu_Empire
+    displayName: Manchu Empire
+    color: {r: 0.78431374, g: 0.627451, b: 0.47058824, a: 1}
+  - countryId: Mbailundu
+    displayName: Mbailundu
+    color: {r: 0.44000003, g: 0.6679137, b: 0.8, a: 1}
+  - countryId: Mexico
+    displayName: Mexico
+    color: {r: 0.44000003, g: 0.65237415, b: 0.8, a: 1}
+  - countryId: Mirambo_Unyanyembe_Ukimbu
+    displayName: Mirambo Unyanyembe Ukimbu
+    color: {r: 0.44000003, g: 0.6368345, b: 0.8, a: 1}
+  - countryId: Montenegro
+    displayName: Montenegro
+    color: {r: 0.44000003, g: 0.621295, b: 0.8, a: 1}
+  - countryId: Montserrat
+    displayName: Montserrat
+    color: {r: 0.44000003, g: 0.60575545, b: 0.8, a: 1}
+  - countryId: Morocco
+    displayName: Morocco
+    color: {r: 0.44000003, g: 0.5902158, b: 0.8, a: 1}
+  - countryId: Mossi_States
+    displayName: Mossi States
+    color: {r: 0.44000003, g: 0.5746763, b: 0.8, a: 1}
+  - countryId: Mozambique
+    displayName: Mozambique
+    color: {r: 0.44000003, g: 0.5591366, b: 0.8, a: 1}
+  - countryId: Natal
+    displayName: Natal
+    color: {r: 0.44000003, g: 0.54359716, b: 0.8, a: 1}
+  - countryId: Ndebele
+    displayName: Ndebele
+    color: {r: 0.44000003, g: 0.52805763, b: 0.8, a: 1}
+  - countryId: Nepal
+    displayName: Nepal
+    color: {r: 0.44000003, g: 0.512518, b: 0.8, a: 1}
+  - countryId: Netherlands
+    displayName: Netherlands
+    color: {r: 0.9098039, g: 0.627451, b: 0.3137255, a: 1}
+  - countryId: Netherlands_Antilles
+    displayName: Netherlands Antilles
+    color: {r: 0.44000003, g: 0.49697846, b: 0.8, a: 1}
+  - countryId: Nguni
+    displayName: Nguni
+    color: {r: 0.44000003, g: 0.48143882, b: 0.8, a: 1}
+  - countryId: Ngwato
+    displayName: Ngwato
+    color: {r: 0.44000003, g: 0.4658993, b: 0.8, a: 1}
+  - countryId: Nicaragua
+    displayName: Nicaragua
+    color: {r: 0.44000003, g: 0.4503598, b: 0.8, a: 1}
+  - countryId: Niue
+    displayName: Niue
+    color: {r: 0.4451799, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Oman
+    displayName: Oman
+    color: {r: 0.4607194, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Opobo
+    displayName: Opobo
+    color: {r: 0.47625905, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Orange_Free_State
+    displayName: Orange Free State
+    color: {r: 0.49179858, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Ottoman_Empire
+    displayName: Ottoman Empire
+    color: {r: 0.47058824, g: 0.7529412, b: 0.627451, a: 1}
+  - countryId: Ovimbundu
+    displayName: Ovimbundu
+    color: {r: 0.5073381, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Oyo
+    displayName: Oyo
+    color: {r: 0.52287775, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Papua_New_Guinea
+    displayName: Papua New Guinea
+    color: {r: 0.5384173, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Paraguay
+    displayName: Paraguay
+    color: {r: 0.5539569, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Persia
+    displayName: Persia
+    color: {r: 0.5694964, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Peru
+    displayName: Peru
+    color: {r: 0.5850359, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Philippines
+    displayName: Philippines
+    color: {r: 0.60057557, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Polynesians
+    displayName: Polynesians
+    color: {r: 0.6161151, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Portugal
+    displayName: Portugal
+    color: {r: 0.47058824, g: 0.78431374, b: 0.47058824, a: 1}
+  - countryId: Portuguese_Guinea
+    displayName: Portuguese Guinea
+    color: {r: 0.63165474, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Qatar
+    displayName: Qatar
+    color: {r: 0.64719427, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Rabih_az_Zubayr
+    displayName: Rabih az-Zubayr
+    color: {r: 0.6627338, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Rattanakosin_Kingdom
+    displayName: Rattanakosin Kingdom
+    color: {r: 0.67827344, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Romania
+    displayName: Romania
+    color: {r: 0.69381297, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Russian_Empire
+    displayName: Russian Empire
+    color: {r: 0.627451, g: 0.78431374, b: 0.47843137, a: 1}
+  - countryId: Rwanda
+    displayName: Rwanda
+    color: {r: 0.7093526, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Saint_Barthelemy
+    displayName: Saint Barthelemy
+    color: {r: 0.7248921, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Saint_Kitts_and_Nevis
+    displayName: Saint Kitts and Nevis
+    color: {r: 0.7404316, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Saint_Martin
+    displayName: Saint Martin
+    color: {r: 0.75597125, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Samoa
+    displayName: Samoa
+    color: {r: 0.7715108, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Serbia
+    displayName: Serbia
+    color: {r: 0.7870504, g: 0.44000003, b: 0.8, a: 1}
+  - countryId: Shona
+    displayName: Shona
+    color: {r: 0.8, g: 0.44000003, b: 0.7974101, a: 1}
+  - countryId: Sierra_Leone
+    displayName: Sierra Leone
+    color: {r: 0.8, g: 0.44000003, b: 0.78187054, a: 1}
+  - countryId: Sokoto_Caliphate
+    displayName: Sokoto Caliphate
+    color: {r: 0.8, g: 0.44000003, b: 0.7663309, a: 1}
+  - countryId: Spain
+    displayName: Spain
+    color: {r: 0.78431374, g: 0.5882353, b: 0.47058824, a: 1}
+  - countryId: Spanish_Guinea
+    displayName: Spanish Guinea
+    color: {r: 0.8, g: 0.44000003, b: 0.7507914, a: 1}
+  - countryId: Sultanate_of_Damagaram
+    displayName: Sultanate of Damagaram
+    color: {r: 0.8, g: 0.44000003, b: 0.73525184, a: 1}
+  - countryId: Sultanate_of_Utetera
+    displayName: Sultanate of Utetera
+    color: {r: 0.8, g: 0.44000003, b: 0.7197122, a: 1}
+  - countryId: Sultinate_of_Zanzibar
+    displayName: Sultinate of Zanzibar
+    color: {r: 0.8, g: 0.44000003, b: 0.70417273, a: 1}
+  - countryId: Swaziland
+    displayName: Swaziland
+    color: {r: 0.8, g: 0.44000003, b: 0.6886331, a: 1}
+  - countryId: SwedenNorway
+    displayName: SwedenNorway
+    color: {r: 0.47058824, g: 0.5647059, b: 0.78431374, a: 1}
+  - countryId: Switzerland
+    displayName: Switzerland
+    color: {r: 0.8, g: 0.44000003, b: 0.67309356, a: 1}
+  - countryId: Taiwan
+    displayName: Taiwan
+    color: {r: 0.8, g: 0.44000003, b: 0.65755403, a: 1}
+  - countryId: Teke
+    displayName: Teke
+    color: {r: 0.8, g: 0.44000003, b: 0.6420144, a: 1}
+  - countryId: Tonga
+    displayName: Tonga
+    color: {r: 0.8, g: 0.44000003, b: 0.62647486, a: 1}
+  - countryId: Transvaal
+    displayName: Transvaal
+    color: {r: 0.8, g: 0.44000003, b: 0.6109352, a: 1}
+  - countryId: Trucial_Oman
+    displayName: Trucial Oman
+    color: {r: 0.8, g: 0.44000003, b: 0.5953957, a: 1}
+  - countryId: Tukular_Caliphate
+    displayName: Tukular Caliphate
+    color: {r: 0.8, g: 0.44000003, b: 0.57985616, a: 1}
+  - countryId: United_Kingdom_of_Great_Britain_and_Ireland
+    displayName: United Kingdom of Great Britain and Ireland
+    color: {r: 0.78431374, g: 0.47058824, b: 0.54901963, a: 1}
+  - countryId: United_States_of_America
+    displayName: United States of America
+    color: {r: 0.47058824, g: 0.627451, b: 0.78431374, a: 1}
+  - countryId: Uruguay
+    displayName: Uruguay
+    color: {r: 0.8, g: 0.44000003, b: 0.5643165, a: 1}
+  - countryId: Venezuela
+    displayName: Venezuela
+    color: {r: 0.8, g: 0.44000003, b: 0.54877704, a: 1}
+  - countryId: Wadai_Empire
+    displayName: Wadai Empire
+    color: {r: 0.8, g: 0.44000003, b: 0.5332374, a: 1}
+  - countryId: Wassoulou_Empire
+    displayName: Wassoulou Empire
+    color: {r: 0.8, g: 0.44000003, b: 0.5176979, a: 1}
+  - countryId: Yaka
+    displayName: Yaka
+    color: {r: 0.8, g: 0.44000003, b: 0.50215834, a: 1}
+  - countryId: Yeke
+    displayName: Yeke
+    color: {r: 0.8, g: 0.44000003, b: 0.4866187, a: 1}
+  - countryId: Zululand
+    displayName: Zululand
+    color: {r: 0.8, g: 0.44000003, b: 0.47107917, a: 1}
+  - countryId: central_Asian_khanates
+    displayName: central Asian khanates
+    color: {r: 0.8, g: 0.44000003, b: 0.45553952, a: 1}

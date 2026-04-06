@@ -1,6 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <ui:Style src="project://database/Assets/UI/Prototype/CountryInfoPanel.uss" />
-    <ui:VisualElement name="panel" class="country-panel">
-        <ui:Label name="country-name" text="" class="country-name" />
-    </ui:VisualElement>
-</ui:UXML>
