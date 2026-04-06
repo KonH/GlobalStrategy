@@ -5,6 +5,7 @@ using VContainer.Unity;
 using GS.Main;
 using GS.Game.Configs;
 using GS.Unity.Map;
+using GS.Unity.UI;
 
 namespace GS.Unity.DI {
 	public class GameLifetimeScope : LifetimeScope {
@@ -16,7 +17,8 @@ namespace GS.Unity.DI {
 			var ctx = new GameLogicContext(
 				new StreamingAssetsConfig<GeoJsonConfig>(ConfigPath("geojson_world.json")),
 				new StreamingAssetsConfig<MapEntryConfig>(ConfigPath("map_entry_config.json")),
-				new StreamingAssetsConfig<GS.Game.Configs.CountryConfig>(ConfigPath("country_config.json"))
+				new StreamingAssetsConfig<GS.Game.Configs.CountryConfig>(ConfigPath("country_config.json")),
+				new StreamingAssetsConfig<GameSettings>(ConfigPath("game_settings.json"))
 			);
 
 			builder.RegisterInstance(ctx);
@@ -30,6 +32,7 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<Camera>();
 			builder.RegisterComponentInHierarchy<MapLoader>();
 			builder.RegisterComponentInHierarchy<MapController>();
+			builder.RegisterComponentInHierarchy<TimeInputHandler>();
 
 			builder.RegisterEntryPoint<GameLoopRunner>();
 		}

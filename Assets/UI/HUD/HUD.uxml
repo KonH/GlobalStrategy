@@ -1,7 +1,9 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <ui:Style src="project://database/Assets/UI/HUD/HUD.uss" />
     <ui:Template src="project://database/Assets/UI/HUD/CountryInfo/CountryInfo.uxml" name="CountryInfo" />
+    <ui:Template src="project://database/Assets/UI/HUD/Time/Time.uxml" name="Time" />
     <ui:VisualElement name="hud-root">
         <ui:Instance template="CountryInfo" name="country-info" class="country-info-panel" />
+        <ui:Instance template="Time" name="time-panel" class="time-panel" />
     </ui:VisualElement>
 </ui:UXML>

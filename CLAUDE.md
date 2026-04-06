@@ -24,5 +24,7 @@
 - **UI Toolkit architecture:** `.claude/rules/unity/uitoolkit.md`
 - **VContainer / DI:** `.claude/rules/unity/vcontainer.md`
 - **Unity plugins (DLLs):** `.claude/rules/unity/plugins.md`
+- **Unity input handling:** `.claude/rules/unity/input.md`
+- **ECS patterns:** `.claude/rules/unity/ecs_patterns.md`
 - **Temporary scripts:** `.claude/rules/temp_scripts.md`
 - **Learning workflow:** `.claude/skills/learn.md`

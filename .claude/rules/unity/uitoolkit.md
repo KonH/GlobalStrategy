@@ -95,3 +95,18 @@ Assets/Scripts/Unity/UI/
   HUDDocument.cs        ← binding MonoBehaviour
   CountryInfoView.cs    ← plain view class
 ```
+
+## Blocking map/world clicks through UI panels
+
+Any MonoBehaviour that reads raw mouse input (e.g. `Mouse.current.leftButton`) must guard against clicks landing on UI panels:
+
+```csharp
+using UnityEngine.EventSystems;
+
+void Update() {
+    if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+    // ... process world click
+}
+```
+
+UI Toolkit registers with the EventSystem in Unity 6, so `IsPointerOverGameObject()` returns `true` whenever the pointer is over any panel element with default `PickingMode.Position`. Empty transparent areas of the HUD root do not block clicks.

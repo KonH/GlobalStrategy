@@ -10,7 +10,8 @@ namespace GS.Game.ConsoleRunner {
 			var ctx = new GameLogicContext(
 				new FileConfig<GeoJsonConfig>("data/geojson_world.json"),
 				new FileConfig<MapEntryConfig>("data/map_entry_config.json"),
-				new FileConfig<CountryConfig>("data/country_config.json")
+				new FileConfig<CountryConfig>("data/country_config.json"),
+				new FileConfig<GameSettings>("data/game_settings.json")
 			);
 			var logic = new GameLogic(ctx);
 			logic.Commands.Push(new SelectCountryCommand("FR"));

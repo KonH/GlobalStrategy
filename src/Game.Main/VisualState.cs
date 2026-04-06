@@ -17,5 +17,6 @@ namespace GS.Main {
 
 	public class VisualState {
 		public SelectedCountryState SelectedCountry { get; } = new SelectedCountryState();
+		public TimeState Time { get; } = new TimeState();
 	}
 }

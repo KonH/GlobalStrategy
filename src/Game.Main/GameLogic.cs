@@ -1,3 +1,4 @@
+using System;
 using ECS;
 using GS.Game.Commands;
 using GS.Game.Components;
@@ -8,6 +9,8 @@ namespace GS.Main {
 		readonly World _world = new World();
 		readonly CommandAccessor _commandAccessor = new CommandAccessor();
 		readonly VisualStateConverter _visualStateConverter;
+		readonly int _gameTimeEntity;
+		readonly int[] _speedMultipliers;
 
 		public VisualState VisualState { get; } = new VisualState();
 		public IWriteOnlyCommandAccessor Commands { get; }
@@ -21,12 +24,29 @@ namespace GS.Main {
 				int entity = _world.Create();
 				_world.Add(entity, new Country(entry.CountryId));
 			}
+
+			var settings = context.GameSettings.Load();
+			_speedMultipliers = settings.SpeedMultipliers;
+			_gameTimeEntity = _world.Create();
+			_world.Add(_gameTimeEntity, new GameTime {
+				CurrentTime = new DateTime(settings.StartYear, 1, 1),
+				IsPaused = false,
+				MultiplierIndex = 0
+			});
 		}
 
 		public void Update(float deltaTime) {
+			TimeSystem.Update(
+				_world,
+				_gameTimeEntity,
+				deltaTime,
+				_speedMultipliers,
+				_commandAccessor.ReadPauseCommand(),
+				_commandAccessor.ReadUnpauseCommand(),
+				_commandAccessor.ReadChangeTimeMultiplierCommand());
 			SelectCountrySystem.Update(_world, _commandAccessor.ReadSelectCountryCommand());
 			_commandAccessor.Clear();
-			_visualStateConverter.Update(_world);
+			_visualStateConverter.Update(_world, _gameTimeEntity);
 		}
 	}
 }

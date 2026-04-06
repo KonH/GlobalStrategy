@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using VContainer;
 using GS.Main;
@@ -26,6 +27,7 @@ namespace GS.Unity.Map {
 		void Update() {
 			var mouse = Mouse.current;
 			if (mouse == null || !mouse.leftButton.wasPressedThisFrame) return;
+			if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
 			var mapRenderer = _mapController != null ? _mapController.ActiveRenderer : null;
 			if (mapRenderer == null) return;
 
