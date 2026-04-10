@@ -11,6 +11,7 @@ namespace GS.Main {
 
 		internal void Update(IReadOnlyWorld world, int gameTimeEntity, int localeEntity) {
 			UpdateSelectedCountry(world);
+			UpdatePlayerCountry(world);
 			UpdateTime(world, gameTimeEntity);
 			UpdateLocale(world, localeEntity);
 		}
@@ -26,6 +27,19 @@ namespace GS.Main {
 				return;
 			}
 			_state.SelectedCountry.Set(false, "");
+		}
+
+		void UpdatePlayerCountry(IReadOnlyWorld world) {
+			int[] required = { TypeId<Country>.Value, TypeId<Player>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				if (arch.Count == 0) {
+					continue;
+				}
+				Country[] countries = arch.GetColumn<Country>();
+				_state.PlayerCountry.Set(true, countries[0].CountryId);
+				return;
+			}
+			_state.PlayerCountry.Set(false, "");
 		}
 
 		void UpdateTime(IReadOnlyWorld world, int gameTimeEntity) {

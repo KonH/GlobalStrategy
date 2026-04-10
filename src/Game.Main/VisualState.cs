@@ -29,8 +29,22 @@ namespace GS.Main {
 		}
 	}
 
+	public class PlayerCountryState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public bool IsValid { get; private set; }
+		public string CountryId { get; private set; } = "";
+
+		public void Set(bool isValid, string countryId) {
+			IsValid = isValid;
+			CountryId = countryId;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class VisualState {
 		public SelectedCountryState SelectedCountry { get; } = new SelectedCountryState();
+		public PlayerCountryState PlayerCountry { get; } = new PlayerCountryState();
 		public TimeState Time { get; } = new TimeState();
 		public LocaleState Locale { get; } = new LocaleState();
 	}

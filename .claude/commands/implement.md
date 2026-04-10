@@ -7,3 +7,4 @@ Rules:
 - Use MCP tools for Unity work (see `.claude/rules/unity/mcp_usage.md`); `src/` work uses only file tools and `dotnet` CLI
 - After each step, verify it works before moving to the next (check console errors, compilation)
 - Do not add features, refactor unrelated code, or deviate from the plan scope
+- If any changes touch `src/` (core or game non-Unity layer), write or update tests for the affected logic before finishing

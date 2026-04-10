@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/HUD/PlayerCountry/PlayerCountry.uss" />
+    <ui:Label name="player-country-name" class="player-country-name" text="" />
+</ui:UXML>

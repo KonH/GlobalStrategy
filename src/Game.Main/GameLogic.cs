@@ -24,6 +24,9 @@ namespace GS.Main {
 			foreach (var entry in countryConfig.Countries) {
 				int entity = _world.Create();
 				_world.Add(entity, new Country(entry.CountryId));
+				if (entry.CountryId == "Russian_Empire") {
+					_world.Add(entity, new Player());
+				}
 			}
 
 			var settings = context.GameSettings.Load();
@@ -49,6 +52,7 @@ namespace GS.Main {
 				_commandAccessor.ReadUnpauseCommand(),
 				_commandAccessor.ReadChangeTimeMultiplierCommand());
 			SelectCountrySystem.Update(_world, _commandAccessor.ReadSelectCountryCommand());
+			SelectPlayerCountrySystem.Update(_world, _commandAccessor.ReadSelectPlayerCountryCommand());
 			LocaleSystem.Update(_world, _localeEntity, _commandAccessor.ReadChangeLocaleCommand());
 			_commandAccessor.Clear();
 			_visualStateConverter.Update(_world, _gameTimeEntity, _localeEntity);
