@@ -6,7 +6,13 @@
       "mainMapFeatureIds": [
         "Afghanistan"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Algeria",
@@ -14,6 +20,12 @@
       "mainMapFeatureIds": [],
       "secondaryMapFeatureIds": [
         "Algeria_FR"
+      ],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
       ]
     },
     {
@@ -22,7 +34,13 @@
       "mainMapFeatureIds": [
         "American_Samoa"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Anguilla",
@@ -30,7 +48,13 @@
       "mainMapFeatureIds": [
         "Anguilla"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Annam",
@@ -38,7 +62,13 @@
       "mainMapFeatureIds": [
         "Annam"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Antigua_and_Barbuda",
@@ -46,7 +76,13 @@
       "mainMapFeatureIds": [
         "Antigua_and_Barbuda"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Arabia",
@@ -54,7 +90,13 @@
       "mainMapFeatureIds": [
         "Arabia"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Argentina",
@@ -62,7 +104,13 @@
       "mainMapFeatureIds": [
         "Argentina"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Asante",
@@ -70,7 +118,13 @@
       "mainMapFeatureIds": [
         "Asante"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Ato_trading_confederacy",
@@ -78,7 +132,13 @@
       "mainMapFeatureIds": [
         "Ato_trading_confederacy"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Austria_Hungary",
@@ -86,7 +146,13 @@
       "mainMapFeatureIds": [
         "Austria_Hungary"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
     },
     {
       "countryId": "Barotse",
@@ -94,7 +160,13 @@
       "mainMapFeatureIds": [
         "Barotse"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Basutoland",
@@ -102,7 +174,13 @@
       "mainMapFeatureIds": [
         "Basutoland"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Belgium",
@@ -118,7 +196,13 @@
       "mainMapFeatureIds": [
         "Belize"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Benin",
@@ -126,7 +210,13 @@
       "mainMapFeatureIds": [
         "Benin"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Bhutan",
@@ -134,7 +224,13 @@
       "mainMapFeatureIds": [
         "Bhutan"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Bokhara_Khanate",
@@ -142,7 +238,13 @@
       "mainMapFeatureIds": [
         "Bokhara_Khanate"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Bolivia",
@@ -150,7 +252,13 @@
       "mainMapFeatureIds": [
         "Bolivia"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Borgu_States",
@@ -158,7 +266,13 @@
       "mainMapFeatureIds": [
         "Borgu_States"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Bosnia_Herzegovina",
@@ -166,7 +280,13 @@
       "mainMapFeatureIds": [
         "Bosnia_Herzegovina"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "British_Guiana",
@@ -174,7 +294,13 @@
       "mainMapFeatureIds": [
         "British_Guiana"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "British_Raj",
@@ -182,7 +308,13 @@
       "mainMapFeatureIds": [
         "British_Raj"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
     },
     {
       "countryId": "Brunei",
@@ -190,7 +322,13 @@
       "mainMapFeatureIds": [
         "Brunei"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Buganda",
@@ -198,7 +336,13 @@
       "mainMapFeatureIds": [
         "Buganda"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Bulgaria",
@@ -206,7 +350,13 @@
       "mainMapFeatureIds": [
         "Bulgaria"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Bunyoro",
@@ -214,7 +364,13 @@
       "mainMapFeatureIds": [
         "Bunyoro"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Burundi",
@@ -222,7 +378,13 @@
       "mainMapFeatureIds": [
         "Burundi"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Calabar",
@@ -230,7 +392,13 @@
       "mainMapFeatureIds": [
         "Calabar"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Canada",
@@ -246,7 +414,13 @@
       "mainMapFeatureIds": [
         "Cape_Colony"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Ceylon",
@@ -254,7 +428,13 @@
       "mainMapFeatureIds": [
         "Ceylon"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Chile",
@@ -262,7 +442,13 @@
       "mainMapFeatureIds": [
         "Chile"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Colombia",
@@ -270,7 +456,13 @@
       "mainMapFeatureIds": [
         "Colombia"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Congo",
@@ -278,7 +470,13 @@
       "mainMapFeatureIds": [
         "Congo"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Costa_Rica",
@@ -286,7 +484,13 @@
       "mainMapFeatureIds": [
         "Costa_Rica"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Cotonou",
@@ -294,7 +498,13 @@
       "mainMapFeatureIds": [
         "Cotonou"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Dahomey",
@@ -302,7 +512,13 @@
       "mainMapFeatureIds": [
         "Dahomey"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Dendi_Kingdom",
@@ -310,7 +526,13 @@
       "mainMapFeatureIds": [
         "Dendi_Kingdom"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Denmark",
@@ -321,6 +543,12 @@
       "secondaryMapFeatureIds": [
         "Iceland",
         "Greenland"
+      ],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
       ]
     },
     {
@@ -329,7 +557,13 @@
       "mainMapFeatureIds": [
         "Dominica"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Dominican_Republic",
@@ -337,7 +571,13 @@
       "mainMapFeatureIds": [
         "Dominican_Republic"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Dutch_Guiana",
@@ -345,7 +585,13 @@
       "mainMapFeatureIds": [
         "Dutch_Guiana"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Ecuador",
@@ -353,7 +599,13 @@
       "mainMapFeatureIds": [
         "Ecuador"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Egypt",
@@ -361,7 +613,13 @@
       "mainMapFeatureIds": [
         "Egypt"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "El_Salvador",
@@ -369,7 +627,13 @@
       "mainMapFeatureIds": [
         "El_Salvador"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Ethiopia",
@@ -377,7 +641,13 @@
       "mainMapFeatureIds": [
         "Ethiopia"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Fiji",
@@ -385,7 +655,13 @@
       "mainMapFeatureIds": [
         "Fiji"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "France",
@@ -397,6 +673,12 @@
       "secondaryMapFeatureIds": [
         "Senegal_FR",
         "Wallis_and_Futuna_Islands"
+      ],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
       ]
     },
     {
@@ -405,7 +687,13 @@
       "mainMapFeatureIds": [
         "French_Guiana"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "French_Indochina",
@@ -413,7 +701,13 @@
       "mainMapFeatureIds": [
         "French_Indochina"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Futa_Jalon",
@@ -421,7 +715,13 @@
       "mainMapFeatureIds": [
         "Futa_Jalon"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Futa_Toro",
@@ -429,7 +729,13 @@
       "mainMapFeatureIds": [
         "Futa_Toro"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Gabon",
@@ -437,7 +743,13 @@
       "mainMapFeatureIds": [
         "Gabon"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Gambia",
@@ -445,7 +757,13 @@
       "mainMapFeatureIds": [
         "Gambia"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Germany",
@@ -454,7 +772,13 @@
         "Germany",
         "Germany"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
     },
     {
       "countryId": "Greece",
@@ -462,7 +786,13 @@
       "mainMapFeatureIds": [
         "Greece"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Griqualand_West",
@@ -470,7 +800,13 @@
       "mainMapFeatureIds": [
         "Griqualand_West"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Guadeloupe",
@@ -478,7 +814,13 @@
       "mainMapFeatureIds": [
         "Guadeloupe"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Guatemala",
@@ -486,7 +828,13 @@
       "mainMapFeatureIds": [
         "Guatemala"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Haiti",
@@ -494,7 +842,13 @@
       "mainMapFeatureIds": [
         "Haiti"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Harer_Egypt",
@@ -502,7 +856,13 @@
       "mainMapFeatureIds": [
         "Harer_Egypt"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Honduras",
@@ -510,7 +870,13 @@
       "mainMapFeatureIds": [
         "Honduras"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Ibadan",
@@ -518,7 +884,13 @@
       "mainMapFeatureIds": [
         "Ibadan"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Imerina",
@@ -526,7 +898,13 @@
       "mainMapFeatureIds": [
         "Imerina"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Imperial_Japan",
@@ -534,7 +912,13 @@
       "mainMapFeatureIds": [
         "Imperial_Japan"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
     },
     {
       "countryId": "Italy",
@@ -542,7 +926,13 @@
       "mainMapFeatureIds": [
         "Italy"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
     },
     {
       "countryId": "Ivory_Coast",
@@ -550,7 +940,13 @@
       "mainMapFeatureIds": [
         "Ivory_Coast"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Kanem_Bornu",
@@ -558,7 +954,13 @@
       "mainMapFeatureIds": [
         "Kanem_Bornu"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Kingdom_of_Brazil",
@@ -566,7 +968,13 @@
       "mainMapFeatureIds": [
         "Kingdom_of_Brazil"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
     },
     {
       "countryId": "Kingdom_of_Hawaii",
@@ -574,7 +982,13 @@
       "mainMapFeatureIds": [
         "Kingdom_of_Hawaii"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Kong_Empire",
@@ -582,7 +996,13 @@
       "mainMapFeatureIds": [
         "Kong_Empire"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Korea",
@@ -590,7 +1010,13 @@
       "mainMapFeatureIds": [
         "Korea"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Kuba",
@@ -598,7 +1024,13 @@
       "mainMapFeatureIds": [
         "Kuba"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Lagos",
@@ -606,7 +1038,13 @@
       "mainMapFeatureIds": [
         "Lagos"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Liberia",
@@ -614,7 +1052,13 @@
       "mainMapFeatureIds": [
         "Liberia"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Lozi",
@@ -622,7 +1066,13 @@
       "mainMapFeatureIds": [
         "Lozi"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Luba",
@@ -630,7 +1080,13 @@
       "mainMapFeatureIds": [
         "Luba"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Lunda",
@@ -638,7 +1094,13 @@
       "mainMapFeatureIds": [
         "Lunda"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Luxembourg",
@@ -646,7 +1108,13 @@
       "mainMapFeatureIds": [
         "Luxembourg"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "M_ori",
@@ -654,7 +1122,13 @@
       "mainMapFeatureIds": [
         "M_ori"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Madagascar",
@@ -662,7 +1136,13 @@
       "mainMapFeatureIds": [
         "Madagascar"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Malaya",
@@ -670,7 +1150,13 @@
       "mainMapFeatureIds": [
         "Malaya"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Malta",
@@ -678,7 +1164,13 @@
       "mainMapFeatureIds": [
         "Malta"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Manchu_Empire",
@@ -686,7 +1178,13 @@
       "mainMapFeatureIds": [
         "Manchu_Empire"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
     },
     {
       "countryId": "Mbailundu",
@@ -694,7 +1192,13 @@
       "mainMapFeatureIds": [
         "Mbailundu"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Mexico",
@@ -702,7 +1206,13 @@
       "mainMapFeatureIds": [
         "Mexico"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Mirambo_Unyanyembe_Ukimbu",
@@ -710,7 +1220,13 @@
       "mainMapFeatureIds": [
         "Mirambo_Unyanyembe_Ukimbu"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Montenegro",
@@ -718,7 +1234,13 @@
       "mainMapFeatureIds": [
         "Montenegro"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Montserrat",
@@ -726,7 +1248,13 @@
       "mainMapFeatureIds": [
         "Montserrat"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Morocco",
@@ -734,7 +1262,13 @@
       "mainMapFeatureIds": [
         "Morocco"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Mossi_States",
@@ -742,7 +1276,13 @@
       "mainMapFeatureIds": [
         "Mossi_States"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Mozambique",
@@ -750,7 +1290,13 @@
       "mainMapFeatureIds": [
         "Mozambique"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Natal",
@@ -758,7 +1304,13 @@
       "mainMapFeatureIds": [
         "Natal"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Ndebele",
@@ -766,7 +1318,13 @@
       "mainMapFeatureIds": [
         "Ndebele"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Nepal",
@@ -774,7 +1332,13 @@
       "mainMapFeatureIds": [
         "Nepal"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Netherlands",
@@ -792,7 +1356,13 @@
       "mainMapFeatureIds": [
         "Netherlands_Antilles"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Nguni",
@@ -800,7 +1370,13 @@
       "mainMapFeatureIds": [
         "Nguni"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Ngwato",
@@ -808,7 +1384,13 @@
       "mainMapFeatureIds": [
         "Ngwato"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Nicaragua",
@@ -816,7 +1398,13 @@
       "mainMapFeatureIds": [
         "Nicaragua"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Niue",
@@ -824,7 +1412,13 @@
       "mainMapFeatureIds": [
         "Niue"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Oman",
@@ -832,7 +1426,13 @@
       "mainMapFeatureIds": [
         "Oman"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Opobo",
@@ -840,7 +1440,13 @@
       "mainMapFeatureIds": [
         "Opobo"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Orange_Free_State",
@@ -848,7 +1454,13 @@
       "mainMapFeatureIds": [
         "Orange_Free_State"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Ottoman_Empire",
@@ -856,7 +1468,13 @@
       "mainMapFeatureIds": [
         "Ottoman_Empire"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
     },
     {
       "countryId": "Ovimbundu",
@@ -864,7 +1482,13 @@
       "mainMapFeatureIds": [
         "Ovimbundu"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Oyo",
@@ -872,7 +1496,13 @@
       "mainMapFeatureIds": [
         "Oyo"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Papua_New_Guinea",
@@ -880,7 +1510,13 @@
       "mainMapFeatureIds": [
         "Papua_New_Guinea"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Paraguay",
@@ -888,7 +1524,13 @@
       "mainMapFeatureIds": [
         "Paraguay"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Persia",
@@ -896,7 +1538,13 @@
       "mainMapFeatureIds": [
         "Persia"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Peru",
@@ -904,7 +1552,13 @@
       "mainMapFeatureIds": [
         "Peru"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Philippines",
@@ -912,7 +1566,13 @@
       "mainMapFeatureIds": [
         "Philippines"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Polynesians",
@@ -920,7 +1580,13 @@
       "mainMapFeatureIds": [
         "Polynesians"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Portugal",
@@ -930,6 +1596,12 @@
       ],
       "secondaryMapFeatureIds": [
         "Angola_Portugal"
+      ],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
       ]
     },
     {
@@ -938,7 +1610,13 @@
       "mainMapFeatureIds": [
         "Portuguese_Guinea"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Qatar",
@@ -946,7 +1624,13 @@
       "mainMapFeatureIds": [
         "Qatar"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Rabih_az_Zubayr",
@@ -954,7 +1638,13 @@
       "mainMapFeatureIds": [
         "Rabih_az_Zubayr"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Rattanakosin_Kingdom",
@@ -962,7 +1652,13 @@
       "mainMapFeatureIds": [
         "Rattanakosin_Kingdom"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Romania",
@@ -970,7 +1666,13 @@
       "mainMapFeatureIds": [
         "Romania"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Russian_Empire",
@@ -979,7 +1681,13 @@
         "Russian_Empire",
         "Russian_Empire"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
     },
     {
       "countryId": "Rwanda",
@@ -987,7 +1695,13 @@
       "mainMapFeatureIds": [
         "Rwanda"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Saint_Barthelemy",
@@ -995,7 +1709,13 @@
       "mainMapFeatureIds": [
         "Saint_Barthelemy"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Saint_Kitts_and_Nevis",
@@ -1003,7 +1723,13 @@
       "mainMapFeatureIds": [
         "Saint_Kitts_and_Nevis"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Saint_Martin",
@@ -1011,7 +1737,13 @@
       "mainMapFeatureIds": [
         "Saint_Martin"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Samoa",
@@ -1019,7 +1751,13 @@
       "mainMapFeatureIds": [
         "Samoa"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Serbia",
@@ -1027,7 +1765,13 @@
       "mainMapFeatureIds": [
         "Serbia"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Shona",
@@ -1035,7 +1779,13 @@
       "mainMapFeatureIds": [
         "Shona"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Sierra_Leone",
@@ -1043,7 +1793,13 @@
       "mainMapFeatureIds": [
         "Sierra_Leone"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Sokoto_Caliphate",
@@ -1051,7 +1807,13 @@
       "mainMapFeatureIds": [
         "Sokoto_Caliphate"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Spain",
@@ -1060,7 +1822,13 @@
         "Spain",
         "Spain"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Spanish_Guinea",
@@ -1068,7 +1836,13 @@
       "mainMapFeatureIds": [
         "Spanish_Guinea"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Sultanate_of_Damagaram",
@@ -1076,7 +1850,13 @@
       "mainMapFeatureIds": [
         "Sultanate_of_Damagaram"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Sultanate_of_Utetera",
@@ -1084,7 +1864,13 @@
       "mainMapFeatureIds": [
         "Sultanate_of_Utetera"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Sultinate_of_Zanzibar",
@@ -1092,7 +1878,13 @@
       "mainMapFeatureIds": [
         "Sultinate_of_Zanzibar"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Swaziland",
@@ -1100,7 +1892,13 @@
       "mainMapFeatureIds": [
         "Swaziland"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "SwedenNorway",
@@ -1124,7 +1922,13 @@
       "mainMapFeatureIds": [
         "Taiwan"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Teke",
@@ -1132,7 +1936,13 @@
       "mainMapFeatureIds": [
         "Teke"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Tonga",
@@ -1140,7 +1950,13 @@
       "mainMapFeatureIds": [
         "Tonga"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Transvaal",
@@ -1148,7 +1964,13 @@
       "mainMapFeatureIds": [
         "Transvaal"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Trucial_Oman",
@@ -1156,7 +1978,13 @@
       "mainMapFeatureIds": [
         "Trucial_Oman"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Tukular_Caliphate",
@@ -1164,7 +1992,13 @@
       "mainMapFeatureIds": [
         "Tukular_Caliphate"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "United_Kingdom_of_Great_Britain_and_Ireland",
@@ -1181,6 +2015,12 @@
         "Queensland_UK",
         "South_Australia_UK",
         "Western_Australia_UK"
+      ],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
       ]
     },
     {
@@ -1191,6 +2031,12 @@
       ],
       "secondaryMapFeatureIds": [
         "United_States_Virgin_Islands"
+      ],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
       ]
     },
     {
@@ -1199,7 +2045,13 @@
       "mainMapFeatureIds": [
         "Uruguay"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Venezuela",
@@ -1207,7 +2059,13 @@
       "mainMapFeatureIds": [
         "Venezuela"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
     },
     {
       "countryId": "Wadai_Empire",
@@ -1215,7 +2073,13 @@
       "mainMapFeatureIds": [
         "Wadai_Empire"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Wassoulou_Empire",
@@ -1223,7 +2087,13 @@
       "mainMapFeatureIds": [
         "Wassoulou_Empire"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Yaka",
@@ -1231,7 +2101,13 @@
       "mainMapFeatureIds": [
         "Yaka"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Yeke",
@@ -1239,7 +2115,13 @@
       "mainMapFeatureIds": [
         "Yeke"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "Zululand",
@@ -1247,7 +2129,13 @@
       "mainMapFeatureIds": [
         "Zululand"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     },
     {
       "countryId": "central_Asian_khanates",
@@ -1255,7 +2143,13 @@
       "mainMapFeatureIds": [
         "central_Asian_khanates"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
     }
   ]
 }

@@ -17,5 +17,11 @@ namespace GS.Game.Configs {
 		public string DisplayName { get; set; } = "";
 		public List<string> MainMapFeatureIds { get; set; } = new List<string>();
 		public List<string> SecondaryMapFeatureIds { get; set; } = new List<string>();
+		public List<CountryResourceInit> InitialResources { get; set; } = new List<CountryResourceInit>();
+	}
+
+	public class CountryResourceInit {
+		public string ResourceId { get; set; } = "";
+		public double Value { get; set; } = 0;
 	}
 }

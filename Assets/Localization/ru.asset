@@ -15,310 +15,335 @@ MonoBehaviour:
   Locale: ru
   Entries:
   - Key: country_name.Afghanistan
-    Value: Афганистан
+    Value: "\u0410\u0444\u0433\u0430\u043D\u0438\u0441\u0442\u0430\u043D"
   - Key: country_name.Algeria
-    Value: Алжир
+    Value: "\u0410\u043B\u0436\u0438\u0440"
   - Key: country_name.American_Samoa
-    Value: Американское Самоа
+    Value: "\u0410\u043C\u0435\u0440\u0438\u043A\u0430\u043D\u0441\u043A\u043E\u0435
+      \u0421\u0430\u043C\u043E\u0430"
   - Key: country_name.Anguilla
-    Value: Ангилья
+    Value: "\u0410\u043D\u0433\u0438\u043B\u044C\u044F"
   - Key: country_name.Annam
-    Value: Аннам
+    Value: "\u0410\u043D\u043D\u0430\u043C"
   - Key: country_name.Antigua_and_Barbuda
-    Value: Антигуа и Барбуда
+    Value: "\u0410\u043D\u0442\u0438\u0433\u0443\u0430 \u0438 \u0411\u0430\u0440\u0431\u0443\u0434\u0430"
   - Key: country_name.Arabia
-    Value: Аравия
+    Value: "\u0410\u0440\u0430\u0432\u0438\u044F"
   - Key: country_name.Argentina
-    Value: Аргентина
+    Value: "\u0410\u0440\u0433\u0435\u043D\u0442\u0438\u043D\u0430"
   - Key: country_name.Asante
-    Value: Ашанти
+    Value: "\u0410\u0448\u0430\u043D\u0442\u0438"
   - Key: country_name.Ato_trading_confederacy
-    Value: Торговая конфедерация Ато
+    Value: "\u0422\u043E\u0440\u0433\u043E\u0432\u0430\u044F \u043A\u043E\u043D\u0444\u0435\u0434\u0435\u0440\u0430\u0446\u0438\u044F
+      \u0410\u0442\u043E"
   - Key: country_name.Austria_Hungary
-    Value: Австро-Венгрия
+    Value: "\u0410\u0432\u0441\u0442\u0440\u043E-\u0412\u0435\u043D\u0433\u0440\u0438\u044F"
   - Key: country_name.Barotse
-    Value: Баротсе
+    Value: "\u0411\u0430\u0440\u043E\u0442\u0441\u0435"
   - Key: country_name.Basutoland
-    Value: Басутоленд
+    Value: "\u0411\u0430\u0441\u0443\u0442\u043E\u043B\u0435\u043D\u0434"
   - Key: country_name.Belgium
-    Value: Бельгия
+    Value: "\u0411\u0435\u043B\u044C\u0433\u0438\u044F"
   - Key: country_name.Belize
-    Value: Белиз
+    Value: "\u0411\u0435\u043B\u0438\u0437"
   - Key: country_name.Benin
-    Value: Бенин
+    Value: "\u0411\u0435\u043D\u0438\u043D"
   - Key: country_name.Bhutan
-    Value: Бутан
+    Value: "\u0411\u0443\u0442\u0430\u043D"
   - Key: country_name.Bokhara_Khanate
-    Value: Бухарское ханство
+    Value: "\u0411\u0443\u0445\u0430\u0440\u0441\u043A\u043E\u0435 \u0445\u0430\u043D\u0441\u0442\u0432\u043E"
   - Key: country_name.Bolivia
-    Value: Боливия
+    Value: "\u0411\u043E\u043B\u0438\u0432\u0438\u044F"
   - Key: country_name.Borgu_States
-    Value: Государства Боргу
+    Value: "\u0413\u043E\u0441\u0443\u0434\u0430\u0440\u0441\u0442\u0432\u0430 \u0411\u043E\u0440\u0433\u0443"
   - Key: country_name.Bosnia_Herzegovina
-    Value: Босния и Герцеговина
+    Value: "\u0411\u043E\u0441\u043D\u0438\u044F \u0438 \u0413\u0435\u0440\u0446\u0435\u0433\u043E\u0432\u0438\u043D\u0430"
   - Key: country_name.British_Guiana
-    Value: Британская Гвиана
+    Value: "\u0411\u0440\u0438\u0442\u0430\u043D\u0441\u043A\u0430\u044F \u0413\u0432\u0438\u0430\u043D\u0430"
   - Key: country_name.British_Raj
-    Value: Британская Индия
+    Value: "\u0411\u0440\u0438\u0442\u0430\u043D\u0441\u043A\u0430\u044F \u0418\u043D\u0434\u0438\u044F"
   - Key: country_name.Brunei
-    Value: Бруней
+    Value: "\u0411\u0440\u0443\u043D\u0435\u0439"
   - Key: country_name.Buganda
-    Value: Буганда
+    Value: "\u0411\u0443\u0433\u0430\u043D\u0434\u0430"
   - Key: country_name.Bulgaria
-    Value: Болгария
+    Value: "\u0411\u043E\u043B\u0433\u0430\u0440\u0438\u044F"
   - Key: country_name.Bunyoro
-    Value: Буньоро
+    Value: "\u0411\u0443\u043D\u044C\u043E\u0440\u043E"
   - Key: country_name.Burundi
-    Value: Бурунди
+    Value: "\u0411\u0443\u0440\u0443\u043D\u0434\u0438"
   - Key: country_name.Calabar
-    Value: Калабар
+    Value: "\u041A\u0430\u043B\u0430\u0431\u0430\u0440"
   - Key: country_name.Canada
-    Value: Канада
+    Value: "\u041A\u0430\u043D\u0430\u0434\u0430"
   - Key: country_name.Cape_Colony
-    Value: Капская колония
+    Value: "\u041A\u0430\u043F\u0441\u043A\u0430\u044F \u043A\u043E\u043B\u043E\u043D\u0438\u044F"
   - Key: country_name.Ceylon
-    Value: Цейлон
+    Value: "\u0426\u0435\u0439\u043B\u043E\u043D"
   - Key: country_name.Chile
-    Value: Чили
+    Value: "\u0427\u0438\u043B\u0438"
   - Key: country_name.Colombia
-    Value: Колумбия
+    Value: "\u041A\u043E\u043B\u0443\u043C\u0431\u0438\u044F"
   - Key: country_name.Congo
-    Value: Конго
+    Value: "\u041A\u043E\u043D\u0433\u043E"
   - Key: country_name.Costa_Rica
-    Value: Коста-Рика
+    Value: "\u041A\u043E\u0441\u0442\u0430-\u0420\u0438\u043A\u0430"
   - Key: country_name.Cotonou
-    Value: Котону
+    Value: "\u041A\u043E\u0442\u043E\u043D\u0443"
   - Key: country_name.Dahomey
-    Value: Дагомея
+    Value: "\u0414\u0430\u0433\u043E\u043C\u0435\u044F"
   - Key: country_name.Dendi_Kingdom
-    Value: Королевство Денди
+    Value: "\u041A\u043E\u0440\u043E\u043B\u0435\u0432\u0441\u0442\u0432\u043E \u0414\u0435\u043D\u0434\u0438"
   - Key: country_name.Denmark
-    Value: Дания
+    Value: "\u0414\u0430\u043D\u0438\u044F"
   - Key: country_name.Dominica
-    Value: Доминика
+    Value: "\u0414\u043E\u043C\u0438\u043D\u0438\u043A\u0430"
   - Key: country_name.Dominican_Republic
-    Value: Доминиканская Республика
+    Value: "\u0414\u043E\u043C\u0438\u043D\u0438\u043A\u0430\u043D\u0441\u043A\u0430\u044F
+      \u0420\u0435\u0441\u043F\u0443\u0431\u043B\u0438\u043A\u0430"
   - Key: country_name.Dutch_Guiana
-    Value: Нидерландская Гвиана
+    Value: "\u041D\u0438\u0434\u0435\u0440\u043B\u0430\u043D\u0434\u0441\u043A\u0430\u044F
+      \u0413\u0432\u0438\u0430\u043D\u0430"
   - Key: country_name.Ecuador
-    Value: Эквадор
+    Value: "\u042D\u043A\u0432\u0430\u0434\u043E\u0440"
   - Key: country_name.Egypt
-    Value: Египет
+    Value: "\u0415\u0433\u0438\u043F\u0435\u0442"
   - Key: country_name.El_Salvador
-    Value: Сальвадор
+    Value: "\u0421\u0430\u043B\u044C\u0432\u0430\u0434\u043E\u0440"
   - Key: country_name.Ethiopia
-    Value: Эфиопия
+    Value: "\u042D\u0444\u0438\u043E\u043F\u0438\u044F"
   - Key: country_name.Fiji
-    Value: Фиджи
+    Value: "\u0424\u0438\u0434\u0436\u0438"
   - Key: country_name.France
-    Value: Франция
+    Value: "\u0424\u0440\u0430\u043D\u0446\u0438\u044F"
   - Key: country_name.French_Guiana
-    Value: Французская Гвиана
+    Value: "\u0424\u0440\u0430\u043D\u0446\u0443\u0437\u0441\u043A\u0430\u044F \u0413\u0432\u0438\u0430\u043D\u0430"
   - Key: country_name.French_Indochina
-    Value: Французский Индокитай
+    Value: "\u0424\u0440\u0430\u043D\u0446\u0443\u0437\u0441\u043A\u0438\u0439 \u0418\u043D\u0434\u043E\u043A\u0438\u0442\u0430\u0439"
   - Key: country_name.Futa_Jalon
-    Value: Фута-Джалон
+    Value: "\u0424\u0443\u0442\u0430-\u0414\u0436\u0430\u043B\u043E\u043D"
   - Key: country_name.Futa_Toro
-    Value: Фута-Торо
+    Value: "\u0424\u0443\u0442\u0430-\u0422\u043E\u0440\u043E"
   - Key: country_name.Gabon
-    Value: Габон
+    Value: "\u0413\u0430\u0431\u043E\u043D"
   - Key: country_name.Gambia
-    Value: Гамбия
+    Value: "\u0413\u0430\u043C\u0431\u0438\u044F"
   - Key: country_name.Germany
-    Value: Германия
+    Value: "\u0413\u0435\u0440\u043C\u0430\u043D\u0438\u044F"
   - Key: country_name.Greece
-    Value: Греция
+    Value: "\u0413\u0440\u0435\u0446\u0438\u044F"
   - Key: country_name.Griqualand_West
-    Value: Западный Грикваленд
+    Value: "\u0417\u0430\u043F\u0430\u0434\u043D\u044B\u0439 \u0413\u0440\u0438\u043A\u0432\u0430\u043B\u0435\u043D\u0434"
   - Key: country_name.Guadeloupe
-    Value: Гваделупа
+    Value: "\u0413\u0432\u0430\u0434\u0435\u043B\u0443\u043F\u0430"
   - Key: country_name.Guatemala
-    Value: Гватемала
+    Value: "\u0413\u0432\u0430\u0442\u0435\u043C\u0430\u043B\u0430"
   - Key: country_name.Haiti
-    Value: Гаити
+    Value: "\u0413\u0430\u0438\u0442\u0438"
   - Key: country_name.Harer_Egypt
-    Value: Харэр (Египет)
+    Value: "\u0425\u0430\u0440\u044D\u0440 (\u0415\u0433\u0438\u043F\u0435\u0442)"
   - Key: country_name.Honduras
-    Value: Гондурас
+    Value: "\u0413\u043E\u043D\u0434\u0443\u0440\u0430\u0441"
   - Key: country_name.Ibadan
-    Value: Ибадан
+    Value: "\u0418\u0431\u0430\u0434\u0430\u043D"
   - Key: country_name.Imerina
-    Value: Имерина
+    Value: "\u0418\u043C\u0435\u0440\u0438\u043D\u0430"
   - Key: country_name.Imperial_Japan
-    Value: Японская империя
+    Value: "\u042F\u043F\u043E\u043D\u0441\u043A\u0430\u044F \u0438\u043C\u043F\u0435\u0440\u0438\u044F"
   - Key: country_name.Italy
-    Value: Италия
+    Value: "\u0418\u0442\u0430\u043B\u0438\u044F"
   - Key: country_name.Ivory_Coast
-    Value: Берег Слоновой Кости
+    Value: "\u0411\u0435\u0440\u0435\u0433 \u0421\u043B\u043E\u043D\u043E\u0432\u043E\u0439
+      \u041A\u043E\u0441\u0442\u0438"
   - Key: country_name.Kanem_Bornu
-    Value: Канем-Борну
+    Value: "\u041A\u0430\u043D\u0435\u043C-\u0411\u043E\u0440\u043D\u0443"
   - Key: country_name.Kingdom_of_Brazil
-    Value: Бразильская империя
+    Value: "\u0411\u0440\u0430\u0437\u0438\u043B\u044C\u0441\u043A\u0430\u044F \u0438\u043C\u043F\u0435\u0440\u0438\u044F"
   - Key: country_name.Kingdom_of_Hawaii
-    Value: Королевство Гавайи
+    Value: "\u041A\u043E\u0440\u043E\u043B\u0435\u0432\u0441\u0442\u0432\u043E \u0413\u0430\u0432\u0430\u0439\u0438"
   - Key: country_name.Kong_Empire
-    Value: Империя Конг
+    Value: "\u0418\u043C\u043F\u0435\u0440\u0438\u044F \u041A\u043E\u043D\u0433"
   - Key: country_name.Korea
-    Value: Корея
+    Value: "\u041A\u043E\u0440\u0435\u044F"
   - Key: country_name.Kuba
-    Value: Куба (Африка)
+    Value: "\u041A\u0443\u0431\u0430 (\u0410\u0444\u0440\u0438\u043A\u0430)"
   - Key: country_name.Lagos
-    Value: Лагос
+    Value: "\u041B\u0430\u0433\u043E\u0441"
   - Key: country_name.Liberia
-    Value: Либерия
+    Value: "\u041B\u0438\u0431\u0435\u0440\u0438\u044F"
   - Key: country_name.Lozi
-    Value: Лози
+    Value: "\u041B\u043E\u0437\u0438"
   - Key: country_name.Luba
-    Value: Луба
+    Value: "\u041B\u0443\u0431\u0430"
   - Key: country_name.Lunda
-    Value: Лунда
+    Value: "\u041B\u0443\u043D\u0434\u0430"
   - Key: country_name.Luxembourg
-    Value: Люксембург
+    Value: "\u041B\u044E\u043A\u0441\u0435\u043C\u0431\u0443\u0440\u0433"
   - Key: country_name.M_ori
-    Value: Маори
+    Value: "\u041C\u0430\u043E\u0440\u0438"
   - Key: country_name.Madagascar
-    Value: Мадагаскар
+    Value: "\u041C\u0430\u0434\u0430\u0433\u0430\u0441\u043A\u0430\u0440"
   - Key: country_name.Malaya
-    Value: Малайя
+    Value: "\u041C\u0430\u043B\u0430\u0439\u044F"
   - Key: country_name.Malta
-    Value: Мальта
+    Value: "\u041C\u0430\u043B\u044C\u0442\u0430"
   - Key: country_name.Manchu_Empire
-    Value: Китайская империя
+    Value: "\u041A\u0438\u0442\u0430\u0439\u0441\u043A\u0430\u044F \u0438\u043C\u043F\u0435\u0440\u0438\u044F"
   - Key: country_name.Mbailundu
-    Value: Мбайлунду
+    Value: "\u041C\u0431\u0430\u0439\u043B\u0443\u043D\u0434\u0443"
   - Key: country_name.Mexico
-    Value: Мексика
+    Value: "\u041C\u0435\u043A\u0441\u0438\u043A\u0430"
   - Key: country_name.Mirambo_Unyanyembe_Ukimbu
-    Value: Мирамбо-Уньяньембе-Укимбу
+    Value: "\u041C\u0438\u0440\u0430\u043C\u0431\u043E-\u0423\u043D\u044C\u044F\u043D\u044C\u0435\u043C\u0431\u0435-\u0423\u043A\u0438\u043C\u0431\u0443"
   - Key: country_name.Montenegro
-    Value: Черногория
+    Value: "\u0427\u0435\u0440\u043D\u043E\u0433\u043E\u0440\u0438\u044F"
   - Key: country_name.Montserrat
-    Value: Монтсеррат
+    Value: "\u041C\u043E\u043D\u0442\u0441\u0435\u0440\u0440\u0430\u0442"
   - Key: country_name.Morocco
-    Value: Марокко
+    Value: "\u041C\u0430\u0440\u043E\u043A\u043A\u043E"
   - Key: country_name.Mossi_States
-    Value: Государства Мосси
+    Value: "\u0413\u043E\u0441\u0443\u0434\u0430\u0440\u0441\u0442\u0432\u0430 \u041C\u043E\u0441\u0441\u0438"
   - Key: country_name.Mozambique
-    Value: Мозамбик
+    Value: "\u041C\u043E\u0437\u0430\u043C\u0431\u0438\u043A"
   - Key: country_name.Natal
-    Value: Наталь
+    Value: "\u041D\u0430\u0442\u0430\u043B\u044C"
   - Key: country_name.Ndebele
-    Value: Ндебеле
+    Value: "\u041D\u0434\u0435\u0431\u0435\u043B\u0435"
   - Key: country_name.Nepal
-    Value: Непал
+    Value: "\u041D\u0435\u043F\u0430\u043B"
   - Key: country_name.Netherlands
-    Value: Нидерланды
+    Value: "\u041D\u0438\u0434\u0435\u0440\u043B\u0430\u043D\u0434\u044B"
   - Key: country_name.Netherlands_Antilles
-    Value: Нидерландские Антильские острова
+    Value: "\u041D\u0438\u0434\u0435\u0440\u043B\u0430\u043D\u0434\u0441\u043A\u0438\u0435
+      \u0410\u043D\u0442\u0438\u043B\u044C\u0441\u043A\u0438\u0435 \u043E\u0441\u0442\u0440\u043E\u0432\u0430"
   - Key: country_name.Nguni
-    Value: Нгуни
+    Value: "\u041D\u0433\u0443\u043D\u0438"
   - Key: country_name.Ngwato
-    Value: Нгвато
+    Value: "\u041D\u0433\u0432\u0430\u0442\u043E"
   - Key: country_name.Nicaragua
-    Value: Никарагуа
+    Value: "\u041D\u0438\u043A\u0430\u0440\u0430\u0433\u0443\u0430"
   - Key: country_name.Niue
-    Value: Ниуэ
+    Value: "\u041D\u0438\u0443\u044D"
   - Key: country_name.Oman
-    Value: Оман
+    Value: "\u041E\u043C\u0430\u043D"
   - Key: country_name.Opobo
-    Value: Опобо
+    Value: "\u041E\u043F\u043E\u0431\u043E"
   - Key: country_name.Orange_Free_State
-    Value: Оранжевое свободное государство
+    Value: "\u041E\u0440\u0430\u043D\u0436\u0435\u0432\u043E\u0435 \u0441\u0432\u043E\u0431\u043E\u0434\u043D\u043E\u0435
+      \u0433\u043E\u0441\u0443\u0434\u0430\u0440\u0441\u0442\u0432\u043E"
   - Key: country_name.Ottoman_Empire
-    Value: Османская империя
+    Value: "\u041E\u0441\u043C\u0430\u043D\u0441\u043A\u0430\u044F \u0438\u043C\u043F\u0435\u0440\u0438\u044F"
   - Key: country_name.Ovimbundu
-    Value: Овимбунду
+    Value: "\u041E\u0432\u0438\u043C\u0431\u0443\u043D\u0434\u0443"
   - Key: country_name.Oyo
-    Value: Ойо
+    Value: "\u041E\u0439\u043E"
   - Key: country_name.Papua_New_Guinea
-    Value: Папуа — Новая Гвинея
+    Value: "\u041F\u0430\u043F\u0443\u0430 \u2014 \u041D\u043E\u0432\u0430\u044F
+      \u0413\u0432\u0438\u043D\u0435\u044F"
   - Key: country_name.Paraguay
-    Value: Парагвай
+    Value: "\u041F\u0430\u0440\u0430\u0433\u0432\u0430\u0439"
   - Key: country_name.Persia
-    Value: Персия
+    Value: "\u041F\u0435\u0440\u0441\u0438\u044F"
   - Key: country_name.Peru
-    Value: Перу
+    Value: "\u041F\u0435\u0440\u0443"
   - Key: country_name.Philippines
-    Value: Филиппины
+    Value: "\u0424\u0438\u043B\u0438\u043F\u043F\u0438\u043D\u044B"
   - Key: country_name.Polynesians
-    Value: Полинезийцы
+    Value: "\u041F\u043E\u043B\u0438\u043D\u0435\u0437\u0438\u0439\u0446\u044B"
   - Key: country_name.Portugal
-    Value: Португалия
+    Value: "\u041F\u043E\u0440\u0442\u0443\u0433\u0430\u043B\u0438\u044F"
   - Key: country_name.Portuguese_Guinea
-    Value: Португальская Гвинея
+    Value: "\u041F\u043E\u0440\u0442\u0443\u0433\u0430\u043B\u044C\u0441\u043A\u0430\u044F
+      \u0413\u0432\u0438\u043D\u0435\u044F"
   - Key: country_name.Qatar
-    Value: Катар
+    Value: "\u041A\u0430\u0442\u0430\u0440"
   - Key: country_name.Rabih_az_Zubayr
-    Value: Рабих аз-Зубайр
+    Value: "\u0420\u0430\u0431\u0438\u0445 \u0430\u0437-\u0417\u0443\u0431\u0430\u0439\u0440"
   - Key: country_name.Rattanakosin_Kingdom
-    Value: Королевство Раттанакосин
+    Value: "\u041A\u043E\u0440\u043E\u043B\u0435\u0432\u0441\u0442\u0432\u043E \u0420\u0430\u0442\u0442\u0430\u043D\u0430\u043A\u043E\u0441\u0438\u043D"
   - Key: country_name.Romania
-    Value: Румыния
+    Value: "\u0420\u0443\u043C\u044B\u043D\u0438\u044F"
   - Key: country_name.Russian_Empire
-    Value: Российская империя
+    Value: "\u0420\u043E\u0441\u0441\u0438\u0439\u0441\u043A\u0430\u044F \u0438\u043C\u043F\u0435\u0440\u0438\u044F"
   - Key: country_name.Rwanda
-    Value: Руанда
+    Value: "\u0420\u0443\u0430\u043D\u0434\u0430"
   - Key: country_name.Saint_Barthelemy
-    Value: Сен-Бартельми
+    Value: "\u0421\u0435\u043D-\u0411\u0430\u0440\u0442\u0435\u043B\u044C\u043C\u0438"
   - Key: country_name.Saint_Kitts_and_Nevis
-    Value: Сент-Китс и Невис
+    Value: "\u0421\u0435\u043D\u0442-\u041A\u0438\u0442\u0441 \u0438 \u041D\u0435\u0432\u0438\u0441"
   - Key: country_name.Saint_Martin
-    Value: Сен-Мартен
+    Value: "\u0421\u0435\u043D-\u041C\u0430\u0440\u0442\u0435\u043D"
   - Key: country_name.Samoa
-    Value: Самоа
+    Value: "\u0421\u0430\u043C\u043E\u0430"
   - Key: country_name.Serbia
-    Value: Сербия
+    Value: "\u0421\u0435\u0440\u0431\u0438\u044F"
   - Key: country_name.Shona
-    Value: Шона
+    Value: "\u0428\u043E\u043D\u0430"
   - Key: country_name.Sierra_Leone
-    Value: Сьерра-Леоне
+    Value: "\u0421\u044C\u0435\u0440\u0440\u0430-\u041B\u0435\u043E\u043D\u0435"
   - Key: country_name.Sokoto_Caliphate
-    Value: Сокотский халифат
+    Value: "\u0421\u043E\u043A\u043E\u0442\u0441\u043A\u0438\u0439 \u0445\u0430\u043B\u0438\u0444\u0430\u0442"
   - Key: country_name.Spain
-    Value: Испания
+    Value: "\u0418\u0441\u043F\u0430\u043D\u0438\u044F"
   - Key: country_name.Spanish_Guinea
-    Value: Испанская Гвинея
+    Value: "\u0418\u0441\u043F\u0430\u043D\u0441\u043A\u0430\u044F \u0413\u0432\u0438\u043D\u0435\u044F"
   - Key: country_name.Sultanate_of_Damagaram
-    Value: Султанат Дамагарам
+    Value: "\u0421\u0443\u043B\u0442\u0430\u043D\u0430\u0442 \u0414\u0430\u043C\u0430\u0433\u0430\u0440\u0430\u043C"
   - Key: country_name.Sultanate_of_Utetera
-    Value: Султанат Утетера
+    Value: "\u0421\u0443\u043B\u0442\u0430\u043D\u0430\u0442 \u0423\u0442\u0435\u0442\u0435\u0440\u0430"
   - Key: country_name.Sultinate_of_Zanzibar
-    Value: Султанат Занзибар
+    Value: "\u0421\u0443\u043B\u0442\u0430\u043D\u0430\u0442 \u0417\u0430\u043D\u0437\u0438\u0431\u0430\u0440"
   - Key: country_name.Swaziland
-    Value: Свазиленд
+    Value: "\u0421\u0432\u0430\u0437\u0438\u043B\u0435\u043D\u0434"
   - Key: country_name.SwedenNorway
-    Value: Швеция-Норвегия
+    Value: "\u0428\u0432\u0435\u0446\u0438\u044F-\u041D\u043E\u0440\u0432\u0435\u0433\u0438\u044F"
   - Key: country_name.Switzerland
-    Value: Швейцария
+    Value: "\u0428\u0432\u0435\u0439\u0446\u0430\u0440\u0438\u044F"
   - Key: country_name.Taiwan
-    Value: Тайвань
+    Value: "\u0422\u0430\u0439\u0432\u0430\u043D\u044C"
   - Key: country_name.Teke
-    Value: Теке
+    Value: "\u0422\u0435\u043A\u0435"
   - Key: country_name.Tonga
-    Value: Тонга
+    Value: "\u0422\u043E\u043D\u0433\u0430"
   - Key: country_name.Transvaal
-    Value: Трансвааль
+    Value: "\u0422\u0440\u0430\u043D\u0441\u0432\u0430\u0430\u043B\u044C"
   - Key: country_name.Trucial_Oman
-    Value: Договорной Оман
+    Value: "\u0414\u043E\u0433\u043E\u0432\u043E\u0440\u043D\u043E\u0439 \u041E\u043C\u0430\u043D"
   - Key: country_name.Tukular_Caliphate
-    Value: Тукулёрский халифат
+    Value: "\u0422\u0443\u043A\u0443\u043B\u0451\u0440\u0441\u043A\u0438\u0439 \u0445\u0430\u043B\u0438\u0444\u0430\u0442"
   - Key: country_name.United_Kingdom_of_Great_Britain_and_Ireland
-    Value: Великобритания
+    Value: "\u0412\u0435\u043B\u0438\u043A\u043E\u0431\u0440\u0438\u0442\u0430\u043D\u0438\u044F"
   - Key: country_name.United_States_of_America
-    Value: Соединённые Штаты Америки
+    Value: "\u0421\u043E\u0435\u0434\u0438\u043D\u0451\u043D\u043D\u044B\u0435 \u0428\u0442\u0430\u0442\u044B
+      \u0410\u043C\u0435\u0440\u0438\u043A\u0438"
   - Key: country_name.Uruguay
-    Value: Уругвай
+    Value: "\u0423\u0440\u0443\u0433\u0432\u0430\u0439"
   - Key: country_name.Venezuela
-    Value: Венесуэла
+    Value: "\u0412\u0435\u043D\u0435\u0441\u0443\u044D\u043B\u0430"
   - Key: country_name.Wadai_Empire
-    Value: Империя Вадаи
+    Value: "\u0418\u043C\u043F\u0435\u0440\u0438\u044F \u0412\u0430\u0434\u0430\u0438"
   - Key: country_name.Wassoulou_Empire
-    Value: Империя Вассулу
+    Value: "\u0418\u043C\u043F\u0435\u0440\u0438\u044F \u0412\u0430\u0441\u0441\u0443\u043B\u0443"
   - Key: country_name.Yaka
-    Value: Яка
+    Value: "\u042F\u043A\u0430"
   - Key: country_name.Yeke
-    Value: Еке
+    Value: "\u0415\u043A\u0435"
   - Key: country_name.Zululand
-    Value: Зулуленд
+    Value: "\u0417\u0443\u043B\u0443\u043B\u0435\u043D\u0434"
   - Key: country_name.central_Asian_khanates
-    Value: Среднеазиатские ханства
+    Value: "\u0421\u0440\u0435\u0434\u043D\u0435\u0430\u0437\u0438\u0430\u0442\u0441\u043A\u0438\u0435
+      \u0445\u0430\u043D\u0441\u0442\u0432\u0430"
+  - Key: resource.gold.name
+    Value: "\u0417\u043E\u043B\u043E\u0442\u043E"
+  - Key: resource.gold.description
+    Value: "\u041E\u0441\u043D\u043E\u0432\u043D\u0430\u044F \u0432\u0430\u043B\u044E\u0442\u0430
+      \u0434\u043B\u044F \u0444\u0438\u043D\u0430\u043D\u0441\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u044F
+      \u0430\u0440\u043C\u0438\u0439, \u0434\u0438\u043F\u043B\u043E\u043C\u0430\u0442\u0438\u0438
+      \u0438 \u0440\u0430\u0437\u0432\u0438\u0442\u0438\u044F."
+  - Key: effect.base_income.name
+    Value: "\u0411\u0430\u0437\u043E\u0432\u044B\u0439 \u0434\u043E\u0445\u043E\u0434"
+  - Key: effect.base_income.description
+    Value: "\u0415\u0436\u0435\u043C\u0435\u0441\u044F\u0447\u043D\u044B\u0439 \u0434\u043E\u0445\u043E\u0434
+      \u043E\u0442 \u043D\u0430\u043B\u043E\u0433\u043E\u0432 \u0438 \u0442\u043E\u0440\u0433\u043E\u0432\u043B\u0438.
+      \u041D\u0430\u0447\u0438\u0441\u043B\u044F\u0435\u0442\u0441\u044F \u0432 \u043A\u043E\u043D\u0446\u0435
+      \u043A\u0430\u0436\u0434\u043E\u0433\u043E \u043C\u0435\u0441\u044F\u0446\u0430."

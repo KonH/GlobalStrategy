@@ -47,5 +47,7 @@ namespace GS.Main {
 		public PlayerCountryState PlayerCountry { get; } = new PlayerCountryState();
 		public TimeState Time { get; } = new TimeState();
 		public LocaleState Locale { get; } = new LocaleState();
+		public CountryResourcesState PlayerResources { get; } = new CountryResourcesState();
+		public CountryResourcesState SelectedResources { get; } = new CountryResourcesState();
 	}
 }

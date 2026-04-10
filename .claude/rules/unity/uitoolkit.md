@@ -110,3 +110,11 @@ void Update() {
 ```
 
 UI Toolkit registers with the EventSystem in Unity 6, so `IsPointerOverGameObject()` returns `true` whenever the pointer is over any panel element with default `PickingMode.Position`. Empty transparent areas of the HUD root do not block clicks.
+
+## USS scope for dynamically created elements
+
+USS classes on VisualElements created in C# are resolved against the USS files loaded in the **document** where the element is actually placed — not where the C# code that builds it lives.
+
+Example: tooltip content is built in `ResourcesView` (which lives inside the `PlayerCountry` template), but the tooltip overlay `VisualElement` is a child of `hud-root` in `HUD.uxml`. Therefore tooltip classes (`tooltip-header`, `tooltip-effect-positive`, etc.) must be defined in `HUD.uss`, not in `PlayerCountry.uss`.
+
+Rule: put a USS class in the stylesheet of the **document that owns the container element**, regardless of which C# class creates the child elements.

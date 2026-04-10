@@ -1,6 +1,32 @@
 .country-name {
-    font-size: 54px;
-    color: white;
+    font-size: 52px;
+    color: rgb(55, 35, 10);
     -unity-font-style: bold;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 1);
+}
+
+.select-player-button {
+    font-size: 22px;
+    color: rgb(55, 35, 10);
+    background-color: rgb(210, 190, 140);
+    border-width: 1px;
+    border-color: rgb(120, 85, 30);
+    border-radius: 2px;
+    padding: 6px 18px;
+    margin-left: 16px;
+    -unity-font-style: bold;
+}
+
+.resource-label {
+    font-size: 26px;
+    color: rgb(75, 50, 15);
+    -unity-font-style: bold;
+    margin-left: 20px;
+}
+
+.resource-positive {
+    color: rgb(30, 110, 40);
+}
+
+.resource-negative {
+    color: rgb(160, 35, 25);
 }

@@ -4,6 +4,7 @@ using UnityEngine.UIElements;
 using VContainer;
 using GS.Main;
 using GS.Game.Commands;
+using GS.Game.Configs;
 
 namespace GS.Unity.UI {
 	public class HUDDocument : MonoBehaviour {
@@ -14,12 +15,14 @@ namespace GS.Unity.UI {
 		VisualState _state;
 		IWriteOnlyCommandAccessor _commands;
 		ILocalization _loc;
+		ResourceConfig _resourceConfig;
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
+			_resourceConfig = resourceConfig;
 		}
 
 		void Awake() {
@@ -28,9 +31,12 @@ namespace GS.Unity.UI {
 			if (_loc == null) {
 				Debug.LogWarning("[HUDDocument] _loc is null in Awake — injection has not happened yet");
 			}
-			_countryInfo = new CountryInfoView(root.Q("country-info"), _loc);
+
+			var tooltip = new TooltipController(root.Q("tooltip-overlay"));
+
+			_countryInfo = new CountryInfoView(root.Q("country-info"), _loc, _resourceConfig, tooltip);
 			_countryInfo.OnSelectClicked = OnSelectPlayerCountry;
-			_playerCountryView = new PlayerCountryView(root.Q("player-country"), _loc);
+			_playerCountryView = new PlayerCountryView(root.Q("player-country"), _loc, _resourceConfig, tooltip);
 			_timeView = new TimeView(
 				root.Q("time-panel"),
 				OnPauseToggle,
@@ -45,6 +51,8 @@ namespace GS.Unity.UI {
 			_state.PlayerCountry.PropertyChanged += HandlePlayerCountryChanged;
 			_state.Time.PropertyChanged += HandleTimeChanged;
 			_state.Locale.PropertyChanged += HandleLocaleChanged;
+			_state.PlayerResources.PropertyChanged += HandlePlayerResourcesChanged;
+			_state.SelectedResources.PropertyChanged += HandleSelectedResourcesChanged;
 			RefreshCountryViews();
 			_timeView.Refresh(_state.Time);
 		}
@@ -57,11 +65,13 @@ namespace GS.Unity.UI {
 			_state.PlayerCountry.PropertyChanged -= HandlePlayerCountryChanged;
 			_state.Time.PropertyChanged -= HandleTimeChanged;
 			_state.Locale.PropertyChanged -= HandleLocaleChanged;
+			_state.PlayerResources.PropertyChanged -= HandlePlayerResourcesChanged;
+			_state.SelectedResources.PropertyChanged -= HandleSelectedResourcesChanged;
 		}
 
 		void RefreshCountryViews() {
-			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry);
-			_playerCountryView.Refresh(_state.PlayerCountry);
+			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources);
+			_playerCountryView.Refresh(_state.PlayerCountry, _state.PlayerResources);
 		}
 
 		void HandleCountryChanged(object sender, PropertyChangedEventArgs e) {
@@ -80,6 +90,14 @@ namespace GS.Unity.UI {
 			_loc.SetLocale(_state.Locale.Locale);
 			RefreshCountryViews();
 			_timeView.Refresh(_state.Time);
+		}
+
+		void HandlePlayerResourcesChanged(object sender, PropertyChangedEventArgs e) {
+			_playerCountryView.Refresh(_state.PlayerCountry, _state.PlayerResources);
+		}
+
+		void HandleSelectedResourcesChanged(object sender, PropertyChangedEventArgs e) {
+			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources);
 		}
 
 		void OnSelectPlayerCountry() {

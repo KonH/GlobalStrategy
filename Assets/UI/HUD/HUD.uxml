@@ -7,5 +7,6 @@
         <ui:Instance template="PlayerCountry" name="player-country" class="player-country-panel"/>
         <ui:Instance template="CountryInfo" name="country-info" class="country-info-panel"/>
         <ui:Instance template="Time" name="time-panel" class="time-panel"/>
+        <ui:VisualElement name="tooltip-overlay" class="tooltip-overlay" />
     </ui:VisualElement>
 </ui:UXML>

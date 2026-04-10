@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ECS;
 using GS.Game.Components;
 
@@ -14,6 +15,7 @@ namespace GS.Main {
 			UpdatePlayerCountry(world);
 			UpdateTime(world, gameTimeEntity);
 			UpdateLocale(world, localeEntity);
+			UpdateResources(world);
 		}
 
 		void UpdateSelectedCountry(IReadOnlyWorld world) {
@@ -50,6 +52,63 @@ namespace GS.Main {
 		void UpdateLocale(IReadOnlyWorld world, int localeEntity) {
 			ref Locale locale = ref world.Get<Locale>(localeEntity);
 			_state.Locale.Set(locale.Value);
+		}
+
+		void UpdateResources(IReadOnlyWorld world) {
+			string playerCountryId = _state.PlayerCountry.IsValid ? _state.PlayerCountry.CountryId : "";
+			string selectedCountryId = _state.SelectedCountry.IsValid ? _state.SelectedCountry.CountryId : "";
+
+			_state.PlayerResources.Set(
+				_state.PlayerCountry.IsValid,
+				playerCountryId,
+				BuildResources(world, playerCountryId));
+			_state.SelectedResources.Set(
+				_state.SelectedCountry.IsValid,
+				selectedCountryId,
+				BuildResources(world, selectedCountryId));
+		}
+
+		List<ResourceStateEntry> BuildResources(IReadOnlyWorld world, string countryId) {
+			var result = new List<ResourceStateEntry>();
+			if (string.IsNullOrEmpty(countryId)) {
+				return result;
+			}
+			int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (owners[i].CountryId != countryId) {
+						continue;
+					}
+					var effects = BuildEffects(world, countryId, resources[i].ResourceId);
+					result.Add(new ResourceStateEntry(resources[i].ResourceId, resources[i].Value, effects));
+				}
+			}
+			return result;
+		}
+
+		List<EffectStateEntry> BuildEffects(IReadOnlyWorld world, string countryId, string resourceId) {
+			var result = new List<EffectStateEntry>();
+			int[] required = {
+				TypeId<ResourceOwner>.Value,
+				TypeId<ResourceLink>.Value,
+				TypeId<ResourceEffect>.Value
+			};
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				ResourceLink[] links = arch.GetColumn<ResourceLink>();
+				ResourceEffect[] effects = arch.GetColumn<ResourceEffect>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (owners[i].CountryId != countryId || links[i].ResourceId != resourceId) {
+						continue;
+					}
+					result.Add(new EffectStateEntry(effects[i].EffectId, effects[i].Value, effects[i].PayType));
+				}
+			}
+			return result;
 		}
 	}
 }

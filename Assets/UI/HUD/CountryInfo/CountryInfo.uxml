@@ -2,4 +2,5 @@
     <ui:Style src="project://database/Assets/UI/HUD/CountryInfo/CountryInfo.uss" />
     <ui:Label name="country-name" class="country-name" text="" />
     <ui:Button name="select-player-button" class="select-player-button" text="Select" />
+    <ui:VisualElement name="resources-container" class="resources-container" />
 </ui:UXML>

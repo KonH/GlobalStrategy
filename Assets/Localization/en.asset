@@ -322,3 +322,11 @@ MonoBehaviour:
     Value: Zululand
   - Key: country_name.central_Asian_khanates
     Value: central Asian khanates
+  - Key: resource.gold.name
+    Value: Gold
+  - Key: resource.gold.description
+    Value: The primary currency for funding armies, diplomacy, and development.
+  - Key: effect.base_income.name
+    Value: Base Income
+  - Key: effect.base_income.description
+    Value: Monthly income from taxes and trade. Applied at the end of each month.

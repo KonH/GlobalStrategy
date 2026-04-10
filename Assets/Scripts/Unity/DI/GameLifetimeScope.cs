@@ -18,13 +18,15 @@ namespace GS.Unity.DI {
 				new StreamingAssetsConfig<GeoJsonConfig>(ConfigPath("geojson_world.json")),
 				new StreamingAssetsConfig<MapEntryConfig>(ConfigPath("map_entry_config.json")),
 				new StreamingAssetsConfig<GS.Game.Configs.CountryConfig>(ConfigPath("country_config.json")),
-				new StreamingAssetsConfig<GameSettings>(ConfigPath("game_settings.json"))
+				new StreamingAssetsConfig<GameSettings>(ConfigPath("game_settings.json")),
+				new StreamingAssetsConfig<ResourceConfig>(ConfigPath("resource_config.json"))
 			);
 
 			builder.RegisterInstance(ctx);
 			builder.Register<GameLogic>(Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().VisualState, Lifetime.Singleton);
 			builder.Register<IWriteOnlyCommandAccessor>(c => c.Resolve<GameLogic>().Commands, Lifetime.Singleton);
+			builder.Register(c => c.Resolve<GameLogic>().ResourceConfig, Lifetime.Singleton);
 
 			builder.RegisterInstance(_countryConfig);
 			builder.RegisterInstance(_countryVisualConfig);

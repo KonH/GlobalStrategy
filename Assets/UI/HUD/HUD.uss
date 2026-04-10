@@ -14,8 +14,12 @@
     position: absolute;
     top: 0;
     left: 0;
-    padding: 8px 12px;
-    background-color: rgba(0, 0, 0, 0.5);
+    padding: 10px 16px;
+    background-color: rgb(238, 222, 180);
+    border-color: rgb(120, 85, 30);
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    border-bottom-right-radius: 4px;
 }
 
 .country-info-panel {
@@ -23,9 +27,59 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 80px;
-    background-color: rgba(0, 0, 0, 0.7);
-    padding: 8px 16px;
+    height: 88px;
+    background-color: rgb(238, 222, 180);
+    border-color: rgb(120, 85, 30);
+    border-top-width: 2px;
+    padding: 8px 20px;
     flex-direction: row;
     align-items: center;
+}
+
+.tooltip-overlay {
+    position: absolute;
+    background-color: rgb(245, 232, 195);
+    border-color: rgb(120, 85, 30);
+    border-width: 1px;
+    border-radius: 3px;
+    padding: 10px 14px;
+    display: none;
+    min-width: 190px;
+}
+
+.tooltip-header {
+    font-size: 18px;
+    color: rgb(55, 35, 10);
+    -unity-font-style: bold;
+    margin-bottom: 6px;
+    border-bottom-width: 1px;
+    border-color: rgb(160, 130, 70);
+    padding-bottom: 4px;
+}
+
+.tooltip-effect-row {
+    margin-top: 5px;
+    padding: 2px 0;
+}
+
+.tooltip-effect-name {
+    font-size: 16px;
+    color: rgb(75, 50, 15);
+    -unity-font-style: bold;
+}
+
+.tooltip-effect-positive {
+    color: rgb(30, 110, 40);
+}
+
+.tooltip-effect-negative {
+    color: rgb(160, 35, 25);
+}
+
+.tooltip-description {
+    font-size: 14px;
+    color: rgb(110, 80, 35);
+    margin-top: 3px;
+    white-space: normal;
+    -unity-font-style: italic;
 }

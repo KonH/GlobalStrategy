@@ -1,13 +1,17 @@
 #time-root {
     flex-direction: column;
     align-items: flex-end;
-    padding: 12px 20px;
-    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    background-color: rgb(238, 222, 180);
+    border-color: rgb(120, 85, 30);
+    border-left-width: 2px;
+    border-bottom-width: 2px;
+    border-bottom-left-radius: 4px;
 }
 
 #time-date {
-    font-size: 28px;
-    color: rgb(220, 220, 220);
+    font-size: 32px;
+    color: rgb(55, 35, 10);
     margin-bottom: 8px;
     -unity-font-style: bold;
 }
@@ -18,18 +22,20 @@
 }
 
 #time-controls Button {
-    width: 64px;
-    height: 48px;
-    font-size: 20px;
-    margin-left: 8px;
-    background-color: rgba(80, 80, 80, 0.8);
-    color: rgb(200, 200, 200);
+    width: 68px;
+    height: 50px;
+    font-size: 24px;
+    margin-left: 6px;
+    background-color: rgb(210, 190, 140);
+    color: rgb(55, 35, 10);
     border-width: 1px;
-    border-color: rgba(150, 150, 150, 0.5);
-    border-radius: 3px;
+    border-color: rgb(120, 85, 30);
+    border-radius: 2px;
+    -unity-font-style: bold;
 }
 
 #time-controls Button.active {
-    background-color: rgba(60, 120, 200, 0.9);
-    color: rgb(255, 255, 255);
+    background-color: rgb(160, 120, 50);
+    color: rgb(245, 232, 195);
+    border-color: rgb(90, 60, 15);
 }
