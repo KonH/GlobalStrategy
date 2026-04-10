@@ -2,7 +2,8 @@
     "name": "GS.Editor.Localization",
     "rootNamespace": "",
     "references": [
-        "GUID:31616c5c35fcc3c418ca03ade2c0cfb9"
+        "GUID:ec6e7c967dc39b649a78e3be5d45c227",
+        "GUID:b0214a6008ed146ff8f122a6a9c2f6cc"
     ],
     "includePlatforms": [
         "Editor"

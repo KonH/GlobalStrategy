@@ -42,7 +42,9 @@ namespace GS.Unity.Map {
 		void CheckSwap() {
 			float camX = _camera.transform.position.x;
 			float half = CoordinateConverter.MapWidth / 2f;
-			if (Mathf.Abs(camX) <= half) return;
+			if (Mathf.Abs(camX) <= half) {
+				return;
+			}
 			float shift = camX > 0f ? -CoordinateConverter.MapWidth : CoordinateConverter.MapWidth;
 			var camPos = _camera.transform.position;
 			camPos.x += shift;

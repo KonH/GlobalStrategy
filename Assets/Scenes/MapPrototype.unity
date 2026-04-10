@@ -119,6 +119,55 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &125024058
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 125024060}
+  - component: {fileID: 125024059}
+  m_Layer: 0
+  m_Name: ProjectLifetimeScope
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &125024059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 125024058}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7711e555eb100314cbb94d00bbbb29a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GS.Unity.DI::ProjectLifetimeScope
+  parentReference:
+    TypeName: 
+  autoRun: 1
+  autoInjectGameObjects: []
+  _localizationConfig: {fileID: 11400000, guid: 98e07a27beae86b45a53970d7d0046b9, type: 2}
+--- !u!4 &125024060
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 125024058}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &141594270
 GameObject:
   m_ObjectHideFlags: 0
@@ -357,7 +406,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: GS.Unity.DI::GS.Unity.DI.GameLifetimeScope
   parentReference:
-    TypeName: 
+    TypeName: GS.Unity.DI.ProjectLifetimeScope
   autoRun: 1
   autoInjectGameObjects:
   - {fileID: 1826548610}
@@ -366,7 +415,6 @@ MonoBehaviour:
   _countryConfig: {fileID: 11400000, guid: 0298907c3e0f21148bfed8d87ce48008, type: 2}
   _countryVisualConfig: {fileID: 11400000, guid: ef0b0960b0c336745a2ea01586c5d114, type: 2}
   _mapCameraConfig: {fileID: 11400000, guid: b7258d2dc8369da45aa39abdcb4b282c, type: 2}
-  _localizationConfig: {fileID: 11400000, guid: 98e07a27beae86b45a53970d7d0046b9, type: 2}
 --- !u!4 &1124233457
 Transform:
   m_ObjectHideFlags: 0
@@ -507,6 +555,7 @@ MonoBehaviour:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 125024060}
   - {fileID: 1124233457}
   - {fileID: 1826548614}
   - {fileID: 141594272}

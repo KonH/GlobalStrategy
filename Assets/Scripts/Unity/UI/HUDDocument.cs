@@ -24,6 +24,9 @@ namespace GS.Unity.UI {
 		void Awake() {
 			_document = GetComponent<UIDocument>();
 			var root = _document.rootVisualElement;
+			if (_loc == null) {
+				Debug.LogWarning("[HUDDocument] _loc is null in Awake — injection has not happened yet");
+			}
 			_countryInfo = new CountryInfoView(root.Q("country-info"), _loc);
 			_timeView = new TimeView(
 				root.Q("time-panel"),
@@ -37,6 +40,7 @@ namespace GS.Unity.UI {
 			}
 			_state.SelectedCountry.PropertyChanged += HandleCountryChanged;
 			_state.Time.PropertyChanged += HandleTimeChanged;
+			_state.Locale.PropertyChanged += HandleLocaleChanged;
 			_countryInfo.Refresh(_state.SelectedCountry);
 			_timeView.Refresh(_state.Time);
 		}
@@ -47,6 +51,7 @@ namespace GS.Unity.UI {
 			}
 			_state.SelectedCountry.PropertyChanged -= HandleCountryChanged;
 			_state.Time.PropertyChanged -= HandleTimeChanged;
+			_state.Locale.PropertyChanged -= HandleLocaleChanged;
 		}
 
 		void HandleCountryChanged(object sender, PropertyChangedEventArgs e) {
@@ -54,6 +59,12 @@ namespace GS.Unity.UI {
 		}
 
 		void HandleTimeChanged(object sender, PropertyChangedEventArgs e) {
+			_timeView.Refresh(_state.Time);
+		}
+
+		void HandleLocaleChanged(object sender, PropertyChangedEventArgs e) {
+			_loc.SetLocale(_state.Locale.Locale);
+			_countryInfo.Refresh(_state.SelectedCountry);
 			_timeView.Refresh(_state.Time);
 		}
 

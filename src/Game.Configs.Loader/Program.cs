@@ -66,14 +66,19 @@ namespace GS.Game.Loader {
 			int fallbackIndex = 0;
 
 			foreach (var featureNode in featuresArray) {
-				if (featureNode == null) { fallbackIndex++; continue; }
+				if (featureNode == null) {
+					fallbackIndex++;
+					continue;
+				}
 				var props = featureNode["properties"];
 				string? name = GetStringProp(props, "NAME", "name", "ADMIN", "admin", "NAME_LONG", "SOVEREIGNT");
 				string? partOf = GetStringProp(props, "PARTOF");
 				string featureName = name ?? $"feature_{fallbackIndex}";
 				fallbackIndex++;
 
-				if (genericPattern.IsMatch(featureName)) continue;
+				if (genericPattern.IsMatch(featureName)) {
+					continue;
+				}
 
 				string normalizedName = NormalizeAscii(featureName);
 				string mapFeatureId = ToMapFeatureId(normalizedName);
@@ -96,10 +101,11 @@ namespace GS.Game.Loader {
 				}
 
 				bool isMain = partOf == null || featureName == partOf;
-				if (isMain)
+				if (isMain) {
 					country.MainMapFeatureIds.Add(mapFeatureId);
-				else
+				} else {
 					country.SecondaryMapFeatureIds.Add(mapFeatureId);
+				}
 
 				geoJsonFeatures.Add(new GeoJsonFeatureConfig {
 					Name = featureName,
@@ -110,8 +116,12 @@ namespace GS.Game.Loader {
 
 			// Merge colonial territories
 			foreach (var kvp in _colonialParents) {
-				if (!countryMap.TryGetValue(kvp.Key, out var colony)) continue;
-				if (!countryMap.TryGetValue(kvp.Value, out var parent)) continue;
+				if (!countryMap.TryGetValue(kvp.Key, out var colony)) {
+					continue;
+				}
+				if (!countryMap.TryGetValue(kvp.Value, out var parent)) {
+					continue;
+				}
 				parent.SecondaryMapFeatureIds.AddRange(colony.MainMapFeatureIds);
 				parent.SecondaryMapFeatureIds.AddRange(colony.SecondaryMapFeatureIds);
 				countryMap.Remove(kvp.Key);
@@ -126,10 +136,14 @@ namespace GS.Game.Loader {
 		}
 
 		static string? GetStringProp(JsonNode? props, params string[] keys) {
-			if (props == null) return null;
+			if (props == null) {
+				return null;
+			}
 			foreach (var key in keys) {
 				var val = props[key];
-				if (val != null) return val.GetValue<string>();
+				if (val != null) {
+					return val.GetValue<string>();
+				}
 			}
 			return null;
 		}

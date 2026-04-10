@@ -12,7 +12,6 @@ namespace GS.Unity.DI {
 		[SerializeField] GS.Unity.Map.CountryConfig _countryConfig;
 		[SerializeField] CountryVisualConfig _countryVisualConfig;
 		[SerializeField] MapCameraConfig _mapCameraConfig;
-		[SerializeField] LocalizationConfig _localizationConfig;
 
 		protected override void Configure(IContainerBuilder builder) {
 			var ctx = new GameLogicContext(
@@ -30,7 +29,6 @@ namespace GS.Unity.DI {
 			builder.RegisterInstance(_countryConfig);
 			builder.RegisterInstance(_countryVisualConfig);
 			builder.RegisterInstance(_mapCameraConfig);
-			builder.Register<ILocalization>(_ => new CustomLocalization(_localizationConfig), Lifetime.Singleton);
 			builder.RegisterComponentInHierarchy<Camera>();
 			builder.RegisterComponentInHierarchy<MapLoader>();
 			builder.RegisterComponentInHierarchy<MapController>();

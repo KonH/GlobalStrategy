@@ -22,13 +22,15 @@ namespace ECS {
 		public bool HasColumn(int typeId) => _columns.ContainsKey(typeId);
 
 		public void EnsureColumn<T>(int typeId) {
-			if (!_columns.ContainsKey(typeId))
+			if (!_columns.ContainsKey(typeId)) {
 				_columns[typeId] = new T[_capacity];
+			}
 		}
 
 		public void InitColumn(int typeId, Type elementType) {
-			if (!_columns.ContainsKey(typeId))
+			if (!_columns.ContainsKey(typeId)) {
 				_columns[typeId] = Array.CreateInstance(elementType, _capacity);
+			}
 		}
 
 		public T[] GetColumn<T>() => (T[])_columns[TypeId<T>.Value];
@@ -52,8 +54,9 @@ namespace ECS {
 			if (row != last) {
 				int moved = _entities[last];
 				_entities[row] = moved;
-				foreach (var kvp in _columns)
+				foreach (var kvp in _columns) {
 					Array.Copy(kvp.Value, last, kvp.Value, row, 1);
+				}
 				_count--;
 				return moved;
 			}
@@ -64,13 +67,16 @@ namespace ECS {
 		// Copies component data for shared columns from srcRow in this archetype to dstRow in dst.
 		public void CopyRowTo(int srcRow, Archetype dst, int dstRow) {
 			foreach (var kvp in _columns) {
-				if (dst._columns.TryGetValue(kvp.Key, out var dstArr))
+				if (dst._columns.TryGetValue(kvp.Key, out var dstArr)) {
 					Array.Copy(kvp.Value, srcRow, dstArr, dstRow, 1);
+				}
 			}
 		}
 
 		void EnsureCapacity(int needed) {
-			if (needed <= _capacity) return;
+			if (needed <= _capacity) {
+				return;
+			}
 			int newCap = Math.Max(_capacity * 2, needed);
 			var newEntities = new int[newCap];
 			Array.Copy(_entities, newEntities, _count);

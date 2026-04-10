@@ -12,8 +12,9 @@ namespace ECS {
 		public ArchetypeSignature(int[] sortedIds) {
 			_ids = sortedIds;
 			int h = 17;
-			foreach (int id in sortedIds)
+			foreach (int id in sortedIds) {
 				h = h * 31 + id;
+			}
 			_hash = h;
 		}
 
@@ -21,19 +22,27 @@ namespace ECS {
 			_ids != null && Array.BinarySearch(_ids, typeId) >= 0;
 
 		public bool ContainsAll(int[] typeIds) {
-			foreach (int id in typeIds)
-				if (!Contains(id)) return false;
+			foreach (int id in typeIds) {
+				if (!Contains(id)) {
+					return false;
+				}
+			}
 			return true;
 		}
 
 		public bool ContainsAny(int[] typeIds) {
-			foreach (int id in typeIds)
-				if (Contains(id)) return true;
+			foreach (int id in typeIds) {
+				if (Contains(id)) {
+					return true;
+				}
+			}
 			return false;
 		}
 
 		public ArchetypeSignature With(int typeId) {
-			if (Contains(typeId)) return this;
+			if (Contains(typeId)) {
+				return this;
+			}
 			int[] ids = _ids ?? _empty;
 			var newIds = new int[ids.Length + 1];
 			int i = 0;
@@ -42,25 +51,38 @@ namespace ECS {
 				i++;
 			}
 			newIds[i] = typeId;
-			for (int j = i; j < ids.Length; j++)
+			for (int j = i; j < ids.Length; j++) {
 				newIds[j + 1] = ids[j];
+			}
 			return new ArchetypeSignature(newIds);
 		}
 
 		public ArchetypeSignature Without(int typeId) {
-			if (!Contains(typeId)) return this;
+			if (!Contains(typeId)) {
+				return this;
+			}
 			var newIds = new int[_ids.Length - 1];
 			int ni = 0;
-			foreach (int id in _ids)
-				if (id != typeId) newIds[ni++] = id;
+			foreach (int id in _ids) {
+				if (id != typeId) {
+					newIds[ni++] = id;
+				}
+			}
 			return new ArchetypeSignature(newIds);
 		}
 
 		public bool Equals(ArchetypeSignature other) {
-			if (Length != other.Length) return false;
-			if (_ids == null) return true;
-			for (int i = 0; i < _ids.Length; i++)
-				if (_ids[i] != other._ids[i]) return false;
+			if (Length != other.Length) {
+				return false;
+			}
+			if (_ids == null) {
+				return true;
+			}
+			for (int i = 0; i < _ids.Length; i++) {
+				if (_ids[i] != other._ids[i]) {
+					return false;
+				}
+			}
 			return true;
 		}
 

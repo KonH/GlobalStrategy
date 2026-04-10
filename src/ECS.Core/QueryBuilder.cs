@@ -21,8 +21,9 @@ namespace ECS {
 				C1[] c1 = arch.GetColumn<C1>();
 				int count = arch.Count;
 				int[] entities = arch.Entities;
-				for (int i = 0; i < count; i++)
+				for (int i = 0; i < count; i++) {
 					callback(entities[i], ref c1[i]);
+				}
 			}
 		}
 	}
@@ -48,8 +49,9 @@ namespace ECS {
 				C2[] c2 = arch.GetColumn<C2>();
 				int count = arch.Count;
 				int[] entities = arch.Entities;
-				for (int i = 0; i < count; i++)
+				for (int i = 0; i < count; i++) {
 					callback(entities[i], ref c1[i], ref c2[i]);
+				}
 			}
 		}
 	}
@@ -76,8 +78,9 @@ namespace ECS {
 				C3[] c3 = arch.GetColumn<C3>();
 				int count = arch.Count;
 				int[] entities = arch.Entities;
-				for (int i = 0; i < count; i++)
+				for (int i = 0; i < count; i++) {
 					callback(entities[i], ref c1[i], ref c2[i], ref c3[i]);
+				}
 			}
 		}
 	}
@@ -107,8 +110,9 @@ namespace ECS {
 				C4[] c4 = arch.GetColumn<C4>();
 				int count = arch.Count;
 				int[] entities = arch.Entities;
-				for (int i = 0; i < count; i++)
+				for (int i = 0; i < count; i++) {
 					callback(entities[i], ref c1[i], ref c2[i], ref c3[i], ref c4[i]);
+				}
 			}
 		}
 	}

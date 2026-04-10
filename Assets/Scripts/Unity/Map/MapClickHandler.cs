@@ -26,13 +26,26 @@ namespace GS.Unity.Map {
 
 		void Update() {
 			var mouse = Mouse.current;
-			if (mouse == null || !mouse.leftButton.wasPressedThisFrame) return;
-			if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+			if (mouse == null) {
+				return;
+			}
+			if (!mouse.leftButton.wasPressedThisFrame) {
+				return;
+			}
+			Debug.Log($"[MapClick] Left click at screen {mouse.position.ReadValue()}");
+			if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) {
+				Debug.Log("[MapClick] Blocked by UI (IsPointerOverGameObject)");
+				return;
+			}
 			var mapRenderer = _mapController != null ? _mapController.ActiveRenderer : null;
-			if (mapRenderer == null) return;
+			if (mapRenderer == null) {
+				Debug.LogWarning($"[MapClick] mapRenderer is null (mapController={_mapController != null})");
+				return;
+			}
 
 			var sp = mouse.position.ReadValue();
 			var world = _camera.ScreenToWorldPoint(new Vector3(sp.x, sp.y, 0f));
+			Debug.Log($"[MapClick] World pos: {world.x:F2}, {world.y:F2}");
 
 			var id = mapRenderer.FindFeatureAt(new Vector2(world.x, world.y));
 			if (id == null) {
@@ -47,10 +60,10 @@ namespace GS.Unity.Map {
 			if (country != null) {
 				bool isMain = country.mainMapFeatureIds.Contains(mapFeatureId);
 				string role = isMain ? "main" : "secondary";
-				Debug.Log($"[MapClick] {country.displayName} (id: {country.countryId}, role: {role})");
+				Debug.Log($"[MapClick] {country.displayName} (countryId: '{country.countryId}', featureId: '{mapFeatureId}', role: {role}) → locKey: 'country_name.{country.countryId}'");
 				_commands?.Push(new SelectCountryCommand(country.countryId));
 			} else {
-				Debug.Log($"[MapClick] {id.FeatureName} (id: {mapFeatureId})");
+				Debug.Log($"[MapClick] No country entry for featureId: '{mapFeatureId}' — pushing raw id");
 				_commands?.Push(new SelectCountryCommand(mapFeatureId));
 			}
 		}

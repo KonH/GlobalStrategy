@@ -10,6 +10,7 @@ namespace GS.Main {
 		readonly CommandAccessor _commandAccessor = new CommandAccessor();
 		readonly VisualStateConverter _visualStateConverter;
 		readonly int _gameTimeEntity;
+		readonly int _localeEntity;
 		readonly int[] _speedMultipliers;
 
 		public VisualState VisualState { get; } = new VisualState();
@@ -33,6 +34,9 @@ namespace GS.Main {
 				IsPaused = false,
 				MultiplierIndex = 0
 			});
+
+			_localeEntity = _world.Create();
+			_world.Add(_localeEntity, new Locale { Value = "en" });
 		}
 
 		public void Update(float deltaTime) {
@@ -45,8 +49,9 @@ namespace GS.Main {
 				_commandAccessor.ReadUnpauseCommand(),
 				_commandAccessor.ReadChangeTimeMultiplierCommand());
 			SelectCountrySystem.Update(_world, _commandAccessor.ReadSelectCountryCommand());
+			LocaleSystem.Update(_world, _localeEntity, _commandAccessor.ReadChangeLocaleCommand());
 			_commandAccessor.Clear();
-			_visualStateConverter.Update(_world, _gameTimeEntity);
+			_visualStateConverter.Update(_world, _gameTimeEntity, _localeEntity);
 		}
 	}
 }

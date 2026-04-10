@@ -35,7 +35,9 @@ namespace ECS {
 		public void Destroy(int entity) {
 			EntityPacker.Unpack(entity, out int index, out int gen);
 			ref EntityRecord record = ref _records[index];
-			if (record.Generation != gen || record.Archetype == null) return;
+			if (record.Generation != gen || record.Archetype == null) {
+				return;
+			}
 
 			Archetype arch = record.Archetype;
 			int movedEntity = arch.Remove(record.Row);
@@ -50,7 +52,9 @@ namespace ECS {
 
 		public bool IsAlive(int entity) {
 			EntityPacker.Unpack(entity, out int index, out int gen);
-			if (index >= _entityCount) return false;
+			if (index >= _entityCount) {
+				return false;
+			}
 			ref EntityRecord r = ref _records[index];
 			return r.Generation == gen && r.Archetype != null;
 		}
@@ -92,18 +96,22 @@ namespace ECS {
 			ref EntityRecord record = ref _records[index];
 			int typeId = TypeId<T>.Value;
 
-			if (!record.Archetype!.Signature.Contains(typeId))
+			if (!record.Archetype!.Signature.Contains(typeId)) {
 				throw new InvalidOperationException(
 					$"Entity does not have component {typeof(T).Name}");
+			}
 
 			Archetype oldArch = record.Archetype;
 			ArchetypeSignature newSig = oldArch.Signature.Without(typeId);
 			Archetype newArch = GetOrCreateArchetype(newSig);
 
 			foreach (int tid in oldArch.GetColumnTypeIds()) {
-				if (tid == typeId) continue;
-				if (!newArch.HasColumn(tid))
+				if (tid == typeId) {
+					continue;
+				}
+				if (!newArch.HasColumn(tid)) {
 					newArch.InitColumn(tid, oldArch.GetColumnRaw(tid).GetType().GetElementType()!);
+				}
 			}
 
 			int newRow = newArch.Add(entity);
@@ -144,9 +152,12 @@ namespace ECS {
 
 		public IEnumerable<Archetype> GetMatchingArchetypes(int[] required, int[]? excluded) {
 			foreach (Archetype arch in _archetypes.Values) {
-				if (!arch.Signature.ContainsAll(required)) continue;
-				if (excluded != null && excluded.Length > 0 && arch.Signature.ContainsAny(excluded))
+				if (!arch.Signature.ContainsAll(required)) {
 					continue;
+				}
+				if (excluded != null && excluded.Length > 0 && arch.Signature.ContainsAny(excluded)) {
+					continue;
+				}
 				yield return arch;
 			}
 		}
@@ -163,13 +174,16 @@ namespace ECS {
 
 		void MigrateColumns(Archetype src, Archetype dst) {
 			foreach (int typeId in src.GetColumnTypeIds()) {
-				if (!dst.HasColumn(typeId))
+				if (!dst.HasColumn(typeId)) {
 					dst.InitColumn(typeId, src.GetColumnRaw(typeId).GetType().GetElementType()!);
+				}
 			}
 		}
 
 		void EnsureRecords(int index) {
-			if (index < _records.Length) return;
+			if (index < _records.Length) {
+				return;
+			}
 			int newSize = Math.Max(_records.Length * 2, index + 1);
 			var newRecords = new EntityRecord[newSize];
 			Array.Copy(_records, newRecords, _records.Length);
