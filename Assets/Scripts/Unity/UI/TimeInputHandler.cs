@@ -17,16 +17,25 @@ namespace GS.Unity.UI {
 
 		void Update() {
 			var keyboard = Keyboard.current;
-			if (keyboard == null) return;
-			if (keyboard.spaceKey.wasPressedThisFrame) {
-				if (_time.IsPaused)
-					_commands.Push(new UnpauseCommand());
-				else
-					_commands.Push(new PauseCommand());
+			if (keyboard == null) {
+				return;
 			}
-			if (keyboard.digit1Key.wasPressedThisFrame) _commands.Push(new ChangeTimeMultiplierCommand(0));
-			if (keyboard.digit2Key.wasPressedThisFrame) _commands.Push(new ChangeTimeMultiplierCommand(1));
-			if (keyboard.digit3Key.wasPressedThisFrame) _commands.Push(new ChangeTimeMultiplierCommand(2));
+			if (keyboard.spaceKey.wasPressedThisFrame) {
+				if (_time.IsPaused) {
+					_commands.Push(new UnpauseCommand());
+				} else {
+					_commands.Push(new PauseCommand());
+				}
+			}
+			if (keyboard.digit1Key.wasPressedThisFrame) {
+				_commands.Push(new ChangeTimeMultiplierCommand(0));
+			}
+			if (keyboard.digit2Key.wasPressedThisFrame) {
+				_commands.Push(new ChangeTimeMultiplierCommand(1));
+			}
+			if (keyboard.digit3Key.wasPressedThisFrame) {
+				_commands.Push(new ChangeTimeMultiplierCommand(2));
+			}
 		}
 	}
 }

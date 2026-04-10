@@ -13,11 +13,15 @@ namespace GS.Unity.Map {
 			var allTriangles = new List<int>();
 
 			foreach (var polygon in feature.Polygons) {
-				if (polygon.Rings.Count == 0) continue;
+				if (polygon.Rings.Count == 0) {
+					continue;
+				}
 				AppendRingMesh(polygon.Rings[0], allVertices, allTriangles);
 			}
 
-			if (allVertices.Count == 0) return null;
+			if (allVertices.Count == 0) {
+				return null;
+			}
 
 			var mesh = new Mesh();
 			mesh.indexFormat = IndexFormat.UInt32;
@@ -36,10 +40,13 @@ namespace GS.Unity.Map {
 			if (count > 1) {
 				var first = points[0];
 				var last = points[count - 1];
-				if (Math.Abs(first.Lon - last.Lon) < 1e-9 && Math.Abs(first.Lat - last.Lat) < 1e-9)
+				if (Math.Abs(first.Lon - last.Lon) < 1e-9 && Math.Abs(first.Lat - last.Lat) < 1e-9) {
 					count--;
+				}
 			}
-			if (count < 3) return;
+			if (count < 3) {
+				return;
+			}
 
 			// Unwrap longitude: remove antimeridian jumps so the ring stays continuous.
 			// A >180° jump means the segment crossed ±180° — shift subsequent points.
@@ -47,17 +54,24 @@ namespace GS.Unity.Map {
 			unwrappedLon[0] = points[0].Lon;
 			for (int i = 1; i < count; i++) {
 				double delta = points[i].Lon - unwrappedLon[i - 1];
-				if (delta > 180.0) delta -= 360.0;
-				else if (delta < -180.0) delta += 360.0;
+				if (delta > 180.0) {
+					delta -= 360.0;
+				} else if (delta < -180.0) {
+					delta += 360.0;
+				}
 				unwrappedLon[i] = unwrappedLon[i - 1] + delta;
 			}
 
 			// Re-center ring if unwrapping drifted its centroid outside [-180, 180]
 			double lonSum = 0;
-			for (int i = 0; i < count; i++) lonSum += unwrappedLon[i];
+			for (int i = 0; i < count; i++) {
+				lonSum += unwrappedLon[i];
+			}
 			double lonShift = Math.Round(lonSum / count / 360.0) * 360.0;
 			if (Math.Abs(lonShift) > 0.5) {
-				for (int i = 0; i < count; i++) unwrappedLon[i] -= lonShift;
+				for (int i = 0; i < count; i++) {
+					unwrappedLon[i] -= lonShift;
+				}
 			}
 
 			// Subsample if too dense for the prototype triangulator
@@ -71,26 +85,33 @@ namespace GS.Unity.Map {
 				}
 			} else {
 				verts = new Vector2[count];
-				for (int i = 0; i < count; i++)
+				for (int i = 0; i < count; i++) {
 					verts[i] = CoordinateConverter.ToWorld(new Vector2d(unwrappedLon[i], points[i].Lat));
+				}
 			}
 
 			int baseIndex = vertices.Count;
-			foreach (var v in verts)
+			foreach (var v in verts) {
 				vertices.Add(new Vector3(v.x, v.y, 0f));
+			}
 
 			var tris = Triangulate(verts);
-			foreach (var t in tris)
+			foreach (var t in tris) {
 				triangles.Add(baseIndex + t);
+			}
 		}
 
 		static int[] Triangulate(Vector2[] pts) {
 			var result = new List<int>();
 			var indices = new List<int>(pts.Length);
-			for (int i = 0; i < pts.Length; i++) indices.Add(i);
+			for (int i = 0; i < pts.Length; i++) {
+				indices.Add(i);
+			}
 
 			// Ensure CCW winding for correct ear detection
-			if (SignedArea(pts) < 0) indices.Reverse();
+			if (SignedArea(pts) < 0) {
+				indices.Reverse();
+			}
 
 			int safety = indices.Count * indices.Count + indices.Count;
 			int cur = 0;
@@ -103,7 +124,9 @@ namespace GS.Unity.Map {
 					result.Add(indices[cur]);
 					result.Add(indices[next]);
 					indices.RemoveAt(cur);
-					if (cur >= indices.Count) cur = 0;
+					if (cur >= indices.Count) {
+						cur = 0;
+					}
 				} else {
 					cur = (cur + 1) % indices.Count;
 				}
@@ -131,10 +154,16 @@ namespace GS.Unity.Map {
 			var a = pts[idx[prev]];
 			var b = pts[idx[cur]];
 			var c = pts[idx[next]];
-			if (Cross2D(a, b, c) <= 0) return false;
+			if (Cross2D(a, b, c) <= 0) {
+				return false;
+			}
 			for (int i = 0; i < idx.Count; i++) {
-				if (i == prev || i == cur || i == next) continue;
-				if (InsideTriangle(pts[idx[i]], a, b, c)) return false;
+				if (i == prev || i == cur || i == next) {
+					continue;
+				}
+				if (InsideTriangle(pts[idx[i]], a, b, c)) {
+					return false;
+				}
 			}
 			return true;
 		}

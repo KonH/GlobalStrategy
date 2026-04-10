@@ -8,3 +8,13 @@
   ```csharp
   [SerializeField] int _speed = 0;
   ```
+- Always use braces `{}` for control flow bodies (`if`, `else`, `foreach`, `for`, `while`), even for single-line bodies:
+  ```csharp
+  if (x == null) {
+      return;
+  }
+
+  foreach (var item in list) {
+      Process(item);
+  }
+  ```

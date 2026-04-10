@@ -1,0 +1,324 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41f78fc5503d4b8409eb298c07449fa4, type: 3}
+  m_Name: en
+  m_EditorClassIdentifier: GS.Unity.UI::LocaleConfig
+  Locale: en
+  Entries:
+  - Key: country_name.Afghanistan
+    Value: Afghanistan
+  - Key: country_name.Algeria
+    Value: Algeria
+  - Key: country_name.American_Samoa
+    Value: American Samoa
+  - Key: country_name.Anguilla
+    Value: Anguilla
+  - Key: country_name.Annam
+    Value: Annam
+  - Key: country_name.Antigua_and_Barbuda
+    Value: Antigua and Barbuda
+  - Key: country_name.Arabia
+    Value: Arabia
+  - Key: country_name.Argentina
+    Value: Argentina
+  - Key: country_name.Asante
+    Value: Asante
+  - Key: country_name.Ato_trading_confederacy
+    Value: Ato trading confederacy
+  - Key: country_name.Austria_Hungary
+    Value: Austria Hungary
+  - Key: country_name.Barotse
+    Value: Barotse
+  - Key: country_name.Basutoland
+    Value: Basutoland
+  - Key: country_name.Belgium
+    Value: Belgium
+  - Key: country_name.Belize
+    Value: Belize
+  - Key: country_name.Benin
+    Value: Benin
+  - Key: country_name.Bhutan
+    Value: Bhutan
+  - Key: country_name.Bokhara_Khanate
+    Value: Bokhara Khanate
+  - Key: country_name.Bolivia
+    Value: Bolivia
+  - Key: country_name.Borgu_States
+    Value: Borgu States
+  - Key: country_name.Bosnia_Herzegovina
+    Value: Bosnia-Herzegovina
+  - Key: country_name.British_Guiana
+    Value: British Guiana
+  - Key: country_name.British_Raj
+    Value: British Raj
+  - Key: country_name.Brunei
+    Value: Brunei
+  - Key: country_name.Buganda
+    Value: Buganda
+  - Key: country_name.Bulgaria
+    Value: Bulgaria
+  - Key: country_name.Bunyoro
+    Value: Bunyoro
+  - Key: country_name.Burundi
+    Value: Burundi
+  - Key: country_name.Calabar
+    Value: Calabar
+  - Key: country_name.Canada
+    Value: Canada
+  - Key: country_name.Cape_Colony
+    Value: Cape Colony
+  - Key: country_name.Ceylon
+    Value: Ceylon
+  - Key: country_name.Chile
+    Value: Chile
+  - Key: country_name.Colombia
+    Value: Colombia
+  - Key: country_name.Congo
+    Value: Congo
+  - Key: country_name.Costa_Rica
+    Value: Costa Rica
+  - Key: country_name.Cotonou
+    Value: Cotonou
+  - Key: country_name.Dahomey
+    Value: Dahomey
+  - Key: country_name.Dendi_Kingdom
+    Value: Dendi Kingdom
+  - Key: country_name.Denmark
+    Value: Denmark
+  - Key: country_name.Dominica
+    Value: Dominica
+  - Key: country_name.Dominican_Republic
+    Value: Dominican Republic
+  - Key: country_name.Dutch_Guiana
+    Value: Dutch Guiana
+  - Key: country_name.Ecuador
+    Value: Ecuador
+  - Key: country_name.Egypt
+    Value: Egypt
+  - Key: country_name.El_Salvador
+    Value: El Salvador
+  - Key: country_name.Ethiopia
+    Value: Ethiopia
+  - Key: country_name.Fiji
+    Value: Fiji
+  - Key: country_name.France
+    Value: France
+  - Key: country_name.French_Guiana
+    Value: French Guiana
+  - Key: country_name.French_Indochina
+    Value: French Indochina
+  - Key: country_name.Futa_Jalon
+    Value: Futa Jalon
+  - Key: country_name.Futa_Toro
+    Value: Futa Toro
+  - Key: country_name.Gabon
+    Value: Gabon
+  - Key: country_name.Gambia
+    Value: Gambia
+  - Key: country_name.Germany
+    Value: Germany
+  - Key: country_name.Greece
+    Value: Greece
+  - Key: country_name.Griqualand_West
+    Value: Griqualand West
+  - Key: country_name.Guadeloupe
+    Value: Guadeloupe
+  - Key: country_name.Guatemala
+    Value: Guatemala
+  - Key: country_name.Haiti
+    Value: Haiti
+  - Key: country_name.Harer_Egypt
+    Value: Harer (Egypt)
+  - Key: country_name.Honduras
+    Value: Honduras
+  - Key: country_name.Ibadan
+    Value: Ibadan
+  - Key: country_name.Imerina
+    Value: Imerina
+  - Key: country_name.Imperial_Japan
+    Value: Imperial Japan
+  - Key: country_name.Italy
+    Value: Italy
+  - Key: country_name.Ivory_Coast
+    Value: Ivory Coast
+  - Key: country_name.Kanem_Bornu
+    Value: Kanem-Bornu
+  - Key: country_name.Kingdom_of_Brazil
+    Value: Kingdom of Brazil
+  - Key: country_name.Kingdom_of_Hawaii
+    Value: Kingdom of Hawaii
+  - Key: country_name.Kong_Empire
+    Value: Kong Empire
+  - Key: country_name.Korea
+    Value: Korea
+  - Key: country_name.Kuba
+    Value: Kuba
+  - Key: country_name.Lagos
+    Value: Lagos
+  - Key: country_name.Liberia
+    Value: Liberia
+  - Key: country_name.Lozi
+    Value: Lozi
+  - Key: country_name.Luba
+    Value: Luba
+  - Key: country_name.Lunda
+    Value: Lunda
+  - Key: country_name.Luxembourg
+    Value: Luxembourg
+  - Key: country_name.M_ori
+    Value: M?ori
+  - Key: country_name.Madagascar
+    Value: Madagascar
+  - Key: country_name.Malaya
+    Value: Malaya
+  - Key: country_name.Malta
+    Value: Malta
+  - Key: country_name.Manchu_Empire
+    Value: Manchu Empire
+  - Key: country_name.Mbailundu
+    Value: Mbailundu
+  - Key: country_name.Mexico
+    Value: Mexico
+  - Key: country_name.Mirambo_Unyanyembe_Ukimbu
+    Value: Mirambo Unyanyembe Ukimbu
+  - Key: country_name.Montenegro
+    Value: Montenegro
+  - Key: country_name.Montserrat
+    Value: Montserrat
+  - Key: country_name.Morocco
+    Value: Morocco
+  - Key: country_name.Mossi_States
+    Value: Mossi States
+  - Key: country_name.Mozambique
+    Value: Mozambique
+  - Key: country_name.Natal
+    Value: Natal
+  - Key: country_name.Ndebele
+    Value: Ndebele
+  - Key: country_name.Nepal
+    Value: Nepal
+  - Key: country_name.Netherlands
+    Value: Netherlands
+  - Key: country_name.Netherlands_Antilles
+    Value: Netherlands Antilles
+  - Key: country_name.Nguni
+    Value: Nguni
+  - Key: country_name.Ngwato
+    Value: Ngwato
+  - Key: country_name.Nicaragua
+    Value: Nicaragua
+  - Key: country_name.Niue
+    Value: Niue
+  - Key: country_name.Oman
+    Value: Oman
+  - Key: country_name.Opobo
+    Value: Opobo
+  - Key: country_name.Orange_Free_State
+    Value: Orange Free State
+  - Key: country_name.Ottoman_Empire
+    Value: Ottoman Empire
+  - Key: country_name.Ovimbundu
+    Value: Ovimbundu
+  - Key: country_name.Oyo
+    Value: Oyo
+  - Key: country_name.Papua_New_Guinea
+    Value: Papua New Guinea
+  - Key: country_name.Paraguay
+    Value: Paraguay
+  - Key: country_name.Persia
+    Value: Persia
+  - Key: country_name.Peru
+    Value: Peru
+  - Key: country_name.Philippines
+    Value: Philippines
+  - Key: country_name.Polynesians
+    Value: Polynesians
+  - Key: country_name.Portugal
+    Value: Portugal
+  - Key: country_name.Portuguese_Guinea
+    Value: Portuguese Guinea
+  - Key: country_name.Qatar
+    Value: Qatar
+  - Key: country_name.Rabih_az_Zubayr
+    Value: Rabih az-Zubayr
+  - Key: country_name.Rattanakosin_Kingdom
+    Value: Rattanakosin Kingdom
+  - Key: country_name.Romania
+    Value: Romania
+  - Key: country_name.Russian_Empire
+    Value: Russian Empire
+  - Key: country_name.Rwanda
+    Value: Rwanda
+  - Key: country_name.Saint_Barthelemy
+    Value: Saint Barthelemy
+  - Key: country_name.Saint_Kitts_and_Nevis
+    Value: Saint Kitts and Nevis
+  - Key: country_name.Saint_Martin
+    Value: Saint Martin
+  - Key: country_name.Samoa
+    Value: Samoa
+  - Key: country_name.Serbia
+    Value: Serbia
+  - Key: country_name.Shona
+    Value: Shona
+  - Key: country_name.Sierra_Leone
+    Value: Sierra Leone
+  - Key: country_name.Sokoto_Caliphate
+    Value: Sokoto Caliphate
+  - Key: country_name.Spain
+    Value: Spain
+  - Key: country_name.Spanish_Guinea
+    Value: Spanish Guinea
+  - Key: country_name.Sultanate_of_Damagaram
+    Value: Sultanate of Damagaram
+  - Key: country_name.Sultanate_of_Utetera
+    Value: Sultanate of Utetera
+  - Key: country_name.Sultinate_of_Zanzibar
+    Value: Sultinate of Zanzibar
+  - Key: country_name.Swaziland
+    Value: Swaziland
+  - Key: country_name.SwedenNorway
+    Value: SwedenNorway
+  - Key: country_name.Switzerland
+    Value: Switzerland
+  - Key: country_name.Taiwan
+    Value: Taiwan
+  - Key: country_name.Teke
+    Value: Teke
+  - Key: country_name.Tonga
+    Value: Tonga
+  - Key: country_name.Transvaal
+    Value: Transvaal
+  - Key: country_name.Trucial_Oman
+    Value: Trucial Oman
+  - Key: country_name.Tukular_Caliphate
+    Value: Tukular Caliphate
+  - Key: country_name.United_Kingdom_of_Great_Britain_and_Ireland
+    Value: United Kingdom of Great Britain and Ireland
+  - Key: country_name.United_States_of_America
+    Value: United States of America
+  - Key: country_name.Uruguay
+    Value: Uruguay
+  - Key: country_name.Venezuela
+    Value: Venezuela
+  - Key: country_name.Wadai_Empire
+    Value: Wadai Empire
+  - Key: country_name.Wassoulou_Empire
+    Value: Wassoulou Empire
+  - Key: country_name.Yaka
+    Value: Yaka
+  - Key: country_name.Yeke
+    Value: Yeke
+  - Key: country_name.Zululand
+    Value: Zululand
+  - Key: country_name.central_Asian_khanates
+    Value: central Asian khanates

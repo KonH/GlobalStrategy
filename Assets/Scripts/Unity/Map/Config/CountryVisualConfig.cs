@@ -7,8 +7,11 @@ namespace GS.Unity.Map {
 		public List<CountryVisualEntry> Entries = new List<CountryVisualEntry>();
 
 		public CountryVisualEntry Find(string countryId) {
-			foreach (var entry in Entries)
-				if (entry.countryId == countryId) return entry;
+			foreach (var entry in Entries) {
+				if (entry.countryId == countryId) {
+					return entry;
+				}
+			}
 			return null;
 		}
 	}

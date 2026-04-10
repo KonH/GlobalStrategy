@@ -1,0 +1,18 @@
+{
+    "name": "GS.Editor.Localization",
+    "rootNamespace": "",
+    "references": [
+        "GUID:31616c5c35fcc3c418ca03ade2c0cfb9"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

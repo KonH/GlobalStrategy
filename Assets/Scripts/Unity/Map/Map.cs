@@ -11,8 +11,9 @@ namespace GS.Unity.Map {
 
 		public void Initialize(List<MapFeature> features, Texture2D texture, CountryConfig countryConfig, CountryVisualConfig visualConfig) {
 			_renderer.Render(features, countryConfig, visualConfig);
-			if (texture != null)
+			if (texture != null) {
 				_overlay.Setup(texture);
+			}
 		}
 	}
 }

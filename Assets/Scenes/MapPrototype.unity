@@ -366,6 +366,7 @@ MonoBehaviour:
   _countryConfig: {fileID: 11400000, guid: 0298907c3e0f21148bfed8d87ce48008, type: 2}
   _countryVisualConfig: {fileID: 11400000, guid: ef0b0960b0c336745a2ea01586c5d114, type: 2}
   _mapCameraConfig: {fileID: 11400000, guid: b7258d2dc8369da45aa39abdcb4b282c, type: 2}
+  _localizationConfig: {fileID: 11400000, guid: 98e07a27beae86b45a53970d7d0046b9, type: 2}
 --- !u!4 &1124233457
 Transform:
   m_ObjectHideFlags: 0
