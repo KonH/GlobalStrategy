@@ -17,6 +17,7 @@ namespace GS.Main {
 
 		public VisualState VisualState { get; } = new VisualState();
 		public IWriteOnlyCommandAccessor Commands { get; }
+		public World World => _world;
 		public ResourceConfig ResourceConfig { get; private set; } = null!;
 
 		public GameLogic(GameLogicContext context) {

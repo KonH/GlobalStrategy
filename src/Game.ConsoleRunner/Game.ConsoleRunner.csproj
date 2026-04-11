@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="../Game.Main/Game.Main.csproj" />
     <ProjectReference Include="../Core.Configs.IO/Core.Configs.IO.csproj" />
+    <ProjectReference Include="../ECS.Viewer.Server/ECS.Viewer.Server.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,4 +7,5 @@ Rules:
   - Check existing files in `Docs/Plans/` to determine the next index
 - Filename body is a short kebab-case description (e.g. `01_map-prototype.md`)
 - Structure: goal, approach, steps — keep it concise
+- If the plan touches any code under `src/`, include a **Tests** section covering what unit/integration tests should be added or updated
 - Write the file immediately without asking for approval first; then iterate based on user feedback

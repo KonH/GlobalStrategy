@@ -6,6 +6,7 @@ using GS.Main;
 using GS.Game.Configs;
 using GS.Unity.Map;
 using GS.Unity.UI;
+using GS.Unity.EcsViewer;
 
 namespace GS.Unity.DI {
 	public class GameLifetimeScope : LifetimeScope {
@@ -36,7 +37,9 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<MapController>();
 			builder.RegisterComponentInHierarchy<TimeInputHandler>();
 
+			builder.Register<ECS.Viewer.PauseToken>(VContainer.Lifetime.Singleton);
 			builder.RegisterEntryPoint<GameLoopRunner>();
+			builder.RegisterComponentInHierarchy<EcsViewerBridge>();
 		}
 
 		static string ConfigPath(string file) =>

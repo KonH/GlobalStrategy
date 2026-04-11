@@ -26,5 +26,6 @@
 - **Unity plugins (DLLs):** `.claude/rules/unity/plugins.md`
 - **Unity input handling:** `.claude/rules/unity/input.md`
 - **ECS patterns:** `.claude/rules/unity/ecs_patterns.md`
+- **Unity Editor scripts:** `.claude/rules/unity/editor_scripts.md`
 - **Temporary scripts:** `.claude/rules/temp_scripts.md`
 - **Learning workflow:** `.claude/skills/learn.md`

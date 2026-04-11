@@ -47,6 +47,19 @@ Use the typed overload when registering by interface:
 builder.Register<IWriteOnlyCommandAccessor>(c => c.Resolve<GameLogic>().Commands, Lifetime.Singleton);
 ```
 
+## Sharing State Between MonoBehaviour and Pure C# Classes
+
+If a MonoBehaviour and a pure C# class (e.g. an `ITickable`) both need the same mutable object, register it as a singleton and inject it into both:
+
+```csharp
+// In GameLifetimeScope.Configure:
+builder.Register<PauseToken>(Lifetime.Singleton);
+builder.RegisterEntryPoint<GameLoopRunner>();          // constructor-injected
+builder.RegisterComponentInHierarchy<EcsViewerBridge>(); // [Inject]-method-injected
+```
+
+Never `new` the object inside `Awake` — that creates a second unshared instance that the other consumer never sees.
+
 ## What NOT to Put in the Container
 
 - Prefab references used only as factory input to `Instantiate` — keep as `[SerializeField]`
