@@ -15,6 +15,8 @@ namespace GS.Unity.UI {
 			}
 		}
 
+		public string CurrentLocale => _active?.Locale ?? _config.DefaultLocale;
+
 		public string Get(string key) {
 			if (_active != null) {
 				foreach (var e in _active.Entries) {

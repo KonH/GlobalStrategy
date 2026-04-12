@@ -322,6 +322,60 @@ MonoBehaviour:
     Value: Zululand
   - Key: country_name.central_Asian_khanates
     Value: central Asian khanates
+  - Key: menu.title
+    Value: Global Strategy
+  - Key: menu.play
+    Value: Play
+  - Key: menu.resume
+    Value: Resume
+  - Key: menu.load
+    Value: Load
+  - Key: menu.settings
+    Value: Settings
+  - Key: menu.exit
+    Value: Exit
+  - Key: select_country.hint
+    Value: Click a country on the map to select it
+  - Key: select_country.start
+    Value: Start Game
+  - Key: select_country.back
+    Value: Back
+  - Key: load.title
+    Value: Load Game
+  - Key: load.back
+    Value: Back
+  - Key: load.no_saves
+    Value: No saves found.
+  - Key: load.btn_load
+    Value: Load
+  - Key: load.btn_delete
+    Value: Delete
+  - Key: settings.title
+    Value: Settings
+  - Key: settings.language
+    Value: Language
+  - Key: settings.autosave
+    Value: Auto-Save
+  - Key: settings.save_daily
+    Value: Daily
+  - Key: settings.save_monthly
+    Value: Monthly
+  - Key: settings.save_yearly
+    Value: Yearly
+  - Key: settings.back
+    Value: Back
+  - Key: game_menu.title
+    Value: Menu
+  - Key: game_menu.resume
+    Value: Resume
+  - Key: game_menu.save
+    Value: Save
+  - Key: game_menu.settings
+    Value: Settings
+  - Key: game_menu.main_menu
+    Value: Main Menu
+  - Key: hud.menu
+    Value: Menu
   - Key: resource.gold.name
     Value: Gold
   - Key: resource.gold.description

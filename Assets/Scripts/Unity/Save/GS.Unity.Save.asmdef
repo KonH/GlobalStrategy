@@ -1,0 +1,16 @@
+{
+    "name": "GS.Unity.Save",
+    "rootNamespace": "",
+    "references": [
+        "GUID:8c4bfcb5b17948478ccb955bccff9652"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

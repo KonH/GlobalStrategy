@@ -8,5 +8,8 @@
         <ui:Instance template="CountryInfo" name="country-info" class="country-info-panel"/>
         <ui:Instance template="Time" name="time-panel" class="time-panel"/>
         <ui:VisualElement name="tooltip-overlay" class="tooltip-overlay" />
+        <ui:VisualElement name="top-center" class="top-center-panel" picking-mode="Ignore">
+            <ui:Button name="btn-menu" text="Menu" class="hud-menu-button"/>
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

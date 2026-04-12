@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Modal/SelectCountry/SelectCountry.uss"/>
+    <ui:VisualElement name="select-country-root" class="select-country-root" picking-mode="Ignore">
+        <ui:VisualElement name="info-panel" class="info-panel">
+            <ui:Label name="country-name-label" text="" class="country-name"/>
+            <ui:Label text="Click a country on the map to select it" name="hint-label" class="hint-label"/>
+            <ui:Button name="btn-start" text="Start Game" class="menu-button"/>
+            <ui:Button name="btn-back" text="Back" class="menu-button menu-button--secondary"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

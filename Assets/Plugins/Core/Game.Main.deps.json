@@ -11,6 +11,7 @@
         "dependencies": {
           "Core.Configs": "1.0.0",
           "ECS.Core": "1.0.0",
+          "ECS.Core.Extensions": "1.0.0",
           "Game.Commands": "1.0.0",
           "Game.Components": "1.0.0",
           "Game.Configs": "1.0.0",
@@ -31,6 +32,17 @@
       "ECS.Core/1.0.0": {
         "runtime": {
           "ECS.Core.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "ECS.Core.Extensions/1.0.0": {
+        "dependencies": {
+          "ECS.Core": "1.0.0"
+        },
+        "runtime": {
+          "ECS.Core.Extensions.dll": {
             "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -87,6 +99,11 @@
       "sha512": ""
     },
     "ECS.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ECS.Core.Extensions/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using VContainer;
 using GS.Main;
 using GS.Game.Commands;
+using GS.Unity.Common;
 
 namespace GS.Unity.Map {
 	[RequireComponent(typeof(Camera))]
@@ -30,6 +31,9 @@ namespace GS.Unity.Map {
 				return;
 			}
 			if (!mouse.leftButton.wasPressedThisFrame) {
+				return;
+			}
+			if (ModalState.IsModalOpen) {
 				return;
 			}
 			Debug.Log($"[MapClick] Left click at screen {mouse.position.ReadValue()}");

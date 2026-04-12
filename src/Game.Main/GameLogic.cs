@@ -10,9 +10,11 @@ namespace GS.Main {
 		readonly World _world = new World();
 		readonly CommandAccessor _commandAccessor = new CommandAccessor();
 		readonly VisualStateConverter _visualStateConverter;
-		readonly int _gameTimeEntity;
-		readonly int _localeEntity;
+		readonly GameLogicContext _context;
 		readonly int[] _speedMultipliers;
+		int _gameTimeEntity;
+		int _localeEntity;
+		int _settingsEntity;
 		DateTime _previousTime;
 
 		public VisualState VisualState { get; } = new VisualState();
@@ -21,6 +23,7 @@ namespace GS.Main {
 		public ResourceConfig ResourceConfig { get; private set; } = null!;
 
 		public GameLogic(GameLogicContext context) {
+			_context = context;
 			_visualStateConverter = new VisualStateConverter(VisualState);
 			Commands = (IWriteOnlyCommandAccessor)_commandAccessor;
 
@@ -31,7 +34,7 @@ namespace GS.Main {
 			foreach (var entry in countryConfig.Countries) {
 				int entity = _world.Create();
 				_world.Add(entity, new Country(entry.CountryId));
-				if (entry.CountryId == "Russian_Empire") {
+				if (entry.CountryId == context.InitialPlayerCountryId) {
 					_world.Add(entity, new Player());
 				}
 				CreateResourceEntities(entry, resourceConfig);
@@ -40,6 +43,7 @@ namespace GS.Main {
 			var settings = context.GameSettings.Load();
 			_speedMultipliers = settings.SpeedMultipliers;
 			_previousTime = new DateTime(settings.StartYear, 1, 1);
+
 			_gameTimeEntity = _world.Create();
 			_world.Add(_gameTimeEntity, new GameTime {
 				CurrentTime = _previousTime,
@@ -48,7 +52,13 @@ namespace GS.Main {
 			});
 
 			_localeEntity = _world.Create();
-			_world.Add(_localeEntity, new Locale { Value = "en" });
+			_world.Add(_localeEntity, new Locale { Value = settings.DefaultLocale });
+
+			_settingsEntity = _world.Create();
+			_world.Add(_settingsEntity, new AppSettings {
+				Locale = settings.DefaultLocale,
+				AutoSaveInterval = ParseAutoSaveInterval(settings.AutoSaveInterval)
+			});
 		}
 
 		void CreateResourceEntities(CountryEntry entry, ResourceConfig resourceConfig) {
@@ -97,8 +107,62 @@ namespace GS.Main {
 			SelectCountrySystem.Update(_world, _commandAccessor.ReadSelectCountryCommand());
 			SelectPlayerCountrySystem.Update(_world, _commandAccessor.ReadSelectPlayerCountryCommand());
 			LocaleSystem.Update(_world, _localeEntity, _commandAccessor.ReadChangeLocaleCommand());
+			ChangeAutoSaveIntervalSystem.Update(_world, _settingsEntity, _commandAccessor.ReadChangeAutoSaveIntervalCommand());
+
+			if (_context.Storage != null && _context.Serializer != null) {
+				AutoSaveSystem.Update(_world, _settingsEntity, _gameTimeEntity, _previousTime, _commandAccessor);
+			}
+
+			if (_commandAccessor.ReadSaveGameCommand().Count > 0) {
+				SaveGame();
+			}
+
 			_commandAccessor.Clear();
 			_visualStateConverter.Update(_world, _gameTimeEntity, _localeEntity);
+		}
+
+		public void LoadState(string saveName) {
+			if (_context.Storage == null || _context.Serializer == null) {
+				return;
+			}
+			string json = _context.Storage.Read($"Saves/{saveName}.json");
+			var snapshot = _context.Serializer.Deserialize(json);
+			LoadSystem.Apply(snapshot, _world);
+			RefreshSingletonEntities();
+		}
+
+		void SaveGame() {
+			if (_context.Storage == null || _context.Serializer == null) {
+				return;
+			}
+			var snapshot = SaveSystem.BuildSnapshot(_world);
+			_context.Storage.Write(
+				$"Saves/{snapshot.Header.SaveName}.json",
+				_context.Serializer.Serialize(snapshot));
+		}
+
+		void RefreshSingletonEntities() {
+			_gameTimeEntity = FindEntityWith<GameTime>();
+			_localeEntity = FindEntityWith<Locale>();
+			_settingsEntity = FindEntityWith<AppSettings>();
+		}
+
+		int FindEntityWith<T>() {
+			int[] required = { TypeId<T>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(required, null)) {
+				if (arch.Count > 0) {
+					return arch.Entities[0];
+				}
+			}
+			return -1;
+		}
+
+		static AutoSaveInterval ParseAutoSaveInterval(string value) {
+			return value.ToLowerInvariant() switch {
+				"daily"   => AutoSaveInterval.Daily,
+				"yearly"  => AutoSaveInterval.Yearly,
+				_         => AutoSaveInterval.Monthly
+			};
 		}
 	}
 }

@@ -15,9 +15,11 @@
 
   <ItemGroup>
     <ProjectReference Include="../ECS.Core/ECS.Core.csproj" />
+    <ProjectReference Include="../ECS.Core.Extensions/ECS.Core.Extensions.csproj" />
     <ProjectReference Include="../Game.Commands/Game.Commands.csproj" />
     <ProjectReference Include="../Game.Components/Game.Components.csproj" />
     <ProjectReference Include="../Game.Systems/Game.Systems.csproj" />
+    <ProjectReference Include="../Game.Main/Game.Main.csproj" />
   </ItemGroup>
 
 </Project>

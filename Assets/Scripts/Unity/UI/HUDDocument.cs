@@ -16,13 +16,16 @@ namespace GS.Unity.UI {
 		IWriteOnlyCommandAccessor _commands;
 		ILocalization _loc;
 		ResourceConfig _resourceConfig;
+		GameMenuDocument _gameMenu;
+		Button _btnMenu;
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, GameMenuDocument gameMenu) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
 			_resourceConfig = resourceConfig;
+			_gameMenu = gameMenu;
 		}
 
 		void Awake() {
@@ -35,12 +38,17 @@ namespace GS.Unity.UI {
 			var tooltip = new TooltipController(root.Q("tooltip-overlay"));
 
 			_countryInfo = new CountryInfoView(root.Q("country-info"), _loc, _resourceConfig, tooltip);
-			_countryInfo.OnSelectClicked = OnSelectPlayerCountry;
 			_playerCountryView = new PlayerCountryView(root.Q("player-country"), _loc, _resourceConfig, tooltip);
 			_timeView = new TimeView(
 				root.Q("time-panel"),
 				OnPauseToggle,
 				OnSpeedChange);
+		}
+
+		void Start() {
+			var root = _document.rootVisualElement;
+			_btnMenu = root.Q<Button>("btn-menu");
+			_btnMenu.clicked += () => _gameMenu?.Show();
 		}
 
 		void OnEnable() {
@@ -88,6 +96,9 @@ namespace GS.Unity.UI {
 
 		void HandleLocaleChanged(object sender, PropertyChangedEventArgs e) {
 			_loc.SetLocale(_state.Locale.Locale);
+			if (_btnMenu != null) {
+				_btnMenu.text = _loc.Get("hud.menu");
+			}
 			RefreshCountryViews();
 			_timeView.Refresh(_state.Time);
 		}
@@ -98,12 +109,6 @@ namespace GS.Unity.UI {
 
 		void HandleSelectedResourcesChanged(object sender, PropertyChangedEventArgs e) {
 			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources);
-		}
-
-		void OnSelectPlayerCountry() {
-			if (_state.SelectedCountry.IsValid) {
-				_commands.Push(new SelectPlayerCountryCommand(_state.SelectedCountry.CountryId));
-			}
 		}
 
 		void OnPauseToggle() {

@@ -1,0 +1,56 @@
+.game-menu-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.blackfade {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.menu-panel {
+    position: relative;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 44px;
+    background-color: rgb(238, 222, 180);
+    border-color: rgb(120, 85, 30);
+    border-width: 2px;
+    border-radius: 6px;
+    min-width: 260px;
+}
+
+.menu-title {
+    font-size: 42px;
+    color: rgb(55, 35, 10);
+    margin-bottom: 26px;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+}
+
+.menu-button {
+    width: 280px;
+    height: 58px;
+    margin-bottom: 14px;
+    font-size: 30px;
+    -unity-font-style: bold;
+    background-color: rgb(210, 190, 140);
+    color: rgb(55, 35, 10);
+    border-color: rgb(120, 85, 30);
+    border-width: 1px;
+    border-radius: 4px;
+}
+
+.menu-button:hover {
+    background-color: rgb(180, 155, 100);
+    border-color: rgb(80, 55, 10);
+}

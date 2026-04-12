@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Modal/MainMenu/MainMenu.uss"/>
+    <ui:VisualElement name="main-menu-root" class="main-menu-root">
+        <ui:VisualElement name="blackfade" class="blackfade"/>
+        <ui:VisualElement name="menu-panel" class="menu-panel">
+            <ui:Label name="title-label" text="Global Strategy" class="menu-title"/>
+            <ui:Button name="btn-play" text="Play" class="menu-button"/>
+            <ui:Button name="btn-resume" text="Resume" class="menu-button"/>
+            <ui:Button name="btn-load" text="Load" class="menu-button"/>
+            <ui:Button name="btn-settings" text="Settings" class="menu-button"/>
+            <ui:Button name="btn-exit" text="Exit" class="menu-button"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

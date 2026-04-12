@@ -4,18 +4,6 @@
     -unity-font-style: bold;
 }
 
-.select-player-button {
-    font-size: 22px;
-    color: rgb(55, 35, 10);
-    background-color: rgb(210, 190, 140);
-    border-width: 1px;
-    border-color: rgb(120, 85, 30);
-    border-radius: 2px;
-    padding: 6px 18px;
-    margin-left: 16px;
-    -unity-font-style: bold;
-}
-
 .resource-label {
     font-size: 26px;
     color: rgb(75, 50, 15);

@@ -83,7 +83,7 @@ namespace GS.Unity.EcsViewer {
 				return;
 			}
 			if (method == "GET" && path == "/snapshot") {
-				WorldSnapshot snap = _observer.Capture(_logic.World);
+				ECS.Viewer.WorldSnapshot snap = _observer.Capture(_logic.World);
 				string json = SerializeSnapshot(snap);
 				Respond(ctx.Response, 200, json);
 				return;
@@ -144,7 +144,7 @@ namespace GS.Unity.EcsViewer {
 			resp.OutputStream.Close();
 		}
 
-		static string SerializeSnapshot(WorldSnapshot snap) {
+		static string SerializeSnapshot(ECS.Viewer.WorldSnapshot snap) {
 			var settings = new JsonSerializerSettings();
 			settings.Converters.Add(new EntityRefValueJsonConverter());
 			return JsonConvert.SerializeObject(snap, settings);

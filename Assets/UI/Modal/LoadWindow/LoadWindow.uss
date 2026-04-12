@@ -1,0 +1,95 @@
+.window-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.window-panel {
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 36px;
+    background-color: rgb(238, 222, 180);
+    border-color: rgb(120, 85, 30);
+    border-width: 2px;
+    border-radius: 6px;
+    min-width: 420px;
+    max-height: 600px;
+}
+
+.window-title {
+    font-size: 36px;
+    color: rgb(55, 35, 10);
+    margin-bottom: 20px;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+}
+
+.save-list {
+    width: 100%;
+    flex-grow: 1;
+    margin-bottom: 12px;
+}
+
+.save-row {
+    flex-direction: row;
+    align-items: center;
+    padding: 8px;
+    border-bottom-width: 1px;
+    border-color: rgb(160, 130, 70);
+}
+
+.save-row-info {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.save-country {
+    font-size: 22px;
+    color: rgb(55, 35, 10);
+}
+
+.save-date {
+    font-size: 18px;
+    color: rgb(110, 80, 35);
+}
+
+.menu-button {
+    width: 200px;
+    height: 52px;
+    margin-top: 10px;
+    font-size: 28px;
+    -unity-font-style: bold;
+    background-color: rgb(210, 190, 140);
+    color: rgb(55, 35, 10);
+    border-color: rgb(120, 85, 30);
+    border-width: 1px;
+    border-radius: 4px;
+}
+
+.menu-button:hover {
+    background-color: rgb(180, 155, 100);
+}
+
+.row-button {
+    width: 96px;
+    height: 44px;
+    margin-left: 8px;
+    font-size: 22px;
+    -unity-font-style: bold;
+    background-color: rgb(210, 190, 140);
+    color: rgb(55, 35, 10);
+    border-color: rgb(120, 85, 30);
+    border-width: 1px;
+    border-radius: 4px;
+}
+
+.row-button-delete {
+    background-color: rgb(200, 120, 100);
+    border-color: rgb(140, 60, 40);
+    color: rgb(55, 20, 10);
+}

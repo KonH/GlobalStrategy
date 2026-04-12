@@ -5,8 +5,10 @@ using VContainer.Unity;
 using GS.Main;
 using GS.Game.Configs;
 using GS.Unity.Map;
+using GS.Unity.Save;
 using GS.Unity.UI;
 using GS.Unity.EcsViewer;
+using GS.Unity.Common;
 
 namespace GS.Unity.DI {
 	public class GameLifetimeScope : LifetimeScope {
@@ -15,12 +17,20 @@ namespace GS.Unity.DI {
 		[SerializeField] MapCameraConfig _mapCameraConfig;
 
 		protected override void Configure(IContainerBuilder builder) {
+			var storage = new PersistentStorage();
+			var serializer = new NewtonsoftSnapshotSerializer();
+
+			string initialPlayer = SceneTransitionArgs.InitialPlayerCountry ?? "Russian_Empire";
+
 			var ctx = new GameLogicContext(
 				new StreamingAssetsConfig<GeoJsonConfig>(ConfigPath("geojson_world.json")),
 				new StreamingAssetsConfig<MapEntryConfig>(ConfigPath("map_entry_config.json")),
 				new StreamingAssetsConfig<GS.Game.Configs.CountryConfig>(ConfigPath("country_config.json")),
 				new StreamingAssetsConfig<GameSettings>(ConfigPath("game_settings.json")),
-				new StreamingAssetsConfig<ResourceConfig>(ConfigPath("resource_config.json"))
+				new StreamingAssetsConfig<ResourceConfig>(ConfigPath("resource_config.json")),
+				storage,
+				serializer,
+				initialPlayer
 			);
 
 			builder.RegisterInstance(ctx);
@@ -28,6 +38,10 @@ namespace GS.Unity.DI {
 			builder.Register(c => c.Resolve<GameLogic>().VisualState, Lifetime.Singleton);
 			builder.Register<IWriteOnlyCommandAccessor>(c => c.Resolve<GameLogic>().Commands, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().ResourceConfig, Lifetime.Singleton);
+
+			builder.RegisterInstance<IPersistentStorage>(storage);
+			builder.RegisterInstance<ISnapshotSerializer>(serializer);
+			builder.Register<SaveFileManager>(Lifetime.Singleton);
 
 			builder.RegisterInstance(_countryConfig);
 			builder.RegisterInstance(_countryVisualConfig);
@@ -40,6 +54,14 @@ namespace GS.Unity.DI {
 			builder.Register<ECS.Viewer.PauseToken>(VContainer.Lifetime.Singleton);
 			builder.RegisterEntryPoint<GameLoopRunner>();
 			builder.RegisterComponentInHierarchy<EcsViewerBridge>();
+
+			builder.RegisterComponentInHierarchy<GameMenuDocument>();
+			builder.RegisterComponentInHierarchy<SettingsWindowDocument>();
+		}
+
+		protected override void OnDestroy() {
+			base.OnDestroy();
+			SceneTransitionArgs.Clear();
 		}
 
 		static string ConfigPath(string file) =>

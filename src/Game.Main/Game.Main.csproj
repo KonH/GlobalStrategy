@@ -18,6 +18,7 @@
     <ProjectReference Include="../Game.Configs/Game.Configs.csproj" />
     <ProjectReference Include="../Core.Configs/Core.Configs.csproj" />
     <ProjectReference Include="../ECS.Core/ECS.Core.csproj" />
+    <ProjectReference Include="../ECS.Core.Extensions/ECS.Core.Extensions.csproj" />
   </ItemGroup>
 
   <ItemGroup>
