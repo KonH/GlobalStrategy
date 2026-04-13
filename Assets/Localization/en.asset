@@ -374,8 +374,6 @@ MonoBehaviour:
     Value: Settings
   - Key: game_menu.main_menu
     Value: Main Menu
-  - Key: hud.menu
-    Value: Menu
   - Key: resource.gold.name
     Value: Gold
   - Key: resource.gold.description

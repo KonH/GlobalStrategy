@@ -9,3 +9,6 @@ Rules:
 - Structure: goal, approach, steps — keep it concise
 - If the plan touches any code under `src/`, include a **Tests** section covering what unit/integration tests should be added or updated
 - Write the file immediately without asking for approval first; then iterate based on user feedback
+- Do NOT make any code, asset, or file changes during planning — only write the plan document
+- End every plan with the line: `Use /implement to start working on the plan or request changes.`
+- After writing the plan, stop and wait for the user to run /implement

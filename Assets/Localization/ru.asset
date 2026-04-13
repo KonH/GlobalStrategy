@@ -385,8 +385,6 @@ MonoBehaviour:
     Value: "\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438"
   - Key: game_menu.main_menu
     Value: "\u0413\u043B\u0430\u0432\u043D\u043E\u0435 \u043C\u0435\u043D\u044E"
-  - Key: hud.menu
-    Value: "\u041C\u0435\u043D\u044E"
   - Key: resource.gold.name
     Value: "\u0417\u043E\u043B\u043E\u0442\u043E"
   - Key: resource.gold.description

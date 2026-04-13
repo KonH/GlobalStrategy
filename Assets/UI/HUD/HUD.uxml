@@ -2,14 +2,20 @@
     <ui:Template name="CountryInfo" src="project://database/Assets/UI/HUD/CountryInfo/CountryInfo.uxml?fileID=9197481963319205126&amp;guid=ca2aebbe26c86a848b12b780383bf718&amp;type=3#CountryInfo"/>
     <ui:Template name="Time" src="project://database/Assets/UI/HUD/Time/Time.uxml?fileID=9197481963319205126&amp;guid=5c54ada5b11a0ab419794befffb44b25&amp;type=3#Time"/>
     <ui:Template name="PlayerCountry" src="project://database/Assets/UI/HUD/PlayerCountry/PlayerCountry.uxml"/>
-    <Style src="project://database/Assets/UI/HUD/HUD.uss?fileID=7433441132597879392&amp;guid=960ca7226a908b347be612c19639c422&amp;type=3#HUD"/>
+    <ui:Style src="project://database/Assets/UI/HUD/HUD.uss?fileID=7433441132597879392&amp;guid=960ca7226a908b347be612c19639c422&amp;type=3#HUD"/>
     <ui:VisualElement name="hud-root" data-source-type="GS.Main.VisualState, Game.Main" picking-mode="Ignore" style="aspect-ratio: auto;">
         <ui:Instance template="PlayerCountry" name="player-country" class="player-country-panel"/>
         <ui:Instance template="CountryInfo" name="country-info" class="country-info-panel"/>
-        <ui:Instance template="Time" name="time-panel" class="time-panel"/>
         <ui:VisualElement name="tooltip-overlay" class="tooltip-overlay" />
         <ui:VisualElement name="top-center" class="top-center-panel" picking-mode="Ignore">
-            <ui:Button name="btn-menu" text="Menu" class="hud-menu-button"/>
+            <ui:Button name="btn-debug-toggle" text="DEBUG" class="hud-debug-toggle"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="top-right-panel" class="top-right-panel">
+            <ui:Instance template="Time" name="time-panel" class="time-panel"/>
+            <ui:Button name="btn-menu" text="≡" class="hud-hamburger-button"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="debug-panel" class="debug-panel">
+            <ui:Button name="btn-ecs-viewer" text="ECS Viewer" class="debug-panel-button"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

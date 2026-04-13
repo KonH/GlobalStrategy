@@ -5,6 +5,7 @@ using VContainer;
 using GS.Main;
 using GS.Game.Commands;
 using GS.Game.Configs;
+using GS.Unity.EcsViewer;
 
 namespace GS.Unity.UI {
 	public class HUDDocument : MonoBehaviour {
@@ -18,6 +19,10 @@ namespace GS.Unity.UI {
 		ResourceConfig _resourceConfig;
 		GameMenuDocument _gameMenu;
 		Button _btnMenu;
+		Button _btnDebugToggle;
+		VisualElement _debugPanel;
+		Button _btnEcsViewer;
+		bool _debugPanelOpen;
 
 		[Inject]
 		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, GameMenuDocument gameMenu) {
@@ -49,6 +54,27 @@ namespace GS.Unity.UI {
 			var root = _document.rootVisualElement;
 			_btnMenu = root.Q<Button>("btn-menu");
 			_btnMenu.clicked += () => _gameMenu?.Show();
+
+			_btnDebugToggle = root.Q<Button>("btn-debug-toggle");
+			_debugPanel = root.Q("debug-panel");
+			_btnEcsViewer = root.Q<Button>("btn-ecs-viewer");
+
+			_btnDebugToggle.clicked += ToggleDebugPanel;
+			_btnEcsViewer.clicked += OpenEcsViewer;
+		}
+
+		void ToggleDebugPanel() {
+			_debugPanelOpen = !_debugPanelOpen;
+			_debugPanel.style.display = _debugPanelOpen ? DisplayStyle.Flex : DisplayStyle.None;
+		}
+
+		void OpenEcsViewer() {
+			var url = EcsViewerBridge.CurrentUrl;
+			if (url == null) {
+				Debug.LogWarning("[HUDDocument] ECS Viewer URL is not available — is the bridge running?");
+				return;
+			}
+			Application.OpenURL(url);
 		}
 
 		void OnEnable() {
@@ -96,9 +122,6 @@ namespace GS.Unity.UI {
 
 		void HandleLocaleChanged(object sender, PropertyChangedEventArgs e) {
 			_loc.SetLocale(_state.Locale.Locale);
-			if (_btnMenu != null) {
-				_btnMenu.text = _loc.Get("hud.menu");
-			}
 			RefreshCountryViews();
 			_timeView.Refresh(_state.Time);
 		}
