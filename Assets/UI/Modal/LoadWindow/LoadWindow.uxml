@@ -1,10 +1,11 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
     <ui:Style src="project://database/Assets/UI/Modal/LoadWindow/LoadWindow.uss"/>
-    <ui:VisualElement name="load-window-root" class="window-root">
-        <ui:VisualElement name="window-panel" class="window-panel">
-            <ui:Label name="window-title" text="Load Game" class="window-title"/>
+    <ui:VisualElement name="load-window-root" class="gs-modal-root">
+        <ui:VisualElement name="window-panel" class="gs-panel window-panel">
+            <ui:Label name="window-title" text="Load Game" class="gs-header window-title"/>
             <ui:ScrollView name="save-list" class="save-list"/>
-            <ui:Button name="btn-back" text="Back" class="menu-button"/>
+            <ui:Button name="btn-back" text="Back" class="gs-btn gs-btn--primary menu-button"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

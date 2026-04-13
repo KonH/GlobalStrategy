@@ -1,24 +1,25 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
     <ui:Style src="project://database/Assets/UI/Modal/SettingsWindow/SettingsWindow.uss"/>
-    <ui:VisualElement name="settings-window-root" class="window-root">
-        <ui:VisualElement name="window-panel" class="window-panel">
-            <ui:Label name="settings-title" text="Settings" class="window-title"/>
+    <ui:VisualElement name="settings-window-root" class="gs-modal-root">
+        <ui:VisualElement name="window-panel" class="gs-panel window-panel">
+            <ui:Label name="settings-title" text="Settings" class="gs-header window-title"/>
             <ui:VisualElement class="setting-row">
-                <ui:Label name="lbl-language" text="Language" class="setting-label"/>
+                <ui:Label name="lbl-language" text="Language" class="gs-label setting-label"/>
                 <ui:VisualElement class="setting-buttons">
-                    <ui:Button name="btn-lang-en" text="EN" class="setting-button"/>
-                    <ui:Button name="btn-lang-ru" text="RU" class="setting-button"/>
+                    <ui:Button name="btn-lang-en" text="EN" class="gs-btn gs-btn--small setting-button"/>
+                    <ui:Button name="btn-lang-ru" text="RU" class="gs-btn gs-btn--small setting-button"/>
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement class="setting-row">
-                <ui:Label name="lbl-autosave" text="Auto-Save" class="setting-label"/>
+                <ui:Label name="lbl-autosave" text="Auto-Save" class="gs-label setting-label"/>
                 <ui:VisualElement class="setting-buttons">
-                    <ui:Button name="btn-save-daily" text="Daily" class="setting-button"/>
-                    <ui:Button name="btn-save-monthly" text="Monthly" class="setting-button"/>
-                    <ui:Button name="btn-save-yearly" text="Yearly" class="setting-button"/>
+                    <ui:Button name="btn-save-daily" text="Daily" class="gs-btn gs-btn--small setting-button"/>
+                    <ui:Button name="btn-save-monthly" text="Monthly" class="gs-btn gs-btn--small setting-button"/>
+                    <ui:Button name="btn-save-yearly" text="Yearly" class="gs-btn gs-btn--small setting-button"/>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:Button name="btn-back" text="Back" class="menu-button"/>
+            <ui:Button name="btn-back" text="Back" class="gs-btn gs-btn--primary menu-button"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

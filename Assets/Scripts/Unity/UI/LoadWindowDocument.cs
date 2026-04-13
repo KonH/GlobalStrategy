@@ -78,10 +78,12 @@ namespace GS.Unity.UI {
 			info.AddToClassList("save-row-info");
 
 			var country = new Label(save.PlayerCountryId);
+			country.AddToClassList("gs-label");
 			country.AddToClassList("save-country");
 			info.Add(country);
 
 			var date = new Label(save.GameDate.ToString("yyyy-MM-dd"));
+			date.AddToClassList("gs-content");
 			date.AddToClassList("save-date");
 			info.Add(date);
 
@@ -89,6 +91,8 @@ namespace GS.Unity.UI {
 
 			var btnLoad = new Button(() => _sceneLoader.LoadGame(saveName: save.SaveName));
 			btnLoad.text = _loc.Get("load.btn_load");
+			btnLoad.AddToClassList("gs-btn");
+			btnLoad.AddToClassList("gs-btn--small");
 			btnLoad.AddToClassList("row-button");
 			row.Add(btnLoad);
 
@@ -99,8 +103,9 @@ namespace GS.Unity.UI {
 				BuildList();
 			});
 			btnDelete.text = _loc.Get("load.btn_delete");
+			btnDelete.AddToClassList("gs-btn");
+			btnDelete.AddToClassList("gs-btn--destructive");
 			btnDelete.AddToClassList("row-button");
-			btnDelete.AddToClassList("row-button-delete");
 			row.Add(btnDelete);
 
 			return row;

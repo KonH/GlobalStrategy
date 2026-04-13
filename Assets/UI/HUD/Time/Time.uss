@@ -26,16 +26,5 @@
     height: 50px;
     font-size: 24px;
     margin-left: 6px;
-    background-color: rgb(210, 190, 140);
-    color: rgb(55, 35, 10);
-    border-width: 1px;
-    border-color: rgb(120, 85, 30);
     border-radius: 2px;
-    -unity-font-style: bold;
-}
-
-#time-controls Button.active {
-    background-color: rgb(160, 120, 50);
-    color: rgb(245, 232, 195);
-    border-color: rgb(90, 60, 15);
 }

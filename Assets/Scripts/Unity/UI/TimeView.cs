@@ -28,8 +28,8 @@ namespace GS.Unity.UI {
 		}
 
 		void SetActive(Button btn, bool active) {
-			if (active) btn.AddToClassList("active");
-			else btn.RemoveFromClassList("active");
+			if (active) btn.AddToClassList("gs-btn--active");
+			else btn.RemoveFromClassList("gs-btn--active");
 		}
 	}
 }

@@ -132,9 +132,9 @@ namespace GS.Unity.UI {
 
 		static void SetActive(Button btn, bool active) {
 			if (active) {
-				btn.AddToClassList("setting-button--active");
+				btn.AddToClassList("gs-toggle-on");
 			} else {
-				btn.RemoveFromClassList("setting-button--active");
+				btn.RemoveFromClassList("gs-toggle-on");
 			}
 		}
 	}

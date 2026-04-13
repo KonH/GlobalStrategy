@@ -1,13 +1,14 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
     <ui:Style src="project://database/Assets/UI/Modal/GameMenu/GameMenu.uss"/>
     <ui:VisualElement name="game-menu-root" class="game-menu-root">
-        <ui:VisualElement name="blackfade" class="blackfade"/>
-        <ui:VisualElement name="menu-panel" class="menu-panel">
-            <ui:Label name="menu-title" text="Menu" class="menu-title"/>
-            <ui:Button name="btn-resume" text="Resume" class="menu-button"/>
-            <ui:Button name="btn-save" text="Save" class="menu-button"/>
-            <ui:Button name="btn-settings" text="Settings" class="menu-button"/>
-            <ui:Button name="btn-main-menu" text="Main Menu" class="menu-button"/>
+        <ui:VisualElement name="blackfade" class="gs-blackfade"/>
+        <ui:VisualElement name="menu-panel" class="gs-panel menu-panel">
+            <ui:Label name="menu-title" text="Menu" class="gs-title menu-title"/>
+            <ui:Button name="btn-resume" text="Resume" class="gs-btn gs-btn--primary menu-button"/>
+            <ui:Button name="btn-save" text="Save" class="gs-btn gs-btn--primary menu-button"/>
+            <ui:Button name="btn-settings" text="Settings" class="gs-btn gs-btn--primary menu-button"/>
+            <ui:Button name="btn-main-menu" text="Main Menu" class="gs-btn gs-btn--primary menu-button"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

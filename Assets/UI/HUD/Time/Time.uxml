@@ -1,12 +1,13 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
     <ui:Style src="project://database/Assets/UI/HUD/Time/Time.uss" />
     <ui:VisualElement name="time-root">
         <ui:Label name="time-date" />
         <ui:VisualElement name="time-controls">
-            <ui:Button name="btn-pause" text="&#9646;&#9646;" />
-            <ui:Button name="btn-x1" text="x1" />
-            <ui:Button name="btn-x2" text="x2" />
-            <ui:Button name="btn-x3" text="x3" />
+            <ui:Button name="btn-pause" text="&#9646;&#9646;" class="gs-btn gs-btn--small"/>
+            <ui:Button name="btn-x1" text="x1" class="gs-btn gs-btn--small"/>
+            <ui:Button name="btn-x2" text="x2" class="gs-btn gs-btn--small"/>
+            <ui:Button name="btn-x3" text="x3" class="gs-btn gs-btn--small"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

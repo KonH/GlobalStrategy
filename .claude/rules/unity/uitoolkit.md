@@ -96,6 +96,49 @@ Assets/Scripts/Unity/UI/
   CountryInfoView.cs    ← plain view class
 ```
 
+## Shared UI Kit
+
+All shared visual styles live in `Assets/UI/Shared/SharedStyles.uss`. Every UXML file must reference it before the local USS:
+
+```xml
+<ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+<ui:Style src="project://database/Assets/UI/HUD/HUD.uss"/>
+```
+
+### Class catalogue
+
+**Colour utilities** (single-property, use for one-off overrides):
+- `.gs-bg-panel` / `.gs-bg-button` / `.gs-bg-button-hover` / `.gs-bg-button-active` / `.gs-bg-tooltip`
+- `.gs-border-primary` / `.gs-border-muted`
+- `.gs-color-dark` / `.gs-color-mid` / `.gs-color-hint` / `.gs-color-positive` / `.gs-color-negative` / `.gs-color-light`
+
+**Panel:** `.gs-panel` — beige bg, brown border (2 px), 6 px radius, column flex, centered items
+
+**Overlays:** `.gs-modal-root` — absolute full-screen center-center flex with semi-transparent bg; `.gs-blackfade` — absolute full-screen 40 % dark overlay
+
+**Text:**
+- `.gs-title` — 42 px, dark brown, bold, centered (large modal title)
+- `.gs-header` — 36 px, dark brown, bold (section header)
+- `.gs-label` — 20 px, medium brown, normal (form label)
+- `.gs-content` — 18 px, medium brown (body text)
+- `.gs-hint` — 16 px, lighter brown, italic (hints)
+
+**Buttons:** `.gs-btn` — tan bg, brown border, dark bold text, 4 px radius + `:hover` state
+- `.gs-btn--primary` — 60 px tall, 30 px font, bottom margin (full menu button)
+- `.gs-btn--secondary` — lighter tan tone
+- `.gs-btn--small` — 20 px font (row actions, time controls)
+- `.gs-btn--destructive` — red-tinted bg (delete actions)
+- `.gs-btn--active` — dark brown bg, light text (active speed button)
+
+**Toggles:** `.gs-toggle-on` / `.gs-toggle-off` — darker/standard states for exclusive-option buttons
+
+### Usage rules
+
+- New components must use shared classes for all visual styling (colour, typography, border).
+- Per-feature USS contains **only** layout overrides: position, width, height, margin, padding — never colour or font repetition.
+- Dynamic elements created in C# must call `AddToClassList("gs-btn")` etc. the same way UXML does.
+- To add a new shared style: add it to `SharedStyles.uss`, document it in this section, then use it in UXML/C#.
+
 ## Blocking map/world clicks through UI panels
 
 Any MonoBehaviour that reads raw mouse input (e.g. `Mouse.current.leftButton`) must guard against clicks landing on UI panels:

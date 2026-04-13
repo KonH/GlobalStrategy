@@ -1,0 +1,140 @@
+/* ===== Panel ===== */
+
+.gs-panel {
+    background-color: rgb(238, 222, 180);
+    border-color: rgb(120, 85, 30);
+    border-width: 2px;
+    border-radius: 6px;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* ===== Overlay / Modal backdrop ===== */
+
+.gs-modal-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.gs-blackfade {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* ===== Text ===== */
+
+.gs-title {
+    font-size: 42px;
+    color: rgb(55, 35, 10);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.gs-header {
+    font-size: 36px;
+    color: rgb(55, 35, 10);
+    -unity-font-style: bold;
+}
+
+.gs-label {
+    font-size: 20px;
+    color: rgb(75, 50, 15);
+}
+
+.gs-content {
+    font-size: 18px;
+    color: rgb(75, 50, 15);
+}
+
+.gs-hint {
+    font-size: 16px;
+    color: rgb(110, 80, 35);
+    -unity-font-style: italic;
+}
+
+/* ===== Buttons ===== */
+
+.gs-btn {
+    background-color: rgb(210, 190, 140);
+    color: rgb(55, 35, 10);
+    border-color: rgb(120, 85, 30);
+    border-width: 1px;
+    border-radius: 4px;
+    -unity-font-style: bold;
+}
+
+.gs-btn:hover {
+    background-color: rgb(180, 155, 100);
+}
+
+.gs-btn--primary {
+    height: 60px;
+    margin-bottom: 14px;
+    font-size: 30px;
+}
+
+.gs-btn--secondary {
+    background-color: rgb(200, 185, 150);
+    border-color: rgb(140, 105, 50);
+}
+
+.gs-btn--small {
+    font-size: 20px;
+    -unity-font-style: bold;
+}
+
+.gs-btn--destructive {
+    background-color: rgb(200, 120, 100);
+    border-color: rgb(140, 60, 40);
+    color: rgb(55, 20, 10);
+}
+
+.gs-btn--active {
+    background-color: rgb(160, 120, 50);
+    color: rgb(245, 232, 195);
+    border-color: rgb(90, 60, 15);
+}
+
+/* ===== Toggle buttons ===== */
+
+.gs-toggle-on {
+    background-color: rgb(160, 120, 50);
+    color: rgb(245, 232, 195);
+    border-color: rgb(90, 60, 15);
+}
+
+.gs-toggle-off {
+    background-color: rgb(210, 190, 140);
+    color: rgb(55, 35, 10);
+    border-color: rgb(120, 85, 30);
+}
+
+/* ===== Colour utility classes =====
+   Declared last so they override compound class colours when combined
+   (e.g. gs-label sets a base colour; gs-color-positive overrides it). */
+
+.gs-bg-panel { background-color: rgb(238, 222, 180); }
+.gs-bg-button { background-color: rgb(210, 190, 140); }
+.gs-bg-button-hover { background-color: rgb(180, 155, 100); }
+.gs-bg-button-active { background-color: rgb(160, 120, 50); }
+.gs-bg-tooltip { background-color: rgb(245, 232, 195); }
+
+.gs-border-primary { border-color: rgb(120, 85, 30); }
+.gs-border-muted { border-color: rgb(160, 130, 70); }
+
+.gs-color-dark { color: rgb(55, 35, 10); }
+.gs-color-mid { color: rgb(75, 50, 15); }
+.gs-color-hint { color: rgb(110, 80, 35); }
+.gs-color-positive { color: rgb(30, 110, 40); }
+.gs-color-negative { color: rgb(160, 35, 25); }
+.gs-color-light { color: rgb(245, 232, 195); }

@@ -1,5 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
     <ui:Style src="project://database/Assets/UI/HUD/CountryInfo/CountryInfo.uss" />
-    <ui:Label name="country-name" class="country-name" text="" />
+    <ui:Label name="country-name" class="gs-title country-name" text="" />
     <ui:VisualElement name="resources-container" class="resources-container" />
 </ui:UXML>

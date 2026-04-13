@@ -24,6 +24,7 @@ namespace GS.Unity.UI {
 			}
 			foreach (var resource in state.Resources) {
 				var label = new Label();
+				label.AddToClassList("gs-label");
 				label.AddToClassList("resource-label");
 
 				double netMonthly = 0;
@@ -37,12 +38,12 @@ namespace GS.Unity.UI {
 				string icon = resDef?.Icon ?? "\u25CF";
 				label.text = $"{icon} {resource.Value:F0}";
 
-				label.RemoveFromClassList("resource-positive");
-				label.RemoveFromClassList("resource-negative");
+				label.RemoveFromClassList("gs-color-positive");
+				label.RemoveFromClassList("gs-color-negative");
 				if (netMonthly > 0) {
-					label.AddToClassList("resource-positive");
+					label.AddToClassList("gs-color-positive");
 				} else if (netMonthly < 0) {
-					label.AddToClassList("resource-negative");
+					label.AddToClassList("gs-color-negative");
 				}
 
 				var capturedResource = resource;

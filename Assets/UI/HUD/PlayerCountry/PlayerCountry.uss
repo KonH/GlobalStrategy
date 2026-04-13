@@ -1,20 +1,9 @@
 .player-country-name {
     font-size: 28px;
-    color: rgb(55, 35, 10);
-    -unity-font-style: bold;
 }
 
 .resource-label {
     font-size: 26px;
-    color: rgb(75, 50, 15);
     -unity-font-style: bold;
     margin-top: 4px;
-}
-
-.resource-positive {
-    color: rgb(30, 110, 40);
-}
-
-.resource-negative {
-    color: rgb(160, 35, 25);
 }

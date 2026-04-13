@@ -1,31 +1,10 @@
-.window-root {
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
 .window-panel {
-    flex-direction: column;
-    align-items: center;
     padding: 28px 36px;
-    background-color: rgb(238, 222, 180);
-    border-color: rgb(120, 85, 30);
-    border-width: 2px;
-    border-radius: 6px;
     min-width: 340px;
 }
 
 .window-title {
-    font-size: 36px;
-    color: rgb(55, 35, 10);
     margin-bottom: 24px;
-    -unity-text-align: middle-center;
-    -unity-font-style: bold;
 }
 
 .setting-row {
@@ -36,8 +15,6 @@
 }
 
 .setting-label {
-    font-size: 20px;
-    color: rgb(75, 50, 15);
     width: 120px;
 }
 
@@ -50,19 +27,6 @@
     flex-grow: 1;
     height: 44px;
     margin-right: 6px;
-    font-size: 20px;
-    -unity-font-style: bold;
-    background-color: rgb(210, 190, 140);
-    color: rgb(55, 35, 10);
-    border-color: rgb(120, 85, 30);
-    border-width: 1px;
-    border-radius: 4px;
-}
-
-.setting-button--active {
-    background-color: rgb(160, 125, 60);
-    border-color: rgb(80, 55, 10);
-    color: rgb(238, 222, 180);
 }
 
 .menu-button {
@@ -70,14 +34,4 @@
     height: 52px;
     margin-top: 20px;
     font-size: 28px;
-    -unity-font-style: bold;
-    background-color: rgb(210, 190, 140);
-    color: rgb(55, 35, 10);
-    border-color: rgb(120, 85, 30);
-    border-width: 1px;
-    border-radius: 4px;
-}
-
-.menu-button:hover {
-    background-color: rgb(180, 155, 100);
 }
