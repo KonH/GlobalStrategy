@@ -1,0 +1,2155 @@
+{
+  "countries": [
+    {
+      "countryId": "Afghanistan",
+      "displayName": "Afghanistan",
+      "mainMapFeatureIds": [
+        "Afghanistan"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Algeria",
+      "displayName": "Algeria",
+      "mainMapFeatureIds": [],
+      "secondaryMapFeatureIds": [
+        "Algeria_FR"
+      ],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "American_Samoa",
+      "displayName": "American Samoa",
+      "mainMapFeatureIds": [
+        "American_Samoa"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Anguilla",
+      "displayName": "Anguilla",
+      "mainMapFeatureIds": [
+        "Anguilla"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Annam",
+      "displayName": "Annam",
+      "mainMapFeatureIds": [
+        "Annam"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Antigua_and_Barbuda",
+      "displayName": "Antigua and Barbuda",
+      "mainMapFeatureIds": [
+        "Antigua_and_Barbuda"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Arabia",
+      "displayName": "Arabia",
+      "mainMapFeatureIds": [
+        "Arabia"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Argentina",
+      "displayName": "Argentina",
+      "mainMapFeatureIds": [
+        "Argentina"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Asante",
+      "displayName": "Asante",
+      "mainMapFeatureIds": [
+        "Asante"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Ato_trading_confederacy",
+      "displayName": "Ato trading confederacy",
+      "mainMapFeatureIds": [
+        "Ato_trading_confederacy"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Austria_Hungary",
+      "displayName": "Austria Hungary",
+      "mainMapFeatureIds": [
+        "Austria_Hungary"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
+    },
+    {
+      "countryId": "Barotse",
+      "displayName": "Barotse",
+      "mainMapFeatureIds": [
+        "Barotse"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Basutoland",
+      "displayName": "Basutoland",
+      "mainMapFeatureIds": [
+        "Basutoland"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Belgium",
+      "displayName": "Belgium",
+      "mainMapFeatureIds": [
+        "Belgium"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Belize",
+      "displayName": "Belize",
+      "mainMapFeatureIds": [
+        "Belize"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Benin",
+      "displayName": "Benin",
+      "mainMapFeatureIds": [
+        "Benin"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Bhutan",
+      "displayName": "Bhutan",
+      "mainMapFeatureIds": [
+        "Bhutan"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Bokhara_Khanate",
+      "displayName": "Bokhara Khanate",
+      "mainMapFeatureIds": [
+        "Bokhara_Khanate"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Bolivia",
+      "displayName": "Bolivia",
+      "mainMapFeatureIds": [
+        "Bolivia"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Borgu_States",
+      "displayName": "Borgu States",
+      "mainMapFeatureIds": [
+        "Borgu_States"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Bosnia_Herzegovina",
+      "displayName": "Bosnia-Herzegovina",
+      "mainMapFeatureIds": [
+        "Bosnia_Herzegovina"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "British_Guiana",
+      "displayName": "British Guiana",
+      "mainMapFeatureIds": [
+        "British_Guiana"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "British_Raj",
+      "displayName": "British Raj",
+      "mainMapFeatureIds": [
+        "British_Raj"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
+    },
+    {
+      "countryId": "Brunei",
+      "displayName": "Brunei",
+      "mainMapFeatureIds": [
+        "Brunei"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Buganda",
+      "displayName": "Buganda",
+      "mainMapFeatureIds": [
+        "Buganda"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Bulgaria",
+      "displayName": "Bulgaria",
+      "mainMapFeatureIds": [
+        "Bulgaria"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Bunyoro",
+      "displayName": "Bunyoro",
+      "mainMapFeatureIds": [
+        "Bunyoro"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Burundi",
+      "displayName": "Burundi",
+      "mainMapFeatureIds": [
+        "Burundi"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Calabar",
+      "displayName": "Calabar",
+      "mainMapFeatureIds": [
+        "Calabar"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Canada",
+      "displayName": "Canada",
+      "mainMapFeatureIds": [
+        "Canada"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Cape_Colony",
+      "displayName": "Cape Colony",
+      "mainMapFeatureIds": [
+        "Cape_Colony"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Ceylon",
+      "displayName": "Ceylon",
+      "mainMapFeatureIds": [
+        "Ceylon"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Chile",
+      "displayName": "Chile",
+      "mainMapFeatureIds": [
+        "Chile"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Colombia",
+      "displayName": "Colombia",
+      "mainMapFeatureIds": [
+        "Colombia"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Congo",
+      "displayName": "Congo",
+      "mainMapFeatureIds": [
+        "Congo"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Costa_Rica",
+      "displayName": "Costa Rica",
+      "mainMapFeatureIds": [
+        "Costa_Rica"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Cotonou",
+      "displayName": "Cotonou",
+      "mainMapFeatureIds": [
+        "Cotonou"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Dahomey",
+      "displayName": "Dahomey",
+      "mainMapFeatureIds": [
+        "Dahomey"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Dendi_Kingdom",
+      "displayName": "Dendi Kingdom",
+      "mainMapFeatureIds": [
+        "Dendi_Kingdom"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Denmark",
+      "displayName": "Denmark",
+      "mainMapFeatureIds": [
+        "Denmark"
+      ],
+      "secondaryMapFeatureIds": [
+        "Iceland",
+        "Greenland"
+      ],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Dominica",
+      "displayName": "Dominica",
+      "mainMapFeatureIds": [
+        "Dominica"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Dominican_Republic",
+      "displayName": "Dominican Republic",
+      "mainMapFeatureIds": [
+        "Dominican_Republic"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Dutch_Guiana",
+      "displayName": "Dutch Guiana",
+      "mainMapFeatureIds": [
+        "Dutch_Guiana"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Ecuador",
+      "displayName": "Ecuador",
+      "mainMapFeatureIds": [
+        "Ecuador"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Egypt",
+      "displayName": "Egypt",
+      "mainMapFeatureIds": [
+        "Egypt"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "El_Salvador",
+      "displayName": "El Salvador",
+      "mainMapFeatureIds": [
+        "El_Salvador"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Ethiopia",
+      "displayName": "Ethiopia",
+      "mainMapFeatureIds": [
+        "Ethiopia"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Fiji",
+      "displayName": "Fiji",
+      "mainMapFeatureIds": [
+        "Fiji"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "France",
+      "displayName": "France",
+      "mainMapFeatureIds": [
+        "France",
+        "France"
+      ],
+      "secondaryMapFeatureIds": [
+        "Senegal_FR",
+        "Wallis_and_Futuna_Islands"
+      ],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
+    },
+    {
+      "countryId": "French_Guiana",
+      "displayName": "French Guiana",
+      "mainMapFeatureIds": [
+        "French_Guiana"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "French_Indochina",
+      "displayName": "French Indochina",
+      "mainMapFeatureIds": [
+        "French_Indochina"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Futa_Jalon",
+      "displayName": "Futa Jalon",
+      "mainMapFeatureIds": [
+        "Futa_Jalon"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Futa_Toro",
+      "displayName": "Futa Toro",
+      "mainMapFeatureIds": [
+        "Futa_Toro"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Gabon",
+      "displayName": "Gabon",
+      "mainMapFeatureIds": [
+        "Gabon"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Gambia",
+      "displayName": "Gambia",
+      "mainMapFeatureIds": [
+        "Gambia"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Germany",
+      "displayName": "Germany",
+      "mainMapFeatureIds": [
+        "Germany",
+        "Germany"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
+    },
+    {
+      "countryId": "Greece",
+      "displayName": "Greece",
+      "mainMapFeatureIds": [
+        "Greece"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Griqualand_West",
+      "displayName": "Griqualand West",
+      "mainMapFeatureIds": [
+        "Griqualand_West"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Guadeloupe",
+      "displayName": "Guadeloupe",
+      "mainMapFeatureIds": [
+        "Guadeloupe"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Guatemala",
+      "displayName": "Guatemala",
+      "mainMapFeatureIds": [
+        "Guatemala"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Haiti",
+      "displayName": "Haiti",
+      "mainMapFeatureIds": [
+        "Haiti"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Harer_Egypt",
+      "displayName": "Harer (Egypt)",
+      "mainMapFeatureIds": [
+        "Harer_Egypt"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Honduras",
+      "displayName": "Honduras",
+      "mainMapFeatureIds": [
+        "Honduras"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Ibadan",
+      "displayName": "Ibadan",
+      "mainMapFeatureIds": [
+        "Ibadan"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Imerina",
+      "displayName": "Imerina",
+      "mainMapFeatureIds": [
+        "Imerina"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Imperial_Japan",
+      "displayName": "Imperial Japan",
+      "mainMapFeatureIds": [
+        "Imperial_Japan"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
+    },
+    {
+      "countryId": "Italy",
+      "displayName": "Italy",
+      "mainMapFeatureIds": [
+        "Italy"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
+    },
+    {
+      "countryId": "Ivory_Coast",
+      "displayName": "Ivory Coast",
+      "mainMapFeatureIds": [
+        "Ivory_Coast"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Kanem_Bornu",
+      "displayName": "Kanem-Bornu",
+      "mainMapFeatureIds": [
+        "Kanem_Bornu"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Kingdom_of_Brazil",
+      "displayName": "Kingdom of Brazil",
+      "mainMapFeatureIds": [
+        "Kingdom_of_Brazil"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
+    },
+    {
+      "countryId": "Kingdom_of_Hawaii",
+      "displayName": "Kingdom of Hawaii",
+      "mainMapFeatureIds": [
+        "Kingdom_of_Hawaii"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Kong_Empire",
+      "displayName": "Kong Empire",
+      "mainMapFeatureIds": [
+        "Kong_Empire"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Korea",
+      "displayName": "Korea",
+      "mainMapFeatureIds": [
+        "Korea"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Kuba",
+      "displayName": "Kuba",
+      "mainMapFeatureIds": [
+        "Kuba"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Lagos",
+      "displayName": "Lagos",
+      "mainMapFeatureIds": [
+        "Lagos"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Liberia",
+      "displayName": "Liberia",
+      "mainMapFeatureIds": [
+        "Liberia"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Lozi",
+      "displayName": "Lozi",
+      "mainMapFeatureIds": [
+        "Lozi"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Luba",
+      "displayName": "Luba",
+      "mainMapFeatureIds": [
+        "Luba"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Lunda",
+      "displayName": "Lunda",
+      "mainMapFeatureIds": [
+        "Lunda"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Luxembourg",
+      "displayName": "Luxembourg",
+      "mainMapFeatureIds": [
+        "Luxembourg"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "M_ori",
+      "displayName": "M?ori",
+      "mainMapFeatureIds": [
+        "M_ori"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Madagascar",
+      "displayName": "Madagascar",
+      "mainMapFeatureIds": [
+        "Madagascar"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Malaya",
+      "displayName": "Malaya",
+      "mainMapFeatureIds": [
+        "Malaya"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Malta",
+      "displayName": "Malta",
+      "mainMapFeatureIds": [
+        "Malta"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Manchu_Empire",
+      "displayName": "Manchu Empire",
+      "mainMapFeatureIds": [
+        "Manchu_Empire"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
+    },
+    {
+      "countryId": "Mbailundu",
+      "displayName": "Mbailundu",
+      "mainMapFeatureIds": [
+        "Mbailundu"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Mexico",
+      "displayName": "Mexico",
+      "mainMapFeatureIds": [
+        "Mexico"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Mirambo_Unyanyembe_Ukimbu",
+      "displayName": "Mirambo Unyanyembe Ukimbu",
+      "mainMapFeatureIds": [
+        "Mirambo_Unyanyembe_Ukimbu"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Montenegro",
+      "displayName": "Montenegro",
+      "mainMapFeatureIds": [
+        "Montenegro"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Montserrat",
+      "displayName": "Montserrat",
+      "mainMapFeatureIds": [
+        "Montserrat"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Morocco",
+      "displayName": "Morocco",
+      "mainMapFeatureIds": [
+        "Morocco"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Mossi_States",
+      "displayName": "Mossi States",
+      "mainMapFeatureIds": [
+        "Mossi_States"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Mozambique",
+      "displayName": "Mozambique",
+      "mainMapFeatureIds": [
+        "Mozambique"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Natal",
+      "displayName": "Natal",
+      "mainMapFeatureIds": [
+        "Natal"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Ndebele",
+      "displayName": "Ndebele",
+      "mainMapFeatureIds": [
+        "Ndebele"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Nepal",
+      "displayName": "Nepal",
+      "mainMapFeatureIds": [
+        "Nepal"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Netherlands",
+      "displayName": "Netherlands",
+      "mainMapFeatureIds": [
+        "Netherlands"
+      ],
+      "secondaryMapFeatureIds": [
+        "Netherlands_Indies"
+      ]
+    },
+    {
+      "countryId": "Netherlands_Antilles",
+      "displayName": "Netherlands Antilles",
+      "mainMapFeatureIds": [
+        "Netherlands_Antilles"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Nguni",
+      "displayName": "Nguni",
+      "mainMapFeatureIds": [
+        "Nguni"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Ngwato",
+      "displayName": "Ngwato",
+      "mainMapFeatureIds": [
+        "Ngwato"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Nicaragua",
+      "displayName": "Nicaragua",
+      "mainMapFeatureIds": [
+        "Nicaragua"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Niue",
+      "displayName": "Niue",
+      "mainMapFeatureIds": [
+        "Niue"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Oman",
+      "displayName": "Oman",
+      "mainMapFeatureIds": [
+        "Oman"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Opobo",
+      "displayName": "Opobo",
+      "mainMapFeatureIds": [
+        "Opobo"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Orange_Free_State",
+      "displayName": "Orange Free State",
+      "mainMapFeatureIds": [
+        "Orange_Free_State"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Ottoman_Empire",
+      "displayName": "Ottoman Empire",
+      "mainMapFeatureIds": [
+        "Ottoman_Empire"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
+    },
+    {
+      "countryId": "Ovimbundu",
+      "displayName": "Ovimbundu",
+      "mainMapFeatureIds": [
+        "Ovimbundu"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Oyo",
+      "displayName": "Oyo",
+      "mainMapFeatureIds": [
+        "Oyo"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Papua_New_Guinea",
+      "displayName": "Papua New Guinea",
+      "mainMapFeatureIds": [
+        "Papua_New_Guinea"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Paraguay",
+      "displayName": "Paraguay",
+      "mainMapFeatureIds": [
+        "Paraguay"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Persia",
+      "displayName": "Persia",
+      "mainMapFeatureIds": [
+        "Persia"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Peru",
+      "displayName": "Peru",
+      "mainMapFeatureIds": [
+        "Peru"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Philippines",
+      "displayName": "Philippines",
+      "mainMapFeatureIds": [
+        "Philippines"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Polynesians",
+      "displayName": "Polynesians",
+      "mainMapFeatureIds": [
+        "Polynesians"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Portugal",
+      "displayName": "Portugal",
+      "mainMapFeatureIds": [
+        "Portugal"
+      ],
+      "secondaryMapFeatureIds": [
+        "Angola_Portugal"
+      ],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Portuguese_Guinea",
+      "displayName": "Portuguese Guinea",
+      "mainMapFeatureIds": [
+        "Portuguese_Guinea"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Qatar",
+      "displayName": "Qatar",
+      "mainMapFeatureIds": [
+        "Qatar"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Rabih_az_Zubayr",
+      "displayName": "Rabih az-Zubayr",
+      "mainMapFeatureIds": [
+        "Rabih_az_Zubayr"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Rattanakosin_Kingdom",
+      "displayName": "Rattanakosin Kingdom",
+      "mainMapFeatureIds": [
+        "Rattanakosin_Kingdom"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Romania",
+      "displayName": "Romania",
+      "mainMapFeatureIds": [
+        "Romania"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Russian_Empire",
+      "displayName": "Russian Empire",
+      "mainMapFeatureIds": [
+        "Russian_Empire",
+        "Russian_Empire"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
+    },
+    {
+      "countryId": "Rwanda",
+      "displayName": "Rwanda",
+      "mainMapFeatureIds": [
+        "Rwanda"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Saint_Barthelemy",
+      "displayName": "Saint Barthelemy",
+      "mainMapFeatureIds": [
+        "Saint_Barthelemy"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Saint_Kitts_and_Nevis",
+      "displayName": "Saint Kitts and Nevis",
+      "mainMapFeatureIds": [
+        "Saint_Kitts_and_Nevis"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Saint_Martin",
+      "displayName": "Saint Martin",
+      "mainMapFeatureIds": [
+        "Saint_Martin"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Samoa",
+      "displayName": "Samoa",
+      "mainMapFeatureIds": [
+        "Samoa"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Serbia",
+      "displayName": "Serbia",
+      "mainMapFeatureIds": [
+        "Serbia"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Shona",
+      "displayName": "Shona",
+      "mainMapFeatureIds": [
+        "Shona"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Sierra_Leone",
+      "displayName": "Sierra Leone",
+      "mainMapFeatureIds": [
+        "Sierra_Leone"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Sokoto_Caliphate",
+      "displayName": "Sokoto Caliphate",
+      "mainMapFeatureIds": [
+        "Sokoto_Caliphate"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Spain",
+      "displayName": "Spain",
+      "mainMapFeatureIds": [
+        "Spain",
+        "Spain"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Spanish_Guinea",
+      "displayName": "Spanish Guinea",
+      "mainMapFeatureIds": [
+        "Spanish_Guinea"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Sultanate_of_Damagaram",
+      "displayName": "Sultanate of Damagaram",
+      "mainMapFeatureIds": [
+        "Sultanate_of_Damagaram"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Sultanate_of_Utetera",
+      "displayName": "Sultanate of Utetera",
+      "mainMapFeatureIds": [
+        "Sultanate_of_Utetera"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Sultinate_of_Zanzibar",
+      "displayName": "Sultinate of Zanzibar",
+      "mainMapFeatureIds": [
+        "Sultinate_of_Zanzibar"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Swaziland",
+      "displayName": "Swaziland",
+      "mainMapFeatureIds": [
+        "Swaziland"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "SwedenNorway",
+      "displayName": "SwedenNorway",
+      "mainMapFeatureIds": [
+        "SwedenNorway"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Switzerland",
+      "displayName": "Switzerland",
+      "mainMapFeatureIds": [
+        "Switzerland"
+      ],
+      "secondaryMapFeatureIds": []
+    },
+    {
+      "countryId": "Taiwan",
+      "displayName": "Taiwan",
+      "mainMapFeatureIds": [
+        "Taiwan"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Teke",
+      "displayName": "Teke",
+      "mainMapFeatureIds": [
+        "Teke"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Tonga",
+      "displayName": "Tonga",
+      "mainMapFeatureIds": [
+        "Tonga"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Transvaal",
+      "displayName": "Transvaal",
+      "mainMapFeatureIds": [
+        "Transvaal"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Trucial_Oman",
+      "displayName": "Trucial Oman",
+      "mainMapFeatureIds": [
+        "Trucial_Oman"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Tukular_Caliphate",
+      "displayName": "Tukular Caliphate",
+      "mainMapFeatureIds": [
+        "Tukular_Caliphate"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "United_Kingdom_of_Great_Britain_and_Ireland",
+      "displayName": "United Kingdom of Great Britain and Ireland",
+      "mainMapFeatureIds": [
+        "United_Kingdom_of_Great_Britain_and_Ireland"
+      ],
+      "secondaryMapFeatureIds": [
+        "Victoria_UK",
+        "Gold_Coast_GB",
+        "Hong_Kong",
+        "New_South_Wales_UK",
+        "Northern_Territory_UK",
+        "Queensland_UK",
+        "South_Australia_UK",
+        "Western_Australia_UK"
+      ],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
+    },
+    {
+      "countryId": "United_States_of_America",
+      "displayName": "United States of America",
+      "mainMapFeatureIds": [
+        "United_States_of_America"
+      ],
+      "secondaryMapFeatureIds": [
+        "United_States_Virgin_Islands"
+      ],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 150
+        }
+      ]
+    },
+    {
+      "countryId": "Uruguay",
+      "displayName": "Uruguay",
+      "mainMapFeatureIds": [
+        "Uruguay"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Venezuela",
+      "displayName": "Venezuela",
+      "mainMapFeatureIds": [
+        "Venezuela"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "countryId": "Wadai_Empire",
+      "displayName": "Wadai Empire",
+      "mainMapFeatureIds": [
+        "Wadai_Empire"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Wassoulou_Empire",
+      "displayName": "Wassoulou Empire",
+      "mainMapFeatureIds": [
+        "Wassoulou_Empire"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Yaka",
+      "displayName": "Yaka",
+      "mainMapFeatureIds": [
+        "Yaka"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Yeke",
+      "displayName": "Yeke",
+      "mainMapFeatureIds": [
+        "Yeke"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "Zululand",
+      "displayName": "Zululand",
+      "mainMapFeatureIds": [
+        "Zululand"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "countryId": "central_Asian_khanates",
+      "displayName": "central Asian khanates",
+      "mainMapFeatureIds": [
+        "central_Asian_khanates"
+      ],
+      "secondaryMapFeatureIds": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 50
+        }
+      ]
+    }
+  ]
+}

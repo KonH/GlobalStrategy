@@ -1,4 +1,3 @@
-using System.IO;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -12,10 +11,10 @@ namespace GS.Unity.DI {
 		[SerializeField] GS.Unity.Map.CountryConfig _countryConfig;
 		[SerializeField] CountryVisualConfig _countryVisualConfig;
 		[SerializeField] MapCameraConfig _mapCameraConfig;
+		[SerializeField] TextAsset _countryConfigAsset;
 
 		protected override void Configure(IContainerBuilder builder) {
-			var countryConfigSource = new StreamingAssetsConfig<GS.Game.Configs.CountryConfig>(
-				Path.Combine(Application.streamingAssetsPath, "Configs", "country_config.json"));
+			var countryConfigSource = new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset);
 
 			builder.Register(_ => new SelectCountryLogic(countryConfigSource), Lifetime.Singleton);
 

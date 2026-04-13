@@ -1,0 +1,18 @@
+{
+    "name": "GS.Editor.Map",
+    "rootNamespace": "",
+    "references": [
+        "GUID:b4c2d3e5f67890abcdef1234567801b2"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

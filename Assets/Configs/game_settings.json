@@ -1,0 +1,6 @@
+{
+  "startYear": 1880,
+  "speedMultipliers": [1, 24, 720],
+  "defaultLocale": "en",
+  "autoSaveInterval": "monthly"
+}

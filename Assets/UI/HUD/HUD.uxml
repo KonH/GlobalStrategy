@@ -13,7 +13,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="top-right-panel" class="top-right-panel">
             <ui:Instance template="Time" name="time-panel" class="time-panel"/>
-            <ui:Button name="btn-menu" text="≡" class="gs-btn hud-hamburger-button"/>
+            <ui:Button name="btn-menu" text="|||" class="gs-btn hud-hamburger-button"/>
         </ui:VisualElement>
         <ui:VisualElement name="debug-panel" class="debug-panel">
             <ui:Button name="btn-ecs-viewer" text="ECS Viewer" class="gs-btn debug-panel-button"/>

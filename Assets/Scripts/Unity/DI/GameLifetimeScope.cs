@@ -1,4 +1,3 @@
-using System.IO;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -15,6 +14,11 @@ namespace GS.Unity.DI {
 		[SerializeField] GS.Unity.Map.CountryConfig _countryConfig;
 		[SerializeField] CountryVisualConfig _countryVisualConfig;
 		[SerializeField] MapCameraConfig _mapCameraConfig;
+		[SerializeField] TextAsset _geoJsonConfig;
+		[SerializeField] TextAsset _mapEntryConfig;
+		[SerializeField] TextAsset _countryConfigAsset;
+		[SerializeField] TextAsset _gameSettings;
+		[SerializeField] TextAsset _resourceConfig;
 
 		protected override void Configure(IContainerBuilder builder) {
 			var storage = new PersistentStorage();
@@ -23,11 +27,11 @@ namespace GS.Unity.DI {
 			string initialPlayer = SceneTransitionArgs.InitialPlayerCountry ?? "Russian_Empire";
 
 			var ctx = new GameLogicContext(
-				new StreamingAssetsConfig<GeoJsonConfig>(ConfigPath("geojson_world.json")),
-				new StreamingAssetsConfig<MapEntryConfig>(ConfigPath("map_entry_config.json")),
-				new StreamingAssetsConfig<GS.Game.Configs.CountryConfig>(ConfigPath("country_config.json")),
-				new StreamingAssetsConfig<GameSettings>(ConfigPath("game_settings.json")),
-				new StreamingAssetsConfig<ResourceConfig>(ConfigPath("resource_config.json")),
+				new TextAssetConfig<GeoJsonConfig>(_geoJsonConfig),
+				new TextAssetConfig<MapEntryConfig>(_mapEntryConfig),
+				new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset),
+				new TextAssetConfig<GameSettings>(_gameSettings),
+				new TextAssetConfig<ResourceConfig>(_resourceConfig),
 				storage,
 				serializer,
 				initialPlayer
@@ -63,8 +67,5 @@ namespace GS.Unity.DI {
 			base.OnDestroy();
 			SceneTransitionArgs.Clear();
 		}
-
-		static string ConfigPath(string file) =>
-			Path.Combine(Application.streamingAssetsPath, "Configs", file);
 	}
 }

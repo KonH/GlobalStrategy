@@ -28,5 +28,6 @@
 - **ECS patterns:** `.claude/rules/unity/ecs_patterns.md`
 - **Unity Editor scripts:** `.claude/rules/unity/editor_scripts.md`
 - **Localization system:** `.claude/rules/unity/localization.md`
+- **Unity WebGL gotchas:** `.claude/rules/unity/webgl.md`
 - **Temporary scripts:** `.claude/rules/temp_scripts.md`
 - **Learning workflow:** `.claude/skills/learn.md`

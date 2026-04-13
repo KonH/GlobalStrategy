@@ -7,7 +7,9 @@ namespace GS.Unity.Map {
 	public class MapLoader : MonoBehaviour {
 		[SerializeField] Map _mapPrefab;
 		[SerializeField] TextAsset _geoJsonAsset;
-		[SerializeField] Texture2D _mapTexture;
+		[SerializeField] Texture2D[] _mapTiles;
+		[SerializeField] int _tileCols = 1;
+		[SerializeField] int _tileRows = 1;
 
 		CountryConfig _countryConfig;
 		CountryVisualConfig _visualConfig;
@@ -31,7 +33,7 @@ namespace GS.Unity.Map {
 			}
 
 			var map = Instantiate(_mapPrefab);
-			map.Initialize(_features, _mapTexture, _countryConfig, _visualConfig);
+			map.Initialize(_features, _mapTiles, _tileCols, _tileRows, _countryConfig, _visualConfig);
 			return map;
 		}
 	}

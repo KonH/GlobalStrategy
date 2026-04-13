@@ -61,6 +61,9 @@ namespace GS.Unity.UI {
 
 			_btnDebugToggle.clicked += ToggleDebugPanel;
 			_btnEcsViewer.clicked += OpenEcsViewer;
+#if UNITY_WEBGL
+			_btnEcsViewer.style.display = DisplayStyle.None;
+#endif
 		}
 
 		void ToggleDebugPanel() {

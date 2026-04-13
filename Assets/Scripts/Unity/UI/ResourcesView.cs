@@ -35,7 +35,7 @@ namespace GS.Unity.UI {
 				}
 
 				var resDef = _config.FindResource(resource.ResourceId);
-				string icon = resDef?.Icon ?? "\u25CF";
+				string icon = resDef?.Icon ?? "*";
 				label.text = $"{icon} {resource.Value:F0}";
 
 				label.RemoveFromClassList("gs-color-positive");

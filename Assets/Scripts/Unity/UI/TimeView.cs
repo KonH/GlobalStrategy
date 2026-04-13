@@ -21,7 +21,7 @@ namespace GS.Unity.UI {
 
 		public void Refresh(TimeState state) {
 			_date.text = state.CurrentTime.ToString("HH:00 dd/MM/yyyy");
-			_btnPause.text = state.IsPaused ? "\u25BA" : "\u23F8";
+			_btnPause.text = state.IsPaused ? ">" : "||";
 			SetActive(_btnX1, state.MultiplierIndex == 0);
 			SetActive(_btnX2, state.MultiplierIndex == 1);
 			SetActive(_btnX3, state.MultiplierIndex == 2);
