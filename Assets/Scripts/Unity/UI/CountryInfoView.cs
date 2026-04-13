@@ -9,7 +9,7 @@ namespace GS.Unity.UI {
 		readonly ILocalization _loc;
 		readonly ResourcesView _resourcesView;
 
-		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, TooltipController tooltip) {
+		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, TooltipSystem tooltip) {
 			_root = root;
 			_name = root.Q<Label>("country-name");
 			_loc = loc;

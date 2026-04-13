@@ -12,7 +12,7 @@ namespace GS.Unity.Common {
 			SceneManager.LoadScene("CountrySelection");
 		}
 
-		public void LoadGame(string? saveName = null, string? playerCountryId = null) {
+		public void LoadGame(string saveName = null, string playerCountryId = null) {
 			SceneTransitionArgs.Clear();
 			SceneTransitionArgs.SaveNameToLoad = saveName;
 			SceneTransitionArgs.InitialPlayerCountry = playerCountryId;

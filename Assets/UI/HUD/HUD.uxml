@@ -7,8 +7,7 @@
     <ui:VisualElement name="hud-root" data-source-type="GS.Main.VisualState, Game.Main" picking-mode="Ignore" style="aspect-ratio: auto;">
         <ui:Instance template="PlayerCountry" name="player-country" class="player-country-panel"/>
         <ui:Instance template="CountryInfo" name="country-info" class="country-info-panel"/>
-        <ui:VisualElement name="tooltip-overlay" class="tooltip-overlay" />
-        <ui:VisualElement name="top-center" class="top-center-panel" picking-mode="Ignore">
+<ui:VisualElement name="top-center" class="top-center-panel" picking-mode="Ignore">
             <ui:Button name="btn-debug-toggle" text="DEBUG" class="gs-btn hud-debug-toggle"/>
         </ui:VisualElement>
         <ui:VisualElement name="top-right-panel" class="top-right-panel">

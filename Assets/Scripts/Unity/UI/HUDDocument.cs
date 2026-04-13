@@ -13,6 +13,7 @@ namespace GS.Unity.UI {
 		CountryInfoView _countryInfo;
 		PlayerCountryView _playerCountryView;
 		TimeView _timeView;
+		TooltipSystem _tooltip;
 		VisualState _state;
 		IWriteOnlyCommandAccessor _commands;
 		ILocalization _loc;
@@ -40,10 +41,10 @@ namespace GS.Unity.UI {
 				Debug.LogWarning("[HUDDocument] _loc is null in Awake — injection has not happened yet");
 			}
 
-			var tooltip = new TooltipController(root.Q("tooltip-overlay"));
+			_tooltip = new TooltipSystem(root.Q("hud-root"));
 
-			_countryInfo = new CountryInfoView(root.Q("country-info"), _loc, _resourceConfig, tooltip);
-			_playerCountryView = new PlayerCountryView(root.Q("player-country"), _loc, _resourceConfig, tooltip);
+			_countryInfo = new CountryInfoView(root.Q("country-info"), _loc, _resourceConfig, _tooltip);
+			_playerCountryView = new PlayerCountryView(root.Q("player-country"), _loc, _resourceConfig, _tooltip);
 			_timeView = new TimeView(
 				root.Q("time-panel"),
 				OnPauseToggle,
@@ -104,6 +105,10 @@ namespace GS.Unity.UI {
 			_state.Locale.PropertyChanged -= HandleLocaleChanged;
 			_state.PlayerResources.PropertyChanged -= HandlePlayerResourcesChanged;
 			_state.SelectedResources.PropertyChanged -= HandleSelectedResourcesChanged;
+		}
+
+		void Update() {
+			_tooltip?.Update(Time.deltaTime);
 		}
 
 		void RefreshCountryViews() {

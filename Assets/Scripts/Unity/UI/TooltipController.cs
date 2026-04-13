@@ -1,52 +1,202 @@
 using System;
+using System.Collections.Generic;
+using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
 namespace GS.Unity.UI {
-	class TooltipController {
-		readonly VisualElement _panel;
-		bool _isOverTrigger;
-		bool _isOverPanel;
+	class TooltipEntry {
+		public VisualElement Panel;
+		public string Id;
+		public HashSet<string> Ancestors;
+		public bool IsPinned;
+		public float ElapsedSeconds;
+		public bool IsPointerOverPanel;
+		public bool IsPointerOverTrigger;
+	}
 
-		public TooltipController(VisualElement panel) {
-			_panel = panel;
-			_panel.style.display = DisplayStyle.None;
-			_panel.RegisterCallback<PointerEnterEvent>(_ => {
-				_isOverPanel = true;
-			});
-			_panel.RegisterCallback<PointerLeaveEvent>(_ => {
-				_isOverPanel = false;
-				TryHide();
-			});
+	class TooltipSystem {
+		const float AutoPinSeconds = 2f;
+		const long HideDelayMs = 80;
+		readonly VisualElement _hudRoot;
+		readonly List<TooltipEntry> _stack = new();
+
+		public TooltipSystem(VisualElement hudRoot) {
+			_hudRoot = hudRoot;
 		}
 
-		public void RegisterTooltip(VisualElement trigger, Func<VisualElement> buildContent) {
+		public void RegisterTrigger(VisualElement trigger, string id, Func<TooltipContext, VisualElement> buildContent, HashSet<string> ancestors) {
+			if (ancestors.Contains(id)) {
+				return;
+			}
+
+			TooltipEntry ownedEntry = null;
+
 			trigger.RegisterCallback<PointerEnterEvent>(_ => {
-				_isOverTrigger = true;
-				ShowTooltip(trigger, buildContent);
+				// After a resource refresh the label is recreated; reuse the pinned entry rather than resetting it
+				if (_stack.Count > 0 && _stack[_stack.Count - 1].Id == id && _stack[_stack.Count - 1].IsPinned) {
+					ownedEntry = _stack[_stack.Count - 1];
+					PositionNear(ownedEntry.Panel, trigger);
+					ownedEntry.IsPointerOverTrigger = true;
+					return;
+				}
+				if (ownedEntry != null) {
+					ownedEntry.IsPointerOverTrigger = false;
+				}
+				CloseUntilAncestorOf(ancestors);
+				ownedEntry = OpenTooltip(trigger, id, buildContent, ancestors);
+				ownedEntry.IsPointerOverTrigger = true;
 			});
+
 			trigger.RegisterCallback<PointerLeaveEvent>(_ => {
-				_isOverTrigger = false;
-				TryHide();
+				if (ownedEntry != null) {
+					ownedEntry.IsPointerOverTrigger = false;
+				}
+				var localEntry = ownedEntry;
+				// Delay the close so PointerEnterEvent on the panel can fire first (crosses the 4px gap)
+				_hudRoot.schedule.Execute(() => ScheduledClose(localEntry)).StartingIn(HideDelayMs);
 			});
 		}
 
-		void ShowTooltip(VisualElement trigger, Func<VisualElement> buildContent) {
-			_panel.Clear();
-			_panel.Add(buildContent());
-			_panel.style.display = DisplayStyle.Flex;
-			PositionNear(trigger);
-		}
+		public void Update(float deltaTime) {
+			var mouse = Mouse.current;
+			if (mouse == null) {
+				return;
+			}
 
-		void TryHide() {
-			if (!_isOverTrigger && !_isOverPanel) {
-				_panel.style.display = DisplayStyle.None;
+			for (int i = 0; i < _stack.Count; i++) {
+				var entry = _stack[i];
+				if (!entry.IsPinned) {
+					entry.ElapsedSeconds += deltaTime;
+					if (entry.ElapsedSeconds >= AutoPinSeconds) {
+						SetPinned(entry, true);
+					}
+				}
+			}
+
+			if (mouse.middleButton.wasPressedThisFrame) {
+				for (int i = _stack.Count - 1; i >= 0; i--) {
+					var entry = _stack[i];
+					if (entry.IsPointerOverPanel || entry.IsPointerOverTrigger) {
+						SetPinned(entry, true);
+						break;
+					}
+				}
+			}
+
+			if (mouse.leftButton.wasPressedThisFrame) {
+				bool anyPinned = false;
+				bool pointerOverAny = false;
+				for (int i = 0; i < _stack.Count; i++) {
+					if (_stack[i].IsPinned) {
+						anyPinned = true;
+					}
+					if (_stack[i].IsPointerOverPanel || _stack[i].IsPointerOverTrigger) {
+						pointerOverAny = true;
+					}
+				}
+				if (anyPinned && !pointerOverAny) {
+					int firstPinned = -1;
+					for (int i = 0; i < _stack.Count; i++) {
+						if (_stack[i].IsPinned) {
+							firstPinned = i;
+							break;
+						}
+					}
+					if (firstPinned >= 0) {
+						while (_stack.Count > firstPinned) {
+							CloseTop();
+						}
+					}
+				}
 			}
 		}
 
-		void PositionNear(VisualElement trigger) {
+		void ScheduledClose(TooltipEntry entry) {
+			if (entry == null || !_stack.Contains(entry)) {
+				return;
+			}
+			if (!entry.IsPinned && !entry.IsPointerOverPanel && !entry.IsPointerOverTrigger) {
+				CloseEntry(entry);
+			}
+		}
+
+		void SetPinned(TooltipEntry entry, bool pinned) {
+			entry.IsPinned = pinned;
+			if (pinned) {
+				entry.Panel.AddToClassList("tooltip-overlay--pinned");
+			} else {
+				entry.Panel.RemoveFromClassList("tooltip-overlay--pinned");
+			}
+		}
+
+		void CloseUntilAncestorOf(HashSet<string> ancestors) {
+			while (_stack.Count > 0) {
+				var top = _stack[_stack.Count - 1];
+				// Stop at ancestors and at pinned entries — pinned tooltips only dismiss on click-outside
+				if (ancestors.Contains(top.Id) || top.IsPinned) {
+					break;
+				}
+				CloseTop();
+			}
+		}
+
+		TooltipEntry OpenTooltip(VisualElement trigger, string id, Func<TooltipContext, VisualElement> buildContent, HashSet<string> ancestors) {
+			var panel = new VisualElement();
+			panel.AddToClassList("tooltip-overlay");
+
+			var entry = new TooltipEntry {
+				Panel = panel,
+				Id = id,
+				Ancestors = ancestors,
+				IsPinned = false,
+				ElapsedSeconds = 0f,
+				IsPointerOverPanel = false,
+				IsPointerOverTrigger = false
+			};
+
+			panel.RegisterCallback<PointerEnterEvent>(_ => {
+				entry.IsPointerOverPanel = true;
+			});
+			panel.RegisterCallback<PointerLeaveEvent>(_ => {
+				entry.IsPointerOverPanel = false;
+				var localEntry = entry;
+				_hudRoot.schedule.Execute(() => ScheduledClose(localEntry)).StartingIn(HideDelayMs);
+			});
+
+			_hudRoot.Add(panel);
+			PositionNear(panel, trigger);
+
+			var innerAncestors = new HashSet<string>(ancestors) { id };
+			var context = new TooltipContext(this, innerAncestors);
+			panel.Add(buildContent(context));
+
+			_stack.Add(entry);
+			return entry;
+		}
+
+		void CloseEntry(TooltipEntry entry) {
+			int idx = _stack.IndexOf(entry);
+			if (idx < 0) {
+				return;
+			}
+			while (_stack.Count > idx) {
+				CloseTop();
+			}
+		}
+
+		void CloseTop() {
+			if (_stack.Count == 0) {
+				return;
+			}
+			var top = _stack[_stack.Count - 1];
+			_hudRoot.Remove(top.Panel);
+			_stack.RemoveAt(_stack.Count - 1);
+		}
+
+		void PositionNear(VisualElement panel, VisualElement trigger) {
 			var bound = trigger.worldBound;
-			_panel.style.left = bound.xMin;
-			_panel.style.top = bound.yMax + 4;
+			panel.style.left = bound.xMin;
+			panel.style.top = bound.yMax + 4;
 		}
 	}
 }

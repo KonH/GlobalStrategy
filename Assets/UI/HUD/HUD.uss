@@ -48,8 +48,17 @@
     border-width: 1px;
     border-radius: 3px;
     padding: 10px 14px;
-    display: none;
     min-width: 190px;
+}
+
+.tooltip-overlay--pinned {
+    border-width: 3px;
+}
+
+.tooltip-inner-trigger {
+    border-bottom-width: 1px;
+    border-color: rgb(75, 50, 15);
+    cursor: link;
 }
 
 .tooltip-header {

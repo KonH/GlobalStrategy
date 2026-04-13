@@ -15,7 +15,7 @@ namespace GS.Unity.DI {
 		}
 
 		public void Start() {
-			string? saveName = SceneTransitionArgs.SaveNameToLoad;
+			string saveName = SceneTransitionArgs.SaveNameToLoad;
 			if (saveName != null) {
 				_logic.LoadState(saveName);
 			}
