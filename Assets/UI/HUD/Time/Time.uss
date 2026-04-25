@@ -1,30 +1,41 @@
 #time-root {
     flex-direction: column;
     align-items: flex-end;
-    padding: 10px 20px;
-    background-color: rgb(238, 222, 180);
-    border-color: rgb(120, 85, 30);
-    border-left-width: 2px;
-    border-bottom-width: 2px;
-    border-bottom-left-radius: 4px;
+    padding: 8px 12px;
+    background-color: rgb(26, 42, 72);
+    border-color: rgb(200, 160, 64);
+    border-width: 3px;
+    border-radius: 6px;
 }
 
 #time-date {
-    font-size: 32px;
-    color: rgb(55, 35, 10);
-    margin-bottom: 8px;
-    -unity-font-style: bold;
+    font-size: 22px;
+    color: rgb(200, 184, 144);
+    margin-bottom: 6px;
+    -unity-font: url("project://database/Assets/UI/Fonts/IMFellEnglish-Regular.ttf?fileID=12800000&guid=1130d97d7eaf22b47b5ca1eb6354def6&type=3#IMFellEnglish-Regular");
 }
 
 #time-controls {
     flex-direction: row;
     align-items: center;
+    gap: 4px;
 }
 
 #time-controls Button {
-    width: 68px;
-    height: 50px;
-    font-size: 24px;
-    margin-left: 6px;
+    width: 52px;
+    height: 38px;
+    font-size: 20px;
     border-radius: 2px;
+}
+
+.gs-icon-btn--pause {
+    background-image: url("project://database/Assets/UI/Icons/pause.png?fileID=2800000&guid=9726cb0847d1c524ba36d920eec7af79&type=3#pause");
+    -unity-background-image-tint-color: rgb(240, 232, 208);
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.gs-icon-btn--play {
+    background-image: url("project://database/Assets/UI/Icons/play.png?fileID=2800000&guid=fb039fa90d6513a488f5f2821f107403&type=3#play");
+    -unity-background-image-tint-color: rgb(240, 232, 208);
+    -unity-background-scale-mode: scale-to-fit;
 }

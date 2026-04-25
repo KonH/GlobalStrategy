@@ -13,7 +13,6 @@ namespace GS.Unity.UI {
 		IWriteOnlyCommandAccessor _commands;
 		VisualState _visualState;
 		SceneLoader _sceneLoader;
-		SettingsWindowDocument _settingsWindow;
 		ILocalization _loc;
 		UIDocument _doc;
 		VisualElement _root;
@@ -21,15 +20,13 @@ namespace GS.Unity.UI {
 		Label _lblTitle;
 		Button _btnResume;
 		Button _btnSave;
-		Button _btnSettings;
-		Button _btnMainMenu;
+		Button _btnExit;
 
 		[Inject]
-		void Construct(IWriteOnlyCommandAccessor commands, VisualState visualState, SceneLoader sceneLoader, SettingsWindowDocument settingsWindow, ILocalization loc) {
+		void Construct(IWriteOnlyCommandAccessor commands, VisualState visualState, SceneLoader sceneLoader, ILocalization loc) {
 			_commands = commands;
 			_visualState = visualState;
 			_sceneLoader = sceneLoader;
-			_settingsWindow = settingsWindow;
 			_loc = loc;
 		}
 
@@ -54,13 +51,11 @@ namespace GS.Unity.UI {
 			_lblTitle = _root.Q<Label>("menu-title");
 			_btnResume = _root.Q<Button>("btn-resume");
 			_btnSave = _root.Q<Button>("btn-save");
-			_btnSettings = _root.Q<Button>("btn-settings");
-			_btnMainMenu = _root.Q<Button>("btn-main-menu");
+			_btnExit = _root.Q<Button>("btn-exit");
 
 			_btnResume.clicked += Hide;
 			_btnSave.clicked += OnSave;
-			_btnSettings.clicked += () => _settingsWindow?.Show();
-			_btnMainMenu.clicked += () => _sceneLoader.LoadMainMenu();
+			_btnExit.clicked += () => _sceneLoader.LoadMainMenu();
 
 			Hide();
 		}
@@ -107,8 +102,7 @@ namespace GS.Unity.UI {
 			_lblTitle.text = _loc.Get("game_menu.title");
 			_btnResume.text = _loc.Get("game_menu.resume");
 			_btnSave.text = _loc.Get("game_menu.save");
-			_btnSettings.text = _loc.Get("game_menu.settings");
-			_btnMainMenu.text = _loc.Get("game_menu.main_menu");
+			_btnExit.text = _loc.Get("game_menu.exit");
 		}
 	}
 }

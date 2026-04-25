@@ -52,11 +52,11 @@ namespace GS.Unity.UI {
 			var state = _logic.VisualState.SelectedCountry;
 			if (state.IsValid) {
 				_countryNameLabel.text = _localization.Get($"country_name.{state.CountryId}");
-				_hintLabel.style.display = DisplayStyle.None;
+				_hintLabel.style.opacity = 0;
 				_btnStart.SetEnabled(true);
 			} else {
 				_countryNameLabel.text = "";
-				_hintLabel.style.display = DisplayStyle.Flex;
+				_hintLabel.style.opacity = 1;
 				_btnStart.SetEnabled(false);
 			}
 		}

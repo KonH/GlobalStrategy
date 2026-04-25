@@ -1,9 +1,4 @@
 .country-name {
-    font-size: 52px;
-}
-
-.resource-label {
-    font-size: 26px;
-    -unity-font-style: bold;
-    margin-left: 20px;
+    font-size: 28px;
+    -unity-font: url("project://database/Assets/UI/Fonts/Cinzel-Bold.ttf?fileID=12800000&guid=f580297c1d9f7c74984732caed69c108&type=3#Cinzel-Bold");
 }

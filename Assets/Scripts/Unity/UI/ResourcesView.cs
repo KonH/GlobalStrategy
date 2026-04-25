@@ -24,33 +24,23 @@ namespace GS.Unity.UI {
 				return;
 			}
 			foreach (var resource in state.Resources) {
+				var row = new VisualElement();
+				row.AddToClassList("resource-row");
+
+				var icon = new VisualElement();
+				icon.AddToClassList($"resource-icon--{resource.ResourceId}");
+				row.Add(icon);
+
 				var label = new Label();
 				label.AddToClassList("gs-label");
 				label.AddToClassList("resource-label");
-
-				double netMonthly = 0;
-				foreach (var effect in resource.Effects) {
-					if (effect.PayType == PayType.Monthly) {
-						netMonthly += effect.Value;
-					}
-				}
-
-				var resDef = _config.FindResource(resource.ResourceId);
-				string icon = resDef?.Icon ?? "*";
-				label.text = $"{icon} {resource.Value:F0}";
-
-				label.RemoveFromClassList("gs-color-positive");
-				label.RemoveFromClassList("gs-color-negative");
-				if (netMonthly > 0) {
-					label.AddToClassList("gs-color-positive");
-				} else if (netMonthly < 0) {
-					label.AddToClassList("gs-color-negative");
-				}
+				label.text = $"{resource.Value:F0}";
+				row.Add(label);
 
 				var capturedResource = resource;
-				_tooltip.RegisterTrigger(label, capturedResource.ResourceId, ctx => BuildResourceTooltip(ctx, capturedResource), new HashSet<string>());
+				_tooltip.RegisterTrigger(row, capturedResource.ResourceId, ctx => BuildResourceTooltip(ctx, capturedResource), new HashSet<string>());
 
-				_container.Add(label);
+				_container.Add(row);
 			}
 		}
 

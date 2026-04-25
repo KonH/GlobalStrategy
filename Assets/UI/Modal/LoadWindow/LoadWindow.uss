@@ -19,7 +19,7 @@
     align-items: center;
     padding: 8px;
     border-bottom-width: 1px;
-    border-color: rgb(160, 130, 70);
+    border-color: rgb(160, 128, 48);
 }
 
 .save-row-info {
@@ -29,11 +29,11 @@
 
 .save-country {
     font-size: 22px;
-    color: rgb(55, 35, 10);
+    color: rgb(240, 232, 208);
 }
 
 .save-date {
-    color: rgb(110, 80, 35);
+    color: rgb(136, 136, 168);
 }
 
 .menu-button {

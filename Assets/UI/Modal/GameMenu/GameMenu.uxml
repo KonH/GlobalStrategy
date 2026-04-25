@@ -7,8 +7,7 @@
             <ui:Label name="menu-title" text="Menu" class="gs-title menu-title"/>
             <ui:Button name="btn-resume" text="Resume" class="gs-btn gs-btn--primary menu-button"/>
             <ui:Button name="btn-save" text="Save" class="gs-btn gs-btn--primary menu-button"/>
-            <ui:Button name="btn-settings" text="Settings" class="gs-btn gs-btn--primary menu-button"/>
-            <ui:Button name="btn-main-menu" text="Main Menu" class="gs-btn gs-btn--primary menu-button"/>
+            <ui:Button name="btn-exit" text="Exit" class="gs-btn gs-btn--primary gs-btn--destructive menu-button"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

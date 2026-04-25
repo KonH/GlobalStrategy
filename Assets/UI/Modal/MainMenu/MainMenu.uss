@@ -11,18 +11,17 @@
 
 .menu-panel {
     position: relative;
-    padding: 36px 52px;
-    min-width: 300px;
+    padding: 40px 28px;
+    width: 300px;
 }
 
 .menu-title {
-    font-size: 52px;
-    margin-bottom: 32px;
+    font-size: 48px;
+    margin-bottom: 24px;
+    white-space: normal;
+    -unity-text-align: middle-center;
 }
 
 .menu-button {
-    width: 300px;
-    height: 60px;
-    margin-bottom: 14px;
-    font-size: 30px;
+    width: 100%;
 }

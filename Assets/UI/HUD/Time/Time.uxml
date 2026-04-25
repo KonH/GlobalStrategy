@@ -4,10 +4,11 @@
     <ui:VisualElement name="time-root">
         <ui:Label name="time-date" />
         <ui:VisualElement name="time-controls">
-            <ui:Button name="btn-pause" text="||" class="gs-btn gs-btn--small"/>
-            <ui:Button name="btn-x1" text="x1" class="gs-btn gs-btn--small"/>
-            <ui:Button name="btn-x2" text="x2" class="gs-btn gs-btn--small"/>
-            <ui:Button name="btn-x3" text="x3" class="gs-btn gs-btn--small"/>
+            <ui:Button name="btn-pause" class="gs-btn gs-btn--small gs-icon-btn--pause"/>
+            <ui:Button name="btn-x1" text="X1" class="gs-btn gs-btn--small"/>
+            <ui:Button name="btn-x2" text="X2" class="gs-btn gs-btn--small"/>
+            <ui:Button name="btn-x3" text="X3" class="gs-btn gs-btn--small"/>
         </ui:VisualElement>
+        <ui:Button name="btn-menu" class="gs-btn gs-btn--small hud-hamburger-button gs-icon-btn--menu"/>
     </ui:VisualElement>
 </ui:UXML>

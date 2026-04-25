@@ -21,15 +21,26 @@ namespace GS.Unity.UI {
 
 		public void Refresh(TimeState state) {
 			_date.text = state.CurrentTime.ToString("HH:00 dd/MM/yyyy");
-			_btnPause.text = state.IsPaused ? ">" : "||";
-			SetActive(_btnX1, state.MultiplierIndex == 0);
-			SetActive(_btnX2, state.MultiplierIndex == 1);
-			SetActive(_btnX3, state.MultiplierIndex == 2);
+			if (state.IsPaused) {
+				_btnPause.RemoveFromClassList("gs-icon-btn--pause");
+				_btnPause.AddToClassList("gs-icon-btn--play");
+				_btnPause.AddToClassList("gs-btn--active");
+			} else {
+				_btnPause.RemoveFromClassList("gs-icon-btn--play");
+				_btnPause.AddToClassList("gs-icon-btn--pause");
+				_btnPause.RemoveFromClassList("gs-btn--active");
+			}
+			SetSpeedActive(_btnX1, state.MultiplierIndex == 0, state.IsPaused);
+			SetSpeedActive(_btnX2, state.MultiplierIndex == 1, state.IsPaused);
+			SetSpeedActive(_btnX3, state.MultiplierIndex == 2, state.IsPaused);
 		}
 
-		void SetActive(Button btn, bool active) {
-			if (active) btn.AddToClassList("gs-btn--active");
-			else btn.RemoveFromClassList("gs-btn--active");
+		void SetSpeedActive(Button btn, bool active, bool paused) {
+			btn.RemoveFromClassList("gs-btn--active");
+			btn.RemoveFromClassList("gs-btn--speed");
+			if (active && !paused) {
+				btn.AddToClassList("gs-btn--speed");
+			}
 		}
 	}
 }

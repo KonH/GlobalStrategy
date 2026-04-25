@@ -161,3 +161,11 @@ USS classes on VisualElements created in C# are resolved against the USS files l
 Example: tooltip content is built in `ResourcesView` (which lives inside the `PlayerCountry` template), but the tooltip overlay `VisualElement` is a child of `hud-root` in `HUD.uxml`. Therefore tooltip classes (`tooltip-header`, `tooltip-effect-positive`, etc.) must be defined in `HUD.uss`, not in `PlayerCountry.uss`.
 
 Rule: put a USS class in the stylesheet of the **document that owns the container element**, regardless of which C# class creates the child elements.
+
+## USS / C# limitations in Unity 6000.4.1f1
+
+**`border-style: dashed` is not supported.** Neither the USS shorthand (`border-style: dashed`), per-side USS properties (`border-top-style: dashed`), nor the C# `IStyle` API (no `borderTopStyle` property, no `BorderStyle` enum) are implemented. There is no way to achieve dashed borders in UI Toolkit on this version.
+
+**Use `gap` not `margin-left` for button row spacing.** `margin-left: Xpx` on all children of a flex row shifts the *first* child too, offsetting the entire row from the container edge. Use `gap: Xpx` on the container — it only inserts space *between* items.
+
+**Use `opacity: 0` to hide while keeping layout space.** `DisplayStyle.None` removes the element from layout flow, causing siblings to reflow. `Visibility.Hidden` is supposed to preserve space but can be unreliable. `style.opacity = 0` is the most reliable way to make an element invisible while preserving its layout footprint.

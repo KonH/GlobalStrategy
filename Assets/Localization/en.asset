@@ -370,10 +370,8 @@ MonoBehaviour:
     Value: Resume
   - Key: game_menu.save
     Value: Save
-  - Key: game_menu.settings
-    Value: Settings
-  - Key: game_menu.main_menu
-    Value: Main Menu
+  - Key: game_menu.exit
+    Value: Exit
   - Key: resource.gold.name
     Value: Gold
   - Key: resource.gold.description
