@@ -11,4 +11,4 @@ Rules:
 - Write the file immediately without asking for approval first; then iterate based on user feedback
 - Do NOT make any code, asset, or file changes during planning — only write the plan document
 - End every plan with the line: `Use /implement to start working on the plan or request changes.`
-- After writing the plan, stop and wait for the user to run /implement
+- After writing the plan, run `/plan-review` on it before stopping — present any concerns one by one and ask the user to approve each fix; then stop and wait for the user to run /implement
