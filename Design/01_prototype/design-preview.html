@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Strategy — UI Design Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=IM+Fell+English:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Oswald:wght@400;700&family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #2a2a2a; font-family: sans-serif; padding: 20px; color: #eee; }
+
+h2 {
+  font-size: 13px; font-weight: normal; color: #aaa; margin: 32px 0 6px;
+  text-transform: uppercase; letter-spacing: 2px;
+  border-bottom: 1px solid #444; padding-bottom: 6px;
+}
+.iter-note { font-size: 11px; color: #666; margin-bottom: 14px; }
+
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+/* ---- Screenshot card ---- */
+.shot-card { display: flex; flex-direction: column; gap: 4px; }
+.shot-card img { width: 100%; border-radius: 4px; border: 1px solid #444; display: block; }
+.shot-label { font-size: 10px; color: #666; text-align: center; }
+
+/* ---- Column ---- */
+.palette-col { display: flex; flex-direction: column; gap: 9px; }
+
+.col-label {
+  text-align: center; font-size: 12px; font-weight: bold;
+  padding: 5px; border-radius: 4px;
+  background: #3a3a3a; border: 2px solid #555;
+}
+.col-label.selected { border-color: #4c4; color: #8f8; }
+.col-label .sub { display: block; font-size: 10px; font-weight: normal; color: #999; margin-top: 2px; }
+.col-label.selected .sub { color: #6c6; }
+
+/* ---- Map bg ---- */
+.map-bg {
+  background: linear-gradient(135deg,#a8c4d4 0%,#b5cfd8 30%,#d4c4a8 55%,#c8b898 70%,#b8c4a0 85%,#a8b890 100%);
+  border-radius: 5px; position: relative; min-height: 80px;
+  display: flex; align-items: flex-start; justify-content: flex-start;
+}
+.map-bg.pad { padding: 6px; }
+.map-bg.centered { justify-content: center; align-items: center; }
+
+/* ========== PALETTE VARS ========== */
+[data-p="current"] {
+  --panel-bg:#EEDEb4; --panel-bdr:rgb(120,85,30);
+  --btn-bg:rgb(210,190,140); --btn-hov:rgb(180,155,100); --btn-act:rgb(160,120,50);
+  --btn-2nd:rgb(200,185,150);
+  --btn-dst:rgb(200,120,100); --btn-dst-b:rgb(140,60,40); --btn-dst-t:rgb(55,20,10);
+  --tog-off:rgb(210,190,140); --tog-on:rgb(160,120,50);
+  --tip-bg:rgb(245,232,195);
+  --c-dark:rgb(55,35,10); --c-mid:rgb(75,50,15); --c-hint:rgb(110,80,35);
+  --c-light:rgb(245,232,195); --c-pos:rgb(30,110,40); --c-neg:rgb(160,35,25);
+  --f-title:sans-serif; --f-body:sans-serif; --f-hud:sans-serif;
+}
+[data-p="aged"] {
+  --panel-bg:#F0DEB4; --panel-bdr:#4A2A08;
+  --btn-bg:#C8A05A; --btn-hov:#A87840; --btn-act:#6A4A1A;
+  --btn-2nd:#D4BC88;
+  --btn-dst:#B84030; --btn-dst-b:#7A2018; --btn-dst-t:#F8E8D0;
+  --tog-off:#C8A05A; --tog-on:#6A4A1A;
+  --tip-bg:#FAF0D8;
+  --c-dark:#1A0E04; --c-mid:#3A2008; --c-hint:#6A4A20;
+  --c-light:#FAF0D8; --c-pos:#1A6A28; --c-neg:#9A1A10;
+  --f-title:'Cinzel',serif; --f-body:'Libre Baskerville',serif; --f-hud:'Libre Baskerville',serif;
+}
+[data-p="slate"] {
+  --panel-bg:#DDD8CC; --panel-bdr:#3A3228;
+  --btn-bg:#7A7060; --btn-hov:#5E5448; --btn-act:#2E2820;
+  --btn-2nd:#908880;
+  --btn-dst:#7A3028; --btn-dst-b:#4A1810; --btn-dst-t:#F0E8D8;
+  --tog-off:#7A7060; --tog-on:#2E2820;
+  --tip-bg:#EEE8DC;
+  --c-dark:#0E0C08; --c-mid:#2A2418; --c-hint:#5A5040;
+  --c-light:#F0E8D8; --c-pos:#1A5820; --c-neg:#782010;
+  --f-title:'Playfair Display',serif; --f-body:'Playfair Display',serif; --f-hud:'Playfair Display',serif;
+}
+[data-p="navy"] {
+  --panel-bg:#1A2A48; --panel-bdr:#C8A040;
+  --btn-bg:#243258; --btn-hov:#2E4070; --btn-act:#C8A040;
+  --btn-2nd:#1C2840;
+  --btn-dst:#6A1818; --btn-dst-b:#9A2020; --btn-dst-t:#F8E8C8;
+  --tog-off:#243258; --tog-on:#C8A040;
+  --tip-bg:#12203A;
+  --c-dark:#F0E8D0; --c-mid:#C8B890; --c-hint:#8888A8;
+  --c-light:#F0E8D0; --c-pos:#50D870; --c-neg:#E04040;
+  --f-title:'Cinzel',serif; --f-body:'IM Fell English',serif; --f-hud:'IM Fell English',serif;
+}
+[data-sf="imfell"]  { --f-hud:'IM Fell English',serif; }
+[data-sf="cinzel"]  { --f-hud:'Cinzel',serif; }
+[data-sf="oswald"]  { --f-hud:'Oswald',sans-serif; }
+[data-sf="mono"]    { --f-hud:'Source Code Pro',monospace; }
+
+/* ========== COMPONENTS ========== */
+.gs-panel {
+  background-color:var(--panel-bg); border:2px solid var(--panel-bdr);
+  border-radius:5px; padding:10px 12px;
+  display:flex; flex-direction:column; align-items:center; gap:5px;
+}
+.gs-panel.hud { padding:5px 8px; align-items:flex-start; gap:2px; }
+
+.gs-title  { font-size:18px; color:var(--c-dark); font-weight:bold; text-align:center; font-family:var(--f-title); }
+.gs-header { font-size:14px; color:var(--c-dark); font-weight:bold; font-family:var(--f-title); }
+.gs-label  { font-size:11px; color:var(--c-mid);  font-family:var(--f-body); }
+.gs-hint   { font-size:10px; color:var(--c-hint); font-style:italic; font-family:var(--f-body); text-align:center; line-height:1.3; }
+
+.gs-btn {
+  background-color:var(--btn-bg); color:var(--c-dark);
+  border:1px solid var(--panel-bdr); border-radius:3px;
+  font-weight:bold; cursor:pointer; font-family:var(--f-body);
+  padding:0 10px; transition:background-color 0.12s;
+}
+.gs-btn:hover { background-color:var(--btn-hov); }
+.gs-btn--primary  { height:28px; width:100%; font-size:13px; margin-bottom:2px; font-family:var(--f-title); }
+.gs-btn--secondary{ background-color:var(--btn-2nd); }
+.gs-btn--small    { font-size:11px; height:22px; min-width:26px; font-family:var(--f-hud); }
+.gs-btn--dest     { background-color:var(--btn-dst); border-color:var(--btn-dst-b); color:var(--btn-dst-t); }
+.gs-btn--active   { background-color:var(--btn-act); color:var(--c-light); }
+/* green: currently-running speed */
+.gs-btn--speed    { background-color:#1E5030; color:#90FFB8; border-color:#2A7040; }
+
+.tog-on  { background:var(--tog-on);  color:var(--c-light); border:1px solid var(--panel-bdr); border-radius:3px; padding:2px 8px; font-size:10px; font-weight:bold; font-family:var(--f-body); }
+.tog-off { background:var(--tog-off); color:var(--c-dark);  border:1px solid var(--panel-bdr); border-radius:3px; padding:2px 8px; font-size:10px; font-weight:bold; font-family:var(--f-body); }
+
+.speed-row { display:flex; gap:3px; margin-top:3px; }
+
+.hud-bar {
+  position:absolute; bottom:0; left:0; right:0;
+  background-color:var(--panel-bg); border-top:2px solid var(--panel-bdr);
+  padding:4px 8px; display:flex; align-items:center; gap:6px;
+}
+
+/* ---- Tooltip ---- */
+.tip-box {
+  background-color:var(--tip-bg); border:1px solid var(--panel-bdr);
+  border-radius:3px; padding:5px 7px;
+  font-size:10px; color:var(--c-mid); font-family:var(--f-body); line-height:1.4;
+}
+.tip-box b { color:var(--c-dark); font-family:var(--f-title); }
+.tip-box hr { border:none; border-top:1px solid var(--panel-bdr); margin:3px 0; }
+
+/* Tooltip sub-section */
+.tip-section { display:flex; flex-direction:column; gap:3px; }
+.tip-sub-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; }
+.tip-sub-label { font-size:9px; color:#666; text-align:center; margin-bottom:2px; text-transform:uppercase; letter-spacing:0.5px; }
+
+/* State label (time block) */
+.state-label { font-size:9px; color:var(--c-hint); text-align:center; padding-bottom:2px; font-family:sans-serif; }
+
+.swatches { display:flex; gap:3px; flex-wrap:wrap; justify-content:center; }
+.sw { width:16px; height:16px; border-radius:2px; border:1px solid rgba(0,0,0,0.3); }
+
+/* Speed zoom card (iter 2 focus) */
+.speed-zoom {
+  display:flex; justify-content:center; align-items:center; gap:3px;
+  padding:10px; background:#1A2A48; border:2px solid #C8A040; border-radius:5px;
+}
+.speed-zoom .gs-btn--small { font-size:14px; height:28px; min-width:30px; }
+.speed-note { font-size:10px; color:#666; text-align:center; font-style:italic; }
+
+/* Settings grid row */
+.settings-grid {
+  display:grid; grid-template-columns:auto 1fr;
+  gap:5px 12px; align-items:center;
+}
+
+/* Icon images inside buttons / labels (iter 4) */
+.btn-icon {
+  width:14px; height:14px; display:inline-block; vertical-align:middle;
+  /* turn any-color SVG → cream #F0E8D0 */
+  filter: brightness(0) invert(0.94) sepia(0.12);
+}
+.coin-icon {
+  width:13px; height:13px; display:inline-block; vertical-align:middle;
+  /* turn any-color SVG → gold #C8A040 */
+  filter: brightness(0) invert(1) sepia(0.8) saturate(3) hue-rotate(15deg) brightness(0.82);
+}
+</style>
+</head>
+<body>
+
+
+<!-- ================================================================ ITER 0 -->
+<h2>Iteration 0 — Initial Screenshots</h2>
+<p class="iter-note">Reference: original in-engine state before design changes</p>
+
+<div class="grid-3">
+  <div class="shot-card"><img src="initial/MainMenu.png" alt="Main Menu"><div class="shot-label">Main Menu</div></div>
+  <div class="shot-card"><img src="initial/HUD.png" alt="HUD"><div class="shot-label">HUD</div></div>
+  <div class="shot-card"><img src="initial/GameMenu.png" alt="Game Menu"><div class="shot-label">Game Menu</div></div>
+  <div class="shot-card"><img src="initial/SettingsMenu.png" alt="Settings"><div class="shot-label">Settings</div></div>
+  <div class="shot-card"><img src="initial/SelectCountry_Select.png" alt="Select Country"><div class="shot-label">Select Country</div></div>
+  <div class="shot-card"><img src="initial/SelectCountry_Start.png" alt="Country Selected"><div class="shot-label">Country Selected</div></div>
+  <div class="shot-card"><img src="initial/HUD_Tooltip_Normal.png" alt="Tooltip Normal"><div class="shot-label">Tooltip — Normal</div></div>
+  <div class="shot-card"><img src="initial/HUD_Tooltip_Locked.png" alt="Tooltip Locked"><div class="shot-label">Tooltip — Locked</div></div>
+  <div class="shot-card"><img src="initial/HUD_Tooltip_SecondLayer.png" alt="Tooltip Second Layer"><div class="shot-label">Tooltip — Second Layer</div></div>
+</div>
+
+
+<!-- ================================================================ ITER 1 -->
+<h2>Iteration 1 — Palette</h2>
+<p class="iter-note">D selected · A–C shown for reference</p>
+
+<div class="grid-4">
+
+  <!-- A: CURRENT -->
+  <div class="palette-col" data-p="current">
+    <div class="col-label">A — Current<span class="sub">system font · parchment</span></div>
+
+    <div class="map-bg centered" style="min-height:85px">
+      <div class="gs-panel" style="width:135px">
+        <div class="gs-title">Global Strategy</div>
+        <button class="gs-btn gs-btn--primary">Play</button>
+        <button class="gs-btn gs-btn--primary">Settings</button>
+        <button class="gs-btn gs-btn--primary">Exit</button>
+      </div>
+    </div>
+
+    <div class="map-bg pad" style="min-height:95px">
+      <div class="gs-panel hud" style="position:absolute;top:6px;left:6px;">
+        <div class="gs-header">France</div>
+        <div class="gs-label">$ 150</div>
+      </div>
+      <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end;">
+        <div class="gs-label">17:00 &nbsp;01/01/1880</div>
+        <div class="speed-row">
+          <button class="gs-btn gs-btn--small gs-btn--active">||</button>
+          <button class="gs-btn gs-btn--small">x1</button>
+          <button class="gs-btn gs-btn--small">x2</button>
+          <button class="gs-btn gs-btn--small">x3</button>
+        </div>
+        <button class="gs-btn gs-btn--small" style="margin-top:3px;width:100%;">III</button>
+      </div>
+      <div class="hud-bar">
+        <span class="gs-header">Ottoman Empire</span>
+        <span class="gs-label">$ 150</span>
+      </div>
+    </div>
+
+    <div class="map-bg centered" style="min-height:78px">
+      <div class="gs-panel" style="width:125px">
+        <div class="gs-header">Menu</div>
+        <button class="gs-btn gs-btn--primary">Resume</button>
+        <button class="gs-btn gs-btn--primary">Save</button>
+        <button class="gs-btn gs-btn--primary gs-btn--dest">Exit</button>
+      </div>
+    </div>
+
+    <div class="map-bg centered" style="min-height:78px">
+      <div class="gs-panel" style="width:185px;align-items:stretch;gap:5px;">
+        <div class="gs-header" style="text-align:center;">Settings</div>
+        <div style="display:flex;align-items:center;gap:5px;"><span class="gs-label">Language</span><span class="tog-on">EN</span><span class="tog-off">RU</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span class="gs-label">Auto-Save</span><span class="tog-off">Daily</span><span class="tog-on">Monthly</span><span class="tog-off">Yearly</span></div>
+        <button class="gs-btn gs-btn--secondary" style="height:22px;font-size:10px;">Back</button>
+      </div>
+    </div>
+
+    <div class="map-bg pad" style="min-height:122px">
+      <div style="position:absolute;bottom:6px;right:6px;">
+        <div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;">
+          <div class="gs-hint">Click a country on the map to select it</div>
+          <button class="gs-btn gs-btn--primary" style="opacity:0.45;">Start Game</button>
+          <button class="gs-btn gs-btn--primary">Back</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-bg pad" style="min-height:122px">
+      <div style="position:absolute;bottom:6px;right:6px;">
+        <div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;">
+          <div class="gs-header" style="text-align:center;">Ottoman Empire</div>
+          <button class="gs-btn gs-btn--primary">Start Game</button>
+          <button class="gs-btn gs-btn--primary">Back</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-section">
+      <div class="tip-sub-grid">
+        <div><div class="tip-sub-label">Normal</div>
+          <div class="tip-box"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div>
+        </div>
+        <div><div class="tip-sub-label">Locked (pinned)</div>
+          <div class="tip-box" style="border-style:dashed;border-width:2px;"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div>
+        </div>
+        <div><div class="tip-sub-label">2nd Layer</div>
+          <div class="tip-box">
+            <div style="display:flex;justify-content:space-between;gap:4px;"><b>Gold</b><span style="color:var(--c-pos)">+1.0/mo</span></div>
+            <hr>
+            <span style="color:var(--c-pos)">+1.0/month</span><br>
+            <span style="color:var(--c-mid)">Base Income: +1.0/month</span><br>
+            <span style="color:var(--c-hint);font-style:italic;">Monthly income from taxes and trade.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="swatches">
+      <div class="sw" style="background:rgb(238,222,180)"></div><div class="sw" style="background:rgb(120,85,30)"></div>
+      <div class="sw" style="background:rgb(210,190,140)"></div><div class="sw" style="background:rgb(160,120,50)"></div>
+      <div class="sw" style="background:rgb(55,35,10)"></div><div class="sw" style="background:rgb(245,232,195)"></div>
+    </div>
+  </div><!-- /A -->
+
+
+  <!-- B: AGED INK -->
+  <div class="palette-col" data-p="aged">
+    <div class="col-label">B — Aged Ink<span class="sub">Cinzel · Libre Baskerville</span></div>
+
+    <div class="map-bg centered" style="min-height:85px">
+      <div class="gs-panel" style="width:135px">
+        <div class="gs-title">Global Strategy</div>
+        <button class="gs-btn gs-btn--primary">Play</button>
+        <button class="gs-btn gs-btn--primary">Settings</button>
+        <button class="gs-btn gs-btn--primary">Exit</button>
+      </div>
+    </div>
+
+    <div class="map-bg pad" style="min-height:95px">
+      <div class="gs-panel hud" style="position:absolute;top:6px;left:6px;">
+        <div class="gs-header">France</div>
+        <div class="gs-label">$ 150</div>
+      </div>
+      <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end;">
+        <div class="gs-label">17:00 &nbsp;01/01/1880</div>
+        <div class="speed-row">
+          <button class="gs-btn gs-btn--small gs-btn--active">||</button>
+          <button class="gs-btn gs-btn--small">x1</button>
+          <button class="gs-btn gs-btn--small">x2</button>
+          <button class="gs-btn gs-btn--small">x3</button>
+        </div>
+        <button class="gs-btn gs-btn--small" style="margin-top:3px;width:100%;">III</button>
+      </div>
+      <div class="hud-bar"><span class="gs-header">Ottoman Empire</span><span class="gs-label">$ 150</span></div>
+    </div>
+
+    <div class="map-bg centered" style="min-height:78px">
+      <div class="gs-panel" style="width:125px">
+        <div class="gs-header">Menu</div>
+        <button class="gs-btn gs-btn--primary">Resume</button>
+        <button class="gs-btn gs-btn--primary">Save</button>
+        <button class="gs-btn gs-btn--primary gs-btn--dest">Exit</button>
+      </div>
+    </div>
+
+    <div class="map-bg centered" style="min-height:78px">
+      <div class="gs-panel" style="width:185px;align-items:stretch;gap:5px;">
+        <div class="gs-header" style="text-align:center;">Settings</div>
+        <div style="display:flex;align-items:center;gap:5px;"><span class="gs-label">Language</span><span class="tog-on">EN</span><span class="tog-off">RU</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span class="gs-label">Auto-Save</span><span class="tog-off">Daily</span><span class="tog-on">Monthly</span><span class="tog-off">Yearly</span></div>
+        <button class="gs-btn gs-btn--secondary" style="height:22px;font-size:10px;">Back</button>
+      </div>
+    </div>
+
+    <div class="map-bg pad" style="min-height:122px">
+      <div style="position:absolute;bottom:6px;right:6px;">
+        <div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;">
+          <div class="gs-hint">Click a country on the map to select it</div>
+          <button class="gs-btn gs-btn--primary" style="opacity:0.45;">Start Game</button>
+          <button class="gs-btn gs-btn--primary">Back</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-bg pad" style="min-height:122px">
+      <div style="position:absolute;bottom:6px;right:6px;">
+        <div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;">
+          <div class="gs-header" style="text-align:center;">Ottoman Empire</div>
+          <button class="gs-btn gs-btn--primary">Start Game</button>
+          <button class="gs-btn gs-btn--primary">Back</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-section"><div class="tip-sub-grid">
+      <div><div class="tip-sub-label">Normal</div><div class="tip-box"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">Locked (pinned)</div><div class="tip-box" style="border-style:dashed;border-width:2px;"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">2nd Layer</div><div class="tip-box"><div style="display:flex;justify-content:space-between;gap:4px;"><b>Gold</b><span style="color:var(--c-pos)">+1.0/mo</span></div><hr><span style="color:var(--c-pos)">+1.0/month</span><br><span style="color:var(--c-mid)">Base Income: +1.0/month</span><br><span style="color:var(--c-hint);font-style:italic;">Monthly income from taxes and trade.</span></div></div>
+    </div></div>
+
+    <div class="swatches">
+      <div class="sw" style="background:#F0DEB4"></div><div class="sw" style="background:#4A2A08"></div>
+      <div class="sw" style="background:#C8A05A"></div><div class="sw" style="background:#6A4A1A"></div>
+      <div class="sw" style="background:#1A0E04"></div><div class="sw" style="background:#FAF0D8"></div>
+    </div>
+  </div><!-- /B -->
+
+
+  <!-- C: COLONIAL SLATE -->
+  <div class="palette-col" data-p="slate">
+    <div class="col-label">C — Colonial Slate<span class="sub">Playfair Display</span></div>
+
+    <div class="map-bg centered" style="min-height:85px">
+      <div class="gs-panel" style="width:135px">
+        <div class="gs-title">Global Strategy</div>
+        <button class="gs-btn gs-btn--primary">Play</button>
+        <button class="gs-btn gs-btn--primary">Settings</button>
+        <button class="gs-btn gs-btn--primary">Exit</button>
+      </div>
+    </div>
+
+    <div class="map-bg pad" style="min-height:95px">
+      <div class="gs-panel hud" style="position:absolute;top:6px;left:6px;">
+        <div class="gs-header">France</div>
+        <div class="gs-label">$ 150</div>
+      </div>
+      <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end;">
+        <div class="gs-label">17:00 &nbsp;01/01/1880</div>
+        <div class="speed-row">
+          <button class="gs-btn gs-btn--small gs-btn--active">||</button>
+          <button class="gs-btn gs-btn--small">x1</button>
+          <button class="gs-btn gs-btn--small">x2</button>
+          <button class="gs-btn gs-btn--small">x3</button>
+        </div>
+        <button class="gs-btn gs-btn--small" style="margin-top:3px;width:100%;">III</button>
+      </div>
+      <div class="hud-bar"><span class="gs-header">Ottoman Empire</span><span class="gs-label">$ 150</span></div>
+    </div>
+
+    <div class="map-bg centered" style="min-height:78px">
+      <div class="gs-panel" style="width:125px">
+        <div class="gs-header">Menu</div>
+        <button class="gs-btn gs-btn--primary">Resume</button>
+        <button class="gs-btn gs-btn--primary">Save</button>
+        <button class="gs-btn gs-btn--primary gs-btn--dest">Exit</button>
+      </div>
+    </div>
+
+    <div class="map-bg centered" style="min-height:78px">
+      <div class="gs-panel" style="width:185px;align-items:stretch;gap:5px;">
+        <div class="gs-header" style="text-align:center;">Settings</div>
+        <div style="display:flex;align-items:center;gap:5px;"><span class="gs-label">Language</span><span class="tog-on">EN</span><span class="tog-off">RU</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span class="gs-label">Auto-Save</span><span class="tog-off">Daily</span><span class="tog-on">Monthly</span><span class="tog-off">Yearly</span></div>
+        <button class="gs-btn gs-btn--secondary" style="height:22px;font-size:10px;">Back</button>
+      </div>
+    </div>
+
+    <div class="map-bg pad" style="min-height:122px">
+      <div style="position:absolute;bottom:6px;right:6px;">
+        <div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;">
+          <div class="gs-hint">Click a country on the map to select it</div>
+          <button class="gs-btn gs-btn--primary" style="opacity:0.45;">Start Game</button>
+          <button class="gs-btn gs-btn--primary">Back</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-bg pad" style="min-height:122px">
+      <div style="position:absolute;bottom:6px;right:6px;">
+        <div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;">
+          <div class="gs-header" style="text-align:center;">Ottoman Empire</div>
+          <button class="gs-btn gs-btn--primary">Start Game</button>
+          <button class="gs-btn gs-btn--primary">Back</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-section"><div class="tip-sub-grid">
+      <div><div class="tip-sub-label">Normal</div><div class="tip-box"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">Locked (pinned)</div><div class="tip-box" style="border-style:dashed;border-width:2px;"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">2nd Layer</div><div class="tip-box"><div style="display:flex;justify-content:space-between;gap:4px;"><b>Gold</b><span style="color:var(--c-pos)">+1.0/mo</span></div><hr><span style="color:var(--c-pos)">+1.0/month</span><br><span style="color:var(--c-mid)">Base Income: +1.0/month</span><br><span style="color:var(--c-hint);font-style:italic;">Monthly income from taxes and trade.</span></div></div>
+    </div></div>
+
+    <div class="swatches">
+      <div class="sw" style="background:#DDD8CC"></div><div class="sw" style="background:#3A3228"></div>
+      <div class="sw" style="background:#7A7060"></div><div class="sw" style="background:#2E2820"></div>
+      <div class="sw" style="background:#0E0C08"></div><div class="sw" style="background:#F0E8D8"></div>
+    </div>
+  </div><!-- /C -->
+
+
+  <!-- D: IMPERIAL NAVY — SELECTED -->
+  <div class="palette-col" data-p="navy">
+    <div class="col-label selected">D — Imperial Navy ✓<span class="sub">Cinzel · IM Fell English</span></div>
+
+    <div class="map-bg centered" style="min-height:85px">
+      <div class="gs-panel" style="width:135px">
+        <div class="gs-title">Global Strategy</div>
+        <button class="gs-btn gs-btn--primary">Play</button>
+        <button class="gs-btn gs-btn--primary">Settings</button>
+        <button class="gs-btn gs-btn--primary">Exit</button>
+      </div>
+    </div>
+
+    <div class="map-bg pad" style="min-height:95px">
+      <div class="gs-panel hud" style="position:absolute;top:6px;left:6px;">
+        <div class="gs-header">France</div>
+        <div class="gs-label">$ 150</div>
+      </div>
+      <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end;">
+        <div class="gs-label">17:00 &nbsp;01/01/1880</div>
+        <div class="speed-row">
+          <button class="gs-btn gs-btn--small gs-btn--active">||</button>
+          <button class="gs-btn gs-btn--small">x1</button>
+          <button class="gs-btn gs-btn--small">x2</button>
+          <button class="gs-btn gs-btn--small">x3</button>
+        </div>
+        <button class="gs-btn gs-btn--small" style="margin-top:3px;width:100%;">III</button>
+      </div>
+      <div class="hud-bar"><span class="gs-header">Ottoman Empire</span><span class="gs-label">$ 150</span></div>
+    </div>
+
+    <div class="map-bg centered" style="min-height:78px">
+      <div class="gs-panel" style="width:125px">
+        <div class="gs-header">Menu</div>
+        <button class="gs-btn gs-btn--primary">Resume</button>
+        <button class="gs-btn gs-btn--primary">Save</button>
+        <button class="gs-btn gs-btn--primary gs-btn--dest">Exit</button>
+      </div>
+    </div>
+
+    <div class="map-bg centered" style="min-height:78px">
+      <div class="gs-panel" style="width:185px;align-items:stretch;gap:5px;">
+        <div class="gs-header" style="text-align:center;">Settings</div>
+        <div style="display:flex;align-items:center;gap:5px;"><span class="gs-label">Language</span><span class="tog-on">EN</span><span class="tog-off">RU</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span class="gs-label">Auto-Save</span><span class="tog-off">Daily</span><span class="tog-on">Monthly</span><span class="tog-off">Yearly</span></div>
+        <button class="gs-btn gs-btn--secondary" style="height:22px;font-size:10px;">Back</button>
+      </div>
+    </div>
+
+    <div class="map-bg pad" style="min-height:122px">
+      <div style="position:absolute;bottom:6px;right:6px;">
+        <div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;">
+          <div class="gs-hint">Click a country on the map to select it</div>
+          <button class="gs-btn gs-btn--primary" style="opacity:0.45;">Start Game</button>
+          <button class="gs-btn gs-btn--primary">Back</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-bg pad" style="min-height:122px">
+      <div style="position:absolute;bottom:6px;right:6px;">
+        <div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;">
+          <div class="gs-header" style="text-align:center;">Ottoman Empire</div>
+          <button class="gs-btn gs-btn--primary">Start Game</button>
+          <button class="gs-btn gs-btn--primary">Back</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-section"><div class="tip-sub-grid">
+      <div><div class="tip-sub-label">Normal</div><div class="tip-box"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">Locked (pinned)</div><div class="tip-box" style="border-style:dashed;border-width:2px;"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">2nd Layer</div><div class="tip-box"><div style="display:flex;justify-content:space-between;gap:4px;"><b>Gold</b><span style="color:var(--c-pos)">+1.0/mo</span></div><hr><span style="color:var(--c-pos)">+1.0/month</span><br><span style="color:var(--c-mid)">Base Income: +1.0/month</span><br><span style="color:var(--c-hint);font-style:italic;">Monthly income from taxes and trade.</span></div></div>
+    </div></div>
+
+    <div class="swatches">
+      <div class="sw" style="background:#1A2A48"></div><div class="sw" style="background:#C8A040"></div>
+      <div class="sw" style="background:#243258"></div><div class="sw" style="background:#C8A040"></div>
+      <div class="sw" style="background:#F0E8D0"></div><div class="sw" style="background:#F0E8D0"></div>
+    </div>
+  </div><!-- /D -->
+
+</div><!-- /iter 1 -->
+
+
+<!-- ================================================================ ITER 2 -->
+<h2>Iteration 2 — Speed Button Font</h2>
+<p class="iter-note">All on D (Imperial Navy) · only small HUD buttons vary · D2 selected</p>
+
+<div class="grid-4">
+
+  <!-- D1: IM Fell English -->
+  <div class="palette-col" data-p="navy" data-sf="imfell">
+    <div class="col-label">D1 — IM Fell English<span class="sub">current · low x-height mismatch</span></div>
+    <div class="speed-zoom">
+      <button class="gs-btn gs-btn--small gs-btn--active">||</button>
+      <button class="gs-btn gs-btn--small">x1</button>
+      <button class="gs-btn gs-btn--small">x2</button>
+      <button class="gs-btn gs-btn--small">x3</button>
+    </div>
+    <p class="speed-note">lowercase x sits lower than digits</p>
+
+    <div class="map-bg centered" style="min-height:85px"><div class="gs-panel" style="width:135px"><div class="gs-title">Global Strategy</div><button class="gs-btn gs-btn--primary">Play</button><button class="gs-btn gs-btn--primary">Settings</button><button class="gs-btn gs-btn--primary">Exit</button></div></div>
+
+    <div class="map-bg pad" style="min-height:95px">
+      <div class="gs-panel hud" style="position:absolute;top:6px;left:6px;"><div class="gs-header">France</div><div class="gs-label">$ 150</div></div>
+      <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end;">
+        <div class="gs-label">17:00 &nbsp;01/01/1880</div>
+        <div class="speed-row"><button class="gs-btn gs-btn--small gs-btn--active">||</button><button class="gs-btn gs-btn--small">x1</button><button class="gs-btn gs-btn--small">x2</button><button class="gs-btn gs-btn--small">x3</button></div>
+        <button class="gs-btn gs-btn--small" style="margin-top:3px;width:100%;">III</button>
+      </div>
+      <div class="hud-bar"><span class="gs-header">Ottoman Empire</span><span class="gs-label">$ 150</span></div>
+    </div>
+
+    <div class="map-bg centered" style="min-height:78px"><div class="gs-panel" style="width:125px"><div class="gs-header">Menu</div><button class="gs-btn gs-btn--primary">Resume</button><button class="gs-btn gs-btn--primary">Save</button><button class="gs-btn gs-btn--primary gs-btn--dest">Exit</button></div></div>
+
+    <div class="map-bg centered" style="min-height:78px">
+      <div class="gs-panel" style="width:185px;align-items:stretch;gap:5px;">
+        <div class="gs-header" style="text-align:center;">Settings</div>
+        <div style="display:flex;align-items:center;gap:5px;"><span class="gs-label">Language</span><span class="tog-on">EN</span><span class="tog-off">RU</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span class="gs-label">Auto-Save</span><span class="tog-off">Daily</span><span class="tog-on">Monthly</span><span class="tog-off">Yearly</span></div>
+        <button class="gs-btn gs-btn--secondary" style="height:22px;font-size:10px;">Back</button>
+      </div>
+    </div>
+
+    <div class="map-bg pad" style="min-height:122px"><div style="position:absolute;bottom:6px;right:6px;"><div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;"><div class="gs-hint">Click a country on the map to select it</div><button class="gs-btn gs-btn--primary" style="opacity:0.45;">Start Game</button><button class="gs-btn gs-btn--primary">Back</button></div></div></div>
+    <div class="map-bg pad" style="min-height:122px"><div style="position:absolute;bottom:6px;right:6px;"><div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;"><div class="gs-header" style="text-align:center;">Ottoman Empire</div><button class="gs-btn gs-btn--primary">Start Game</button><button class="gs-btn gs-btn--primary">Back</button></div></div></div>
+
+    <div class="tip-section"><div class="tip-sub-grid">
+      <div><div class="tip-sub-label">Normal</div><div class="tip-box"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">Locked (pinned)</div><div class="tip-box" style="border-style:dashed;border-width:2px;"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">2nd Layer</div><div class="tip-box"><div style="display:flex;justify-content:space-between;gap:4px;"><b>Gold</b><span style="color:var(--c-pos)">+1.0/mo</span></div><hr><span style="color:var(--c-pos)">+1.0/month</span><br><span style="color:var(--c-mid)">Base Income: +1.0/month</span><br><span style="color:var(--c-hint);font-style:italic;">Monthly income from taxes and trade.</span></div></div>
+    </div></div>
+  </div><!-- /D1 -->
+
+
+  <!-- D2: Cinzel — SELECTED -->
+  <div class="palette-col" data-p="navy" data-sf="cinzel">
+    <div class="col-label selected">D2 — Cinzel ✓<span class="sub">all-caps · X aligns with digits</span></div>
+    <div class="speed-zoom">
+      <button class="gs-btn gs-btn--small gs-btn--active">||</button>
+      <button class="gs-btn gs-btn--small">X1</button>
+      <button class="gs-btn gs-btn--small">X2</button>
+      <button class="gs-btn gs-btn--small">X3</button>
+    </div>
+    <p class="speed-note">uppercase X matches digit height; reuses title font</p>
+
+    <div class="map-bg centered" style="min-height:85px"><div class="gs-panel" style="width:135px"><div class="gs-title">Global Strategy</div><button class="gs-btn gs-btn--primary">Play</button><button class="gs-btn gs-btn--primary">Settings</button><button class="gs-btn gs-btn--primary">Exit</button></div></div>
+
+    <div class="map-bg pad" style="min-height:95px">
+      <div class="gs-panel hud" style="position:absolute;top:6px;left:6px;"><div class="gs-header">France</div><div class="gs-label" style="font-family:'IM Fell English',serif;">$ 150</div></div>
+      <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end;">
+        <div class="gs-label" style="font-family:'IM Fell English',serif;">17:00 &nbsp;01/01/1880</div>
+        <div class="speed-row"><button class="gs-btn gs-btn--small gs-btn--active">||</button><button class="gs-btn gs-btn--small">X1</button><button class="gs-btn gs-btn--small">X2</button><button class="gs-btn gs-btn--small">X3</button></div>
+        <button class="gs-btn gs-btn--small" style="margin-top:3px;width:100%;">III</button>
+      </div>
+      <div class="hud-bar"><span class="gs-header">Ottoman Empire</span><span class="gs-label" style="font-family:'IM Fell English',serif;">$ 150</span></div>
+    </div>
+
+    <div class="map-bg centered" style="min-height:78px"><div class="gs-panel" style="width:125px"><div class="gs-header">Menu</div><button class="gs-btn gs-btn--primary">Resume</button><button class="gs-btn gs-btn--primary">Save</button><button class="gs-btn gs-btn--primary gs-btn--dest">Exit</button></div></div>
+
+    <div class="map-bg centered" style="min-height:78px">
+      <div class="gs-panel" style="width:185px;align-items:stretch;gap:5px;">
+        <div class="gs-header" style="text-align:center;">Settings</div>
+        <div style="display:flex;align-items:center;gap:5px;"><span class="gs-label" style="font-family:'IM Fell English',serif;">Language</span><span class="tog-on">EN</span><span class="tog-off">RU</span></div>
+        <div style="display:flex;align-items:center;gap:5px;"><span class="gs-label" style="font-family:'IM Fell English',serif;">Auto-Save</span><span class="tog-off">Daily</span><span class="tog-on">Monthly</span><span class="tog-off">Yearly</span></div>
+        <button class="gs-btn gs-btn--secondary" style="height:22px;font-size:10px;">Back</button>
+      </div>
+    </div>
+
+    <div class="map-bg pad" style="min-height:122px"><div style="position:absolute;bottom:6px;right:6px;"><div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;"><div class="gs-hint">Click a country on the map to select it</div><button class="gs-btn gs-btn--primary" style="opacity:0.45;">Start Game</button><button class="gs-btn gs-btn--primary">Back</button></div></div></div>
+    <div class="map-bg pad" style="min-height:122px"><div style="position:absolute;bottom:6px;right:6px;"><div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;"><div class="gs-header" style="text-align:center;">Ottoman Empire</div><button class="gs-btn gs-btn--primary">Start Game</button><button class="gs-btn gs-btn--primary">Back</button></div></div></div>
+
+    <div class="tip-section"><div class="tip-sub-grid">
+      <div><div class="tip-sub-label">Normal</div><div class="tip-box"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">Locked (pinned)</div><div class="tip-box" style="border-style:dashed;border-width:2px;"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">2nd Layer</div><div class="tip-box"><div style="display:flex;justify-content:space-between;gap:4px;"><b>Gold</b><span style="color:var(--c-pos)">+1.0/mo</span></div><hr><span style="color:var(--c-pos)">+1.0/month</span><br><span style="color:var(--c-mid)">Base Income: +1.0/month</span><br><span style="color:var(--c-hint);font-style:italic;">Monthly income from taxes and trade.</span></div></div>
+    </div></div>
+  </div><!-- /D2 -->
+
+
+  <!-- D3: Oswald -->
+  <div class="palette-col" data-p="navy" data-sf="oswald">
+    <div class="col-label">D3 — Oswald<span class="sub">condensed sans · tall x-height</span></div>
+    <div class="speed-zoom">
+      <button class="gs-btn gs-btn--small gs-btn--active">||</button>
+      <button class="gs-btn gs-btn--small">x1</button>
+      <button class="gs-btn gs-btn--small">x2</button>
+      <button class="gs-btn gs-btn--small">x3</button>
+    </div>
+    <p class="speed-note">tall x-height nearly matches digits; modern feel</p>
+
+    <div class="map-bg centered" style="min-height:85px"><div class="gs-panel" style="width:135px"><div class="gs-title">Global Strategy</div><button class="gs-btn gs-btn--primary">Play</button><button class="gs-btn gs-btn--primary">Settings</button><button class="gs-btn gs-btn--primary">Exit</button></div></div>
+
+    <div class="map-bg pad" style="min-height:95px">
+      <div class="gs-panel hud" style="position:absolute;top:6px;left:6px;"><div class="gs-header">France</div><div class="gs-label" style="font-family:'IM Fell English',serif;">$ 150</div></div>
+      <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end;">
+        <div class="gs-label" style="font-family:'IM Fell English',serif;">17:00 &nbsp;01/01/1880</div>
+        <div class="speed-row"><button class="gs-btn gs-btn--small gs-btn--active">||</button><button class="gs-btn gs-btn--small">x1</button><button class="gs-btn gs-btn--small">x2</button><button class="gs-btn gs-btn--small">x3</button></div>
+        <button class="gs-btn gs-btn--small" style="margin-top:3px;width:100%;">III</button>
+      </div>
+      <div class="hud-bar"><span class="gs-header">Ottoman Empire</span><span class="gs-label" style="font-family:'IM Fell English',serif;">$ 150</span></div>
+    </div>
+
+    <div class="map-bg centered" style="min-height:78px"><div class="gs-panel" style="width:125px"><div class="gs-header">Menu</div><button class="gs-btn gs-btn--primary">Resume</button><button class="gs-btn gs-btn--primary">Save</button><button class="gs-btn gs-btn--primary gs-btn--dest">Exit</button></div></div>
+    <div class="map-bg centered" style="min-height:78px"><div class="gs-panel" style="width:185px;align-items:stretch;gap:5px;"><div class="gs-header" style="text-align:center;">Settings</div><div style="display:flex;align-items:center;gap:5px;"><span class="gs-label" style="font-family:'IM Fell English',serif;">Language</span><span class="tog-on">EN</span><span class="tog-off">RU</span></div><div style="display:flex;align-items:center;gap:5px;"><span class="gs-label" style="font-family:'IM Fell English',serif;">Auto-Save</span><span class="tog-off">Daily</span><span class="tog-on">Monthly</span><span class="tog-off">Yearly</span></div><button class="gs-btn gs-btn--secondary" style="height:22px;font-size:10px;">Back</button></div></div>
+    <div class="map-bg pad" style="min-height:122px"><div style="position:absolute;bottom:6px;right:6px;"><div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;"><div class="gs-hint">Click a country on the map to select it</div><button class="gs-btn gs-btn--primary" style="opacity:0.45;">Start Game</button><button class="gs-btn gs-btn--primary">Back</button></div></div></div>
+    <div class="map-bg pad" style="min-height:122px"><div style="position:absolute;bottom:6px;right:6px;"><div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;"><div class="gs-header" style="text-align:center;">Ottoman Empire</div><button class="gs-btn gs-btn--primary">Start Game</button><button class="gs-btn gs-btn--primary">Back</button></div></div></div>
+
+    <div class="tip-section"><div class="tip-sub-grid">
+      <div><div class="tip-sub-label">Normal</div><div class="tip-box"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">Locked (pinned)</div><div class="tip-box" style="border-style:dashed;border-width:2px;"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">2nd Layer</div><div class="tip-box"><div style="display:flex;justify-content:space-between;gap:4px;"><b>Gold</b><span style="color:var(--c-pos)">+1.0/mo</span></div><hr><span style="color:var(--c-pos)">+1.0/month</span><br><span style="color:var(--c-mid)">Base Income: +1.0/month</span><br><span style="color:var(--c-hint);font-style:italic;">Monthly income from taxes and trade.</span></div></div>
+    </div></div>
+  </div><!-- /D3 -->
+
+
+  <!-- D4: Source Code Pro -->
+  <div class="palette-col" data-p="navy" data-sf="mono">
+    <div class="col-label">D4 — Source Code Pro<span class="sub">monospace · perfect alignment</span></div>
+    <div class="speed-zoom">
+      <button class="gs-btn gs-btn--small gs-btn--active">||</button>
+      <button class="gs-btn gs-btn--small">x1</button>
+      <button class="gs-btn gs-btn--small">x2</button>
+      <button class="gs-btn gs-btn--small">x3</button>
+    </div>
+    <p class="speed-note">monospace: x and digits share identical metrics</p>
+
+    <div class="map-bg centered" style="min-height:85px"><div class="gs-panel" style="width:135px"><div class="gs-title">Global Strategy</div><button class="gs-btn gs-btn--primary">Play</button><button class="gs-btn gs-btn--primary">Settings</button><button class="gs-btn gs-btn--primary">Exit</button></div></div>
+
+    <div class="map-bg pad" style="min-height:95px">
+      <div class="gs-panel hud" style="position:absolute;top:6px;left:6px;"><div class="gs-header">France</div><div class="gs-label" style="font-family:'IM Fell English',serif;">$ 150</div></div>
+      <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end;">
+        <div class="gs-label" style="font-family:'IM Fell English',serif;">17:00 &nbsp;01/01/1880</div>
+        <div class="speed-row"><button class="gs-btn gs-btn--small gs-btn--active">||</button><button class="gs-btn gs-btn--small">x1</button><button class="gs-btn gs-btn--small">x2</button><button class="gs-btn gs-btn--small">x3</button></div>
+        <button class="gs-btn gs-btn--small" style="margin-top:3px;width:100%;">III</button>
+      </div>
+      <div class="hud-bar"><span class="gs-header">Ottoman Empire</span><span class="gs-label" style="font-family:'IM Fell English',serif;">$ 150</span></div>
+    </div>
+
+    <div class="map-bg centered" style="min-height:78px"><div class="gs-panel" style="width:125px"><div class="gs-header">Menu</div><button class="gs-btn gs-btn--primary">Resume</button><button class="gs-btn gs-btn--primary">Save</button><button class="gs-btn gs-btn--primary gs-btn--dest">Exit</button></div></div>
+    <div class="map-bg centered" style="min-height:78px"><div class="gs-panel" style="width:185px;align-items:stretch;gap:5px;"><div class="gs-header" style="text-align:center;">Settings</div><div style="display:flex;align-items:center;gap:5px;"><span class="gs-label" style="font-family:'IM Fell English',serif;">Language</span><span class="tog-on">EN</span><span class="tog-off">RU</span></div><div style="display:flex;align-items:center;gap:5px;"><span class="gs-label" style="font-family:'IM Fell English',serif;">Auto-Save</span><span class="tog-off">Daily</span><span class="tog-on">Monthly</span><span class="tog-off">Yearly</span></div><button class="gs-btn gs-btn--secondary" style="height:22px;font-size:10px;">Back</button></div></div>
+    <div class="map-bg pad" style="min-height:122px"><div style="position:absolute;bottom:6px;right:6px;"><div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;"><div class="gs-hint">Click a country on the map to select it</div><button class="gs-btn gs-btn--primary" style="opacity:0.45;">Start Game</button><button class="gs-btn gs-btn--primary">Back</button></div></div></div>
+    <div class="map-bg pad" style="min-height:122px"><div style="position:absolute;bottom:6px;right:6px;"><div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;"><div class="gs-header" style="text-align:center;">Ottoman Empire</div><button class="gs-btn gs-btn--primary">Start Game</button><button class="gs-btn gs-btn--primary">Back</button></div></div></div>
+
+    <div class="tip-section"><div class="tip-sub-grid">
+      <div><div class="tip-sub-label">Normal</div><div class="tip-box"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">Locked (pinned)</div><div class="tip-box" style="border-style:dashed;border-width:2px;"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">2nd Layer</div><div class="tip-box"><div style="display:flex;justify-content:space-between;gap:4px;"><b>Gold</b><span style="color:var(--c-pos)">+1.0/mo</span></div><hr><span style="color:var(--c-pos)">+1.0/month</span><br><span style="color:var(--c-mid)">Base Income: +1.0/month</span><br><span style="color:var(--c-hint);font-style:italic;">Monthly income from taxes and trade.</span></div></div>
+    </div></div>
+  </div><!-- /D4 -->
+
+</div><!-- /iter 2 -->
+
+
+<!-- ================================================================ ITER 3 -->
+<h2>Iteration 3 — Polish</h2>
+<p class="iter-note">D2 base · date &amp; gold 17 px · settings two-column grid · time block states · single option</p>
+
+<div style="max-width:290px; margin:0 auto;" data-p="navy" data-sf="cinzel">
+  <div class="palette-col">
+    <div class="col-label selected">D2 Polished ✓<span class="sub">17 px date &amp; gold · aligned toggles · time states</span></div>
+
+    <!-- Main Menu -->
+    <div class="map-bg centered" style="min-height:85px">
+      <div class="gs-panel" style="width:135px">
+        <div class="gs-title">Global Strategy</div>
+        <button class="gs-btn gs-btn--primary">Play</button>
+        <button class="gs-btn gs-btn--primary">Settings</button>
+        <button class="gs-btn gs-btn--primary">Exit</button>
+      </div>
+    </div>
+
+    <!-- HUD — gold 17 px, date 17 px -->
+    <div class="map-bg pad" style="min-height:108px">
+      <div class="gs-panel hud" style="position:absolute;top:6px;left:6px;">
+        <div class="gs-header">France</div>
+        <div style="font-size:17px;color:var(--c-mid);font-family:'IM Fell English',serif;">$ 150</div>
+      </div>
+      <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end;">
+        <div style="font-size:17px;color:var(--c-mid);font-family:'IM Fell English',serif;">17:00 &nbsp;01/01/1880</div>
+        <div class="speed-row">
+          <button class="gs-btn gs-btn--small gs-btn--active">||</button>
+          <button class="gs-btn gs-btn--small">X1</button>
+          <button class="gs-btn gs-btn--small">X2</button>
+          <button class="gs-btn gs-btn--small">X3</button>
+        </div>
+        <button class="gs-btn gs-btn--small" style="margin-top:3px;width:100%;">III</button>
+      </div>
+      <div class="hud-bar">
+        <span class="gs-header">Ottoman Empire</span>
+        <span style="font-size:17px;color:var(--c-mid);font-family:'IM Fell English',serif;">$ 150</span>
+      </div>
+    </div>
+
+    <!-- Time block states -->
+    <div style="display:flex;gap:6px;">
+      <!-- Paused: > shown (click to play) -->
+      <div class="gs-panel hud" style="flex:1;align-items:flex-end;gap:2px;border-color:var(--panel-bdr);">
+        <div style="font-size:13px;color:var(--c-mid);font-family:'IM Fell English',serif;">17:00 01/01/1880</div>
+        <div class="speed-row">
+          <button class="gs-btn gs-btn--small gs-btn--active">&gt;</button>
+          <button class="gs-btn gs-btn--small">X1</button>
+          <button class="gs-btn gs-btn--small">X2</button>
+          <button class="gs-btn gs-btn--small">X3</button>
+        </div>
+        <button class="gs-btn gs-btn--small" style="margin-top:3px;width:100%;">III</button>
+      </div>
+      <!-- Running ×2: X2 green -->
+      <div class="gs-panel hud" style="flex:1;align-items:flex-end;gap:2px;border-color:var(--panel-bdr);">
+        <div style="font-size:13px;color:var(--c-mid);font-family:'IM Fell English',serif;">17:00 01/01/1880</div>
+        <div class="speed-row">
+          <button class="gs-btn gs-btn--small">||</button>
+          <button class="gs-btn gs-btn--small">X1</button>
+          <button class="gs-btn gs-btn--small gs-btn--speed">X2</button>
+          <button class="gs-btn gs-btn--small">X3</button>
+        </div>
+        <button class="gs-btn gs-btn--small" style="margin-top:3px;width:100%;">III</button>
+      </div>
+    </div>
+
+    <!-- Game Menu -->
+    <div class="map-bg centered" style="min-height:78px">
+      <div class="gs-panel" style="width:125px">
+        <div class="gs-header">Menu</div>
+        <button class="gs-btn gs-btn--primary">Resume</button>
+        <button class="gs-btn gs-btn--primary">Save</button>
+        <button class="gs-btn gs-btn--primary gs-btn--dest">Exit</button>
+      </div>
+    </div>
+
+    <!-- Settings — two-column grid, nowrap, wider -->
+    <div class="map-bg centered" style="min-height:84px">
+      <div class="gs-panel" style="width:228px;align-items:stretch;gap:7px;">
+        <div class="gs-header" style="text-align:center;">Settings</div>
+        <div class="settings-grid">
+          <span class="gs-label" style="white-space:nowrap;font-family:'IM Fell English',serif;">Language</span>
+          <div style="display:flex;gap:4px;"><span class="tog-on">EN</span><span class="tog-off">RU</span></div>
+          <span class="gs-label" style="white-space:nowrap;font-family:'IM Fell English',serif;">Auto-Save</span>
+          <div style="display:flex;gap:4px;"><span class="tog-off">Daily</span><span class="tog-on">Monthly</span><span class="tog-off">Yearly</span></div>
+        </div>
+        <button class="gs-btn gs-btn--secondary" style="height:22px;font-size:10px;">Back</button>
+      </div>
+    </div>
+
+    <!-- Select Country (no selection) -->
+    <div class="map-bg pad" style="min-height:122px">
+      <div style="position:absolute;bottom:6px;right:6px;">
+        <div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;">
+          <div class="gs-hint">Click a country on the map to select it</div>
+          <button class="gs-btn gs-btn--primary" style="opacity:0.45;">Start Game</button>
+          <button class="gs-btn gs-btn--primary">Back</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Select Country (Ottoman Empire selected) -->
+    <div class="map-bg pad" style="min-height:122px">
+      <div style="position:absolute;bottom:6px;right:6px;">
+        <div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;">
+          <div class="gs-header" style="text-align:center;">Ottoman Empire</div>
+          <button class="gs-btn gs-btn--primary">Start Game</button>
+          <button class="gs-btn gs-btn--primary">Back</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tooltips -->
+    <div class="tip-section"><div class="tip-sub-grid">
+      <div><div class="tip-sub-label">Normal</div><div class="tip-box"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">Locked (pinned)</div><div class="tip-box" style="border-style:dashed;border-width:2px;"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">2nd Layer</div>
+        <div class="tip-box">
+          <div style="display:flex;justify-content:space-between;gap:4px;"><b>Gold</b><span style="color:var(--c-pos)">+1.0/mo</span></div>
+          <hr>
+          <span style="color:var(--c-pos)">+1.0/month</span><br>
+          <span style="color:var(--c-mid)">Base Income: +1.0/month</span><br>
+          <span style="color:var(--c-hint);font-style:italic;">Monthly income from taxes and trade. Applied at end of each month.</span>
+        </div>
+      </div>
+    </div></div>
+
+  </div>
+</div><!-- /iter 3 -->
+
+
+<!-- ================================================================ ITER 4 -->
+<h2>Iteration 4 — Icons</h2>
+<p class="iter-note">D2 Polished base · SVG icons replace text symbols (coin · pause · play · menu)</p>
+
+<div style="max-width:290px; margin:0 auto;" data-p="navy" data-sf="cinzel">
+  <div class="palette-col">
+    <div class="col-label selected">D2 + Icons ✓<span class="sub">Bootstrap Icons · btn-icon / coin-icon classes</span></div>
+
+    <!-- Main Menu -->
+    <div class="map-bg centered" style="min-height:85px">
+      <div class="gs-panel" style="width:135px">
+        <div class="gs-title">Global Strategy</div>
+        <button class="gs-btn gs-btn--primary">Play</button>
+        <button class="gs-btn gs-btn--primary">Settings</button>
+        <button class="gs-btn gs-btn--primary">Exit</button>
+      </div>
+    </div>
+
+    <!-- HUD — icons in buttons and gold -->
+    <div class="map-bg pad" style="min-height:108px">
+      <div class="gs-panel hud" style="position:absolute;top:6px;left:6px;">
+        <div class="gs-header">France</div>
+        <div style="font-size:17px;color:var(--c-mid);font-family:'IM Fell English',serif;">
+          <img class="coin-icon" src="icons/coin.svg"> 150
+        </div>
+      </div>
+      <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end;">
+        <div style="font-size:17px;color:var(--c-mid);font-family:'IM Fell English',serif;">17:00 &nbsp;01/01/1880</div>
+        <div class="speed-row">
+          <button class="gs-btn gs-btn--small gs-btn--active"><img class="btn-icon" src="icons/pause.svg"></button>
+          <button class="gs-btn gs-btn--small">X1</button>
+          <button class="gs-btn gs-btn--small">X2</button>
+          <button class="gs-btn gs-btn--small">X3</button>
+        </div>
+        <button class="gs-btn gs-btn--small" style="margin-top:3px;width:100%;"><img class="btn-icon" src="icons/menu.svg"></button>
+      </div>
+      <div class="hud-bar">
+        <span class="gs-header">Ottoman Empire</span>
+        <span style="font-size:17px;color:var(--c-mid);font-family:'IM Fell English',serif;"><img class="coin-icon" src="icons/coin.svg"> 150</span>
+      </div>
+    </div>
+
+    <!-- Time block states — icons -->
+    <div style="display:flex;gap:6px;">
+      <!-- Paused: play icon shown (click to resume) -->
+      <div class="gs-panel hud" style="flex:1;align-items:flex-end;gap:2px;border-color:var(--panel-bdr);">
+        <div style="font-size:13px;color:var(--c-mid);font-family:'IM Fell English',serif;">17:00 01/01/1880</div>
+        <div class="speed-row">
+          <button class="gs-btn gs-btn--small gs-btn--active"><img class="btn-icon" src="icons/play.svg"></button>
+          <button class="gs-btn gs-btn--small">X1</button>
+          <button class="gs-btn gs-btn--small">X2</button>
+          <button class="gs-btn gs-btn--small">X3</button>
+        </div>
+        <button class="gs-btn gs-btn--small" style="margin-top:3px;width:100%;"><img class="btn-icon" src="icons/menu.svg"></button>
+      </div>
+      <!-- Running ×2: X2 green, pause icon shown -->
+      <div class="gs-panel hud" style="flex:1;align-items:flex-end;gap:2px;border-color:var(--panel-bdr);">
+        <div style="font-size:13px;color:var(--c-mid);font-family:'IM Fell English',serif;">17:00 01/01/1880</div>
+        <div class="speed-row">
+          <button class="gs-btn gs-btn--small"><img class="btn-icon" src="icons/pause.svg"></button>
+          <button class="gs-btn gs-btn--small">X1</button>
+          <button class="gs-btn gs-btn--small gs-btn--speed">X2</button>
+          <button class="gs-btn gs-btn--small">X3</button>
+        </div>
+        <button class="gs-btn gs-btn--small" style="margin-top:3px;width:100%;"><img class="btn-icon" src="icons/menu.svg"></button>
+      </div>
+    </div>
+
+    <!-- Game Menu -->
+    <div class="map-bg centered" style="min-height:78px">
+      <div class="gs-panel" style="width:125px">
+        <div class="gs-header">Menu</div>
+        <button class="gs-btn gs-btn--primary">Resume</button>
+        <button class="gs-btn gs-btn--primary">Save</button>
+        <button class="gs-btn gs-btn--primary gs-btn--dest">Exit</button>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="map-bg centered" style="min-height:84px">
+      <div class="gs-panel" style="width:228px;align-items:stretch;gap:7px;">
+        <div class="gs-header" style="text-align:center;">Settings</div>
+        <div class="settings-grid">
+          <span class="gs-label" style="white-space:nowrap;font-family:'IM Fell English',serif;">Language</span>
+          <div style="display:flex;gap:4px;"><span class="tog-on">EN</span><span class="tog-off">RU</span></div>
+          <span class="gs-label" style="white-space:nowrap;font-family:'IM Fell English',serif;">Auto-Save</span>
+          <div style="display:flex;gap:4px;"><span class="tog-off">Daily</span><span class="tog-on">Monthly</span><span class="tog-off">Yearly</span></div>
+        </div>
+        <button class="gs-btn gs-btn--secondary" style="height:22px;font-size:10px;">Back</button>
+      </div>
+    </div>
+
+    <!-- Select Country (no selection) -->
+    <div class="map-bg pad" style="min-height:122px">
+      <div style="position:absolute;bottom:6px;right:6px;">
+        <div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;">
+          <div class="gs-hint">Click a country on the map to select it</div>
+          <button class="gs-btn gs-btn--primary" style="opacity:0.45;">Start Game</button>
+          <button class="gs-btn gs-btn--primary">Back</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Select Country (Ottoman Empire selected) -->
+    <div class="map-bg pad" style="min-height:122px">
+      <div style="position:absolute;bottom:6px;right:6px;">
+        <div class="gs-panel" style="width:138px;align-items:stretch;gap:3px;">
+          <div class="gs-header" style="text-align:center;">Ottoman Empire</div>
+          <button class="gs-btn gs-btn--primary">Start Game</button>
+          <button class="gs-btn gs-btn--primary">Back</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tooltips -->
+    <div class="tip-section"><div class="tip-sub-grid">
+      <div><div class="tip-sub-label">Normal</div><div class="tip-box"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">Locked (pinned)</div><div class="tip-box" style="border-style:dashed;border-width:2px;"><b>Gold</b><br><span style="color:var(--c-pos)">+1.0/month</span></div></div>
+      <div><div class="tip-sub-label">2nd Layer</div>
+        <div class="tip-box">
+          <div style="display:flex;justify-content:space-between;gap:4px;"><b>Gold</b><span style="color:var(--c-pos)">+1.0/mo</span></div>
+          <hr>
+          <span style="color:var(--c-pos)">+1.0/month</span><br>
+          <span style="color:var(--c-mid)">Base Income: +1.0/month</span><br>
+          <span style="color:var(--c-hint);font-style:italic;">Monthly income from taxes and trade. Applied at end of each month.</span>
+        </div>
+      </div>
+    </div></div>
+
+  </div>
+</div><!-- /iter 4 -->
+
+
+<div style="margin-top:22px;padding:10px;background:#333;border-radius:5px;font-size:11px;color:#999;line-height:1.7;">
+  <strong style="color:#ccc;">Fonts in <code>fonts/</code> (Unity TTF import):</strong>
+  Cinzel-Regular.ttf · Cinzel-Bold.ttf · IMFellEnglish-Regular.ttf · IMFellEnglish-Italic.ttf · PlayfairDisplay-Regular.ttf (Cyrillic fallback) · PlayfairDisplay-Bold.ttf<br>
+  <strong style="color:#ccc;">Icons in <code>icons/</code> (Bootstrap Icons, MIT):</strong>
+  coin.svg · play.svg · pause.svg · menu.svg — tinted via CSS <code>filter: brightness(0) invert(...)</code>
+</div>
+
+</body>
+</html>
