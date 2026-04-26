@@ -110,7 +110,7 @@
 
 .hud-hamburger-button {
     font-size: 20px;
-    width: 100%;
+    width: 234px;
     height: 36px;
     margin-top: 4px;
     border-radius: 3px;
