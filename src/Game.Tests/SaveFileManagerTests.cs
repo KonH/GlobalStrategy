@@ -9,7 +9,7 @@ namespace GS.Game.Tests {
 			return new WorldSnapshot {
 				Header = new SaveHeader {
 					SaveName = saveName,
-					PlayerCountryId = playerCountryId,
+					OrganizationId = playerCountryId,
 					GameDate = gameDate,
 					SavedAt = savedAt
 				},

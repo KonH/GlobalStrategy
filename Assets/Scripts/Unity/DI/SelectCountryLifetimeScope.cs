@@ -12,11 +12,13 @@ namespace GS.Unity.DI {
 		[SerializeField] CountryVisualConfig _countryVisualConfig;
 		[SerializeField] MapCameraConfig _mapCameraConfig;
 		[SerializeField] TextAsset _countryConfigAsset;
+		[SerializeField] TextAsset _organizationsConfigAsset;
 
 		protected override void Configure(IContainerBuilder builder) {
 			var countryConfigSource = new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset);
+			var orgConfigSource = new TextAssetConfig<OrganizationConfig>(_organizationsConfigAsset);
 
-			builder.Register(_ => new SelectCountryLogic(countryConfigSource), Lifetime.Singleton);
+			builder.Register(_ => new SelectOrgLogic(countryConfigSource, orgConfigSource), Lifetime.Singleton);
 
 			builder.RegisterInstance(_countryConfig);
 			builder.RegisterInstance(_countryVisualConfig);
@@ -24,10 +26,11 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<Camera>();
 			builder.RegisterComponentInHierarchy<MapLoader>();
 			builder.RegisterComponentInHierarchy<MapController>();
+			builder.RegisterComponentInHierarchy<SelectOrgMapFilter>();
 
-			// Map clicks need IWriteOnlyCommandAccessor — wire through SelectCountryLogic
+			// Map clicks need IWriteOnlyCommandAccessor — wire through SelectOrgLogic
 			builder.Register<IWriteOnlyCommandAccessor>(
-				c => c.Resolve<SelectCountryLogic>().Commands, Lifetime.Singleton);
+				c => c.Resolve<SelectOrgLogic>().Commands, Lifetime.Singleton);
 
 			var storage = new PersistentStorage();
 			var serializer = new NewtonsoftSnapshotSerializer();

@@ -82,13 +82,13 @@ namespace GS.Main {
 				}
 			}
 
-			string playerCountryId = "";
+			string orgId = "";
 			DateTime gameDate = default;
 
-			int[] playerRequired = { TypeId<Country>.Value, TypeId<Player>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(playerRequired, null)) {
+			int[] orgRequired = { TypeId<Organization>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(orgRequired, null)) {
 				if (arch.Count > 0) {
-					playerCountryId = arch.GetColumn<Country>()[0].CountryId;
+					orgId = arch.GetColumn<Organization>()[0].OrganizationId;
 					break;
 				}
 			}
@@ -101,12 +101,12 @@ namespace GS.Main {
 				}
 			}
 
-			string saveName = $"{playerCountryId}_{gameDate:yyyy-MM-dd}";
+			string saveName = $"{orgId}_{gameDate:yyyy-MM-dd}";
 
 			return new WorldSnapshot {
 				Header = new SaveHeader {
 					SaveName = saveName,
-					PlayerCountryId = playerCountryId,
+					OrganizationId = orgId,
 					GameDate = gameDate,
 					SavedAt = DateTime.UtcNow
 				},

@@ -19,12 +19,14 @@ namespace GS.Unity.DI {
 		[SerializeField] TextAsset _countryConfigAsset;
 		[SerializeField] TextAsset _gameSettings;
 		[SerializeField] TextAsset _resourceConfig;
+		[SerializeField] TextAsset _organizationsConfigAsset;
 
 		protected override void Configure(IContainerBuilder builder) {
 			var storage = new PersistentStorage();
 			var serializer = new NewtonsoftSnapshotSerializer();
 
 			string initialPlayer = SceneTransitionArgs.InitialPlayerCountry ?? "Russian_Empire";
+			string initialOrgId = SceneTransitionArgs.OrganizationId ?? "";
 
 			var ctx = new GameLogicContext(
 				new TextAssetConfig<GeoJsonConfig>(_geoJsonConfig),
@@ -32,9 +34,11 @@ namespace GS.Unity.DI {
 				new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset),
 				new TextAssetConfig<GameSettings>(_gameSettings),
 				new TextAssetConfig<ResourceConfig>(_resourceConfig),
+				new TextAssetConfig<OrganizationConfig>(_organizationsConfigAsset),
 				storage,
 				serializer,
-				initialPlayer
+				initialPlayer,
+				initialOrgId
 			);
 
 			builder.RegisterInstance(ctx);

@@ -345,12 +345,16 @@ MonoBehaviour:
     Value: "\u041D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0438"
   - Key: menu.exit
     Value: "\u0412\u044B\u0445\u043E\u0434"
-  - Key: select_country.hint
+  - Key: select_org.hint
     Value: "\u041D\u0430\u0436\u043C\u0438\u0442\u0435 \u043D\u0430 \u0441\u0442\u0440\u0430\u043D\u0443 \u043D\u0430 \u043A\u0430\u0440\u0442\u0435"
-  - Key: select_country.start
+  - Key: select_org.start
     Value: "\u041D\u0430\u0447\u0430\u0442\u044C \u0438\u0433\u0440\u0443"
-  - Key: select_country.back
+  - Key: select_org.back
     Value: "\u041D\u0430\u0437\u0430\u0434"
+  - Key: select_org.gold
+    Value: "\u0417\u043E\u043B\u043E\u0442\u043E"
+  - Key: organization_name.Illuminati
+    Value: Illuminati
   - Key: load.title
     Value: "\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u0438\u0433\u0440\u0443"
   - Key: load.back

@@ -56,6 +56,10 @@ namespace GS.Game.Tests {
 				PayType = PayType.Monthly
 			});
 
+			// Organization entity
+			int orgEntity = world.Create();
+			world.Add(orgEntity, new Organization { OrganizationId = "Illuminati", DisplayName = "Illuminati" });
+
 			return world;
 		}
 
@@ -199,13 +203,13 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void snapshot_header_contains_player_country_and_date() {
+		void snapshot_header_contains_org_id_and_date() {
 			var world = BuildWorld();
 			var snapshot = Snapshot(world);
 
-			Assert.Equal("Russian_Empire", snapshot.Header.PlayerCountryId);
+			Assert.Equal("Illuminati", snapshot.Header.OrganizationId);
 			Assert.Equal(new DateTime(1882, 6, 15), snapshot.Header.GameDate);
-			Assert.StartsWith("Russian_Empire_1882-06-15", snapshot.Header.SaveName);
+			Assert.StartsWith("Illuminati_1882-06-15", snapshot.Header.SaveName);
 		}
 	}
 }

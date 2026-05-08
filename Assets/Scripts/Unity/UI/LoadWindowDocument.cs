@@ -77,7 +77,7 @@ namespace GS.Unity.UI {
 			var info = new VisualElement();
 			info.AddToClassList("save-row-info");
 
-			var country = new Label(save.PlayerCountryId);
+			var country = new Label(save.OrganizationId);
 			country.AddToClassList("gs-label");
 			country.AddToClassList("save-country");
 			info.Add(country);

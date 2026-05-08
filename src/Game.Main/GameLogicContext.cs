@@ -8,9 +8,11 @@ namespace GS.Main {
 		public IConfigSource<CountryConfig> Country { get; }
 		public IConfigSource<GameSettings> GameSettings { get; }
 		public IConfigSource<ResourceConfig> Resource { get; }
+		public IConfigSource<OrganizationConfig> Organization { get; }
 		public IPersistentStorage? Storage { get; }
 		public ISnapshotSerializer? Serializer { get; }
 		public string InitialPlayerCountryId { get; }
+		public string InitialOrganizationId { get; }
 
 		public GameLogicContext(
 			IConfigSource<GeoJsonConfig> geoJson,
@@ -18,17 +20,21 @@ namespace GS.Main {
 			IConfigSource<CountryConfig> country,
 			IConfigSource<GameSettings> gameSettings,
 			IConfigSource<ResourceConfig> resource,
+			IConfigSource<OrganizationConfig> organization,
 			IPersistentStorage? storage = null,
 			ISnapshotSerializer? serializer = null,
-			string initialPlayerCountryId = "Russian_Empire") {
+			string initialPlayerCountryId = "Russian_Empire",
+			string initialOrganizationId = "") {
 			GeoJson = geoJson;
 			MapEntry = mapEntry;
 			Country = country;
 			GameSettings = gameSettings;
 			Resource = resource;
+			Organization = organization;
 			Storage = storage;
 			Serializer = serializer;
 			InitialPlayerCountryId = initialPlayerCountryId;
+			InitialOrganizationId = initialOrganizationId;
 		}
 	}
 }

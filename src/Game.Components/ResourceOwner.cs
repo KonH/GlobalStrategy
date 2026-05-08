@@ -1,4 +1,4 @@
 namespace GS.Game.Components {
 	[Savable]
-	public record struct ResourceOwner(string CountryId);
+	public record struct ResourceOwner(string OwnerId);
 }

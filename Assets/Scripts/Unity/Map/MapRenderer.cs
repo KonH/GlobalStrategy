@@ -13,6 +13,8 @@ namespace GS.Unity.Map {
 			_shader = Shader.Find("Sprites/Default");
 		}
 
+		public IReadOnlyList<GameObject> FeatureObjects => _featureObjects;
+
 		public void Render(List<MapFeature> features, CountryConfig countryConfig, CountryVisualConfig visualConfig) {
 			foreach (var obj in _featureObjects) {
 				Destroy(obj);

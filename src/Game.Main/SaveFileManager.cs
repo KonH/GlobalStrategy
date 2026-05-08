@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace GS.Main {
 	public class SaveFileInfo {
 		public string SaveName { get; set; } = "";
-		public string PlayerCountryId { get; set; } = "";
+		public string OrganizationId { get; set; } = "";
 		public DateTime GameDate { get; set; }
 		public DateTime SavedAt { get; set; }
 	}
@@ -31,7 +31,7 @@ namespace GS.Main {
 					var snapshot = _serializer.Deserialize(json);
 					result.Add(new SaveFileInfo {
 						SaveName = saveName,
-						PlayerCountryId = snapshot.Header.PlayerCountryId,
+						OrganizationId = snapshot.Header.OrganizationId,
 						GameDate = snapshot.Header.GameDate,
 						SavedAt = snapshot.Header.SavedAt
 					});

@@ -334,12 +334,16 @@ MonoBehaviour:
     Value: Settings
   - Key: menu.exit
     Value: Exit
-  - Key: select_country.hint
+  - Key: select_org.hint
     Value: Click a country on the map to select it
-  - Key: select_country.start
+  - Key: select_org.start
     Value: Start Game
-  - Key: select_country.back
+  - Key: select_org.back
     Value: Back
+  - Key: select_org.gold
+    Value: Gold
+  - Key: organization_name.Illuminati
+    Value: Illuminati
   - Key: load.title
     Value: Load Game
   - Key: load.back

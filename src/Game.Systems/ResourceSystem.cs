@@ -15,7 +15,7 @@ namespace GS.Game.Systems {
 				TypeId<ResourceEffect>.Value
 			};
 
-			var toApply = new List<(string CountryId, string ResourceId, double Value)>();
+			var toApply = new List<(string OwnerId, string ResourceId, double Value)>();
 			var toDestroy = new List<int>();
 
 			foreach (Archetype arch in world.GetMatchingArchetypes(effectRequired, null)) {
@@ -31,7 +31,7 @@ namespace GS.Game.Systems {
 					if (!shouldApply) {
 						continue;
 					}
-					toApply.Add((owners[i].CountryId, links[i].ResourceId, effect.Value));
+					toApply.Add((owners[i].OwnerId, links[i].ResourceId, effect.Value));
 					if (effect.PayType == PayType.Instant) {
 						toDestroy.Add(entities[i]);
 					}
@@ -43,13 +43,13 @@ namespace GS.Game.Systems {
 				TypeId<Resource>.Value
 			};
 
-			foreach ((string countryId, string resourceId, double value) in toApply) {
+			foreach ((string ownerId, string resourceId, double value) in toApply) {
 				foreach (Archetype arch in world.GetMatchingArchetypes(resourceRequired, null)) {
 					ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
 					Resource[] resources = arch.GetColumn<Resource>();
 					int count = arch.Count;
 					for (int i = 0; i < count; i++) {
-						if (owners[i].CountryId == countryId && resources[i].ResourceId == resourceId) {
+						if (owners[i].OwnerId == ownerId && resources[i].ResourceId == resourceId) {
 							resources[i].Value += value;
 						}
 					}

@@ -127,8 +127,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 10000001}
   - component: {fileID: 10000002}
+  - component: {fileID: 10000001}
   m_Layer: 0
   m_Name: ProjectLifetimeScope
   m_TagString: Untagged
@@ -146,10 +146,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7711e555eb100314cbb94d00bbbb29a4, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: GS.Unity.DI::ProjectLifetimeScope
   parentReference:
-    TypeName:
+    TypeName: 
   autoRun: 1
   autoInjectGameObjects: []
   _localizationConfig: {fileID: 11400000, guid: 98e07a27beae86b45a53970d7d0046b9, type: 2}
@@ -176,8 +176,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 20000001}
   - component: {fileID: 20000002}
+  - component: {fileID: 20000001}
   m_Layer: 0
   m_Name: SelectCountryLifetimeScope
   m_TagString: Untagged
@@ -195,7 +195,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b1f409b823b973c4abb4b42b494e0e48, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: GS.Unity.DI::GS.Unity.DI.SelectCountryLifetimeScope
   parentReference:
     TypeName: GS.Unity.DI.ProjectLifetimeScope
@@ -204,10 +204,12 @@ MonoBehaviour:
   - {fileID: 30000000}
   - {fileID: 40000000}
   - {fileID: 70000000}
+  - {fileID: 890991114}
   _countryConfig: {fileID: 11400000, guid: 0298907c3e0f21148bfed8d87ce48008, type: 2}
   _countryVisualConfig: {fileID: 11400000, guid: ef0b0960b0c336745a2ea01586c5d114, type: 2}
   _mapCameraConfig: {fileID: 11400000, guid: b7258d2dc8369da45aa39abdcb4b282c, type: 2}
   _countryConfigAsset: {fileID: 4900000, guid: 7f98da82aa8166e4bbbd9da8e2392f7e, type: 3}
+  _organizationsConfigAsset: {fileID: 4900000, guid: b325b81b944b914468f3b6898c3badf2, type: 3}
 --- !u!4 &20000002
 Transform:
   m_ObjectHideFlags: 0
@@ -231,10 +233,10 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 30000004}
   - component: {fileID: 30000001}
   - component: {fileID: 30000002}
   - component: {fileID: 30000003}
-  - component: {fileID: 30000004}
   m_Layer: 0
   m_Name: MapCamera
   m_TagString: Untagged
@@ -303,7 +305,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a0a9b99b555d1dd4fb70e5e9788bdee9, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: GS.Unity.Map::GS.Unity.Map.MapClickHandler
 --- !u!114 &30000003
 MonoBehaviour:
@@ -315,7 +317,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0780b7feec1dd4f4c9b6712a854c2fcd, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: GS.Unity.Map::GS.Unity.Map.MapCameraController
 --- !u!4 &30000004
 Transform:
@@ -340,9 +342,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 40000003}
   - component: {fileID: 40000001}
   - component: {fileID: 40000002}
-  - component: {fileID: 40000003}
   m_Layer: 0
   m_Name: MapSystem
   m_TagString: Untagged
@@ -360,7 +362,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f289f25c102b76c4bb76883956e311ec, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: GS.Unity.Map::GS.Unity.Map.MapLoader
   _mapPrefab: {fileID: 1768836903777052187, guid: fb641cb516b6f4d448bae962f59efb51, type: 3}
   _geoJsonAsset: {fileID: 4900000, guid: be898760bb70a164eb980db0f1dfb849, type: 3}
@@ -409,7 +411,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ebae5acbba6ac904aafc3c45ff47cabd, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: GS.Unity.Map::GS.Unity.Map.MapController
 --- !u!4 &40000003
 Transform:
@@ -434,9 +436,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
+  - component: {fileID: 50000003}
   - component: {fileID: 50000001}
   - component: {fileID: 50000002}
-  - component: {fileID: 50000003}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -454,7 +456,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.UI.InputSystemUIInputModule
   m_SendPointerHoverToParent: 1
   m_MoveRepeatDelay: 0.5
@@ -485,7 +487,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.EventSystem
   m_FirstSelected: {fileID: 0}
   m_sendNavigationEvents: 1
@@ -513,9 +515,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 70000001}
-  - component: {fileID: 70000002}
   - component: {fileID: 70000003}
+  - component: {fileID: 70000002}
+  - component: {fileID: 70000004}
   m_Layer: 0
   m_Name: SelectCountryUI
   m_TagString: Untagged
@@ -523,18 +525,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &70000001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 70000000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df4974418371cad4cae1f21a48a1d973, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: GS.Unity.UI::GS.Unity.UI.SelectCountryDocument
 --- !u!114 &70000002
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -545,13 +535,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
   m_PanelSettings: {fileID: 11400000, guid: a52ac28cceb58ba4db172389975ccca7, type: 2}
   m_ParentUI: {fileID: 0}
   sourceAsset: {fileID: 9197481963319205126, guid: 4b8d419265225b64784df28f7a1c778e, type: 3}
   m_SortingOrder: 0
   m_Position: 0
+  m_WorldSpaceSizeMode: 1
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+  m_PivotReferenceSize: 0
+  m_Pivot: 0
+  m_WorldSpaceCollider: {fileID: 0}
 --- !u!4 &70000003
 Transform:
   m_ObjectHideFlags: 0
@@ -559,6 +555,62 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 70000000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &70000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 70000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82427526f2e81554985d0e96d4c1abfa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GS.Unity.UI::GS.Unity.UI.SelectOrgDocument
+--- !u!1 &890991114
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 890991116}
+  - component: {fileID: 890991115}
+  m_Layer: 0
+  m_Name: SelectOrgMapFilter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &890991115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 890991114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23f1fad8e715d2d41ae2c47e880a8e68, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GS.Unity.Map::GS.Unity.Map.SelectOrgMapFilter
+--- !u!4 &890991116
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 890991114}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -577,3 +629,4 @@ SceneRoots:
   - {fileID: 40000003}
   - {fileID: 50000003}
   - {fileID: 70000003}
+  - {fileID: 890991116}

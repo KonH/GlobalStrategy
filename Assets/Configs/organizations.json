@@ -1,0 +1,10 @@
+{
+  "Organizations": [
+    {
+      "OrganizationId": "Illuminati",
+      "DisplayName": "Illuminati",
+      "HqCountryId": "United_Kingdom_of_Great_Britain_and_Ireland",
+      "InitialGold": 1000.0
+    }
+  ]
+}

@@ -10,11 +10,12 @@ namespace GS.Main {
 			_state = state;
 		}
 
-		internal void Update(IReadOnlyWorld world, int gameTimeEntity, int localeEntity) {
+		internal void Update(IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
 			UpdateSelectedCountry(world);
 			UpdatePlayerCountry(world);
 			UpdateTime(world, gameTimeEntity);
 			UpdateLocale(world, localeEntity);
+			UpdatePlayerOrganization(world, orgEntity);
 			UpdateResources(world);
 		}
 
@@ -54,14 +55,23 @@ namespace GS.Main {
 			_state.Locale.Set(locale.Value);
 		}
 
+		void UpdatePlayerOrganization(IReadOnlyWorld world, int orgEntity) {
+			if (orgEntity < 0) {
+				_state.PlayerOrganization.Set(false, "", "");
+				return;
+			}
+			ref Organization org = ref world.Get<Organization>(orgEntity);
+			_state.PlayerOrganization.Set(true, org.OrganizationId, org.DisplayName);
+		}
+
 		void UpdateResources(IReadOnlyWorld world) {
-			string playerCountryId = _state.PlayerCountry.IsValid ? _state.PlayerCountry.CountryId : "";
+			string playerOrgId = _state.PlayerOrganization.IsValid ? _state.PlayerOrganization.OrgId : "";
 			string selectedCountryId = _state.SelectedCountry.IsValid ? _state.SelectedCountry.CountryId : "";
 
 			_state.PlayerResources.Set(
-				_state.PlayerCountry.IsValid,
-				playerCountryId,
-				BuildResources(world, playerCountryId));
+				_state.PlayerOrganization.IsValid,
+				playerOrgId,
+				BuildResources(world, playerOrgId));
 			_state.SelectedResources.Set(
 				_state.SelectedCountry.IsValid,
 				selectedCountryId,
@@ -79,7 +89,7 @@ namespace GS.Main {
 				Resource[] resources = arch.GetColumn<Resource>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (owners[i].CountryId != countryId) {
+					if (owners[i].OwnerId != countryId) {
 						continue;
 					}
 					var effects = BuildEffects(world, countryId, resources[i].ResourceId);
@@ -102,7 +112,7 @@ namespace GS.Main {
 				ResourceEffect[] effects = arch.GetColumn<ResourceEffect>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (owners[i].CountryId != countryId || links[i].ResourceId != resourceId) {
+					if (owners[i].OwnerId != countryId || links[i].ResourceId != resourceId) {
 						continue;
 					}
 					result.Add(new EffectStateEntry(effects[i].EffectId, effects[i].Value, effects[i].PayType));

@@ -15,6 +15,7 @@ namespace GS.Main {
 		int _gameTimeEntity;
 		int _localeEntity;
 		int _settingsEntity;
+		int _orgEntity = -1;
 		DateTime _previousTime;
 
 		public VisualState VisualState { get; } = new VisualState();
@@ -59,6 +60,20 @@ namespace GS.Main {
 				Locale = settings.DefaultLocale,
 				AutoSaveInterval = ParseAutoSaveInterval(settings.AutoSaveInterval)
 			});
+
+			var orgConfig = context.Organization.Load();
+			var orgEntry = orgConfig.FindById(context.InitialOrganizationId);
+			if (orgEntry != null) {
+				_orgEntity = _world.Create();
+				_world.Add(_orgEntity, new Organization {
+					OrganizationId = orgEntry.OrganizationId,
+					DisplayName = orgEntry.DisplayName
+				});
+
+				int orgGoldEntity = _world.Create();
+				_world.Add(orgGoldEntity, new ResourceOwner(orgEntry.OrganizationId));
+				_world.Add(orgGoldEntity, new Resource { ResourceId = "gold", Value = orgEntry.InitialGold });
+			}
 		}
 
 		void CreateResourceEntities(CountryEntry entry, ResourceConfig resourceConfig) {
@@ -118,7 +133,7 @@ namespace GS.Main {
 			}
 
 			_commandAccessor.Clear();
-			_visualStateConverter.Update(_world, _gameTimeEntity, _localeEntity);
+			_visualStateConverter.Update(_world, _gameTimeEntity, _localeEntity, _orgEntity);
 		}
 
 		public void LoadState(string saveName) {
@@ -145,6 +160,7 @@ namespace GS.Main {
 			_gameTimeEntity = FindEntityWith<GameTime>();
 			_localeEntity = FindEntityWith<Locale>();
 			_settingsEntity = FindEntityWith<AppSettings>();
+			_orgEntity = FindEntityWith<Organization>();
 		}
 
 		int FindEntityWith<T>() {

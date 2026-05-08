@@ -11,7 +11,7 @@ namespace GS.Unity.UI {
 	public class HUDDocument : MonoBehaviour {
 		UIDocument _document;
 		CountryInfoView _countryInfo;
-		PlayerCountryView _playerCountryView;
+		PlayerOrgView _playerOrgView;
 		TimeView _timeView;
 		TooltipSystem _tooltip;
 		VisualState _state;
@@ -44,7 +44,7 @@ namespace GS.Unity.UI {
 			_tooltip = new TooltipSystem(root.Q("hud-root"));
 
 			_countryInfo = new CountryInfoView(root.Q("country-info"), _loc, _resourceConfig, _tooltip);
-			_playerCountryView = new PlayerCountryView(root.Q("player-country"), _loc, _resourceConfig, _tooltip);
+			_playerOrgView = new PlayerOrgView(root.Q("player-country"), _loc, _resourceConfig, _tooltip);
 			_timeView = new TimeView(
 				root.Q("time-panel"),
 				OnPauseToggle,
@@ -86,7 +86,7 @@ namespace GS.Unity.UI {
 				return;
 			}
 			_state.SelectedCountry.PropertyChanged += HandleCountryChanged;
-			_state.PlayerCountry.PropertyChanged += HandlePlayerCountryChanged;
+			_state.PlayerOrganization.PropertyChanged += HandlePlayerOrgChanged;
 			_state.Time.PropertyChanged += HandleTimeChanged;
 			_state.Locale.PropertyChanged += HandleLocaleChanged;
 			_state.PlayerResources.PropertyChanged += HandlePlayerResourcesChanged;
@@ -100,7 +100,7 @@ namespace GS.Unity.UI {
 				return;
 			}
 			_state.SelectedCountry.PropertyChanged -= HandleCountryChanged;
-			_state.PlayerCountry.PropertyChanged -= HandlePlayerCountryChanged;
+			_state.PlayerOrganization.PropertyChanged -= HandlePlayerOrgChanged;
 			_state.Time.PropertyChanged -= HandleTimeChanged;
 			_state.Locale.PropertyChanged -= HandleLocaleChanged;
 			_state.PlayerResources.PropertyChanged -= HandlePlayerResourcesChanged;
@@ -113,14 +113,14 @@ namespace GS.Unity.UI {
 
 		void RefreshCountryViews() {
 			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources);
-			_playerCountryView.Refresh(_state.PlayerCountry, _state.PlayerResources);
+			_playerOrgView.Refresh(_state.PlayerOrganization, _state.PlayerResources);
 		}
 
 		void HandleCountryChanged(object sender, PropertyChangedEventArgs e) {
 			RefreshCountryViews();
 		}
 
-		void HandlePlayerCountryChanged(object sender, PropertyChangedEventArgs e) {
+		void HandlePlayerOrgChanged(object sender, PropertyChangedEventArgs e) {
 			RefreshCountryViews();
 		}
 
@@ -135,7 +135,7 @@ namespace GS.Unity.UI {
 		}
 
 		void HandlePlayerResourcesChanged(object sender, PropertyChangedEventArgs e) {
-			_playerCountryView.Refresh(_state.PlayerCountry, _state.PlayerResources);
+			_playerOrgView.Refresh(_state.PlayerOrganization, _state.PlayerResources);
 		}
 
 		void HandleSelectedResourcesChanged(object sender, PropertyChangedEventArgs e) {
