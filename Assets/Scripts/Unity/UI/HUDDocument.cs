@@ -23,6 +23,7 @@ namespace GS.Unity.UI {
 		Button _btnDebugToggle;
 		VisualElement _debugPanel;
 		Button _btnEcsViewer;
+		VisualElement _influenceDebugRow;
 		bool _debugPanelOpen;
 
 		[Inject]
@@ -65,6 +66,17 @@ namespace GS.Unity.UI {
 #if UNITY_WEBGL
 			_btnEcsViewer.style.display = DisplayStyle.None;
 #endif
+
+			_influenceDebugRow = root.Q("influence-debug-row");
+			var btnInfluencePlus  = root.Q<Button>("btn-influence-plus");
+			var btnInfluenceMinus = root.Q<Button>("btn-influence-minus");
+			if (btnInfluencePlus != null) {
+				btnInfluencePlus.clicked += () => PushInfluenceCommand(+5);
+			}
+			if (btnInfluenceMinus != null) {
+				btnInfluenceMinus.clicked += () => PushInfluenceCommand(-5);
+			}
+			RefreshInfluenceDebugRow();
 		}
 
 		void ToggleDebugPanel() {
@@ -85,13 +97,15 @@ namespace GS.Unity.UI {
 			if (_state == null) {
 				return;
 			}
-			_state.SelectedCountry.PropertyChanged += HandleCountryChanged;
+			_state.SelectedCountry.PropertyChanged   += HandleCountryChanged;
 			_state.PlayerOrganization.PropertyChanged += HandlePlayerOrgChanged;
-			_state.Time.PropertyChanged += HandleTimeChanged;
-			_state.Locale.PropertyChanged += HandleLocaleChanged;
-			_state.PlayerResources.PropertyChanged += HandlePlayerResourcesChanged;
+			_state.Time.PropertyChanged              += HandleTimeChanged;
+			_state.Locale.PropertyChanged            += HandleLocaleChanged;
+			_state.PlayerResources.PropertyChanged   += HandlePlayerResourcesChanged;
 			_state.SelectedResources.PropertyChanged += HandleSelectedResourcesChanged;
+			_state.SelectedInfluence.PropertyChanged += HandleInfluenceChanged;
 			RefreshCountryViews();
+			RefreshInfluenceDebugRow();
 			_timeView.Refresh(_state.Time);
 		}
 
@@ -99,12 +113,13 @@ namespace GS.Unity.UI {
 			if (_state == null) {
 				return;
 			}
-			_state.SelectedCountry.PropertyChanged -= HandleCountryChanged;
+			_state.SelectedCountry.PropertyChanged   -= HandleCountryChanged;
 			_state.PlayerOrganization.PropertyChanged -= HandlePlayerOrgChanged;
-			_state.Time.PropertyChanged -= HandleTimeChanged;
-			_state.Locale.PropertyChanged -= HandleLocaleChanged;
-			_state.PlayerResources.PropertyChanged -= HandlePlayerResourcesChanged;
+			_state.Time.PropertyChanged              -= HandleTimeChanged;
+			_state.Locale.PropertyChanged            -= HandleLocaleChanged;
+			_state.PlayerResources.PropertyChanged   -= HandlePlayerResourcesChanged;
 			_state.SelectedResources.PropertyChanged -= HandleSelectedResourcesChanged;
+			_state.SelectedInfluence.PropertyChanged -= HandleInfluenceChanged;
 		}
 
 		void Update() {
@@ -112,15 +127,39 @@ namespace GS.Unity.UI {
 		}
 
 		void RefreshCountryViews() {
-			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources);
+			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence);
 			_playerOrgView.Refresh(_state.PlayerOrganization, _state.PlayerResources);
+		}
+
+		void RefreshInfluenceDebugRow() {
+			if (_influenceDebugRow == null) {
+				return;
+			}
+			_influenceDebugRow.style.display =
+				_state != null && _state.SelectedCountry.IsValid ? DisplayStyle.Flex : DisplayStyle.None;
+		}
+
+		void PushInfluenceCommand(int delta) {
+			if (_state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) {
+				return;
+			}
+			_commands.Push(new ChangeInfluenceCommand {
+				OrgId     = _state.PlayerOrganization.OrgId,
+				CountryId = _state.SelectedCountry.CountryId,
+				Delta     = delta
+			});
 		}
 
 		void HandleCountryChanged(object sender, PropertyChangedEventArgs e) {
 			RefreshCountryViews();
+			RefreshInfluenceDebugRow();
 		}
 
 		void HandlePlayerOrgChanged(object sender, PropertyChangedEventArgs e) {
+			RefreshCountryViews();
+		}
+
+		void HandleInfluenceChanged(object sender, PropertyChangedEventArgs e) {
 			RefreshCountryViews();
 		}
 
@@ -139,7 +178,7 @@ namespace GS.Unity.UI {
 		}
 
 		void HandleSelectedResourcesChanged(object sender, PropertyChangedEventArgs e) {
-			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources);
+			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence);
 		}
 
 		void OnPauseToggle() {

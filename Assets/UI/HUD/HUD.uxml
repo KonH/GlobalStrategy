@@ -15,6 +15,10 @@
         </ui:VisualElement>
         <ui:VisualElement name="debug-panel" class="debug-panel">
             <ui:Button name="btn-ecs-viewer" text="ECS Viewer" class="gs-btn debug-panel-button"/>
+            <ui:VisualElement name="influence-debug-row" style="display: none;">
+                <ui:Button name="btn-influence-plus" text="Influence+" class="gs-btn gs-btn--small debug-panel-button"/>
+                <ui:Button name="btn-influence-minus" text="Influence-" class="gs-btn gs-btn--small debug-panel-button"/>
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

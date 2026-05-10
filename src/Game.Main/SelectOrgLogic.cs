@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Configs;
@@ -10,6 +11,7 @@ namespace GS.Main {
 		readonly World _world = new World();
 		readonly CommandAccessor _commandAccessor = new CommandAccessor();
 		readonly Dictionary<string, OrganizationEntry> _hqToOrg = new Dictionary<string, OrganizationEntry>();
+		readonly ResourceConfig _resourceConfig;
 
 		public VisualState VisualState { get; } = new VisualState();
 		public IWriteOnlyCommandAccessor Commands { get; }
@@ -17,8 +19,10 @@ namespace GS.Main {
 
 		public SelectOrgLogic(
 			IConfigSource<GS.Game.Configs.CountryConfig> countryConfig,
-			IConfigSource<OrganizationConfig> orgConfig) {
+			IConfigSource<OrganizationConfig> orgConfig,
+			ResourceConfig resourceConfig) {
 			Commands = (IWriteOnlyCommandAccessor)_commandAccessor;
+			_resourceConfig = resourceConfig;
 
 			var config = countryConfig.Load();
 			foreach (var entry in config.Countries) {
@@ -33,6 +37,39 @@ namespace GS.Main {
 				hqIds.Add(org.HqCountryId);
 			}
 			HqCountryIds = hqIds;
+		}
+
+		public int GetBaseInfluence(string orgId) {
+			foreach (var entry in _hqToOrg.Values) {
+				if (entry.OrganizationId == orgId) {
+					return entry.BaseInfluence;
+				}
+			}
+			return 0;
+		}
+
+		public double ComputeBaseInfluenceIncome(string orgId) {
+			OrganizationEntry? orgEntry = null;
+			foreach (var entry in _hqToOrg.Values) {
+				if (entry.OrganizationId == orgId) {
+					orgEntry = entry;
+					break;
+				}
+			}
+			if (orgEntry == null) {
+				return 0;
+			}
+
+			double hqBaseIncome = 0;
+			var goldDef = _resourceConfig.FindResource("gold");
+			if (goldDef != null) {
+				foreach (var effect in goldDef.DefaultEffects) {
+					if (effect.PayType.Equals("Monthly", StringComparison.OrdinalIgnoreCase) && effect.Value > 0) {
+						hqBaseIncome += effect.Value;
+					}
+				}
+			}
+			return (orgEntry.BaseInfluence / 100.0) * hqBaseIncome;
 		}
 
 		public void Update() {

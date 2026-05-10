@@ -384,3 +384,19 @@ MonoBehaviour:
     Value: Base Income
   - Key: effect.base_income.description
     Value: Monthly income from taxes and trade. Applied at the end of each month.
+  - Key: hud.country_influence
+    Value: Influence
+  - Key: hud.influence_tooltip_title
+    Value: Country Influence
+  - Key: hud.influence_tooltip_base
+    Value: "Base:"
+  - Key: hud.influence_tooltip_permanent
+    Value: "Permanent effect:"
+  - Key: hud.influence_tooltip_leads_to
+    Value: "Leads to:"
+  - Key: hud.influence_tooltip_income
+    Value: Income
+  - Key: select_org.base_influence
+    Value: "Base Influence:"
+  - Key: select_org.estimated_income
+    Value: "Estimated Income:"

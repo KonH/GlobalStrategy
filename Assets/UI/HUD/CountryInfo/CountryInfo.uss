@@ -1,4 +1,14 @@
 .country-name {
-    font-size: 28px;
+    font-size: 24px;
     -unity-font: url("project://database/Assets/UI/Fonts/Cinzel-Bold.ttf?fileID=12800000&guid=f580297c1d9f7c74984732caed69c108&type=3#Cinzel-Bold");
+    -unity-text-align: upper-left;
+}
+
+.influence-icon {
+    width: 22px;
+    height: 22px;
+    background-image: url("project://database/Assets/UI/Icons/influence.svg?fileID=11400000&guid=dc912c33694389345a78cfdfb52e2299&type=3#influence");
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: rgb(200, 184, 144);
+    margin-right: 4px;
 }

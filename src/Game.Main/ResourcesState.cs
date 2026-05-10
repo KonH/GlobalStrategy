@@ -28,17 +28,30 @@ namespace GS.Main {
 		}
 	}
 
+	public class InfluenceIncomeEntry {
+		public string CountryId { get; }
+		public double MonthlyGold { get; }
+
+		public InfluenceIncomeEntry(string countryId, double monthlyGold) {
+			CountryId = countryId;
+			MonthlyGold = monthlyGold;
+		}
+	}
+
 	public class CountryResourcesState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public bool IsValid { get; private set; }
 		public string CountryId { get; private set; } = "";
 		public IReadOnlyList<ResourceStateEntry> Resources { get; private set; } = Array.Empty<ResourceStateEntry>();
+		public IReadOnlyList<InfluenceIncomeEntry> InfluenceIncomes { get; private set; } = Array.Empty<InfluenceIncomeEntry>();
 
-		public void Set(bool isValid, string countryId, List<ResourceStateEntry> resources) {
+		public void Set(bool isValid, string countryId, List<ResourceStateEntry> resources,
+				IReadOnlyList<InfluenceIncomeEntry>? influenceIncomes = null) {
 			IsValid = isValid;
 			CountryId = countryId;
 			Resources = resources;
+			InfluenceIncomes = influenceIncomes ?? Array.Empty<InfluenceIncomeEntry>();
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}

@@ -24,5 +24,6 @@ namespace GS.Game.Configs {
 		public string DisplayName { get; set; } = "";
 		public string HqCountryId { get; set; } = "";
 		public double InitialGold { get; set; }
+		public int BaseInfluence { get; set; } = 10;
 	}
 }

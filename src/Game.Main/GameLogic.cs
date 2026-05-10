@@ -73,6 +73,14 @@ namespace GS.Main {
 				int orgGoldEntity = _world.Create();
 				_world.Add(orgGoldEntity, new ResourceOwner(orgEntry.OrganizationId));
 				_world.Add(orgGoldEntity, new Resource { ResourceId = "gold", Value = orgEntry.InitialGold });
+
+				int influenceEntity = _world.Create();
+				_world.Add(influenceEntity, new InfluenceEffect {
+					OrgId     = orgEntry.OrganizationId,
+					CountryId = orgEntry.HqCountryId,
+					Value     = orgEntry.BaseInfluence,
+					EffectId  = $"base_{orgEntry.OrganizationId}"
+				});
 			}
 		}
 
@@ -118,6 +126,11 @@ namespace GS.Main {
 
 			DateTime currentTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
 			ResourceSystem.Update(_world, _previousTime, currentTime);
+			InfluenceSystem.Update(_world, _previousTime, currentTime);
+
+			foreach (var cmd in _commandAccessor.ReadChangeInfluenceCommand().AsSpan()) {
+				ApplyChangeInfluence(cmd.OrgId, cmd.CountryId, cmd.Delta);
+			}
 
 			SelectCountrySystem.Update(_world, _commandAccessor.ReadSelectCountryCommand());
 			SelectPlayerCountrySystem.Update(_world, _commandAccessor.ReadSelectPlayerCountryCommand());
@@ -171,6 +184,10 @@ namespace GS.Main {
 				}
 			}
 			return -1;
+		}
+
+		void ApplyChangeInfluence(string orgId, string countryId, int delta) {
+			InfluenceSystem.ApplyChangeInfluence(_world, orgId, countryId, delta);
 		}
 
 		static AutoSaveInterval ParseAutoSaveInterval(string value) {

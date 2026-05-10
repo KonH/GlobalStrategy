@@ -38,13 +38,14 @@ namespace GS.Unity.UI {
 				row.Add(label);
 
 				var capturedResource = resource;
-				_tooltip.RegisterTrigger(row, capturedResource.ResourceId, ctx => BuildResourceTooltip(ctx, capturedResource), new HashSet<string>());
+				var capturedState = state;
+				_tooltip.RegisterTrigger(row, capturedResource.ResourceId, ctx => BuildResourceTooltip(ctx, capturedResource, capturedState), new HashSet<string>());
 
 				_container.Add(row);
 			}
 		}
 
-		VisualElement BuildResourceTooltip(TooltipContext ctx, ResourceStateEntry resource) {
+		VisualElement BuildResourceTooltip(TooltipContext ctx, ResourceStateEntry resource, CountryResourcesState state) {
 			var root = new VisualElement();
 
 			var resDef = _config.FindResource(resource.ResourceId);
@@ -115,6 +116,43 @@ namespace GS.Unity.UI {
 				string capturedId = resource.ResourceId;
 				ctx.RegisterInnerTrigger(instantRow, $"{capturedId}.instant", innerCtx =>
 					BuildInstantEffectList(innerCtx, capturedText, resource, resDef));
+			}
+
+			// Influence income rows (gold resource only)
+			if (resource.ResourceId == "gold" && state.InfluenceIncomes.Count > 0) {
+				double influenceTotal = 0;
+				foreach (var inc in state.InfluenceIncomes) {
+					influenceTotal += inc.MonthlyGold;
+				}
+				string influenceText = $"+{influenceTotal:F1}/month";
+				var influenceRow = new Label(influenceText);
+				influenceRow.AddToClassList("tooltip-effect-name");
+				influenceRow.AddToClassList("tooltip-effect-positive");
+				influenceRow.AddToClassList("tooltip-inner-trigger");
+				root.Add(influenceRow);
+
+				var capturedState = state;
+				string capturedText = influenceText;
+				ctx.RegisterInnerTrigger(influenceRow, "gold.influence", innerCtx =>
+					BuildInfluenceIncomeList(capturedText, capturedState));
+			}
+
+			return root;
+		}
+
+		VisualElement BuildInfluenceIncomeList(string headerText, CountryResourcesState state) {
+			var root = new VisualElement();
+
+			var header = new Label(headerText);
+			header.AddToClassList("tooltip-header");
+			root.Add(header);
+
+			foreach (var inc in state.InfluenceIncomes) {
+				string countryName = _loc.Get($"country_name.{inc.CountryId}");
+				var row = new Label($"Influence ({countryName}): +{inc.MonthlyGold:F1}/month");
+				row.AddToClassList("tooltip-effect-name");
+				row.AddToClassList("tooltip-effect-positive");
+				root.Add(row);
 			}
 
 			return root;

@@ -210,6 +210,7 @@ MonoBehaviour:
   _mapCameraConfig: {fileID: 11400000, guid: b7258d2dc8369da45aa39abdcb4b282c, type: 2}
   _countryConfigAsset: {fileID: 4900000, guid: 7f98da82aa8166e4bbbd9da8e2392f7e, type: 3}
   _organizationsConfigAsset: {fileID: 4900000, guid: b325b81b944b914468f3b6898c3badf2, type: 3}
+  _resourceConfigAsset: {fileID: 4900000, guid: 28dfd99e93067d8418e5347d8ed30be4, type: 3}
 --- !u!4 &20000002
 Transform:
   m_ObjectHideFlags: 0

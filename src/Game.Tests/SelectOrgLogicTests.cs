@@ -30,9 +30,11 @@ namespace GS.Game.Tests {
 					}
 				}
 			};
+			var resourceConfig = new ResourceConfig();
 			return new SelectOrgLogic(
 				new StaticConfig<CountryConfig>(countryConfig),
-				new StaticConfig<OrganizationConfig>(orgConfig));
+				new StaticConfig<OrganizationConfig>(orgConfig),
+				resourceConfig);
 		}
 
 		[Fact]

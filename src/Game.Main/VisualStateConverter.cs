@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Components;
+using GS.Game.Systems;
 
 namespace GS.Main {
 	class VisualStateConverter {
@@ -17,6 +19,7 @@ namespace GS.Main {
 			UpdateLocale(world, localeEntity);
 			UpdatePlayerOrganization(world, orgEntity);
 			UpdateResources(world);
+			UpdateSelectedInfluence(world);
 		}
 
 		void UpdateSelectedCountry(IReadOnlyWorld world) {
@@ -68,14 +71,111 @@ namespace GS.Main {
 			string playerOrgId = _state.PlayerOrganization.IsValid ? _state.PlayerOrganization.OrgId : "";
 			string selectedCountryId = _state.SelectedCountry.IsValid ? _state.SelectedCountry.CountryId : "";
 
+			List<InfluenceIncomeEntry>? orgInfluenceIncomes = null;
+			if (_state.PlayerOrganization.IsValid) {
+				orgInfluenceIncomes = BuildInfluenceIncomesForOrg(world, playerOrgId);
+			}
+
 			_state.PlayerResources.Set(
 				_state.PlayerOrganization.IsValid,
 				playerOrgId,
-				BuildResources(world, playerOrgId));
+				BuildResources(world, playerOrgId),
+				orgInfluenceIncomes);
 			_state.SelectedResources.Set(
 				_state.SelectedCountry.IsValid,
 				selectedCountryId,
 				BuildResources(world, selectedCountryId));
+		}
+
+		List<InfluenceIncomeEntry> BuildInfluenceIncomesForOrg(IReadOnlyWorld world, string orgId) {
+			var result = new List<InfluenceIncomeEntry>();
+			int[] required = { TypeId<InfluenceEffect>.Value };
+			var byCountry = new Dictionary<string, int>();
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (effects[i].OrgId != orgId) {
+						continue;
+					}
+					string cid = effects[i].CountryId;
+					if (!byCountry.TryGetValue(cid, out int v)) {
+						v = 0;
+					}
+					byCountry[cid] = v + effects[i].Value;
+				}
+			}
+			foreach (var (countryId, influence) in byCountry) {
+				double baseIncome = InfluenceSystem.ComputeBaseMonthlyGold(world, countryId);
+				double gain = Math.Round((influence / 100.0) * baseIncome, 2);
+				result.Add(new InfluenceIncomeEntry(countryId, gain));
+			}
+			return result;
+		}
+
+		void UpdateSelectedInfluence(IReadOnlyWorld world) {
+			string selectedCountryId = _state.SelectedCountry.IsValid ? _state.SelectedCountry.CountryId : "";
+			if (!_state.SelectedCountry.IsValid) {
+				_state.SelectedInfluence.Set(0, new List<OrgInfluenceEntry>());
+				return;
+			}
+
+			// Gather org display names
+			var orgNames = new Dictionary<string, string>();
+			int[] orgRequired = { TypeId<Organization>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(orgRequired, null)) {
+				Organization[] orgs = arch.GetColumn<Organization>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					orgNames[orgs[i].OrganizationId] = orgs[i].DisplayName;
+				}
+			}
+
+			// Group influence by org for the selected country (track base vs permanent)
+			var byOrgBase = new Dictionary<string, int>();
+			var byOrgPermanent = new Dictionary<string, int>();
+			int[] influenceRequired = { TypeId<InfluenceEffect>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(influenceRequired, null)) {
+				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (effects[i].CountryId != selectedCountryId) {
+						continue;
+					}
+					string oid = effects[i].OrgId;
+					bool isBase = effects[i].EffectId.StartsWith("base_");
+					if (isBase) {
+						if (!byOrgBase.TryGetValue(oid, out int v)) {
+							v = 0;
+						}
+						byOrgBase[oid] = v + effects[i].Value;
+					} else {
+						if (!byOrgPermanent.TryGetValue(oid, out int v)) {
+							v = 0;
+						}
+						byOrgPermanent[oid] = v + effects[i].Value;
+					}
+				}
+			}
+
+			double baseIncome = InfluenceSystem.ComputeBaseMonthlyGold(world, selectedCountryId);
+			int usedTotal = 0;
+			var entries = new List<OrgInfluenceEntry>();
+			var allOrgs = new System.Collections.Generic.HashSet<string>(byOrgBase.Keys);
+			foreach (var k in byOrgPermanent.Keys) {
+				allOrgs.Add(k);
+			}
+			foreach (string orgId in allOrgs) {
+				int baseInfl = byOrgBase.TryGetValue(orgId, out int b) ? b : 0;
+				int permInfl = byOrgPermanent.TryGetValue(orgId, out int p) ? p : 0;
+				int influence = baseInfl + permInfl;
+				usedTotal += influence;
+				string displayName = orgNames.TryGetValue(orgId, out string? n) ? n : orgId;
+				double gain = Math.Round((influence / 100.0) * baseIncome, 2);
+				entries.Add(new OrgInfluenceEntry(orgId, displayName, influence, baseInfl, permInfl, gain));
+			}
+			entries.Sort((a, b) => b.Influence.CompareTo(a.Influence));
+			_state.SelectedInfluence.Set(usedTotal, entries);
 		}
 
 		List<ResourceStateEntry> BuildResources(IReadOnlyWorld world, string countryId) {

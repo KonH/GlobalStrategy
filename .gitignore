@@ -47,3 +47,4 @@ src/**/obj/
 # Packages lock (optional: keep if you want reproducible builds)
 # Packages/packages-lock.json
 .claude/settings.local.json
+.venv

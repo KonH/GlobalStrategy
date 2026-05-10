@@ -13,6 +13,8 @@ namespace GS.Unity.UI {
 		UIDocument _doc;
 		Label _orgNameLabel;
 		Label _goldLabel;
+		Label _influenceLabel;
+		Label _estimatedIncomeLabel;
 		Label _hintLabel;
 		Button _btnStart;
 
@@ -31,6 +33,8 @@ namespace GS.Unity.UI {
 			var root = _doc.rootVisualElement;
 			_orgNameLabel = root.Q<Label>("country-name-label");
 			_goldLabel = root.Q<Label>("gold-label");
+			_influenceLabel = root.Q<Label>("influence-label");
+			_estimatedIncomeLabel = root.Q<Label>("estimated-income-label");
 			_hintLabel = root.Q<Label>("hint-label");
 			_btnStart = root.Q<Button>("btn-start");
 			var btnBack = root.Q<Button>("btn-back");
@@ -57,12 +61,26 @@ namespace GS.Unity.UI {
 				if (_goldLabel != null) {
 					_goldLabel.text = $"{_localization.Get("select_org.gold")}: {state.InitialGold:F0}";
 				}
+				if (_influenceLabel != null) {
+					int baseInfluence = _logic.GetBaseInfluence(state.OrgId);
+					_influenceLabel.text = $"{_localization.Get("select_org.base_influence")} {baseInfluence}/100";
+				}
+				if (_estimatedIncomeLabel != null) {
+					double income = _logic.ComputeBaseInfluenceIncome(state.OrgId);
+					_estimatedIncomeLabel.text = $"{_localization.Get("select_org.estimated_income")} +{income:F1}/month";
+				}
 				_hintLabel.style.opacity = 0;
 				_btnStart.SetEnabled(true);
 			} else {
 				_orgNameLabel.text = "";
 				if (_goldLabel != null) {
 					_goldLabel.text = "";
+				}
+				if (_influenceLabel != null) {
+					_influenceLabel.text = "";
+				}
+				if (_estimatedIncomeLabel != null) {
+					_estimatedIncomeLabel.text = "";
 				}
 				_hintLabel.style.opacity = 1;
 				_btnStart.SetEnabled(false);

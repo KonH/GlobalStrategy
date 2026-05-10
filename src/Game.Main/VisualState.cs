@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace GS.Main {
@@ -74,6 +75,38 @@ namespace GS.Main {
 		}
 	}
 
+	public class OrgInfluenceEntry {
+		public string OrgId { get; }
+		public string DisplayName { get; }
+		public int Influence { get; }
+		public int BaseInfluence { get; }
+		public int PermanentInfluence { get; }
+		public double EstimatedMonthlyGold { get; }
+
+		public OrgInfluenceEntry(string orgId, string displayName, int influence, int baseInfluence, int permanentInfluence, double estimatedMonthlyGold) {
+			OrgId = orgId;
+			DisplayName = displayName;
+			Influence = influence;
+			BaseInfluence = baseInfluence;
+			PermanentInfluence = permanentInfluence;
+			EstimatedMonthlyGold = estimatedMonthlyGold;
+		}
+	}
+
+	public class CountryInfluenceState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public int UsedInfluence { get; private set; }
+		public int PoolSize => 100;
+		public IReadOnlyList<OrgInfluenceEntry> OrgEntries { get; private set; } = Array.Empty<OrgInfluenceEntry>();
+
+		public void Set(int used, List<OrgInfluenceEntry> entries) {
+			UsedInfluence = used;
+			OrgEntries = entries;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class VisualState {
 		public SelectedCountryState SelectedCountry { get; } = new SelectedCountryState();
 		public PlayerCountryState PlayerCountry { get; } = new PlayerCountryState();
@@ -83,5 +116,6 @@ namespace GS.Main {
 		public CountryResourcesState SelectedResources { get; } = new CountryResourcesState();
 		public PlayerOrganizationState PlayerOrganization { get; } = new PlayerOrganizationState();
 		public SelectedOrganizationState SelectedOrganization { get; } = new SelectedOrganizationState();
+		public CountryInfluenceState SelectedInfluence { get; } = new CountryInfluenceState();
 	}
 }

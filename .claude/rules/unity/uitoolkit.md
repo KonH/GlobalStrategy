@@ -169,3 +169,36 @@ Rule: put a USS class in the stylesheet of the **document that owns the containe
 **Use `gap` not `margin-left` for button row spacing.** `margin-left: Xpx` on all children of a flex row shifts the *first* child too, offsetting the entire row from the container edge. Use `gap: Xpx` on the container — it only inserts space *between* items.
 
 **Use `opacity: 0` to hide while keeping layout space.** `DisplayStyle.None` removes the element from layout flow, causing siblings to reflow. `Visibility.Hidden` is supposed to preserve space but can be unreliable. `style.opacity = 0` is the most reliable way to make an element invisible while preserving its layout footprint.
+
+## Tooltip Positioning
+
+`worldBound` on a newly added `VisualElement` is zero — the panel has no layout yet. Never read `panel.worldBound.height` immediately after adding it to compute final position.
+
+Pattern: set an initial position, then register a `GeometryChangedEvent` callback to adjust after layout:
+
+```csharp
+void PositionNear(VisualElement panel, VisualElement trigger) {
+    panel.style.left = trigger.worldBound.xMin;
+    panel.style.top  = trigger.worldBound.yMax + 4;
+    panel.RegisterCallback<GeometryChangedEvent>(_ => AdjustPosition(panel, trigger));
+}
+
+void AdjustPosition(VisualElement panel, VisualElement trigger) {
+    var screen = _hudRoot.worldBound;
+    var t = trigger.worldBound;
+    var p = panel.worldBound;
+
+    float top  = t.yMax + 4;
+    if (top + p.height > screen.yMax) top = t.yMin - p.height - 4;
+    top = Mathf.Max(top, screen.yMin);
+
+    float left = t.xMin;
+    if (left + p.width > screen.xMax) left = screen.xMax - p.width;
+    left = Mathf.Max(left, screen.xMin);
+
+    panel.style.left = left;
+    panel.style.top  = top;
+}
+```
+
+`GeometryChangedEvent` fires every time the element is re-laid-out — the callback is idempotent here (it just clamps), so re-firing is harmless.

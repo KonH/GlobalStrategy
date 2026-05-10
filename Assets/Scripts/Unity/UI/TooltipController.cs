@@ -194,9 +194,30 @@ namespace GS.Unity.UI {
 		}
 
 		void PositionNear(VisualElement panel, VisualElement trigger) {
-			var bound = trigger.worldBound;
-			panel.style.left = bound.xMin;
-			panel.style.top = bound.yMax + 4;
+			panel.style.left = trigger.worldBound.xMin;
+			panel.style.top = trigger.worldBound.yMax + 4;
+			panel.RegisterCallback<GeometryChangedEvent>(_ => AdjustPosition(panel, trigger));
+		}
+
+		void AdjustPosition(VisualElement panel, VisualElement trigger) {
+			var screen = _hudRoot.worldBound;
+			var t = trigger.worldBound;
+			var p = panel.worldBound;
+
+			float top = t.yMax + 4;
+			if (top + p.height > screen.yMax) {
+				top = t.yMin - p.height - 4;
+			}
+			top = UnityEngine.Mathf.Max(top, screen.yMin);
+
+			float left = t.xMin;
+			if (left + p.width > screen.xMax) {
+				left = screen.xMax - p.width;
+			}
+			left = UnityEngine.Mathf.Max(left, screen.xMin);
+
+			panel.style.left = left;
+			panel.style.top = top;
 		}
 	}
 }
