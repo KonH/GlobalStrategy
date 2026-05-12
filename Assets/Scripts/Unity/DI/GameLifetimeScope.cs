@@ -11,7 +11,6 @@ using GS.Unity.Common;
 
 namespace GS.Unity.DI {
 	public class GameLifetimeScope : LifetimeScope {
-		[SerializeField] GS.Unity.Map.CountryConfig _countryConfig;
 		[SerializeField] CountryVisualConfig _countryVisualConfig;
 		[SerializeField] MapCameraConfig _mapCameraConfig;
 		[SerializeField] TextAsset _geoJsonConfig;
@@ -41,6 +40,9 @@ namespace GS.Unity.DI {
 				initialOrgId
 			);
 
+			var domainCountryConfig = new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset).Load();
+			builder.RegisterInstance(domainCountryConfig);
+
 			builder.RegisterInstance(ctx);
 			builder.Register<GameLogic>(Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().VisualState, Lifetime.Singleton);
@@ -51,7 +53,6 @@ namespace GS.Unity.DI {
 			builder.RegisterInstance<ISnapshotSerializer>(serializer);
 			builder.Register<SaveFileManager>(Lifetime.Singleton);
 
-			builder.RegisterInstance(_countryConfig);
 			builder.RegisterInstance(_countryVisualConfig);
 			builder.RegisterInstance(_mapCameraConfig);
 			builder.RegisterComponentInHierarchy<Camera>();

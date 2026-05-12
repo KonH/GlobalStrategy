@@ -10,6 +10,14 @@ namespace GS.Game.Configs {
 			}
 			return null;
 		}
+
+		public CountryEntry? FindByFeatureId(string mapFeatureId) {
+			foreach (var entry in Countries) {
+				if (entry.MainMapFeatureIds.Contains(mapFeatureId)) return entry;
+				if (entry.SecondaryMapFeatureIds.Contains(mapFeatureId)) return entry;
+			}
+			return null;
+		}
 	}
 
 	public class CountryEntry {
@@ -18,6 +26,7 @@ namespace GS.Game.Configs {
 		public List<string> MainMapFeatureIds { get; set; } = new List<string>();
 		public List<string> SecondaryMapFeatureIds { get; set; } = new List<string>();
 		public List<CountryResourceInit> InitialResources { get; set; } = new List<CountryResourceInit>();
+		public bool IsAvailable { get; set; } = false;
 	}
 
 	public class CountryResourceInit {

@@ -204,7 +204,7 @@ MonoBehaviour:
   - {fileID: 50000000}
   - {fileID: 60000000}
   - {fileID: 80000000}
-  _countryConfig: {fileID: 11400000, guid: 0298907c3e0f21148bfed8d87ce48008, type: 2}
+  _countryConfigAsset: {fileID: 4900000, guid: 7f98da82aa8166e4bbbd9da8e2392f7e, type: 3}
   _countryVisualConfig: {fileID: 11400000, guid: ef0b0960b0c336745a2ea01586c5d114, type: 2}
 --- !u!4 &20000002
 Transform:

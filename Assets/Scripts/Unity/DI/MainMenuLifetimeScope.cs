@@ -8,7 +8,7 @@ using GS.Unity.UI;
 
 namespace GS.Unity.DI {
 	public class MainMenuLifetimeScope : LifetimeScope {
-		[SerializeField] CountryConfig _countryConfig;
+		[SerializeField] TextAsset _countryConfigAsset;
 		[SerializeField] CountryVisualConfig _countryVisualConfig;
 
 		protected override void Configure(IContainerBuilder builder) {
@@ -18,7 +18,8 @@ namespace GS.Unity.DI {
 			builder.RegisterInstance<ISnapshotSerializer>(serializer);
 			builder.Register<SaveFileManager>(Lifetime.Singleton);
 
-			builder.RegisterInstance(_countryConfig);
+			var domainCountryConfig = new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset).Load();
+			builder.RegisterInstance(domainCountryConfig);
 			builder.RegisterInstance(_countryVisualConfig);
 			builder.RegisterComponentInHierarchy<Camera>();
 			builder.RegisterComponentInHierarchy<MapLoader>();

@@ -1,19 +1,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
+using GS.Game.Configs;
 using GS.Main;
 
 namespace GS.Unity.Map {
 	public class SelectOrgMapFilter : MonoBehaviour {
 		SelectOrgLogic _logic;
-		CountryConfig _countryConfig;
+		GS.Game.Configs.CountryConfig _domainCountryConfig;
 		MapController _mapController;
 		bool _filtered;
 
 		[Inject]
-		void Construct(SelectOrgLogic logic, CountryConfig countryConfig, MapController mapController) {
+		void Construct(SelectOrgLogic logic, GS.Game.Configs.CountryConfig domainCountryConfig, MapController mapController) {
 			_logic = logic;
-			_countryConfig = countryConfig;
+			_domainCountryConfig = domainCountryConfig;
 			_mapController = mapController;
 		}
 
@@ -44,30 +45,18 @@ namespace GS.Unity.Map {
 		HashSet<string> BuildHqFeatureIds() {
 			var result = new HashSet<string>();
 			foreach (string hqCountryId in _logic.HqCountryIds) {
-				var entry = FindCountryEntry(hqCountryId);
+				var entry = _domainCountryConfig?.FindByCountryId(hqCountryId);
 				if (entry == null) {
 					continue;
 				}
-				foreach (var id in entry.mainMapFeatureIds) {
+				foreach (var id in entry.MainMapFeatureIds) {
 					result.Add(id);
 				}
-				foreach (var id in entry.secondaryMapFeatureIds) {
+				foreach (var id in entry.SecondaryMapFeatureIds) {
 					result.Add(id);
 				}
 			}
 			return result;
-		}
-
-		CountryEntry FindCountryEntry(string countryId) {
-			if (_countryConfig == null) {
-				return null;
-			}
-			foreach (var entry in _countryConfig.Countries) {
-				if (entry.countryId == countryId) {
-					return entry;
-				}
-			}
-			return null;
 		}
 	}
 }

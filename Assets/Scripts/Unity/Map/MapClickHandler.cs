@@ -11,13 +11,13 @@ namespace GS.Unity.Map {
 	public class MapClickHandler : MonoBehaviour {
 		Camera _camera;
 		MapController _mapController;
-		CountryConfig _countryConfig;
+		GS.Game.Configs.CountryConfig _domainCountryConfig;
 		IWriteOnlyCommandAccessor _commands;
 
 		[Inject]
-		void Construct(MapController mapController, CountryConfig countryConfig, IWriteOnlyCommandAccessor commands) {
+		void Construct(MapController mapController, GS.Game.Configs.CountryConfig domainCountryConfig, IWriteOnlyCommandAccessor commands) {
 			_mapController = mapController;
-			_countryConfig = countryConfig;
+			_domainCountryConfig = domainCountryConfig;
 			_commands = commands;
 		}
 
@@ -59,13 +59,13 @@ namespace GS.Unity.Map {
 			}
 
 			string mapFeatureId = id.gameObject.name;
-			var country = _countryConfig != null ? _countryConfig.FindByFeatureId(mapFeatureId) : null;
+			var country = _domainCountryConfig?.FindByFeatureId(mapFeatureId);
 
 			if (country != null) {
-				bool isMain = country.mainMapFeatureIds.Contains(mapFeatureId);
+				bool isMain = country.MainMapFeatureIds.Contains(mapFeatureId);
 				string role = isMain ? "main" : "secondary";
-				Debug.Log($"[MapClick] {country.displayName} (countryId: '{country.countryId}', featureId: '{mapFeatureId}', role: {role}) → locKey: 'country_name.{country.countryId}'");
-				_commands?.Push(new SelectCountryCommand(country.countryId));
+				Debug.Log($"[MapClick] countryId: '{country.CountryId}', featureId: '{mapFeatureId}', role: {role}");
+				_commands?.Push(new SelectCountryCommand(country.CountryId));
 			} else {
 				Debug.Log($"[MapClick] No country entry for featureId: '{mapFeatureId}' — pushing raw id");
 				_commands?.Push(new SelectCountryCommand(mapFeatureId));

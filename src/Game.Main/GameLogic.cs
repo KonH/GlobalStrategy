@@ -33,6 +33,9 @@ namespace GS.Main {
 			var resourceConfig = ResourceConfig;
 
 			foreach (var entry in countryConfig.Countries) {
+				if (!entry.IsAvailable) {
+					continue;
+				}
 				int entity = _world.Create();
 				_world.Add(entity, new Country(entry.CountryId));
 				if (entry.CountryId == context.InitialPlayerCountryId) {

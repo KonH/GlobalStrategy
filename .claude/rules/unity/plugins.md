@@ -31,6 +31,12 @@ Running `dotnet build src/GlobalStrategy.Core.sln -c Release` then puts all DLLs
 - For Unity-side JSON: `JsonConvert.DeserializeObject<T>(json)`
 - For `src/` projects that need JSON and target Unity: avoid `System.Text.Json` NuGet or keep them out of Plugins
 
+## JSON Field Naming Convention
+
+All config JSON files must use **camelCase** field names (e.g. `isAvailable`, `countryId`).
+
+Newtonsoft.Json's default `DefaultContractResolver` matches properties case-insensitively but does **not** strip underscores. A snake_case key like `"is_available"` will NOT match a C# property named `IsAvailable` — the field is silently ignored and the property keeps its default value. No error is thrown.
+
 ## Assembly Naming
 
 DLL name matches the project name exactly (no custom `<AssemblyName>`). The old `GlobalStrategy.Core` assembly name was removed — `Core.Map` now produces `Core.Map.dll`.

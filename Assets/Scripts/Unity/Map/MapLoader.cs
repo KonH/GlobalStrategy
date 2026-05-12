@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
 using GS.Core.Map;
+using DomainCountryConfig = GS.Game.Configs.CountryConfig;
 
 namespace GS.Unity.Map {
 	public class MapLoader : MonoBehaviour {
@@ -11,15 +12,15 @@ namespace GS.Unity.Map {
 		[SerializeField] int _tileCols = 1;
 		[SerializeField] int _tileRows = 1;
 
-		CountryConfig _countryConfig;
 		CountryVisualConfig _visualConfig;
+		DomainCountryConfig _domainCountryConfig;
 
 		List<MapFeature> _features;
 
 		[Inject]
-		void Construct(CountryConfig countryConfig, CountryVisualConfig visualConfig) {
-			_countryConfig = countryConfig;
+		void Construct(CountryVisualConfig visualConfig, DomainCountryConfig domainCountryConfig) {
 			_visualConfig = visualConfig;
+			_domainCountryConfig = domainCountryConfig;
 		}
 
 		public Map Load() {
@@ -33,7 +34,7 @@ namespace GS.Unity.Map {
 			}
 
 			var map = Instantiate(_mapPrefab);
-			map.Initialize(_features, _mapTiles, _tileCols, _tileRows, _countryConfig, _visualConfig);
+			map.Initialize(_features, _mapTiles, _tileCols, _tileRows, _visualConfig, _domainCountryConfig);
 			return map;
 		}
 	}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using GS.Core.Map;
+using DomainCountryConfig = GS.Game.Configs.CountryConfig;
 
 namespace GS.Unity.Map {
 	public class MapRenderer : MonoBehaviour {
@@ -15,7 +16,7 @@ namespace GS.Unity.Map {
 
 		public IReadOnlyList<GameObject> FeatureObjects => _featureObjects;
 
-		public void Render(List<MapFeature> features, CountryConfig countryConfig, CountryVisualConfig visualConfig) {
+		public void Render(List<MapFeature> features, CountryVisualConfig visualConfig, DomainCountryConfig domainConfig) {
 			foreach (var obj in _featureObjects) {
 				Destroy(obj);
 			}
@@ -24,9 +25,12 @@ namespace GS.Unity.Map {
 			foreach (var feature in features) {
 				string mapFeatureId = DeriveMapFeatureId(feature.Name);
 
-				var countryEntry = countryConfig != null ? countryConfig.FindByFeatureId(mapFeatureId) : null;
-				if (countryConfig != null && countryEntry == null) {
-					continue;
+				GS.Game.Configs.CountryEntry domainEntry = null;
+				if (domainConfig != null) {
+					domainEntry = domainConfig.FindByFeatureId(mapFeatureId);
+					if (domainEntry == null || !domainEntry.IsAvailable) {
+						continue;
+					}
 				}
 
 				var go = new GameObject(mapFeatureId);
@@ -41,8 +45,8 @@ namespace GS.Unity.Map {
 
 				Color color = Color.grey;
 				color.a = 0.5f;
-				if (countryEntry != null && visualConfig != null) {
-					var visual = visualConfig.Find(countryEntry.countryId);
+				if (domainEntry != null && visualConfig != null) {
+					var visual = visualConfig.Find(domainEntry.CountryId);
 					if (visual != null) {
 						color = visual.color;
 						color.a = 0.5f;
