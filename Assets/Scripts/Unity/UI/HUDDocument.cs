@@ -26,6 +26,7 @@ namespace GS.Unity.UI {
 		Button _btnEcsViewer;
 		VisualElement _influenceDebugRow;
 		bool _debugPanelOpen;
+		LensSwitcherView _lensSwitcher;
 
 		[Inject]
 		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, GameMenuDocument gameMenu) {
@@ -52,6 +53,8 @@ namespace GS.Unity.UI {
 				root.Q("time-panel"),
 				OnPauseToggle,
 				OnSpeedChange);
+			_lensSwitcher = new LensSwitcherView(root.Q("lens-switcher"), _tooltip, _loc);
+			_lensSwitcher.OnLensSelected = OnLensSelected;
 		}
 
 		void Start() {
@@ -107,6 +110,8 @@ namespace GS.Unity.UI {
 			_state.SelectedResources.PropertyChanged  += HandleSelectedResourcesChanged;
 			_state.SelectedInfluence.PropertyChanged  += HandleInfluenceChanged;
 			_state.SelectedCharacters.PropertyChanged += HandleCharactersChanged;
+			_state.MapLens.PropertyChanged            += HandleLensChanged;
+			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			RefreshCountryViews();
 			RefreshInfluenceDebugRow();
 			_timeView.Refresh(_state.Time);
@@ -124,6 +129,7 @@ namespace GS.Unity.UI {
 			_state.SelectedResources.PropertyChanged  -= HandleSelectedResourcesChanged;
 			_state.SelectedInfluence.PropertyChanged  -= HandleInfluenceChanged;
 			_state.SelectedCharacters.PropertyChanged -= HandleCharactersChanged;
+			_state.MapLens.PropertyChanged            -= HandleLensChanged;
 		}
 
 		void Update() {
@@ -199,6 +205,14 @@ namespace GS.Unity.UI {
 
 		void OnSpeedChange(int index) {
 			_commands.Push(new ChangeTimeMultiplierCommand(index));
+		}
+
+		void HandleLensChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
+			_lensSwitcher?.Refresh(_state.MapLens.Lens);
+		}
+
+		void OnLensSelected(MapLens lens) {
+			_commands.Push(new ChangeLensCommand { Lens = lens });
 		}
 	}
 }

@@ -9,6 +9,7 @@ using GS.Unity.Save;
 namespace GS.Unity.DI {
 	public class SelectCountryLifetimeScope : LifetimeScope {
 		[SerializeField] CountryVisualConfig _countryVisualConfig;
+		[SerializeField] OrgVisualConfig _orgVisualConfig;
 		[SerializeField] MapCameraConfig _mapCameraConfig;
 		[SerializeField] TextAsset _countryConfigAsset;
 		[SerializeField] TextAsset _organizationsConfigAsset;
@@ -24,6 +25,7 @@ namespace GS.Unity.DI {
 			builder.Register(_ => new SelectOrgLogic(countryConfigSource, orgConfigSource, resourceConfig), Lifetime.Singleton);
 
 			builder.RegisterInstance(_countryVisualConfig);
+			builder.RegisterInstance(_orgVisualConfig);
 			builder.RegisterInstance(_mapCameraConfig);
 			builder.RegisterComponentInHierarchy<Camera>();
 			builder.RegisterComponentInHierarchy<MapLoader>();

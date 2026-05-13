@@ -66,6 +66,9 @@ namespace GS.Main {
 			SelectCountrySystem.Update(_world, _commandAccessor.ReadSelectCountryCommand());
 			SelectPlayerCountrySystem.Update(_world, _commandAccessor.ReadSelectPlayerCountryCommand());
 			LocaleSystem.Update(_world, _localeEntity, _commandAccessor.ReadChangeLocaleCommand());
+			foreach (var cmd in _commandAccessor.ReadChangeLensCommand().AsSpan()) {
+				VisualState.MapLens.Set(cmd.Lens);
+			}
 			ChangeAutoSaveIntervalSystem.Update(_world, _settingsEntity, _commandAccessor.ReadChangeAutoSaveIntervalCommand());
 
 			if (_context.Storage != null && _context.Serializer != null) {

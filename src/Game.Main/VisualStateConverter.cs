@@ -24,6 +24,7 @@ namespace GS.Main {
 			UpdateResources(world);
 			UpdateSelectedInfluence(world);
 			UpdateCharacters(world);
+			UpdateOrgMap(world, orgEntity);
 		}
 
 		void UpdateCharacters(IReadOnlyWorld world) {
@@ -251,6 +252,43 @@ namespace GS.Main {
 				}
 			}
 			return result;
+		}
+
+		void UpdateOrgMap(IReadOnlyWorld world, int orgEntity) {
+			var byCountryOrg = new Dictionary<string, Dictionary<string, int>>();
+			int[] required = { TypeId<InfluenceEffect>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					string cid = effects[i].CountryId;
+					string oid = effects[i].OrgId;
+					if (!byCountryOrg.TryGetValue(cid, out var orgMap)) {
+						orgMap = new Dictionary<string, int>();
+						byCountryOrg[cid] = orgMap;
+					}
+					if (!orgMap.TryGetValue(oid, out int v)) {
+						v = 0;
+					}
+					orgMap[oid] = v + effects[i].Value;
+				}
+			}
+			var entries = new List<OrgCountryEntry>();
+			foreach (var (countryId, orgInfluences) in byCountryOrg) {
+				string topOrgId = "";
+				int topInfluence = 0;
+				foreach (var (oid, inf) in orgInfluences) {
+					if (inf > topInfluence) {
+						topInfluence = inf;
+						topOrgId = oid;
+					}
+				}
+				if (topInfluence > 0) {
+					float ratio = Math.Min(1f, topInfluence / 100f);
+					entries.Add(new OrgCountryEntry(countryId, topOrgId, ratio));
+				}
+			}
+			_state.OrgMap.Set(entries);
 		}
 
 		List<EffectStateEntry> BuildEffects(IReadOnlyWorld world, string countryId, string resourceId) {

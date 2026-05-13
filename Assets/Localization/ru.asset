@@ -413,6 +413,12 @@ MonoBehaviour:
     Value: "\u041F\u0440\u0438\u0432\u043E\u0434\u0438\u0442 \u043A:"
   - Key: hud.influence_tooltip_income
     Value: "\u0414\u043E\u0445\u043E\u0434"
+  - Key: hud.lens.political
+    Value: "\u041F\u043E\u043B\u0438\u0442\u0438\u0447\u0435\u0441\u043A\u0430\u044F"
+  - Key: hud.lens.geographic
+    Value: "\u0413\u0435\u043E\u0433\u0440\u0430\u0444\u0438\u0447\u0435\u0441\u043A\u0430\u044F"
+  - Key: hud.lens.org
+    Value: "\u041E\u0440\u0433\u0430\u043D\u0438\u0437\u0430\u0446\u0438\u0438"
   - Key: select_org.base_influence
     Value: "\u0411\u0430\u0437\u043E\u0432\u043E\u0435 \u0432\u043B\u0438\u044F\u043D\u0438\u0435:"
   - Key: select_org.estimated_income

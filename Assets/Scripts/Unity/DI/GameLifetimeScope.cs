@@ -12,6 +12,7 @@ using GS.Unity.Common;
 namespace GS.Unity.DI {
 	public class GameLifetimeScope : LifetimeScope {
 		[SerializeField] CountryVisualConfig _countryVisualConfig;
+		[SerializeField] OrgVisualConfig _orgVisualConfig;
 		[SerializeField] MapCameraConfig _mapCameraConfig;
 		[SerializeField] TextAsset _geoJsonConfig;
 		[SerializeField] TextAsset _mapEntryConfig;
@@ -58,10 +59,12 @@ namespace GS.Unity.DI {
 			builder.Register<SaveFileManager>(Lifetime.Singleton);
 
 			builder.RegisterInstance(_countryVisualConfig);
+			builder.RegisterInstance(_orgVisualConfig);
 			builder.RegisterInstance(_mapCameraConfig);
 			builder.RegisterComponentInHierarchy<Camera>();
 			builder.RegisterComponentInHierarchy<MapLoader>();
 			builder.RegisterComponentInHierarchy<MapController>();
+			builder.RegisterComponentInHierarchy<MapLensApplier>();
 			builder.RegisterComponentInHierarchy<TimeInputHandler>();
 
 			builder.Register<ECS.Viewer.PauseToken>(VContainer.Lifetime.Singleton);

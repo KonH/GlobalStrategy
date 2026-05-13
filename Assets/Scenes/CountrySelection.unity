@@ -207,6 +207,7 @@ MonoBehaviour:
   - {fileID: 890991114}
   _countryConfig: {fileID: 11400000, guid: 0298907c3e0f21148bfed8d87ce48008, type: 2}
   _countryVisualConfig: {fileID: 11400000, guid: ef0b0960b0c336745a2ea01586c5d114, type: 2}
+  _orgVisualConfig: {fileID: 11400000, guid: c19e1594cf0fa6a418ef9a25f2f183bb, type: 2}
   _mapCameraConfig: {fileID: 11400000, guid: b7258d2dc8369da45aa39abdcb4b282c, type: 2}
   _countryConfigAsset: {fileID: 4900000, guid: 7f98da82aa8166e4bbbd9da8e2392f7e, type: 3}
   _organizationsConfigAsset: {fileID: 4900000, guid: b325b81b944b914468f3b6898c3badf2, type: 3}

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using GS.Game.Commands;
 
 namespace GS.Main {
 	public class SelectedCountryState : INotifyPropertyChanged {
@@ -135,6 +136,38 @@ namespace GS.Main {
 		}
 	}
 
+	public class MapLensState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public MapLens Lens { get; private set; } = MapLens.Political;
+		public void Set(MapLens lens) {
+			if (Lens == lens) {
+				return;
+			}
+			Lens = lens;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
+	public class OrgCountryEntry {
+		public string CountryId { get; }
+		public string TopOrgId { get; }
+		public float InfluenceRatio { get; }
+		public OrgCountryEntry(string countryId, string topOrgId, float influenceRatio) {
+			CountryId = countryId;
+			TopOrgId = topOrgId;
+			InfluenceRatio = influenceRatio;
+		}
+	}
+
+	public class OrgMapState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public IReadOnlyList<OrgCountryEntry> Entries { get; private set; } = Array.Empty<OrgCountryEntry>();
+		public void Set(List<OrgCountryEntry> entries) {
+			Entries = entries;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class VisualState {
 		public SelectedCountryState SelectedCountry { get; } = new SelectedCountryState();
 		public PlayerCountryState PlayerCountry { get; } = new PlayerCountryState();
@@ -146,5 +179,7 @@ namespace GS.Main {
 		public SelectedOrganizationState SelectedOrganization { get; } = new SelectedOrganizationState();
 		public CountryInfluenceState SelectedInfluence { get; } = new CountryInfluenceState();
 		public CountryCharactersState SelectedCharacters { get; } = new CountryCharactersState();
+		public MapLensState MapLens { get; } = new MapLensState();
+		public OrgMapState OrgMap { get; } = new OrgMapState();
 	}
 }

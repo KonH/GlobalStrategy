@@ -39,6 +39,10 @@ namespace GS.Main {
 			HqCountryIds = hqIds;
 		}
 
+		public string GetOrgIdForHq(string hqCountryId) {
+			return _hqToOrg.TryGetValue(hqCountryId, out var org) ? org.OrganizationId : "";
+		}
+
 		public int GetBaseInfluence(string orgId) {
 			foreach (var entry in _hqToOrg.Values) {
 				if (entry.OrganizationId == orgId) {

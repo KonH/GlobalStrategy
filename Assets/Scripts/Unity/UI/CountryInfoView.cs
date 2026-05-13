@@ -8,22 +8,34 @@ namespace GS.Unity.UI {
 		readonly Label _name;
 		readonly Label _influenceLabel;
 		readonly VisualElement _influenceRow;
+		readonly VisualElement _charsSlide;
+		readonly Button _charsToggleBtn;
 		readonly ILocalization _loc;
 		readonly ResourcesView _resourcesView;
 		readonly CharactersView _charactersView;
 		CountryInfluenceState _influenceState;
+		bool _charsOpen;
+		string _lastCountryId;
 
 		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip) {
 			_root = root;
 			_name = root.Q<Label>("country-name");
 			_influenceRow = root.Q("influence-row");
 			_influenceLabel = root.Q<Label>("influence-label");
+			_charsSlide = root.Q("characters-slide");
+			_charsToggleBtn = root.Q<Button>("chars-toggle-btn");
 			_loc = loc;
 			_resourcesView = new ResourcesView(root.Q("resources-container"), loc, resourceConfig, tooltip);
 			_charactersView = new CharactersView(root.Q("characters-container"), loc, characterConfig, tooltip);
 
 			if (_influenceRow != null) {
 				tooltip.RegisterTrigger(_influenceRow, "country-influence", BuildInfluenceTooltip, new System.Collections.Generic.HashSet<string>());
+			}
+			if (_charsSlide != null) {
+				_charsSlide.pickingMode = PickingMode.Ignore;
+			}
+			if (_charsToggleBtn != null) {
+				_charsToggleBtn.clicked += ToggleChars;
 			}
 		}
 
@@ -32,10 +44,41 @@ namespace GS.Unity.UI {
 			if (selected.IsValid) {
 				_name.text = _loc.Get($"country_name.{selected.CountryId}");
 			}
+
+			if (selected.CountryId != _lastCountryId) {
+				_lastCountryId = selected.CountryId;
+				SetCharsOpen(false);
+			}
+
+			bool hasChars = characters.Characters.Count > 0;
+			if (_charsToggleBtn != null) {
+				_charsToggleBtn.style.display = hasChars ? DisplayStyle.Flex : DisplayStyle.None;
+			}
+
 			_influenceState = influence;
 			RefreshInfluence(influence);
 			_resourcesView.Refresh(resources);
 			_charactersView.Refresh(characters);
+		}
+
+		void ToggleChars() {
+			SetCharsOpen(!_charsOpen);
+		}
+
+		void SetCharsOpen(bool open) {
+			_charsOpen = open;
+			if (_charsSlide != null) {
+				if (open) {
+					_charsSlide.AddToClassList("characters-slide--open");
+					_charsSlide.pickingMode = PickingMode.Position;
+				} else {
+					_charsSlide.RemoveFromClassList("characters-slide--open");
+					_charsSlide.pickingMode = PickingMode.Ignore;
+				}
+			}
+			if (_charsToggleBtn != null) {
+				_charsToggleBtn.text = open ? "▼ Characters" : "▲ Characters";
+			}
 		}
 
 		void RefreshInfluence(CountryInfluenceState influence) {

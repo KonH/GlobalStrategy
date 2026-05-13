@@ -396,6 +396,12 @@ MonoBehaviour:
     Value: "Leads to:"
   - Key: hud.influence_tooltip_income
     Value: Income
+  - Key: hud.lens.political
+    Value: Political
+  - Key: hud.lens.geographic
+    Value: Geographic
+  - Key: hud.lens.org
+    Value: Organizations
   - Key: select_org.base_influence
     Value: "Base Influence:"
   - Key: select_org.estimated_income
