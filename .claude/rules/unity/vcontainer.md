@@ -60,6 +60,16 @@ builder.RegisterComponentInHierarchy<EcsViewerBridge>(); // [Inject]-method-inje
 
 Never `new` the object inside `Awake` — that creates a second unshared instance that the other consumer never sees.
 
+## Config Objects from GameLogicContext
+
+Config objects loaded via `GameLogicContext` (e.g. `ResourceConfig`, `CharacterConfig`) must be exposed as `public` properties on `GameLogic` and registered via a resolver lambda:
+
+```csharp
+builder.Register(c => c.Resolve<GameLogic>().ResourceConfig, Lifetime.Singleton);
+```
+
+Do **not** add a separate `[SerializeField] TextAsset` field on the scope for the same JSON. That causes two deserialization calls, two Inspector assignments, and risks the two instances diverging.
+
 ## What NOT to Put in the Container
 
 - Prefab references used only as factory input to `Instantiate` — keep as `[SerializeField]`

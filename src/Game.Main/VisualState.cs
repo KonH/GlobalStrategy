@@ -107,6 +107,34 @@ namespace GS.Main {
 		}
 	}
 
+	public class SkillEntry {
+		public string SkillId { get; }
+		public int Value { get; }
+		public SkillEntry(string skillId, int value) { SkillId = skillId; Value = value; }
+	}
+
+	public class CharacterStateEntry {
+		public string CharacterId { get; }
+		public string RoleId { get; }
+		public string[] NamePartKeys { get; }
+		public IReadOnlyList<SkillEntry> Skills { get; }
+		public CharacterStateEntry(string characterId, string roleId, string[] namePartKeys, IReadOnlyList<SkillEntry> skills) {
+			CharacterId = characterId;
+			RoleId = roleId;
+			NamePartKeys = namePartKeys;
+			Skills = skills;
+		}
+	}
+
+	public class CountryCharactersState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public IReadOnlyList<CharacterStateEntry> Characters { get; private set; } = Array.Empty<CharacterStateEntry>();
+		public void Set(List<CharacterStateEntry> characters) {
+			Characters = characters;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class VisualState {
 		public SelectedCountryState SelectedCountry { get; } = new SelectedCountryState();
 		public PlayerCountryState PlayerCountry { get; } = new PlayerCountryState();
@@ -117,5 +145,6 @@ namespace GS.Main {
 		public PlayerOrganizationState PlayerOrganization { get; } = new PlayerOrganizationState();
 		public SelectedOrganizationState SelectedOrganization { get; } = new SelectedOrganizationState();
 		public CountryInfluenceState SelectedInfluence { get; } = new CountryInfluenceState();
+		public CountryCharactersState SelectedCharacters { get; } = new CountryCharactersState();
 	}
 }

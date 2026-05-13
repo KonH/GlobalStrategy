@@ -154,3 +154,23 @@ m_Scenes:
 - `guid` comes from the scene's `.meta` file (`guid:` field)
 - Scenes not listed here are excluded from builds (but can still be loaded by path in the Editor)
 - Order in `m_Scenes` determines the build index used by `SceneManager.LoadScene(int)`
+
+## New `[SerializeField]` fields on existing scene MonoBehaviours
+
+When a `[SerializeField]` field is added to a C# class that is already instantiated in a scene, Unity does **not** auto-populate the field in the scene YAML. It stays absent, which means the field is null/default at runtime — silently, with no error.
+
+To wire it up without opening the Unity Editor, add the field line directly to the MonoBehaviour block in the `.unity` YAML:
+
+```yaml
+--- !u!114 &<fileID>
+MonoBehaviour:
+  ...
+  _existingField: {fileID: 4900000, guid: <existing-guid>, type: 3}
+  _newField: {fileID: 4900000, guid: <new-asset-guid>, type: 3}   # add this
+```
+
+- `fileID: 4900000` is the standard fileID for `TextAsset` references
+- `type: 3` means a regular imported asset
+- The guid comes from the asset's `.meta` file
+
+Always verify by searching the scene YAML for the field name before assuming it is assigned.

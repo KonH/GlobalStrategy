@@ -1,10 +1,17 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
     <ui:Style src="project://database/Assets/UI/HUD/CountryInfo/CountryInfo.uss" />
-    <ui:Label name="country-name" class="gs-title country-name" text="" />
-    <ui:VisualElement name="influence-row" style="flex-direction: row; align-items: center;">
-        <ui:VisualElement class="influence-icon" />
-        <ui:Label name="influence-label" class="gs-label" text="" />
+    <ui:VisualElement name="country-info-columns" class="country-info-columns">
+        <ui:VisualElement name="country-main-block" class="country-main-block">
+            <ui:Label name="country-name" class="gs-title country-name" text="" />
+            <ui:VisualElement name="influence-row" style="flex-direction: row; align-items: center;">
+                <ui:VisualElement class="influence-icon" />
+                <ui:Label name="influence-label" class="gs-label" text="" />
+            </ui:VisualElement>
+            <ui:VisualElement name="resources-container" class="resources-container" />
+        </ui:VisualElement>
+        <ui:VisualElement name="country-chars-block" class="country-chars-block">
+            <ui:VisualElement name="characters-container" class="characters-container" />
+        </ui:VisualElement>
     </ui:VisualElement>
-    <ui:VisualElement name="resources-container" class="resources-container" />
 </ui:UXML>

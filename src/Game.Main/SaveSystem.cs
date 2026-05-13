@@ -118,6 +118,9 @@ namespace GS.Main {
 			if (value == null) {
 				return null;
 			}
+			if (value is string[] arr) {
+				return string.Join("\x1F", arr);
+			}
 			if (value is DateTime dt) {
 				return dt.ToString("O", CultureInfo.InvariantCulture);
 			}

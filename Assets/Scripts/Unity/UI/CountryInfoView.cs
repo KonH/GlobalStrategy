@@ -10,22 +10,24 @@ namespace GS.Unity.UI {
 		readonly VisualElement _influenceRow;
 		readonly ILocalization _loc;
 		readonly ResourcesView _resourcesView;
+		readonly CharactersView _charactersView;
 		CountryInfluenceState _influenceState;
 
-		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, TooltipSystem tooltip) {
+		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip) {
 			_root = root;
 			_name = root.Q<Label>("country-name");
 			_influenceRow = root.Q("influence-row");
 			_influenceLabel = root.Q<Label>("influence-label");
 			_loc = loc;
 			_resourcesView = new ResourcesView(root.Q("resources-container"), loc, resourceConfig, tooltip);
+			_charactersView = new CharactersView(root.Q("characters-container"), loc, characterConfig, tooltip);
 
 			if (_influenceRow != null) {
 				tooltip.RegisterTrigger(_influenceRow, "country-influence", BuildInfluenceTooltip, new System.Collections.Generic.HashSet<string>());
 			}
 		}
 
-		public void Refresh(SelectedCountryState selected, PlayerCountryState player, CountryResourcesState resources, CountryInfluenceState influence) {
+		public void Refresh(SelectedCountryState selected, PlayerCountryState player, CountryResourcesState resources, CountryInfluenceState influence, CountryCharactersState characters) {
 			_root.style.display = selected.IsValid ? DisplayStyle.Flex : DisplayStyle.None;
 			if (selected.IsValid) {
 				_name.text = _loc.Get($"country_name.{selected.CountryId}");
@@ -33,6 +35,7 @@ namespace GS.Unity.UI {
 			_influenceState = influence;
 			RefreshInfluence(influence);
 			_resourcesView.Refresh(resources);
+			_charactersView.Refresh(characters);
 		}
 
 		void RefreshInfluence(CountryInfluenceState influence) {

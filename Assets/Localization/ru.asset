@@ -417,3 +417,93 @@ MonoBehaviour:
     Value: "\u0411\u0430\u0437\u043E\u0432\u043E\u0435 \u0432\u043B\u0438\u044F\u043D\u0438\u0435:"
   - Key: select_org.estimated_income
     Value: "\u041E\u0436\u0438\u0434\u0430\u0435\u043C\u044B\u0439 \u0434\u043E\u0445\u043E\u0434:"
+  - Key: character.role.ruler.name
+    Value: "\u041F\u0440\u0430\u0432\u0438\u0442\u0435\u043B\u044C"
+  - Key: character.role.ruler.description
+    Value: "\u0412\u0435\u0440\u0445\u043E\u0432\u043D\u044B\u0439 \u043F\u0440\u0430\u0432\u0438\u0442\u0435\u043B\u044C \u0441\u0442\u0440\u0430\u043D\u044B."
+  - Key: character.role.military_advisor.name
+    Value: "\u0412\u043E\u0435\u043D\u043D\u044B\u0439 \u0441\u043E\u0432\u0435\u0442\u043D\u0438\u043A"
+  - Key: character.role.military_advisor.description
+    Value: "\u041A\u043E\u043C\u0430\u043D\u0434\u0443\u0435\u0442 \u0432\u043E\u043E\u0440\u0443\u0436\u0451\u043D\u043D\u044B\u043C\u0438 \u0441\u0438\u043B\u0430\u043C\u0438."
+  - Key: character.role.diplomacy_advisor.name
+    Value: "\u0414\u0438\u043F\u043B\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u0438\u0439 \u0441\u043E\u0432\u0435\u0442\u043D\u0438\u043A"
+  - Key: character.role.diplomacy_advisor.description
+    Value: "\u0423\u043F\u0440\u0430\u0432\u043B\u044F\u0435\u0442 \u0438\u043D\u043E\u0441\u0442\u0440\u0430\u043D\u043D\u044B\u043C\u0438 \u0434\u0435\u043B\u0430\u043C\u0438."
+  - Key: character.role.economic_advisor.name
+    Value: "\u042D\u043A\u043E\u043D\u043E\u043C\u0438\u0447\u0435\u0441\u043A\u0438\u0439 \u0441\u043E\u0432\u0435\u0442\u043D\u0438\u043A"
+  - Key: character.role.economic_advisor.description
+    Value: "\u0423\u043F\u0440\u0430\u0432\u043B\u044F\u0435\u0442 \u0442\u043E\u0440\u0433\u043E\u0432\u043B\u0435\u0439 \u0438 \u043A\u0430\u0437\u043D\u043E\u0439."
+  - Key: character.role.secret_advisor.name
+    Value: "\u0422\u0430\u0439\u043D\u044B\u0439 \u0441\u043E\u0432\u0435\u0442\u043D\u0438\u043A"
+  - Key: character.role.secret_advisor.description
+    Value: "\u0414\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442 \u0432 \u0442\u0435\u043D\u0438."
+  - Key: character.skill.power.name
+    Value: "\u0421\u0438\u043B\u0430"
+  - Key: character.skill.power.description
+    Value: "\u0412\u043E\u0435\u043D\u043D\u0430\u044F \u0441\u0438\u043B\u0430 \u0438 \u043A\u043E\u043C\u0430\u043D\u0434\u043E\u0432\u0430\u043D\u0438\u0435."
+  - Key: character.skill.charm.name
+    Value: "\u041E\u0431\u0430\u044F\u043D\u0438\u0435"
+  - Key: character.skill.charm.description
+    Value: "\u0414\u0438\u043F\u043B\u043E\u043C\u0430\u0442\u0438\u0447\u0435\u0441\u043A\u043E\u0435 \u043E\u0431\u0430\u044F\u043D\u0438\u0435."
+  - Key: character.skill.stinginess.name
+    Value: "\u0421\u043A\u0443\u043F\u043E\u0441\u0442\u044C"
+  - Key: character.skill.stinginess.description
+    Value: "\u042D\u043A\u043E\u043D\u043E\u043C\u0438\u044F \u0438 \u0443\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u0438\u0435 \u0440\u0435\u0441\u0443\u0440\u0441\u0430\u043C\u0438."
+  - Key: character.skill.intrigue.name
+    Value: "\u0418\u043D\u0442\u0440\u0438\u0433\u0438"
+  - Key: character.skill.intrigue.description
+    Value: "\u0428\u043F\u0438\u043E\u043D\u0430\u0436 \u0438 \u0442\u0430\u0439\u043D\u044B\u0435 \u043E\u043F\u0435\u0440\u0430\u0446\u0438\u0438."
+  - Key: character.name.argentinian
+    Value: Argentinian
+  - Key: character.name.austrian
+    Value: Austrian
+  - Key: character.name.belgian
+    Value: Belgian
+  - Key: character.name.egyptian
+    Value: Egyptian
+  - Key: character.name.ethiopian
+    Value: Ethiopian
+  - Key: character.name.french
+    Value: French
+  - Key: character.name.german
+    Value: German
+  - Key: character.name.japanese
+    Value: Japanese
+  - Key: character.name.italian
+    Value: Italian
+  - Key: character.name.brazilian
+    Value: Brazilian
+  - Key: character.name.manchurian
+    Value: Manchurian
+  - Key: character.name.dutch
+    Value: Dutch
+  - Key: character.name.ottoman
+    Value: Ottoman
+  - Key: character.name.persian
+    Value: Persian
+  - Key: character.name.portuguese
+    Value: Portuguese
+  - Key: character.name.russian
+    Value: Russian
+  - Key: character.name.spanish
+    Value: Spanish
+  - Key: character.name.scandinavian
+    Value: Scandinavian
+  - Key: character.name.british
+    Value: British
+  - Key: character.name.american
+    Value: American
+  - Key: character.name.char_i
+    Value: Character I
+  - Key: character.name.char_ii
+    Value: Character II
+  - Key: character.name.char_iii
+    Value: Character III
+  - Key: character.name.char_military
+    Value: Генерал
+  - Key: character.name.char_diplomat
+    Value: Посол
+  - Key: character.name.char_economist
+    Value: Барон
+  - Key: character.name.char_spy
+    Value: Советник

@@ -211,5 +211,61 @@ namespace GS.Game.Tests {
 			Assert.Equal(new DateTime(1882, 6, 15), snapshot.Header.GameDate);
 			Assert.StartsWith("Illuminati_1882-06-15", snapshot.Header.SaveName);
 		}
+
+		[Fact]
+		void round_trip_preserves_character_name_part_keys() {
+			var world = new World();
+			int charEntity = world.Create();
+			world.Add(charEntity, new Character {
+				CharacterId = "great_britain_ruler_1",
+				CountryId = "Great_Britain",
+				RoleId = "ruler",
+				NamePartKeys = new[] { "character.name.british", "character.name.char_i" }
+			});
+
+			var snapshot = Snapshot(world);
+			var restored = new World();
+			Restore(snapshot, restored);
+
+			int[] req = { TypeId<Character>.Value };
+			string[]? restoredKeys = null;
+			foreach (var arch in restored.GetMatchingArchetypes(req, null)) {
+				if (arch.Count > 0) {
+					restoredKeys = arch.GetColumn<Character>()[0].NamePartKeys;
+					break;
+				}
+			}
+
+			Assert.NotNull(restoredKeys);
+			Assert.Equal(new[] { "character.name.british", "character.name.char_i" }, restoredKeys);
+		}
+
+		[Fact]
+		void round_trip_preserves_empty_name_part_keys() {
+			var world = new World();
+			int charEntity = world.Create();
+			world.Add(charEntity, new Character {
+				CharacterId = "test_ruler",
+				CountryId = "Test",
+				RoleId = "ruler",
+				NamePartKeys = System.Array.Empty<string>()
+			});
+
+			var snapshot = Snapshot(world);
+			var restored = new World();
+			Restore(snapshot, restored);
+
+			int[] req = { TypeId<Character>.Value };
+			string[]? restoredKeys = null;
+			foreach (var arch in restored.GetMatchingArchetypes(req, null)) {
+				if (arch.Count > 0) {
+					restoredKeys = arch.GetColumn<Character>()[0].NamePartKeys;
+					break;
+				}
+			}
+
+			Assert.NotNull(restoredKeys);
+			Assert.Empty(restoredKeys);
+		}
 	}
 }

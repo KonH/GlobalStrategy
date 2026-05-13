@@ -1,0 +1,5000 @@
+{
+  "skills": [
+    {
+      "skillId": "power",
+      "nameKey": "character.skill.power.name",
+      "descriptionKey": "character.skill.power.description",
+      "icon": "power"
+    },
+    {
+      "skillId": "charm",
+      "nameKey": "character.skill.charm.name",
+      "descriptionKey": "character.skill.charm.description",
+      "icon": "charm"
+    },
+    {
+      "skillId": "stinginess",
+      "nameKey": "character.skill.stinginess.name",
+      "descriptionKey": "character.skill.stinginess.description",
+      "icon": "stinginess"
+    },
+    {
+      "skillId": "intrigue",
+      "nameKey": "character.skill.intrigue.name",
+      "descriptionKey": "character.skill.intrigue.description",
+      "icon": "intrigue"
+    }
+  ],
+  "roles": [
+    {
+      "roleId": "ruler",
+      "nameKey": "character.role.ruler.name",
+      "descriptionKey": "character.role.ruler.description",
+      "icon": "ruler",
+      "skillIds": [
+        "power",
+        "charm",
+        "stinginess",
+        "intrigue"
+      ]
+    },
+    {
+      "roleId": "military_advisor",
+      "nameKey": "character.role.military_advisor.name",
+      "descriptionKey": "character.role.military_advisor.description",
+      "icon": "military_advisor",
+      "skillIds": [
+        "power"
+      ]
+    },
+    {
+      "roleId": "diplomacy_advisor",
+      "nameKey": "character.role.diplomacy_advisor.name",
+      "descriptionKey": "character.role.diplomacy_advisor.description",
+      "icon": "diplomacy_advisor",
+      "skillIds": [
+        "charm"
+      ]
+    },
+    {
+      "roleId": "economic_advisor",
+      "nameKey": "character.role.economic_advisor.name",
+      "descriptionKey": "character.role.economic_advisor.description",
+      "icon": "economic_advisor",
+      "skillIds": [
+        "stinginess"
+      ]
+    },
+    {
+      "roleId": "secret_advisor",
+      "nameKey": "character.role.secret_advisor.name",
+      "descriptionKey": "character.role.secret_advisor.description",
+      "icon": "secret_advisor",
+      "skillIds": [
+        "intrigue"
+      ]
+    }
+  ],
+  "countryPools": [
+    {
+      "countryId": "Argentina",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "argentina_ruler_1",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "argentina_ruler_2",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "argentina_ruler_3",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "argentina_mil_1",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "argentina_mil_2",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "argentina_mil_3",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "argentina_dip_1",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "argentina_dip_2",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "argentina_dip_3",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "argentina_eco_1",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "argentina_eco_2",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "argentina_eco_3",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "argentina_sec_1",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "argentina_sec_2",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "argentina_sec_3",
+            "namePartKeys": [
+              "character.name.argentinian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Austria_Hungary",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "austria_hungary_ruler_1",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "austria_hungary_ruler_2",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "austria_hungary_ruler_3",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "austria_hungary_mil_1",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "austria_hungary_mil_2",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "austria_hungary_mil_3",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "austria_hungary_dip_1",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "austria_hungary_dip_2",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "austria_hungary_dip_3",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "austria_hungary_eco_1",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "austria_hungary_eco_2",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "austria_hungary_eco_3",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "austria_hungary_sec_1",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "austria_hungary_sec_2",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "austria_hungary_sec_3",
+            "namePartKeys": [
+              "character.name.austrian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Belgium",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "belgium_ruler_1",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "belgium_ruler_2",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "belgium_ruler_3",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "belgium_mil_1",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "belgium_mil_2",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "belgium_mil_3",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "belgium_dip_1",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "belgium_dip_2",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "belgium_dip_3",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "belgium_eco_1",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "belgium_eco_2",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "belgium_eco_3",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "belgium_sec_1",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "belgium_sec_2",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "belgium_sec_3",
+            "namePartKeys": [
+              "character.name.belgian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Egypt",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "egypt_ruler_1",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "egypt_ruler_2",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "egypt_ruler_3",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "egypt_mil_1",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "egypt_mil_2",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "egypt_mil_3",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "egypt_dip_1",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "egypt_dip_2",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "egypt_dip_3",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "egypt_eco_1",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "egypt_eco_2",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "egypt_eco_3",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "egypt_sec_1",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "egypt_sec_2",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "egypt_sec_3",
+            "namePartKeys": [
+              "character.name.egyptian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Ethiopia",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "ethiopia_ruler_1",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "ethiopia_ruler_2",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "ethiopia_ruler_3",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "ethiopia_mil_1",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ethiopia_mil_2",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ethiopia_mil_3",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "ethiopia_dip_1",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ethiopia_dip_2",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ethiopia_dip_3",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "ethiopia_eco_1",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ethiopia_eco_2",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ethiopia_eco_3",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "ethiopia_sec_1",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ethiopia_sec_2",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ethiopia_sec_3",
+            "namePartKeys": [
+              "character.name.ethiopian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "France",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "france_ruler_1",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "france_ruler_2",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "france_ruler_3",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "france_mil_1",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "france_mil_2",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "france_mil_3",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "france_dip_1",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "france_dip_2",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "france_dip_3",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "france_eco_1",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "france_eco_2",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "france_eco_3",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "france_sec_1",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "france_sec_2",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "france_sec_3",
+            "namePartKeys": [
+              "character.name.french",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Germany",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "germany_ruler_1",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "germany_ruler_2",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "germany_ruler_3",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "germany_mil_1",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "germany_mil_2",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "germany_mil_3",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "germany_dip_1",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "germany_dip_2",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "germany_dip_3",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "germany_eco_1",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "germany_eco_2",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "germany_eco_3",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "germany_sec_1",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "germany_sec_2",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "germany_sec_3",
+            "namePartKeys": [
+              "character.name.german",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Imperial_Japan",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "imperial_japan_ruler_1",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "imperial_japan_ruler_2",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "imperial_japan_ruler_3",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "imperial_japan_mil_1",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "imperial_japan_mil_2",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "imperial_japan_mil_3",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "imperial_japan_dip_1",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "imperial_japan_dip_2",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "imperial_japan_dip_3",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "imperial_japan_eco_1",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "imperial_japan_eco_2",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "imperial_japan_eco_3",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "imperial_japan_sec_1",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "imperial_japan_sec_2",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "imperial_japan_sec_3",
+            "namePartKeys": [
+              "character.name.japanese",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Italy",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "italy_ruler_1",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "italy_ruler_2",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "italy_ruler_3",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "italy_mil_1",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "italy_mil_2",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "italy_mil_3",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "italy_dip_1",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "italy_dip_2",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "italy_dip_3",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "italy_eco_1",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "italy_eco_2",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "italy_eco_3",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "italy_sec_1",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "italy_sec_2",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "italy_sec_3",
+            "namePartKeys": [
+              "character.name.italian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Kingdom_of_Brazil",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "kingdom_of_brazil_ruler_1",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "kingdom_of_brazil_ruler_2",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "kingdom_of_brazil_ruler_3",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "kingdom_of_brazil_mil_1",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "kingdom_of_brazil_mil_2",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "kingdom_of_brazil_mil_3",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "kingdom_of_brazil_dip_1",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "kingdom_of_brazil_dip_2",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "kingdom_of_brazil_dip_3",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "kingdom_of_brazil_eco_1",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "kingdom_of_brazil_eco_2",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "kingdom_of_brazil_eco_3",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "kingdom_of_brazil_sec_1",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "kingdom_of_brazil_sec_2",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "kingdom_of_brazil_sec_3",
+            "namePartKeys": [
+              "character.name.brazilian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Manchu_Empire",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "manchu_empire_ruler_1",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "manchu_empire_ruler_2",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "manchu_empire_ruler_3",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "manchu_empire_mil_1",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "manchu_empire_mil_2",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "manchu_empire_mil_3",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "manchu_empire_dip_1",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "manchu_empire_dip_2",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "manchu_empire_dip_3",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "manchu_empire_eco_1",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "manchu_empire_eco_2",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "manchu_empire_eco_3",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "manchu_empire_sec_1",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "manchu_empire_sec_2",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "manchu_empire_sec_3",
+            "namePartKeys": [
+              "character.name.manchurian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Netherlands",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "netherlands_ruler_1",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "netherlands_ruler_2",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "netherlands_ruler_3",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "netherlands_mil_1",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "netherlands_mil_2",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "netherlands_mil_3",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "netherlands_dip_1",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "netherlands_dip_2",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "netherlands_dip_3",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "netherlands_eco_1",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "netherlands_eco_2",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "netherlands_eco_3",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "netherlands_sec_1",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "netherlands_sec_2",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "netherlands_sec_3",
+            "namePartKeys": [
+              "character.name.dutch",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Ottoman_Empire",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "ottoman_empire_ruler_1",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "ottoman_empire_ruler_2",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "ottoman_empire_ruler_3",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "ottoman_empire_mil_1",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ottoman_empire_mil_2",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ottoman_empire_mil_3",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "ottoman_empire_dip_1",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ottoman_empire_dip_2",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ottoman_empire_dip_3",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "ottoman_empire_eco_1",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ottoman_empire_eco_2",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ottoman_empire_eco_3",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "ottoman_empire_sec_1",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ottoman_empire_sec_2",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "ottoman_empire_sec_3",
+            "namePartKeys": [
+              "character.name.ottoman",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Persia",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "persia_ruler_1",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "persia_ruler_2",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "persia_ruler_3",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "persia_mil_1",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "persia_mil_2",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "persia_mil_3",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "persia_dip_1",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "persia_dip_2",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "persia_dip_3",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "persia_eco_1",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "persia_eco_2",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "persia_eco_3",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "persia_sec_1",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "persia_sec_2",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "persia_sec_3",
+            "namePartKeys": [
+              "character.name.persian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Portugal",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "portugal_ruler_1",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "portugal_ruler_2",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "portugal_ruler_3",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "portugal_mil_1",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "portugal_mil_2",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "portugal_mil_3",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "portugal_dip_1",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "portugal_dip_2",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "portugal_dip_3",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "portugal_eco_1",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "portugal_eco_2",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "portugal_eco_3",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "portugal_sec_1",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "portugal_sec_2",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "portugal_sec_3",
+            "namePartKeys": [
+              "character.name.portuguese",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Russian_Empire",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "russian_empire_ruler_1",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "russian_empire_ruler_2",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "russian_empire_ruler_3",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "russian_empire_mil_1",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "russian_empire_mil_2",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "russian_empire_mil_3",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "russian_empire_dip_1",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "russian_empire_dip_2",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "russian_empire_dip_3",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "russian_empire_eco_1",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "russian_empire_eco_2",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "russian_empire_eco_3",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "russian_empire_sec_1",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "russian_empire_sec_2",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "russian_empire_sec_3",
+            "namePartKeys": [
+              "character.name.russian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Spain",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "spain_ruler_1",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "spain_ruler_2",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "spain_ruler_3",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "spain_mil_1",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "spain_mil_2",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "spain_mil_3",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "spain_dip_1",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "spain_dip_2",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "spain_dip_3",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "spain_eco_1",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "spain_eco_2",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "spain_eco_3",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "spain_sec_1",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "spain_sec_2",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "spain_sec_3",
+            "namePartKeys": [
+              "character.name.spanish",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "SwedenNorway",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "swedennorway_ruler_1",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "swedennorway_ruler_2",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "swedennorway_ruler_3",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "swedennorway_mil_1",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "swedennorway_mil_2",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "swedennorway_mil_3",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "swedennorway_dip_1",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "swedennorway_dip_2",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "swedennorway_dip_3",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "swedennorway_eco_1",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "swedennorway_eco_2",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "swedennorway_eco_3",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "swedennorway_sec_1",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "swedennorway_sec_2",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "swedennorway_sec_3",
+            "namePartKeys": [
+              "character.name.scandinavian",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "United_Kingdom_of_Great_Britain_and_Ireland",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "great_britain_ruler_1",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "great_britain_ruler_2",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "great_britain_ruler_3",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "great_britain_mil_1",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "great_britain_mil_2",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "great_britain_mil_3",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "great_britain_dip_1",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "great_britain_dip_2",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "great_britain_dip_3",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "great_britain_eco_1",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "great_britain_eco_2",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "great_britain_eco_3",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "great_britain_sec_1",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "great_britain_sec_2",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "great_britain_sec_3",
+            "namePartKeys": [
+              "character.name.british",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "United_States_of_America",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "united_states_ruler_1",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "united_states_ruler_2",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "united_states_ruler_3",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "united_states_mil_1",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "united_states_mil_2",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "united_states_mil_3",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_military"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "united_states_dip_1",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "united_states_dip_2",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "united_states_dip_3",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_diplomat"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "united_states_eco_1",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "united_states_eco_2",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "united_states_eco_3",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_economist"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "united_states_sec_1",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "united_states_sec_2",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "united_states_sec_3",
+            "namePartKeys": [
+              "character.name.american",
+              "character.name.char_spy"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

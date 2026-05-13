@@ -202,3 +202,32 @@ void AdjustPosition(VisualElement panel, VisualElement trigger) {
 ```
 
 `GeometryChangedEvent` fires every time the element is re-laid-out — the callback is idempotent here (it just clamps), so re-firing is harmless.
+
+## 2-Column Chip Grid
+
+`flex-basis: 50%` with `flex-wrap: wrap` and `justify-content: flex-start` on a flex container creates a reliable 2-per-row grid in UI Toolkit:
+
+```css
+.chips-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+.chip {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;   /* centers chip content within its 50% slot */
+    flex-basis: 50%;
+    padding: 3px 2px;
+}
+```
+
+Behaviour:
+- **4 chips** → 2 rows of 2 (each chip takes exactly half the row)
+- **1 chip** → sits in the left slot; the right slot is visually empty (no placeholder needed)
+- `justify-content: flex-start` on the container keeps single chips left-aligned rather than centered in the row
+- `justify-content: center` on each chip centers the icon+label within its 50% slot
+
+Do **not** use `margin` on chips — it breaks the 50% calculation. Use `padding` instead.

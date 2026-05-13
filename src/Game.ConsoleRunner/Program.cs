@@ -16,7 +16,8 @@ namespace GS.Game.ConsoleRunner {
 				new FileConfig<CountryConfig>("data/country_config.json"),
 				new FileConfig<GameSettings>("data/game_settings.json"),
 				new FileConfig<ResourceConfig>("data/resource_config.json"),
-				new FileConfig<OrganizationConfig>("data/organizations.json")
+				new FileConfig<OrganizationConfig>("data/organizations.json"),
+				logger: new ConsoleLogger()
 			);
 			var logic = new GameLogic(ctx);
 

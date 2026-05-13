@@ -17,7 +17,7 @@ namespace GS.Game.Tests {
 		static GameLogic BuildLogic(string orgId = "Illuminati") {
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
-					new CountryEntry { CountryId = "Great_Britain", DisplayName = "Great Britain" }
+					new CountryEntry { CountryId = "Great_Britain", DisplayName = "Great Britain", IsAvailable = true }
 				}
 			};
 			var orgConfig = new OrganizationConfig {
@@ -58,6 +58,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void org_entity_exists_with_correct_id() {
 			var logic = BuildLogic();
+			logic.Update(0f);
 			var world = logic.World;
 
 			string? foundOrgId = null;
@@ -75,6 +76,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void org_gold_resource_entity_has_correct_owner_and_value() {
 			var logic = BuildLogic();
+			logic.Update(0f);
 			var world = logic.World;
 
 			double? goldValue = null;

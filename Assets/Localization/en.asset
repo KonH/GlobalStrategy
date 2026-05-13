@@ -400,3 +400,93 @@ MonoBehaviour:
     Value: "Base Influence:"
   - Key: select_org.estimated_income
     Value: "Estimated Income:"
+  - Key: character.role.ruler.name
+    Value: Ruler
+  - Key: character.role.ruler.description
+    Value: The supreme leader of the country.
+  - Key: character.role.military_advisor.name
+    Value: Military Advisor
+  - Key: character.role.military_advisor.description
+    Value: Commands the armed forces.
+  - Key: character.role.diplomacy_advisor.name
+    Value: Diplomacy Advisor
+  - Key: character.role.diplomacy_advisor.description
+    Value: Manages foreign relations.
+  - Key: character.role.economic_advisor.name
+    Value: Economic Advisor
+  - Key: character.role.economic_advisor.description
+    Value: Oversees trade and treasury.
+  - Key: character.role.secret_advisor.name
+    Value: Secret Advisor
+  - Key: character.role.secret_advisor.description
+    Value: Operates in the shadows.
+  - Key: character.skill.power.name
+    Value: Power
+  - Key: character.skill.power.description
+    Value: Military strength and command.
+  - Key: character.skill.charm.name
+    Value: Charm
+  - Key: character.skill.charm.description
+    Value: Diplomatic persuasion ability.
+  - Key: character.skill.stinginess.name
+    Value: Stinginess
+  - Key: character.skill.stinginess.description
+    Value: Fiscal prudence and resource management.
+  - Key: character.skill.intrigue.name
+    Value: Intrigue
+  - Key: character.skill.intrigue.description
+    Value: Espionage and covert operations.
+  - Key: character.name.argentinian
+    Value: Argentinian
+  - Key: character.name.austrian
+    Value: Austrian
+  - Key: character.name.belgian
+    Value: Belgian
+  - Key: character.name.egyptian
+    Value: Egyptian
+  - Key: character.name.ethiopian
+    Value: Ethiopian
+  - Key: character.name.french
+    Value: French
+  - Key: character.name.german
+    Value: German
+  - Key: character.name.japanese
+    Value: Japanese
+  - Key: character.name.italian
+    Value: Italian
+  - Key: character.name.brazilian
+    Value: Brazilian
+  - Key: character.name.manchurian
+    Value: Manchurian
+  - Key: character.name.dutch
+    Value: Dutch
+  - Key: character.name.ottoman
+    Value: Ottoman
+  - Key: character.name.persian
+    Value: Persian
+  - Key: character.name.portuguese
+    Value: Portuguese
+  - Key: character.name.russian
+    Value: Russian
+  - Key: character.name.spanish
+    Value: Spanish
+  - Key: character.name.scandinavian
+    Value: Scandinavian
+  - Key: character.name.british
+    Value: British
+  - Key: character.name.american
+    Value: American
+  - Key: character.name.char_i
+    Value: Character I
+  - Key: character.name.char_ii
+    Value: Character II
+  - Key: character.name.char_iii
+    Value: Character III
+  - Key: character.name.char_military
+    Value: General
+  - Key: character.name.char_diplomat
+    Value: Ambassador
+  - Key: character.name.char_economist
+    Value: Baron
+  - Key: character.name.char_spy
+    Value: Counselor

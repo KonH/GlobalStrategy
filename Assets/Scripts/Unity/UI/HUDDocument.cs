@@ -18,6 +18,7 @@ namespace GS.Unity.UI {
 		IWriteOnlyCommandAccessor _commands;
 		ILocalization _loc;
 		ResourceConfig _resourceConfig;
+		CharacterConfig _characterConfig;
 		GameMenuDocument _gameMenu;
 		Button _btnMenu;
 		Button _btnDebugToggle;
@@ -27,11 +28,12 @@ namespace GS.Unity.UI {
 		bool _debugPanelOpen;
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, GameMenuDocument gameMenu) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, GameMenuDocument gameMenu) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
 			_resourceConfig = resourceConfig;
+			_characterConfig = characterConfig;
 			_gameMenu = gameMenu;
 		}
 
@@ -44,7 +46,7 @@ namespace GS.Unity.UI {
 
 			_tooltip = new TooltipSystem(root.Q("hud-root"));
 
-			_countryInfo = new CountryInfoView(root.Q("country-info"), _loc, _resourceConfig, _tooltip);
+			_countryInfo = new CountryInfoView(root.Q("country-info"), _loc, _resourceConfig, _characterConfig, _tooltip);
 			_playerOrgView = new PlayerOrgView(root.Q("player-country"), _loc, _resourceConfig, _tooltip);
 			_timeView = new TimeView(
 				root.Q("time-panel"),
@@ -97,13 +99,14 @@ namespace GS.Unity.UI {
 			if (_state == null) {
 				return;
 			}
-			_state.SelectedCountry.PropertyChanged   += HandleCountryChanged;
+			_state.SelectedCountry.PropertyChanged    += HandleCountryChanged;
 			_state.PlayerOrganization.PropertyChanged += HandlePlayerOrgChanged;
-			_state.Time.PropertyChanged              += HandleTimeChanged;
-			_state.Locale.PropertyChanged            += HandleLocaleChanged;
-			_state.PlayerResources.PropertyChanged   += HandlePlayerResourcesChanged;
-			_state.SelectedResources.PropertyChanged += HandleSelectedResourcesChanged;
-			_state.SelectedInfluence.PropertyChanged += HandleInfluenceChanged;
+			_state.Time.PropertyChanged               += HandleTimeChanged;
+			_state.Locale.PropertyChanged             += HandleLocaleChanged;
+			_state.PlayerResources.PropertyChanged    += HandlePlayerResourcesChanged;
+			_state.SelectedResources.PropertyChanged  += HandleSelectedResourcesChanged;
+			_state.SelectedInfluence.PropertyChanged  += HandleInfluenceChanged;
+			_state.SelectedCharacters.PropertyChanged += HandleCharactersChanged;
 			RefreshCountryViews();
 			RefreshInfluenceDebugRow();
 			_timeView.Refresh(_state.Time);
@@ -113,13 +116,14 @@ namespace GS.Unity.UI {
 			if (_state == null) {
 				return;
 			}
-			_state.SelectedCountry.PropertyChanged   -= HandleCountryChanged;
+			_state.SelectedCountry.PropertyChanged    -= HandleCountryChanged;
 			_state.PlayerOrganization.PropertyChanged -= HandlePlayerOrgChanged;
-			_state.Time.PropertyChanged              -= HandleTimeChanged;
-			_state.Locale.PropertyChanged            -= HandleLocaleChanged;
-			_state.PlayerResources.PropertyChanged   -= HandlePlayerResourcesChanged;
-			_state.SelectedResources.PropertyChanged -= HandleSelectedResourcesChanged;
-			_state.SelectedInfluence.PropertyChanged -= HandleInfluenceChanged;
+			_state.Time.PropertyChanged               -= HandleTimeChanged;
+			_state.Locale.PropertyChanged             -= HandleLocaleChanged;
+			_state.PlayerResources.PropertyChanged    -= HandlePlayerResourcesChanged;
+			_state.SelectedResources.PropertyChanged  -= HandleSelectedResourcesChanged;
+			_state.SelectedInfluence.PropertyChanged  -= HandleInfluenceChanged;
+			_state.SelectedCharacters.PropertyChanged -= HandleCharactersChanged;
 		}
 
 		void Update() {
@@ -127,7 +131,7 @@ namespace GS.Unity.UI {
 		}
 
 		void RefreshCountryViews() {
-			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence);
+			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters);
 			_playerOrgView.Refresh(_state.PlayerOrganization, _state.PlayerResources);
 		}
 
@@ -178,7 +182,11 @@ namespace GS.Unity.UI {
 		}
 
 		void HandleSelectedResourcesChanged(object sender, PropertyChangedEventArgs e) {
-			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence);
+			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters);
+		}
+
+		void HandleCharactersChanged(object sender, PropertyChangedEventArgs e) {
+			RefreshCountryViews();
 		}
 
 		void OnPauseToggle() {

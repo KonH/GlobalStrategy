@@ -19,6 +19,7 @@ namespace GS.Unity.DI {
 		[SerializeField] TextAsset _gameSettings;
 		[SerializeField] TextAsset _resourceConfig;
 		[SerializeField] TextAsset _organizationsConfigAsset;
+		[SerializeField] TextAsset _characterConfigAsset;
 
 		protected override void Configure(IContainerBuilder builder) {
 			var storage = new PersistentStorage();
@@ -36,8 +37,10 @@ namespace GS.Unity.DI {
 				new TextAssetConfig<OrganizationConfig>(_organizationsConfigAsset),
 				storage,
 				serializer,
+				new UnityGameLogger(),
 				initialPlayer,
-				initialOrgId
+				initialOrgId,
+				character: _characterConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.CharacterConfig>(_characterConfigAsset) : null
 			);
 
 			var domainCountryConfig = new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset).Load();
@@ -48,6 +51,7 @@ namespace GS.Unity.DI {
 			builder.Register(c => c.Resolve<GameLogic>().VisualState, Lifetime.Singleton);
 			builder.Register<IWriteOnlyCommandAccessor>(c => c.Resolve<GameLogic>().Commands, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().ResourceConfig, Lifetime.Singleton);
+			builder.Register(c => c.Resolve<GameLogic>().CharacterConfig, Lifetime.Singleton);
 
 			builder.RegisterInstance<IPersistentStorage>(storage);
 			builder.RegisterInstance<ISnapshotSerializer>(serializer);

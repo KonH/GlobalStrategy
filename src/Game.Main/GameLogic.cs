@@ -12,9 +12,10 @@ namespace GS.Main {
 		readonly VisualStateConverter _visualStateConverter;
 		readonly GameLogicContext _context;
 		readonly int[] _speedMultipliers;
-		int _gameTimeEntity;
-		int _localeEntity;
-		int _settingsEntity;
+		readonly Random _rng;
+		int _gameTimeEntity = -1;
+		int _localeEntity = -1;
+		int _settingsEntity = -1;
 		int _orgEntity = -1;
 		DateTime _previousTime;
 
@@ -22,99 +23,26 @@ namespace GS.Main {
 		public IWriteOnlyCommandAccessor Commands { get; }
 		public World World => _world;
 		public ResourceConfig ResourceConfig { get; private set; } = null!;
+		public CharacterConfig CharacterConfig { get; private set; } = null!;
 
 		public GameLogic(GameLogicContext context) {
 			_context = context;
 			_visualStateConverter = new VisualStateConverter(VisualState);
 			Commands = (IWriteOnlyCommandAccessor)_commandAccessor;
+			_rng = new Random();
 
-			var countryConfig = context.Country.Load();
 			ResourceConfig = context.Resource.Load();
-			var resourceConfig = ResourceConfig;
-
-			foreach (var entry in countryConfig.Countries) {
-				if (!entry.IsAvailable) {
-					continue;
-				}
-				int entity = _world.Create();
-				_world.Add(entity, new Country(entry.CountryId));
-				if (entry.CountryId == context.InitialPlayerCountryId) {
-					_world.Add(entity, new Player());
-				}
-				CreateResourceEntities(entry, resourceConfig);
-			}
-
+			CharacterConfig = context.Character.Load();
 			var settings = context.GameSettings.Load();
 			_speedMultipliers = settings.SpeedMultipliers;
 			_previousTime = new DateTime(settings.StartYear, 1, 1);
-
-			_gameTimeEntity = _world.Create();
-			_world.Add(_gameTimeEntity, new GameTime {
-				CurrentTime = _previousTime,
-				IsPaused = false,
-				MultiplierIndex = 0
-			});
-
-			_localeEntity = _world.Create();
-			_world.Add(_localeEntity, new Locale { Value = settings.DefaultLocale });
-
-			_settingsEntity = _world.Create();
-			_world.Add(_settingsEntity, new AppSettings {
-				Locale = settings.DefaultLocale,
-				AutoSaveInterval = ParseAutoSaveInterval(settings.AutoSaveInterval)
-			});
-
-			var orgConfig = context.Organization.Load();
-			var orgEntry = orgConfig.FindById(context.InitialOrganizationId);
-			if (orgEntry != null) {
-				_orgEntity = _world.Create();
-				_world.Add(_orgEntity, new Organization {
-					OrganizationId = orgEntry.OrganizationId,
-					DisplayName = orgEntry.DisplayName
-				});
-
-				int orgGoldEntity = _world.Create();
-				_world.Add(orgGoldEntity, new ResourceOwner(orgEntry.OrganizationId));
-				_world.Add(orgGoldEntity, new Resource { ResourceId = "gold", Value = orgEntry.InitialGold });
-
-				int influenceEntity = _world.Create();
-				_world.Add(influenceEntity, new InfluenceEffect {
-					OrgId     = orgEntry.OrganizationId,
-					CountryId = orgEntry.HqCountryId,
-					Value     = orgEntry.BaseInfluence,
-					EffectId  = $"base_{orgEntry.OrganizationId}"
-				});
-			}
-		}
-
-		void CreateResourceEntities(CountryEntry entry, ResourceConfig resourceConfig) {
-			foreach (var resourceDef in resourceConfig.Resources) {
-				double initialValue = resourceDef.DefaultInitialValue;
-				foreach (var init in entry.InitialResources) {
-					if (init.ResourceId == resourceDef.ResourceId) {
-						initialValue = init.Value;
-						break;
-					}
-				}
-
-				int resourceEntity = _world.Create();
-				_world.Add(resourceEntity, new ResourceOwner(entry.CountryId));
-				_world.Add(resourceEntity, new Resource { ResourceId = resourceDef.ResourceId, Value = initialValue });
-
-				foreach (var effectDef in resourceDef.DefaultEffects) {
-					int effectEntity = _world.Create();
-					_world.Add(effectEntity, new ResourceOwner(entry.CountryId));
-					_world.Add(effectEntity, new ResourceLink(resourceDef.ResourceId));
-					_world.Add(effectEntity, new ResourceEffect {
-						EffectId = effectDef.EffectId,
-						Value = effectDef.Value,
-						PayType = Enum.Parse<PayType>(effectDef.PayType, ignoreCase: true)
-					});
-				}
-			}
 		}
 
 		public void Update(float deltaTime) {
+			if (InitSystem.Update(_world, _context, _rng)) {
+				RefreshSingletonEntities();
+			}
+
 			ref GameTime time = ref _world.Get<GameTime>(_gameTimeEntity);
 			_previousTime = time.CurrentTime;
 
@@ -191,14 +119,6 @@ namespace GS.Main {
 
 		void ApplyChangeInfluence(string orgId, string countryId, int delta) {
 			InfluenceSystem.ApplyChangeInfluence(_world, orgId, countryId, delta);
-		}
-
-		static AutoSaveInterval ParseAutoSaveInterval(string value) {
-			return value.ToLowerInvariant() switch {
-				"daily"   => AutoSaveInterval.Daily,
-				"yearly"  => AutoSaveInterval.Yearly,
-				_         => AutoSaveInterval.Monthly
-			};
 		}
 	}
 }

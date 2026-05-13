@@ -9,8 +9,10 @@ namespace GS.Main {
 		public IConfigSource<GameSettings> GameSettings { get; }
 		public IConfigSource<ResourceConfig> Resource { get; }
 		public IConfigSource<OrganizationConfig> Organization { get; }
+		public IConfigSource<CharacterConfig> Character { get; }
 		public IPersistentStorage? Storage { get; }
 		public ISnapshotSerializer? Serializer { get; }
+		public IGameLogger? Logger { get; }
 		public string InitialPlayerCountryId { get; }
 		public string InitialOrganizationId { get; }
 
@@ -23,18 +25,26 @@ namespace GS.Main {
 			IConfigSource<OrganizationConfig> organization,
 			IPersistentStorage? storage = null,
 			ISnapshotSerializer? serializer = null,
+			IGameLogger? logger = null,
 			string initialPlayerCountryId = "Russian_Empire",
-			string initialOrganizationId = "") {
+			string initialOrganizationId = "",
+			IConfigSource<CharacterConfig>? character = null) {
 			GeoJson = geoJson;
 			MapEntry = mapEntry;
 			Country = country;
 			GameSettings = gameSettings;
 			Resource = resource;
 			Organization = organization;
+			Character = character ?? new EmptyCharacterConfig();
 			Storage = storage;
 			Serializer = serializer;
+			Logger = logger;
 			InitialPlayerCountryId = initialPlayerCountryId;
 			InitialOrganizationId = initialOrganizationId;
+		}
+
+		sealed class EmptyCharacterConfig : IConfigSource<CharacterConfig> {
+			public CharacterConfig Load() => new CharacterConfig();
 		}
 	}
 }
