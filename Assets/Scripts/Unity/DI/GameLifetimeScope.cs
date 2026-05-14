@@ -13,6 +13,7 @@ namespace GS.Unity.DI {
 	public class GameLifetimeScope : LifetimeScope {
 		[SerializeField] CountryVisualConfig _countryVisualConfig;
 		[SerializeField] OrgVisualConfig _orgVisualConfig;
+		[SerializeField] CharacterVisualConfig _characterVisualConfig;
 		[SerializeField] MapCameraConfig _mapCameraConfig;
 		[SerializeField] TextAsset _geoJsonConfig;
 		[SerializeField] TextAsset _mapEntryConfig;
@@ -60,6 +61,7 @@ namespace GS.Unity.DI {
 
 			builder.RegisterInstance(_countryVisualConfig);
 			builder.RegisterInstance(_orgVisualConfig);
+			builder.RegisterInstance(_characterVisualConfig);
 			builder.RegisterInstance(_mapCameraConfig);
 			builder.RegisterComponentInHierarchy<Camera>();
 			builder.RegisterComponentInHierarchy<MapLoader>();

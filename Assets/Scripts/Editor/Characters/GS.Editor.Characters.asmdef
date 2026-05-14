@@ -1,0 +1,16 @@
+{
+    "name": "GS.Editor.Characters",
+    "rootNamespace": "",
+    "references": [
+        "GUID:7e5a37e68b84aeb48bf5de2cbe39a94e"
+    ],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -85,8 +85,8 @@
 .character-portrait {
     width: 160px;
     height: 140px;
-    background-color: rgb(100, 100, 100);
     margin-bottom: 6px;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .skills-block {

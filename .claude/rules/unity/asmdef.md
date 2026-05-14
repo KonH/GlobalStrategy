@@ -25,5 +25,6 @@ Each feature folder under `Scripts/` contains one `.asmdef` file. Use this templ
 - `includePlatforms` and `excludePlatforms` are both `[]` (all platforms)
 - `allowUnsafeCode` is `false` unless explicitly needed
 - `autoReferenced` is `true` so other assemblies can reference this one without explicit wiring
+- **Exception:** Editor-only assemblies (`"includePlatforms": ["Editor"]`) must set `autoReferenced: false`. Setting it to `true` would make every other Editor assembly implicitly depend on it, causing unnecessary coupling. Editor tool assemblies are leaf nodes — nothing should reference them automatically.
 - `noEngineReferences` is `false` (engine types available)
 - To add a reference to another assembly, find its GUID in the corresponding `.asmdef.meta` file and add `"GUID:<guid>"` to the `references` array

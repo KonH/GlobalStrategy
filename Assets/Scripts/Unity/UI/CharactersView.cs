@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UIElements;
 using GS.Main;
 using GS.Game.Configs;
+using GS.Unity.Common;
 
 namespace GS.Unity.UI {
 	class CharactersView {
@@ -9,12 +11,17 @@ namespace GS.Unity.UI {
 		readonly ILocalization _loc;
 		readonly CharacterConfig _characterConfig;
 		readonly TooltipSystem _tooltip;
+		readonly CharacterVisualConfig _visualConfig;
 
-		public CharactersView(VisualElement container, ILocalization loc, CharacterConfig characterConfig, TooltipSystem tooltip) {
+		public CharactersView(VisualElement container, ILocalization loc, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig visualConfig) {
 			_container = container;
 			_loc = loc;
 			_characterConfig = characterConfig;
 			_tooltip = tooltip;
+			_visualConfig = visualConfig;
+			if (_visualConfig == null) {
+				Debug.LogError("[CharactersView] CharacterVisualConfig is null — portraits will not display. Assign the asset in GameLifetimeScope.");
+			}
 		}
 
 		public void Refresh(CountryCharactersState state) {
@@ -47,6 +54,12 @@ namespace GS.Unity.UI {
 
 			var portrait = new VisualElement();
 			portrait.AddToClassList("character-portrait");
+			var sprite = _visualConfig?.FindPortrait(entry.CharacterId);
+			if (sprite != null) {
+				portrait.style.backgroundImage = new StyleBackground(sprite);
+			} else {
+				portrait.style.display = DisplayStyle.None;
+			}
 			card.Add(portrait);
 
 			var roleBlock = new VisualElement();

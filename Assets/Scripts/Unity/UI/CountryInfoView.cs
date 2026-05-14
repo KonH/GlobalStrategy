@@ -1,6 +1,7 @@
 using UnityEngine.UIElements;
 using GS.Main;
 using GS.Game.Configs;
+using GS.Unity.Common;
 
 namespace GS.Unity.UI {
 	class CountryInfoView {
@@ -17,7 +18,7 @@ namespace GS.Unity.UI {
 		bool _charsOpen;
 		string _lastCountryId;
 
-		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip) {
+		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig) {
 			_root = root;
 			_name = root.Q<Label>("country-name");
 			_influenceRow = root.Q("influence-row");
@@ -26,7 +27,7 @@ namespace GS.Unity.UI {
 			_charsToggleBtn = root.Q<Button>("chars-toggle-btn");
 			_loc = loc;
 			_resourcesView = new ResourcesView(root.Q("resources-container"), loc, resourceConfig, tooltip);
-			_charactersView = new CharactersView(root.Q("characters-container"), loc, characterConfig, tooltip);
+			_charactersView = new CharactersView(root.Q("characters-container"), loc, characterConfig, tooltip, characterVisualConfig);
 
 			if (_influenceRow != null) {
 				tooltip.RegisterTrigger(_influenceRow, "country-influence", BuildInfluenceTooltip, new System.Collections.Generic.HashSet<string>());

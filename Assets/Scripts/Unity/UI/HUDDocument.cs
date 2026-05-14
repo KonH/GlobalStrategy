@@ -6,6 +6,7 @@ using GS.Main;
 using GS.Game.Commands;
 using GS.Game.Configs;
 using GS.Unity.EcsViewer;
+using GS.Unity.Common;
 
 namespace GS.Unity.UI {
 	public class HUDDocument : MonoBehaviour {
@@ -19,6 +20,7 @@ namespace GS.Unity.UI {
 		ILocalization _loc;
 		ResourceConfig _resourceConfig;
 		CharacterConfig _characterConfig;
+		CharacterVisualConfig _characterVisualConfig;
 		GameMenuDocument _gameMenu;
 		Button _btnMenu;
 		Button _btnDebugToggle;
@@ -29,12 +31,13 @@ namespace GS.Unity.UI {
 		LensSwitcherView _lensSwitcher;
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, GameMenuDocument gameMenu) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, GameMenuDocument gameMenu) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
 			_resourceConfig = resourceConfig;
 			_characterConfig = characterConfig;
+			_characterVisualConfig = characterVisualConfig;
 			_gameMenu = gameMenu;
 		}
 
@@ -47,7 +50,7 @@ namespace GS.Unity.UI {
 
 			_tooltip = new TooltipSystem(root.Q("hud-root"));
 
-			_countryInfo = new CountryInfoView(root.Q("country-info"), _loc, _resourceConfig, _characterConfig, _tooltip);
+			_countryInfo = new CountryInfoView(root.Q("country-info"), _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig);
 			_playerOrgView = new PlayerOrgView(root.Q("player-country"), _loc, _resourceConfig, _tooltip);
 			_timeView = new TimeView(
 				root.Q("time-panel"),

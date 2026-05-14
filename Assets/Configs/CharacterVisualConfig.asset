@@ -1,0 +1,615 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bad97b483b428ca43bc0a145aa04f1f8, type: 3}
+  m_Name: CharacterVisualConfig
+  m_EditorClassIdentifier: GS.Unity.Common::GS.Unity.Common.CharacterVisualConfig
+  entries:
+  - characterId: argentina_dip_1
+    portrait: {fileID: 4243282527269447598, guid: 9a9235a6e4f37854db6450c77c0852a4, type: 3}
+  - characterId: argentina_dip_2
+    portrait: {fileID: 936575536020709062, guid: 46bd159715101e141a2d30073b245b89, type: 3}
+  - characterId: argentina_dip_3
+    portrait: {fileID: 7577543606274624043, guid: 28a3e666f7286c04c90018a5416f1f2d, type: 3}
+  - characterId: argentina_eco_1
+    portrait: {fileID: 8989359427754782838, guid: 1a44d31f24416f1419ac363d1fb8b001, type: 3}
+  - characterId: argentina_eco_2
+    portrait: {fileID: -2851600747462336404, guid: 85bb057a0b09b5247914b079753b2c13, type: 3}
+  - characterId: argentina_eco_3
+    portrait: {fileID: 2423946678058962622, guid: 0f4d3423182ac624996303d4d8ef0853, type: 3}
+  - characterId: argentina_mil_1
+    portrait: {fileID: 7459787491167667762, guid: 5d9bfb895f7f79d40b9467b8a6122dd8, type: 3}
+  - characterId: argentina_mil_2
+    portrait: {fileID: -8713185563189995238, guid: 4661bb397fd6c074ca71a5cb63e236be, type: 3}
+  - characterId: argentina_mil_3
+    portrait: {fileID: 8679726322386991997, guid: d844f880505b4fc4a87a40dfc532bfd7, type: 3}
+  - characterId: argentina_ruler_1
+    portrait: {fileID: -3690018477447156108, guid: cece39c929445154da25bb2db7f19358, type: 3}
+  - characterId: argentina_ruler_2
+    portrait: {fileID: 1614157505145039635, guid: f457e1a55322a4243af2592ce9182ba5, type: 3}
+  - characterId: argentina_ruler_3
+    portrait: {fileID: -1788147051433491975, guid: 71ddd8e6a6d1f644c982e0422058dffe, type: 3}
+  - characterId: argentina_sec_1
+    portrait: {fileID: -5973198349966818191, guid: 0dedfe4cdd6cd714c936fe751e261fda, type: 3}
+  - characterId: argentina_sec_2
+    portrait: {fileID: 7016850281208684124, guid: 3a7a5b9c26052ef49bc49531cd731c5a, type: 3}
+  - characterId: argentina_sec_3
+    portrait: {fileID: -230149027254613534, guid: f222dd89bae0afd43b8af2f465c0a46c, type: 3}
+  - characterId: austria_hungary_dip_1
+    portrait: {fileID: -5090053159207235408, guid: ded359d6c7b5ee84c9463a5f78e5f870, type: 3}
+  - characterId: austria_hungary_dip_2
+    portrait: {fileID: 2784468934756627655, guid: 2a6274b98d419554d96130dc309f29a4, type: 3}
+  - characterId: austria_hungary_dip_3
+    portrait: {fileID: 4037066402119380550, guid: a182d51363ff5fb4c9a60918827def32, type: 3}
+  - characterId: austria_hungary_eco_1
+    portrait: {fileID: 6172495698391547618, guid: 4a36b2c0f6e9d234381086e1240daa08, type: 3}
+  - characterId: austria_hungary_eco_2
+    portrait: {fileID: -5023294350614913721, guid: 8f89d79d728d76c4295b42ef9de07ac9, type: 3}
+  - characterId: austria_hungary_eco_3
+    portrait: {fileID: -5576641790421281983, guid: be7b1f854d2982742967ad5208a29d57, type: 3}
+  - characterId: austria_hungary_mil_1
+    portrait: {fileID: 8280805115209940692, guid: 1fb535ee70a155e4faa6ffe3a7d7af9b, type: 3}
+  - characterId: austria_hungary_mil_2
+    portrait: {fileID: 3816755672367223271, guid: 13791b95630182341a7d362f8e4b7284, type: 3}
+  - characterId: austria_hungary_mil_3
+    portrait: {fileID: -2633438714109336345, guid: 6b8c84dea7dfa8d42bd94727c2f29eab, type: 3}
+  - characterId: austria_hungary_ruler_1
+    portrait: {fileID: -5213336572858459928, guid: 61a0a4b827c6e2b429e98e3af01d4a8d, type: 3}
+  - characterId: austria_hungary_ruler_2
+    portrait: {fileID: 9220491808836545443, guid: f511e92f23fbde64e91d883f13771c17, type: 3}
+  - characterId: austria_hungary_ruler_3
+    portrait: {fileID: 1653768920338135432, guid: b5fbd6a046ee2314dbb910b073277072, type: 3}
+  - characterId: austria_hungary_sec_1
+    portrait: {fileID: -7547624786877062888, guid: 45f508430a06f77459e591c3085103e0, type: 3}
+  - characterId: austria_hungary_sec_2
+    portrait: {fileID: -5485468939625016650, guid: 377b3e0648c97184bace9d6e726f85dd, type: 3}
+  - characterId: austria_hungary_sec_3
+    portrait: {fileID: -3833782541757220830, guid: e9196182e856a024d86b8e726c3d5b52, type: 3}
+  - characterId: belgium_dip_1
+    portrait: {fileID: -2749934253780593344, guid: 171738d317256c543bbe5b41822c2a38, type: 3}
+  - characterId: belgium_dip_2
+    portrait: {fileID: -2366087346704853509, guid: 24ea402c8b419db4a83474d5a28c7991, type: 3}
+  - characterId: belgium_dip_3
+    portrait: {fileID: 83790505815577881, guid: ddcfff881c2f42b40bf6bdae3ac0c2e1, type: 3}
+  - characterId: belgium_eco_1
+    portrait: {fileID: 4805853365092660411, guid: 878c8b96350896444b215a8120660d89, type: 3}
+  - characterId: belgium_eco_2
+    portrait: {fileID: 1739949669446579540, guid: bc3b9989a3b3672488e4598c7bc5340f, type: 3}
+  - characterId: belgium_eco_3
+    portrait: {fileID: 5171842112664292404, guid: 8bb38db0e1274a14f93a565c2965979e, type: 3}
+  - characterId: belgium_mil_1
+    portrait: {fileID: 8143716922128638701, guid: 1b06b9b2f0c4075428939675f21a7b01, type: 3}
+  - characterId: belgium_mil_2
+    portrait: {fileID: 3176428296040411902, guid: 1ca45ff5b523c7e4e99a41bbc469654a, type: 3}
+  - characterId: belgium_mil_3
+    portrait: {fileID: 2529762638624801719, guid: 6962133c1760d4a47af9e2e347b59e8d, type: 3}
+  - characterId: belgium_ruler_1
+    portrait: {fileID: -5229688795881308, guid: f1598541dc34ea0448b0fc7847699042, type: 3}
+  - characterId: belgium_ruler_2
+    portrait: {fileID: 5734957273962876963, guid: 793a327ed5959284db3e62b4ada83f5f, type: 3}
+  - characterId: belgium_ruler_3
+    portrait: {fileID: -3158406870142559859, guid: a7835f324030cf5469246aa152a769d7, type: 3}
+  - characterId: belgium_sec_1
+    portrait: {fileID: -2779696634760020858, guid: d2d63c669a85bb7458d14d8ae34a3869, type: 3}
+  - characterId: belgium_sec_2
+    portrait: {fileID: 8305957366706475723, guid: 8b56fd3aaeb84654b8ce304d3d07c395, type: 3}
+  - characterId: belgium_sec_3
+    portrait: {fileID: -1315365267741938047, guid: 09d634b9244b4a64f86c5875ae116523, type: 3}
+  - characterId: egypt_dip_1
+    portrait: {fileID: -6768299437964868913, guid: 652bc7dc85e3f73448bdc5f8ba52a3d8, type: 3}
+  - characterId: egypt_dip_2
+    portrait: {fileID: 5089845036554815080, guid: a5e83ae613819f842bfd5f8e9221c4ba, type: 3}
+  - characterId: egypt_dip_3
+    portrait: {fileID: 5822862515570602961, guid: 948c3695fa9bc9148bdf2e657b638547, type: 3}
+  - characterId: egypt_eco_1
+    portrait: {fileID: -2191845616866007734, guid: 7c791105bddcb0b4596e2e61ee88cd5d, type: 3}
+  - characterId: egypt_eco_2
+    portrait: {fileID: 1342479832492731338, guid: f2032cdbb24294e499c2663d4af73e2a, type: 3}
+  - characterId: egypt_eco_3
+    portrait: {fileID: 7704860167219739920, guid: e41b401a2222f7f4587553f19088e583, type: 3}
+  - characterId: egypt_mil_1
+    portrait: {fileID: 160584710223899699, guid: 2c936265499b7f54e865d0db484c2b55, type: 3}
+  - characterId: egypt_mil_2
+    portrait: {fileID: -195547783262045041, guid: 23d3668380ea714488ec728565f13798, type: 3}
+  - characterId: egypt_mil_3
+    portrait: {fileID: 6887416522086797063, guid: 2307df54db2badf4f978b007eccdaf47, type: 3}
+  - characterId: egypt_ruler_1
+    portrait: {fileID: 2456694406524796784, guid: ecd5c6194127e3a4fb2440d734c6b4fe, type: 3}
+  - characterId: egypt_ruler_2
+    portrait: {fileID: 3984440394513590384, guid: 9128054fef98c67419c92d690c9f9f16, type: 3}
+  - characterId: egypt_ruler_3
+    portrait: {fileID: 8937275311222716767, guid: 336bbda750f780a4ba7e1791eb7517d4, type: 3}
+  - characterId: egypt_sec_1
+    portrait: {fileID: 2619257941309429557, guid: b256b5eca5dc0f14e8f890f0cf51d321, type: 3}
+  - characterId: egypt_sec_2
+    portrait: {fileID: 522367300920630895, guid: 48d99efc94aff8041a75d0ec80a75cbf, type: 3}
+  - characterId: egypt_sec_3
+    portrait: {fileID: 3264333546494442752, guid: d31858c040231a947bbaa8c90341b880, type: 3}
+  - characterId: ethiopia_dip_1
+    portrait: {fileID: 8862819557899595816, guid: 882cae7551f078d43bf4992746b9fe31, type: 3}
+  - characterId: ethiopia_dip_2
+    portrait: {fileID: 6769055194101071479, guid: ffebfd85b68c63f4d94276ed1ddfe9ae, type: 3}
+  - characterId: ethiopia_dip_3
+    portrait: {fileID: -299194018095247892, guid: abac4b6af93853448af81aec3674d58c, type: 3}
+  - characterId: ethiopia_eco_1
+    portrait: {fileID: 6283456812342751892, guid: a87041b5ddc8a8440b8d7d27ad29b3cc, type: 3}
+  - characterId: ethiopia_eco_2
+    portrait: {fileID: 6084080587763471092, guid: 91f63ab3125d793409ab9371cd4a665b, type: 3}
+  - characterId: ethiopia_eco_3
+    portrait: {fileID: -4956924044577689766, guid: 6e3f4f59f8caf714f940053520983cd5, type: 3}
+  - characterId: ethiopia_mil_1
+    portrait: {fileID: 974815437097339927, guid: c483a33c69837994180c54692f8ca229, type: 3}
+  - characterId: ethiopia_mil_2
+    portrait: {fileID: 1324192076219417132, guid: 911a04e31a14ae54480058a28b4b2fcd, type: 3}
+  - characterId: ethiopia_mil_3
+    portrait: {fileID: -1752844960024778295, guid: 257d15331c11cd04aa1c92fe32e7e4ad, type: 3}
+  - characterId: ethiopia_ruler_1
+    portrait: {fileID: 3701899875485287062, guid: d1082c7a23f3ee645a6c70973afbbc47, type: 3}
+  - characterId: ethiopia_ruler_2
+    portrait: {fileID: -5931711706227182336, guid: 94f91775b1537c44f8a3f2f19bac9d78, type: 3}
+  - characterId: ethiopia_ruler_3
+    portrait: {fileID: 9048967509938047459, guid: 003d160296cb7b545bf52f3713f250ad, type: 3}
+  - characterId: ethiopia_sec_1
+    portrait: {fileID: -5153869595127061627, guid: f1b692bc4fd6927419478cd26c9e7227, type: 3}
+  - characterId: ethiopia_sec_2
+    portrait: {fileID: -482423205938458824, guid: e1d3243df4a7d0447b3bc7ea77985b47, type: 3}
+  - characterId: ethiopia_sec_3
+    portrait: {fileID: -2572634992976621632, guid: 60455fe94633d5a4087c1fc6b621a0cf, type: 3}
+  - characterId: france_dip_1
+    portrait: {fileID: 4370572812799583402, guid: 365db83ae39dab543bf560df60ec8ea0, type: 3}
+  - characterId: france_dip_2
+    portrait: {fileID: -272987754668429236, guid: cd66fc043f19da34392253d177a3db85, type: 3}
+  - characterId: france_dip_3
+    portrait: {fileID: 8373996021412791608, guid: b077fd3a859ba2f458a5f1eb5e5e0cb1, type: 3}
+  - characterId: france_eco_1
+    portrait: {fileID: -1180674035427386793, guid: 8055a557b2ed3d74783b8a5bd94378b0, type: 3}
+  - characterId: france_eco_2
+    portrait: {fileID: -3542459362242394014, guid: d78488f9c7f08b24dad66a15a3b9b473, type: 3}
+  - characterId: france_eco_3
+    portrait: {fileID: -7780864587898823999, guid: e3f69bbe69ac8524faf5256a501dbfb5, type: 3}
+  - characterId: france_mil_1
+    portrait: {fileID: 8882026580331477796, guid: 32389ba757afde344999875b4a5abc35, type: 3}
+  - characterId: france_mil_2
+    portrait: {fileID: -4485975837765788164, guid: ff4fd8b93fb691f4ebcde9a1929de0bc, type: 3}
+  - characterId: france_mil_3
+    portrait: {fileID: 1092458060985379831, guid: 5fef4e9aa8ddd2e4eb9f64ea7ef62d49, type: 3}
+  - characterId: france_ruler_1
+    portrait: {fileID: -3836077866089779192, guid: da87bdfacc6516e48b4f514cf3129130, type: 3}
+  - characterId: france_ruler_2
+    portrait: {fileID: -3937942827450484894, guid: 0e841a337e20a804186602fed83373f2, type: 3}
+  - characterId: france_ruler_3
+    portrait: {fileID: 1783095591785112705, guid: c7d5158c79d135d4f99c99517636223f, type: 3}
+  - characterId: france_sec_1
+    portrait: {fileID: 2581203526003137429, guid: b5ebc2cac7b641841adb329feac4d238, type: 3}
+  - characterId: france_sec_2
+    portrait: {fileID: -88803594529539326, guid: 16b25aa1ddedad342b6b50c4a2bbbbb3, type: 3}
+  - characterId: france_sec_3
+    portrait: {fileID: -3340855913521313960, guid: 322c672caf2d79247a10880724b02c17, type: 3}
+  - characterId: germany_dip_1
+    portrait: {fileID: 6979803430457506008, guid: f0a12b81eb96d1f469b92e6522fa880a, type: 3}
+  - characterId: germany_dip_2
+    portrait: {fileID: 2638881879522193438, guid: 2868fce57a202b247bb9673b519bc76e, type: 3}
+  - characterId: germany_dip_3
+    portrait: {fileID: 7848340711403304181, guid: ad2565fa92af4384a871954eac8ac288, type: 3}
+  - characterId: germany_eco_1
+    portrait: {fileID: 8235666558223214241, guid: 5c7c24ee05cf95e459cb8d51093d088d, type: 3}
+  - characterId: germany_eco_2
+    portrait: {fileID: -3255367118133192907, guid: 9fa20402197f1bb4ea6f3dbfa19afad3, type: 3}
+  - characterId: germany_eco_3
+    portrait: {fileID: -6456092467125901667, guid: f30395abe4a13954b82a6e19c1fb7a5d, type: 3}
+  - characterId: germany_mil_1
+    portrait: {fileID: 5341472595545838414, guid: a6a4d48ddfebbe94eb6dde5899fe5cea, type: 3}
+  - characterId: germany_mil_2
+    portrait: {fileID: -1976362953475961901, guid: c819abfc9c2af3d4ca9f3ddc74ad5afd, type: 3}
+  - characterId: germany_mil_3
+    portrait: {fileID: 5492969458967310134, guid: 2f52fb20166c01642b7b2c3087502ccb, type: 3}
+  - characterId: germany_ruler_1
+    portrait: {fileID: -961313614601146527, guid: ec2bfb075020cea49bd7b33015b924e7, type: 3}
+  - characterId: germany_ruler_2
+    portrait: {fileID: -8274004511005265272, guid: 64f8e95c26f4fe1459adc732aef3b2fd, type: 3}
+  - characterId: germany_ruler_3
+    portrait: {fileID: -949876343196033298, guid: af38df7f8b5882447811f85c5b897fbd, type: 3}
+  - characterId: germany_sec_1
+    portrait: {fileID: -3845794747475309318, guid: 3389a3a99cd3bb34e84b697be9b8652a, type: 3}
+  - characterId: germany_sec_2
+    portrait: {fileID: 2242480394565994835, guid: 293ff9bf4c83f1f4f9a3c89c056f2f7c, type: 3}
+  - characterId: germany_sec_3
+    portrait: {fileID: -3668892774508502548, guid: ae3a1b1074503a04e92706f89ddc7607, type: 3}
+  - characterId: great_britain_dip_1
+    portrait: {fileID: -2075171151647823563, guid: fdf6368c711c8b84e8a748e71fdbe77f, type: 3}
+  - characterId: great_britain_dip_2
+    portrait: {fileID: -6496208459244428516, guid: a10e08edfa6e7c446a54f7e35ab8e524, type: 3}
+  - characterId: great_britain_dip_3
+    portrait: {fileID: 3299426045251819939, guid: bc29c9096ca9c8b4296203d69a1d551e, type: 3}
+  - characterId: great_britain_eco_1
+    portrait: {fileID: -4159843762341508341, guid: c26008f3d21d7d94cae42e3c8de00f03, type: 3}
+  - characterId: great_britain_eco_2
+    portrait: {fileID: 6253388020916983047, guid: 830b8610d216baf448cde5652f876b58, type: 3}
+  - characterId: great_britain_eco_3
+    portrait: {fileID: 4187386881313082238, guid: e273515c93cedbb48a6663d08e445492, type: 3}
+  - characterId: great_britain_mil_1
+    portrait: {fileID: 6717141868101673709, guid: 61aea3552ceb26f4ba456fd8ddaa7410, type: 3}
+  - characterId: great_britain_mil_2
+    portrait: {fileID: 4462120796229925243, guid: 964d998b5c162e140b5727d9a25f290a, type: 3}
+  - characterId: great_britain_mil_3
+    portrait: {fileID: -6353593243251688254, guid: 63c39da43e44e8a409deb42420d734e9, type: 3}
+  - characterId: great_britain_ruler_1
+    portrait: {fileID: 4420762087057736510, guid: 6c226f3fcfb0bb94fb16dcc16c94bd73, type: 3}
+  - characterId: great_britain_ruler_2
+    portrait: {fileID: 5474755341700551966, guid: ae79e5cdff4d6c1449e82d22f9122b75, type: 3}
+  - characterId: great_britain_ruler_3
+    portrait: {fileID: 8523083071014352576, guid: d94d6fdc8a75fd642a181f35c018575d, type: 3}
+  - characterId: great_britain_sec_1
+    portrait: {fileID: -4213119631881322495, guid: cb5560ca73c67854ab484fff88f1ac81, type: 3}
+  - characterId: great_britain_sec_2
+    portrait: {fileID: -807387202545183135, guid: 10ac76bafc3640844932acfbf9deefeb, type: 3}
+  - characterId: great_britain_sec_3
+    portrait: {fileID: -4766377813012571068, guid: 8cc6bf4c63755c945b0da13f44e1695a, type: 3}
+  - characterId: imperial_japan_dip_1
+    portrait: {fileID: 8748197031433316369, guid: 73e41c9e55f22784c81d0febc2cb9747, type: 3}
+  - characterId: imperial_japan_dip_2
+    portrait: {fileID: 3533394914320939636, guid: c50cee549f954a3428e66ae38bf817bd, type: 3}
+  - characterId: imperial_japan_dip_3
+    portrait: {fileID: 2775056770274007991, guid: c49f27d06b8d5aa4d833737c3ef32924, type: 3}
+  - characterId: imperial_japan_eco_1
+    portrait: {fileID: 33223687820828389, guid: 6b2cdf173d894eb4eb6725445dcf78f9, type: 3}
+  - characterId: imperial_japan_eco_2
+    portrait: {fileID: 3219106415455135824, guid: 0fa71cfc30c075145900528e9d2bc146, type: 3}
+  - characterId: imperial_japan_eco_3
+    portrait: {fileID: 3009864453350773069, guid: 334637448edea944087f47f0fc5db5d2, type: 3}
+  - characterId: imperial_japan_mil_1
+    portrait: {fileID: -8187428337180539767, guid: b968132f5b39ab1479e56a7595a050b9, type: 3}
+  - characterId: imperial_japan_mil_2
+    portrait: {fileID: -2413144710650365907, guid: 0d9eef22429ca594fadad06535e64a71, type: 3}
+  - characterId: imperial_japan_mil_3
+    portrait: {fileID: -5375251132808912858, guid: 7c6bc80c36d5beb4a911dcc5f352296c, type: 3}
+  - characterId: imperial_japan_ruler_1
+    portrait: {fileID: -2955426649223678404, guid: 356d776876875784fad198c4f2d6d3ce, type: 3}
+  - characterId: imperial_japan_ruler_2
+    portrait: {fileID: 2417468779478462468, guid: 79a5f75749050944b892f1cbec09a6d1, type: 3}
+  - characterId: imperial_japan_ruler_3
+    portrait: {fileID: 2516853625585020109, guid: aa9f9e305a8c87543bd04c04916ba736, type: 3}
+  - characterId: imperial_japan_sec_1
+    portrait: {fileID: -3948513252059314615, guid: fd0d2eaa7570af6478d737a321b68c82, type: 3}
+  - characterId: imperial_japan_sec_2
+    portrait: {fileID: 4686599607798574738, guid: dcc189cfd31feac419071ebe584e4d1b, type: 3}
+  - characterId: imperial_japan_sec_3
+    portrait: {fileID: 2350129427867644502, guid: f2402375b1a9a6c4c88d4cc7ae5d2a55, type: 3}
+  - characterId: italy_dip_1
+    portrait: {fileID: -2257040280866346340, guid: 6225b25dc37626242bb0b57d7380d887, type: 3}
+  - characterId: italy_dip_2
+    portrait: {fileID: -5698649872489295354, guid: f09a888f01dafe449af07ae865e71626, type: 3}
+  - characterId: italy_dip_3
+    portrait: {fileID: -6170476577193526934, guid: bc7691a5726bbee4abe891ee7f931ee4, type: 3}
+  - characterId: italy_eco_1
+    portrait: {fileID: -82052364575529105, guid: 372148c1b2156a24b817cc89aab56f7c, type: 3}
+  - characterId: italy_eco_2
+    portrait: {fileID: -3628987809916079227, guid: 13cb74a12ee078241a821561297210a2, type: 3}
+  - characterId: italy_eco_3
+    portrait: {fileID: -5588831169779785032, guid: bbc2824bc114afb46871f0800eb3c38b, type: 3}
+  - characterId: italy_mil_1
+    portrait: {fileID: -2733289498560010805, guid: 76f7feee35148e44197d28c818e20537, type: 3}
+  - characterId: italy_mil_2
+    portrait: {fileID: 4222121912802048713, guid: 10f50a04752723d4499d7947035b1626, type: 3}
+  - characterId: italy_mil_3
+    portrait: {fileID: 434882326961250194, guid: 1ca4f45d908f00a4ea9e8d96969b2526, type: 3}
+  - characterId: italy_ruler_1
+    portrait: {fileID: 5828426060831160510, guid: aa0e3817aebd6554695bfa46f3c41a61, type: 3}
+  - characterId: italy_ruler_2
+    portrait: {fileID: 4996667983695758963, guid: 0c4aaa8cf5d86c443bb907be74c8a7a3, type: 3}
+  - characterId: italy_ruler_3
+    portrait: {fileID: -6957785253868985455, guid: e8568849e1d85d845a6f9be22f5b532f, type: 3}
+  - characterId: italy_sec_1
+    portrait: {fileID: -1816388196328593778, guid: 1ec0c16e816793148a1456dc8ce2f0e4, type: 3}
+  - characterId: italy_sec_2
+    portrait: {fileID: -4697740649042514837, guid: 221640c924adb6c41a2821415cb600b6, type: 3}
+  - characterId: italy_sec_3
+    portrait: {fileID: 2419142494877997854, guid: 183594524501d4a41b245d0426e48abe, type: 3}
+  - characterId: kingdom_of_brazil_dip_1
+    portrait: {fileID: 365602989831923391, guid: d72895c8c760a4442b097208d9d70ae6, type: 3}
+  - characterId: kingdom_of_brazil_dip_2
+    portrait: {fileID: -3955181786738148620, guid: 2937fba9dadbc8744b3fc28097354ef6, type: 3}
+  - characterId: kingdom_of_brazil_dip_3
+    portrait: {fileID: 8933051345817090874, guid: 600962300479e004faf73d836a9bf554, type: 3}
+  - characterId: kingdom_of_brazil_eco_1
+    portrait: {fileID: -3601656219538250138, guid: ee63c2ecdb639474397f360c6506ed27, type: 3}
+  - characterId: kingdom_of_brazil_eco_2
+    portrait: {fileID: 5632954893576022379, guid: cc25a3a608d609e4b9d84217f2f06649, type: 3}
+  - characterId: kingdom_of_brazil_eco_3
+    portrait: {fileID: -588085692745867355, guid: 4a073fcb25da16a408cfe10539edb9c3, type: 3}
+  - characterId: kingdom_of_brazil_mil_1
+    portrait: {fileID: 278380371705619456, guid: d5b2f4237388e71429bc397a50b885ae, type: 3}
+  - characterId: kingdom_of_brazil_mil_2
+    portrait: {fileID: -5891838819139956485, guid: dd41d41c107cb5b46adcdc0655ff6264, type: 3}
+  - characterId: kingdom_of_brazil_mil_3
+    portrait: {fileID: 7075726606797567758, guid: edc76fee5c43a0f489696edaf1b3a8bc, type: 3}
+  - characterId: kingdom_of_brazil_ruler_1
+    portrait: {fileID: 1303307938022597136, guid: bcbcdae5288925447b675bcc3479a7af, type: 3}
+  - characterId: kingdom_of_brazil_ruler_2
+    portrait: {fileID: 1478666067421114364, guid: 2ecbaef17d514be409b4a2aa1133cb97, type: 3}
+  - characterId: kingdom_of_brazil_ruler_3
+    portrait: {fileID: 4795051113157519126, guid: de1034de7ce36394e8348058cadd8d61, type: 3}
+  - characterId: kingdom_of_brazil_sec_1
+    portrait: {fileID: 2981745316884479011, guid: d3a3dcb235b1d534f9cf6a40c531f470, type: 3}
+  - characterId: kingdom_of_brazil_sec_2
+    portrait: {fileID: 6681042081809248135, guid: 8f24b7c723fb48a43a2f0d4055facac6, type: 3}
+  - characterId: kingdom_of_brazil_sec_3
+    portrait: {fileID: -2884817143893453827, guid: 0d285dd2997af7e4982322cfd238d090, type: 3}
+  - characterId: manchu_empire_dip_1
+    portrait: {fileID: -1080982699762584232, guid: 18dc3054d78b57b42adf3186fbe42eda, type: 3}
+  - characterId: manchu_empire_dip_2
+    portrait: {fileID: 2398317728964019141, guid: 6ac6d0826efc9c348854a34fa238f221, type: 3}
+  - characterId: manchu_empire_dip_3
+    portrait: {fileID: 4613618525574929540, guid: c419f289e18560848a1f96eb0e0f1f28, type: 3}
+  - characterId: manchu_empire_eco_1
+    portrait: {fileID: 8589763984376807763, guid: 7c093f9ccf6519347bea77ab0e046951, type: 3}
+  - characterId: manchu_empire_eco_2
+    portrait: {fileID: 8468918181783599887, guid: 5353a027d9ff8f749a5d5747d0d97f64, type: 3}
+  - characterId: manchu_empire_eco_3
+    portrait: {fileID: 9216659301116888750, guid: e098c2d53c038d94f9b95f1a634d85f5, type: 3}
+  - characterId: manchu_empire_mil_1
+    portrait: {fileID: -6261437240667552015, guid: e8e6a84a56f1c7b48b232e679ca83cbf, type: 3}
+  - characterId: manchu_empire_mil_2
+    portrait: {fileID: -8062231187537467051, guid: 8a2ccc9af481bf841b2f2a859bff9d97, type: 3}
+  - characterId: manchu_empire_mil_3
+    portrait: {fileID: 8830975161170322999, guid: bc8c2e01e46e39243bab20669220602a, type: 3}
+  - characterId: manchu_empire_ruler_1
+    portrait: {fileID: -7982038526539512664, guid: 397f92ee9daf9e34080c13fce6321fe1, type: 3}
+  - characterId: manchu_empire_ruler_2
+    portrait: {fileID: 8185088446113049884, guid: 55d646a4e82fd754ba919a7439b2072f, type: 3}
+  - characterId: manchu_empire_ruler_3
+    portrait: {fileID: -6784832010696907297, guid: 3a2a0aa8b3f3d924dbfd23d464fd0b38, type: 3}
+  - characterId: manchu_empire_sec_1
+    portrait: {fileID: -2931990293847769785, guid: 35a25f011f4a9c946a03a258aad2cf95, type: 3}
+  - characterId: manchu_empire_sec_2
+    portrait: {fileID: -5485478123519732363, guid: 9e40249d066faa44faba74234486896c, type: 3}
+  - characterId: manchu_empire_sec_3
+    portrait: {fileID: 2977823404315785476, guid: 8464adb128816f74db1c5f1fefe2885d, type: 3}
+  - characterId: netherlands_dip_1
+    portrait: {fileID: 9142621779706647758, guid: 66abcf4b897b4414badf84ab30099f3a, type: 3}
+  - characterId: netherlands_dip_2
+    portrait: {fileID: -3699044495290479559, guid: 986408804b8687b43a53aa3d9b060340, type: 3}
+  - characterId: netherlands_dip_3
+    portrait: {fileID: 2062938297409340721, guid: b552cd084fbc34c48920d2fe03fe9df7, type: 3}
+  - characterId: netherlands_eco_1
+    portrait: {fileID: -9174959790010081965, guid: 1d5a717d53780594d97943dfb73ffc55, type: 3}
+  - characterId: netherlands_eco_2
+    portrait: {fileID: -3113240031983869718, guid: faa4fcfc096b3224ea206b4a48f24148, type: 3}
+  - characterId: netherlands_eco_3
+    portrait: {fileID: 143471930246354765, guid: 69f9b19e88458c348a47dfcf502f4e08, type: 3}
+  - characterId: netherlands_mil_1
+    portrait: {fileID: 6080534723907759436, guid: 088cb06748cfdaf459e31cbea141b53a, type: 3}
+  - characterId: netherlands_mil_2
+    portrait: {fileID: -1779120752781227853, guid: dd6947e402a1d0a499dd785850685e6b, type: 3}
+  - characterId: netherlands_mil_3
+    portrait: {fileID: 2999056148986044738, guid: 5c769c15ecabab94fbdd86fffc2c742f, type: 3}
+  - characterId: netherlands_ruler_1
+    portrait: {fileID: -627766978853173800, guid: 880d30798c9b6694fb13e3a517cb56dc, type: 3}
+  - characterId: netherlands_ruler_2
+    portrait: {fileID: -3909180907616413979, guid: e4b5378c9b626904e8c14615b983e775, type: 3}
+  - characterId: netherlands_ruler_3
+    portrait: {fileID: -5455522556054019759, guid: ca8b6f97036be5049b7632338abb6aeb, type: 3}
+  - characterId: netherlands_sec_1
+    portrait: {fileID: -5923141613833001006, guid: e3e4f854ef3bd27479b7672e783cbd5e, type: 3}
+  - characterId: netherlands_sec_2
+    portrait: {fileID: 155422155963291767, guid: b3f99b2c661bd7242a82dd7bb6fe8612, type: 3}
+  - characterId: netherlands_sec_3
+    portrait: {fileID: 5532224928061073459, guid: 405a7b53a731a2e458bb58f24519b6d9, type: 3}
+  - characterId: ottoman_empire_dip_1
+    portrait: {fileID: 4172599697992734595, guid: a802c0c2e35cc64479da04549ee2f6c9, type: 3}
+  - characterId: ottoman_empire_dip_2
+    portrait: {fileID: 305819462215348359, guid: f5c25c6b9ad6d9a4b96d07d303431134, type: 3}
+  - characterId: ottoman_empire_dip_3
+    portrait: {fileID: 4725301171324015225, guid: 68b2f2310c331604991a8c1bbc6cf1ed, type: 3}
+  - characterId: ottoman_empire_eco_1
+    portrait: {fileID: 9142775363312625681, guid: 3f4e5bcd0c8bb6143a590c7e26ca8270, type: 3}
+  - characterId: ottoman_empire_eco_2
+    portrait: {fileID: 3226257729070500687, guid: 07714fbfe6a9c6c4a87392bba08dae41, type: 3}
+  - characterId: ottoman_empire_eco_3
+    portrait: {fileID: -4360667561242355777, guid: 3f639e90264c1b147801888aca2d89c3, type: 3}
+  - characterId: ottoman_empire_mil_1
+    portrait: {fileID: 5950205981223698961, guid: fc1ef9bf66113574fab9fdc1c3425170, type: 3}
+  - characterId: ottoman_empire_mil_2
+    portrait: {fileID: 1634811015817923294, guid: 25dae226f20e9ee4ead972046f38038e, type: 3}
+  - characterId: ottoman_empire_mil_3
+    portrait: {fileID: 6420719024637081162, guid: 716c1ebcc402fb24b939502e5a5afe5a, type: 3}
+  - characterId: ottoman_empire_ruler_1
+    portrait: {fileID: -8874960357427876520, guid: b0ec0cf6dc95610438b2806065e07013, type: 3}
+  - characterId: ottoman_empire_ruler_2
+    portrait: {fileID: -6497229591496500652, guid: c2029feab694cea468b50f9f08802b1e, type: 3}
+  - characterId: ottoman_empire_ruler_3
+    portrait: {fileID: 8998154290167439490, guid: 81c9fc1c6c0e64746beaf8d208e41e92, type: 3}
+  - characterId: ottoman_empire_sec_1
+    portrait: {fileID: 6267925917210585450, guid: 63af821b9059a5747bf6f3e122d8088f, type: 3}
+  - characterId: ottoman_empire_sec_2
+    portrait: {fileID: 8783107568709573584, guid: 94c6e21f0f84da149aa114197bb13310, type: 3}
+  - characterId: ottoman_empire_sec_3
+    portrait: {fileID: -2884824600744376923, guid: 873965bea5075aa4fb886e9b9d91bdf7, type: 3}
+  - characterId: persia_dip_1
+    portrait: {fileID: -8816346316471884247, guid: 580a4195ad043a945a0ad8f0992b0646, type: 3}
+  - characterId: persia_dip_2
+    portrait: {fileID: 3952570575438861651, guid: 7b586d02b27c9444baca491f362f4e0b, type: 3}
+  - characterId: persia_dip_3
+    portrait: {fileID: 8380359088178130595, guid: b22eeec396f40634ca029bd455832d66, type: 3}
+  - characterId: persia_eco_1
+    portrait: {fileID: -3552015256472979791, guid: 269df1b34029f1948b7992f633b97e57, type: 3}
+  - characterId: persia_eco_2
+    portrait: {fileID: 3258396280259084746, guid: ba9a86cdab54f194288a88966478aae7, type: 3}
+  - characterId: persia_eco_3
+    portrait: {fileID: 9115683899798896987, guid: b3f10dd204ab8944c88c2b7b2f62a711, type: 3}
+  - characterId: persia_mil_1
+    portrait: {fileID: 7301013673720821365, guid: 407ca315300b8b749ba3c5525122c48b, type: 3}
+  - characterId: persia_mil_2
+    portrait: {fileID: -6961428187689536933, guid: 67b49af058df97640a28e7f48188d78e, type: 3}
+  - characterId: persia_mil_3
+    portrait: {fileID: -2002833667265896462, guid: 7d1e2244e604c7d448f38f671e57f9a0, type: 3}
+  - characterId: persia_ruler_1
+    portrait: {fileID: -4569850179684696108, guid: 79c76aca46daa884eb9fb1d6c896dc31, type: 3}
+  - characterId: persia_ruler_2
+    portrait: {fileID: 8995545154808776939, guid: bfd5bed3736e28740894950f0e699e3c, type: 3}
+  - characterId: persia_ruler_3
+    portrait: {fileID: -1918666460989757237, guid: cd270ba6001c5fd4d96118a4bf1e217b, type: 3}
+  - characterId: persia_sec_1
+    portrait: {fileID: 1030006937641527330, guid: f83afe58d475a2f41a87127bf4a9a526, type: 3}
+  - characterId: persia_sec_2
+    portrait: {fileID: -8620205837060075755, guid: 2adee45303ae7ee42a43e5db99fdf15e, type: 3}
+  - characterId: persia_sec_3
+    portrait: {fileID: 5306543805231905906, guid: 9e90804fbdae5d441841918ac3476733, type: 3}
+  - characterId: portugal_dip_1
+    portrait: {fileID: 3479326718131600082, guid: 567447ee6d6a08c4790ab7173cef192e, type: 3}
+  - characterId: portugal_dip_2
+    portrait: {fileID: -9087852195605234742, guid: 7614bddd623fc9d41b7fa1d90b64a624, type: 3}
+  - characterId: portugal_dip_3
+    portrait: {fileID: -4731641624670001944, guid: f829091a0fad08c44846048c192bb8e1, type: 3}
+  - characterId: portugal_eco_1
+    portrait: {fileID: 2907136543503612063, guid: 206fe7e3fb33ba645855a900cdfd21c9, type: 3}
+  - characterId: portugal_eco_2
+    portrait: {fileID: 1893936750395214221, guid: 3786c0a6cb465e24fb8d85793dea02cb, type: 3}
+  - characterId: portugal_eco_3
+    portrait: {fileID: 8992856626007129419, guid: 9e2ec67f4964b0447ab22b035f5a7eaa, type: 3}
+  - characterId: portugal_mil_1
+    portrait: {fileID: 8304646063662765565, guid: c02d78e614b10cb4ea623ae51d54b697, type: 3}
+  - characterId: portugal_mil_2
+    portrait: {fileID: -9011432062458843179, guid: 7f3c98bb2ac129e4388a7a69edc7a82c, type: 3}
+  - characterId: portugal_mil_3
+    portrait: {fileID: 4714020149040330079, guid: df6431492dd461642be4cbd5746f6467, type: 3}
+  - characterId: portugal_ruler_1
+    portrait: {fileID: 6639811088170555798, guid: bcce1562cf7a08e46ae07ecb2d9b3a9d, type: 3}
+  - characterId: portugal_ruler_2
+    portrait: {fileID: 8216811022274362432, guid: 77f10e0e61bc19b47ad27cfa4561e35d, type: 3}
+  - characterId: portugal_ruler_3
+    portrait: {fileID: -6137717587287494060, guid: 4d68f57cfac76464ab135d18591a07c5, type: 3}
+  - characterId: portugal_sec_1
+    portrait: {fileID: -2669982971862966133, guid: d5682e12e649e744382b83a16cec64ae, type: 3}
+  - characterId: portugal_sec_2
+    portrait: {fileID: 4725797399375474324, guid: a0fc097de315faa49b77b937361dea7c, type: 3}
+  - characterId: portugal_sec_3
+    portrait: {fileID: -5732179864439720820, guid: d487b4075160e694b961228639b9ab44, type: 3}
+  - characterId: russian_empire_dip_1
+    portrait: {fileID: 6970333581007087478, guid: dcd93d7428ff4284495b4a0a442860f5, type: 3}
+  - characterId: russian_empire_dip_2
+    portrait: {fileID: -5340636752556275669, guid: 5db25a649e60a7845bae4e0c91464c96, type: 3}
+  - characterId: russian_empire_dip_3
+    portrait: {fileID: -6829893981214829583, guid: 2674b1be06f640d44a630b5866e2f6c4, type: 3}
+  - characterId: russian_empire_eco_1
+    portrait: {fileID: -9148024970256639850, guid: 70dddea580d7eea4597f83a85abfee6f, type: 3}
+  - characterId: russian_empire_eco_2
+    portrait: {fileID: -2152685356277777944, guid: 487beeedba389364ab966205d3e58e63, type: 3}
+  - characterId: russian_empire_eco_3
+    portrait: {fileID: -7186437382711765401, guid: 1c0237f4828bf4c4d894c9804b16f84e, type: 3}
+  - characterId: russian_empire_mil_1
+    portrait: {fileID: -5296120568073587272, guid: 17c3807158b877f498a3b7491e2af242, type: 3}
+  - characterId: russian_empire_mil_2
+    portrait: {fileID: 849660927747161134, guid: c8b73ad92fef2de4a90e9ef0085fc975, type: 3}
+  - characterId: russian_empire_mil_3
+    portrait: {fileID: 6795185166138408912, guid: f4c7a4ddae2304b448c8e5978bb4881d, type: 3}
+  - characterId: russian_empire_ruler_1
+    portrait: {fileID: 4401808160258857024, guid: 8e960787e5d446040bc29cf3ae09a208, type: 3}
+  - characterId: russian_empire_ruler_2
+    portrait: {fileID: -8481810944969889246, guid: 8e30cf35ffdeda34d8169e98149d26f3, type: 3}
+  - characterId: russian_empire_ruler_3
+    portrait: {fileID: 2206736287079446686, guid: 512c532dcf6b16b478e76f1fbd33dd19, type: 3}
+  - characterId: russian_empire_sec_1
+    portrait: {fileID: 64447728858385025, guid: 87b725b93794d5f4b8ab30e82299bcc0, type: 3}
+  - characterId: russian_empire_sec_2
+    portrait: {fileID: -19048876461326178, guid: ab90f0be770e21844bf0f0368ddcc52c, type: 3}
+  - characterId: russian_empire_sec_3
+    portrait: {fileID: 4330614311157126587, guid: 734bc14fbcbf58249afca8d65fbeb7cd, type: 3}
+  - characterId: spain_dip_1
+    portrait: {fileID: 3743492360126215292, guid: 3d9a4130d8770f8409276de3dd7c460b, type: 3}
+  - characterId: spain_dip_2
+    portrait: {fileID: -8948821691263665144, guid: 3f555c66c572a7142ab62cd7f5d8d501, type: 3}
+  - characterId: spain_dip_3
+    portrait: {fileID: 1404449740575009864, guid: ad35dcdf80122d44eac20d9618069569, type: 3}
+  - characterId: spain_eco_1
+    portrait: {fileID: -6338549650136865767, guid: c3b89e0867477bb4f8b499e7713d7421, type: 3}
+  - characterId: spain_eco_2
+    portrait: {fileID: 1035261006521546719, guid: 299996c3f3e51f14a81c9ada460e3ecc, type: 3}
+  - characterId: spain_eco_3
+    portrait: {fileID: 1041890363697850882, guid: e16b7622752c5bd40a07568d23f2fe83, type: 3}
+  - characterId: spain_mil_1
+    portrait: {fileID: 1580982319307532104, guid: 24ee9b36b1ba77f48812fffa6bd2d089, type: 3}
+  - characterId: spain_mil_2
+    portrait: {fileID: 2330523301432220283, guid: 27b2d7d7a25c7a04ca6976b30abfb8e0, type: 3}
+  - characterId: spain_mil_3
+    portrait: {fileID: 8664407318466728063, guid: 4cc35c3e832f94640b98024ade4b4220, type: 3}
+  - characterId: spain_ruler_1
+    portrait: {fileID: 8596610895205219762, guid: 85a0abc754327814f8b772ec5c87301f, type: 3}
+  - characterId: spain_ruler_2
+    portrait: {fileID: 3222608725545315092, guid: f8f6f839a05a2ec4ca0270e4b69039ef, type: 3}
+  - characterId: spain_ruler_3
+    portrait: {fileID: 252122014923463419, guid: b3d91bb6b5fb59b4d84329cd02215646, type: 3}
+  - characterId: spain_sec_1
+    portrait: {fileID: -5256118844537539520, guid: fb120921cfa00a442a50a73674ef60f3, type: 3}
+  - characterId: spain_sec_2
+    portrait: {fileID: -7094741343225889290, guid: ca813d5f340859e4388b86f39c93dbec, type: 3}
+  - characterId: spain_sec_3
+    portrait: {fileID: 7817037530831433592, guid: aae13bb87d9bd9d46b9623377e3e5cec, type: 3}
+  - characterId: swedennorway_dip_1
+    portrait: {fileID: 246637767656060634, guid: 984903ac014cb8b47ad6032f973c15e9, type: 3}
+  - characterId: swedennorway_dip_2
+    portrait: {fileID: -8014254319633531533, guid: 14a55c1ce14912645a8cfc0bb8ab25bc, type: 3}
+  - characterId: swedennorway_dip_3
+    portrait: {fileID: -7623114851478090351, guid: 6fdfc3ee2e1850d45a6eabe06b1f16e6, type: 3}
+  - characterId: swedennorway_eco_1
+    portrait: {fileID: -2077504137778595184, guid: f8334db1ab200554db7c7e0270ec424f, type: 3}
+  - characterId: swedennorway_eco_2
+    portrait: {fileID: -8102857730603164332, guid: 529cc4f967f877b48ab88699db9f9292, type: 3}
+  - characterId: swedennorway_eco_3
+    portrait: {fileID: -1966756691467941851, guid: dc7f290e58b078f45b0afacf55095cd7, type: 3}
+  - characterId: swedennorway_mil_1
+    portrait: {fileID: -9180226167692399086, guid: dc0d33de35b55ab419609a81f9751562, type: 3}
+  - characterId: swedennorway_mil_2
+    portrait: {fileID: -84066849931797154, guid: 7e4dbcdf8b9c63149a0a2b915db77c8d, type: 3}
+  - characterId: swedennorway_mil_3
+    portrait: {fileID: -5923472608686863901, guid: 854707706856e9d4483bb63bcf92980f, type: 3}
+  - characterId: swedennorway_ruler_1
+    portrait: {fileID: -7132240910687630378, guid: 64d36eaae8ea8964087530d6c66b9e02, type: 3}
+  - characterId: swedennorway_ruler_2
+    portrait: {fileID: 7856465036034708075, guid: 13c06cfc91c99334bbdbda73481f6cd2, type: 3}
+  - characterId: swedennorway_ruler_3
+    portrait: {fileID: 6859123017032680807, guid: a92a9139465e86546a545f5ce8583302, type: 3}
+  - characterId: swedennorway_sec_1
+    portrait: {fileID: 3730402100977798459, guid: d2d447759ec83a24581b08ba303ac40b, type: 3}
+  - characterId: swedennorway_sec_2
+    portrait: {fileID: -714583296524058186, guid: b176a82ba6a08244096723781979f49f, type: 3}
+  - characterId: swedennorway_sec_3
+    portrait: {fileID: 1478656982072871868, guid: 1fe7a4e64c01f0a49ac07e1e772cce6d, type: 3}
+  - characterId: united_states_dip_1
+    portrait: {fileID: 6322861209065889496, guid: dc5d2826ed04c124aa50c4ea66e60868, type: 3}
+  - characterId: united_states_dip_2
+    portrait: {fileID: 9116595767750553005, guid: 676952262e4180b47a883901c94563df, type: 3}
+  - characterId: united_states_dip_3
+    portrait: {fileID: -1782912654612813880, guid: 19f0d204edbaa1b46a7d9f937bcea4a9, type: 3}
+  - characterId: united_states_eco_1
+    portrait: {fileID: -6215850585227779168, guid: fcc7f9fffab49db44adc8bcf2f5e34d6, type: 3}
+  - characterId: united_states_eco_2
+    portrait: {fileID: 1376829622306150356, guid: f19c00b46a509044892de128ce87896b, type: 3}
+  - characterId: united_states_eco_3
+    portrait: {fileID: 2982207218038145749, guid: 4bd3a17a696248841afd9e51069dfb29, type: 3}
+  - characterId: united_states_mil_1
+    portrait: {fileID: 2367877312399439335, guid: d0b40cb301e098643833c06343ad2e77, type: 3}
+  - characterId: united_states_mil_2
+    portrait: {fileID: 6682513499230816236, guid: 91016e2157f0c784ea68bcb677f75952, type: 3}
+  - characterId: united_states_mil_3
+    portrait: {fileID: -6872488979106363461, guid: 453c234f7b079a545acbad47b2755582, type: 3}
+  - characterId: united_states_ruler_1
+    portrait: {fileID: -513320194555269771, guid: 5aedd9259b7572345961f4fd20395aee, type: 3}
+  - characterId: united_states_ruler_2
+    portrait: {fileID: -5922550395372848714, guid: 64990642fae23a146911211ab654ce88, type: 3}
+  - characterId: united_states_ruler_3
+    portrait: {fileID: 2798841442230988020, guid: de995955314655a44b8b1fb1b79df31a, type: 3}
+  - characterId: united_states_sec_1
+    portrait: {fileID: -5192523166958869007, guid: 7418f9e61697e044e99ac22d2ce6e557, type: 3}
+  - characterId: united_states_sec_2
+    portrait: {fileID: 4451819055144348775, guid: 71efa4bfb33ea174f98d08907450973a, type: 3}
+  - characterId: united_states_sec_3
+    portrait: {fileID: 6109646383751972602, guid: 01b27f9f3b13453458c6711dc305431a, type: 3}
