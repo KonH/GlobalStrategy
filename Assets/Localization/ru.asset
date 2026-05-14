@@ -513,3 +513,987 @@ MonoBehaviour:
     Value: Барон
   - Key: character.name.char_spy
     Value: Советник
+  - Key: character.name.part.julio
+    Value: "\u0425\u0443\u043b\u0438\u043e"
+  - Key: character.name.part.roca
+    Value: "\u0420\u043e\u043a\u0430"
+  - Key: character.name.part.bartolome
+    Value: "\u0411\u0430\u0440\u0442\u043e\u043b\u043e\u043c\u0435"
+  - Key: character.name.part.mitre
+    Value: "\u041c\u0438\u0442\u0440\u0435"
+  - Key: character.name.part.domingo
+    Value: "\u0414\u043e\u043c\u0438\u043d\u0433\u043e"
+  - Key: character.name.part.sarmiento
+    Value: "\u0421\u0430\u0440\u043c\u044c\u0435\u043d\u0442\u043e"
+  - Key: character.name.part.jose
+    Value: "\u0425\u043e\u0441\u0435"
+  - Key: character.name.part.san_martin
+    Value: "\u0421\u0430\u043d-\u041c\u0430\u0440\u0442\u0438\u043d"
+  - Key: character.name.part.manuel
+    Value: "\u041c\u0430\u043d\u0443\u044d\u043b\u044c"
+  - Key: character.name.part.belgrano
+    Value: "\u0411\u0435\u043b\u044c\u0433\u0440\u0430\u043d\u043e"
+  - Key: character.name.part.lucio
+    Value: "\u041b\u0443\u0441\u0438\u043e"
+  - Key: character.name.part.mansilla
+    Value: "\u041c\u0430\u043d\u0441\u0438\u043b\u044c\u044f"
+  - Key: character.name.part.carlos
+    Value: "\u041a\u0430\u0440\u043b\u043e\u0441"
+  - Key: character.name.part.calvo
+    Value: "\u041a\u0430\u043b\u044c\u0432\u043e"
+  - Key: character.name.part.bernardo
+    Value: "\u0411\u0435\u0440\u043d\u0430\u0440\u0434\u043e"
+  - Key: character.name.part.irigoyen
+    Value: "\u0418\u0440\u0438\u0433\u043e\u0439\u0435\u043d"
+  - Key: character.name.part.roque
+    Value: "\u0420\u043e\u043a\u0435"
+  - Key: character.name.part.saenz_pena
+    Value: "\u0421\u0430\u044d\u043d\u0441-\u041f\u0435\u043d\u044c\u044f"
+  - Key: character.name.part.ernesto
+    Value: "\u042d\u0440\u043d\u0435\u0441\u0442\u043e"
+  - Key: character.name.part.tornquist
+    Value: "\u0422\u043e\u0440\u043d\u043a\u0432\u0438\u0441\u0442"
+  - Key: character.name.part.eduardo
+    Value: "\u042d\u0434\u0443\u0430\u0440\u0434\u043e"
+  - Key: character.name.part.casey
+    Value: "\u041a\u0435\u0439\u0441\u0438"
+  - Key: character.name.part.pellegrini
+    Value: "\u041f\u0435\u043b\u043b\u0435\u0433\u0440\u0438\u043d\u0438"
+  - Key: character.name.part.hernandez
+    Value: "\u042d\u0440\u043d\u0430\u043d\u0434\u0435\u0441"
+  - Key: character.name.part.leandro
+    Value: "\u041b\u0435\u0430\u043d\u0434\u0440\u043e"
+  - Key: character.name.part.alem
+    Value: "\u0410\u043b\u0435\u043c"
+  - Key: character.name.part.adolfo
+    Value: "\u0410\u0434\u043e\u043b\u044c\u0444\u043e"
+  - Key: character.name.part.alsina
+    Value: "\u0410\u043b\u044c\u0441\u0438\u043d\u0430"
+  - Key: character.name.part.franz
+    Value: "\u0424\u0440\u0430\u043d\u0446"
+  - Key: character.name.part.joseph
+    Value: "\u0418\u043e\u0441\u0438\u0444"
+  - Key: character.name.part.i
+    Value: I
+  - Key: character.name.part.empress
+    Value: "\u0418\u043c\u043f\u0435\u0440\u0430\u0442\u0440\u0438\u0446\u0430"
+  - Key: character.name.part.elisabeth
+    Value: "\u042d\u043b\u0438\u0437\u0430\u0431\u0435\u0442"
+  - Key: character.name.part.crown_prince
+    Value: "\u041a\u0440\u043e\u043d\u043f\u0440\u0438\u043d\u0446"
+  - Key: character.name.part.rudolf
+    Value: "\u0420\u0443\u0434\u043e\u043b\u044c\u0444"
+  - Key: character.name.part.archduke
+    Value: "\u042d\u0440\u0446\u0433\u0435\u0440\u0446\u043e\u0433"
+  - Key: character.name.part.albrecht
+    Value: "\u0410\u043b\u044c\u0431\u0440\u0435\u0445\u0442"
+  - Key: character.name.part.ludwig
+    Value: "\u041b\u044e\u0434\u0432\u0438\u0433"
+  - Key: character.name.part.von_benedek
+    Value: "\u0444\u043e\u043d-\u0411\u0435\u043d\u0435\u0434\u0435\u043a"
+  - Key: character.name.part.friedrich
+    Value: "\u0424\u0440\u0438\u0434\u0440\u0438\u0445"
+  - Key: character.name.part.von_beck_rzikowsky
+    Value: "\u0444\u043e\u043d-\u0411\u0435\u043a-\u0420\u0436\u0438\u043a\u043e\u0432\u0441\u043a\u0438"
+  - Key: character.name.part.count
+    Value: "\u0413\u0440\u0430\u0444"
+  - Key: character.name.part.kalnoky
+    Value: "\u041a\u0430\u043b\u044c\u043d\u043e\u043a\u0438"
+  - Key: character.name.part.von_beust
+    Value: "\u0444\u043e\u043d-\u0411\u0451\u0439\u0441\u0442"
+  - Key: character.name.part.baron
+    Value: "\u0411\u0430\u0440\u043e\u043d"
+  - Key: character.name.part.von_haymerle
+    Value: "\u0444\u043e\u043d-\u0425\u0430\u0439\u043c\u0435\u0440\u043b\u0435"
+  - Key: character.name.part.anselm
+    Value: "\u0410\u043d\u0441\u0435\u043b\u044c\u043c"
+  - Key: character.name.part.von_rothschild
+    Value: "\u0444\u043e\u043d-\u0420\u043e\u0442\u0448\u0438\u043b\u044c\u0434"
+  - Key: character.name.part.carl
+    Value: "\u041a\u0430\u0440\u043b"
+  - Key: character.name.part.wittgenstein
+    Value: "\u0412\u0438\u0442\u0433\u0435\u043d\u0448\u0442\u0435\u0439\u043d"
+  - Key: character.name.part.nikolaus
+    Value: "\u041d\u0438\u043a\u043e\u043b\u0430\u0443\u0441"
+  - Key: character.name.part.esterhazy
+    Value: "\u042d\u0441\u0442\u0435\u0440\u0445\u0430\u0437\u0438"
+  - Key: character.name.part.von_taaffe
+    Value: "\u0444\u043e\u043d-\u0422\u0430\u0430\u0444\u0444\u0435"
+  - Key: character.name.part.alfred
+    Value: "\u0410\u043b\u044c\u0444\u0440\u0435\u0434"
+  - Key: character.name.part.von_kiderlen_wachter
+    Value: "\u0444\u043e\u043d-\u041a\u0438\u0434\u0435\u0440\u043b\u0435\u043d-\u0412\u0435\u0445\u0442\u0435\u0440"
+  - Key: character.name.part.von_aehrenthal
+    Value: "\u0444\u043e\u043d-\u042d\u0440\u0435\u043d\u0442\u0430\u043b\u044c"
+  - Key: character.name.part.king
+    Value: "\u041a\u043e\u0440\u043e\u043b\u044c"
+  - Key: character.name.part.leopold
+    Value: "\u041b\u0435\u043e\u043f\u043e\u043b\u044c\u0434"
+  - Key: character.name.part.ii
+    Value: II
+  - Key: character.name.part.queen
+    Value: "\u041a\u043e\u0440\u043e\u043b\u0435\u0432\u0430"
+  - Key: character.name.part.marie_henriette
+    Value: "\u041c\u0430\u0440\u0438-\u0413\u0435\u043d\u0440\u0438\u0435\u0442\u0442\u0430"
+  - Key: character.name.part.alexis
+    Value: "\u0410\u043b\u0435\u043a\u0441\u0438\u0441"
+  - Key: character.name.part.brialmont
+    Value: "\u0411\u0440\u0438\u0430\u043b\u044c\u043c\u043e\u043d"
+  - Key: character.name.part.guillaume
+    Value: "\u0413\u0438\u0439\u043e\u043c"
+  - Key: character.name.part.greindl
+    Value: "\u0413\u0440\u0430\u0439\u043d\u0434\u043b\u044c"
+  - Key: character.name.part.jean_baptiste
+    Value: "\u0416\u0430\u043d-\u0411\u0430\u0442\u0438\u0441\u0442"
+  - Key: character.name.part.goffinet
+    Value: "\u0413\u043e\u0444\u0444\u0438\u043d\u0435"
+  - Key: character.name.part.auguste
+    Value: "\u041e\u0433\u044e\u0441\u0442"
+  - Key: character.name.part.beernaert
+    Value: "\u0411\u0435\u0435\u0440\u043d\u0430\u0440\u0442"
+  - Key: character.name.part.charles
+    Value: "\u0428\u0430\u0440\u043b\u044c"
+  - Key: character.name.part.woeste
+    Value: "\u0412\u043e\u044d\u0441\u0442"
+  - Key: character.name.part.paul
+    Value: "\u041f\u043e\u043b\u044c"
+  - Key: character.name.part.de_favereau
+    Value: "\u0434\u0435-\u0424\u0430\u0432\u0440\u043e"
+  - Key: character.name.part.john
+    Value: "\u0414\u0436\u043e\u043d"
+  - Key: character.name.part.cockerill
+    Value: "\u041a\u043e\u043a\u0435\u0440\u0438\u043b\u043b"
+  - Key: character.name.part.edouard
+    Value: "\u042d\u0434\u0443\u0430\u0440"
+  - Key: character.name.part.empain
+    Value: "\u042d\u043c\u043f\u0435\u043d"
+  - Key: character.name.part.andre
+    Value: "\u0410\u043d\u0434\u0440\u0435"
+  - Key: character.name.part.langrand_dumonceau
+    Value: "\u041b\u0430\u043d\u0433\u0440\u0430\u043d-\u0414\u044e\u043c\u043e\u043d\u0441\u043e"
+  - Key: character.name.part.walthere
+    Value: "\u0412\u0430\u043b\u0442\u0435\u0440"
+  - Key: character.name.part.frere_orban
+    Value: "\u0424\u0440\u0435\u0440-\u041e\u0440\u0431\u0430\u043d"
+  - Key: character.name.part.jules
+    Value: "\u0416\u044e\u043b\u044c"
+  - Key: character.name.part.malou
+    Value: "\u041c\u0430\u043b\u0443"
+  - Key: character.name.part.emile
+    Value: "\u042d\u043c\u0438\u043b\u044c"
+  - Key: character.name.part.de_laveleye
+    Value: "\u0434\u0435-\u041b\u0430\u0432\u0435\u043b\u0435"
+  - Key: character.name.part.khedive
+    Value: "\u0425\u0435\u0434\u0438\u0432"
+  - Key: character.name.part.ismail_pasha
+    Value: "\u0418\u0441\u043c\u0430\u0438\u043b-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.tewfik_pasha
+    Value: "\u0422\u0435\u0432\u0444\u0438\u043a-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.abbas
+    Value: "\u0410\u0431\u0431\u0430\u0441"
+  - Key: character.name.part.hilmi_ii
+    Value: "\u0425\u0438\u043b\u044c\u043c\u0438-II"
+  - Key: character.name.part.ahmad
+    Value: "\u0410\u0445\u043c\u0430\u0434"
+  - Key: character.name.part.urabi_pasha
+    Value: "\u041e\u0440\u0430\u0431\u0438-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.sulayman
+    Value: "\u0421\u0443\u043b\u0435\u0439\u043c\u0430\u043d"
+  - Key: character.name.part.al_faransawi
+    Value: "\u0430\u043b\u044c-\u0424\u0430\u0440\u0430\u043d\u0441\u0430\u0443\u0438"
+  - Key: character.name.part.ratib_pasha
+    Value: "\u0420\u0430\u0442\u0438\u0431-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.shafiq_pasha
+    Value: "\u0428\u0430\u0444\u0438\u043a-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.muhammad
+    Value: "\u041c\u0443\u0445\u0430\u043c\u043c\u0430\u0434"
+  - Key: character.name.part.abduh
+    Value: "\u0410\u0431\u0434\u043e"
+  - Key: character.name.part.butrus
+    Value: "\u0411\u0443\u0442\u0440\u043e\u0441"
+  - Key: character.name.part.ghali
+    Value: "\u0413\u0430\u043b\u0438"
+  - Key: character.name.part.nubar_pasha
+    Value: "\u041d\u0443\u0431\u0430\u0440-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.ferdinand
+    Value: "\u0424\u0435\u0440\u0434\u0438\u043d\u0430\u043d"
+  - Key: character.name.part.de_lesseps
+    Value: "\u0434\u0435-\u041b\u0435\u0441\u0441\u0435\u043f\u0441"
+  - Key: character.name.part.boghos
+    Value: "\u0411\u043e\u0433\u043e\u0441"
+  - Key: character.name.part.nubar
+    Value: "\u041d\u0443\u0431\u0430\u0440"
+  - Key: character.name.part.mustafa
+    Value: "\u041c\u0443\u0441\u0442\u0430\u0444\u0430"
+  - Key: character.name.part.riyadh_pasha
+    Value: "\u0420\u0438\u0430\u0434-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.cherif_pasha
+    Value: "\u0428\u0435\u0440\u0438\u0444-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.evelyn
+    Value: "\u042d\u0432\u0435\u043b\u0438\u043d"
+  - Key: character.name.part.baring
+    Value: "\u0411\u044d\u0440\u0438\u043d\u0433"
+  - Key: character.name.part.emperor
+    Value: "\u0418\u043c\u043f\u0435\u0440\u0430\u0442\u043e\u0440"
+  - Key: character.name.part.yohannes_iv
+    Value: "\u0419\u043e\u0445\u0430\u043d\u043d\u0435\u0441-IV"
+  - Key: character.name.part.menelik_ii
+    Value: "\u041c\u0435\u043d\u0435\u043b\u0438\u043a-II"
+  - Key: character.name.part.taytu_betul
+    Value: "\u0422\u0430\u0439\u0442\u0443-\u0411\u0435\u0442\u0443\u043b"
+  - Key: character.name.part.ras
+    Value: "\u0420\u0430\u0441"
+  - Key: character.name.part.alula_engida
+    Value: "\u0410\u043b\u0443\u043b\u0430-\u042d\u043d\u0433\u0438\u0434\u0430"
+  - Key: character.name.part.mikael
+    Value: "\u041c\u0438\u043a\u0430\u044d\u043b\u044c"
+  - Key: character.name.part.gobena_dacche
+    Value: "\u0413\u043e\u0431\u0435\u043d\u0430-\u0414\u0430\u0447\u0447\u0435"
+  - Key: character.name.part.fitawrari
+    Value: "\u0424\u0438\u0442\u0430\u0443\u0440\u0430\u0440\u0438"
+  - Key: character.name.part.damtew
+    Value: "\u0414\u0430\u043c\u0442\u0435\u0443"
+  - Key: character.name.part.ato
+    Value: "\u0410\u0442\u043e"
+  - Key: character.name.part.gabriel_gilma
+    Value: "\u0413\u0430\u0431\u0440\u0438\u044d\u043b\u044c-\u0413\u0438\u043b\u044c\u043c\u0430"
+  - Key: character.name.part.grazmach
+    Value: "\u0413\u0440\u0430\u0437\u043c\u0430\u0447"
+  - Key: character.name.part.gebre_iyesus
+    Value: "\u0413\u0435\u0431\u0440\u0435-\u0418\u0435\u0441\u0443\u0441"
+  - Key: character.name.part.makonnen_wolde_mikael
+    Value: "\u041c\u0430\u043a\u043e\u043d\u043d\u0435\u043d-\u0423\u043e\u043b\u044c\u0434\u0435-\u041c\u0438\u043a\u0430\u044d\u043b\u044c"
+  - Key: character.name.part.ilg
+    Value: "\u0418\u043b\u044c\u0433"
+  - Key: character.name.part.habte_giyorgis
+    Value: "\u0425\u0430\u0431\u0442\u0435-\u0413\u0438\u0439\u043e\u0440\u0433\u0438\u0441"
+  - Key: character.name.part.pietro
+    Value: "\u041f\u044c\u0435\u0442\u0440\u043e"
+  - Key: character.name.part.antonelli
+    Value: "\u0410\u043d\u0442\u043e\u043d\u0435\u043b\u043b\u0438"
+  - Key: character.name.part.afework
+    Value: "\u0410\u0444\u0435\u0443\u043e\u0440\u043a"
+  - Key: character.name.part.gebre_iyasus
+    Value: "\u0413\u0435\u0431\u0440\u0435-\u0418\u044f\u0441\u0443\u0441"
+  - Key: character.name.part.dejazmach
+    Value: "\u0414\u044d\u0434\u0436\u0430\u0437\u043c\u0430\u0447"
+  - Key: character.name.part.balcha_safo
+    Value: "\u0411\u0430\u043b\u044c\u0447\u0430-\u0421\u0430\u0444\u043e"
+  - Key: character.name.part.napoleon
+    Value: "\u041d\u0430\u043f\u043e\u043b\u0435\u043e\u043d"
+  - Key: character.name.part.iii
+    Value: III
+  - Key: character.name.part.sadi
+    Value: "\u0421\u0430\u0434\u0438"
+  - Key: character.name.part.carnot
+    Value: "\u041a\u0430\u0440\u043d\u043e"
+  - Key: character.name.part.grevy
+    Value: "\u0413\u0440\u0435\u0432\u0438"
+  - Key: character.name.part.patrice
+    Value: "\u041f\u0430\u0442\u0440\u0438\u0441"
+  - Key: character.name.part.mac_mahon
+    Value: "\u041c\u0430\u043a-\u041c\u0430\u0433\u043e\u043d"
+  - Key: character.name.part.gaston
+    Value: "\u0413\u0430\u0441\u0442\u043e\u043d"
+  - Key: character.name.part.de_galliffet
+    Value: "\u0434\u0435-\u0413\u0430\u043b\u0438\u0444\u0435"
+  - Key: character.name.part.gallieni
+    Value: "\u0413\u0430\u043b\u043b\u044c\u0435\u043d\u0438"
+  - Key: character.name.part.leon
+    Value: "\u041b\u0435\u043e\u043d"
+  - Key: character.name.part.say
+    Value: "\u0421\u044d\u0439"
+  - Key: character.name.part.gabriel
+    Value: "\u0413\u0430\u0431\u0440\u0438\u044d\u043b\u044c"
+  - Key: character.name.part.hanotaux
+    Value: "\u0410\u043d\u043e\u0442\u043e"
+  - Key: character.name.part.cambon
+    Value: "\u041a\u0430\u043c\u0431\u043e\u043d"
+  - Key: character.name.part.alphonse
+    Value: "\u0410\u043b\u044c\u0444\u043e\u043d\u0441"
+  - Key: character.name.part.de_rothschild
+    Value: "\u0434\u0435-\u0420\u043e\u0442\u0448\u0438\u043b\u044c\u0434"
+  - Key: character.name.part.gustave
+    Value: "\u0413\u044e\u0441\u0442\u0430\u0432"
+  - Key: character.name.part.eiffel
+    Value: "\u042d\u0439\u0444\u0435\u043b\u044c"
+  - Key: character.name.part.de_wendel
+    Value: "\u0434\u0435-\u0412\u0430\u043d\u0434\u0435\u043b\u044c"
+  - Key: character.name.part.ferry
+    Value: "\u0424\u0435\u0440\u0440\u0438"
+  - Key: character.name.part.gambetta
+    Value: "\u0413\u0430\u043c\u0431\u0435\u0442\u0442\u0430"
+  - Key: character.name.part.de_freycinet
+    Value: "\u0434\u0435-\u0424\u0440\u0435\u0439\u0441\u0438\u043d\u0435"
+  - Key: character.name.part.kaiser
+    Value: "\u041a\u0430\u0439\u0437\u0435\u0440"
+  - Key: character.name.part.wilhelm_i
+    Value: "\u0412\u0438\u043b\u044c\u0433\u0435\u043b\u044c\u043c-I"
+  - Key: character.name.part.friedrich_iii
+    Value: "\u0424\u0440\u0438\u0434\u0440\u0438\u0445-III"
+  - Key: character.name.part.wilhelm_ii
+    Value: "\u0412\u0438\u043b\u044c\u0433\u0435\u043b\u044c\u043c-II"
+  - Key: character.name.part.helmuth
+    Value: "\u0425\u0435\u043b\u044c\u043c\u0443\u0442"
+  - Key: character.name.part.von_moltke
+    Value: "\u0444\u043e\u043d-\u041c\u043e\u043b\u044c\u0442\u043a\u0435"
+  - Key: character.name.part.von_schlieffen
+    Value: "\u0444\u043e\u043d-\u0428\u043b\u0438\u0444\u0444\u0435\u043d"
+  - Key: character.name.part.august
+    Value: "\u0410\u0432\u0433\u0443\u0441\u0442"
+  - Key: character.name.part.von_mackensen
+    Value: "\u0444\u043e\u043d-\u041c\u0430\u043a\u0435\u043d\u0437\u0435\u043d"
+  - Key: character.name.part.herbert
+    Value: "\u0413\u0435\u0440\u0431\u0435\u0440\u0442"
+  - Key: character.name.part.von_bismarck
+    Value: "\u0444\u043e\u043d-\u0411\u0438\u0441\u043c\u0430\u0440\u043a"
+  - Key: character.name.part.adolf
+    Value: "\u0410\u0434\u043e\u043b\u044c\u0444"
+  - Key: character.name.part.von_munster
+    Value: "\u0444\u043e\u043d-\u041c\u044e\u043d\u0441\u0442\u0435\u0440"
+  - Key: character.name.part.von_hatzfeldt_wildenburg
+    Value: "\u0444\u043e\u043d-\u0425\u0430\u0446\u0444\u0435\u043b\u044c\u0434\u0442-\u0412\u0438\u043b\u044c\u0434\u0435\u043d\u0431\u0443\u0440\u0433"
+  - Key: character.name.part.krupp
+    Value: "\u041a\u0440\u0443\u043f\u043f"
+  - Key: character.name.part.werner
+    Value: "\u0412\u0435\u0440\u043d\u0435\u0440"
+  - Key: character.name.part.von_siemens
+    Value: "\u0444\u043e\u043d-\u0421\u0438\u043c\u0435\u043d\u0441"
+  - Key: character.name.part.thyssen
+    Value: "\u0422\u0438\u0441\u0441\u0435\u043d"
+  - Key: character.name.part.otto
+    Value: "\u041e\u0442\u0442\u043e"
+  - Key: character.name.part.von_holstein
+    Value: "\u0444\u043e\u043d-\u0413\u043e\u043b\u044c\u0448\u0442\u0435\u0439\u043d"
+  - Key: character.name.part.wilhelm
+    Value: "\u0412\u0438\u043b\u044c\u0433\u0435\u043b\u044c\u043c"
+  - Key: character.name.part.stieber
+    Value: "\u0428\u0442\u0438\u0431\u0435\u0440"
+  - Key: character.name.part.meiji
+    Value: "\u041c\u044d\u0439\u0434\u0437\u0438"
+  - Key: character.name.part.shoken
+    Value: "\u0421\u0451\u043a\u044d\u043d"
+  - Key: character.name.part.prince
+    Value: "\u041f\u0440\u0438\u043d\u0446"
+  - Key: character.name.part.arisugawa_taruhito
+    Value: "\u0410\u0440\u0438\u0437\u0443\u0433\u0430\u0432\u0430-\u0422\u0430\u0440\u0443\u0445\u0438\u0442\u043e"
+  - Key: character.name.part.yamagata
+    Value: "\u042f\u043c\u0430\u0433\u0430\u0442\u0430"
+  - Key: character.name.part.aritomo
+    Value: "\u0410\u0440\u0438\u0442\u043e\u043c\u043e"
+  - Key: character.name.part.oyama
+    Value: "\u041e\u043e\u044f\u043c\u0430"
+  - Key: character.name.part.iwao
+    Value: "\u0418\u0432\u0430\u043e"
+  - Key: character.name.part.nogi
+    Value: "\u041d\u043e\u0433\u0438"
+  - Key: character.name.part.maresuke
+    Value: "\u041c\u0430\u0440\u044d\u0441\u0443\u043a\u044d"
+  - Key: character.name.part.aoki
+    Value: "\u0410\u043e\u043a\u0438"
+  - Key: character.name.part.shuzo
+    Value: "\u0421\u044e\u0434\u0437\u043e"
+  - Key: character.name.part.enomoto
+    Value: "\u042d\u043d\u043e\u043c\u043e\u0442\u043e"
+  - Key: character.name.part.takeaki
+    Value: "\u0422\u0430\u043a\u044d\u0430\u043a\u0438"
+  - Key: character.name.part.hanabusa
+    Value: "\u0425\u0430\u043d\u0430\u0431\u0443\u0441\u0430"
+  - Key: character.name.part.yoshimoto
+    Value: "\u0401\u0441\u0438\u043c\u043e\u0442\u043e"
+  - Key: character.name.part.iwasaki
+    Value: "\u0418\u0432\u0430\u0441\u0430\u043a\u0438"
+  - Key: character.name.part.yataro
+    Value: "\u042f\u0442\u0430\u0440\u043e"
+  - Key: character.name.part.shibusawa
+    Value: "\u0421\u0438\u0431\u0443\u0441\u0430\u0432\u0430"
+  - Key: character.name.part.eiichi
+    Value: "\u042d\u0439\u0438\u0442\u0438"
+  - Key: character.name.part.okuma
+    Value: "\u041e\u043a\u0443\u043c\u0430"
+  - Key: character.name.part.shigenobu
+    Value: "\u0421\u0438\u0433\u044d\u043d\u043e\u0431\u0443"
+  - Key: character.name.part.ito
+    Value: "\u0418\u0442\u043e"
+  - Key: character.name.part.hirobumi
+    Value: "\u0425\u0438\u0440\u043e\u0431\u0443\u043c\u0438"
+  - Key: character.name.part.inoue
+    Value: "\u0418\u043d\u043e\u0443\u044d"
+  - Key: character.name.part.kaoru
+    Value: "\u041a\u0430\u043e\u0440\u0443"
+  - Key: character.name.part.kawaji
+    Value: "\u041a\u0430\u0432\u0430\u0434\u0437\u0438"
+  - Key: character.name.part.toshiyoshi
+    Value: "\u0422\u043e\u0441\u0438\u0451\u0441\u0438"
+  - Key: character.name.part.umberto_i
+    Value: "\u0423\u043c\u0431\u0435\u0440\u0442\u043e-I"
+  - Key: character.name.part.victor_emmanuel_ii
+    Value: "\u0412\u0438\u043a\u0442\u043e\u0440-\u042d\u043c\u043c\u0430\u043d\u0443\u044d\u043b\u044c-II"
+  - Key: character.name.part.margherita_savoy
+    Value: "\u041c\u0430\u0440\u0433\u0430\u0440\u0438\u0442\u0430-\u0421\u0430\u0432\u043e\u0439\u0441\u043a\u0430\u044f"
+  - Key: character.name.part.giuseppe
+    Value: "\u0414\u0436\u0443\u0437\u0435\u043f\u043f\u0435"
+  - Key: character.name.part.garibaldi
+    Value: "\u0413\u0430\u0440\u0438\u0431\u0430\u043b\u044c\u0434\u0438"
+  - Key: character.name.part.raffaele
+    Value: "\u0420\u0430\u0444\u0430\u044d\u043b\u0435"
+  - Key: character.name.part.cadorna
+    Value: "\u041a\u0430\u0434\u043e\u0440\u043d\u0430"
+  - Key: character.name.part.alfonso
+    Value: "\u0410\u043b\u044c\u0444\u043e\u043d\u0441\u043e"
+  - Key: character.name.part.la_marmora
+    Value: "\u041b\u0430-\u041c\u0430\u0440\u043c\u043e\u0440\u0430"
+  - Key: character.name.part.costantino
+    Value: "\u041a\u043e\u0441\u0442\u0430\u043d\u0442\u0438\u043d\u043e"
+  - Key: character.name.part.nigra
+    Value: "\u041d\u0438\u0433\u0440\u0430"
+  - Key: character.name.part.marco
+    Value: "\u041c\u0430\u0440\u043a\u043e"
+  - Key: character.name.part.minghetti
+    Value: "\u041c\u0438\u043d\u0433\u0435\u0442\u0442\u0438"
+  - Key: character.name.part.emilio
+    Value: "\u042d\u043c\u0438\u043b\u0438\u043e"
+  - Key: character.name.part.visconti_venosta
+    Value: "\u0412\u0438\u0441\u043a\u043e\u043d\u0442\u0438-\u0412\u0435\u043d\u043e\u0441\u0442\u0430"
+  - Key: character.name.part.alessandro
+    Value: "\u0410\u043b\u0435\u0441\u0441\u0430\u043d\u0434\u0440\u043e"
+  - Key: character.name.part.rossi
+    Value: "\u0420\u043e\u0441\u0441\u0438"
+  - Key: character.name.part.vincenzo
+    Value: "\u0412\u0438\u043d\u0447\u0435\u043d\u0446\u043e"
+  - Key: character.name.part.florio
+    Value: "\u0424\u043b\u043e\u0440\u0438\u043e"
+  - Key: character.name.part.bastogi
+    Value: "\u0411\u0430\u0441\u0442\u043e\u0434\u0436\u0438"
+  - Key: character.name.part.francesco
+    Value: "\u0424\u0440\u0430\u043d\u0447\u0435\u0441\u043a\u043e"
+  - Key: character.name.part.crispi
+    Value: "\u041a\u0440\u0438\u0441\u043f\u0438"
+  - Key: character.name.part.luigi
+    Value: "\u041b\u0443\u0438\u0434\u0436\u0438"
+  - Key: character.name.part.menabrea
+    Value: "\u041c\u0435\u043d\u0430\u0431\u0440\u0435\u0430"
+  - Key: character.name.part.alberto
+    Value: "\u0410\u043b\u044c\u0431\u0435\u0440\u0442\u043e"
+  - Key: character.name.part.blanc
+    Value: "\u0411\u043b\u0430\u043d\u043a"
+  - Key: character.name.part.pedro_ii
+    Value: "\u041f\u0435\u0434\u0440\u0443-II"
+  - Key: character.name.part.princess
+    Value: "\u041f\u0440\u0438\u043d\u0446\u0435\u0441\u0441\u0430"
+  - Key: character.name.part.isabel
+    Value: "\u0418\u0437\u0430\u0431\u0435\u043b\u044c"
+  - Key: character.name.part.pedro_i
+    Value: "\u041f\u0435\u0434\u0440\u0443-I"
+  - Key: character.name.part.duke
+    Value: "\u0413\u0435\u0440\u0446\u043e\u0433"
+  - Key: character.name.part.caxias
+    Value: "\u041a\u0430\u0448\u0438\u0430\u0441"
+  - Key: character.name.part.osorio
+    Value: "\u041e\u0437\u043e\u0440\u0438\u043e"
+  - Key: character.name.part.floriano
+    Value: "\u0424\u043b\u043e\u0440\u0438\u0430\u043d\u0443"
+  - Key: character.name.part.peixoto
+    Value: "\u041f\u0435\u0439\u0448\u043e\u0442\u0443"
+  - Key: character.name.part.joao
+    Value: "\u0416\u043e\u0430\u043e"
+  - Key: character.name.part.correia_de_oliveira
+    Value: "\u041a\u043e\u0440\u0440\u0435\u0439\u0430-\u0434\u0435-\u041e\u043b\u0438\u0432\u0435\u0439\u0440\u0430"
+  - Key: character.name.part.afonso
+    Value: "\u0410\u0444\u043e\u043d\u0441\u0443"
+  - Key: character.name.part.celso
+    Value: "\u0421\u0435\u043b\u0441\u0443"
+  - Key: character.name.part.wandenkolk
+    Value: "\u0412\u0430\u043d\u0434\u044d\u043d\u043a\u043e\u043b\u044c\u043a"
+  - Key: character.name.part.barao
+    Value: "\u0411\u0430\u0440\u0430\u043e"
+  - Key: character.name.part.de_maua
+    Value: "\u0434\u0435-\u041c\u0430\u0443\u0430"
+  - Key: character.name.part.de_cotegipe
+    Value: "\u0434\u0435-\u041a\u043e\u0442\u0435\u0436\u0438\u043f\u0435"
+  - Key: character.name.part.do_rio_branco
+    Value: "\u0434\u0443-\u0420\u0438\u0443-\u0411\u0440\u0430\u043d\u043a\u0443"
+  - Key: character.name.part.joaquim
+    Value: "\u0416\u043e\u0430\u043a\u0438\u043c"
+  - Key: character.name.part.nabuco
+    Value: "\u041d\u0430\u0431\u0443\u043a\u0443"
+  - Key: character.name.part.visconde
+    Value: "\u0412\u0438\u043a\u043e\u043d\u0442"
+  - Key: character.name.part.saraiva
+    Value: "\u0421\u0430\u0440\u0440\u0430\u0439\u0432\u0430"
+  - Key: character.name.part.cixi
+    Value: "\u0426\u044b\u0441\u0438"
+  - Key: character.name.part.guangxu
+    Value: "\u0413\u0443\u0430\u043d\u0441\u044e\u0439"
+  - Key: character.name.part.gong
+    Value: "\u0413\u0443\u043d"
+  - Key: character.name.part.zeng
+    Value: "\u0426\u0437\u044d\u043d"
+  - Key: character.name.part.guofan
+    Value: "\u0413\u043e\u0444\u0430\u043d\u044c"
+  - Key: character.name.part.li
+    Value: "\u041b\u0438"
+  - Key: character.name.part.hongzhang
+    Value: "\u0425\u0443\u043d\u0447\u0436\u0430\u043d"
+  - Key: character.name.part.zuo
+    Value: "\u0426\u0437\u043e"
+  - Key: character.name.part.zongtang
+    Value: "\u0426\u0437\u0443\u043d\u0442\u0430\u043d"
+  - Key: character.name.part.xue
+    Value: "\u0421\u044e\u044d"
+  - Key: character.name.part.fucheng
+    Value: "\u0424\u0443\u0447\u044d\u043d"
+  - Key: character.name.part.jize
+    Value: "\u0426\u0437\u0438\u0446\u0437\u044d"
+  - Key: character.name.part.chen
+    Value: "\u0427\u044d\u043d\u044c"
+  - Key: character.name.part.lanbin
+    Value: "\u041b\u0430\u043d\u044c\u0431\u0438\u043d\u044c"
+  - Key: character.name.part.sheng
+    Value: "\u0428\u044d\u043d"
+  - Key: character.name.part.xuanhuai
+    Value: "\u0421\u044e\u0430\u043d\u044c\u0445\u0443\u0430\u0439"
+  - Key: character.name.part.hu
+    Value: "\u0425\u0443"
+  - Key: character.name.part.xueyan
+    Value: "\u0421\u044e\u044d\u044f\u043d\u044c"
+  - Key: character.name.part.tang
+    Value: "\u0422\u0430\u043d"
+  - Key: character.name.part.tingshu
+    Value: "\u0422\u0438\u043d\u0448\u0443"
+  - Key: character.name.part.wenxiang
+    Value: "\u0412\u044d\u043d\u044c\u0441\u044f\u043d"
+  - Key: character.name.part.zhang
+    Value: "\u0427\u0436\u0430\u043d"
+  - Key: character.name.part.zhidong
+    Value: "\u0427\u0436\u0438\u0434\u0443\u043d"
+  - Key: character.name.part.robert
+    Value: "\u0420\u043e\u0431\u0435\u0440\u0442"
+  - Key: character.name.part.hart
+    Value: "\u0425\u0430\u0440\u0442"
+  - Key: character.name.part.william_iii
+    Value: "\u0412\u0438\u043b\u043b\u0435\u043c-III"
+  - Key: character.name.part.emma
+    Value: "\u042d\u043c\u043c\u0430"
+  - Key: character.name.part.wilhelmina
+    Value: "\u0412\u0438\u043b\u044c\u0433\u0435\u043b\u044c\u043c\u0438\u043d\u0430"
+  - Key: character.name.part.jan
+    Value: "\u042f\u043d"
+  - Key: character.name.part.van_swieten
+    Value: "\u0432\u0430\u043d-\u0421\u0432\u0438\u0442\u0435\u043d"
+  - Key: character.name.part.hendrik
+    Value: "\u0425\u0435\u043d\u0434\u0440\u0438\u043a"
+  - Key: character.name.part.veldtman_laane
+    Value: "\u0424\u0435\u043b\u044c\u0434\u0442\u043c\u0430\u043d-\u041b\u0430\u043d\u0435"
+  - Key: character.name.part.vetter
+    Value: "\u0424\u0435\u0442\u0442\u0435\u0440"
+  - Key: character.name.part.pieter
+    Value: "\u041f\u0438\u0442\u0435\u0440"
+  - Key: character.name.part.van_der_does_de_willebois
+    Value: "\u0432\u0430\u043d-\u0434\u0435\u0440-\u0414\u043e\u0435\u0441-\u0434\u0435-\u0412\u0438\u043b\u043b\u0435\u0431\u0443\u0430"
+  - Key: character.name.part.dirk
+    Value: "\u0414\u0438\u0440\u043a"
+  - Key: character.name.part.de_graeff_van_polsbroek
+    Value: "\u0434\u0435-\u0413\u0440\u0435\u0444\u0444-\u0432\u0430\u043d-\u041f\u043e\u043b\u044c\u0441\u0431\u0440\u0443\u043a"
+  - Key: character.name.part.frans
+    Value: "\u0424\u0440\u0430\u043d\u0441"
+  - Key: character.name.part.van_tets_van_goudriaan
+    Value: "\u0432\u0430\u043d-\u0422\u0435\u0442\u0441-\u0432\u0430\u043d-\u0413\u0443\u0434\u0440\u0438\u0430\u0430\u043d"
+  - Key: character.name.part.adriaan
+    Value: "\u0410\u0434\u0440\u0438\u0430\u043d"
+  - Key: character.name.part.stoop
+    Value: "\u0421\u0442\u043e\u043e\u043f"
+  - Key: character.name.part.gerard
+    Value: "\u0416\u0435\u0440\u0430\u0440"
+  - Key: character.name.part.philips
+    Value: "\u0424\u0438\u043b\u0438\u043f\u0441"
+  - Key: character.name.part.samuel
+    Value: "\u0421\u0430\u043c\u044e\u044d\u043b\u044c"
+  - Key: character.name.part.van_den_bergh
+    Value: "\u0432\u0430\u043d-\u0434\u0435\u043d-\u0411\u0435\u0440\u0433"
+  - Key: character.name.part.johan
+    Value: "\u0419\u043e\u0445\u0430\u043d"
+  - Key: character.name.part.thorbecke
+    Value: "\u0422\u043e\u0440\u0434\u0431\u0435\u043a\u0435"
+  - Key: character.name.part.abraham
+    Value: "\u0410\u0431\u0440\u0430\u0445\u0430\u043c"
+  - Key: character.name.part.kuyper
+    Value: "\u041a\u0451\u0439\u043f\u0435\u0440"
+  - Key: character.name.part.conrad
+    Value: "\u041a\u043e\u043d\u0440\u0430\u0434"
+  - Key: character.name.part.van_deventer
+    Value: "\u0432\u0430\u043d-\u0414\u0435\u0432\u0435\u043d\u0442\u0435\u0440"
+  - Key: character.name.part.sultan
+    Value: "\u0421\u0443\u043b\u0442\u0430\u043d"
+  - Key: character.name.part.abdul_hamid_ii
+    Value: "\u0410\u0431\u0434\u0443\u043b-\u0425\u0430\u043c\u0438\u0434-II"
+  - Key: character.name.part.abdulaziz
+    Value: "\u0410\u0431\u0434\u0443\u043b-\u0410\u0437\u0438\u0437"
+  - Key: character.name.part.murad_v
+    Value: "\u041c\u0443\u0440\u0430\u0434-V"
+  - Key: character.name.part.gazi
+    Value: "\u0413\u0430\u0437\u0438"
+  - Key: character.name.part.osman_pasha
+    Value: "\u041e\u0441\u043c\u0430\u043d-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.ahmed
+    Value: "\u0410\u0445\u043c\u0435\u0434"
+  - Key: character.name.part.muhtar_pasha
+    Value: "\u041c\u0443\u0445\u0442\u0430\u0440-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.namk_pasha
+    Value: "\u041d\u0430\u043c\u044b\u043a-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.said_pasha
+    Value: "\u0421\u0430\u0438\u0434-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.vefik_pasha
+    Value: "\u0412\u0435\u0444\u0438\u043a-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.mehmed
+    Value: "\u041c\u0435\u0445\u043c\u0435\u0434"
+  - Key: character.name.part.fuad_pasha
+    Value: "\u0424\u0443\u0430\u0434-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.ohannes
+    Value: "\u041e\u0445\u0430\u043d\u043d\u0435\u0441"
+  - Key: character.name.part.kaspar_duz
+    Value: "\u041a\u0430\u0441\u043f\u0430\u0440-\u0414\u0443\u0437"
+  - Key: character.name.part.agop
+    Value: "\u0410\u0433\u043e\u043f"
+  - Key: character.name.part.kazazyan_pasha
+    Value: "\u041a\u0430\u0437\u0430\u0437\u044f\u043d-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.kamil_pasha
+    Value: "\u041a\u0430\u043c\u0438\u043b\u044c-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.midhat_pasha
+    Value: "\u041c\u0438\u0434\u0445\u0430\u0442-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.ismail
+    Value: "\u0418\u0441\u043c\u0430\u0438\u043b\u044c"
+  - Key: character.name.part.kemal
+    Value: "\u041a\u0435\u043c\u0430\u043b\u044c"
+  - Key: character.name.part.fehim_pasha
+    Value: "\u0424\u0435\u0445\u0438\u043c-\u043f\u0430\u0448\u0430"
+  - Key: character.name.part.naser
+    Value: "\u041d\u0430\u0441\u0435\u0440"
+  - Key: character.name.part.al_din_shah
+    Value: "\u0430\u0434-\u0414\u0438\u043d-\u0448\u0430\u0445"
+  - Key: character.name.part.mozaffar
+    Value: "\u041c\u0443\u0437\u0430\u0444\u0444\u0430\u0440"
+  - Key: character.name.part.ad_din_shah
+    Value: "\u0430\u0434-\u0414\u0438\u043d-\u0448\u0430\u0445"
+  - Key: character.name.part.abbas_mirza
+    Value: "\u0410\u0431\u0431\u0430\u0441-\u043c\u0438\u0440\u0437\u0430"
+  - Key: character.name.part.amir
+    Value: "\u0410\u043c\u0438\u0440"
+  - Key: character.name.part.kabir
+    Value: "\u041a\u0430\u0431\u0438\u0440"
+  - Key: character.name.part.mirza
+    Value: "\u041c\u0438\u0440\u0437\u0430"
+  - Key: character.name.part.hossein_khan_sepahsalar
+    Value: "\u0425\u043e\u0441\u0441\u0435\u0439\u043d-\u0445\u0430\u043d-\u0421\u0435\u043f\u0430\u0445\u0441\u0430\u043b\u0430\u0440"
+  - Key: character.name.part.agha
+    Value: "\u0410\u0433\u0430"
+  - Key: character.name.part.khan_mahallati
+    Value: "\u0425\u0430\u043d-\u041c\u0430\u0445\u0430\u043b\u043b\u0430\u0442\u0438"
+  - Key: character.name.part.saeed_khan_ansari
+    Value: "\u0421\u0430\u0438\u0434-\u0445\u0430\u043d-\u0410\u043d\u0441\u0430\u0440\u0438"
+  - Key: character.name.part.mohsen_khan_ala_od_dowleh
+    Value: "\u041c\u043e\u0445\u0441\u0435\u043d-\u0445\u0430\u043d-\u0410\u043b\u0430-\u0443\u0434-\u0414\u043e\u0443\u043b\u0435"
+  - Key: character.name.part.mahmud_khan_qajar
+    Value: "\u041c\u0430\u0445\u043c\u0443\u0434-\u0445\u0430\u043d-\u041a\u0430\u0434\u0436\u0430\u0440"
+  - Key: character.name.part.hajj
+    Value: "\u0425\u0430\u0434\u0436"
+  - Key: character.name.part.muhammad_hasan_amin_al_zarb
+    Value: "\u041c\u0443\u0445\u0430\u043c\u043c\u0430\u0434-\u0425\u0430\u0441\u0430\u043d-\u0410\u043c\u0438\u043d-\u0430\u0437-\u0417\u0430\u0440\u0431"
+  - Key: character.name.part.julius_de_reuter
+    Value: "\u042e\u043b\u0438\u0443\u0441-\u0434\u0435-\u0420\u0435\u0439\u0442\u0435\u0440"
+  - Key: character.name.part.yusuf_khan_mostashar
+    Value: "\u042e\u0441\u0443\u0444-\u0445\u0430\u043d-\u041c\u043e\u0441\u0442\u043e\u0448\u0430\u0440"
+  - Key: character.name.part.malkom_khan
+    Value: "\u041c\u0430\u043b\u044c\u043a\u043e\u043c-\u0445\u0430\u043d"
+  - Key: character.name.part.jamal
+    Value: "\u0414\u0436\u0430\u043c\u0430\u043b\u044c"
+  - Key: character.name.part.al_afghani
+    Value: "\u0430\u043b\u044c-\u0410\u0444\u0433\u0430\u043d\u0438"
+  - Key: character.name.part.amin
+    Value: "\u0410\u043c\u0438\u043d"
+  - Key: character.name.part.al_sultan
+    Value: "\u0443\u0441-\u0421\u0443\u043b\u0442\u0430\u043d"
+  - Key: character.name.part.luis_i
+    Value: "\u041b\u0443\u0438\u0448-I"
+  - Key: character.name.part.carlos_i
+    Value: "\u041a\u0430\u0440\u043b\u0443\u0448-I"
+  - Key: character.name.part.maria_ii
+    Value: "\u041c\u0430\u0440\u0438\u044f-II"
+  - Key: character.name.part.marquis
+    Value: "\u041c\u0430\u0440\u043a\u0438\u0437"
+  - Key: character.name.part.sa_da_bandeira
+    Value: "\u0421\u0430-\u0434\u0430-\u0411\u0430\u043d\u0434\u0435\u0439\u0440\u0430"
+  - Key: character.name.part.fontes
+    Value: "\u0424\u043e\u043d\u0442\u0435\u0448"
+  - Key: character.name.part.pereira_de_melo
+    Value: "\u041f\u0435\u0440\u0435\u0439\u0440\u0430-\u0434\u0435-\u041c\u0435\u043b\u0443"
+  - Key: character.name.part.andrade_corvo
+    Value: "\u0410\u043d\u0434\u0440\u0430\u0434\u0435-\u041a\u043e\u0440\u0432\u043e"
+  - Key: character.name.part.antonio
+    Value: "\u0410\u043d\u0442\u043e\u043d\u0438\u0443"
+  - Key: character.name.part.serpa_pimentel
+    Value: "\u0421\u0435\u0440\u043f\u0430-\u041f\u0438\u043c\u0435\u043d\u0442\u0435\u043b"
+  - Key: character.name.part.de_penafiel
+    Value: "\u0434\u0435-\u041f\u0435\u043d\u0430\u0444\u0438\u0435\u043b"
+  - Key: character.name.part.jaime
+    Value: "\u0416\u0430\u0439\u043c\u0435"
+  - Key: character.name.part.batalha_reis
+    Value: "\u0411\u0430\u0442\u0430\u043b\u044c\u044f-\u0420\u0435\u0439\u0441"
+  - Key: character.name.part.de_avila
+    Value: "\u0434\u0435-\u0410\u0432\u0438\u043b\u0430"
+  - Key: character.name.part.henrique
+    Value: "\u042d\u043d\u0440\u0438\u043a\u0435"
+  - Key: character.name.part.barros_gomes
+    Value: "\u0411\u0430\u0440\u0440\u043e\u0448-\u0413\u043e\u043c\u0435\u0448"
+  - Key: character.name.part.candido
+    Value: "\u041a\u0430\u043d\u0434\u0438\u0434\u0443"
+  - Key: character.name.part.sotto_mayor
+    Value: "\u0421\u043e\u0442\u0442\u0443-\u041c\u0430\u0439\u043e\u0440"
+  - Key: character.name.part.de_aguiar
+    Value: "\u0434\u0435-\u0410\u0433\u0438\u0430\u0440"
+  - Key: character.name.part.luciano
+    Value: "\u041b\u0443\u0441\u0438\u0430\u043d\u0443"
+  - Key: character.name.part.de_castro
+    Value: "\u0434\u0435-\u041a\u0430\u0448\u0442\u0440\u0443"
+  - Key: character.name.part.oliveira
+    Value: "\u041e\u043b\u0438\u0432\u0435\u0439\u0440\u0430"
+  - Key: character.name.part.martins
+    Value: "\u041c\u0430\u0440\u0442\u0438\u043d\u0448"
+  - Key: character.name.part.alexander
+    Value: "\u0410\u043b\u0435\u043a\u0441\u0430\u043d\u0434\u0440"
+  - Key: character.name.part.nicholas
+    Value: "\u041d\u0438\u043a\u043e\u043b\u0430\u0439"
+  - Key: character.name.part.mikhail
+    Value: "\u041c\u0438\u0445\u0430\u0438\u043b"
+  - Key: character.name.part.skobelev
+    Value: "\u0421\u043a\u043e\u0431\u0435\u043b\u0435\u0432"
+  - Key: character.name.part.dragomirov
+    Value: "\u0414\u0440\u0430\u0433\u043e\u043c\u0438\u0440\u043e\u0432"
+  - Key: character.name.part.dmitry
+    Value: "\u0414\u043c\u0438\u0442\u0440\u0438\u0439"
+  - Key: character.name.part.milyutin
+    Value: "\u041c\u0438\u043b\u044e\u0442\u0438\u043d"
+  - Key: character.name.part.gorchakov
+    Value: "\u0413\u043e\u0440\u0447\u0430\u043a\u043e\u0432"
+  - Key: character.name.part.nikolai
+    Value: "\u041d\u0438\u043a\u043e\u043b\u0430\u0439"
+  - Key: character.name.part.giers
+    Value: "\u0413\u0438\u0440\u0441"
+  - Key: character.name.part.pyotr
+    Value: "\u041f\u0451\u0442\u0440"
+  - Key: character.name.part.kapnist
+    Value: "\u041a\u0430\u043f\u043d\u0438\u0441\u0442"
+  - Key: character.name.part.savva
+    Value: "\u0421\u0430\u0432\u0432\u0430"
+  - Key: character.name.part.mamontov
+    Value: "\u041c\u0430\u043c\u043e\u043d\u0442\u043e\u0432"
+  - Key: character.name.part.sergei
+    Value: "\u0421\u0435\u0440\u0433\u0435\u0439"
+  - Key: character.name.part.witte
+    Value: "\u0412\u0438\u0442\u0442\u0435"
+  - Key: character.name.part.pavel
+    Value: "\u041f\u0430\u0432\u0435\u043b"
+  - Key: character.name.part.ryabushinsky
+    Value: "\u0420\u044f\u0431\u0443\u0448\u0438\u043d\u0441\u043a\u0438\u0439"
+  - Key: character.name.part.shuvalov
+    Value: "\u0428\u0443\u0432\u0430\u043b\u043e\u0432"
+  - Key: character.name.part.ignatiev
+    Value: "\u0418\u0433\u043d\u0430\u0442\u044c\u0435\u0432"
+  - Key: character.name.part.konstantin
+    Value: "\u041a\u043e\u043d\u0441\u0442\u0430\u043d\u0442\u0438\u043d"
+  - Key: character.name.part.pobedonostsev
+    Value: "\u041f\u043e\u0431\u0435\u0434\u043e\u043d\u043e\u0441\u0446\u0435\u0432"
+  - Key: character.name.part.alfonso_xii
+    Value: "\u0410\u043b\u044c\u0444\u043e\u043d\u0441\u043e-XII"
+  - Key: character.name.part.isabella_ii
+    Value: "\u0418\u0437\u0430\u0431\u0435\u043b\u043b\u0430-II"
+  - Key: character.name.part.maria_christina
+    Value: "\u041c\u0430\u0440\u0438\u044f-\u041a\u0440\u0438\u0441\u0442\u0438\u043d\u0430"
+  - Key: character.name.part.arsenio
+    Value: "\u0410\u0440\u0441\u0435\u043d\u0438\u043e"
+  - Key: character.name.part.martinez_campos
+    Value: "\u041c\u0430\u0440\u0442\u0438\u043d\u0435\u0441-\u041a\u0430\u043c\u043f\u043e\u0441"
+  - Key: character.name.part.juan
+    Value: "\u0425\u0443\u0430\u043d"
+  - Key: character.name.part.prim
+    Value: "\u041f\u0440\u0438\u043c"
+  - Key: character.name.part.valeriano
+    Value: "\u0412\u0430\u043b\u0435\u0440\u0438\u0430\u043d\u043e"
+  - Key: character.name.part.weyler
+    Value: "\u0412\u0435\u0439\u043b\u0435\u0440"
+  - Key: character.name.part.castelar
+    Value: "\u041a\u0430\u0441\u0442\u0435\u043b\u0430\u0440"
+  - Key: character.name.part.valera
+    Value: "\u0412\u0430\u043b\u0435\u0440\u0430"
+  - Key: character.name.part.segismundo
+    Value: "\u0421\u0435\u0445\u0438\u0441\u043c\u0443\u043d\u0434\u043e"
+  - Key: character.name.part.moret
+    Value: "\u041c\u043e\u0440\u0435\u0442"
+  - Key: character.name.part.antonio_2
+    Value: "\u0410\u043d\u0442\u043e\u043d\u0438\u043e"
+  - Key: character.name.part.lopez_y_lopez
+    Value: "\u041b\u043e\u043f\u0435\u0441-\u0438-\u041b\u043e\u043f\u0435\u0441"
+  - Key: character.name.part.claudio
+    Value: "\u041a\u043b\u0430\u0443\u0434\u0438\u043e"
+  - Key: character.name.part.lopez_bru
+    Value: "\u041b\u043e\u043f\u0435\u0441-\u0411\u0440\u0443"
+  - Key: character.name.part.pablo
+    Value: "\u041f\u0430\u0431\u043b\u043e"
+  - Key: character.name.part.alzola_y_minondo
+    Value: "\u0410\u043b\u044c\u0441\u043e\u043b\u0430-\u0438-\u041c\u0438\u043d\u044c\u043e\u043d\u0434\u043e"
+  - Key: character.name.part.antonio_3
+    Value: "\u0410\u043d\u0442\u043e\u043d\u0438\u043e"
+  - Key: character.name.part.canovas_del_castillo
+    Value: "\u041a\u0430\u043d\u043e\u0432\u0430\u0441-\u0434\u0435\u043b\u044c-\u041a\u0430\u0441\u0442\u0438\u043b\u044c\u043e"
+  - Key: character.name.part.praxedes
+    Value: "\u041f\u0440\u0430\u043a\u0441\u0435\u0434\u0435\u0441"
+  - Key: character.name.part.sagasta
+    Value: "\u0421\u0430\u0433\u0430\u0441\u0442\u0430"
+  - Key: character.name.part.francisco
+    Value: "\u0424\u0440\u0430\u043d\u0441\u0438\u0441\u043a\u043e"
+  - Key: character.name.part.romero_robledo
+    Value: "\u0420\u043e\u043c\u0435\u0440\u043e-\u0420\u043e\u0431\u043bedo"
+  - Key: character.name.part.oscar_ii
+    Value: "\u041e\u0441\u043a\u0430\u0440-II"
+  - Key: character.name.part.charles_xv
+    Value: "\u041a\u0430\u0440\u043b-XV"
+  - Key: character.name.part.gustaf
+    Value: "\u0413\u0443\u0441\u0442\u0430\u0432"
+  - Key: character.name.part.arvid
+    Value: "\u0410\u0440\u0432\u0438\u0434"
+  - Key: character.name.part.posse
+    Value: "\u041f\u043e\u0441\u0441\u0435"
+  - Key: character.name.part.akerhjelm
+    Value: "\u041e\u043a\u0435\u0440\u044c\u0435\u043b\u044c\u043c"
+  - Key: character.name.part.nils
+    Value: "\u041d\u0438\u043b\u044c\u0441"
+  - Key: character.name.part.ericson
+    Value: "\u042d\u0440\u0438\u043a\u0441\u0441\u043e\u043d"
+  - Key: character.name.part.sigurd
+    Value: "\u0421\u0438\u0433\u0443\u0440\u0434"
+  - Key: character.name.part.ibsen
+    Value: "\u0418\u0431\u0441\u0435\u043d"
+  - Key: character.name.part.bildt
+    Value: "\u0411\u0438\u043b\u044c\u0434\u0442"
+  - Key: character.name.part.pontus
+    Value: "\u041f\u043e\u043d\u0442\u0443\u0441"
+  - Key: character.name.part.fahlbeck
+    Value: "\u0424\u0430\u043b\u044c\u0431\u0435\u043a"
+  - Key: character.name.part.nobel
+    Value: "\u041d\u043e\u0431\u0435\u043b\u044c"
+  - Key: character.name.part.wallenberg
+    Value: "\u0412\u0430\u043b\u043b\u0435\u043d\u0431\u0435\u0440\u0433"
+  - Key: character.name.part.lars_johan
+    Value: "\u041b\u0430\u0440\u0441-\u0419\u043e\u0445\u0430\u043d"
+  - Key: character.name.part.hierta
+    Value: "\u0419\u0435\u0440\u0442\u0430"
+  - Key: character.name.part.louis
+    Value: "\u041b\u0443\u0438"
+  - Key: character.name.part.de_geer_af_leufsta
+    Value: "\u0434\u0435-\u0413\u0438\u0440-\u0430\u0444-\u041b\u0451\u0444\u0441\u0442\u0430"
+  - Key: character.name.part.hedin
+    Value: "\u0425\u0435\u0434\u0438\u043d"
+  - Key: character.name.part.ernst
+    Value: "\u042d\u0440\u043d\u0441\u0442"
+  - Key: character.name.part.trygger
+    Value: "\u0422\u0440\u044e\u0433\u0433\u0435\u0440"
+  - Key: character.name.part.victoria
+    Value: "\u0412\u0438\u043a\u0442\u043e\u0440\u0438\u044f"
+  - Key: character.name.part.albert
+    Value: "\u0410\u043b\u044c\u0431\u0435\u0440\u0442"
+  - Key: character.name.part.edward_vii
+    Value: "\u042d\u0434\u0443\u0430\u0440\u0434-VII"
+  - Key: character.name.part.frederick
+    Value: "\u0424\u0440\u0435\u0434\u0435\u0440\u0438\u043a"
+  - Key: character.name.part.roberts
+    Value: "\u0420\u043e\u0431\u0435\u0440\u0442\u0441"
+  - Key: character.name.part.kitchener
+    Value: "\u041a\u0438\u0442\u0447\u0435\u043d\u0435\u0440"
+  - Key: character.name.part.garnet
+    Value: "\u0413\u0430\u0440\u043d\u0435\u0442"
+  - Key: character.name.part.wolseley
+    Value: "\u0423\u043e\u043b\u0441\u043b\u0438"
+  - Key: character.name.part.lord
+    Value: "\u041b\u043e\u0440\u0434"
+  - Key: character.name.part.granville
+    Value: "\u0413\u0440\u0435\u043d\u0432\u0438\u043b\u043b"
+  - Key: character.name.part.edward
+    Value: "\u042d\u0434\u0432\u0430\u0440\u0434"
+  - Key: character.name.part.malet
+    Value: "\u041c\u0430\u043b\u0435"
+  - Key: character.name.part.richard
+    Value: "\u0420\u0438\u0447\u0430\u0440\u0434"
+  - Key: character.name.part.lyons
+    Value: "\u041b\u0430\u0439\u043e\u043d\u0441"
+  - Key: character.name.part.nathan
+    Value: "\u041d\u0430\u0442\u0430\u043d"
+  - Key: character.name.part.rothschild
+    Value: "\u0420\u043e\u0442\u0448\u0438\u043b\u044c\u0434"
+  - Key: character.name.part.cecil
+    Value: "\u0421\u0435\u0441\u0438\u043b"
+  - Key: character.name.part.rhodes
+    Value: "\u0420\u043e\u0434\u0441"
+  - Key: character.name.part.william
+    Value: "\u0423\u0438\u043b\u044c\u044f\u043c"
+  - Key: character.name.part.lever
+    Value: "\u041b\u0435\u0432\u0435\u0440"
+  - Key: character.name.part.benjamin
+    Value: "\u0411\u0435\u043d\u0434\u0436\u0430\u043c\u0438\u043d"
+  - Key: character.name.part.disraeli
+    Value: "\u0414\u0438\u0437\u0440\u0430\u044d\u043b\u0438"
+  - Key: character.name.part.salisbury
+    Value: "\u0421\u043e\u043b\u0441\u0431\u0435\u0440\u0438"
+  - Key: character.name.part.anderson
+    Value: "\u0410\u043d\u0434\u0435\u0440\u0441\u043e\u043d"
+  - Key: character.name.part.ulysses
+    Value: "\u0423\u043b\u0438\u0441\u0441"
+  - Key: character.name.part.grant
+    Value: "\u0413\u0440\u0430\u043d\u0442"
+  - Key: character.name.part.chester
+    Value: "\u0427\u0435\u0441\u0442\u0435\u0440"
+  - Key: character.name.part.arthur
+    Value: "\u0410\u0440\u0442\u0443\u0440"
+  - Key: character.name.part.grover
+    Value: "\u0413\u0440\u043e\u0432\u0435\u0440"
+  - Key: character.name.part.cleveland
+    Value: "\u041a\u043b\u0438\u0432\u043b\u0435\u043d\u0434"
+  - Key: character.name.part.sherman
+    Value: "\u0428\u0435\u0440\u043c\u0430\u043d"
+  - Key: character.name.part.philip
+    Value: "\u0424\u0438\u043b\u0438\u043f"
+  - Key: character.name.part.sheridan
+    Value: "\u0428\u0435\u0440\u0438\u0434\u0430\u043d"
+  - Key: character.name.part.george
+    Value: "\u0414\u0436\u043e\u0440\u0434\u0436"
+  - Key: character.name.part.custer
+    Value: "\u041a\u0430\u0441\u0442\u0435\u0440"
+  - Key: character.name.part.hamilton
+    Value: "\u0413\u0430\u043c\u0438\u043b\u044c\u0442\u043e\u043d"
+  - Key: character.name.part.fish
+    Value: "\u0424\u0438\u0448"
+  - Key: character.name.part.james
+    Value: "\u0414\u0436\u0435\u0439\u043c\u0441"
+  - Key: character.name.part.blaine
+    Value: "\u0411\u043b\u0435\u0439\u043d"
+  - Key: character.name.part.adams
+    Value: "\u0410\u0434\u0430\u043c\u0441"
+  - Key: character.name.part.rockefeller
+    Value: "\u0420\u043e\u043a\u0444\u0435\u043b\u043b\u0435\u0440"
+  - Key: character.name.part.andrew
+    Value: "\u042d\u043d\u0434\u0440\u044e"
+  - Key: character.name.part.carnegie
+    Value: "\u041a\u0430\u0440\u043d\u0435\u0433\u0438"
+  - Key: character.name.part.pierpont
+    Value: "\u041f\u0438\u0440\u043f\u043e\u043d\u0442"
+  - Key: character.name.part.morgan
+    Value: "\u041c\u043e\u0440\u0433\u0430\u043d"
+  - Key: character.name.part.allan
+    Value: "\u0410\u043b\u043b\u0430\u043d"
+  - Key: character.name.part.pinkerton
+    Value: "\u041f\u0438\u043d\u043a\u0435\u0440\u0442\u043e\u043d"
+  - Key: character.name.part.seward
+    Value: "\u0421\u044c\u044e\u0430\u0440\u0434"
+  - Key: character.name.part.elihu
+    Value: "\u042d\u043b\u0430\u0439\u0445\u0443"
+  - Key: character.name.part.washburne
+    Value: "\u0423\u043e\u0448\u0431\u0435\u0440\u043d"

@@ -48,3 +48,4 @@ src/**/obj/
 # Packages/packages-lock.json
 .claude/settings.local.json
 .venv
+ComfyUI/

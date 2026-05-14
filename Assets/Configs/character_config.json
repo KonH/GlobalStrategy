@@ -83,8 +83,8 @@
           {
             "characterId": "argentina_ruler_1",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_i"
+              "character.name.part.julio",
+              "character.name.part.roca"
             ],
             "skills": {
               "power": {
@@ -108,8 +108,8 @@
           {
             "characterId": "argentina_ruler_2",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_ii"
+              "character.name.part.bartolome",
+              "character.name.part.mitre"
             ],
             "skills": {
               "power": {
@@ -133,8 +133,8 @@
           {
             "characterId": "argentina_ruler_3",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_iii"
+              "character.name.part.domingo",
+              "character.name.part.sarmiento"
             ],
             "skills": {
               "power": {
@@ -160,8 +160,8 @@
           {
             "characterId": "argentina_mil_1",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_military"
+              "character.name.part.jose",
+              "character.name.part.san_martin"
             ],
             "skills": {
               "power": {
@@ -173,8 +173,8 @@
           {
             "characterId": "argentina_mil_2",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_military"
+              "character.name.part.manuel",
+              "character.name.part.belgrano"
             ],
             "skills": {
               "power": {
@@ -186,8 +186,8 @@
           {
             "characterId": "argentina_mil_3",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_military"
+              "character.name.part.lucio",
+              "character.name.part.mansilla"
             ],
             "skills": {
               "power": {
@@ -201,8 +201,8 @@
           {
             "characterId": "argentina_dip_1",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_diplomat"
+              "character.name.part.carlos",
+              "character.name.part.calvo"
             ],
             "skills": {
               "charm": {
@@ -214,8 +214,8 @@
           {
             "characterId": "argentina_dip_2",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_diplomat"
+              "character.name.part.bernardo",
+              "character.name.part.irigoyen"
             ],
             "skills": {
               "charm": {
@@ -227,8 +227,8 @@
           {
             "characterId": "argentina_dip_3",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_diplomat"
+              "character.name.part.roque",
+              "character.name.part.saenz_pena"
             ],
             "skills": {
               "charm": {
@@ -242,8 +242,8 @@
           {
             "characterId": "argentina_eco_1",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_economist"
+              "character.name.part.ernesto",
+              "character.name.part.tornquist"
             ],
             "skills": {
               "stinginess": {
@@ -255,8 +255,8 @@
           {
             "characterId": "argentina_eco_2",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_economist"
+              "character.name.part.eduardo",
+              "character.name.part.casey"
             ],
             "skills": {
               "stinginess": {
@@ -268,8 +268,8 @@
           {
             "characterId": "argentina_eco_3",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_economist"
+              "character.name.part.carlos",
+              "character.name.part.pellegrini"
             ],
             "skills": {
               "stinginess": {
@@ -283,8 +283,8 @@
           {
             "characterId": "argentina_sec_1",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_spy"
+              "character.name.part.jose",
+              "character.name.part.hernandez"
             ],
             "skills": {
               "intrigue": {
@@ -296,8 +296,8 @@
           {
             "characterId": "argentina_sec_2",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_spy"
+              "character.name.part.leandro",
+              "character.name.part.alem"
             ],
             "skills": {
               "intrigue": {
@@ -309,8 +309,8 @@
           {
             "characterId": "argentina_sec_3",
             "namePartKeys": [
-              "character.name.argentinian",
-              "character.name.char_spy"
+              "character.name.part.adolfo",
+              "character.name.part.alsina"
             ],
             "skills": {
               "intrigue": {
@@ -329,8 +329,9 @@
           {
             "characterId": "austria_hungary_ruler_1",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_i"
+              "character.name.part.franz",
+              "character.name.part.joseph",
+              "character.name.part.i"
             ],
             "skills": {
               "power": {
@@ -354,8 +355,8 @@
           {
             "characterId": "austria_hungary_ruler_2",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_ii"
+              "character.name.part.empress",
+              "character.name.part.elisabeth"
             ],
             "skills": {
               "power": {
@@ -379,8 +380,8 @@
           {
             "characterId": "austria_hungary_ruler_3",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_iii"
+              "character.name.part.crown_prince",
+              "character.name.part.rudolf"
             ],
             "skills": {
               "power": {
@@ -406,8 +407,8 @@
           {
             "characterId": "austria_hungary_mil_1",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_military"
+              "character.name.part.archduke",
+              "character.name.part.albrecht"
             ],
             "skills": {
               "power": {
@@ -419,8 +420,8 @@
           {
             "characterId": "austria_hungary_mil_2",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_military"
+              "character.name.part.ludwig",
+              "character.name.part.von_benedek"
             ],
             "skills": {
               "power": {
@@ -432,8 +433,8 @@
           {
             "characterId": "austria_hungary_mil_3",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_military"
+              "character.name.part.friedrich",
+              "character.name.part.von_beck_rzikowsky"
             ],
             "skills": {
               "power": {
@@ -447,8 +448,8 @@
           {
             "characterId": "austria_hungary_dip_1",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_diplomat"
+              "character.name.part.count",
+              "character.name.part.kalnoky"
             ],
             "skills": {
               "charm": {
@@ -460,8 +461,8 @@
           {
             "characterId": "austria_hungary_dip_2",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_diplomat"
+              "character.name.part.count",
+              "character.name.part.von_beust"
             ],
             "skills": {
               "charm": {
@@ -473,8 +474,8 @@
           {
             "characterId": "austria_hungary_dip_3",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_diplomat"
+              "character.name.part.baron",
+              "character.name.part.von_haymerle"
             ],
             "skills": {
               "charm": {
@@ -488,8 +489,8 @@
           {
             "characterId": "austria_hungary_eco_1",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_economist"
+              "character.name.part.anselm",
+              "character.name.part.von_rothschild"
             ],
             "skills": {
               "stinginess": {
@@ -501,8 +502,8 @@
           {
             "characterId": "austria_hungary_eco_2",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_economist"
+              "character.name.part.carl",
+              "character.name.part.wittgenstein"
             ],
             "skills": {
               "stinginess": {
@@ -514,8 +515,8 @@
           {
             "characterId": "austria_hungary_eco_3",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_economist"
+              "character.name.part.nikolaus",
+              "character.name.part.esterhazy"
             ],
             "skills": {
               "stinginess": {
@@ -529,8 +530,8 @@
           {
             "characterId": "austria_hungary_sec_1",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_spy"
+              "character.name.part.count",
+              "character.name.part.von_taaffe"
             ],
             "skills": {
               "intrigue": {
@@ -542,8 +543,8 @@
           {
             "characterId": "austria_hungary_sec_2",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_spy"
+              "character.name.part.alfred",
+              "character.name.part.von_kiderlen_wachter"
             ],
             "skills": {
               "intrigue": {
@@ -555,8 +556,8 @@
           {
             "characterId": "austria_hungary_sec_3",
             "namePartKeys": [
-              "character.name.austrian",
-              "character.name.char_spy"
+              "character.name.part.count",
+              "character.name.part.von_aehrenthal"
             ],
             "skills": {
               "intrigue": {
@@ -575,8 +576,9 @@
           {
             "characterId": "belgium_ruler_1",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_i"
+              "character.name.part.king",
+              "character.name.part.leopold",
+              "character.name.part.ii"
             ],
             "skills": {
               "power": {
@@ -600,8 +602,9 @@
           {
             "characterId": "belgium_ruler_2",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_ii"
+              "character.name.part.king",
+              "character.name.part.leopold",
+              "character.name.part.i"
             ],
             "skills": {
               "power": {
@@ -625,8 +628,8 @@
           {
             "characterId": "belgium_ruler_3",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_iii"
+              "character.name.part.queen",
+              "character.name.part.marie_henriette"
             ],
             "skills": {
               "power": {
@@ -652,8 +655,8 @@
           {
             "characterId": "belgium_mil_1",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_military"
+              "character.name.part.alexis",
+              "character.name.part.brialmont"
             ],
             "skills": {
               "power": {
@@ -665,8 +668,8 @@
           {
             "characterId": "belgium_mil_2",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_military"
+              "character.name.part.guillaume",
+              "character.name.part.greindl"
             ],
             "skills": {
               "power": {
@@ -678,8 +681,8 @@
           {
             "characterId": "belgium_mil_3",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_military"
+              "character.name.part.jean_baptiste",
+              "character.name.part.goffinet"
             ],
             "skills": {
               "power": {
@@ -693,8 +696,8 @@
           {
             "characterId": "belgium_dip_1",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_diplomat"
+              "character.name.part.auguste",
+              "character.name.part.beernaert"
             ],
             "skills": {
               "charm": {
@@ -706,8 +709,8 @@
           {
             "characterId": "belgium_dip_2",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_diplomat"
+              "character.name.part.charles",
+              "character.name.part.woeste"
             ],
             "skills": {
               "charm": {
@@ -719,8 +722,8 @@
           {
             "characterId": "belgium_dip_3",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_diplomat"
+              "character.name.part.paul",
+              "character.name.part.de_favereau"
             ],
             "skills": {
               "charm": {
@@ -734,8 +737,8 @@
           {
             "characterId": "belgium_eco_1",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_economist"
+              "character.name.part.john",
+              "character.name.part.cockerill"
             ],
             "skills": {
               "stinginess": {
@@ -747,8 +750,8 @@
           {
             "characterId": "belgium_eco_2",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_economist"
+              "character.name.part.edouard",
+              "character.name.part.empain"
             ],
             "skills": {
               "stinginess": {
@@ -760,8 +763,8 @@
           {
             "characterId": "belgium_eco_3",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_economist"
+              "character.name.part.andre",
+              "character.name.part.langrand_dumonceau"
             ],
             "skills": {
               "stinginess": {
@@ -775,8 +778,8 @@
           {
             "characterId": "belgium_sec_1",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_spy"
+              "character.name.part.walthere",
+              "character.name.part.frere_orban"
             ],
             "skills": {
               "intrigue": {
@@ -788,8 +791,8 @@
           {
             "characterId": "belgium_sec_2",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_spy"
+              "character.name.part.jules",
+              "character.name.part.malou"
             ],
             "skills": {
               "intrigue": {
@@ -801,8 +804,8 @@
           {
             "characterId": "belgium_sec_3",
             "namePartKeys": [
-              "character.name.belgian",
-              "character.name.char_spy"
+              "character.name.part.emile",
+              "character.name.part.de_laveleye"
             ],
             "skills": {
               "intrigue": {
@@ -821,8 +824,8 @@
           {
             "characterId": "egypt_ruler_1",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_i"
+              "character.name.part.khedive",
+              "character.name.part.ismail_pasha"
             ],
             "skills": {
               "power": {
@@ -846,8 +849,8 @@
           {
             "characterId": "egypt_ruler_2",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_ii"
+              "character.name.part.khedive",
+              "character.name.part.tewfik_pasha"
             ],
             "skills": {
               "power": {
@@ -871,8 +874,8 @@
           {
             "characterId": "egypt_ruler_3",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_iii"
+              "character.name.part.abbas",
+              "character.name.part.hilmi_ii"
             ],
             "skills": {
               "power": {
@@ -898,8 +901,8 @@
           {
             "characterId": "egypt_mil_1",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_military"
+              "character.name.part.ahmad",
+              "character.name.part.urabi_pasha"
             ],
             "skills": {
               "power": {
@@ -911,8 +914,8 @@
           {
             "characterId": "egypt_mil_2",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_military"
+              "character.name.part.sulayman",
+              "character.name.part.al_faransawi"
             ],
             "skills": {
               "power": {
@@ -924,8 +927,7 @@
           {
             "characterId": "egypt_mil_3",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_military"
+              "character.name.part.ratib_pasha"
             ],
             "skills": {
               "power": {
@@ -939,8 +941,8 @@
           {
             "characterId": "egypt_dip_1",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_diplomat"
+              "character.name.part.ahmad",
+              "character.name.part.shafiq_pasha"
             ],
             "skills": {
               "charm": {
@@ -952,8 +954,8 @@
           {
             "characterId": "egypt_dip_2",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_diplomat"
+              "character.name.part.muhammad",
+              "character.name.part.abduh"
             ],
             "skills": {
               "charm": {
@@ -965,8 +967,8 @@
           {
             "characterId": "egypt_dip_3",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_diplomat"
+              "character.name.part.butrus",
+              "character.name.part.ghali"
             ],
             "skills": {
               "charm": {
@@ -980,8 +982,7 @@
           {
             "characterId": "egypt_eco_1",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_economist"
+              "character.name.part.nubar_pasha"
             ],
             "skills": {
               "stinginess": {
@@ -993,8 +994,8 @@
           {
             "characterId": "egypt_eco_2",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_economist"
+              "character.name.part.ferdinand",
+              "character.name.part.de_lesseps"
             ],
             "skills": {
               "stinginess": {
@@ -1006,8 +1007,8 @@
           {
             "characterId": "egypt_eco_3",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_economist"
+              "character.name.part.boghos",
+              "character.name.part.nubar"
             ],
             "skills": {
               "stinginess": {
@@ -1021,8 +1022,8 @@
           {
             "characterId": "egypt_sec_1",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_spy"
+              "character.name.part.mustafa",
+              "character.name.part.riyadh_pasha"
             ],
             "skills": {
               "intrigue": {
@@ -1034,8 +1035,7 @@
           {
             "characterId": "egypt_sec_2",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_spy"
+              "character.name.part.cherif_pasha"
             ],
             "skills": {
               "intrigue": {
@@ -1047,8 +1047,8 @@
           {
             "characterId": "egypt_sec_3",
             "namePartKeys": [
-              "character.name.egyptian",
-              "character.name.char_spy"
+              "character.name.part.evelyn",
+              "character.name.part.baring"
             ],
             "skills": {
               "intrigue": {
@@ -1067,8 +1067,8 @@
           {
             "characterId": "ethiopia_ruler_1",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_i"
+              "character.name.part.emperor",
+              "character.name.part.yohannes_iv"
             ],
             "skills": {
               "power": {
@@ -1092,8 +1092,8 @@
           {
             "characterId": "ethiopia_ruler_2",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_ii"
+              "character.name.part.emperor",
+              "character.name.part.menelik_ii"
             ],
             "skills": {
               "power": {
@@ -1117,8 +1117,8 @@
           {
             "characterId": "ethiopia_ruler_3",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_iii"
+              "character.name.part.empress",
+              "character.name.part.taytu_betul"
             ],
             "skills": {
               "power": {
@@ -1144,8 +1144,8 @@
           {
             "characterId": "ethiopia_mil_1",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_military"
+              "character.name.part.ras",
+              "character.name.part.alula_engida"
             ],
             "skills": {
               "power": {
@@ -1157,8 +1157,8 @@
           {
             "characterId": "ethiopia_mil_2",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_military"
+              "character.name.part.ras",
+              "character.name.part.mikael"
             ],
             "skills": {
               "power": {
@@ -1170,8 +1170,8 @@
           {
             "characterId": "ethiopia_mil_3",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_military"
+              "character.name.part.ras",
+              "character.name.part.gobena_dacche"
             ],
             "skills": {
               "power": {
@@ -1185,8 +1185,8 @@
           {
             "characterId": "ethiopia_dip_1",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_diplomat"
+              "character.name.part.fitawrari",
+              "character.name.part.damtew"
             ],
             "skills": {
               "charm": {
@@ -1198,8 +1198,8 @@
           {
             "characterId": "ethiopia_dip_2",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_diplomat"
+              "character.name.part.ato",
+              "character.name.part.gabriel_gilma"
             ],
             "skills": {
               "charm": {
@@ -1211,8 +1211,8 @@
           {
             "characterId": "ethiopia_dip_3",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_diplomat"
+              "character.name.part.grazmach",
+              "character.name.part.gebre_iyesus"
             ],
             "skills": {
               "charm": {
@@ -1226,8 +1226,8 @@
           {
             "characterId": "ethiopia_eco_1",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_economist"
+              "character.name.part.ras",
+              "character.name.part.makonnen_wolde_mikael"
             ],
             "skills": {
               "stinginess": {
@@ -1239,8 +1239,8 @@
           {
             "characterId": "ethiopia_eco_2",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_economist"
+              "character.name.part.alfred",
+              "character.name.part.ilg"
             ],
             "skills": {
               "stinginess": {
@@ -1252,8 +1252,8 @@
           {
             "characterId": "ethiopia_eco_3",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_economist"
+              "character.name.part.fitawrari",
+              "character.name.part.habte_giyorgis"
             ],
             "skills": {
               "stinginess": {
@@ -1267,8 +1267,8 @@
           {
             "characterId": "ethiopia_sec_1",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_spy"
+              "character.name.part.pietro",
+              "character.name.part.antonelli"
             ],
             "skills": {
               "intrigue": {
@@ -1280,8 +1280,8 @@
           {
             "characterId": "ethiopia_sec_2",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_spy"
+              "character.name.part.afework",
+              "character.name.part.gebre_iyasus"
             ],
             "skills": {
               "intrigue": {
@@ -1293,8 +1293,8 @@
           {
             "characterId": "ethiopia_sec_3",
             "namePartKeys": [
-              "character.name.ethiopian",
-              "character.name.char_spy"
+              "character.name.part.dejazmach",
+              "character.name.part.balcha_safo"
             ],
             "skills": {
               "intrigue": {
@@ -1313,8 +1313,8 @@
           {
             "characterId": "france_ruler_1",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_i"
+              "character.name.part.napoleon",
+              "character.name.part.iii"
             ],
             "skills": {
               "power": {
@@ -1338,8 +1338,8 @@
           {
             "characterId": "france_ruler_2",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_ii"
+              "character.name.part.sadi",
+              "character.name.part.carnot"
             ],
             "skills": {
               "power": {
@@ -1363,8 +1363,8 @@
           {
             "characterId": "france_ruler_3",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_iii"
+              "character.name.part.jules",
+              "character.name.part.grevy"
             ],
             "skills": {
               "power": {
@@ -1390,8 +1390,8 @@
           {
             "characterId": "france_mil_1",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_military"
+              "character.name.part.patrice",
+              "character.name.part.mac_mahon"
             ],
             "skills": {
               "power": {
@@ -1403,8 +1403,8 @@
           {
             "characterId": "france_mil_2",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_military"
+              "character.name.part.gaston",
+              "character.name.part.de_galliffet"
             ],
             "skills": {
               "power": {
@@ -1416,8 +1416,8 @@
           {
             "characterId": "france_mil_3",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_military"
+              "character.name.part.joseph",
+              "character.name.part.gallieni"
             ],
             "skills": {
               "power": {
@@ -1431,8 +1431,8 @@
           {
             "characterId": "france_dip_1",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_diplomat"
+              "character.name.part.leon",
+              "character.name.part.say"
             ],
             "skills": {
               "charm": {
@@ -1444,8 +1444,8 @@
           {
             "characterId": "france_dip_2",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_diplomat"
+              "character.name.part.gabriel",
+              "character.name.part.hanotaux"
             ],
             "skills": {
               "charm": {
@@ -1457,8 +1457,8 @@
           {
             "characterId": "france_dip_3",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_diplomat"
+              "character.name.part.paul",
+              "character.name.part.cambon"
             ],
             "skills": {
               "charm": {
@@ -1472,8 +1472,8 @@
           {
             "characterId": "france_eco_1",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_economist"
+              "character.name.part.alphonse",
+              "character.name.part.de_rothschild"
             ],
             "skills": {
               "stinginess": {
@@ -1485,8 +1485,8 @@
           {
             "characterId": "france_eco_2",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_economist"
+              "character.name.part.gustave",
+              "character.name.part.eiffel"
             ],
             "skills": {
               "stinginess": {
@@ -1498,8 +1498,8 @@
           {
             "characterId": "france_eco_3",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_economist"
+              "character.name.part.charles",
+              "character.name.part.de_wendel"
             ],
             "skills": {
               "stinginess": {
@@ -1513,8 +1513,8 @@
           {
             "characterId": "france_sec_1",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_spy"
+              "character.name.part.jules",
+              "character.name.part.ferry"
             ],
             "skills": {
               "intrigue": {
@@ -1526,8 +1526,8 @@
           {
             "characterId": "france_sec_2",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_spy"
+              "character.name.part.leon",
+              "character.name.part.gambetta"
             ],
             "skills": {
               "intrigue": {
@@ -1539,8 +1539,8 @@
           {
             "characterId": "france_sec_3",
             "namePartKeys": [
-              "character.name.french",
-              "character.name.char_spy"
+              "character.name.part.charles",
+              "character.name.part.de_freycinet"
             ],
             "skills": {
               "intrigue": {
@@ -1559,8 +1559,8 @@
           {
             "characterId": "germany_ruler_1",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_i"
+              "character.name.part.kaiser",
+              "character.name.part.wilhelm_i"
             ],
             "skills": {
               "power": {
@@ -1584,8 +1584,8 @@
           {
             "characterId": "germany_ruler_2",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_ii"
+              "character.name.part.kaiser",
+              "character.name.part.friedrich_iii"
             ],
             "skills": {
               "power": {
@@ -1609,8 +1609,8 @@
           {
             "characterId": "germany_ruler_3",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_iii"
+              "character.name.part.kaiser",
+              "character.name.part.wilhelm_ii"
             ],
             "skills": {
               "power": {
@@ -1636,8 +1636,8 @@
           {
             "characterId": "germany_mil_1",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_military"
+              "character.name.part.helmuth",
+              "character.name.part.von_moltke"
             ],
             "skills": {
               "power": {
@@ -1649,8 +1649,8 @@
           {
             "characterId": "germany_mil_2",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_military"
+              "character.name.part.alfred",
+              "character.name.part.von_schlieffen"
             ],
             "skills": {
               "power": {
@@ -1662,8 +1662,8 @@
           {
             "characterId": "germany_mil_3",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_military"
+              "character.name.part.august",
+              "character.name.part.von_mackensen"
             ],
             "skills": {
               "power": {
@@ -1677,8 +1677,8 @@
           {
             "characterId": "germany_dip_1",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_diplomat"
+              "character.name.part.herbert",
+              "character.name.part.von_bismarck"
             ],
             "skills": {
               "charm": {
@@ -1690,8 +1690,8 @@
           {
             "characterId": "germany_dip_2",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_diplomat"
+              "character.name.part.adolf",
+              "character.name.part.von_munster"
             ],
             "skills": {
               "charm": {
@@ -1703,8 +1703,8 @@
           {
             "characterId": "germany_dip_3",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_diplomat"
+              "character.name.part.paul",
+              "character.name.part.von_hatzfeldt_wildenburg"
             ],
             "skills": {
               "charm": {
@@ -1718,8 +1718,8 @@
           {
             "characterId": "germany_eco_1",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_economist"
+              "character.name.part.alfred",
+              "character.name.part.krupp"
             ],
             "skills": {
               "stinginess": {
@@ -1731,8 +1731,8 @@
           {
             "characterId": "germany_eco_2",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_economist"
+              "character.name.part.werner",
+              "character.name.part.von_siemens"
             ],
             "skills": {
               "stinginess": {
@@ -1744,8 +1744,8 @@
           {
             "characterId": "germany_eco_3",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_economist"
+              "character.name.part.august",
+              "character.name.part.thyssen"
             ],
             "skills": {
               "stinginess": {
@@ -1759,8 +1759,8 @@
           {
             "characterId": "germany_sec_1",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_spy"
+              "character.name.part.otto",
+              "character.name.part.von_bismarck"
             ],
             "skills": {
               "intrigue": {
@@ -1772,8 +1772,8 @@
           {
             "characterId": "germany_sec_2",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_spy"
+              "character.name.part.friedrich",
+              "character.name.part.von_holstein"
             ],
             "skills": {
               "intrigue": {
@@ -1785,8 +1785,8 @@
           {
             "characterId": "germany_sec_3",
             "namePartKeys": [
-              "character.name.german",
-              "character.name.char_spy"
+              "character.name.part.wilhelm",
+              "character.name.part.stieber"
             ],
             "skills": {
               "intrigue": {
@@ -1805,8 +1805,8 @@
           {
             "characterId": "imperial_japan_ruler_1",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_i"
+              "character.name.part.emperor",
+              "character.name.part.meiji"
             ],
             "skills": {
               "power": {
@@ -1830,8 +1830,8 @@
           {
             "characterId": "imperial_japan_ruler_2",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_ii"
+              "character.name.part.empress",
+              "character.name.part.shoken"
             ],
             "skills": {
               "power": {
@@ -1855,8 +1855,8 @@
           {
             "characterId": "imperial_japan_ruler_3",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_iii"
+              "character.name.part.prince",
+              "character.name.part.arisugawa_taruhito"
             ],
             "skills": {
               "power": {
@@ -1882,8 +1882,8 @@
           {
             "characterId": "imperial_japan_mil_1",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_military"
+              "character.name.part.yamagata",
+              "character.name.part.aritomo"
             ],
             "skills": {
               "power": {
@@ -1895,8 +1895,8 @@
           {
             "characterId": "imperial_japan_mil_2",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_military"
+              "character.name.part.oyama",
+              "character.name.part.iwao"
             ],
             "skills": {
               "power": {
@@ -1908,8 +1908,8 @@
           {
             "characterId": "imperial_japan_mil_3",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_military"
+              "character.name.part.nogi",
+              "character.name.part.maresuke"
             ],
             "skills": {
               "power": {
@@ -1923,8 +1923,8 @@
           {
             "characterId": "imperial_japan_dip_1",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_diplomat"
+              "character.name.part.aoki",
+              "character.name.part.shuzo"
             ],
             "skills": {
               "charm": {
@@ -1936,8 +1936,8 @@
           {
             "characterId": "imperial_japan_dip_2",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_diplomat"
+              "character.name.part.enomoto",
+              "character.name.part.takeaki"
             ],
             "skills": {
               "charm": {
@@ -1949,8 +1949,8 @@
           {
             "characterId": "imperial_japan_dip_3",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_diplomat"
+              "character.name.part.hanabusa",
+              "character.name.part.yoshimoto"
             ],
             "skills": {
               "charm": {
@@ -1964,8 +1964,8 @@
           {
             "characterId": "imperial_japan_eco_1",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_economist"
+              "character.name.part.iwasaki",
+              "character.name.part.yataro"
             ],
             "skills": {
               "stinginess": {
@@ -1977,8 +1977,8 @@
           {
             "characterId": "imperial_japan_eco_2",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_economist"
+              "character.name.part.shibusawa",
+              "character.name.part.eiichi"
             ],
             "skills": {
               "stinginess": {
@@ -1990,8 +1990,8 @@
           {
             "characterId": "imperial_japan_eco_3",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_economist"
+              "character.name.part.okuma",
+              "character.name.part.shigenobu"
             ],
             "skills": {
               "stinginess": {
@@ -2005,8 +2005,8 @@
           {
             "characterId": "imperial_japan_sec_1",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_spy"
+              "character.name.part.ito",
+              "character.name.part.hirobumi"
             ],
             "skills": {
               "intrigue": {
@@ -2018,8 +2018,8 @@
           {
             "characterId": "imperial_japan_sec_2",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_spy"
+              "character.name.part.inoue",
+              "character.name.part.kaoru"
             ],
             "skills": {
               "intrigue": {
@@ -2031,8 +2031,8 @@
           {
             "characterId": "imperial_japan_sec_3",
             "namePartKeys": [
-              "character.name.japanese",
-              "character.name.char_spy"
+              "character.name.part.kawaji",
+              "character.name.part.toshiyoshi"
             ],
             "skills": {
               "intrigue": {
@@ -2051,8 +2051,8 @@
           {
             "characterId": "italy_ruler_1",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_i"
+              "character.name.part.king",
+              "character.name.part.umberto_i"
             ],
             "skills": {
               "power": {
@@ -2076,8 +2076,8 @@
           {
             "characterId": "italy_ruler_2",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_ii"
+              "character.name.part.king",
+              "character.name.part.victor_emmanuel_ii"
             ],
             "skills": {
               "power": {
@@ -2101,8 +2101,8 @@
           {
             "characterId": "italy_ruler_3",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_iii"
+              "character.name.part.queen",
+              "character.name.part.margherita_savoy"
             ],
             "skills": {
               "power": {
@@ -2128,8 +2128,8 @@
           {
             "characterId": "italy_mil_1",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_military"
+              "character.name.part.giuseppe",
+              "character.name.part.garibaldi"
             ],
             "skills": {
               "power": {
@@ -2141,8 +2141,8 @@
           {
             "characterId": "italy_mil_2",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_military"
+              "character.name.part.raffaele",
+              "character.name.part.cadorna"
             ],
             "skills": {
               "power": {
@@ -2154,8 +2154,8 @@
           {
             "characterId": "italy_mil_3",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_military"
+              "character.name.part.alfonso",
+              "character.name.part.la_marmora"
             ],
             "skills": {
               "power": {
@@ -2169,8 +2169,8 @@
           {
             "characterId": "italy_dip_1",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_diplomat"
+              "character.name.part.costantino",
+              "character.name.part.nigra"
             ],
             "skills": {
               "charm": {
@@ -2182,8 +2182,8 @@
           {
             "characterId": "italy_dip_2",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_diplomat"
+              "character.name.part.marco",
+              "character.name.part.minghetti"
             ],
             "skills": {
               "charm": {
@@ -2195,8 +2195,8 @@
           {
             "characterId": "italy_dip_3",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_diplomat"
+              "character.name.part.emilio",
+              "character.name.part.visconti_venosta"
             ],
             "skills": {
               "charm": {
@@ -2210,8 +2210,8 @@
           {
             "characterId": "italy_eco_1",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_economist"
+              "character.name.part.alessandro",
+              "character.name.part.rossi"
             ],
             "skills": {
               "stinginess": {
@@ -2223,8 +2223,8 @@
           {
             "characterId": "italy_eco_2",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_economist"
+              "character.name.part.vincenzo",
+              "character.name.part.florio"
             ],
             "skills": {
               "stinginess": {
@@ -2236,8 +2236,8 @@
           {
             "characterId": "italy_eco_3",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_economist"
+              "character.name.part.pietro",
+              "character.name.part.bastogi"
             ],
             "skills": {
               "stinginess": {
@@ -2251,8 +2251,8 @@
           {
             "characterId": "italy_sec_1",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_spy"
+              "character.name.part.francesco",
+              "character.name.part.crispi"
             ],
             "skills": {
               "intrigue": {
@@ -2264,8 +2264,8 @@
           {
             "characterId": "italy_sec_2",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_spy"
+              "character.name.part.luigi",
+              "character.name.part.menabrea"
             ],
             "skills": {
               "intrigue": {
@@ -2277,8 +2277,8 @@
           {
             "characterId": "italy_sec_3",
             "namePartKeys": [
-              "character.name.italian",
-              "character.name.char_spy"
+              "character.name.part.alberto",
+              "character.name.part.blanc"
             ],
             "skills": {
               "intrigue": {
@@ -2297,8 +2297,8 @@
           {
             "characterId": "kingdom_of_brazil_ruler_1",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_i"
+              "character.name.part.emperor",
+              "character.name.part.pedro_ii"
             ],
             "skills": {
               "power": {
@@ -2322,8 +2322,8 @@
           {
             "characterId": "kingdom_of_brazil_ruler_2",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_ii"
+              "character.name.part.princess",
+              "character.name.part.isabel"
             ],
             "skills": {
               "power": {
@@ -2347,8 +2347,8 @@
           {
             "characterId": "kingdom_of_brazil_ruler_3",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_iii"
+              "character.name.part.emperor",
+              "character.name.part.pedro_i"
             ],
             "skills": {
               "power": {
@@ -2374,8 +2374,8 @@
           {
             "characterId": "kingdom_of_brazil_mil_1",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_military"
+              "character.name.part.duke",
+              "character.name.part.caxias"
             ],
             "skills": {
               "power": {
@@ -2387,8 +2387,8 @@
           {
             "characterId": "kingdom_of_brazil_mil_2",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_military"
+              "character.name.part.manuel",
+              "character.name.part.osorio"
             ],
             "skills": {
               "power": {
@@ -2400,8 +2400,8 @@
           {
             "characterId": "kingdom_of_brazil_mil_3",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_military"
+              "character.name.part.floriano",
+              "character.name.part.peixoto"
             ],
             "skills": {
               "power": {
@@ -2415,8 +2415,8 @@
           {
             "characterId": "kingdom_of_brazil_dip_1",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_diplomat"
+              "character.name.part.joao",
+              "character.name.part.correia_de_oliveira"
             ],
             "skills": {
               "charm": {
@@ -2428,8 +2428,8 @@
           {
             "characterId": "kingdom_of_brazil_dip_2",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_diplomat"
+              "character.name.part.afonso",
+              "character.name.part.celso"
             ],
             "skills": {
               "charm": {
@@ -2441,8 +2441,8 @@
           {
             "characterId": "kingdom_of_brazil_dip_3",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_diplomat"
+              "character.name.part.eduardo",
+              "character.name.part.wandenkolk"
             ],
             "skills": {
               "charm": {
@@ -2456,8 +2456,8 @@
           {
             "characterId": "kingdom_of_brazil_eco_1",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_economist"
+              "character.name.part.barao",
+              "character.name.part.de_maua"
             ],
             "skills": {
               "stinginess": {
@@ -2469,8 +2469,8 @@
           {
             "characterId": "kingdom_of_brazil_eco_2",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_economist"
+              "character.name.part.barao",
+              "character.name.part.de_cotegipe"
             ],
             "skills": {
               "stinginess": {
@@ -2482,8 +2482,8 @@
           {
             "characterId": "kingdom_of_brazil_eco_3",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_economist"
+              "character.name.part.barao",
+              "character.name.part.do_rio_branco"
             ],
             "skills": {
               "stinginess": {
@@ -2497,8 +2497,8 @@
           {
             "characterId": "kingdom_of_brazil_sec_1",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_spy"
+              "character.name.part.joaquim",
+              "character.name.part.nabuco"
             ],
             "skills": {
               "intrigue": {
@@ -2510,8 +2510,8 @@
           {
             "characterId": "kingdom_of_brazil_sec_2",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_spy"
+              "character.name.part.visconde",
+              "character.name.part.do_rio_branco"
             ],
             "skills": {
               "intrigue": {
@@ -2523,8 +2523,8 @@
           {
             "characterId": "kingdom_of_brazil_sec_3",
             "namePartKeys": [
-              "character.name.brazilian",
-              "character.name.char_spy"
+              "character.name.part.jose",
+              "character.name.part.saraiva"
             ],
             "skills": {
               "intrigue": {
@@ -2543,8 +2543,8 @@
           {
             "characterId": "manchu_empire_ruler_1",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_i"
+              "character.name.part.empress",
+              "character.name.part.cixi"
             ],
             "skills": {
               "power": {
@@ -2568,8 +2568,8 @@
           {
             "characterId": "manchu_empire_ruler_2",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_ii"
+              "character.name.part.emperor",
+              "character.name.part.guangxu"
             ],
             "skills": {
               "power": {
@@ -2593,8 +2593,8 @@
           {
             "characterId": "manchu_empire_ruler_3",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_iii"
+              "character.name.part.prince",
+              "character.name.part.gong"
             ],
             "skills": {
               "power": {
@@ -2620,8 +2620,8 @@
           {
             "characterId": "manchu_empire_mil_1",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_military"
+              "character.name.part.zeng",
+              "character.name.part.guofan"
             ],
             "skills": {
               "power": {
@@ -2633,8 +2633,8 @@
           {
             "characterId": "manchu_empire_mil_2",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_military"
+              "character.name.part.li",
+              "character.name.part.hongzhang"
             ],
             "skills": {
               "power": {
@@ -2646,8 +2646,8 @@
           {
             "characterId": "manchu_empire_mil_3",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_military"
+              "character.name.part.zuo",
+              "character.name.part.zongtang"
             ],
             "skills": {
               "power": {
@@ -2661,8 +2661,8 @@
           {
             "characterId": "manchu_empire_dip_1",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_diplomat"
+              "character.name.part.xue",
+              "character.name.part.fucheng"
             ],
             "skills": {
               "charm": {
@@ -2674,8 +2674,8 @@
           {
             "characterId": "manchu_empire_dip_2",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_diplomat"
+              "character.name.part.zeng",
+              "character.name.part.jize"
             ],
             "skills": {
               "charm": {
@@ -2687,8 +2687,8 @@
           {
             "characterId": "manchu_empire_dip_3",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_diplomat"
+              "character.name.part.chen",
+              "character.name.part.lanbin"
             ],
             "skills": {
               "charm": {
@@ -2702,8 +2702,8 @@
           {
             "characterId": "manchu_empire_eco_1",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_economist"
+              "character.name.part.sheng",
+              "character.name.part.xuanhuai"
             ],
             "skills": {
               "stinginess": {
@@ -2715,8 +2715,8 @@
           {
             "characterId": "manchu_empire_eco_2",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_economist"
+              "character.name.part.hu",
+              "character.name.part.xueyan"
             ],
             "skills": {
               "stinginess": {
@@ -2728,8 +2728,8 @@
           {
             "characterId": "manchu_empire_eco_3",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_economist"
+              "character.name.part.tang",
+              "character.name.part.tingshu"
             ],
             "skills": {
               "stinginess": {
@@ -2743,8 +2743,7 @@
           {
             "characterId": "manchu_empire_sec_1",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_spy"
+              "character.name.part.wenxiang"
             ],
             "skills": {
               "intrigue": {
@@ -2756,8 +2755,8 @@
           {
             "characterId": "manchu_empire_sec_2",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_spy"
+              "character.name.part.zhang",
+              "character.name.part.zhidong"
             ],
             "skills": {
               "intrigue": {
@@ -2769,8 +2768,8 @@
           {
             "characterId": "manchu_empire_sec_3",
             "namePartKeys": [
-              "character.name.manchurian",
-              "character.name.char_spy"
+              "character.name.part.robert",
+              "character.name.part.hart"
             ],
             "skills": {
               "intrigue": {
@@ -2789,8 +2788,8 @@
           {
             "characterId": "netherlands_ruler_1",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_i"
+              "character.name.part.king",
+              "character.name.part.william_iii"
             ],
             "skills": {
               "power": {
@@ -2814,8 +2813,8 @@
           {
             "characterId": "netherlands_ruler_2",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_ii"
+              "character.name.part.queen",
+              "character.name.part.emma"
             ],
             "skills": {
               "power": {
@@ -2839,8 +2838,8 @@
           {
             "characterId": "netherlands_ruler_3",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_iii"
+              "character.name.part.queen",
+              "character.name.part.wilhelmina"
             ],
             "skills": {
               "power": {
@@ -2866,8 +2865,8 @@
           {
             "characterId": "netherlands_mil_1",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_military"
+              "character.name.part.jan",
+              "character.name.part.van_swieten"
             ],
             "skills": {
               "power": {
@@ -2879,8 +2878,8 @@
           {
             "characterId": "netherlands_mil_2",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_military"
+              "character.name.part.hendrik",
+              "character.name.part.veldtman_laane"
             ],
             "skills": {
               "power": {
@@ -2892,8 +2891,8 @@
           {
             "characterId": "netherlands_mil_3",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_military"
+              "character.name.part.august",
+              "character.name.part.vetter"
             ],
             "skills": {
               "power": {
@@ -2907,8 +2906,8 @@
           {
             "characterId": "netherlands_dip_1",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_diplomat"
+              "character.name.part.pieter",
+              "character.name.part.van_der_does_de_willebois"
             ],
             "skills": {
               "charm": {
@@ -2920,8 +2919,8 @@
           {
             "characterId": "netherlands_dip_2",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_diplomat"
+              "character.name.part.dirk",
+              "character.name.part.de_graeff_van_polsbroek"
             ],
             "skills": {
               "charm": {
@@ -2933,8 +2932,8 @@
           {
             "characterId": "netherlands_dip_3",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_diplomat"
+              "character.name.part.frans",
+              "character.name.part.van_tets_van_goudriaan"
             ],
             "skills": {
               "charm": {
@@ -2948,8 +2947,8 @@
           {
             "characterId": "netherlands_eco_1",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_economist"
+              "character.name.part.adriaan",
+              "character.name.part.stoop"
             ],
             "skills": {
               "stinginess": {
@@ -2961,8 +2960,8 @@
           {
             "characterId": "netherlands_eco_2",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_economist"
+              "character.name.part.gerard",
+              "character.name.part.philips"
             ],
             "skills": {
               "stinginess": {
@@ -2974,8 +2973,8 @@
           {
             "characterId": "netherlands_eco_3",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_economist"
+              "character.name.part.samuel",
+              "character.name.part.van_den_bergh"
             ],
             "skills": {
               "stinginess": {
@@ -2989,8 +2988,8 @@
           {
             "characterId": "netherlands_sec_1",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_spy"
+              "character.name.part.johan",
+              "character.name.part.thorbecke"
             ],
             "skills": {
               "intrigue": {
@@ -3002,8 +3001,8 @@
           {
             "characterId": "netherlands_sec_2",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_spy"
+              "character.name.part.abraham",
+              "character.name.part.kuyper"
             ],
             "skills": {
               "intrigue": {
@@ -3015,8 +3014,8 @@
           {
             "characterId": "netherlands_sec_3",
             "namePartKeys": [
-              "character.name.dutch",
-              "character.name.char_spy"
+              "character.name.part.conrad",
+              "character.name.part.van_deventer"
             ],
             "skills": {
               "intrigue": {
@@ -3035,8 +3034,8 @@
           {
             "characterId": "ottoman_empire_ruler_1",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_i"
+              "character.name.part.sultan",
+              "character.name.part.abdul_hamid_ii"
             ],
             "skills": {
               "power": {
@@ -3060,8 +3059,8 @@
           {
             "characterId": "ottoman_empire_ruler_2",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_ii"
+              "character.name.part.sultan",
+              "character.name.part.abdulaziz"
             ],
             "skills": {
               "power": {
@@ -3085,8 +3084,8 @@
           {
             "characterId": "ottoman_empire_ruler_3",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_iii"
+              "character.name.part.sultan",
+              "character.name.part.murad_v"
             ],
             "skills": {
               "power": {
@@ -3112,8 +3111,8 @@
           {
             "characterId": "ottoman_empire_mil_1",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_military"
+              "character.name.part.gazi",
+              "character.name.part.osman_pasha"
             ],
             "skills": {
               "power": {
@@ -3125,8 +3124,8 @@
           {
             "characterId": "ottoman_empire_mil_2",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_military"
+              "character.name.part.ahmed",
+              "character.name.part.muhtar_pasha"
             ],
             "skills": {
               "power": {
@@ -3138,8 +3137,7 @@
           {
             "characterId": "ottoman_empire_mil_3",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_military"
+              "character.name.part.namk_pasha"
             ],
             "skills": {
               "power": {
@@ -3153,8 +3151,7 @@
           {
             "characterId": "ottoman_empire_dip_1",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_diplomat"
+              "character.name.part.said_pasha"
             ],
             "skills": {
               "charm": {
@@ -3166,8 +3163,8 @@
           {
             "characterId": "ottoman_empire_dip_2",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_diplomat"
+              "character.name.part.ahmed",
+              "character.name.part.vefik_pasha"
             ],
             "skills": {
               "charm": {
@@ -3179,8 +3176,8 @@
           {
             "characterId": "ottoman_empire_dip_3",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_diplomat"
+              "character.name.part.mehmed",
+              "character.name.part.fuad_pasha"
             ],
             "skills": {
               "charm": {
@@ -3194,8 +3191,8 @@
           {
             "characterId": "ottoman_empire_eco_1",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_economist"
+              "character.name.part.ohannes",
+              "character.name.part.kaspar_duz"
             ],
             "skills": {
               "stinginess": {
@@ -3207,8 +3204,8 @@
           {
             "characterId": "ottoman_empire_eco_2",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_economist"
+              "character.name.part.agop",
+              "character.name.part.kazazyan_pasha"
             ],
             "skills": {
               "stinginess": {
@@ -3220,8 +3217,8 @@
           {
             "characterId": "ottoman_empire_eco_3",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_economist"
+              "character.name.part.mehmed",
+              "character.name.part.kamil_pasha"
             ],
             "skills": {
               "stinginess": {
@@ -3235,8 +3232,7 @@
           {
             "characterId": "ottoman_empire_sec_1",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_spy"
+              "character.name.part.midhat_pasha"
             ],
             "skills": {
               "intrigue": {
@@ -3248,8 +3244,8 @@
           {
             "characterId": "ottoman_empire_sec_2",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_spy"
+              "character.name.part.ismail",
+              "character.name.part.kemal"
             ],
             "skills": {
               "intrigue": {
@@ -3261,8 +3257,7 @@
           {
             "characterId": "ottoman_empire_sec_3",
             "namePartKeys": [
-              "character.name.ottoman",
-              "character.name.char_spy"
+              "character.name.part.fehim_pasha"
             ],
             "skills": {
               "intrigue": {
@@ -3281,8 +3276,8 @@
           {
             "characterId": "persia_ruler_1",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_i"
+              "character.name.part.naser",
+              "character.name.part.al_din_shah"
             ],
             "skills": {
               "power": {
@@ -3306,8 +3301,8 @@
           {
             "characterId": "persia_ruler_2",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_ii"
+              "character.name.part.mozaffar",
+              "character.name.part.ad_din_shah"
             ],
             "skills": {
               "power": {
@@ -3331,8 +3326,7 @@
           {
             "characterId": "persia_ruler_3",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_iii"
+              "character.name.part.abbas_mirza"
             ],
             "skills": {
               "power": {
@@ -3358,8 +3352,8 @@
           {
             "characterId": "persia_mil_1",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_military"
+              "character.name.part.amir",
+              "character.name.part.kabir"
             ],
             "skills": {
               "power": {
@@ -3371,8 +3365,8 @@
           {
             "characterId": "persia_mil_2",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_military"
+              "character.name.part.mirza",
+              "character.name.part.hossein_khan_sepahsalar"
             ],
             "skills": {
               "power": {
@@ -3384,8 +3378,8 @@
           {
             "characterId": "persia_mil_3",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_military"
+              "character.name.part.agha",
+              "character.name.part.khan_mahallati"
             ],
             "skills": {
               "power": {
@@ -3399,8 +3393,8 @@
           {
             "characterId": "persia_dip_1",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_diplomat"
+              "character.name.part.mirza",
+              "character.name.part.saeed_khan_ansari"
             ],
             "skills": {
               "charm": {
@@ -3412,8 +3406,8 @@
           {
             "characterId": "persia_dip_2",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_diplomat"
+              "character.name.part.mirza",
+              "character.name.part.mohsen_khan_ala_od_dowleh"
             ],
             "skills": {
               "charm": {
@@ -3425,8 +3419,8 @@
           {
             "characterId": "persia_dip_3",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_diplomat"
+              "character.name.part.mirza",
+              "character.name.part.mahmud_khan_qajar"
             ],
             "skills": {
               "charm": {
@@ -3440,8 +3434,8 @@
           {
             "characterId": "persia_eco_1",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_economist"
+              "character.name.part.hajj",
+              "character.name.part.muhammad_hasan_amin_al_zarb"
             ],
             "skills": {
               "stinginess": {
@@ -3453,8 +3447,8 @@
           {
             "characterId": "persia_eco_2",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_economist"
+              "character.name.part.baron",
+              "character.name.part.julius_de_reuter"
             ],
             "skills": {
               "stinginess": {
@@ -3466,8 +3460,8 @@
           {
             "characterId": "persia_eco_3",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_economist"
+              "character.name.part.mirza",
+              "character.name.part.yusuf_khan_mostashar"
             ],
             "skills": {
               "stinginess": {
@@ -3481,8 +3475,8 @@
           {
             "characterId": "persia_sec_1",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_spy"
+              "character.name.part.mirza",
+              "character.name.part.malkom_khan"
             ],
             "skills": {
               "intrigue": {
@@ -3494,8 +3488,8 @@
           {
             "characterId": "persia_sec_2",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_spy"
+              "character.name.part.jamal",
+              "character.name.part.al_afghani"
             ],
             "skills": {
               "intrigue": {
@@ -3507,8 +3501,8 @@
           {
             "characterId": "persia_sec_3",
             "namePartKeys": [
-              "character.name.persian",
-              "character.name.char_spy"
+              "character.name.part.amin",
+              "character.name.part.al_sultan"
             ],
             "skills": {
               "intrigue": {
@@ -3527,8 +3521,8 @@
           {
             "characterId": "portugal_ruler_1",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_i"
+              "character.name.part.king",
+              "character.name.part.luis_i"
             ],
             "skills": {
               "power": {
@@ -3552,8 +3546,8 @@
           {
             "characterId": "portugal_ruler_2",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_ii"
+              "character.name.part.king",
+              "character.name.part.carlos_i"
             ],
             "skills": {
               "power": {
@@ -3577,8 +3571,8 @@
           {
             "characterId": "portugal_ruler_3",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_iii"
+              "character.name.part.queen",
+              "character.name.part.maria_ii"
             ],
             "skills": {
               "power": {
@@ -3604,8 +3598,8 @@
           {
             "characterId": "portugal_mil_1",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_military"
+              "character.name.part.marquis",
+              "character.name.part.sa_da_bandeira"
             ],
             "skills": {
               "power": {
@@ -3617,8 +3611,8 @@
           {
             "characterId": "portugal_mil_2",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_military"
+              "character.name.part.fontes",
+              "character.name.part.pereira_de_melo"
             ],
             "skills": {
               "power": {
@@ -3630,8 +3624,8 @@
           {
             "characterId": "portugal_mil_3",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_military"
+              "character.name.part.joao",
+              "character.name.part.andrade_corvo"
             ],
             "skills": {
               "power": {
@@ -3645,8 +3639,8 @@
           {
             "characterId": "portugal_dip_1",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_diplomat"
+              "character.name.part.antonio",
+              "character.name.part.serpa_pimentel"
             ],
             "skills": {
               "charm": {
@@ -3658,8 +3652,8 @@
           {
             "characterId": "portugal_dip_2",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_diplomat"
+              "character.name.part.marquis",
+              "character.name.part.de_penafiel"
             ],
             "skills": {
               "charm": {
@@ -3671,8 +3665,8 @@
           {
             "characterId": "portugal_dip_3",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_diplomat"
+              "character.name.part.jaime",
+              "character.name.part.batalha_reis"
             ],
             "skills": {
               "charm": {
@@ -3686,8 +3680,8 @@
           {
             "characterId": "portugal_eco_1",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_economist"
+              "character.name.part.antonio",
+              "character.name.part.de_avila"
             ],
             "skills": {
               "stinginess": {
@@ -3699,8 +3693,8 @@
           {
             "characterId": "portugal_eco_2",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_economist"
+              "character.name.part.henrique",
+              "character.name.part.barros_gomes"
             ],
             "skills": {
               "stinginess": {
@@ -3712,8 +3706,8 @@
           {
             "characterId": "portugal_eco_3",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_economist"
+              "character.name.part.candido",
+              "character.name.part.sotto_mayor"
             ],
             "skills": {
               "stinginess": {
@@ -3727,8 +3721,8 @@
           {
             "characterId": "portugal_sec_1",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_spy"
+              "character.name.part.joaquim",
+              "character.name.part.de_aguiar"
             ],
             "skills": {
               "intrigue": {
@@ -3740,8 +3734,8 @@
           {
             "characterId": "portugal_sec_2",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_spy"
+              "character.name.part.luciano",
+              "character.name.part.de_castro"
             ],
             "skills": {
               "intrigue": {
@@ -3753,8 +3747,8 @@
           {
             "characterId": "portugal_sec_3",
             "namePartKeys": [
-              "character.name.portuguese",
-              "character.name.char_spy"
+              "character.name.part.oliveira",
+              "character.name.part.martins"
             ],
             "skills": {
               "intrigue": {
@@ -3773,8 +3767,8 @@
           {
             "characterId": "russian_empire_ruler_1",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_i"
+              "character.name.part.alexander",
+              "character.name.part.ii"
             ],
             "skills": {
               "power": {
@@ -3798,8 +3792,8 @@
           {
             "characterId": "russian_empire_ruler_2",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_ii"
+              "character.name.part.alexander",
+              "character.name.part.iii"
             ],
             "skills": {
               "power": {
@@ -3823,8 +3817,8 @@
           {
             "characterId": "russian_empire_ruler_3",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_iii"
+              "character.name.part.nicholas",
+              "character.name.part.ii"
             ],
             "skills": {
               "power": {
@@ -3850,8 +3844,8 @@
           {
             "characterId": "russian_empire_mil_1",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_military"
+              "character.name.part.mikhail",
+              "character.name.part.skobelev"
             ],
             "skills": {
               "power": {
@@ -3863,8 +3857,8 @@
           {
             "characterId": "russian_empire_mil_2",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_military"
+              "character.name.part.mikhail",
+              "character.name.part.dragomirov"
             ],
             "skills": {
               "power": {
@@ -3876,8 +3870,8 @@
           {
             "characterId": "russian_empire_mil_3",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_military"
+              "character.name.part.dmitry",
+              "character.name.part.milyutin"
             ],
             "skills": {
               "power": {
@@ -3891,8 +3885,8 @@
           {
             "characterId": "russian_empire_dip_1",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_diplomat"
+              "character.name.part.alexander",
+              "character.name.part.gorchakov"
             ],
             "skills": {
               "charm": {
@@ -3904,8 +3898,8 @@
           {
             "characterId": "russian_empire_dip_2",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_diplomat"
+              "character.name.part.nikolai",
+              "character.name.part.giers"
             ],
             "skills": {
               "charm": {
@@ -3917,8 +3911,8 @@
           {
             "characterId": "russian_empire_dip_3",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_diplomat"
+              "character.name.part.pyotr",
+              "character.name.part.kapnist"
             ],
             "skills": {
               "charm": {
@@ -3932,8 +3926,8 @@
           {
             "characterId": "russian_empire_eco_1",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_economist"
+              "character.name.part.savva",
+              "character.name.part.mamontov"
             ],
             "skills": {
               "stinginess": {
@@ -3945,8 +3939,8 @@
           {
             "characterId": "russian_empire_eco_2",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_economist"
+              "character.name.part.sergei",
+              "character.name.part.witte"
             ],
             "skills": {
               "stinginess": {
@@ -3958,8 +3952,8 @@
           {
             "characterId": "russian_empire_eco_3",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_economist"
+              "character.name.part.pavel",
+              "character.name.part.ryabushinsky"
             ],
             "skills": {
               "stinginess": {
@@ -3973,8 +3967,8 @@
           {
             "characterId": "russian_empire_sec_1",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_spy"
+              "character.name.part.pyotr",
+              "character.name.part.shuvalov"
             ],
             "skills": {
               "intrigue": {
@@ -3986,8 +3980,8 @@
           {
             "characterId": "russian_empire_sec_2",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_spy"
+              "character.name.part.nikolai",
+              "character.name.part.ignatiev"
             ],
             "skills": {
               "intrigue": {
@@ -3999,8 +3993,8 @@
           {
             "characterId": "russian_empire_sec_3",
             "namePartKeys": [
-              "character.name.russian",
-              "character.name.char_spy"
+              "character.name.part.konstantin",
+              "character.name.part.pobedonostsev"
             ],
             "skills": {
               "intrigue": {
@@ -4019,8 +4013,8 @@
           {
             "characterId": "spain_ruler_1",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_i"
+              "character.name.part.king",
+              "character.name.part.alfonso_xii"
             ],
             "skills": {
               "power": {
@@ -4044,8 +4038,8 @@
           {
             "characterId": "spain_ruler_2",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_ii"
+              "character.name.part.queen",
+              "character.name.part.isabella_ii"
             ],
             "skills": {
               "power": {
@@ -4069,8 +4063,8 @@
           {
             "characterId": "spain_ruler_3",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_iii"
+              "character.name.part.queen",
+              "character.name.part.maria_christina"
             ],
             "skills": {
               "power": {
@@ -4096,8 +4090,8 @@
           {
             "characterId": "spain_mil_1",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_military"
+              "character.name.part.arsenio",
+              "character.name.part.martinez_campos"
             ],
             "skills": {
               "power": {
@@ -4109,8 +4103,8 @@
           {
             "characterId": "spain_mil_2",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_military"
+              "character.name.part.juan",
+              "character.name.part.prim"
             ],
             "skills": {
               "power": {
@@ -4122,8 +4116,8 @@
           {
             "characterId": "spain_mil_3",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_military"
+              "character.name.part.valeriano",
+              "character.name.part.weyler"
             ],
             "skills": {
               "power": {
@@ -4137,8 +4131,8 @@
           {
             "characterId": "spain_dip_1",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_diplomat"
+              "character.name.part.emilio",
+              "character.name.part.castelar"
             ],
             "skills": {
               "charm": {
@@ -4150,8 +4144,8 @@
           {
             "characterId": "spain_dip_2",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_diplomat"
+              "character.name.part.juan",
+              "character.name.part.valera"
             ],
             "skills": {
               "charm": {
@@ -4163,8 +4157,8 @@
           {
             "characterId": "spain_dip_3",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_diplomat"
+              "character.name.part.segismundo",
+              "character.name.part.moret"
             ],
             "skills": {
               "charm": {
@@ -4178,8 +4172,8 @@
           {
             "characterId": "spain_eco_1",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_economist"
+              "character.name.part.antonio_2",
+              "character.name.part.lopez_y_lopez"
             ],
             "skills": {
               "stinginess": {
@@ -4191,8 +4185,8 @@
           {
             "characterId": "spain_eco_2",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_economist"
+              "character.name.part.claudio",
+              "character.name.part.lopez_bru"
             ],
             "skills": {
               "stinginess": {
@@ -4204,8 +4198,8 @@
           {
             "characterId": "spain_eco_3",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_economist"
+              "character.name.part.pablo",
+              "character.name.part.alzola_y_minondo"
             ],
             "skills": {
               "stinginess": {
@@ -4219,8 +4213,8 @@
           {
             "characterId": "spain_sec_1",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_spy"
+              "character.name.part.antonio_3",
+              "character.name.part.canovas_del_castillo"
             ],
             "skills": {
               "intrigue": {
@@ -4232,8 +4226,8 @@
           {
             "characterId": "spain_sec_2",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_spy"
+              "character.name.part.praxedes",
+              "character.name.part.sagasta"
             ],
             "skills": {
               "intrigue": {
@@ -4245,8 +4239,8 @@
           {
             "characterId": "spain_sec_3",
             "namePartKeys": [
-              "character.name.spanish",
-              "character.name.char_spy"
+              "character.name.part.francisco",
+              "character.name.part.romero_robledo"
             ],
             "skills": {
               "intrigue": {
@@ -4265,8 +4259,8 @@
           {
             "characterId": "swedennorway_ruler_1",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_i"
+              "character.name.part.king",
+              "character.name.part.oscar_ii"
             ],
             "skills": {
               "power": {
@@ -4290,8 +4284,8 @@
           {
             "characterId": "swedennorway_ruler_2",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_ii"
+              "character.name.part.king",
+              "character.name.part.charles_xv"
             ],
             "skills": {
               "power": {
@@ -4315,8 +4309,8 @@
           {
             "characterId": "swedennorway_ruler_3",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_iii"
+              "character.name.part.crown_prince",
+              "character.name.part.gustaf"
             ],
             "skills": {
               "power": {
@@ -4342,8 +4336,8 @@
           {
             "characterId": "swedennorway_mil_1",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_military"
+              "character.name.part.arvid",
+              "character.name.part.posse"
             ],
             "skills": {
               "power": {
@@ -4355,8 +4349,8 @@
           {
             "characterId": "swedennorway_mil_2",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_military"
+              "character.name.part.gustaf",
+              "character.name.part.akerhjelm"
             ],
             "skills": {
               "power": {
@@ -4368,8 +4362,8 @@
           {
             "characterId": "swedennorway_mil_3",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_military"
+              "character.name.part.nils",
+              "character.name.part.ericson"
             ],
             "skills": {
               "power": {
@@ -4383,8 +4377,8 @@
           {
             "characterId": "swedennorway_dip_1",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_diplomat"
+              "character.name.part.sigurd",
+              "character.name.part.ibsen"
             ],
             "skills": {
               "charm": {
@@ -4396,8 +4390,8 @@
           {
             "characterId": "swedennorway_dip_2",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_diplomat"
+              "character.name.part.carl",
+              "character.name.part.bildt"
             ],
             "skills": {
               "charm": {
@@ -4409,8 +4403,8 @@
           {
             "characterId": "swedennorway_dip_3",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_diplomat"
+              "character.name.part.pontus",
+              "character.name.part.fahlbeck"
             ],
             "skills": {
               "charm": {
@@ -4424,8 +4418,8 @@
           {
             "characterId": "swedennorway_eco_1",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_economist"
+              "character.name.part.alfred",
+              "character.name.part.nobel"
             ],
             "skills": {
               "stinginess": {
@@ -4437,8 +4431,8 @@
           {
             "characterId": "swedennorway_eco_2",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_economist"
+              "character.name.part.andre",
+              "character.name.part.wallenberg"
             ],
             "skills": {
               "stinginess": {
@@ -4450,8 +4444,8 @@
           {
             "characterId": "swedennorway_eco_3",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_economist"
+              "character.name.part.lars_johan",
+              "character.name.part.hierta"
             ],
             "skills": {
               "stinginess": {
@@ -4465,8 +4459,8 @@
           {
             "characterId": "swedennorway_sec_1",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_spy"
+              "character.name.part.louis",
+              "character.name.part.de_geer_af_leufsta"
             ],
             "skills": {
               "intrigue": {
@@ -4478,8 +4472,8 @@
           {
             "characterId": "swedennorway_sec_2",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_spy"
+              "character.name.part.adolf",
+              "character.name.part.hedin"
             ],
             "skills": {
               "intrigue": {
@@ -4491,8 +4485,8 @@
           {
             "characterId": "swedennorway_sec_3",
             "namePartKeys": [
-              "character.name.scandinavian",
-              "character.name.char_spy"
+              "character.name.part.ernst",
+              "character.name.part.trygger"
             ],
             "skills": {
               "intrigue": {
@@ -4511,8 +4505,8 @@
           {
             "characterId": "great_britain_ruler_1",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_i"
+              "character.name.part.queen",
+              "character.name.part.victoria"
             ],
             "skills": {
               "power": {
@@ -4536,8 +4530,8 @@
           {
             "characterId": "great_britain_ruler_2",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_ii"
+              "character.name.part.prince",
+              "character.name.part.albert"
             ],
             "skills": {
               "power": {
@@ -4561,8 +4555,8 @@
           {
             "characterId": "great_britain_ruler_3",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_iii"
+              "character.name.part.king",
+              "character.name.part.edward_vii"
             ],
             "skills": {
               "power": {
@@ -4588,8 +4582,8 @@
           {
             "characterId": "great_britain_mil_1",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_military"
+              "character.name.part.frederick",
+              "character.name.part.roberts"
             ],
             "skills": {
               "power": {
@@ -4601,8 +4595,8 @@
           {
             "characterId": "great_britain_mil_2",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_military"
+              "character.name.part.herbert",
+              "character.name.part.kitchener"
             ],
             "skills": {
               "power": {
@@ -4614,8 +4608,8 @@
           {
             "characterId": "great_britain_mil_3",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_military"
+              "character.name.part.garnet",
+              "character.name.part.wolseley"
             ],
             "skills": {
               "power": {
@@ -4629,8 +4623,8 @@
           {
             "characterId": "great_britain_dip_1",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_diplomat"
+              "character.name.part.lord",
+              "character.name.part.granville"
             ],
             "skills": {
               "charm": {
@@ -4642,8 +4636,8 @@
           {
             "characterId": "great_britain_dip_2",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_diplomat"
+              "character.name.part.edward",
+              "character.name.part.malet"
             ],
             "skills": {
               "charm": {
@@ -4655,8 +4649,8 @@
           {
             "characterId": "great_britain_dip_3",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_diplomat"
+              "character.name.part.richard",
+              "character.name.part.lyons"
             ],
             "skills": {
               "charm": {
@@ -4670,8 +4664,8 @@
           {
             "characterId": "great_britain_eco_1",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_economist"
+              "character.name.part.nathan",
+              "character.name.part.rothschild"
             ],
             "skills": {
               "stinginess": {
@@ -4683,8 +4677,8 @@
           {
             "characterId": "great_britain_eco_2",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_economist"
+              "character.name.part.cecil",
+              "character.name.part.rhodes"
             ],
             "skills": {
               "stinginess": {
@@ -4696,8 +4690,8 @@
           {
             "characterId": "great_britain_eco_3",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_economist"
+              "character.name.part.william",
+              "character.name.part.lever"
             ],
             "skills": {
               "stinginess": {
@@ -4711,8 +4705,8 @@
           {
             "characterId": "great_britain_sec_1",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_spy"
+              "character.name.part.benjamin",
+              "character.name.part.disraeli"
             ],
             "skills": {
               "intrigue": {
@@ -4724,8 +4718,8 @@
           {
             "characterId": "great_britain_sec_2",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_spy"
+              "character.name.part.robert",
+              "character.name.part.salisbury"
             ],
             "skills": {
               "intrigue": {
@@ -4737,8 +4731,8 @@
           {
             "characterId": "great_britain_sec_3",
             "namePartKeys": [
-              "character.name.british",
-              "character.name.char_spy"
+              "character.name.part.robert",
+              "character.name.part.anderson"
             ],
             "skills": {
               "intrigue": {
@@ -4757,8 +4751,8 @@
           {
             "characterId": "united_states_ruler_1",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_i"
+              "character.name.part.ulysses",
+              "character.name.part.grant"
             ],
             "skills": {
               "power": {
@@ -4782,8 +4776,8 @@
           {
             "characterId": "united_states_ruler_2",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_ii"
+              "character.name.part.chester",
+              "character.name.part.arthur"
             ],
             "skills": {
               "power": {
@@ -4807,8 +4801,8 @@
           {
             "characterId": "united_states_ruler_3",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_iii"
+              "character.name.part.grover",
+              "character.name.part.cleveland"
             ],
             "skills": {
               "power": {
@@ -4834,8 +4828,8 @@
           {
             "characterId": "united_states_mil_1",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_military"
+              "character.name.part.william",
+              "character.name.part.sherman"
             ],
             "skills": {
               "power": {
@@ -4847,8 +4841,8 @@
           {
             "characterId": "united_states_mil_2",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_military"
+              "character.name.part.philip",
+              "character.name.part.sheridan"
             ],
             "skills": {
               "power": {
@@ -4860,8 +4854,8 @@
           {
             "characterId": "united_states_mil_3",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_military"
+              "character.name.part.george",
+              "character.name.part.custer"
             ],
             "skills": {
               "power": {
@@ -4875,8 +4869,8 @@
           {
             "characterId": "united_states_dip_1",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_diplomat"
+              "character.name.part.hamilton",
+              "character.name.part.fish"
             ],
             "skills": {
               "charm": {
@@ -4888,8 +4882,8 @@
           {
             "characterId": "united_states_dip_2",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_diplomat"
+              "character.name.part.james",
+              "character.name.part.blaine"
             ],
             "skills": {
               "charm": {
@@ -4901,8 +4895,8 @@
           {
             "characterId": "united_states_dip_3",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_diplomat"
+              "character.name.part.charles",
+              "character.name.part.adams"
             ],
             "skills": {
               "charm": {
@@ -4916,8 +4910,8 @@
           {
             "characterId": "united_states_eco_1",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_economist"
+              "character.name.part.john",
+              "character.name.part.rockefeller"
             ],
             "skills": {
               "stinginess": {
@@ -4929,8 +4923,8 @@
           {
             "characterId": "united_states_eco_2",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_economist"
+              "character.name.part.andrew",
+              "character.name.part.carnegie"
             ],
             "skills": {
               "stinginess": {
@@ -4942,8 +4936,8 @@
           {
             "characterId": "united_states_eco_3",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_economist"
+              "character.name.part.pierpont",
+              "character.name.part.morgan"
             ],
             "skills": {
               "stinginess": {
@@ -4957,8 +4951,8 @@
           {
             "characterId": "united_states_sec_1",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_spy"
+              "character.name.part.allan",
+              "character.name.part.pinkerton"
             ],
             "skills": {
               "intrigue": {
@@ -4970,8 +4964,8 @@
           {
             "characterId": "united_states_sec_2",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_spy"
+              "character.name.part.william",
+              "character.name.part.seward"
             ],
             "skills": {
               "intrigue": {
@@ -4983,8 +4977,8 @@
           {
             "characterId": "united_states_sec_3",
             "namePartKeys": [
-              "character.name.american",
-              "character.name.char_spy"
+              "character.name.part.elihu",
+              "character.name.part.washburne"
             ],
             "skills": {
               "intrigue": {

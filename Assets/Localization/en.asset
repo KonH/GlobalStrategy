@@ -496,3 +496,987 @@ MonoBehaviour:
     Value: Baron
   - Key: character.name.char_spy
     Value: Counselor
+  - Key: character.name.part.julio
+    Value: Julio
+  - Key: character.name.part.roca
+    Value: Roca
+  - Key: character.name.part.bartolome
+    Value: Bartolomé
+  - Key: character.name.part.mitre
+    Value: Mitre
+  - Key: character.name.part.domingo
+    Value: Domingo
+  - Key: character.name.part.sarmiento
+    Value: Sarmiento
+  - Key: character.name.part.jose
+    Value: José
+  - Key: character.name.part.san_martin
+    Value: San-Martín
+  - Key: character.name.part.manuel
+    Value: Manuel
+  - Key: character.name.part.belgrano
+    Value: Belgrano
+  - Key: character.name.part.lucio
+    Value: Lucio
+  - Key: character.name.part.mansilla
+    Value: Mansilla
+  - Key: character.name.part.carlos
+    Value: Carlos
+  - Key: character.name.part.calvo
+    Value: Calvo
+  - Key: character.name.part.bernardo
+    Value: Bernardo
+  - Key: character.name.part.irigoyen
+    Value: Irigoyen
+  - Key: character.name.part.roque
+    Value: Roque
+  - Key: character.name.part.saenz_pena
+    Value: Sáenz-Peña
+  - Key: character.name.part.ernesto
+    Value: Ernesto
+  - Key: character.name.part.tornquist
+    Value: Tornquist
+  - Key: character.name.part.eduardo
+    Value: Eduardo
+  - Key: character.name.part.casey
+    Value: Casey
+  - Key: character.name.part.pellegrini
+    Value: Pellegrini
+  - Key: character.name.part.hernandez
+    Value: Hernández
+  - Key: character.name.part.leandro
+    Value: Leandro
+  - Key: character.name.part.alem
+    Value: Alem
+  - Key: character.name.part.adolfo
+    Value: Adolfo
+  - Key: character.name.part.alsina
+    Value: Alsina
+  - Key: character.name.part.franz
+    Value: Franz
+  - Key: character.name.part.joseph
+    Value: Joseph
+  - Key: character.name.part.i
+    Value: I
+  - Key: character.name.part.empress
+    Value: Empress
+  - Key: character.name.part.elisabeth
+    Value: Elisabeth
+  - Key: character.name.part.crown_prince
+    Value: Crown-Prince
+  - Key: character.name.part.rudolf
+    Value: Rudolf
+  - Key: character.name.part.archduke
+    Value: Archduke
+  - Key: character.name.part.albrecht
+    Value: Albrecht
+  - Key: character.name.part.ludwig
+    Value: Ludwig
+  - Key: character.name.part.von_benedek
+    Value: von-Benedek
+  - Key: character.name.part.friedrich
+    Value: Friedrich
+  - Key: character.name.part.von_beck_rzikowsky
+    Value: von-Beck-Rzikowsky
+  - Key: character.name.part.count
+    Value: Count
+  - Key: character.name.part.kalnoky
+    Value: Kálnoky
+  - Key: character.name.part.von_beust
+    Value: von-Beust
+  - Key: character.name.part.baron
+    Value: Baron
+  - Key: character.name.part.von_haymerle
+    Value: von-Haymerle
+  - Key: character.name.part.anselm
+    Value: Anselm
+  - Key: character.name.part.von_rothschild
+    Value: von-Rothschild
+  - Key: character.name.part.carl
+    Value: Carl
+  - Key: character.name.part.wittgenstein
+    Value: Wittgenstein
+  - Key: character.name.part.nikolaus
+    Value: Nikolaus
+  - Key: character.name.part.esterhazy
+    Value: Esterházy
+  - Key: character.name.part.von_taaffe
+    Value: von-Taaffe
+  - Key: character.name.part.alfred
+    Value: Alfred
+  - Key: character.name.part.von_kiderlen_wachter
+    Value: von-Kiderlen-Wächter
+  - Key: character.name.part.von_aehrenthal
+    Value: von-Aehrenthal
+  - Key: character.name.part.king
+    Value: King
+  - Key: character.name.part.leopold
+    Value: Leopold
+  - Key: character.name.part.ii
+    Value: II
+  - Key: character.name.part.queen
+    Value: Queen
+  - Key: character.name.part.marie_henriette
+    Value: Marie-Henriette
+  - Key: character.name.part.alexis
+    Value: Alexis
+  - Key: character.name.part.brialmont
+    Value: Brialmont
+  - Key: character.name.part.guillaume
+    Value: Guillaume
+  - Key: character.name.part.greindl
+    Value: Greindl
+  - Key: character.name.part.jean_baptiste
+    Value: Jean-Baptiste
+  - Key: character.name.part.goffinet
+    Value: Goffinet
+  - Key: character.name.part.auguste
+    Value: Auguste
+  - Key: character.name.part.beernaert
+    Value: Beernaert
+  - Key: character.name.part.charles
+    Value: Charles
+  - Key: character.name.part.woeste
+    Value: Woeste
+  - Key: character.name.part.paul
+    Value: Paul
+  - Key: character.name.part.de_favereau
+    Value: de-Favereau
+  - Key: character.name.part.john
+    Value: John
+  - Key: character.name.part.cockerill
+    Value: Cockerill
+  - Key: character.name.part.edouard
+    Value: Édouard
+  - Key: character.name.part.empain
+    Value: Empain
+  - Key: character.name.part.andre
+    Value: André
+  - Key: character.name.part.langrand_dumonceau
+    Value: Langrand-Dumonceau
+  - Key: character.name.part.walthere
+    Value: Walthère
+  - Key: character.name.part.frere_orban
+    Value: Frère-Orban
+  - Key: character.name.part.jules
+    Value: Jules
+  - Key: character.name.part.malou
+    Value: Malou
+  - Key: character.name.part.emile
+    Value: Émile
+  - Key: character.name.part.de_laveleye
+    Value: de-Laveleye
+  - Key: character.name.part.khedive
+    Value: Khedive
+  - Key: character.name.part.ismail_pasha
+    Value: Ismail-Pasha
+  - Key: character.name.part.tewfik_pasha
+    Value: Tewfik-Pasha
+  - Key: character.name.part.abbas
+    Value: Abbas
+  - Key: character.name.part.hilmi_ii
+    Value: Hilmi-II
+  - Key: character.name.part.ahmad
+    Value: Ahmad
+  - Key: character.name.part.urabi_pasha
+    Value: Urabi-Pasha
+  - Key: character.name.part.sulayman
+    Value: Sulayman
+  - Key: character.name.part.al_faransawi
+    Value: al-Faransawi
+  - Key: character.name.part.ratib_pasha
+    Value: Ratib-Pasha
+  - Key: character.name.part.shafiq_pasha
+    Value: Shafiq-Pasha
+  - Key: character.name.part.muhammad
+    Value: Muhammad
+  - Key: character.name.part.abduh
+    Value: Abduh
+  - Key: character.name.part.butrus
+    Value: Butrus
+  - Key: character.name.part.ghali
+    Value: Ghali
+  - Key: character.name.part.nubar_pasha
+    Value: Nubar-Pasha
+  - Key: character.name.part.ferdinand
+    Value: Ferdinand
+  - Key: character.name.part.de_lesseps
+    Value: de-Lesseps
+  - Key: character.name.part.boghos
+    Value: Boghos
+  - Key: character.name.part.nubar
+    Value: Nubar
+  - Key: character.name.part.mustafa
+    Value: Mustafa
+  - Key: character.name.part.riyadh_pasha
+    Value: Riyadh-Pasha
+  - Key: character.name.part.cherif_pasha
+    Value: Cherif-Pasha
+  - Key: character.name.part.evelyn
+    Value: Evelyn
+  - Key: character.name.part.baring
+    Value: Baring
+  - Key: character.name.part.emperor
+    Value: Emperor
+  - Key: character.name.part.yohannes_iv
+    Value: Yohannes-IV
+  - Key: character.name.part.menelik_ii
+    Value: Menelik-II
+  - Key: character.name.part.taytu_betul
+    Value: Taytu-Betul
+  - Key: character.name.part.ras
+    Value: Ras
+  - Key: character.name.part.alula_engida
+    Value: Alula-Engida
+  - Key: character.name.part.mikael
+    Value: Mikael
+  - Key: character.name.part.gobena_dacche
+    Value: Gobena-Dacche
+  - Key: character.name.part.fitawrari
+    Value: Fitawrari
+  - Key: character.name.part.damtew
+    Value: Damtew
+  - Key: character.name.part.ato
+    Value: Ato
+  - Key: character.name.part.gabriel_gilma
+    Value: Gabriel-Gilma
+  - Key: character.name.part.grazmach
+    Value: Grazmach
+  - Key: character.name.part.gebre_iyesus
+    Value: Gebre-Iyesus
+  - Key: character.name.part.makonnen_wolde_mikael
+    Value: Makonnen-Wolde-Mikael
+  - Key: character.name.part.ilg
+    Value: Ilg
+  - Key: character.name.part.habte_giyorgis
+    Value: Habte-Giyorgis
+  - Key: character.name.part.pietro
+    Value: Pietro
+  - Key: character.name.part.antonelli
+    Value: Antonelli
+  - Key: character.name.part.afework
+    Value: Afework
+  - Key: character.name.part.gebre_iyasus
+    Value: Gebre-Iyasus
+  - Key: character.name.part.dejazmach
+    Value: Dejazmach
+  - Key: character.name.part.balcha_safo
+    Value: Balcha-Safo
+  - Key: character.name.part.napoleon
+    Value: Napoléon
+  - Key: character.name.part.iii
+    Value: III
+  - Key: character.name.part.sadi
+    Value: Sadi
+  - Key: character.name.part.carnot
+    Value: Carnot
+  - Key: character.name.part.grevy
+    Value: Grévy
+  - Key: character.name.part.patrice
+    Value: Patrice
+  - Key: character.name.part.mac_mahon
+    Value: Mac-Mahon
+  - Key: character.name.part.gaston
+    Value: Gaston
+  - Key: character.name.part.de_galliffet
+    Value: de-Galliffet
+  - Key: character.name.part.gallieni
+    Value: Gallieni
+  - Key: character.name.part.leon
+    Value: Léon
+  - Key: character.name.part.say
+    Value: Say
+  - Key: character.name.part.gabriel
+    Value: Gabriel
+  - Key: character.name.part.hanotaux
+    Value: Hanotaux
+  - Key: character.name.part.cambon
+    Value: Cambon
+  - Key: character.name.part.alphonse
+    Value: Alphonse
+  - Key: character.name.part.de_rothschild
+    Value: de-Rothschild
+  - Key: character.name.part.gustave
+    Value: Gustave
+  - Key: character.name.part.eiffel
+    Value: Eiffel
+  - Key: character.name.part.de_wendel
+    Value: de-Wendel
+  - Key: character.name.part.ferry
+    Value: Ferry
+  - Key: character.name.part.gambetta
+    Value: Gambetta
+  - Key: character.name.part.de_freycinet
+    Value: de-Freycinet
+  - Key: character.name.part.kaiser
+    Value: Kaiser
+  - Key: character.name.part.wilhelm_i
+    Value: Wilhelm-I
+  - Key: character.name.part.friedrich_iii
+    Value: Friedrich-III
+  - Key: character.name.part.wilhelm_ii
+    Value: Wilhelm-II
+  - Key: character.name.part.helmuth
+    Value: Helmuth
+  - Key: character.name.part.von_moltke
+    Value: von-Moltke
+  - Key: character.name.part.von_schlieffen
+    Value: von-Schlieffen
+  - Key: character.name.part.august
+    Value: August
+  - Key: character.name.part.von_mackensen
+    Value: von-Mackensen
+  - Key: character.name.part.herbert
+    Value: Herbert
+  - Key: character.name.part.von_bismarck
+    Value: von-Bismarck
+  - Key: character.name.part.adolf
+    Value: Adolf
+  - Key: character.name.part.von_munster
+    Value: von-Münster
+  - Key: character.name.part.von_hatzfeldt_wildenburg
+    Value: von-Hatzfeldt-Wildenburg
+  - Key: character.name.part.krupp
+    Value: Krupp
+  - Key: character.name.part.werner
+    Value: Werner
+  - Key: character.name.part.von_siemens
+    Value: von-Siemens
+  - Key: character.name.part.thyssen
+    Value: Thyssen
+  - Key: character.name.part.otto
+    Value: Otto
+  - Key: character.name.part.von_holstein
+    Value: von-Holstein
+  - Key: character.name.part.wilhelm
+    Value: Wilhelm
+  - Key: character.name.part.stieber
+    Value: Stieber
+  - Key: character.name.part.meiji
+    Value: Meiji
+  - Key: character.name.part.shoken
+    Value: Shoken
+  - Key: character.name.part.prince
+    Value: Prince
+  - Key: character.name.part.arisugawa_taruhito
+    Value: Arisugawa-Taruhito
+  - Key: character.name.part.yamagata
+    Value: Yamagata
+  - Key: character.name.part.aritomo
+    Value: Aritomo
+  - Key: character.name.part.oyama
+    Value: Oyama
+  - Key: character.name.part.iwao
+    Value: Iwao
+  - Key: character.name.part.nogi
+    Value: Nogi
+  - Key: character.name.part.maresuke
+    Value: Maresuke
+  - Key: character.name.part.aoki
+    Value: Aoki
+  - Key: character.name.part.shuzo
+    Value: Shuzo
+  - Key: character.name.part.enomoto
+    Value: Enomoto
+  - Key: character.name.part.takeaki
+    Value: Takeaki
+  - Key: character.name.part.hanabusa
+    Value: Hanabusa
+  - Key: character.name.part.yoshimoto
+    Value: Yoshimoto
+  - Key: character.name.part.iwasaki
+    Value: Iwasaki
+  - Key: character.name.part.yataro
+    Value: Yataro
+  - Key: character.name.part.shibusawa
+    Value: Shibusawa
+  - Key: character.name.part.eiichi
+    Value: Eiichi
+  - Key: character.name.part.okuma
+    Value: Okuma
+  - Key: character.name.part.shigenobu
+    Value: Shigenobu
+  - Key: character.name.part.ito
+    Value: Ito
+  - Key: character.name.part.hirobumi
+    Value: Hirobumi
+  - Key: character.name.part.inoue
+    Value: Inoue
+  - Key: character.name.part.kaoru
+    Value: Kaoru
+  - Key: character.name.part.kawaji
+    Value: Kawaji
+  - Key: character.name.part.toshiyoshi
+    Value: Toshiyoshi
+  - Key: character.name.part.umberto_i
+    Value: Umberto-I
+  - Key: character.name.part.victor_emmanuel_ii
+    Value: Victor-Emmanuel-II
+  - Key: character.name.part.margherita_savoy
+    Value: Margherita-Savoy
+  - Key: character.name.part.giuseppe
+    Value: Giuseppe
+  - Key: character.name.part.garibaldi
+    Value: Garibaldi
+  - Key: character.name.part.raffaele
+    Value: Raffaele
+  - Key: character.name.part.cadorna
+    Value: Cadorna
+  - Key: character.name.part.alfonso
+    Value: Alfonso
+  - Key: character.name.part.la_marmora
+    Value: La-Marmora
+  - Key: character.name.part.costantino
+    Value: Costantino
+  - Key: character.name.part.nigra
+    Value: Nigra
+  - Key: character.name.part.marco
+    Value: Marco
+  - Key: character.name.part.minghetti
+    Value: Minghetti
+  - Key: character.name.part.emilio
+    Value: Emilio
+  - Key: character.name.part.visconti_venosta
+    Value: Visconti-Venosta
+  - Key: character.name.part.alessandro
+    Value: Alessandro
+  - Key: character.name.part.rossi
+    Value: Rossi
+  - Key: character.name.part.vincenzo
+    Value: Vincenzo
+  - Key: character.name.part.florio
+    Value: Florio
+  - Key: character.name.part.bastogi
+    Value: Bastogi
+  - Key: character.name.part.francesco
+    Value: Francesco
+  - Key: character.name.part.crispi
+    Value: Crispi
+  - Key: character.name.part.luigi
+    Value: Luigi
+  - Key: character.name.part.menabrea
+    Value: Menabrea
+  - Key: character.name.part.alberto
+    Value: Alberto
+  - Key: character.name.part.blanc
+    Value: Blanc
+  - Key: character.name.part.pedro_ii
+    Value: Pedro-II
+  - Key: character.name.part.princess
+    Value: Princess
+  - Key: character.name.part.isabel
+    Value: Isabel
+  - Key: character.name.part.pedro_i
+    Value: Pedro-I
+  - Key: character.name.part.duke
+    Value: Duke
+  - Key: character.name.part.caxias
+    Value: Caxias
+  - Key: character.name.part.osorio
+    Value: Osório
+  - Key: character.name.part.floriano
+    Value: Floriano
+  - Key: character.name.part.peixoto
+    Value: Peixoto
+  - Key: character.name.part.joao
+    Value: João
+  - Key: character.name.part.correia_de_oliveira
+    Value: Correia-de-Oliveira
+  - Key: character.name.part.afonso
+    Value: Afonso
+  - Key: character.name.part.celso
+    Value: Celso
+  - Key: character.name.part.wandenkolk
+    Value: Wandenkolk
+  - Key: character.name.part.barao
+    Value: Barão
+  - Key: character.name.part.de_maua
+    Value: de-Mauá
+  - Key: character.name.part.de_cotegipe
+    Value: de-Cotegipe
+  - Key: character.name.part.do_rio_branco
+    Value: do-Rio-Branco
+  - Key: character.name.part.joaquim
+    Value: Joaquim
+  - Key: character.name.part.nabuco
+    Value: Nabuco
+  - Key: character.name.part.visconde
+    Value: Visconde
+  - Key: character.name.part.saraiva
+    Value: Saraiva
+  - Key: character.name.part.cixi
+    Value: Cixi
+  - Key: character.name.part.guangxu
+    Value: Guangxu
+  - Key: character.name.part.gong
+    Value: Gong
+  - Key: character.name.part.zeng
+    Value: Zeng
+  - Key: character.name.part.guofan
+    Value: Guofan
+  - Key: character.name.part.li
+    Value: Li
+  - Key: character.name.part.hongzhang
+    Value: Hongzhang
+  - Key: character.name.part.zuo
+    Value: Zuo
+  - Key: character.name.part.zongtang
+    Value: Zongtang
+  - Key: character.name.part.xue
+    Value: Xue
+  - Key: character.name.part.fucheng
+    Value: Fucheng
+  - Key: character.name.part.jize
+    Value: Jize
+  - Key: character.name.part.chen
+    Value: Chen
+  - Key: character.name.part.lanbin
+    Value: Lanbin
+  - Key: character.name.part.sheng
+    Value: Sheng
+  - Key: character.name.part.xuanhuai
+    Value: Xuanhuai
+  - Key: character.name.part.hu
+    Value: Hu
+  - Key: character.name.part.xueyan
+    Value: Xueyan
+  - Key: character.name.part.tang
+    Value: Tang
+  - Key: character.name.part.tingshu
+    Value: Tingshu
+  - Key: character.name.part.wenxiang
+    Value: Wenxiang
+  - Key: character.name.part.zhang
+    Value: Zhang
+  - Key: character.name.part.zhidong
+    Value: Zhidong
+  - Key: character.name.part.robert
+    Value: Robert
+  - Key: character.name.part.hart
+    Value: Hart
+  - Key: character.name.part.william_iii
+    Value: William-III
+  - Key: character.name.part.emma
+    Value: Emma
+  - Key: character.name.part.wilhelmina
+    Value: Wilhelmina
+  - Key: character.name.part.jan
+    Value: Jan
+  - Key: character.name.part.van_swieten
+    Value: van-Swieten
+  - Key: character.name.part.hendrik
+    Value: Hendrik
+  - Key: character.name.part.veldtman_laane
+    Value: Veldtman-Laane
+  - Key: character.name.part.vetter
+    Value: Vetter
+  - Key: character.name.part.pieter
+    Value: Pieter
+  - Key: character.name.part.van_der_does_de_willebois
+    Value: van-der-Does-de-Willebois
+  - Key: character.name.part.dirk
+    Value: Dirk
+  - Key: character.name.part.de_graeff_van_polsbroek
+    Value: de-Graeff-van-Polsbroek
+  - Key: character.name.part.frans
+    Value: Frans
+  - Key: character.name.part.van_tets_van_goudriaan
+    Value: van-Tets-van-Goudriaan
+  - Key: character.name.part.adriaan
+    Value: Adriaan
+  - Key: character.name.part.stoop
+    Value: Stoop
+  - Key: character.name.part.gerard
+    Value: Gerard
+  - Key: character.name.part.philips
+    Value: Philips
+  - Key: character.name.part.samuel
+    Value: Samuel
+  - Key: character.name.part.van_den_bergh
+    Value: van-den-Bergh
+  - Key: character.name.part.johan
+    Value: Johan
+  - Key: character.name.part.thorbecke
+    Value: Thorbecke
+  - Key: character.name.part.abraham
+    Value: Abraham
+  - Key: character.name.part.kuyper
+    Value: Kuyper
+  - Key: character.name.part.conrad
+    Value: Conrad
+  - Key: character.name.part.van_deventer
+    Value: van-Deventer
+  - Key: character.name.part.sultan
+    Value: Sultan
+  - Key: character.name.part.abdul_hamid_ii
+    Value: Abdul-Hamid-II
+  - Key: character.name.part.abdulaziz
+    Value: Abdulaziz
+  - Key: character.name.part.murad_v
+    Value: Murad-V
+  - Key: character.name.part.gazi
+    Value: Gazi
+  - Key: character.name.part.osman_pasha
+    Value: Osman-Pasha
+  - Key: character.name.part.ahmed
+    Value: Ahmed
+  - Key: character.name.part.muhtar_pasha
+    Value: Muhtar-Pasha
+  - Key: character.name.part.namk_pasha
+    Value: Namık-Pasha
+  - Key: character.name.part.said_pasha
+    Value: Said-Pasha
+  - Key: character.name.part.vefik_pasha
+    Value: Vefik-Pasha
+  - Key: character.name.part.mehmed
+    Value: Mehmed
+  - Key: character.name.part.fuad_pasha
+    Value: Fuad-Pasha
+  - Key: character.name.part.ohannes
+    Value: Ohannes
+  - Key: character.name.part.kaspar_duz
+    Value: Kaspar-Duz
+  - Key: character.name.part.agop
+    Value: Agop
+  - Key: character.name.part.kazazyan_pasha
+    Value: Kazazyan-Pasha
+  - Key: character.name.part.kamil_pasha
+    Value: Kâmil-Pasha
+  - Key: character.name.part.midhat_pasha
+    Value: Midhat-Pasha
+  - Key: character.name.part.ismail
+    Value: İsmail
+  - Key: character.name.part.kemal
+    Value: Kemal
+  - Key: character.name.part.fehim_pasha
+    Value: Fehim-Pasha
+  - Key: character.name.part.naser
+    Value: Naser
+  - Key: character.name.part.al_din_shah
+    Value: al-Din-Shah
+  - Key: character.name.part.mozaffar
+    Value: Mozaffar
+  - Key: character.name.part.ad_din_shah
+    Value: ad-Din-Shah
+  - Key: character.name.part.abbas_mirza
+    Value: Abbas-Mirza
+  - Key: character.name.part.amir
+    Value: Amir
+  - Key: character.name.part.kabir
+    Value: Kabir
+  - Key: character.name.part.mirza
+    Value: Mirza
+  - Key: character.name.part.hossein_khan_sepahsalar
+    Value: Hossein-Khan-Sepahsalar
+  - Key: character.name.part.agha
+    Value: Agha
+  - Key: character.name.part.khan_mahallati
+    Value: Khan-Mahallati
+  - Key: character.name.part.saeed_khan_ansari
+    Value: Saeed-Khan-Ansari
+  - Key: character.name.part.mohsen_khan_ala_od_dowleh
+    Value: Mohsen-Khan-Ala-od-Dowleh
+  - Key: character.name.part.mahmud_khan_qajar
+    Value: Mahmud-Khan-Qajar
+  - Key: character.name.part.hajj
+    Value: Hajj
+  - Key: character.name.part.muhammad_hasan_amin_al_zarb
+    Value: Muhammad-Hasan-Amin-al-Zarb
+  - Key: character.name.part.julius_de_reuter
+    Value: Julius-de-Reuter
+  - Key: character.name.part.yusuf_khan_mostashar
+    Value: Yusuf-Khan-Mostashar
+  - Key: character.name.part.malkom_khan
+    Value: Malkom-Khan
+  - Key: character.name.part.jamal
+    Value: Jamal
+  - Key: character.name.part.al_afghani
+    Value: al-Afghani
+  - Key: character.name.part.amin
+    Value: Amin
+  - Key: character.name.part.al_sultan
+    Value: al-Sultan
+  - Key: character.name.part.luis_i
+    Value: Luís-I
+  - Key: character.name.part.carlos_i
+    Value: Carlos-I
+  - Key: character.name.part.maria_ii
+    Value: Maria-II
+  - Key: character.name.part.marquis
+    Value: Marquis
+  - Key: character.name.part.sa_da_bandeira
+    Value: Sá-da-Bandeira
+  - Key: character.name.part.fontes
+    Value: Fontes
+  - Key: character.name.part.pereira_de_melo
+    Value: Pereira-de-Melo
+  - Key: character.name.part.andrade_corvo
+    Value: Andrade-Corvo
+  - Key: character.name.part.antonio
+    Value: António
+  - Key: character.name.part.serpa_pimentel
+    Value: Serpa-Pimentel
+  - Key: character.name.part.de_penafiel
+    Value: de-Penafiel
+  - Key: character.name.part.jaime
+    Value: Jaime
+  - Key: character.name.part.batalha_reis
+    Value: Batalha-Reis
+  - Key: character.name.part.de_avila
+    Value: de-Ávila
+  - Key: character.name.part.henrique
+    Value: Henrique
+  - Key: character.name.part.barros_gomes
+    Value: Barros-Gomes
+  - Key: character.name.part.candido
+    Value: Cândido
+  - Key: character.name.part.sotto_mayor
+    Value: Sotto-Mayor
+  - Key: character.name.part.de_aguiar
+    Value: de-Aguiar
+  - Key: character.name.part.luciano
+    Value: Luciano
+  - Key: character.name.part.de_castro
+    Value: de-Castro
+  - Key: character.name.part.oliveira
+    Value: Oliveira
+  - Key: character.name.part.martins
+    Value: Martins
+  - Key: character.name.part.alexander
+    Value: Alexander
+  - Key: character.name.part.nicholas
+    Value: Nicholas
+  - Key: character.name.part.mikhail
+    Value: Mikhail
+  - Key: character.name.part.skobelev
+    Value: Skobelev
+  - Key: character.name.part.dragomirov
+    Value: Dragomirov
+  - Key: character.name.part.dmitry
+    Value: Dmitry
+  - Key: character.name.part.milyutin
+    Value: Milyutin
+  - Key: character.name.part.gorchakov
+    Value: Gorchakov
+  - Key: character.name.part.nikolai
+    Value: Nikolai
+  - Key: character.name.part.giers
+    Value: Giers
+  - Key: character.name.part.pyotr
+    Value: Pyotr
+  - Key: character.name.part.kapnist
+    Value: Kapnist
+  - Key: character.name.part.savva
+    Value: Savva
+  - Key: character.name.part.mamontov
+    Value: Mamontov
+  - Key: character.name.part.sergei
+    Value: Sergei
+  - Key: character.name.part.witte
+    Value: Witte
+  - Key: character.name.part.pavel
+    Value: Pavel
+  - Key: character.name.part.ryabushinsky
+    Value: Ryabushinsky
+  - Key: character.name.part.shuvalov
+    Value: Shuvalov
+  - Key: character.name.part.ignatiev
+    Value: Ignatiev
+  - Key: character.name.part.konstantin
+    Value: Konstantin
+  - Key: character.name.part.pobedonostsev
+    Value: Pobedonostsev
+  - Key: character.name.part.alfonso_xii
+    Value: Alfonso-XII
+  - Key: character.name.part.isabella_ii
+    Value: Isabella-II
+  - Key: character.name.part.maria_christina
+    Value: Maria-Christina
+  - Key: character.name.part.arsenio
+    Value: Arsenio
+  - Key: character.name.part.martinez_campos
+    Value: Martínez-Campos
+  - Key: character.name.part.juan
+    Value: Juan
+  - Key: character.name.part.prim
+    Value: Prim
+  - Key: character.name.part.valeriano
+    Value: Valeriano
+  - Key: character.name.part.weyler
+    Value: Weyler
+  - Key: character.name.part.castelar
+    Value: Castelar
+  - Key: character.name.part.valera
+    Value: Valera
+  - Key: character.name.part.segismundo
+    Value: Segismundo
+  - Key: character.name.part.moret
+    Value: Moret
+  - Key: character.name.part.antonio_2
+    Value: Antonio
+  - Key: character.name.part.lopez_y_lopez
+    Value: López-y-López
+  - Key: character.name.part.claudio
+    Value: Claudio
+  - Key: character.name.part.lopez_bru
+    Value: López-Bru
+  - Key: character.name.part.pablo
+    Value: Pablo
+  - Key: character.name.part.alzola_y_minondo
+    Value: Alzola-y-Minondo
+  - Key: character.name.part.antonio_3
+    Value: Antonio
+  - Key: character.name.part.canovas_del_castillo
+    Value: Cánovas-del-Castillo
+  - Key: character.name.part.praxedes
+    Value: Práxedes
+  - Key: character.name.part.sagasta
+    Value: Sagasta
+  - Key: character.name.part.francisco
+    Value: Francisco
+  - Key: character.name.part.romero_robledo
+    Value: Romero-Robledo
+  - Key: character.name.part.oscar_ii
+    Value: Oscar-II
+  - Key: character.name.part.charles_xv
+    Value: Charles-XV
+  - Key: character.name.part.gustaf
+    Value: Gustaf
+  - Key: character.name.part.arvid
+    Value: Arvid
+  - Key: character.name.part.posse
+    Value: Posse
+  - Key: character.name.part.akerhjelm
+    Value: Akerhjelm
+  - Key: character.name.part.nils
+    Value: Nils
+  - Key: character.name.part.ericson
+    Value: Ericson
+  - Key: character.name.part.sigurd
+    Value: Sigurd
+  - Key: character.name.part.ibsen
+    Value: Ibsen
+  - Key: character.name.part.bildt
+    Value: Bildt
+  - Key: character.name.part.pontus
+    Value: Pontus
+  - Key: character.name.part.fahlbeck
+    Value: Fahlbeck
+  - Key: character.name.part.nobel
+    Value: Nobel
+  - Key: character.name.part.wallenberg
+    Value: Wallenberg
+  - Key: character.name.part.lars_johan
+    Value: Lars-Johan
+  - Key: character.name.part.hierta
+    Value: Hierta
+  - Key: character.name.part.louis
+    Value: Louis
+  - Key: character.name.part.de_geer_af_leufsta
+    Value: de-Geer-af-Leufsta
+  - Key: character.name.part.hedin
+    Value: Hedin
+  - Key: character.name.part.ernst
+    Value: Ernst
+  - Key: character.name.part.trygger
+    Value: Trygger
+  - Key: character.name.part.victoria
+    Value: Victoria
+  - Key: character.name.part.albert
+    Value: Albert
+  - Key: character.name.part.edward_vii
+    Value: Edward-VII
+  - Key: character.name.part.frederick
+    Value: Frederick
+  - Key: character.name.part.roberts
+    Value: Roberts
+  - Key: character.name.part.kitchener
+    Value: Kitchener
+  - Key: character.name.part.garnet
+    Value: Garnet
+  - Key: character.name.part.wolseley
+    Value: Wolseley
+  - Key: character.name.part.lord
+    Value: Lord
+  - Key: character.name.part.granville
+    Value: Granville
+  - Key: character.name.part.edward
+    Value: Edward
+  - Key: character.name.part.malet
+    Value: Malet
+  - Key: character.name.part.richard
+    Value: Richard
+  - Key: character.name.part.lyons
+    Value: Lyons
+  - Key: character.name.part.nathan
+    Value: Nathan
+  - Key: character.name.part.rothschild
+    Value: Rothschild
+  - Key: character.name.part.cecil
+    Value: Cecil
+  - Key: character.name.part.rhodes
+    Value: Rhodes
+  - Key: character.name.part.william
+    Value: William
+  - Key: character.name.part.lever
+    Value: Lever
+  - Key: character.name.part.benjamin
+    Value: Benjamin
+  - Key: character.name.part.disraeli
+    Value: Disraeli
+  - Key: character.name.part.salisbury
+    Value: Salisbury
+  - Key: character.name.part.anderson
+    Value: Anderson
+  - Key: character.name.part.ulysses
+    Value: Ulysses
+  - Key: character.name.part.grant
+    Value: Grant
+  - Key: character.name.part.chester
+    Value: Chester
+  - Key: character.name.part.arthur
+    Value: Arthur
+  - Key: character.name.part.grover
+    Value: Grover
+  - Key: character.name.part.cleveland
+    Value: Cleveland
+  - Key: character.name.part.sherman
+    Value: Sherman
+  - Key: character.name.part.philip
+    Value: Philip
+  - Key: character.name.part.sheridan
+    Value: Sheridan
+  - Key: character.name.part.george
+    Value: George
+  - Key: character.name.part.custer
+    Value: Custer
+  - Key: character.name.part.hamilton
+    Value: Hamilton
+  - Key: character.name.part.fish
+    Value: Fish
+  - Key: character.name.part.james
+    Value: James
+  - Key: character.name.part.blaine
+    Value: Blaine
+  - Key: character.name.part.adams
+    Value: Adams
+  - Key: character.name.part.rockefeller
+    Value: Rockefeller
+  - Key: character.name.part.andrew
+    Value: Andrew
+  - Key: character.name.part.carnegie
+    Value: Carnegie
+  - Key: character.name.part.pierpont
+    Value: Pierpont
+  - Key: character.name.part.morgan
+    Value: Morgan
+  - Key: character.name.part.allan
+    Value: Allan
+  - Key: character.name.part.pinkerton
+    Value: Pinkerton
+  - Key: character.name.part.seward
+    Value: Seward
+  - Key: character.name.part.elihu
+    Value: Elihu
+  - Key: character.name.part.washburne
+    Value: Washburne
