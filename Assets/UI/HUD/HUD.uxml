@@ -21,6 +21,8 @@
                 <ui:Button name="btn-influence-plus" text="Influence+" class="gs-btn gs-btn--small debug-panel-button"/>
                 <ui:Button name="btn-influence-minus" text="Influence-" class="gs-btn gs-btn--small debug-panel-button"/>
             </ui:VisualElement>
+            <ui:VisualElement name="character-debug-container" style="flex-direction: column;" />
+            <ui:VisualElement name="org-char-debug-container" style="flex-direction: column;" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

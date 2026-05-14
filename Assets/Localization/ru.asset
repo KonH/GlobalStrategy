@@ -1497,3 +1497,53 @@ MonoBehaviour:
     Value: "\u042d\u043b\u0430\u0439\u0445\u0443"
   - Key: character.name.part.washburne
     Value: "\u0423\u043e\u0448\u0431\u0435\u0440\u043d"
+  - Key: character.role.master.name
+    Value: "Мастер"
+  - Key: character.role.master.description
+    Value: "Лидер организации, мастер убеждения"
+  - Key: character.role.agent.name
+    Value: "Агент"
+  - Key: character.role.agent.description
+    Value: "Полевой оперативник, мастер тайных дел"
+  - Key: character.name.part.adam
+    Value: "Адам"
+  - Key: character.name.part.weishaupt
+    Value: "Вейсхаупт"
+  - Key: character.name.part.cornelius
+    Value: "Корнелий"
+  - Key: character.name.part.vondrak
+    Value: "фон Драк"
+  - Key: character.name.part.sebastian
+    Value: "Себастьян"
+  - Key: character.name.part.moreau
+    Value: "Моро"
+  - Key: character.name.part.xavier
+    Value: "Ксавьер"
+  - Key: character.name.part.delvaux
+    Value: "Дельво"
+  - Key: character.name.part.elise
+    Value: "Элиза"
+  - Key: character.name.part.voss
+    Value: "Фосс"
+  - Key: character.name.part.nikolai
+    Value: "Николай"
+  - Key: character.name.part.krauss
+    Value: "Краус"
+  - Key: character.name.part.liselotte
+    Value: "Лизелотта"
+  - Key: character.name.part.stern
+    Value: "Штерн"
+  - Key: character.name.part.remy
+    Value: "Реми"
+  - Key: character.name.part.lacroix
+    Value: "Лакруа"
+  - Key: character.name.part.otto
+    Value: "Отто"
+  - Key: character.name.part.brandt
+    Value: "Брандт"
+  - Key: hud.org_characters
+    Value: "Персонажи"
+  - Key: hud.slot_empty
+    Value: "Пусто"
+  - Key: hud.slot_available
+    Value: "Доступно"

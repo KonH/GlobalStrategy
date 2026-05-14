@@ -10,6 +10,7 @@
 - Never chain shell commands with `&&` — run each as a separate Bash tool call
 
 ## Configuration Index
+- **Workflow & tool usage:** `.claude/rules/workflow.md`
 - **Commit rules:** `.claude/commands/commit.md`
 - **Plan command:** `.claude/commands/plan.md` — saves plans to `Docs/Plans/`
 - **C# code style:** `.claude/rules/csharp/code_style.md`

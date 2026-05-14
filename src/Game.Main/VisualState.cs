@@ -136,6 +136,28 @@ namespace GS.Main {
 		}
 	}
 
+	public class OrgCharacterSlotEntry {
+		public string RoleId { get; }
+		public int SlotIndex { get; }
+		public CharacterStateEntry? Character { get; }
+		public bool IsAvailable { get; }
+		public OrgCharacterSlotEntry(string roleId, int slotIndex, CharacterStateEntry? character, bool isAvailable) {
+			RoleId = roleId;
+			SlotIndex = slotIndex;
+			Character = character;
+			IsAvailable = isAvailable;
+		}
+	}
+
+	public class OrgCharactersState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public IReadOnlyList<OrgCharacterSlotEntry> Slots { get; private set; } = Array.Empty<OrgCharacterSlotEntry>();
+		public void Set(List<OrgCharacterSlotEntry> slots) {
+			Slots = slots;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class MapLensState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public MapLens Lens { get; private set; } = MapLens.Political;
@@ -179,6 +201,7 @@ namespace GS.Main {
 		public SelectedOrganizationState SelectedOrganization { get; } = new SelectedOrganizationState();
 		public CountryInfluenceState SelectedInfluence { get; } = new CountryInfluenceState();
 		public CountryCharactersState SelectedCharacters { get; } = new CountryCharactersState();
+		public OrgCharactersState PlayerOrgCharacters { get; } = new OrgCharactersState();
 		public MapLensState MapLens { get; } = new MapLensState();
 		public OrgMapState OrgMap { get; } = new OrgMapState();
 	}

@@ -78,6 +78,7 @@ namespace GS.Main {
 				});
 			}
 
+			CreateOrgCharacterEntities(world, context, rng);
 			CreateCharacterEntities(world, context, rng);
 
 			int initEntity = world.Create();
@@ -111,6 +112,7 @@ namespace GS.Main {
 					world.Add(charEntity, new Character {
 						CharacterId = charEntry.CharacterId,
 						CountryId = entry.CountryId,
+						OrgId = "",
 						RoleId = role.RoleId,
 						NamePartKeys = namePartKeys
 					});
@@ -153,6 +155,89 @@ namespace GS.Main {
 						PayType = Enum.Parse<PayType>(effectDef.PayType, ignoreCase: true)
 					});
 				}
+			}
+		}
+
+		static void CreateOrgCharacterEntities(World world, GameLogicContext context, Random rng) {
+			var characterConfig = context.Character.Load();
+			var orgConfig = context.Organization.Load();
+
+			string orgId = context.InitialOrganizationId;
+			if (string.IsNullOrEmpty(orgId)) { return; }
+			var orgEntry = orgConfig.FindById(orgId);
+			if (orgEntry == null) { return; }
+
+			bool isPlayerOrg = true;
+			var pool = characterConfig.FindOrgPool(orgId);
+
+			CreateOrgSlots(world, characterConfig, rng, orgId, "master", 1, pool, isPlayerOrg);
+
+			int agentSlots = orgEntry.InitialAgentSlots;
+			if (agentSlots > 0) {
+				CreateOrgSlots(world, characterConfig, rng, orgId, "agent", agentSlots, pool, isPlayerOrg);
+			}
+		}
+
+		static void CreateOrgSlots(
+			World world, CharacterConfig characterConfig, Random rng,
+			string orgId, string roleId, int totalSlots,
+			OrgCharacterPool? pool, bool isPlayerOrg) {
+
+			List<CharacterEntry>? candidates = null;
+			if (pool != null) {
+				pool.Slots.TryGetValue(roleId, out candidates);
+			}
+
+			for (int slotIndex = 0; slotIndex < totalSlots; slotIndex++) {
+				bool filled = slotIndex == 0 && candidates != null && candidates.Count > 0;
+				string charId = "";
+
+				if (filled) {
+					var charEntry = candidates![rng.Next(candidates.Count)];
+					charId = charEntry.CharacterId;
+
+					int charEntity = world.Create();
+					var namePartKeys = new string[charEntry.NamePartKeys.Count];
+					for (int i = 0; i < charEntry.NamePartKeys.Count; i++) {
+						namePartKeys[i] = charEntry.NamePartKeys[i];
+					}
+					world.Add(charEntity, new Character {
+						CharacterId = charId,
+						CountryId = "",
+						OrgId = orgId,
+						RoleId = roleId,
+						NamePartKeys = namePartKeys
+					});
+
+					var roleDef = characterConfig.FindRole(roleId);
+					var roleSkillIds = roleDef != null
+						? new System.Collections.Generic.HashSet<string>(roleDef.SkillIds)
+						: new System.Collections.Generic.HashSet<string>();
+
+					foreach (var skillDef in characterConfig.Skills) {
+						if (!roleSkillIds.Contains(skillDef.SkillId)) {
+							continue;
+						}
+						int skillValue;
+						if (charEntry.Skills.TryGetValue(skillDef.SkillId, out var ss)) {
+							skillValue = rng.Next(ss.MinValue, ss.MaxValue + 1);
+						} else {
+							skillValue = rng.Next(5, 31);
+						}
+						int skillEntity = world.Create();
+						world.Add(skillEntity, new ResourceOwner(charId));
+						world.Add(skillEntity, new Resource { ResourceId = skillDef.SkillId, Value = skillValue });
+					}
+				}
+
+				int slotEntity = world.Create();
+				world.Add(slotEntity, new CharacterSlot {
+					OwnerId = orgId,
+					RoleId = roleId,
+					SlotIndex = slotIndex,
+					IsAvailable = !filled && isPlayerOrg,
+					CharacterId = charId
+				});
 			}
 		}
 

@@ -613,3 +613,21 @@ MonoBehaviour:
     portrait: {fileID: 4451819055144348775, guid: 71efa4bfb33ea174f98d08907450973a, type: 3}
   - characterId: united_states_sec_3
     portrait: {fileID: 6109646383751972602, guid: 01b27f9f3b13453458c6711dc305431a, type: 3}
+  - characterId: illuminati_master_1
+    portrait: {fileID: -5779888571521897094, guid: 0f096e694eafa964e8f0a0cb31045ce2, type: 3}
+  - characterId: illuminati_master_2
+    portrait: {fileID: 8512457818973008537, guid: 5555b1e34da73204db8c21affa01b3ff, type: 3}
+  - characterId: illuminati_master_3
+    portrait: {fileID: -6453543198936925422, guid: 84dcf52d19424594eb54558f8f668339, type: 3}
+  - characterId: illuminati_agent_1
+    portrait: {fileID: 6965647608003354582, guid: 8c43d5c0f3eca104f8445ee05cae52ae, type: 3}
+  - characterId: illuminati_agent_2
+    portrait: {fileID: 5911130908701279049, guid: 15e40259493da174f9f3696149ba9332, type: 3}
+  - characterId: illuminati_agent_3
+    portrait: {fileID: 278158062266331800, guid: dc8cdba955abd02469ddd175ddb19e2e, type: 3}
+  - characterId: illuminati_agent_4
+    portrait: {fileID: 7517446476279215528, guid: 91e814af8f98c5c44a68789ef5f3e61c, type: 3}
+  - characterId: illuminati_agent_5
+    portrait: {fileID: 6196392179366861854, guid: 4215884bbb8d4b54ea247397e2314136, type: 3}
+  - characterId: illuminati_agent_6
+    portrait: {fileID: -368766595122080513, guid: 5dacf5b2547767848bcde39e5ef37600, type: 3}

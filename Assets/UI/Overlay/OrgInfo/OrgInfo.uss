@@ -1,0 +1,53 @@
+.org-info-root {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgb(26, 42, 72);
+    border-color: rgb(200, 160, 64);
+    border-top-width: 3px;
+    border-left-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-radius: 0;
+    padding: 16px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+}
+
+.org-name {
+    font-size: 24px;
+    color: rgb(240, 232, 208);
+    -unity-font: url("project://database/Assets/UI/Fonts/Cinzel-Bold.ttf?fileID=12800000&guid=f580297c1d9f7c74984732caed69c108&type=3#Cinzel-Bold");
+    -unity-text-align: upper-left;
+}
+
+.org-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.org-main-block {
+    flex-direction: column;
+    min-width: 200px;
+}
+
+.org-characters-slide {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    padding: 8px 16px 12px;
+    opacity: 0;
+    translate: 0 20px;
+    transition-property: opacity, translate;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+}
+
+.org-characters-slide--open {
+    opacity: 1;
+    translate: 0 0;
+}

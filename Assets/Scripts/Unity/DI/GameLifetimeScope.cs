@@ -75,6 +75,7 @@ namespace GS.Unity.DI {
 
 			builder.RegisterComponentInHierarchy<GameMenuDocument>();
 			builder.RegisterComponentInHierarchy<SettingsWindowDocument>();
+			builder.RegisterComponentInHierarchy<OrgInfoDocument>();
 		}
 
 		protected override void OnDestroy() {

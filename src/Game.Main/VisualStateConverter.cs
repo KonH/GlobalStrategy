@@ -10,6 +10,7 @@ namespace GS.Main {
 		readonly VisualState _state;
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
+		static readonly string[] s_orgRoleOrder = { "master", "agent" };
 
 		internal VisualStateConverter(VisualState state) {
 			_state = state;
@@ -24,6 +25,7 @@ namespace GS.Main {
 			UpdateResources(world);
 			UpdateSelectedInfluence(world);
 			UpdateCharacters(world);
+			UpdateOrgCharacters(world);
 			UpdateOrgMap(world, orgEntity);
 		}
 
@@ -75,6 +77,72 @@ namespace GS.Main {
 			});
 
 			_state.SelectedCharacters.Set(entries);
+		}
+
+		void UpdateOrgCharacters(IReadOnlyWorld world) {
+			if (!_state.PlayerOrganization.IsValid) {
+				_state.PlayerOrgCharacters.Set(new List<OrgCharacterSlotEntry>());
+				return;
+			}
+			string orgId = _state.PlayerOrganization.OrgId;
+
+			var charData = new Dictionary<string, (string roleId, string[] namePartKeys)>();
+			var charSkills = new Dictionary<string, List<SkillEntry>>();
+
+			int[] charRequired = { TypeId<Character>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(charRequired, null)) {
+				Character[] chars = arch.GetColumn<Character>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (chars[i].OrgId != orgId) {
+						continue;
+					}
+					charData[chars[i].CharacterId] = (chars[i].RoleId, chars[i].NamePartKeys);
+					charSkills[chars[i].CharacterId] = new List<SkillEntry>();
+				}
+			}
+
+			int[] resRequired = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(resRequired, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (charSkills.TryGetValue(owners[i].OwnerId, out var skillList)) {
+						skillList.Add(new SkillEntry(resources[i].ResourceId, (int)resources[i].Value));
+					}
+				}
+			}
+
+			var slotEntries = new List<OrgCharacterSlotEntry>();
+			int[] slotRequired = { TypeId<CharacterSlot>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(slotRequired, null)) {
+				CharacterSlot[] slots = arch.GetColumn<CharacterSlot>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (slots[i].OwnerId != orgId) {
+						continue;
+					}
+					CharacterStateEntry? charEntry = null;
+					string cid = slots[i].CharacterId;
+					if (!string.IsNullOrEmpty(cid) && charData.TryGetValue(cid, out var cd)) {
+						charEntry = new CharacterStateEntry(cid, cd.roleId, cd.namePartKeys, charSkills[cid]);
+					}
+					slotEntries.Add(new OrgCharacterSlotEntry(
+						slots[i].RoleId, slots[i].SlotIndex, charEntry, slots[i].IsAvailable));
+				}
+			}
+
+			slotEntries.Sort((a, b) => {
+				int ai = Array.IndexOf(s_orgRoleOrder, a.RoleId);
+				int bi = Array.IndexOf(s_orgRoleOrder, b.RoleId);
+				if (ai < 0) { ai = int.MaxValue; }
+				if (bi < 0) { bi = int.MaxValue; }
+				int rc = ai.CompareTo(bi);
+				return rc != 0 ? rc : a.SlotIndex.CompareTo(b.SlotIndex);
+			});
+
+			_state.PlayerOrgCharacters.Set(slotEntries);
 		}
 
 		void UpdateSelectedCountry(IReadOnlyWorld world) {

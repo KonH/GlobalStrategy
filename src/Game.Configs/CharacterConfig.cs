@@ -14,6 +14,7 @@ namespace GS.Game.Configs {
 		public string DescriptionKey { get; set; } = "";
 		public string Icon { get; set; } = "";
 		public List<string> SkillIds { get; set; } = new();
+		public int MaxCount { get; set; } = 1;
 	}
 
 	public class SkillSettings {
@@ -32,10 +33,16 @@ namespace GS.Game.Configs {
 		public Dictionary<string, List<CharacterEntry>> Slots { get; set; } = new();
 	}
 
+	public class OrgCharacterPool {
+		public string OrgId { get; set; } = "";
+		public Dictionary<string, List<CharacterEntry>> Slots { get; set; } = new();
+	}
+
 	public class CharacterConfig {
 		public List<CharacterSkillDefinition> Skills { get; set; } = new();
 		public List<CharacterRoleDefinition> Roles { get; set; } = new();
 		public List<CountryCharacterPool> CountryPools { get; set; } = new();
+		public List<OrgCharacterPool> OrgPools { get; set; } = new();
 
 		public CharacterSkillDefinition? FindSkill(string skillId) {
 			foreach (var s in Skills) {
@@ -54,6 +61,13 @@ namespace GS.Game.Configs {
 		public CountryCharacterPool? FindPool(string countryId) {
 			foreach (var p in CountryPools) {
 				if (p.CountryId == countryId) return p;
+			}
+			return null;
+		}
+
+		public OrgCharacterPool? FindOrgPool(string orgId) {
+			foreach (var p in OrgPools) {
+				if (p.OrgId == orgId) return p;
 			}
 			return null;
 		}

@@ -73,6 +73,22 @@
       "skillIds": [
         "intrigue"
       ]
+    },
+    {
+      "roleId": "master",
+      "nameKey": "character.role.master.name",
+      "descriptionKey": "character.role.master.description",
+      "icon": "master",
+      "skillIds": ["charm"],
+      "maxCount": 1
+    },
+    {
+      "roleId": "agent",
+      "nameKey": "character.role.agent.name",
+      "descriptionKey": "character.role.agent.description",
+      "icon": "agent",
+      "skillIds": ["intrigue"],
+      "maxCount": 3
     }
   ],
   "countryPools": [
@@ -4986,6 +5002,62 @@
                 "maxValue": 90
               }
             }
+          }
+        ]
+      }
+    }
+  ],
+  "orgPools": [
+    {
+      "orgId": "Illuminati",
+      "slots": {
+        "master": [
+          {
+            "characterId": "illuminati_master_1",
+            "namePartKeys": ["character.name.part.adam", "character.name.part.weishaupt"],
+            "skills": { "charm": { "minValue": 70, "maxValue": 95 } }
+          },
+          {
+            "characterId": "illuminati_master_2",
+            "namePartKeys": ["character.name.part.cornelius", "character.name.part.vondrak"],
+            "skills": { "charm": { "minValue": 65, "maxValue": 90 } }
+          },
+          {
+            "characterId": "illuminati_master_3",
+            "namePartKeys": ["character.name.part.sebastian", "character.name.part.moreau"],
+            "skills": { "charm": { "minValue": 68, "maxValue": 92 } }
+          }
+        ],
+        "agent": [
+          {
+            "characterId": "illuminati_agent_1",
+            "namePartKeys": ["character.name.part.xavier", "character.name.part.delvaux"],
+            "skills": { "intrigue": { "minValue": 60, "maxValue": 90 } }
+          },
+          {
+            "characterId": "illuminati_agent_2",
+            "namePartKeys": ["character.name.part.elise", "character.name.part.voss"],
+            "skills": { "intrigue": { "minValue": 55, "maxValue": 85 } }
+          },
+          {
+            "characterId": "illuminati_agent_3",
+            "namePartKeys": ["character.name.part.nikolai", "character.name.part.krauss"],
+            "skills": { "intrigue": { "minValue": 50, "maxValue": 80 } }
+          },
+          {
+            "characterId": "illuminati_agent_4",
+            "namePartKeys": ["character.name.part.liselotte", "character.name.part.stern"],
+            "skills": { "intrigue": { "minValue": 58, "maxValue": 88 } }
+          },
+          {
+            "characterId": "illuminati_agent_5",
+            "namePartKeys": ["character.name.part.remy", "character.name.part.lacroix"],
+            "skills": { "intrigue": { "minValue": 52, "maxValue": 82 } }
+          },
+          {
+            "characterId": "illuminati_agent_6",
+            "namePartKeys": ["character.name.part.otto", "character.name.part.brandt"],
+            "skills": { "intrigue": { "minValue": 48, "maxValue": 78 } }
           }
         ]
       }

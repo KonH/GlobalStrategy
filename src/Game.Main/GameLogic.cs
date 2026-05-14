@@ -79,6 +79,13 @@ namespace GS.Main {
 				SaveGame();
 			}
 
+			foreach (var cmd in _commandAccessor.ReadDebugCycleCharacterCommand().AsSpan()) {
+				ApplyDebugCycleCharacter(cmd.OwnerId, cmd.RoleId, cmd.SlotIndex);
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugDropCharacterCommand().AsSpan()) {
+				ApplyDebugDropCharacter(cmd.OwnerId, cmd.RoleId, cmd.SlotIndex);
+			}
+
 			_commandAccessor.Clear();
 			_visualStateConverter.Update(_world, _gameTimeEntity, _localeEntity, _orgEntity);
 		}
@@ -122,6 +129,202 @@ namespace GS.Main {
 
 		void ApplyChangeInfluence(string orgId, string countryId, int delta) {
 			InfluenceSystem.ApplyChangeInfluence(_world, orgId, countryId, delta);
+		}
+
+		void ApplyDebugCycleCharacter(string ownerId, string roleId, int slotIndex) {
+			if (IsOrgOwner(ownerId)) {
+				CycleOrgCharacterSlot(ownerId, roleId, slotIndex);
+			} else {
+				CycleCountryCharacter(ownerId, roleId);
+			}
+		}
+
+		void CycleOrgCharacterSlot(string orgId, string roleId, int slotIndex) {
+			var pool = CharacterConfig.FindOrgPool(orgId);
+			if (pool == null || !pool.Slots.TryGetValue(roleId, out var candidates) || candidates.Count == 0) {
+				return;
+			}
+
+			int slotEntityId = FindCharacterSlotEntity(orgId, roleId, slotIndex);
+			if (slotEntityId < 0) { return; }
+
+			ref CharacterSlot slot = ref _world.Get<CharacterSlot>(slotEntityId);
+			string currentCharId = slot.CharacterId;
+
+			int currentIdx = -1;
+			for (int i = 0; i < candidates.Count; i++) {
+				if (candidates[i].CharacterId == currentCharId) { currentIdx = i; break; }
+			}
+			int nextIdx = (currentIdx + 1) % candidates.Count;
+			var nextEntry = candidates[nextIdx];
+
+			if (!string.IsNullOrEmpty(currentCharId)) {
+				RemoveCharacterEntity(currentCharId);
+			}
+
+			CreateOrgCharacterEntity(_world, CharacterConfig, _rng, orgId, roleId, nextEntry);
+
+			slot.CharacterId = nextEntry.CharacterId;
+			slot.IsAvailable = false;
+		}
+
+		void CycleCountryCharacter(string countryId, string roleId) {
+			var pool = CharacterConfig.FindPool(countryId);
+			if (pool == null || !pool.Slots.TryGetValue(roleId, out var candidates) || candidates.Count == 0) {
+				return;
+			}
+
+			string currentCharId = FindCountryCharacterId(countryId, roleId);
+
+			int currentIdx = -1;
+			for (int i = 0; i < candidates.Count; i++) {
+				if (candidates[i].CharacterId == currentCharId) { currentIdx = i; break; }
+			}
+			int nextIdx = (currentIdx + 1) % candidates.Count;
+			var nextEntry = candidates[nextIdx];
+
+			if (!string.IsNullOrEmpty(currentCharId)) {
+				RemoveCharacterEntity(currentCharId);
+			}
+
+			int charEntity = _world.Create();
+			var namePartKeys = new string[nextEntry.NamePartKeys.Count];
+			for (int i = 0; i < nextEntry.NamePartKeys.Count; i++) {
+				namePartKeys[i] = nextEntry.NamePartKeys[i];
+			}
+			_world.Add(charEntity, new Character {
+				CharacterId = nextEntry.CharacterId,
+				CountryId = countryId,
+				OrgId = "",
+				RoleId = roleId,
+				NamePartKeys = namePartKeys
+			});
+			foreach (var skillDef in CharacterConfig.Skills) {
+				int sv;
+				if (nextEntry.Skills.TryGetValue(skillDef.SkillId, out var ss)) {
+					sv = _rng.Next(ss.MinValue, ss.MaxValue + 1);
+				} else {
+					sv = _rng.Next(5, 31);
+				}
+				int se = _world.Create();
+				_world.Add(se, new ResourceOwner(nextEntry.CharacterId));
+				_world.Add(se, new Resource { ResourceId = skillDef.SkillId, Value = sv });
+			}
+		}
+
+		void ApplyDebugDropCharacter(string ownerId, string roleId, int slotIndex) {
+			bool isOrg = IsOrgOwner(ownerId);
+			bool isPlayerOwner = isOrg && _orgEntity >= 0
+				? ownerId == _world.Get<Organization>(_orgEntity).OrganizationId
+				: false;
+
+			if (isOrg) {
+				int slotEntityId = FindCharacterSlotEntity(ownerId, roleId, slotIndex);
+				if (slotEntityId < 0) { return; }
+				ref CharacterSlot slot = ref _world.Get<CharacterSlot>(slotEntityId);
+				if (!string.IsNullOrEmpty(slot.CharacterId)) {
+					RemoveCharacterEntity(slot.CharacterId);
+					slot.CharacterId = "";
+				}
+				slot.IsAvailable = isPlayerOwner;
+			} else {
+				string charId = FindCountryCharacterId(ownerId, roleId);
+				if (!string.IsNullOrEmpty(charId)) {
+					RemoveCharacterEntity(charId);
+				}
+			}
+		}
+
+		bool IsOrgOwner(string ownerId) {
+			int[] req = { TypeId<Organization>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
+				Organization[] orgs = arch.GetColumn<Organization>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (orgs[i].OrganizationId == ownerId) { return true; }
+				}
+			}
+			return false;
+		}
+
+		int FindCharacterSlotEntity(string ownerId, string roleId, int slotIndex) {
+			int[] req = { TypeId<CharacterSlot>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
+				CharacterSlot[] slots = arch.GetColumn<CharacterSlot>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (slots[i].OwnerId == ownerId && slots[i].RoleId == roleId && slots[i].SlotIndex == slotIndex) {
+						return arch.Entities[i];
+					}
+				}
+			}
+			return -1;
+		}
+
+		string FindCountryCharacterId(string countryId, string roleId) {
+			int[] req = { TypeId<Character>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
+				Character[] chars = arch.GetColumn<Character>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (chars[i].CountryId == countryId && chars[i].RoleId == roleId) {
+						return chars[i].CharacterId;
+					}
+				}
+			}
+			return "";
+		}
+
+		void RemoveCharacterEntity(string charId) {
+			int[] charReq = { TypeId<Character>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(charReq, null)) {
+				Character[] chars = arch.GetColumn<Character>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (chars[i].CharacterId == charId) {
+						_world.Destroy(arch.Entities[i]);
+						break;
+					}
+				}
+			}
+			int[] resReq = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			var toDestroy = new System.Collections.Generic.List<int>();
+			foreach (var arch in _world.GetMatchingArchetypes(resReq, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerId == charId) {
+						toDestroy.Add(arch.Entities[i]);
+					}
+				}
+			}
+			foreach (int e in toDestroy) { _world.Destroy(e); }
+		}
+
+		static void CreateOrgCharacterEntity(World world, CharacterConfig characterConfig, Random rng, string orgId, string roleId, CharacterEntry charEntry) {
+			var namePartKeys = new string[charEntry.NamePartKeys.Count];
+			for (int i = 0; i < charEntry.NamePartKeys.Count; i++) {
+				namePartKeys[i] = charEntry.NamePartKeys[i];
+			}
+			int charEntity = world.Create();
+			world.Add(charEntity, new Character {
+				CharacterId = charEntry.CharacterId,
+				CountryId = "",
+				OrgId = orgId,
+				RoleId = roleId,
+				NamePartKeys = namePartKeys
+			});
+			var roleDef = characterConfig.FindRole(roleId);
+			var roleSkillIds = roleDef != null
+				? new System.Collections.Generic.HashSet<string>(roleDef.SkillIds)
+				: new System.Collections.Generic.HashSet<string>();
+			foreach (var skillDef in characterConfig.Skills) {
+				if (!roleSkillIds.Contains(skillDef.SkillId)) { continue; }
+				int sv;
+				if (charEntry.Skills.TryGetValue(skillDef.SkillId, out var ss)) {
+					sv = rng.Next(ss.MinValue, ss.MaxValue + 1);
+				} else {
+					sv = rng.Next(5, 31);
+				}
+				int se = world.Create();
+				world.Add(se, new ResourceOwner(charEntry.CharacterId));
+				world.Add(se, new Resource { ResourceId = skillDef.SkillId, Value = sv });
+			}
 		}
 	}
 }

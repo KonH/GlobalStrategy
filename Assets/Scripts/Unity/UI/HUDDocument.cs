@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
 using VContainer;
 using GS.Main;
@@ -28,10 +29,15 @@ namespace GS.Unity.UI {
 		Button _btnEcsViewer;
 		VisualElement _influenceDebugRow;
 		bool _debugPanelOpen;
+		OrgInfoDocument _orgInfoDocument;
+		VisualElement _root;
+		VisualElement _countryInfoRoot;
+		int _lastOrgAgentSlotCount = -1;
+		bool _orgPanelOpen;
 		LensSwitcherView _lensSwitcher;
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, GameMenuDocument gameMenu) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, GameMenuDocument gameMenu, OrgInfoDocument orgInfoDocument) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
@@ -39,18 +45,21 @@ namespace GS.Unity.UI {
 			_characterConfig = characterConfig;
 			_characterVisualConfig = characterVisualConfig;
 			_gameMenu = gameMenu;
+			_orgInfoDocument = orgInfoDocument;
 		}
 
 		void Awake() {
 			_document = GetComponent<UIDocument>();
-			var root = _document.rootVisualElement;
+			_root = _document.rootVisualElement;
+			var root = _root;
 			if (_loc == null) {
 				Debug.LogWarning("[HUDDocument] _loc is null in Awake — injection has not happened yet");
 			}
 
 			_tooltip = new TooltipSystem(root.Q("hud-root"));
 
-			_countryInfo = new CountryInfoView(root.Q("country-info"), _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig);
+			_countryInfoRoot = root.Q("country-info");
+			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig);
 			_playerOrgView = new PlayerOrgView(root.Q("player-country"), _loc, _resourceConfig, _tooltip);
 			_timeView = new TimeView(
 				root.Q("time-panel"),
@@ -58,6 +67,11 @@ namespace GS.Unity.UI {
 				OnSpeedChange);
 			_lensSwitcher = new LensSwitcherView(root.Q("lens-switcher"), _tooltip, _loc);
 			_lensSwitcher.OnLensSelected = OnLensSelected;
+
+			var playerOrgRoot = root.Q("player-country");
+			if (playerOrgRoot != null) {
+				playerOrgRoot.RegisterCallback<ClickEvent>(_ => ToggleOrgInfo());
+			}
 		}
 
 		void Start() {
@@ -85,6 +99,34 @@ namespace GS.Unity.UI {
 				btnInfluenceMinus.clicked += () => PushInfluenceCommand(-5);
 			}
 			RefreshInfluenceDebugRow();
+
+			// Country character debug buttons
+			var characterDebugContainer = root.Q("character-debug-container");
+			if (characterDebugContainer != null && _characterConfig != null) {
+				foreach (var role in _characterConfig.Roles) {
+					bool usedInCountryPool = false;
+					foreach (var cp in _characterConfig.CountryPools) {
+						if (cp.Slots.ContainsKey(role.RoleId)) { usedInCountryPool = true; break; }
+					}
+					if (!usedInCountryPool) { continue; }
+					string capturedRoleId = role.RoleId;
+					var nextBtn = new Button(() => PushCycleCharacter(_state?.PlayerCountry?.CountryId ?? "", capturedRoleId, 0));
+					nextBtn.text = $"Next: {role.RoleId}";
+					nextBtn.AddToClassList("gs-btn");
+					nextBtn.AddToClassList("gs-btn--small");
+					nextBtn.AddToClassList("debug-panel-button");
+					characterDebugContainer.Add(nextBtn);
+
+					var dropBtn = new Button(() => PushDropCharacter(_state?.PlayerCountry?.CountryId ?? "", capturedRoleId, 0));
+					dropBtn.text = $"Drop: {role.RoleId}";
+					dropBtn.AddToClassList("gs-btn");
+					dropBtn.AddToClassList("gs-btn--small");
+					dropBtn.AddToClassList("debug-panel-button");
+					characterDebugContainer.Add(dropBtn);
+				}
+			}
+
+			RebuildOrgCharDebugButtons();
 		}
 
 		void ToggleDebugPanel() {
@@ -114,6 +156,7 @@ namespace GS.Unity.UI {
 			_state.SelectedInfluence.PropertyChanged  += HandleInfluenceChanged;
 			_state.SelectedCharacters.PropertyChanged += HandleCharactersChanged;
 			_state.MapLens.PropertyChanged            += HandleLensChanged;
+			_state.PlayerOrgCharacters.PropertyChanged += HandleOrgCharactersChanged;
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			RefreshCountryViews();
 			RefreshInfluenceDebugRow();
@@ -133,15 +176,30 @@ namespace GS.Unity.UI {
 			_state.SelectedInfluence.PropertyChanged  -= HandleInfluenceChanged;
 			_state.SelectedCharacters.PropertyChanged -= HandleCharactersChanged;
 			_state.MapLens.PropertyChanged            -= HandleLensChanged;
+			_state.PlayerOrgCharacters.PropertyChanged -= HandleOrgCharactersChanged;
+			_lastOrgAgentSlotCount = -1;
 		}
 
 		void Update() {
 			_tooltip?.Update(Time.deltaTime);
+			if (_orgPanelOpen) {
+				var mouse = UnityEngine.InputSystem.Mouse.current;
+				if (mouse != null && mouse.leftButton.wasPressedThisFrame) {
+					if (EventSystem.current == null || !EventSystem.current.IsPointerOverGameObject()) {
+						_orgPanelOpen = false;
+						_orgInfoDocument?.Hide();
+						RefreshCountryViews();
+					}
+				}
+			}
 		}
 
 		void RefreshCountryViews() {
 			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters);
 			_playerOrgView.Refresh(_state.PlayerOrganization, _state.PlayerResources);
+			if (_orgPanelOpen && _countryInfoRoot != null) {
+				_countryInfoRoot.style.display = DisplayStyle.None;
+			}
 		}
 
 		void RefreshInfluenceDebugRow() {
@@ -216,6 +274,85 @@ namespace GS.Unity.UI {
 
 		void OnLensSelected(MapLens lens) {
 			_commands.Push(new ChangeLensCommand { Lens = lens });
+		}
+
+		void ToggleOrgInfo() {
+			if (_orgInfoDocument == null) { return; }
+			_orgPanelOpen = !_orgPanelOpen;
+			if (_orgPanelOpen) {
+				_orgInfoDocument.Show();
+				if (_countryInfoRoot != null) { _countryInfoRoot.style.display = DisplayStyle.None; }
+			} else {
+				_orgInfoDocument.Hide();
+				RefreshCountryViews();
+			}
+		}
+
+		void RebuildOrgCharDebugButtons() {
+			var orgCharDebugContainer = _root?.Q("org-char-debug-container");
+			if (orgCharDebugContainer == null) { return; }
+			orgCharDebugContainer.Clear();
+
+			var masterNextBtn = new Button(() => PushCycleCharacter(GetPlayerOrgId(), "master", 0));
+			masterNextBtn.text = "Next: master";
+			masterNextBtn.AddToClassList("gs-btn");
+			masterNextBtn.AddToClassList("gs-btn--small");
+			masterNextBtn.AddToClassList("debug-panel-button");
+			orgCharDebugContainer.Add(masterNextBtn);
+
+			var masterDropBtn = new Button(() => PushDropCharacter(GetPlayerOrgId(), "master", 0));
+			masterDropBtn.text = "Drop: master";
+			masterDropBtn.AddToClassList("gs-btn");
+			masterDropBtn.AddToClassList("gs-btn--small");
+			masterDropBtn.AddToClassList("debug-panel-button");
+			orgCharDebugContainer.Add(masterDropBtn);
+
+			int agentCount = 0;
+			if (_state?.PlayerOrgCharacters?.Slots != null) {
+				foreach (var slot in _state.PlayerOrgCharacters.Slots) {
+					if (slot.RoleId == "agent") { agentCount++; }
+				}
+			}
+			for (int si = 0; si < agentCount; si++) {
+				int capturedSlot = si;
+				var agentNextBtn = new Button(() => PushCycleCharacter(GetPlayerOrgId(), "agent", capturedSlot));
+				agentNextBtn.text = $"Next: agent [{capturedSlot + 1}]";
+				agentNextBtn.AddToClassList("gs-btn");
+				agentNextBtn.AddToClassList("gs-btn--small");
+				agentNextBtn.AddToClassList("debug-panel-button");
+				orgCharDebugContainer.Add(agentNextBtn);
+
+				var agentDropBtn = new Button(() => PushDropCharacter(GetPlayerOrgId(), "agent", capturedSlot));
+				agentDropBtn.text = $"Drop: agent [{capturedSlot + 1}]";
+				agentDropBtn.AddToClassList("gs-btn");
+				agentDropBtn.AddToClassList("gs-btn--small");
+				agentDropBtn.AddToClassList("debug-panel-button");
+				orgCharDebugContainer.Add(agentDropBtn);
+			}
+		}
+
+		string GetPlayerOrgId() => _state?.PlayerOrganization?.OrgId ?? "";
+
+		void PushCycleCharacter(string ownerId, string roleId, int slotIndex) {
+			if (string.IsNullOrEmpty(ownerId) || _commands == null) { return; }
+			_commands.Push(new DebugCycleCharacterCommand { OwnerId = ownerId, RoleId = roleId, SlotIndex = slotIndex });
+		}
+
+		void PushDropCharacter(string ownerId, string roleId, int slotIndex) {
+			if (string.IsNullOrEmpty(ownerId) || _commands == null) { return; }
+			_commands.Push(new DebugDropCharacterCommand { OwnerId = ownerId, RoleId = roleId, SlotIndex = slotIndex });
+		}
+
+		void HandleOrgCharactersChanged(object sender, PropertyChangedEventArgs e) {
+			int agentCount = 0;
+			if (_state?.PlayerOrgCharacters?.Slots != null) {
+				foreach (var slot in _state.PlayerOrgCharacters.Slots) {
+					if (slot.RoleId == "agent") { agentCount++; }
+				}
+			}
+			if (agentCount == _lastOrgAgentSlotCount) { return; }
+			_lastOrgAgentSlotCount = agentCount;
+			RebuildOrgCharDebugButtons();
 		}
 	}
 }

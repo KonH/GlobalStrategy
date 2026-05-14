@@ -44,61 +44,6 @@
     gap: 0;
 }
 
-.tooltip-overlay {
-    position: absolute;
-    background-color: rgb(18, 32, 58);
-    border-color: rgb(200, 160, 64);
-    border-width: 2px;
-    border-radius: 6px;
-    padding: 8px 12px;
-    min-width: 160px;
-}
-
-.tooltip-overlay--pinned {
-    border-color: rgb(240, 200, 96);
-    border-width: 3px;
-}
-
-.tooltip-inner-trigger {
-    border-bottom-width: 1px;
-    border-color: rgb(200, 184, 144);
-    cursor: link;
-}
-
-.tooltip-header {
-    font-size: 16px;
-    color: rgb(240, 232, 208);
-    -unity-font-style: bold;
-    margin-bottom: 4px;
-}
-
-.tooltip-effect-row {
-    margin-top: 4px;
-    padding: 1px 0;
-}
-
-.tooltip-effect-name {
-    font-size: 14px;
-    color: rgb(200, 184, 144);
-    -unity-font-style: bold;
-}
-
-.tooltip-effect-positive {
-    color: rgb(80, 216, 112);
-}
-
-.tooltip-effect-negative {
-    color: rgb(224, 64, 64);
-}
-
-.tooltip-description {
-    font-size: 13px;
-    color: rgb(136, 136, 168);
-    margin-top: 2px;
-    white-space: normal;
-    -unity-font-style: italic;
-}
-
 .top-center-panel {
     position: absolute;
     top: 0;
@@ -148,26 +93,6 @@
     padding: 4px 16px;
     font-size: 16px;
     margin-top: 4px;
-}
-
-/* Resource icon in player-country and country-info panels */
-.resource-row {
-    flex-direction: row;
-    align-items: center;
-    margin-top: 4px;
-}
-
-.resource-label {
-    font-size: 22px;
-    -unity-font-style: bold;
-    margin-left: 4px;
-}
-
-.resource-icon--gold {
-    width: 22px;
-    height: 22px;
-    background-image: url("project://database/Assets/UI/Icons/coin.png?fileID=2800000&guid=46e003f67ebde7347a8004dd120d478a&type=3#coin");
-    -unity-background-scale-mode: scale-to-fit;
 }
 
 .gs-icon-btn--menu {

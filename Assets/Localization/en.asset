@@ -1480,3 +1480,53 @@ MonoBehaviour:
     Value: Elihu
   - Key: character.name.part.washburne
     Value: Washburne
+  - Key: character.role.master.name
+    Value: Master
+  - Key: character.role.master.description
+    Value: Leader of the organization, master of persuasion
+  - Key: character.role.agent.name
+    Value: Agent
+  - Key: character.role.agent.description
+    Value: Field operative, skilled in covert affairs
+  - Key: character.name.part.adam
+    Value: Adam
+  - Key: character.name.part.weishaupt
+    Value: Weishaupt
+  - Key: character.name.part.cornelius
+    Value: Cornelius
+  - Key: character.name.part.vondrak
+    Value: von Drak
+  - Key: character.name.part.sebastian
+    Value: Sebastian
+  - Key: character.name.part.moreau
+    Value: Moreau
+  - Key: character.name.part.xavier
+    Value: Xavier
+  - Key: character.name.part.delvaux
+    Value: Delvaux
+  - Key: character.name.part.elise
+    Value: Elise
+  - Key: character.name.part.voss
+    Value: Voss
+  - Key: character.name.part.nikolai
+    Value: Nikolai
+  - Key: character.name.part.krauss
+    Value: Krauss
+  - Key: character.name.part.liselotte
+    Value: Liselotte
+  - Key: character.name.part.stern
+    Value: Stern
+  - Key: character.name.part.remy
+    Value: Remy
+  - Key: character.name.part.lacroix
+    Value: Lacroix
+  - Key: character.name.part.otto
+    Value: Otto
+  - Key: character.name.part.brandt
+    Value: Brandt
+  - Key: hud.org_characters
+    Value: Characters
+  - Key: hud.slot_empty
+    Value: Empty
+  - Key: hud.slot_available
+    Value: Available

@@ -3,6 +3,7 @@ namespace GS.Game.Components {
 	public struct Character {
 		public string CharacterId;
 		public string CountryId;
+		public string OrgId;       // empty string = country character
 		public string RoleId;
 		public string[] NamePartKeys;
 	}
