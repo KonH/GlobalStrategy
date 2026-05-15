@@ -409,6 +409,7 @@ GameObject:
   - component: {fileID: 404031399}
   - component: {fileID: 404031398}
   - component: {fileID: 404031397}
+  - component: {fileID: 404031401}
   m_Layer: 0
   m_Name: GameHUD
   m_TagString: Untagged
@@ -466,6 +467,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &404031401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 404031396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92a754cc546128847a07c2ad8d5d932a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: GS.Unity.UI::GS.Unity.UI.CardPlayAnimator
 --- !u!1 &859106906
 GameObject:
   m_ObjectHideFlags: 0
@@ -587,6 +600,7 @@ MonoBehaviour:
   _countryVisualConfig: {fileID: 11400000, guid: ef0b0960b0c336745a2ea01586c5d114, type: 2}
   _orgVisualConfig: {fileID: 11400000, guid: c19e1594cf0fa6a418ef9a25f2f183bb, type: 2}
   _characterVisualConfig: {fileID: 11400000, guid: 175c495f99d50c04387e084c282bf2ba, type: 2}
+  _actionVisualConfig: {fileID: 11400000, guid: 6f9c74a60f7c2284f9f1a960cdcf3936, type: 2}
   _mapCameraConfig: {fileID: 11400000, guid: b7258d2dc8369da45aa39abdcb4b282c, type: 2}
   _geoJsonConfig: {fileID: 4900000, guid: 50d19b40501cdcd448a39c6ca802ac9c, type: 3}
   _mapEntryConfig: {fileID: 4900000, guid: 9f0dd60a43cbc8e4c9965d53c9b34070, type: 3}
@@ -595,6 +609,8 @@ MonoBehaviour:
   _resourceConfig: {fileID: 4900000, guid: 28dfd99e93067d8418e5347d8ed30be4, type: 3}
   _organizationsConfigAsset: {fileID: 4900000, guid: b325b81b944b914468f3b6898c3badf2, type: 3}
   _characterConfigAsset: {fileID: 4900000, guid: c9d0e1f2a3b401234567890123456789, type: 3}
+  _actionConfigAsset: {fileID: 4900000, guid: 2321f0b04d56e7c4e8026d74f416e394, type: 3}
+  _effectConfigAsset: {fileID: 4900000, guid: 40b4ebe90a9333f45bafd1c69716fd49, type: 3}
 --- !u!4 &1124233457
 Transform:
   m_ObjectHideFlags: 0

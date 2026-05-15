@@ -1,0 +1,10 @@
+{
+  "effects": [
+    {
+      "effectId": "discover_country",
+      "effectType": "DiscoverCountry",
+      "nameKey": "effect.discover_country.name",
+      "descKey": "effect.discover_country.desc"
+    }
+  ]
+}

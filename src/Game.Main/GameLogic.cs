@@ -17,13 +17,16 @@ namespace GS.Main {
 		int _localeEntity = -1;
 		int _settingsEntity = -1;
 		int _orgEntity = -1;
+		int _proximityEntity = -1;
 		DateTime _previousTime;
+		ActionConfig _actionConfig = null!;
 
 		public VisualState VisualState { get; } = new VisualState();
 		public IWriteOnlyCommandAccessor Commands { get; }
 		public World World => _world;
 		public ResourceConfig ResourceConfig { get; private set; } = null!;
 		public CharacterConfig CharacterConfig { get; private set; } = null!;
+		public ActionConfig ActionConfig { get; private set; } = null!;
 
 		public GameLogic(GameLogicContext context) {
 			_context = context;
@@ -33,6 +36,8 @@ namespace GS.Main {
 
 			ResourceConfig = context.Resource.Load();
 			CharacterConfig = context.Character.Load();
+			ActionConfig = context.Action.Load();
+			_actionConfig = ActionConfig;
 			var settings = context.GameSettings.Load();
 			_speedMultipliers = settings.SpeedMultipliers;
 			_previousTime = new DateTime(settings.StartYear, 1, 1);
@@ -86,8 +91,19 @@ namespace GS.Main {
 				ApplyDebugDropCharacter(cmd.OwnerId, cmd.RoleId, cmd.SlotIndex);
 			}
 
+			var lastActionResult = new ActionSystem.ActionResult();
+			string lastActionId = "";
+			foreach (var cmd in _commandAccessor.ReadPlayActionCommand().AsSpan()) {
+				lastActionId = cmd.ActionId;
+				lastActionResult = ActionSystem.ProcessPlayAction(
+					_world, cmd, _actionConfig, _proximityEntity, _rng);
+			}
+
 			_commandAccessor.Clear();
 			_visualStateConverter.Update(_world, _gameTimeEntity, _localeEntity, _orgEntity);
+			if (lastActionResult.Executed) {
+				VisualState.LastAction.Set(lastActionResult.Success, lastActionId);
+			}
 		}
 
 		public void LoadState(string saveName) {
@@ -115,6 +131,12 @@ namespace GS.Main {
 			_localeEntity = FindEntityWith<Locale>();
 			_settingsEntity = FindEntityWith<AppSettings>();
 			_orgEntity = FindEntityWith<Organization>();
+			_proximityEntity = FindEntityWith<ProximityMapData>();
+		}
+
+		public void RebuildProximityMap() {
+			InitSystem.BuildProximityMap(_world, _context);
+			_proximityEntity = FindEntityWith<ProximityMapData>();
 		}
 
 		int FindEntityWith<T>() {

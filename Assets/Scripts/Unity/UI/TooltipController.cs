@@ -143,6 +143,7 @@ namespace GS.Unity.UI {
 		TooltipEntry OpenTooltip(VisualElement trigger, string id, Func<TooltipContext, VisualElement> buildContent, HashSet<string> ancestors) {
 			var panel = new VisualElement();
 			panel.AddToClassList("tooltip-overlay");
+			panel.pickingMode = PickingMode.Ignore;
 
 			var entry = new TooltipEntry {
 				Panel = panel,
@@ -169,6 +170,7 @@ namespace GS.Unity.UI {
 			var innerAncestors = new HashSet<string>(ancestors) { id };
 			var context = new TooltipContext(this, innerAncestors);
 			panel.Add(buildContent(context));
+			SetPickingIgnoreRecursive(panel);
 
 			_stack.Add(entry);
 			return entry;
@@ -191,6 +193,13 @@ namespace GS.Unity.UI {
 			var top = _stack[_stack.Count - 1];
 			_hudRoot.Remove(top.Panel);
 			_stack.RemoveAt(_stack.Count - 1);
+		}
+
+		static void SetPickingIgnoreRecursive(VisualElement element) {
+			element.pickingMode = PickingMode.Ignore;
+			foreach (var child in element.Children()) {
+				SetPickingIgnoreRecursive(child);
+			}
 		}
 
 		void PositionNear(VisualElement panel, VisualElement trigger) {

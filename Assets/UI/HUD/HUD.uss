@@ -106,3 +106,15 @@
     bottom: 280px;
     left: 8px;
 }
+
+.card-test-overlay {
+    transition-property: opacity, scale;
+    transition-duration: 0.4s;
+}
+
+#fly-text {
+    font-size: 46px;
+    text-shadow: 3px 3px 0 rgba(0,0,0,0.9);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(0,0,0);
+}

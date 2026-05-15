@@ -162,6 +162,13 @@ Example: tooltip content is built in `ResourcesView` (which lives inside the `Pl
 
 Rule: put a USS class in the stylesheet of the **document that owns the container element**, regardless of which C# class creates the child elements.
 
+**Template USS must be explicitly imported into the parent document for C#-created elements.** When a UXML template is embedded via `<ui:Instance>`, the template's own `<ui:Style>` declarations apply to its static UXML elements. C# code that creates VisualElements and adds them to containers *inside* the template instance still resolves classes against the parent document's loaded stylesheets — not the template's. Fix: import the template's USS into the parent UXML:
+
+```xml
+<!-- In parent.uxml, alongside other <ui:Style> declarations: -->
+<ui:Style src="project://database/Assets/UI/Feature/Template.uss"/>
+```
+
 ## USS / C# limitations in Unity 6000.4.1f1
 
 **`border-style: dashed` is not supported.** Neither the USS shorthand (`border-style: dashed`), per-side USS properties (`border-top-style: dashed`), nor the C# `IStyle` API (no `borderTopStyle` property, no `BorderStyle` enum) are implemented. There is no way to achieve dashed borders in UI Toolkit on this version.
@@ -231,3 +238,60 @@ Behaviour:
 - `justify-content: center` on each chip centers the icon+label within its 50% slot
 
 Do **not** use `margin` on chips — it breaks the 50% calculation. Use `padding` instead.
+
+## Known Event Bugs (Unity 6000.4.1f1)
+
+### Button.clicked and ClickEvent silently fail
+
+`Button.clicked` does not reliably fire in Unity 6000.4.1f1 even when all conditions are met:
+- `PointerDownEvent` reaches the button ✓
+- `PointerCapture` fires ✓
+- `PointerUpEvent` reaches the button with `ContainsPoint = true` ✓
+
+The same applies to `ClickEvent` on plain `VisualElement`s.
+
+**Workaround — use `PointerUpEvent` with a manual bounds check everywhere:**
+
+```csharp
+element.RegisterCallback<PointerUpEvent>(e => {
+    if (e.button == 0 && element.ContainsPoint(e.localPosition)) {
+        DoAction();
+    }
+});
+```
+
+Do **not** use `Button.clicked` or `ClickEvent` for any interactive element in this project.
+
+### PickingMode.Ignore is not recursive
+
+Setting `panel.pickingMode = PickingMode.Ignore` on a container does **not** propagate to its children. Children retain `PickingMode.Position` and can still intercept pointer events, blocking elements underneath (e.g. tooltip panels blocking card Play buttons).
+
+**Fix:** apply `PickingMode.Ignore` recursively after building dynamic content:
+
+```csharp
+static void SetPickingIgnoreRecursive(VisualElement element) {
+    element.pickingMode = PickingMode.Ignore;
+    foreach (var child in element.Children())
+        SetPickingIgnoreRecursive(child);
+}
+```
+
+## Layout Gotchas
+
+### align-items: stretch needs a defined container width
+
+In a `flex-direction: column` container, `align-items: stretch` makes children fill the container's cross-axis (width). If the container has no explicit width, the result is unreliable — children may not all end up the same width.
+
+**Fix:** add `min-width` to the container to give `stretch` a concrete value to work with.
+
+### align-self on a child overrides the parent's align-items
+
+If any child has `align-self` set — including via a shared stylesheet — it overrides `align-items: stretch` from the parent. Check for leftover `align-self: flex-end` or similar on elements being moved into a new layout container.
+
+### gap shorthand may not parse in UXML inline styles
+
+`gap: 80px` in a UXML `style="..."` attribute can be silently ignored. Prefer `margin-right`/`margin-left` on individual children, or declare the gap in a USS class.
+
+### Absolute-only children give wrapper zero layout height
+
+If every child of a wrapper has `position: Absolute`, the wrapper has no layout height (only explicit `height`/`min-height` applies). Keep at least one **relative-positioned** child to establish the wrapper's natural height.

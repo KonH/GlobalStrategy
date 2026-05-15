@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/Overlay/OrgInfo/OrgActions.uss"/>
+    <ui:VisualElement name="org-actions-root" class="org-actions-root">
+        <ui:VisualElement name="hand-section" class="hand-section">
+            <ui:VisualElement name="hand-container" class="hand-container" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

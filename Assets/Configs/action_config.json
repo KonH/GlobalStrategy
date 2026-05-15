@@ -1,0 +1,26 @@
+{
+  "defaults": [
+    { "ownerType": "org",       "handSize": 1 },
+    { "ownerType": "country",   "handSize": 0 },
+    { "ownerType": "character", "handSize": 0 }
+  ],
+  "actions": [
+    {
+      "actionId": "discover_country",
+      "rarity": "Standard",
+      "nameKey": "action.discover_country.name",
+      "descKey": "action.discover_country.desc",
+      "conditions": [],
+      "prices": [{ "resourceId": "gold", "amount": 100.0 }],
+      "effectIds": ["discover_country"],
+      "successRate": 0.75,
+      "minCountryChance": 0.01
+    }
+  ],
+  "orgPools": [
+    {
+      "orgId": "Illuminati",
+      "actionIds": ["discover_country"]
+    }
+  ]
+}

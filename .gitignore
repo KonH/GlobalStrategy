@@ -49,3 +49,4 @@ src/**/obj/
 .claude/settings.local.json
 .venv
 ComfyUI/
+Packages/com.unity.ide.rider

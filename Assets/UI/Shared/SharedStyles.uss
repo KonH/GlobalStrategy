@@ -251,8 +251,6 @@
 /* ===== Characters toggle button ===== */
 
 .chars-toggle-btn {
-    margin-left: 16px;
-    align-self: flex-end;
 }
 
 /* ===== Characters container ===== */

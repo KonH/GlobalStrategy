@@ -10,6 +10,7 @@
       "Game.Main/1.0.0": {
         "dependencies": {
           "Core.Configs": "1.0.0",
+          "Core.Map": "1.0.0",
           "ECS.Core": "1.0.0",
           "ECS.Core.Extensions": "1.0.0",
           "Game.Commands": "1.0.0",
@@ -24,6 +25,14 @@
       "Core.Configs/1.0.0": {
         "runtime": {
           "Core.Configs.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Core.Map/1.0.0": {
+        "runtime": {
+          "Core.Map.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -76,7 +85,8 @@
         "dependencies": {
           "ECS.Core": "1.0.0",
           "Game.Commands": "1.0.0",
-          "Game.Components": "1.0.0"
+          "Game.Components": "1.0.0",
+          "Game.Configs": "1.0.0"
         },
         "runtime": {
           "Game.Systems.dll": {
@@ -94,6 +104,11 @@
       "sha512": ""
     },
     "Core.Configs/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Core.Map/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

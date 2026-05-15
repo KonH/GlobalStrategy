@@ -5,6 +5,7 @@
     <ui:Template name="LensSwitcher" src="project://database/Assets/UI/HUD/LensSwitcher/LensSwitcher.uxml"/>
     <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
     <ui:Style src="project://database/Assets/UI/HUD/HUD.uss?fileID=7433441132597879392&amp;guid=960ca7226a908b347be612c19639c422&amp;type=3#HUD"/>
+    <ui:Style src="project://database/Assets/UI/Overlay/OrgInfo/OrgActions.uss"/>
     <ui:VisualElement name="hud-root" data-source-type="GS.Main.VisualState, Game.Main" picking-mode="Ignore" style="aspect-ratio: auto;">
         <ui:Instance template="PlayerCountry" name="player-country" class="player-country-panel"/>
         <ui:Instance template="CountryInfo" name="country-info" class="country-info-panel"/>
@@ -24,5 +25,14 @@
             <ui:VisualElement name="character-debug-container" style="flex-direction: column;" />
             <ui:VisualElement name="org-char-debug-container" style="flex-direction: column;" />
         </ui:VisualElement>
+        <ui:VisualElement name="card-test-overlay" class="gs-modal-root" style="display: none;">
+            <ui:VisualElement name="card-test-inner" style="flex-direction: row; align-items: center; justify-content: center;">
+                <ui:VisualElement name="card-test-card" class="action-card action-card--available" style="width: 180px; min-height: 240px; margin-right: 80px;" />
+                <ui:VisualElement name="roll-block" style="display: none; flex-direction: column; align-items: center; padding: 16px; background-color: rgba(20,15,8,0.92); border-radius: 8px; min-width: 140px;">
+                    <ui:Label name="roll-result-label" class="gs-header" text="??" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Label name="fly-text" class="gs-title" style="display: none; position: absolute; left: 50%; top: 40%; -unity-text-align: middle-center;" text="" />
     </ui:VisualElement>
 </ui:UXML>

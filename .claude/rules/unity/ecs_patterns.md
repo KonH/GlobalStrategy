@@ -34,6 +34,19 @@ if (hours > 0) {
 }
 ```
 
+## `[Savable]` omission for derived/computed components
+
+Components whose full state can be recomputed deterministically from config data at startup should NOT be marked `[Savable]`. Persisting them wastes save space and adds deserialization risk with no benefit. Mark the struct with a comment to make the omission intentional:
+
+```csharp
+// Not [Savable] — rebuilt at startup from config; no need to persist.
+public struct ProximityMapData {
+    public Dictionary<(string, string), float> Distances;
+}
+```
+
+The criterion: if `InitSystem` (or an equivalent startup step) always recreates the component from scratch regardless of load state, it does not need saving.
+
 ## `ref` locals and lambdas
 
 C# does not allow `ref` locals inside anonymous methods or lambdas. When iterating over commands that need to mutate a `ref` component, use `AsSpan()` and index directly:

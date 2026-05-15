@@ -28,6 +28,7 @@ namespace GS.Unity.Map {
 			}
 			_state.MapLens.PropertyChanged += HandleLensChanged;
 			_state.OrgMap.PropertyChanged  += HandleOrgMapChanged;
+			_state.DiscoveredCountries.PropertyChanged += HandleDiscoveredChanged;
 		}
 
 		void Start() {
@@ -40,6 +41,7 @@ namespace GS.Unity.Map {
 			}
 			_state.MapLens.PropertyChanged -= HandleLensChanged;
 			_state.OrgMap.PropertyChanged  -= HandleOrgMapChanged;
+			_state.DiscoveredCountries.PropertyChanged -= HandleDiscoveredChanged;
 		}
 
 		void HandleLensChanged(object sender, PropertyChangedEventArgs e) {
@@ -50,6 +52,10 @@ namespace GS.Unity.Map {
 			if (_state.MapLens.Lens == MapLens.Org) {
 				ApplyLens(MapLens.Org);
 			}
+		}
+
+		void HandleDiscoveredChanged(object sender, PropertyChangedEventArgs e) {
+			ApplyLens(_state.MapLens.Lens);
 		}
 
 		void ApplyLens(MapLens lens) {
@@ -65,8 +71,21 @@ namespace GS.Unity.Map {
 				if (mr == null) {
 					continue;
 				}
+				bool discovered = IsDiscovered(go.name);
+				mr.enabled = discovered;
+				if (!discovered) {
+					continue;
+				}
 				mr.material.color = GetColor(lens, go.name);
 			}
+		}
+
+		bool IsDiscovered(string mapFeatureId) {
+			var ids = _state?.DiscoveredCountries?.CountryIds;
+			if (ids == null || ids.Count == 0) { return true; }
+			var country = _domainCountryConfig?.FindByFeatureId(mapFeatureId);
+			string domainId = country != null ? country.CountryId : mapFeatureId;
+			return ids.Contains(domainId);
 		}
 
 		Color GetColor(MapLens lens, string countryId) {

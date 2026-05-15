@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using GS.Configs;
 using GS.Game.Configs;
 
@@ -10,6 +11,9 @@ namespace GS.Main {
 		public IConfigSource<ResourceConfig> Resource { get; }
 		public IConfigSource<OrganizationConfig> Organization { get; }
 		public IConfigSource<CharacterConfig> Character { get; }
+		public IConfigSource<ActionConfig> Action { get; }
+		public IConfigSource<EffectConfig> Effect { get; }
+		public IConfigSource<List<GS.Core.Map.MapFeature>>? MapGeometry { get; }
 		public IPersistentStorage? Storage { get; }
 		public ISnapshotSerializer? Serializer { get; }
 		public IGameLogger? Logger { get; }
@@ -28,7 +32,10 @@ namespace GS.Main {
 			IGameLogger? logger = null,
 			string initialPlayerCountryId = "Russian_Empire",
 			string initialOrganizationId = "",
-			IConfigSource<CharacterConfig>? character = null) {
+			IConfigSource<CharacterConfig>? character = null,
+			IConfigSource<ActionConfig>? action = null,
+			IConfigSource<EffectConfig>? effect = null,
+			IConfigSource<List<GS.Core.Map.MapFeature>>? mapGeometry = null) {
 			GeoJson = geoJson;
 			MapEntry = mapEntry;
 			Country = country;
@@ -36,6 +43,9 @@ namespace GS.Main {
 			Resource = resource;
 			Organization = organization;
 			Character = character ?? new EmptyCharacterConfig();
+			Action = action ?? new EmptyActionConfig();
+			Effect = effect ?? new EmptyEffectConfig();
+			MapGeometry = mapGeometry;
 			Storage = storage;
 			Serializer = serializer;
 			Logger = logger;
@@ -45,6 +55,14 @@ namespace GS.Main {
 
 		sealed class EmptyCharacterConfig : IConfigSource<CharacterConfig> {
 			public CharacterConfig Load() => new CharacterConfig();
+		}
+
+		sealed class EmptyActionConfig : IConfigSource<ActionConfig> {
+			public ActionConfig Load() => new ActionConfig();
+		}
+
+		sealed class EmptyEffectConfig : IConfigSource<EffectConfig> {
+			public EffectConfig Load() => new EffectConfig();
 		}
 	}
 }

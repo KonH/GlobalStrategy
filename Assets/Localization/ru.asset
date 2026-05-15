@@ -1547,3 +1547,17 @@ MonoBehaviour:
     Value: "Пусто"
   - Key: hud.slot_available
     Value: "Доступно"
+  - Key: action.discover_country.name
+    Value: "Открыть страну"
+  - Key: action.discover_country.desc
+    Value: "Отправить агентов для разведки неизвестной страны."
+  - Key: action.tooltip.play_hint
+    Value: "Нажмите, чтобы сыграть"
+  - Key: action.tooltip.unaffordable_hint
+    Value: "Недостаточно золота"
+  - Key: effect.discover_country.name
+    Value: "Открыть страну"
+  - Key: effect.discover_country.desc
+    Value: "Открывает неизвестную страну на карте."
+  - Key: hud.actions
+    Value: "Действия"

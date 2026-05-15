@@ -70,7 +70,11 @@ namespace GS.Unity.UI {
 
 			var playerOrgRoot = root.Q("player-country");
 			if (playerOrgRoot != null) {
-				playerOrgRoot.RegisterCallback<ClickEvent>(_ => ToggleOrgInfo());
+				playerOrgRoot.RegisterCallback<PointerUpEvent>(e => {
+					if (e.button == 0 && playerOrgRoot.ContainsPoint(e.localPosition)) {
+						ToggleOrgInfo();
+					}
+				});
 			}
 		}
 

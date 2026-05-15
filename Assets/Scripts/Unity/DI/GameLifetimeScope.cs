@@ -14,6 +14,7 @@ namespace GS.Unity.DI {
 		[SerializeField] CountryVisualConfig _countryVisualConfig;
 		[SerializeField] OrgVisualConfig _orgVisualConfig;
 		[SerializeField] CharacterVisualConfig _characterVisualConfig;
+		[SerializeField] ActionVisualConfig _actionVisualConfig;
 		[SerializeField] MapCameraConfig _mapCameraConfig;
 		[SerializeField] TextAsset _geoJsonConfig;
 		[SerializeField] TextAsset _mapEntryConfig;
@@ -22,6 +23,8 @@ namespace GS.Unity.DI {
 		[SerializeField] TextAsset _resourceConfig;
 		[SerializeField] TextAsset _organizationsConfigAsset;
 		[SerializeField] TextAsset _characterConfigAsset;
+		[SerializeField] TextAsset _actionConfigAsset;
+		[SerializeField] TextAsset _effectConfigAsset;
 
 		protected override void Configure(IContainerBuilder builder) {
 			var storage = new PersistentStorage();
@@ -42,7 +45,10 @@ namespace GS.Unity.DI {
 				new UnityGameLogger(),
 				initialPlayer,
 				initialOrgId,
-				character: _characterConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.CharacterConfig>(_characterConfigAsset) : null
+				character: _characterConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.CharacterConfig>(_characterConfigAsset) : null,
+				action: _actionConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.ActionConfig>(_actionConfigAsset) : null,
+				effect: _effectConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.EffectConfig>(_effectConfigAsset) : null,
+				mapGeometry: new MapGeometryConfig(_geoJsonConfig)
 			);
 
 			var domainCountryConfig = new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset).Load();
@@ -54,6 +60,8 @@ namespace GS.Unity.DI {
 			builder.Register<IWriteOnlyCommandAccessor>(c => c.Resolve<GameLogic>().Commands, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().ResourceConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().CharacterConfig, Lifetime.Singleton);
+			builder.Register(c => c.Resolve<GameLogic>().ActionConfig, Lifetime.Singleton);
+			builder.RegisterInstance(_actionVisualConfig);
 
 			builder.RegisterInstance<IPersistentStorage>(storage);
 			builder.RegisterInstance<ISnapshotSerializer>(serializer);
@@ -66,6 +74,7 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<Camera>();
 			builder.RegisterComponentInHierarchy<MapLoader>();
 			builder.RegisterComponentInHierarchy<MapController>();
+			builder.RegisterComponentInHierarchy<MapCameraController>();
 			builder.RegisterComponentInHierarchy<MapLensApplier>();
 			builder.RegisterComponentInHierarchy<TimeInputHandler>();
 
@@ -76,6 +85,7 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<GameMenuDocument>();
 			builder.RegisterComponentInHierarchy<SettingsWindowDocument>();
 			builder.RegisterComponentInHierarchy<OrgInfoDocument>();
+			builder.RegisterComponentInHierarchy<CardPlayAnimator>();
 		}
 
 		protected override void OnDestroy() {

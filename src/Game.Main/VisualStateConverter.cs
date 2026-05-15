@@ -8,6 +8,7 @@ using GS.Game.Configs;
 namespace GS.Main {
 	class VisualStateConverter {
 		readonly VisualState _state;
+		readonly System.Collections.Generic.HashSet<string> _previousDiscoveredIds = new();
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
@@ -27,6 +28,8 @@ namespace GS.Main {
 			UpdateCharacters(world);
 			UpdateOrgCharacters(world);
 			UpdateOrgMap(world, orgEntity);
+			UpdateDiscoveredCountries(world);
+			UpdateOrgActions(world);
 		}
 
 		void UpdateCharacters(IReadOnlyWorld world) {
@@ -357,6 +360,72 @@ namespace GS.Main {
 				}
 			}
 			_state.OrgMap.Set(entries);
+		}
+
+		void UpdateDiscoveredCountries(IReadOnlyWorld world) {
+			var ids = new System.Collections.Generic.HashSet<string>();
+			int[] req = { TypeId<Country>.Value, TypeId<IsDiscovered>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+				Country[] cs = arch.GetColumn<Country>();
+				for (int i = 0; i < arch.Count; i++) {
+					ids.Add(cs[i].CountryId);
+				}
+			}
+
+			string recently = "";
+			if (_previousDiscoveredIds.Count > 0) {
+				foreach (var id in ids) {
+					if (!_previousDiscoveredIds.Contains(id)) { recently = id; break; }
+				}
+			}
+			_previousDiscoveredIds.Clear();
+			foreach (var id in ids) { _previousDiscoveredIds.Add(id); }
+
+			string pendingRecently = recently != "" ? recently : _state.DiscoveredCountries.RecentlyDiscovered;
+			_state.DiscoveredCountries.Set(ids, pendingRecently);
+		}
+
+		void UpdateOrgActions(IReadOnlyWorld world) {
+			if (!_state.PlayerOrganization.IsValid) {
+				_state.PlayerOrgActions.Set(
+					new System.Collections.Generic.List<ActionCardEntry>(),
+					new System.Collections.Generic.List<ActionCardEntry>(), 0);
+				return;
+			}
+			string orgId = _state.PlayerOrganization.OrgId;
+
+			int handSize = 1;
+			int[] ownerReq = { TypeId<ActionOwner>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(ownerReq, null)) {
+				ActionOwner[] owners = arch.GetColumn<ActionOwner>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerId == orgId) { handSize = owners[i].HandSize; break; }
+				}
+			}
+
+			var hand = new System.Collections.Generic.List<ActionCardEntry>();
+			var deck = new System.Collections.Generic.List<ActionCardEntry>();
+
+			int[] handReq = { TypeId<ActionCard>.Value, TypeId<InHand>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(handReq, null)) {
+				ActionCard[] cards = arch.GetColumn<ActionCard>();
+				InHand[] hands = arch.GetColumn<InHand>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (cards[i].OwnerId != orgId) { continue; }
+					hand.Add(new ActionCardEntry(cards[i].ActionId, hands[i].SlotIndex, true));
+				}
+			}
+			int[] deckReq = { TypeId<ActionCard>.Value };
+			int[] excludeInHand = { TypeId<InHand>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(deckReq, excludeInHand)) {
+				ActionCard[] cards = arch.GetColumn<ActionCard>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (cards[i].OwnerId != orgId) { continue; }
+					deck.Add(new ActionCardEntry(cards[i].ActionId, -1, false));
+				}
+			}
+			hand.Sort((a, b) => a.SlotIndex.CompareTo(b.SlotIndex));
+			_state.PlayerOrgActions.Set(hand, deck, handSize);
 		}
 
 		List<EffectStateEntry> BuildEffects(IReadOnlyWorld world, string countryId, string resourceId) {

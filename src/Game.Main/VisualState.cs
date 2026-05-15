@@ -190,6 +190,59 @@ namespace GS.Main {
 		}
 	}
 
+	public class DiscoveredCountriesState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public System.Collections.Generic.HashSet<string> CountryIds { get; private set; } = new System.Collections.Generic.HashSet<string>();
+		public string RecentlyDiscovered { get; private set; } = "";
+
+		public void Set(System.Collections.Generic.HashSet<string> ids, string recentlyDiscovered = "") {
+			CountryIds = ids;
+			RecentlyDiscovered = recentlyDiscovered;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+
+		public void ClearRecentlyDiscovered() {
+			RecentlyDiscovered = "";
+		}
+	}
+
+	public class ActionCardEntry {
+		public string ActionId   { get; }
+		public int    SlotIndex  { get; }
+		public bool   IsInHand   { get; }
+		public ActionCardEntry(string actionId, int slotIndex, bool isInHand) {
+			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
+		}
+	}
+
+	public class OrgActionsState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public IReadOnlyList<ActionCardEntry> Hand  { get; private set; } = Array.Empty<ActionCardEntry>();
+		public IReadOnlyList<ActionCardEntry> Deck  { get; private set; } = Array.Empty<ActionCardEntry>();
+		public int HandSize { get; private set; }
+		public void Set(System.Collections.Generic.List<ActionCardEntry> hand,
+		                System.Collections.Generic.List<ActionCardEntry> deck,
+		                int handSize) {
+			Hand = hand; Deck = deck; HandSize = handSize;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
+	public class LastActionResultState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public bool HasResult { get; private set; }
+		public bool Success   { get; private set; }
+		public string ActionId { get; private set; } = "";
+		public void Set(bool success, string actionId) {
+			HasResult = true; Success = success; ActionId = actionId;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+		public void Clear() {
+			HasResult = false; Success = false; ActionId = "";
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class VisualState {
 		public SelectedCountryState SelectedCountry { get; } = new SelectedCountryState();
 		public PlayerCountryState PlayerCountry { get; } = new PlayerCountryState();
@@ -204,5 +257,8 @@ namespace GS.Main {
 		public OrgCharactersState PlayerOrgCharacters { get; } = new OrgCharactersState();
 		public MapLensState MapLens { get; } = new MapLensState();
 		public OrgMapState OrgMap { get; } = new OrgMapState();
+		public DiscoveredCountriesState DiscoveredCountries { get; } = new DiscoveredCountriesState();
+		public OrgActionsState PlayerOrgActions             { get; } = new OrgActionsState();
+		public LastActionResultState LastAction             { get; } = new LastActionResultState();
 	}
 }

@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3264132811b82b2419c167f9d887ee89, type: 3}
+  m_Name: ActionVisualConfig
+  m_EditorClassIdentifier: GS.Unity.Common::GS.Unity.Common.ActionVisualConfig
+  defaultBackImage: {fileID: -2458957394299649226, guid: 1c6106ccfe009cd4791bf7e52d8378d4, type: 3}
+  entries:
+  - actionId: discover_country
+    frontImage: {fileID: -1664331322968743427, guid: 53e256e9cfdcced4692382c9e7a8c2ca, type: 3}
+    backImage: {fileID: -2458957394299649226, guid: 1c6106ccfe009cd4791bf7e52d8378d4, type: 3}

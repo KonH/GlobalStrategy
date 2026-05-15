@@ -78,6 +78,8 @@ namespace GS.Main {
 				});
 			}
 
+			BuildProximityMap(world, context);
+			CreateActionEntities(world, context, rng);
 			CreateOrgCharacterEntities(world, context, rng);
 			CreateCharacterEntities(world, context, rng);
 
@@ -247,6 +249,165 @@ namespace GS.Main {
 				"yearly" => AutoSaveInterval.Yearly,
 				_        => AutoSaveInterval.Monthly
 			};
+		}
+
+		internal static void BuildProximityMap(World world, GameLogicContext context) {
+			int[] pmReq = { TypeId<ProximityMapData>.Value };
+			var toDestroy = new System.Collections.Generic.List<int>();
+			foreach (var arch in world.GetMatchingArchetypes(pmReq, null)) {
+				for (int i = 0; i < arch.Count; i++) {
+					toDestroy.Add(arch.Entities[i]);
+				}
+			}
+			foreach (int e in toDestroy) { world.Destroy(e); }
+
+			var countryConfig = context.Country.Load();
+			var featureGeometry = context.MapGeometry?.Load();
+			var distances = new System.Collections.Generic.Dictionary<(string, string), float>();
+
+			if (featureGeometry != null) {
+				var featurePoints = BuildFeaturePointsLookup(featureGeometry);
+
+				var entries = new System.Collections.Generic.List<CountryEntry>();
+				foreach (var e in countryConfig.Countries) {
+					if (e.IsAvailable) { entries.Add(e); }
+				}
+
+				for (int i = 0; i < entries.Count; i++) {
+					for (int j = i + 1; j < entries.Count; j++) {
+						float dist = ComputeMinDistance(entries[i], entries[j], featurePoints);
+						string a = entries[i].CountryId;
+						string b = entries[j].CountryId;
+						if (string.CompareOrdinal(a, b) > 0) { var tmp = a; a = b; b = tmp; }
+						distances[(a, b)] = dist;
+					}
+				}
+			}
+
+			int pmEntity = world.Create();
+			world.Add(pmEntity, new ProximityMapData { Distances = distances });
+		}
+
+		static System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<GS.Core.Map.Vector2d>>
+			BuildFeaturePointsLookup(System.Collections.Generic.List<GS.Core.Map.MapFeature> features) {
+			var lookup = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<GS.Core.Map.Vector2d>>();
+			foreach (var f in features) {
+				var pts = new System.Collections.Generic.List<GS.Core.Map.Vector2d>();
+				foreach (var poly in f.Polygons) {
+					if (poly.Rings.Count == 0) { continue; }
+					var ring = poly.Rings[0];
+					for (int k = 0; k < ring.Points.Count; k += 4) {
+						pts.Add(ring.Points[k]);
+					}
+				}
+				lookup[f.Id] = pts;
+			}
+			return lookup;
+		}
+
+		static float ComputeMinDistance(
+			CountryEntry a, CountryEntry b,
+			System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<GS.Core.Map.Vector2d>> featurePoints) {
+			float minDist = float.MaxValue;
+			var aIds = new System.Collections.Generic.List<string>(a.MainMapFeatureIds);
+			foreach (var s in a.SecondaryMapFeatureIds) { aIds.Add(s); }
+			var bIds = new System.Collections.Generic.List<string>(b.MainMapFeatureIds);
+			foreach (var s in b.SecondaryMapFeatureIds) { bIds.Add(s); }
+
+			foreach (var aId in aIds) {
+				if (!featurePoints.TryGetValue(aId, out var aPts)) { continue; }
+				foreach (var bId in bIds) {
+					if (!featurePoints.TryGetValue(bId, out var bPts)) { continue; }
+					foreach (var ap in aPts) {
+						foreach (var bp in bPts) {
+							float dx = (float)(ap.Lon - bp.Lon);
+							float dy = (float)(ap.Lat - bp.Lat);
+							float d = dx * dx + dy * dy;
+							if (d < minDist) { minDist = d; }
+						}
+					}
+				}
+			}
+			return minDist == float.MaxValue ? 1e9f : (float)System.Math.Sqrt(minDist);
+		}
+
+		static void CreateActionEntities(World world, GameLogicContext context, Random rng) {
+			var actionConfig = context.Action.Load();
+			string orgId = context.InitialOrganizationId;
+			if (string.IsNullOrEmpty(orgId)) { return; }
+
+			int handSize = actionConfig.GetHandSize("org");
+			if (handSize <= 0) { return; }
+
+			var pool = actionConfig.GetOrgPool(orgId);
+			if (pool == null || pool.Count == 0) { return; }
+
+			int ownerEntity = world.Create();
+			world.Add(ownerEntity, new ActionOwner {
+				OwnerId   = orgId,
+				OwnerType = "org",
+				HandSize  = handSize
+			});
+
+			for (int i = 0; i < pool.Count; i++) {
+				int cardEntity = world.Create();
+				world.Add(cardEntity, new ActionCard {
+					ActionId = pool[i],
+					OwnerId  = orgId
+				});
+			}
+
+			var deckEntities = new System.Collections.Generic.List<int>();
+			int[] cardReq = { TypeId<ActionCard>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(cardReq, null)) {
+				ActionCard[] cards = arch.GetColumn<ActionCard>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (cards[i].OwnerId == orgId) { deckEntities.Add(arch.Entities[i]); }
+				}
+			}
+			for (int i = deckEntities.Count - 1; i > 0; i--) {
+				int j = rng.Next(i + 1);
+				var tmp = deckEntities[i]; deckEntities[i] = deckEntities[j]; deckEntities[j] = tmp;
+			}
+			for (int slot = 0; slot < handSize && slot < deckEntities.Count; slot++) {
+				world.Add(deckEntities[slot], new InHand { SlotIndex = slot });
+			}
+
+			DiscoverInitialCountries(world, context);
+		}
+
+		static void DiscoverInitialCountries(World world, GameLogicContext context) {
+			var toDiscover = new System.Collections.Generic.HashSet<string>();
+
+			if (!string.IsNullOrEmpty(context.InitialPlayerCountryId)) {
+				toDiscover.Add(context.InitialPlayerCountryId);
+			}
+
+			if (!string.IsNullOrEmpty(context.InitialOrganizationId)) {
+				var orgConfig = context.Organization.Load();
+				var orgEntry = orgConfig.FindById(context.InitialOrganizationId);
+				if (orgEntry != null && !string.IsNullOrEmpty(orgEntry.HqCountryId)) {
+					toDiscover.Add(orgEntry.HqCountryId);
+				}
+			}
+
+			// Collect entity IDs first — calling world.Add inside GetMatchingArchetypes would
+			// create new archetypes and mutate the dictionary mid-iteration, throwing InvalidOperationException.
+			var entitiesToDiscover = new System.Collections.Generic.List<int>();
+			int[] countryReq = { TypeId<Country>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(countryReq, null)) {
+				Country[] countries = arch.GetColumn<Country>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (toDiscover.Contains(countries[i].CountryId)) {
+						entitiesToDiscover.Add(arch.Entities[i]);
+					}
+				}
+			}
+			foreach (int entity in entitiesToDiscover) {
+				world.Add(entity, new IsDiscovered());
+			}
 		}
 	}
 }

@@ -170,13 +170,12 @@
       }
     },
     "com.unity.ide.rider": {
-      "version": "3.0.39",
+      "version": "file:com.unity.ide.rider",
       "depth": 0,
-      "source": "registry",
+      "source": "embedded",
       "dependencies": {
         "com.unity.ext.nunit": "1.0.6"
-      },
-      "url": "https://packages.unity.com"
+      }
     },
     "com.unity.ide.visualstudio": {
       "version": "2.0.27",

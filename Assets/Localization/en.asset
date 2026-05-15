@@ -1530,3 +1530,17 @@ MonoBehaviour:
     Value: Empty
   - Key: hud.slot_available
     Value: Available
+  - Key: action.discover_country.name
+    Value: Discover Country
+  - Key: action.discover_country.desc
+    Value: Send agents to uncover a nearby unknown nation.
+  - Key: action.tooltip.play_hint
+    Value: Click to play
+  - Key: action.tooltip.unaffordable_hint
+    Value: Not enough gold
+  - Key: effect.discover_country.name
+    Value: Discover Country
+  - Key: effect.discover_country.desc
+    Value: Reveals a previously unknown country on the map.
+  - Key: hud.actions
+    Value: Actions

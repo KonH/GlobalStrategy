@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
+using GS.Game.Configs;
 
 namespace GS.Unity.Map {
 	[RequireComponent(typeof(Camera))]
@@ -9,10 +10,16 @@ namespace GS.Unity.Map {
 		MapCameraConfig _config;
 		bool _dragging;
 		Vector3 _dragOriginWorld;
+		MapController _mapController;
+		CountryConfig _domainConfig;
+		Vector3? _panTarget;
+		float _panSpeed = 5f;
 
 		[Inject]
-		void Construct(MapCameraConfig config) {
+		void Construct(MapCameraConfig config, MapController mapController, CountryConfig domainConfig) {
 			_config = config;
+			_mapController = mapController;
+			_domainConfig = domainConfig;
 		}
 
 		void Awake() {
@@ -23,8 +30,34 @@ namespace GS.Unity.Map {
 			HandleKeyboard();
 			HandleZoom();
 			UpdateDragState();
+			UpdatePan();
 			WrapX();
 			ClampY();
+		}
+
+		public void PanToCountry(string countryId) {
+			var renderer = _mapController?.ActiveRenderer;
+			if (renderer == null) { return; }
+			foreach (var go in renderer.FeatureObjects) {
+				if (go == null) { continue; }
+				var entry = _domainConfig?.FindByFeatureId(go.name);
+				if (entry == null || entry.CountryId != countryId) { continue; }
+				var mf = go.GetComponent<MeshFilter>();
+				if (mf == null || mf.mesh == null) { continue; }
+				var center = go.transform.TransformPoint(mf.mesh.bounds.center);
+				_panTarget = new Vector3(center.x, center.y, _camera.transform.position.z);
+				return;
+			}
+		}
+
+		void UpdatePan() {
+			if (!_panTarget.HasValue) { return; }
+			_camera.transform.position = Vector3.Lerp(
+				_camera.transform.position, _panTarget.Value, _panSpeed * Time.deltaTime);
+			if (Vector3.Distance(_camera.transform.position, _panTarget.Value) < 0.05f) {
+				_camera.transform.position = _panTarget.Value;
+				_panTarget = null;
+			}
 		}
 
 		void HandleZoom() {

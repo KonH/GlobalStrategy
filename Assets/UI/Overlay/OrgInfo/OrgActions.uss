@@ -1,0 +1,81 @@
+.org-actions-root {
+    flex-direction: row;
+    padding: 8px;
+    min-width: 600px;
+}
+
+.hand-section {
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow: visible;
+}
+
+.hand-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    overflow: visible;
+}
+
+.card-lift-wrapper {
+    margin: 0 8px 8px 8px;
+    overflow: visible;
+}
+
+.action-deck-wrapper {
+    margin-right: 40px;
+}
+
+.action-card {
+    width: 240px;
+    min-height: 320px;
+    flex-direction: column;
+    align-items: center;
+    border-width: 2px;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.action-card--available {
+    border-color: rgb(139, 109, 56);
+    background-color: rgb(240, 228, 196);
+}
+
+.action-card--unavailable {
+    border-color: rgb(139, 109, 56);
+    background-color: rgb(200, 190, 165);
+    opacity: 0.6;
+}
+
+.action-card-name {
+    font-size: 18px;
+    color: rgb(80, 55, 20);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 6px;
+}
+
+.action-card-image {
+    width: 160px;
+    height: 160px;
+    margin-bottom: 6px;
+}
+
+.action-card-price {
+    font-size: 16px;
+    -unity-text-align: middle-center;
+}
+
+.action-card-price--affordable {
+    color: rgb(60, 140, 40);
+}
+
+.action-card-price--unaffordable {
+    color: rgb(180, 50, 50);
+}
+
+.action-card-play-btn {
+    margin-top: auto;
+    width: 100%;
+}

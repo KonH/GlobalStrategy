@@ -1,16 +1,24 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Template src="project://database/Assets/UI/Overlay/OrgInfo/OrgActions.uxml" name="OrgActions" />
     <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
     <ui:Style src="project://database/Assets/UI/Overlay/OrgInfo/OrgInfo.uss"/>
+    <ui:Style src="project://database/Assets/UI/Overlay/OrgInfo/OrgActions.uss"/>
     <ui:VisualElement name="org-info-root" class="org-info-root" picking-mode="Ignore">
         <ui:VisualElement name="characters-slide" class="org-characters-slide">
             <ui:VisualElement name="characters-container" class="characters-container" />
+        </ui:VisualElement>
+        <ui:VisualElement name="actions-slide" class="org-actions-slide">
+            <ui:Instance template="OrgActions" name="org-actions-instance" class="org-actions-template" />
         </ui:VisualElement>
         <ui:VisualElement name="org-bar" class="org-bar">
             <ui:VisualElement name="org-main-block" class="org-main-block">
                 <ui:Label name="org-name" class="org-name" text="" />
                 <ui:VisualElement name="resources-container" class="resources-container" />
             </ui:VisualElement>
-            <ui:Button name="chars-toggle-btn" class="chars-toggle-btn gs-btn gs-btn--small" text="&#x25B2; Characters" />
+            <ui:VisualElement class="org-toggle-block">
+                <ui:Button name="chars-toggle-btn" class="chars-toggle-btn gs-btn gs-btn--small" text="&#x25B2; Characters" />
+                <ui:Button name="actions-toggle-btn" class="gs-btn gs-btn--small" text="&#x25B2; Actions" />
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
