@@ -4,7 +4,6 @@ using UnityEngine.UIElements;
 using VContainer;
 using GS.Main;
 using GS.Game.Configs;
-using GS.Game.Commands;
 using GS.Unity.Common;
 
 namespace GS.Unity.UI {
@@ -28,21 +27,21 @@ namespace GS.Unity.UI {
 		Button _actionsToggleBtn;
 		OrgActionsView _actionsView;
 		bool _actionsOpen;
-		IWriteOnlyCommandAccessor _commands;
 		ActionConfig _actionConfig;
 		ActionVisualConfig _actionVisualConfig;
+		CardPlayAnimator _cardPlayAnimator;
 
 		[Inject]
 		void Construct(VisualState state, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig,
-			IWriteOnlyCommandAccessor commands, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig) {
+			ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator) {
 			_state = state;
 			_loc = loc;
 			_resourceConfig = resourceConfig;
 			_characterConfig = characterConfig;
 			_characterVisualConfig = characterVisualConfig;
-			_commands = commands;
 			_actionConfig = actionConfig;
 			_actionVisualConfig = actionVisualConfig;
+			_cardPlayAnimator = cardPlayAnimator;
 		}
 
 		void Awake() {
@@ -57,11 +56,15 @@ namespace GS.Unity.UI {
 			_actionsToggleBtn = docRoot.Q<Button>("actions-toggle-btn");
 
 			if (_charsToggleBtn != null) {
-				_charsToggleBtn.clicked += ToggleChars;
+				_charsToggleBtn.RegisterCallback<PointerUpEvent>(e => {
+					if (e.button == 0 && _charsToggleBtn.ContainsPoint(e.localPosition)) { ToggleChars(); }
+				});
 			}
 
 			if (_actionsToggleBtn != null) {
-				_actionsToggleBtn.clicked += ToggleActions;
+				_actionsToggleBtn.RegisterCallback<PointerUpEvent>(e => {
+					if (e.button == 0 && _actionsToggleBtn.ContainsPoint(e.localPosition)) { ToggleActions(); }
+				});
 			}
 
 			_document.rootVisualElement.style.display = DisplayStyle.None;
@@ -111,11 +114,12 @@ namespace GS.Unity.UI {
 			_resourcesView = new ResourcesView(docRoot.Q("resources-container"), _loc, _resourceConfig, _tooltip);
 			_charactersView = new OrgCharactersView(docRoot.Q("characters-container"), _loc, _characterConfig, _tooltip, _characterVisualConfig);
 			var actionsInstance = docRoot.Q("org-actions-instance");
-		if (actionsInstance != null) {
+			if (actionsInstance != null) {
 				_actionsView = new OrgActionsView(
 					actionsInstance.Q("hand-container"),
 					_loc, _actionConfig, _actionVisualConfig, _resourceConfig, _tooltip);
 				_actionsView.OnCardClicked = OnActionCardClicked;
+				_cardPlayAnimator?.SetActionsView(_actionsView);
 			}
 		}
 
@@ -177,12 +181,9 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		void OnActionCardClicked(string actionId) {
-			if (_commands == null || _state == null || !_state.PlayerOrganization.IsValid) { return; }
-			_commands.Push(new PlayActionCommand {
-				OwnerId  = _state.PlayerOrganization.OrgId,
-				ActionId = actionId
-			});
+		void OnActionCardClicked(string actionId, VisualElement cardElement) {
+			if (_cardPlayAnimator == null || _state == null || !_state.PlayerOrganization.IsValid) { return; }
+			_cardPlayAnimator.StartCardPlay(_state.PlayerOrganization.OrgId, actionId, cardElement);
 		}
 
 		void HandleOrgChanged(object sender, PropertyChangedEventArgs e) => Refresh();

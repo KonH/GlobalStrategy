@@ -276,6 +276,43 @@ static void SetPickingIgnoreRecursive(VisualElement element) {
 }
 ```
 
+## Animated State Transitions — SuppressRefresh Pattern
+
+When a UI animation spans a state change (e.g. a card play sequence that hides a card, pushes a command, waits for a result, then animates a new card in), reactive `Refresh()` calls triggered by `PropertyChanged` will rebuild the UI mid-animation and reset any opacity/position changes already applied.
+
+**Pattern:** expose a `SuppressRefresh` flag on the view class and guard `Refresh()` with it.
+
+```csharp
+public bool SuppressRefresh { get; set; }
+
+public void Refresh(SomeState state) {
+    if (SuppressRefresh) { return; }
+    // ... rebuild logic ...
+}
+```
+
+**In the animation coroutine:**
+
+```csharp
+// Before pushing any state-changing command:
+if (_view != null) { _view.SuppressRefresh = true; }
+_commands.Push(new PlayActionCommand { ... });
+
+// ... animation steps ...
+
+// At the point where you need the UI to rebuild with new state (one frame only):
+if (_view != null) { _view.SuppressRefresh = false; }
+yield return null;   // one Refresh() runs here
+if (_view != null) { _view.SuppressRefresh = true; }
+
+// ... animate the new element ...
+
+// Always reset unconditionally at the end, outside any conditional blocks:
+if (_view != null) { _view.SuppressRefresh = false; }
+```
+
+**Critical:** reset to `false` outside any `if (newElement != null)` block — otherwise a failed element lookup leaves suppression permanently on.
+
 ## Layout Gotchas
 
 ### align-items: stretch needs a defined container width

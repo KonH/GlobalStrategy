@@ -15,7 +15,12 @@ namespace GS.Unity.UI {
 		readonly ResourceConfig _resourceConfig;
 		readonly TooltipSystem _tooltip;
 
-		public Action<string> OnCardClicked;
+		public Action<string, VisualElement> OnCardClicked;
+
+		public VisualElement DeckPileElement { get; private set; }
+		public VisualElement HandContainer => _handContainer;
+
+		public bool SuppressRefresh { get; set; }
 
 		public OrgActionsView(
 			VisualElement handContainer,
@@ -33,6 +38,7 @@ namespace GS.Unity.UI {
 		}
 
 		public void Refresh(OrgActionsState state, CountryResourcesState resources) {
+			if (SuppressRefresh) { return; }
 			_handContainer.Clear();
 
 			_handContainer.Add(BuildDeckPile(state.Deck.Count));
@@ -76,22 +82,14 @@ namespace GS.Unity.UI {
 				}
 			}
 
-			var playBtn = new Button();
-			playBtn.AddToClassList("gs-btn");
-			playBtn.AddToClassList("gs-btn--small");
-			playBtn.AddToClassList("action-card-play-btn");
-			playBtn.text = "Play";
 			string capturedId = card.ActionId;
 			if (canAfford) {
-				playBtn.RegisterCallback<PointerUpEvent>(e => {
-					if (e.button == 0 && playBtn.ContainsPoint(e.localPosition)) {
-						OnCardClicked?.Invoke(capturedId);
+				cardEl.RegisterCallback<PointerUpEvent>(e => {
+					if (e.button == 0 && cardEl.ContainsPoint(e.localPosition)) {
+						OnCardClicked?.Invoke(capturedId, cardEl);
 					}
 				});
-			} else {
-				playBtn.SetEnabled(false);
 			}
-			cardEl.Add(playBtn);
 
 			wrapper.Add(cardEl);
 
@@ -133,6 +131,7 @@ namespace GS.Unity.UI {
 				front.style.backgroundImage = new StyleBackground(sprite);
 				front.style.backgroundSize = new StyleBackgroundSize(new BackgroundSize(BackgroundSizeType.Cover));
 			}
+			DeckPileElement = front;
 			wrapper.Add(front);
 
 			return wrapper;
