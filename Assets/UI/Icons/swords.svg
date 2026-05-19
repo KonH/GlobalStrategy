@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#FFFFFF" viewBox="0 0 16 16">
+  <!-- Crossed swords as two diagonal parallelograms, no group transforms -->
+  <!-- Sword 1: NW to SE -->
+  <polygon points="1,4 4,1 15,12 12,15"/>
+  <!-- Sword 2: NE to SW -->
+  <polygon points="12,1 15,4 4,15 1,12"/>
+</svg>

@@ -76,3 +76,21 @@
     opacity: 1;
     translate: 0 0;
 }
+
+/* Icon button (icon left of label) */
+.org-toggle-btn-icon {
+    width: 20px;
+    height: 20px;
+    -unity-background-scale-mode: scale-to-fit;
+    margin-right: 6px;
+}
+
+.org-toggle-btn-icon--characters {
+    background-image: url("project://database/Assets/UI/Icons/compass.svg?fileID=11400000&guid=abc0f945a8c17e143a5422e140de0dba&type=3#compass");
+    -unity-background-image-tint-color: rgb(240, 232, 208);
+}
+
+.org-toggle-btn-icon--actions {
+    background-image: url("project://database/Assets/UI/Icons/star-fill.svg?fileID=11400000&guid=33403e92846874d40ad16097ec491044&type=3#star-fill");
+    -unity-background-image-tint-color: rgb(200, 160, 64);
+}

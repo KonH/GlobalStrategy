@@ -60,6 +60,7 @@ namespace GS.Unity.UI {
 
 			_countryInfoRoot = root.Q("country-info");
 			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig);
+			_countryInfo.OnCharsOpened += HandleOrgSubPanelOpened;
 			_playerOrgView = new PlayerOrgView(root.Q("player-country"), _loc, _resourceConfig, _tooltip);
 			_timeView = new TimeView(
 				root.Q("time-panel"),
@@ -67,6 +68,9 @@ namespace GS.Unity.UI {
 				OnSpeedChange);
 			_lensSwitcher = new LensSwitcherView(root.Q("lens-switcher"), _tooltip, _loc);
 			_lensSwitcher.OnLensSelected = OnLensSelected;
+			if (_orgInfoDocument != null) {
+				_orgInfoDocument.OnSubPanelOpened += HandleOrgSubPanelOpened;
+			}
 
 			var playerOrgRoot = root.Q("player-country");
 			if (playerOrgRoot != null) {
@@ -182,6 +186,10 @@ namespace GS.Unity.UI {
 			_state.MapLens.PropertyChanged            -= HandleLensChanged;
 			_state.PlayerOrgCharacters.PropertyChanged -= HandleOrgCharactersChanged;
 			_lastOrgAgentSlotCount = -1;
+			if (_orgInfoDocument != null) {
+				_orgInfoDocument.OnSubPanelOpened -= HandleOrgSubPanelOpened;
+			}
+			_countryInfo.OnCharsOpened -= HandleOrgSubPanelOpened;
 		}
 
 		void Update() {
@@ -345,6 +353,13 @@ namespace GS.Unity.UI {
 		void PushDropCharacter(string ownerId, string roleId, int slotIndex) {
 			if (string.IsNullOrEmpty(ownerId) || _commands == null) { return; }
 			_commands.Push(new DebugDropCharacterCommand { OwnerId = ownerId, RoleId = roleId, SlotIndex = slotIndex });
+		}
+
+		void HandleOrgSubPanelOpened(bool anyOpen) {
+			var lensSwitcherEl = _root.Q("lens-switcher");
+			if (lensSwitcherEl != null) {
+				lensSwitcherEl.style.display = anyOpen ? DisplayStyle.None : DisplayStyle.Flex;
+			}
 		}
 
 		void HandleOrgCharactersChanged(object sender, PropertyChangedEventArgs e) {

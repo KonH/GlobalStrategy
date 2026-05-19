@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en" data-p="navy">
+<head>
+<meta charset="UTF-8">
+<title>GlobalStrategy — Icons &amp; Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #2a2a2a; font-family: sans-serif; padding: 24px; color: #eee; }
+h1 { font-size: 15px; color: #ccc; margin-bottom: 4px; letter-spacing: 1px; }
+.subtitle { font-size: 11px; color: #666; margin-bottom: 32px; }
+
+.screen-section { margin-bottom: 44px; }
+.screen-header {
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid #444; padding-bottom: 6px; margin-bottom: 12px;
+}
+.screen-header h2 {
+  font-size: 12px; font-weight: normal; color: #aaa;
+  text-transform: uppercase; letter-spacing: 2px; flex: 1; border: none; padding: 0; margin: 0;
+}
+.screen-header a { display: block; flex-shrink: 0; }
+.screen-header img { height: 48px; border-radius: 3px; border: 1px solid #555; opacity: .7; transition: opacity .15s; display: block; }
+.screen-header img:hover { opacity: 1; }
+.screen-header .ref-label { font-size: 9px; color: #555; margin-top: 2px; text-align: center; }
+
+.state-sub-label { font-size: 9px; color: #666; text-align: center; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .5px; }
+
+/* ========== PALETTE ========== */
+[data-p="navy"] {
+  --panel-bg:#1A2A48; --panel-bdr:#C8A040;
+  --btn-bg:#243258;  --btn-hov:#2E4070; --btn-act:#C8A040;
+  --btn-2nd:#1C2840;
+  --tip-bg:#12203A;
+  --c-dark:#F0E8D0; --c-mid:#C8B890; --c-hint:#8888A8;
+  --c-light:#F0E8D0; --c-pos:#50D870; --c-neg:#E04040;
+  --f-title:'Cinzel',serif; --f-body:'IM Fell English',serif; --f-hud:'Cinzel',serif;
+}
+
+/* ========== SHARED ========== */
+.gs-panel { background:var(--panel-bg); border:2px solid var(--panel-bdr); border-radius:5px; padding:10px 12px; display:flex; flex-direction:column; align-items:center; gap:5px; }
+.gs-panel.hud { padding:5px 8px; align-items:flex-start; gap:2px; }
+.gs-title  { font-size:18px; color:var(--c-dark); font-weight:bold; text-align:center; font-family:var(--f-title); }
+.gs-header { font-size:14px; color:var(--c-dark); font-weight:bold; font-family:var(--f-title); }
+.gs-label  { font-size:11px; color:var(--c-mid); font-family:var(--f-body); }
+.gs-hint   { font-size:10px; color:var(--c-hint); font-style:italic; font-family:var(--f-body); text-align:center; line-height:1.3; }
+.gs-btn { background:var(--btn-bg); color:var(--c-dark); border:1px solid var(--panel-bdr); border-radius:3px; font-weight:bold; cursor:pointer; font-family:var(--f-body); padding:0 10px; transition:background-color .12s; }
+.gs-btn:hover { background:var(--btn-hov); }
+.gs-btn--small { font-size:11px; height:22px; min-width:26px; font-family:var(--f-hud); }
+.gs-btn--active { background:var(--btn-act); color:var(--c-light); }
+
+.map-bg { background:linear-gradient(135deg,#a8c4d4 0%,#b5cfd8 30%,#d4c4a8 55%,#c8b898 70%,#b8c4a0 85%,#a8b890 100%); border-radius:5px; position:relative; overflow:hidden; display:flex; align-items:flex-start; justify-content:flex-start; }
+.map-bg.pad { padding:6px; }
+.hud-bar { position:absolute; bottom:0; left:0; right:0; background:var(--panel-bg); border-top:2px solid var(--panel-bdr); padding:4px 8px; display:flex; align-items:center; gap:6px; }
+.tip-box { background:var(--tip-bg); border:1px solid var(--panel-bdr); border-radius:3px; padding:5px 7px; font-size:10px; color:var(--c-mid); font-family:var(--f-body); line-height:1.4; }
+.tip-box b { color:var(--c-dark); font-family:var(--f-title); }
+.tip-box hr { border:none; border-top:1px solid var(--panel-bdr); margin:3px 0; }
+.speed-row { display:flex; gap:3px; }
+
+/* ---- Icon helpers ---- */
+/* PNG icons are white-on-black; mix-blend-mode:screen makes black invisible against dark panels */
+.ico    { width:14px; height:14px; display:inline-block; vertical-align:middle; mix-blend-mode:screen; }
+.ico-sm { width:11px; height:11px; display:inline-block; vertical-align:middle; mix-blend-mode:screen; }
+.ico-lg { width:20px; height:20px; display:inline-block; vertical-align:middle; mix-blend-mode:screen; }
+
+/* Stat tints: colorize the white parts of each PNG icon */
+.tint-gold  { filter:sepia(1) saturate(4) hue-rotate(15deg) brightness(.85); }
+.tint-inf   { filter:sepia(1) saturate(6) hue-rotate(185deg) brightness(1.2); }
+.tint-mil   { filter:sepia(1) saturate(6) hue-rotate(310deg) brightness(1.1); }
+.tint-dip   { filter:sepia(1) saturate(5) hue-rotate(90deg) brightness(.95); }
+.tint-eco   { filter:sepia(1) saturate(5) hue-rotate(35deg) brightness(1.0); }
+.tint-sec   { filter:sepia(1) saturate(5) hue-rotate(160deg) brightness(1.1); }
+.tint-light { filter:sepia(0) saturate(0) brightness(1.1); }
+
+/* ========== ICON PALETTE GRID ========== */
+.icon-grid { display:flex; flex-wrap:wrap; gap:10px; }
+.icon-item { display:flex; flex-direction:column; align-items:center; gap:4px; background:var(--panel-bg); border:1px solid #334; border-radius:4px; padding:10px 12px; width:80px; }
+.icon-swatch { width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:#243258; border-radius:3px; }
+.icon-swatch img { width:24px; height:24px; }
+.icon-label { font-size:8px; color:var(--c-mid); font-family:var(--f-body); text-align:center; }
+.icon-key   { font-size:7px; color:#556; font-family:monospace; text-align:center; word-break:break-all; }
+
+/* ========== ACTION CARD ========== */
+.card { width:120px; display:flex; flex-direction:column; border:2px solid var(--panel-bdr); border-radius:4px; overflow:hidden; font-family:var(--f-body); background:#D4C4A0; color:#2A1A08; flex-shrink:0; }
+.card-header { background:#1A2A48; color:var(--c-dark); font-family:var(--f-title); font-size:10px; font-weight:bold; text-align:center; padding:4px 6px; border-bottom:1px solid var(--panel-bdr); }
+.card-art { width:100%; height:80px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#6A8898; }
+.card-art img { width:100%; height:100%; object-fit:cover; }
+.card-body { padding:5px 6px; flex:1; display:flex; flex-direction:column; gap:3px; }
+.card-desc { font-size:9px; line-height:1.35; color:#3A2810; }
+.card-effect { display:inline-flex; align-items:center; gap:2px; font-size:9px; padding:1px 4px; border-radius:2px; font-weight:bold; }
+.card-effect.pos { background:#1E4028; color:#50D870; }
+.card-effect.neg { background:#401010; color:#E04040; }
+.card-cost { border-top:1px solid #B8A078; padding:3px 6px; font-size:9px; color:#2A1A08; display:flex; align-items:center; gap:3px; font-family:var(--f-hud); background:rgba(0,0,0,0.1); }
+.card-row { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-start; }
+
+/* ========== COUNTRY CHARACTER CARD ========== */
+.char-card { display:flex; flex-direction:column; border:1px solid var(--panel-bdr); border-radius:4px; overflow:hidden; width:90px; font-family:var(--f-body); flex-shrink:0; background:#0E1A2E; }
+.char-portrait { width:90px; height:90px; overflow:hidden; flex-shrink:0; }
+.char-portrait img { width:100%; height:100%; object-fit:cover; }
+.char-info { padding:4px 5px; display:flex; flex-direction:column; gap:2px; background:var(--panel-bg); }
+.char-name { font-size:9px; font-weight:bold; color:var(--c-dark); font-family:var(--f-title); line-height:1.2; }
+.char-role { font-size:8px; color:var(--c-hint); font-style:italic; }
+.char-stats { display:flex; flex-wrap:wrap; gap:2px; margin-top:2px; }
+.char-stat  { display:flex; align-items:center; gap:2px; font-size:8px; color:var(--c-mid); min-width:36px; background:rgba(255,255,255,0.07); border-radius:2px; padding:1px 3px; }
+
+/* ========== ORG CHARACTER CARD (cultish) ========== */
+.org-char-card { display:flex; flex-direction:column; border:2px solid #A07818; border-radius:4px; overflow:hidden; width:90px; font-family:var(--f-body); flex-shrink:0; background:#0A0A12; box-shadow:0 0 8px rgba(160,120,24,.4); }
+.org-portrait { width:90px; height:90px; overflow:hidden; flex-shrink:0; position:relative; background:#0A0A12; }
+.org-portrait img { width:100%; height:100%; object-fit:cover; filter:brightness(.7) contrast(1.3) sepia(.4); }
+.org-portrait::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.7) 100%); pointer-events:none; }
+.org-info { padding:4px 5px; display:flex; flex-direction:column; gap:2px; background:#12101A; border-top:1px solid #6A5010; }
+.org-name { font-size:9px; font-weight:bold; color:#D4A840; font-family:var(--f-title); line-height:1.2; }
+.org-role { font-size:8px; color:#886640; font-style:italic; }
+.org-stats { display:flex; flex-wrap:wrap; gap:2px; margin-top:2px; }
+
+/* ========== DECK + HAND ========== */
+.deck-stack { position:relative; width:120px; height:180px; flex-shrink:0; }
+.deck-stack .deck-card { position:absolute; width:120px; border:2px solid var(--panel-bdr); border-radius:4px; overflow:hidden; background:#8A1A1A; }
+.deck-stack .deck-card img { width:100%; height:180px; object-fit:cover; display:block; }
+
+/* ========== BOTTOM BAR BUTTONS ========== */
+.hud-nav-btn { display:flex; align-items:center; gap:4px; background:var(--btn-bg); border:1px solid var(--panel-bdr); border-radius:3px; padding:2px 8px; font-size:10px; font-family:var(--f-hud); color:var(--c-dark); cursor:pointer; height:24px; }
+.hud-nav-btn:hover { background:var(--btn-hov); }
+
+/* ========== NOTIFICATION ========== */
+.notif-text { font-family:var(--f-title); font-size:18px; font-weight:bold; color:var(--c-dark); text-shadow:0 2px 8px rgba(0,0,0,.8),0 0 20px rgba(0,0,0,.6); text-align:center; }
+</style>
+</head>
+<body>
+
+<h1>GlobalStrategy — Icons &amp; Cards</h1>
+<p class="subtitle">Scope 02 · Custom icons, action cards, character cards, deck/hand, UI mockup, full-screen references</p>
+
+<div data-p="navy">
+
+<!-- ================================================================ ICON PALETTE -->
+<div class="screen-section">
+  <div class="screen-header"><h2>Stat Icon Palette — Custom Project Icons</h2></div>
+  <div class="icon-grid">
+
+    <div class="icon-item">
+      <div class="icon-swatch"><img class="ico-lg tint-gold" src="../../Assets/UI/Icons/coin.png"></div>
+      <div class="icon-label">Gold</div>
+      <div class="icon-key">coin.png</div>
+    </div>
+    <div class="icon-item">
+      <div class="icon-swatch"><img class="ico-lg tint-inf" src="../../Assets/UI/Icons/influence.png"></div>
+      <div class="icon-label">Influence</div>
+      <div class="icon-key">influence.png</div>
+    </div>
+    <div class="icon-item">
+      <div class="icon-swatch"><img class="ico-lg tint-gold" src="../../Assets/UI/Icons/crown.png"></div>
+      <div class="icon-label">Ruler</div>
+      <div class="icon-key">crown.png</div>
+    </div>
+    <div class="icon-item">
+      <div class="icon-swatch"><img class="ico-lg tint-mil" src="../../Assets/UI/Icons/swords.png"></div>
+      <div class="icon-label">Military</div>
+      <div class="icon-key">swords.png</div>
+    </div>
+    <div class="icon-item">
+      <div class="icon-swatch"><img class="ico-lg tint-dip" src="../../Assets/UI/Icons/diplomacy.png"></div>
+      <div class="icon-label">Diplomacy</div>
+      <div class="icon-key">diplomacy.png</div>
+    </div>
+    <div class="icon-item">
+      <div class="icon-swatch"><img class="ico-lg tint-eco" src="../../Assets/UI/Icons/trade.png"></div>
+      <div class="icon-label">Economic</div>
+      <div class="icon-key">trade.png</div>
+    </div>
+    <div class="icon-item">
+      <div class="icon-swatch"><img class="ico-lg tint-sec" src="../../Assets/UI/Icons/dagger.png"></div>
+      <div class="icon-label">Secret</div>
+      <div class="icon-key">dagger.png</div>
+    </div>
+    <div class="icon-item">
+      <div class="icon-swatch"><img class="ico-lg tint-light" src="../../Assets/UI/Icons/compass.png"></div>
+      <div class="icon-label">Discover</div>
+      <div class="icon-key">compass.png</div>
+    </div>
+    <div class="icon-item">
+      <div class="icon-swatch"><img class="ico-lg tint-gold" src="../../Assets/UI/Icons/skill.png"></div>
+      <div class="icon-label">Skill pts</div>
+      <div class="icon-key">skill.png</div>
+    </div>
+    <div class="icon-item">
+      <div class="icon-swatch"><img class="ico-lg tint-light" src="../../Assets/UI/Icons/characters.png"></div>
+      <div class="icon-label">Characters</div>
+      <div class="icon-key">characters.png</div>
+    </div>
+    <div class="icon-item">
+      <div class="icon-swatch"><img class="ico-lg tint-light" src="../../Assets/UI/Icons/agents.png"></div>
+      <div class="icon-label">Agents</div>
+      <div class="icon-key">agents.png</div>
+    </div>
+    <div class="icon-item">
+      <div class="icon-swatch"><img class="ico-lg tint-gold" src="../../Assets/UI/Icons/actions.png"></div>
+      <div class="icon-label">Actions</div>
+      <div class="icon-key">actions.png</div>
+    </div>
+
+  </div>
+  <!-- Inline usage sample -->
+  <div style="margin-top:12px;background:var(--panel-bg);border:1px solid var(--panel-bdr);border-radius:4px;padding:8px 12px;display:inline-flex;gap:16px;align-items:center;">
+    <span style="font-size:11px;color:var(--c-mid);font-family:'IM Fell English',serif;"><img class="ico tint-gold" src="../../Assets/UI/Icons/coin.png"> 624</span>
+    <span style="font-size:11px;color:var(--c-mid);font-family:'IM Fell English',serif;"><img class="ico tint-inf" src="../../Assets/UI/Icons/influence.png"> 47/100</span>
+    <span style="font-size:11px;color:var(--c-mid);font-family:'IM Fell English',serif;"><img class="ico tint-light" src="../../Assets/UI/Icons/agents.png"> 5</span>
+  </div>
+</div>
+
+<!-- ================================================================ ACTION CARDS -->
+<div class="screen-section">
+  <div class="screen-header">
+    <h2>Action Cards — States</h2>
+    <div>
+      <a href="initial/action_card.png" target="_blank"><img src="initial/action_card.png" alt="Action card ref"></a>
+      <div class="ref-label">original</div>
+    </div>
+  </div>
+  <div class="card-row">
+
+    <!-- READY TO PLAY -->
+    <div>
+      <div class="state-sub-label">Ready to Play</div>
+      <div class="card" style="border-color:#88CCFF;box-shadow:0 0 8px rgba(100,180,255,.5)">
+        <div class="card-header" style="background:#162640">Discover Country</div>
+        <div class="card-art"><img src="../../Assets/Textures/Actions/discover_country.png" alt="Discover Country"></div>
+        <div class="card-body">
+          <div class="card-desc">Send agents to uncover a nearby unknown nation.</div>
+          <div class="card-desc" style="color:var(--c-hint)">75% success</div>
+        </div>
+        <div class="card-cost">
+          <img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"> 10
+        </div>
+      </div>
+    </div>
+
+    <!-- NOT ENOUGH RESOURCES -->
+    <div>
+      <div class="state-sub-label">Not Enough Gold</div>
+      <div class="card" style="opacity:0.55">
+        <div class="card-header">Discover Country</div>
+        <div class="card-art"><img src="../../Assets/Textures/Actions/discover_country.png" alt="Discover Country"></div>
+        <div class="card-body">
+          <div class="card-desc">Send agents to uncover a nearby unknown nation.</div>
+          <div class="card-desc" style="color:var(--c-hint)">75% success</div>
+        </div>
+        <div class="card-cost">
+          <img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"><span style="color:#E04040;font-weight:bold">10</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD BACK (same size) -->
+    <div>
+      <div class="state-sub-label">Card Back / Deck</div>
+      <div class="card" style="height:180px">
+        <div class="card-art" style="height:100%">
+          <img src="../../Assets/Textures/Actions/card_back_standard.png" alt="Card back" style="width:100%;height:100%;object-fit:cover">
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================ DECK + HAND -->
+<div class="screen-section">
+  <div class="screen-header"><h2>Deck + Hand Layout</h2></div>
+  <div style="display:flex;gap:40px;align-items:flex-end;flex-wrap:wrap;">
+
+    <!-- DECK (stacked cards) -->
+    <div>
+      <div class="state-sub-label" style="text-align:left;margin-bottom:6px">Deck (12)</div>
+      <div class="deck-stack">
+        <!-- Shadow cards (depth effect) -->
+        <div class="deck-card" style="top:6px;left:6px;opacity:.5"><img src="../../Assets/Textures/Actions/card_back_standard.png" alt=""></div>
+        <div class="deck-card" style="top:3px;left:3px;opacity:.75"><img src="../../Assets/Textures/Actions/card_back_standard.png" alt=""></div>
+        <!-- Top card -->
+        <div class="deck-card" style="top:0;left:0"><img src="../../Assets/Textures/Actions/card_back_standard.png" alt="Card back"></div>
+        <!-- Count badge -->
+        <div style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.75);border:1px solid var(--panel-bdr);border-radius:3px;padding:2px 5px;font-size:10px;font-family:'Cinzel',serif;color:var(--c-mid)">12</div>
+      </div>
+    </div>
+
+    <!-- HAND (face-up cards) -->
+    <div>
+      <div class="state-sub-label" style="text-align:left;margin-bottom:6px">Hand (3 cards)</div>
+      <div class="card-row" style="gap:5px">
+
+        <div class="card" style="border-color:#88CCFF;box-shadow:0 0 8px rgba(100,180,255,.5)">
+          <div class="card-header" style="background:#162640">Discover Country</div>
+          <div class="card-art"><img src="../../Assets/Textures/Actions/discover_country.png" alt="Discover Country"></div>
+          <div class="card-body">
+            <div class="card-desc">Send agents to uncover a nearby unknown nation.</div>
+          </div>
+          <div class="card-cost"><img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"> 10</div>
+        </div>
+
+        <!-- 2nd card placeholder (art not yet generated) -->
+        <div class="card">
+          <div class="card-header">Recruit Agent</div>
+          <div class="card-art" style="background:#2A3848;align-items:center;justify-content:center;">
+            <span style="font-size:8px;color:#556;font-style:italic">art pending</span>
+          </div>
+          <div class="card-body"><div class="card-desc">Hire a new agent for your organisation.</div></div>
+          <div class="card-cost"><img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"> 25</div>
+        </div>
+
+        <!-- 3rd card: not enough resources -->
+        <div class="card" style="opacity:0.55">
+          <div class="card-header">Spread Influence</div>
+          <div class="card-art" style="background:#2A3848;align-items:center;justify-content:center;">
+            <span style="font-size:8px;color:#556;font-style:italic">art pending</span>
+          </div>
+          <div class="card-body"><div class="card-desc">Increase your influence in the target country.</div></div>
+          <div class="card-cost">
+            <img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"><span style="color:#E04040;font-weight:bold">40</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================ COUNTRY + ORG CHARACTER CARDS -->
+<div class="screen-section">
+  <div class="screen-header">
+    <h2>Character Cards — Country vs Org</h2>
+    <div>
+      <a href="initial/characters.png" target="_blank"><img src="initial/characters.png" alt="Characters ref"></a>
+      <div class="ref-label">original</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Country characters -->
+    <div>
+      <div class="state-sub-label" style="text-align:left;margin-bottom:8px">Country Characters (historical, realistic)</div>
+      <div class="card-row">
+
+        <div class="char-card">
+          <div class="char-portrait"><img src="../../Assets/Textures/Characters/great_britain_ruler_1.png" alt="Ruler"></div>
+          <div class="char-info">
+            <div class="char-name">Queen Victoria</div>
+            <div class="char-role">Ruler</div>
+            <div class="char-stats">
+              <div class="char-stat"><img class="ico-sm tint-gold" src="../../Assets/UI/Icons/crown.png"> 40</div>
+              <div class="char-stat"><img class="ico-sm tint-mil" src="../../Assets/UI/Icons/swords.png"> 21</div>
+              <div class="char-stat"><img class="ico-sm tint-dip" src="../../Assets/UI/Icons/diplomacy.png"> 53</div>
+              <div class="char-stat"><img class="ico-sm tint-eco" src="../../Assets/UI/Icons/trade.png"> 29</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="char-card">
+          <div class="char-portrait"><img src="../../Assets/Textures/Characters/great_britain_mil_1.png" alt="Military"></div>
+          <div class="char-info">
+            <div class="char-name">G. Wolseley</div>
+            <div class="char-role">Military Advisor</div>
+            <div class="char-stats">
+              <div class="char-stat"><img class="ico-sm tint-mil" src="../../Assets/UI/Icons/swords.png"> 85</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="char-card">
+          <div class="char-portrait"><img src="../../Assets/Textures/Characters/great_britain_dip_1.png" alt="Diplomat"></div>
+          <div class="char-info">
+            <div class="char-name">Lord Granville</div>
+            <div class="char-role">Diplomat</div>
+            <div class="char-stats">
+              <div class="char-stat"><img class="ico-sm tint-dip" src="../../Assets/UI/Icons/diplomacy.png"> 36</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="char-card">
+          <div class="char-portrait"><img src="../../Assets/Textures/Characters/great_britain_eco_1.png" alt="Economist"></div>
+          <div class="char-info">
+            <div class="char-name">N. Rothschild</div>
+            <div class="char-role">Financier</div>
+            <div class="char-stats">
+              <div class="char-stat"><img class="ico-sm tint-eco" src="../../Assets/UI/Icons/trade.png"> 69</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="char-card">
+          <div class="char-portrait"><img src="../../Assets/Textures/Characters/great_britain_sec_1.png" alt="Secret"></div>
+          <div class="char-info">
+            <div class="char-name">R. Salisbury</div>
+            <div class="char-role">Intelligence</div>
+            <div class="char-stats">
+              <div class="char-stat"><img class="ico-sm tint-sec" src="../../Assets/UI/Icons/dagger.png"> 31</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Org characters -->
+    <div>
+      <div class="state-sub-label" style="text-align:left;margin-bottom:8px">Org Characters (secret society, cultish)</div>
+      <div class="card-row">
+
+        <!-- Master (uses ruler portrait but darkened/stylised) -->
+        <div class="org-char-card">
+          <div class="org-portrait"><img src="../../Assets/Textures/Characters/great_britain_ruler_1.png" alt="Master"></div>
+          <div class="org-info">
+            <div class="org-name">The Grand Master</div>
+            <div class="org-role">Master · Illuminati</div>
+            <div class="org-stats">
+              <div class="char-stat"><img class="ico-sm tint-inf" src="../../Assets/UI/Icons/influence.png"> 72</div>
+              <div class="char-stat"><img class="ico-sm tint-sec" src="../../Assets/UI/Icons/dagger.png"> 58</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="org-char-card">
+          <div class="org-portrait"><img src="../../Assets/Textures/Characters/great_britain_sec_1.png" alt="Agent"></div>
+          <div class="org-info">
+            <div class="org-name">The Watcher</div>
+            <div class="org-role">Agent · Secret</div>
+            <div class="org-stats">
+              <div class="char-stat"><img class="ico-sm tint-sec" src="../../Assets/UI/Icons/dagger.png"> 44</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="org-char-card">
+          <div class="org-portrait"><img src="../../Assets/Textures/Characters/great_britain_eco_1.png" alt="Agent"></div>
+          <div class="org-info">
+            <div class="org-name">The Banker</div>
+            <div class="org-role">Agent · Finance</div>
+            <div class="org-stats">
+              <div class="char-stat"><img class="ico-sm tint-eco" src="../../Assets/UI/Icons/trade.png"> 61</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="org-char-card" style="border-color:#666;opacity:.5;">
+          <div class="org-portrait" style="background:#111;display:flex;align-items:center;justify-content:center;">
+            <img class="ico-lg" style="opacity:.3;filter:invert(1)" src="../../Assets/UI/Icons/agents.png">
+          </div>
+          <div class="org-info">
+            <div class="org-name" style="color:#555">Empty Slot</div>
+            <div class="org-role">Recruit an agent</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================ FULL SCREEN: ACTION CARD VIEW -->
+<div class="screen-section">
+  <div class="screen-header">
+    <h2>Full Screen — Action Card View</h2>
+    <div>
+      <a href="initial/action_card.png" target="_blank"><img src="initial/action_card.png" alt="Action card screenshot"></a>
+      <div class="ref-label">original</div>
+    </div>
+  </div>
+  <div class="map-bg" style="width:640px;height:360px;min-height:0">
+
+    <!-- Org panel TL -->
+    <div class="gs-panel hud" style="position:absolute;top:6px;left:6px">
+      <div class="gs-header" style="font-size:12px">Illuminati</div>
+      <div style="font-size:13px;color:var(--c-mid);font-family:'IM Fell English',serif">
+        <img class="ico tint-gold" src="../../Assets/UI/Icons/coin.png"> 623
+      </div>
+    </div>
+
+    <!-- Time panel TR -->
+    <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end">
+      <div style="font-size:11px;color:var(--c-mid);font-family:'IM Fell English',serif">03:00 &nbsp;05/04/1899</div>
+      <div class="speed-row">
+        <button class="gs-btn gs-btn--small gs-btn--active" style="font-size:9px;padding:0 5px">▶</button>
+        <button class="gs-btn gs-btn--small" style="font-size:9px">X1</button>
+        <button class="gs-btn gs-btn--small" style="font-size:9px">X2</button>
+        <button class="gs-btn gs-btn--small" style="font-size:9px">X3</button>
+      </div>
+    </div>
+
+    <!-- Org book (left sidebar, card back used as org icon) -->
+    <div style="position:absolute;left:6px;bottom:46px">
+      <div style="width:52px;height:76px;border:2px solid #8A6010;border-radius:3px;overflow:hidden;box-shadow:2px 2px 6px rgba(0,0,0,.7)">
+        <img src="../../Assets/Textures/Actions/card_back_standard.png" style="width:100%;height:100%;object-fit:cover">
+      </div>
+    </div>
+
+    <!-- Action card visible in world (Discover Country) -->
+    <div style="position:absolute;left:70px;bottom:46px">
+      <div class="card" style="border-color:#88CCFF;box-shadow:0 0 8px rgba(100,180,255,.4)">
+        <div class="card-header" style="background:#162640">Discover Country</div>
+        <div class="card-art"><img src="../../Assets/Textures/Actions/discover_country.png" alt="Discover Country"></div>
+        <div class="card-body" style="padding:3px 5px">
+          <div class="card-desc">Send agents to uncover a nearby unknown nation.</div>
+        </div>
+        <div class="card-cost" style="padding:2px 5px"><img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"> 10</div>
+      </div>
+    </div>
+
+    <!-- Bottom HUD bar -->
+    <div class="hud-bar" style="justify-content:space-between;padding:4px 8px">
+      <div style="display:flex;flex-direction:column;gap:1px">
+        <span style="font-size:11px;color:var(--c-dark);font-family:'Cinzel',serif">Illuminati</span>
+        <span style="font-size:9px;color:var(--c-mid);font-family:'IM Fell English',serif">
+          <img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"> 623
+        </span>
+      </div>
+      <div style="display:flex;gap:4px">
+        <button class="hud-nav-btn"><img class="ico-sm tint-light" src="../../Assets/UI/Icons/characters.png"> Characters</button>
+        <button class="hud-nav-btn gs-btn--active"><img class="ico-sm tint-light" src="../../Assets/UI/Icons/actions.png"> Actions ▲</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================ FULL SCREEN: CHARACTERS PANEL -->
+<div class="screen-section">
+  <div class="screen-header">
+    <h2>Full Screen — Characters Panel Open</h2>
+    <div>
+      <a href="initial/characters.png" target="_blank"><img src="initial/characters.png" alt="Characters screenshot"></a>
+      <div class="ref-label">original</div>
+    </div>
+  </div>
+  <div class="map-bg" style="width:640px;height:360px;min-height:0">
+
+    <!-- Org panel TL -->
+    <div class="gs-panel hud" style="position:absolute;top:6px;left:6px">
+      <div class="gs-header" style="font-size:12px">Illuminati</div>
+      <div style="font-size:13px;color:var(--c-mid);font-family:'IM Fell English',serif">
+        <img class="ico tint-gold" src="../../Assets/UI/Icons/coin.png"> 623
+      </div>
+    </div>
+
+    <!-- Time panel TR -->
+    <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end">
+      <div style="font-size:11px;color:var(--c-mid);font-family:'IM Fell English',serif">03:00 &nbsp;05/04/1899</div>
+      <div class="speed-row">
+        <button class="gs-btn gs-btn--small gs-btn--active" style="font-size:9px;padding:0 5px">▶</button>
+        <button class="gs-btn gs-btn--small" style="font-size:9px">X1</button>
+        <button class="gs-btn gs-btn--small" style="font-size:9px">X2</button>
+        <button class="gs-btn gs-btn--small" style="font-size:9px">X3</button>
+      </div>
+    </div>
+
+    <!-- Characters slide-up panel -->
+    <div style="position:absolute;bottom:38px;left:0;right:0;background:var(--panel-bg);border-top:2px solid var(--panel-bdr);padding:6px 8px">
+      <div style="display:flex;gap:6px;overflow-x:auto">
+
+        <div class="char-card" style="width:78px">
+          <div class="char-portrait" style="width:78px;height:78px"><img src="../../Assets/Textures/Characters/great_britain_ruler_1.png" alt="Ruler"></div>
+          <div class="char-info">
+            <div class="char-name" style="font-size:7.5px">Queen Victoria</div>
+            <div class="char-role" style="font-size:7px">Ruler</div>
+            <div class="char-stats">
+              <div class="char-stat" style="font-size:7px"><img class="ico-sm tint-gold" src="../../Assets/UI/Icons/crown.png"> 40</div>
+              <div class="char-stat" style="font-size:7px"><img class="ico-sm tint-mil" src="../../Assets/UI/Icons/swords.png"> 21</div>
+              <div class="char-stat" style="font-size:7px"><img class="ico-sm tint-dip" src="../../Assets/UI/Icons/diplomacy.png"> 53</div>
+              <div class="char-stat" style="font-size:7px"><img class="ico-sm tint-eco" src="../../Assets/UI/Icons/trade.png"> 29</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="char-card" style="width:78px">
+          <div class="char-portrait" style="width:78px;height:78px"><img src="../../Assets/Textures/Characters/great_britain_mil_1.png" alt="Military"></div>
+          <div class="char-info">
+            <div class="char-name" style="font-size:7.5px">G. Wolseley</div>
+            <div class="char-role" style="font-size:7px">Military</div>
+            <div class="char-stats">
+              <div class="char-stat" style="font-size:7px"><img class="ico-sm tint-mil" src="../../Assets/UI/Icons/swords.png"> 85</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="char-card" style="width:78px">
+          <div class="char-portrait" style="width:78px;height:78px"><img src="../../Assets/Textures/Characters/great_britain_dip_1.png" alt="Diplomat"></div>
+          <div class="char-info">
+            <div class="char-name" style="font-size:7.5px">Lord Granville</div>
+            <div class="char-role" style="font-size:7px">Diplomat</div>
+            <div class="char-stats">
+              <div class="char-stat" style="font-size:7px"><img class="ico-sm tint-dip" src="../../Assets/UI/Icons/diplomacy.png"> 36</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="char-card" style="width:78px">
+          <div class="char-portrait" style="width:78px;height:78px"><img src="../../Assets/Textures/Characters/great_britain_eco_1.png" alt="Economist"></div>
+          <div class="char-info">
+            <div class="char-name" style="font-size:7.5px">N. Rothschild</div>
+            <div class="char-role" style="font-size:7px">Financier</div>
+            <div class="char-stats">
+              <div class="char-stat" style="font-size:7px"><img class="ico-sm tint-eco" src="../../Assets/UI/Icons/trade.png"> 69</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="char-card" style="width:78px">
+          <div class="char-portrait" style="width:78px;height:78px"><img src="../../Assets/Textures/Characters/great_britain_sec_1.png" alt="Secret"></div>
+          <div class="char-info">
+            <div class="char-name" style="font-size:7.5px">R. Salisbury</div>
+            <div class="char-role" style="font-size:7px">Intelligence</div>
+            <div class="char-stats">
+              <div class="char-stat" style="font-size:7px"><img class="ico-sm tint-sec" src="../../Assets/UI/Icons/dagger.png"> 31</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Bottom HUD bar -->
+    <div class="hud-bar" style="justify-content:space-between;padding:4px 8px">
+      <div style="display:flex;flex-direction:column;gap:1px">
+        <span style="font-size:11px;color:var(--c-dark);font-family:'Cinzel',serif">United Kingdom of Great Britain and Ireland</span>
+        <span style="font-size:9px;color:var(--c-mid);font-family:'IM Fell English',serif">
+          <img class="ico-sm tint-inf" src="../../Assets/UI/Icons/influence.png"> Influence: 10/100
+          &nbsp; <img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"> 358
+        </span>
+      </div>
+      <div style="display:flex;gap:4px">
+        <button class="hud-nav-btn gs-btn--active"><img class="ico-sm tint-light" src="../../Assets/UI/Icons/characters.png"> Characters ▲</button>
+        <button class="hud-nav-btn"><img class="ico-sm tint-light" src="../../Assets/UI/Icons/actions.png"> Actions</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================ FULL SCREEN: SELECTED COUNTRY -->
+<div class="screen-section">
+  <div class="screen-header">
+    <h2>Full Screen — Selected Country View</h2>
+    <div>
+      <a href="initial/selected_country_view.png" target="_blank"><img src="initial/selected_country_view.png" alt="Selected country screenshot"></a>
+      <div class="ref-label">original</div>
+    </div>
+  </div>
+  <div class="map-bg" style="width:640px;height:220px;min-height:0">
+
+    <!-- Org panel TL -->
+    <div class="gs-panel hud" style="position:absolute;top:6px;left:6px">
+      <div class="gs-header" style="font-size:12px">Illuminati</div>
+      <div style="font-size:13px;color:var(--c-mid);font-family:'IM Fell English',serif">
+        <img class="ico tint-gold" src="../../Assets/UI/Icons/coin.png"> 623
+      </div>
+    </div>
+
+    <!-- Time panel TR -->
+    <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end">
+      <div style="font-size:11px;color:var(--c-mid);font-family:'IM Fell English',serif">03:00 &nbsp;05/04/1899</div>
+      <div class="speed-row">
+        <button class="gs-btn gs-btn--small gs-btn--active" style="font-size:9px;padding:0 5px">▶</button>
+        <button class="gs-btn gs-btn--small" style="font-size:9px">X1</button>
+        <button class="gs-btn gs-btn--small" style="font-size:9px">X2</button>
+        <button class="gs-btn gs-btn--small" style="font-size:9px">X3</button>
+      </div>
+    </div>
+
+    <!-- Bottom HUD bar with Characters + Actions buttons only -->
+    <div class="hud-bar" style="justify-content:space-between;padding:4px 8px">
+      <div style="display:flex;flex-direction:column;gap:1px">
+        <span style="font-size:11px;color:var(--c-dark);font-family:'Cinzel',serif">United Kingdom of Great Britain and Ireland</span>
+        <span style="font-size:9px;color:var(--c-mid);font-family:'IM Fell English',serif">
+          <img class="ico-sm tint-inf" src="../../Assets/UI/Icons/influence.png"> Influence: 10/100
+          &nbsp; <img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"> 358
+        </span>
+      </div>
+      <div style="display:flex;gap:4px">
+        <button class="hud-nav-btn"><img class="ico-sm tint-light" src="../../Assets/UI/Icons/characters.png"> Characters</button>
+        <button class="hud-nav-btn"><img class="ico-sm tint-light" src="../../Assets/UI/Icons/actions.png"> Actions</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================ FULL SCREEN: DISCOVERY NOTIFICATION -->
+<div class="screen-section">
+  <div class="screen-header">
+    <h2>Full Screen — Discovery Notification</h2>
+    <div>
+      <a href="initial/discover_country_notification.png" target="_blank"><img src="initial/discover_country_notification.png" alt="Notification screenshot"></a>
+      <div class="ref-label">original</div>
+    </div>
+  </div>
+  <div class="map-bg" style="width:640px;height:280px;min-height:0;align-items:center;justify-content:center">
+
+    <!-- Centre notification -->
+    <div class="notif-text" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%)">
+      Discovered: Kingdom of Brazil!
+    </div>
+
+    <!-- Same Discover Country card + tooltip (bottom-left) -->
+    <div style="position:absolute;bottom:46px;left:8px;display:flex;gap:8px;align-items:flex-end">
+      <div class="card" style="width:100px;border-color:#88CCFF;box-shadow:0 0 6px rgba(100,180,255,.4)">
+        <div class="card-header" style="font-size:9px;background:#162640">Discover Country</div>
+        <div class="card-art" style="height:60px"><img src="../../Assets/Textures/Actions/discover_country.png" alt="Discover Country"></div>
+        <div class="card-cost" style="padding:2px 5px"><img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"> 10</div>
+      </div>
+      <div class="tip-box" style="max-width:148px">
+        Send agents to uncover a nearby unknown nation.<br>75% success
+        <hr>
+        <span style="color:#88CCFF;font-weight:bold;font-family:'Cinzel',serif;font-size:9px">Click to play</span>
+      </div>
+    </div>
+
+    <!-- Org panel TL -->
+    <div class="gs-panel hud" style="position:absolute;top:6px;left:6px">
+      <div class="gs-header" style="font-size:12px">Illuminati</div>
+      <div style="font-size:13px;color:var(--c-mid);font-family:'IM Fell English',serif">
+        <img class="ico tint-gold" src="../../Assets/UI/Icons/coin.png"> 424
+      </div>
+    </div>
+
+    <!-- Time panel TR -->
+    <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end">
+      <div style="font-size:11px;color:var(--c-mid);font-family:'IM Fell English',serif">16:00 &nbsp;03/01/1800</div>
+      <div class="speed-row">
+        <button class="gs-btn gs-btn--small gs-btn--active" style="font-size:9px;padding:0 5px">▶</button>
+        <button class="gs-btn gs-btn--small" style="font-size:9px">X1</button>
+        <button class="gs-btn gs-btn--small" style="font-size:9px">X2</button>
+        <button class="gs-btn gs-btn--small" style="font-size:9px">X3</button>
+      </div>
+    </div>
+
+    <!-- Bottom HUD bar -->
+    <div class="hud-bar" style="justify-content:space-between;padding:4px 8px">
+      <div style="display:flex;flex-direction:column;gap:1px">
+        <span style="font-size:11px;color:var(--c-dark);font-family:'Cinzel',serif">Illuminati</span>
+        <span style="font-size:9px;color:var(--c-mid);font-family:'IM Fell English',serif">
+          <img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"> 424
+        </span>
+      </div>
+      <div style="display:flex;gap:4px">
+        <button class="hud-nav-btn"><img class="ico-sm tint-light" src="../../Assets/UI/Icons/characters.png"> Characters</button>
+        <button class="hud-nav-btn gs-btn--active"><img class="ico-sm tint-light" src="../../Assets/UI/Icons/actions.png"> Actions ▲</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================================================================ FULL SCREEN: TEST CARD VIEW (in-progress / result) -->
+<div class="screen-section">
+  <div class="screen-header">
+    <h2>Full Screen — Action In Progress &amp; Result</h2>
+    <div>
+      <a href="initial/test_card_view.png" target="_blank"><img src="initial/test_card_view.png" alt="Test card view screenshot"></a>
+      <div class="ref-label">original</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+
+    <!-- STATE 1: In Progress -->
+    <div>
+      <div class="state-sub-label" style="text-align:left;margin-bottom:4px">In Progress</div>
+      <div class="map-bg" style="width:400px;height:260px;min-height:0">
+
+        <!-- Org panel TL -->
+        <div class="gs-panel hud" style="position:absolute;top:6px;left:6px">
+          <div class="gs-header" style="font-size:12px">Illuminati</div>
+          <div style="font-size:13px;color:var(--c-mid);font-family:'IM Fell English',serif">
+            <img class="ico tint-gold" src="../../Assets/UI/Icons/coin.png"> 425
+          </div>
+        </div>
+
+        <!-- Time panel TR -->
+        <div class="gs-panel hud" style="position:absolute;top:6px;right:6px;align-items:flex-end">
+          <div style="font-size:11px;color:var(--c-mid);font-family:'IM Fell English',serif">03:00 &nbsp;05/04/1899</div>
+          <div class="speed-row">
+            <button class="gs-btn gs-btn--small gs-btn--active" style="font-size:9px;padding:0 5px">▶</button>
+            <button class="gs-btn gs-btn--small" style="font-size:9px">X1</button>
+          </div>
+        </div>
+
+        <!-- Card floating in world with progress % beside it -->
+        <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-55%);display:flex;align-items:center;gap:10px">
+          <div class="card" style="border-color:#88CCFF;box-shadow:0 0 8px rgba(100,180,255,.4)">
+            <div class="card-header" style="background:#162640">Discover Country</div>
+            <div class="card-art"><img src="../../Assets/Textures/Actions/discover_country.png" alt="Discover Country"></div>
+            <div class="card-body"><div class="card-desc">Send agents to uncover a nearby unknown nation.</div></div>
+            <div class="card-cost"><img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"> 10</div>
+          </div>
+          <div style="background:rgba(0,0,0,.7);border:1px solid var(--panel-bdr);border-radius:4px;padding:8px 12px;text-align:center">
+            <div style="font-size:20px;font-family:'Cinzel',serif;color:var(--c-mid);font-weight:bold">32%</div>
+            <div style="font-size:8px;color:var(--c-hint);font-family:'IM Fell English',serif;margin-top:2px">in progress</div>
+          </div>
+        </div>
+
+        <!-- Card + tooltip bottom-left -->
+        <div style="position:absolute;bottom:46px;left:8px;display:flex;gap:8px;align-items:flex-end">
+          <div class="card" style="width:80px;border-color:#88CCFF;box-shadow:0 0 4px rgba(100,180,255,.3)">
+            <div class="card-header" style="font-size:8px;background:#162640">Discover Country</div>
+            <div class="card-art" style="height:50px"><img src="../../Assets/Textures/Actions/discover_country.png" alt=""></div>
+            <div class="card-cost" style="font-size:8px;padding:2px 5px"><img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"> 10</div>
+          </div>
+          <div class="tip-box" style="max-width:120px;font-size:9px">
+            Send agents to uncover a nearby nation.<br>75% success
+            <hr><span style="color:#88CCFF;font-family:'Cinzel',serif;font-size:8px">In progress...</span>
+          </div>
+        </div>
+
+        <!-- Bottom HUD bar -->
+        <div class="hud-bar" style="justify-content:flex-end;padding:4px 8px">
+          <div style="display:flex;gap:4px">
+            <button class="hud-nav-btn"><img class="ico-sm tint-light" src="../../Assets/UI/Icons/characters.png"> Characters</button>
+            <button class="hud-nav-btn gs-btn--active"><img class="ico-sm tint-light" src="../../Assets/UI/Icons/actions.png"> Actions ▲</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- STATE 2: Success -->
+    <div>
+      <div class="state-sub-label" style="text-align:left;margin-bottom:4px">Success!</div>
+      <div class="map-bg" style="width:220px;height:260px;min-height:0">
+
+        <!-- Card center -->
+        <div style="position:absolute;left:50%;top:38%;transform:translate(-50%,-50%)">
+          <div class="card" style="border-color:#28A84A;border-width:3px;box-shadow:0 0 16px rgba(40,168,74,.9),0 0 32px rgba(80,216,112,.5)">
+            <div class="card-header" style="background:#162640">Discover Country</div>
+            <div class="card-art"><img src="../../Assets/Textures/Actions/discover_country.png" alt="Discover Country"></div>
+            <div class="card-body"><div class="card-desc">Send agents to uncover a nearby unknown nation.</div></div>
+            <div class="card-cost"><img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"> 10</div>
+          </div>
+        </div>
+
+        <!-- Success label -->
+        <div style="position:absolute;bottom:52px;left:0;right:0;text-align:center">
+          <div style="font-size:22px;font-family:'Cinzel',serif;font-weight:bold;color:#28A84A;text-shadow:0 0 12px rgba(40,168,74,1),0 0 28px rgba(80,216,112,.9),0 2px 4px rgba(0,0,0,.8)">Success!</div>
+        </div>
+
+        <!-- Bottom HUD bar -->
+        <div class="hud-bar" style="justify-content:flex-end;padding:4px 8px">
+          <div style="display:flex;gap:4px">
+            <button class="hud-nav-btn gs-btn--active"><img class="ico-sm tint-light" src="../../Assets/UI/Icons/actions.png"> Actions ▲</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- STATE 3: Fail -->
+    <div>
+      <div class="state-sub-label" style="text-align:left;margin-bottom:4px">Fail!</div>
+      <div class="map-bg" style="width:220px;height:260px;min-height:0">
+
+        <!-- Card center (dimmed) -->
+        <div style="position:absolute;left:50%;top:38%;transform:translate(-50%,-50%)">
+          <div class="card" style="border-color:#E04040;box-shadow:0 0 12px rgba(224,64,64,.5);opacity:0.8">
+            <div class="card-header" style="background:#162640">Discover Country</div>
+            <div class="card-art"><img src="../../Assets/Textures/Actions/discover_country.png" alt="Discover Country"></div>
+            <div class="card-body"><div class="card-desc">Send agents to uncover a nearby unknown nation.</div></div>
+            <div class="card-cost"><img class="ico-sm tint-gold" src="../../Assets/UI/Icons/coin.png"> 10</div>
+          </div>
+        </div>
+
+        <!-- Fail label -->
+        <div style="position:absolute;bottom:52px;left:0;right:0;text-align:center">
+          <div style="font-size:18px;font-family:'Cinzel',serif;font-weight:bold;color:#E04040;text-shadow:0 0 16px rgba(224,64,64,.8)">Fail!</div>
+        </div>
+
+        <!-- Bottom HUD bar -->
+        <div class="hud-bar" style="justify-content:flex-end;padding:4px 8px">
+          <div style="display:flex;gap:4px">
+            <button class="hud-nav-btn gs-btn--active"><img class="ico-sm tint-light" src="../../Assets/UI/Icons/actions.png"> Actions ▲</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /data-p="navy" -->
+</body>
+</html>

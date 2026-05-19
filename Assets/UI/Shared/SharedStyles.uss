@@ -150,6 +150,80 @@
     -unity-background-image-tint-color: rgb(200, 160, 64);
 }
 
+/* --- Stat icon size base (used for in-card / HUD icons) --- */
+.gs-icon--stat {
+    width: 20px;
+    height: 20px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* tint-gold: coin, crown, skill, actions */
+.gs-icon--tint-gold {
+    -unity-background-image-tint-color: rgb(200, 160, 64);
+}
+
+/* tint-inf: influence (cyan-blue) */
+.gs-icon--tint-inf {
+    -unity-background-image-tint-color: rgb(64, 160, 220);
+}
+
+/* tint-mil: swords (purple/magenta) */
+.gs-icon--tint-mil {
+    -unity-background-image-tint-color: rgb(180, 64, 220);
+}
+
+/* tint-dip: diplomacy (green) */
+.gs-icon--tint-dip {
+    -unity-background-image-tint-color: rgb(64, 180, 80);
+}
+
+/* tint-eco: trade (orange) */
+.gs-icon--tint-eco {
+    -unity-background-image-tint-color: rgb(220, 140, 40);
+}
+
+/* tint-sec: dagger (teal) */
+.gs-icon--tint-sec {
+    -unity-background-image-tint-color: rgb(40, 160, 150);
+}
+
+/* tint-light: compass, characters, agents (neutral warm white) */
+.gs-icon--tint-light {
+    -unity-background-image-tint-color: rgb(240, 232, 208);
+}
+
+.gs-icon--png-coin {
+    background-image: url("project://database/Assets/UI/Icons/coin.png?fileID=2800000&guid=46e003f67ebde7347a8004dd120d478a&type=3#coin");
+}
+
+.gs-icon--png-influence {
+    background-image: url("project://database/Assets/UI/Icons/influence.svg?fileID=11400000&guid=dc912c33694389345a78cfdfb52e2299&type=3#influence");
+}
+
+.gs-icon--png-crown {
+    background-image: url("project://database/Assets/UI/Icons/crown.svg?fileID=11400000&guid=a1b2c3d4e5f601234567890123456789&type=3#crown");
+}
+
+.gs-icon--png-swords {
+    background-image: url("project://database/Assets/UI/Icons/swords.svg?fileID=11400000&guid=6292c6147e2108d428356f3fcfac51b5&type=3#swords");
+}
+
+.gs-icon--png-diplomacy {
+    background-image: url("project://database/Assets/UI/Icons/diplomacy.svg?fileID=11400000&guid=5c7ec477394d504469c904e767de3078&type=3#diplomacy");
+}
+
+.gs-icon--png-trade {
+    background-image: url("project://database/Assets/UI/Icons/trade.svg?fileID=11400000&guid=7761fc919e6ec55449e86d86df2520ee&type=3#trade");
+}
+
+.gs-icon--png-dagger {
+    background-image: url("project://database/Assets/UI/Icons/dagger.svg?fileID=11400000&guid=629f9b305d9211347aa9debd10b0b2b4&type=3#dagger");
+}
+
+.gs-icon--png-compass {
+    background-image: url("project://database/Assets/UI/Icons/compass.svg?fileID=11400000&guid=abc0f945a8c17e143a5422e140de0dba&type=3#compass");
+}
+
 /* ===== Colour utility classes =====
    Declared last so they override compound class colours when combined
    (e.g. gs-label sets a base colour; gs-color-positive overrides it). */
@@ -187,8 +261,9 @@
 .resource-icon--gold {
     width: 22px;
     height: 22px;
-    background-image: url("project://database/Assets/UI/Icons/coin.png?fileID=2800000&guid=46e003f67ebde7347a8004dd120d478a&type=3#coin");
+    background-image: url("project://database/Assets/UI/Icons/coin.svg?fileID=11400000&guid=b8c9d0e1f2a301234567890123456789&type=3#coin");
     -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: rgb(200, 160, 64);
 }
 
 /* ===== Tooltips ===== */
@@ -251,6 +326,18 @@
 /* ===== Characters toggle button ===== */
 
 .chars-toggle-btn {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.chars-toggle-btn-icon {
+    width: 20px;
+    height: 20px;
+    -unity-background-scale-mode: scale-to-fit;
+    margin-right: 6px;
+    background-image: url("project://database/Assets/UI/Icons/person-fill.svg?fileID=11400000&guid=5c8a460a29fcf6144b9ad0a97079255d&type=3#person-fill");
+    -unity-background-image-tint-color: rgb(240, 232, 208);
 }
 
 /* ===== Characters container ===== */
@@ -391,25 +478,151 @@
 .character-skill-icon--charm,
 .character-skill-icon--stinginess,
 .character-skill-icon--intrigue {
-    width: 28px;
-    height: 28px;
-    margin-right: 4px;
     -unity-background-scale-mode: scale-to-fit;
-    -unity-background-image-tint-color: rgb(139, 109, 56);
 }
 
 .character-skill-icon--power {
-    background-image: url("project://database/Assets/UI/Icons/lightning-fill.svg?fileID=11400000&guid=f6a7b8c9d0e101234567890123456789&type=3#lightning-fill");
+    background-image: url("project://database/Assets/UI/Icons/swords.svg?fileID=11400000&guid=6292c6147e2108d428356f3fcfac51b5&type=3#swords");
 }
 
 .character-skill-icon--charm {
-    background-image: url("project://database/Assets/UI/Icons/chat-heart-fill.svg?fileID=11400000&guid=a7b8c9d0e1f201234567890123456789&type=3#chat-heart-fill");
+    background-image: url("project://database/Assets/UI/Icons/diplomacy.svg?fileID=11400000&guid=5c7ec477394d504469c904e767de3078&type=3#diplomacy");
 }
 
 .character-skill-icon--stinginess {
-    background-image: url("project://database/Assets/UI/Icons/coin.svg?fileID=11400000&guid=b8c9d0e1f2a301234567890123456789&type=3#coin");
+    background-image: url("project://database/Assets/UI/Icons/trade.svg?fileID=11400000&guid=7761fc919e6ec55449e86d86df2520ee&type=3#trade");
 }
 
 .character-skill-icon--intrigue {
-    background-image: url("project://database/Assets/UI/Icons/eye-slash-fill.svg?fileID=11400000&guid=e5f6a7b8c9d001234567890123456789&type=3#eye-slash-fill");
+    background-image: url("project://database/Assets/UI/Icons/dagger.svg?fileID=11400000&guid=629f9b305d9211347aa9debd10b0b2b4&type=3#dagger");
+}
+
+/* ===== Compact country character card (.char-card) ===== */
+
+.char-card {
+    flex-direction: column;
+    width: 160px;
+    margin: 4px;
+    border-width: 1px;
+    border-color: rgb(200, 160, 64);
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: rgb(14, 26, 46);
+}
+
+.char-portrait-area {
+    width: 160px;
+    height: 160px;
+    overflow: hidden;
+    background-color: rgb(106, 136, 152);
+    align-items: center;
+    justify-content: center;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.char-info {
+    padding: 4px 5px;
+    background-color: rgb(26, 42, 72);
+    flex-direction: column;
+    flex: 1;
+}
+
+.char-name {
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: rgb(240, 232, 208);
+    white-space: normal;
+    -unity-font: url("project://database/Assets/UI/Fonts/Cinzel-Bold.ttf?fileID=12800000&guid=f580297c1d9f7c74984732caed69c108&type=3#Cinzel-Bold");
+}
+
+.char-role {
+    font-size: 14px;
+    -unity-font-style: italic;
+    color: rgb(136, 136, 168);
+    -unity-font: url("project://database/Assets/UI/Fonts/IMFellEnglish-Italic.ttf?fileID=12800000&guid=ecf34c4fafdd2a546abecbc8943f73bb&type=3#IMFellEnglish-Italic");
+}
+
+.char-stats {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: auto;
+}
+
+.char-stat-chip {
+    flex-direction: row;
+    align-items: center;
+    font-size: 14px;
+    color: rgb(200, 184, 144);
+    flex-basis: 50%;
+    background-color: rgb(22, 30, 48);
+    border-radius: 2px;
+    padding: 2px 4px;
+}
+
+.char-stat-icon {
+    width: 14px;
+    height: 14px;
+    -unity-background-scale-mode: scale-to-fit;
+    margin-right: 2px;
+}
+
+/* ===== Org character card (.org-char-card) ===== */
+
+.org-char-card {
+    flex-direction: column;
+    width: 160px;
+    margin: 4px;
+    border-width: 2px;
+    border-color: rgb(160, 120, 24);
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: rgb(10, 10, 18);
+}
+
+.org-char-card--empty {
+    border-color: rgb(102, 102, 102);
+    opacity: 0.5;
+}
+
+.org-portrait-area {
+    width: 160px;
+    height: 160px;
+    overflow: hidden;
+    background-color: rgb(10, 10, 18);
+    align-items: center;
+    justify-content: center;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.org-portrait-area--empty {
+    background-color: rgb(10, 10, 18);
+}
+
+.org-info-block {
+    padding: 4px 5px;
+    flex-direction: column;
+    background-color: rgb(18, 16, 26);
+    border-top-width: 1px;
+    border-color: rgb(106, 80, 16);
+}
+
+.org-char-name {
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: rgb(212, 168, 64);
+    white-space: normal;
+    -unity-font: url("project://database/Assets/UI/Fonts/Cinzel-Bold.ttf?fileID=12800000&guid=f580297c1d9f7c74984732caed69c108&type=3#Cinzel-Bold");
+}
+
+.org-char-role {
+    font-size: 14px;
+    -unity-font-style: italic;
+    color: rgb(136, 102, 64);
+    -unity-font: url("project://database/Assets/UI/Fonts/IMFellEnglish-Italic.ttf?fileID=12800000&guid=ecf34c4fafdd2a546abecbc8943f73bb&type=3#IMFellEnglish-Italic");
+}
+
+.org-char-stats {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 2px;
 }

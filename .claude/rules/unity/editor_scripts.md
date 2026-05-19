@@ -14,10 +14,10 @@ void OnDestroy() { CurrentUrl = null; }
 
 ```csharp
 // In the Editor script:
-[MenuItem("Game/MyFeature/Open")]
+[MenuItem("GS/MyFeature/Open")]
 static void Open() => Application.OpenURL(EcsViewerBridge.CurrentUrl!);
 
-[MenuItem("Game/MyFeature/Open", validate = true)]
+[MenuItem("GS/MyFeature/Open", validate = true)]
 static bool OpenValidate() => EcsViewerBridge.CurrentUrl != null;
 ```
 

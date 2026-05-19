@@ -38,84 +38,88 @@ namespace GS.Unity.UI {
 
 		VisualElement BuildCharacterCard(CharacterStateEntry entry) {
 			var card = new VisualElement();
-			card.AddToClassList("character-card");
+			card.AddToClassList("char-card");
 
 			var roleDef = _characterConfig.FindRole(entry.RoleId);
 			string roleName = roleDef != null ? _loc.Get(roleDef.NameKey) : entry.RoleId;
 			string roleDesc = roleDef != null ? _loc.Get(roleDef.DescriptionKey) : "";
 
-			var nameParts = new List<string>();
+			var portrait = new VisualElement();
+			portrait.AddToClassList("char-portrait-area");
+			var sprite = _visualConfig?.FindPortrait(entry.CharacterId);
+			if (sprite != null) {
+				portrait.style.backgroundImage = new StyleBackground(sprite);
+			}
+			card.Add(portrait);
+
+			var info = new VisualElement();
+			info.AddToClassList("char-info");
+
+			var nameParts = new System.Collections.Generic.List<string>();
 			foreach (var key in entry.NamePartKeys) {
 				nameParts.Add(_loc.Get(key));
 			}
 			var nameLabel = new Label(string.Join(" ", nameParts));
-			nameLabel.AddToClassList("character-name");
-			card.Add(nameLabel);
+			nameLabel.AddToClassList("char-name");
+			info.Add(nameLabel);
 
-			var portrait = new VisualElement();
-			portrait.AddToClassList("character-portrait");
-			var sprite = _visualConfig?.FindPortrait(entry.CharacterId);
-			if (sprite != null) {
-				portrait.style.backgroundImage = new StyleBackground(sprite);
-			} else {
-				portrait.style.display = DisplayStyle.None;
-			}
-			card.Add(portrait);
-
-			var roleBlock = new VisualElement();
-			roleBlock.AddToClassList("role-block");
-			var roleIcon = new VisualElement();
-			roleIcon.AddToClassList($"character-role-icon--{entry.RoleId}");
-			roleBlock.Add(roleIcon);
 			var roleLabel = new Label(roleName);
-			roleLabel.AddToClassList("gs-hint");
-			roleBlock.Add(roleLabel);
-			card.Add(roleBlock);
+			roleLabel.AddToClassList("char-role");
+			info.Add(roleLabel);
 
-			if (!string.IsNullOrEmpty(roleDesc)) {
-				string capturedDesc = roleDesc;
-				_tooltip.RegisterTrigger(roleBlock, $"role-{entry.RoleId}-{entry.CharacterId}", _ => BuildSimpleTooltip(roleName, capturedDesc), new System.Collections.Generic.HashSet<string>());
-			}
-
-			var skillsBlock = new VisualElement();
-			skillsBlock.AddToClassList("skills-block");
+			var statsBlock = new VisualElement();
+			statsBlock.AddToClassList("char-stats");
 
 			var roleSkillIds = roleDef != null
 				? new System.Collections.Generic.HashSet<string>(roleDef.SkillIds)
 				: new System.Collections.Generic.HashSet<string>();
 
 			foreach (var skillDef in _characterConfig.Skills) {
-				if (!roleSkillIds.Contains(skillDef.SkillId)) {
-					continue;
-				}
+				if (!roleSkillIds.Contains(skillDef.SkillId)) { continue; }
 				SkillEntry skill = null;
 				foreach (var s in entry.Skills) {
 					if (s.SkillId == skillDef.SkillId) { skill = s; break; }
 				}
-				if (skill == null) {
-					continue;
-				}
+				if (skill == null) { continue; }
+
 				string skillName = _loc.Get(skillDef.NameKey);
 				string skillDesc = _loc.Get(skillDef.DescriptionKey);
 
 				var chip = new VisualElement();
-				chip.AddToClassList("skill-chip");
+				chip.AddToClassList("char-stat-chip");
 				var skillIcon = new VisualElement();
+				skillIcon.AddToClassList("char-stat-icon");
+				skillIcon.AddToClassList(GetSkillTintClass(skill.SkillId));
 				skillIcon.AddToClassList($"character-skill-icon--{skill.SkillId}");
 				chip.Add(skillIcon);
 				var valueLabel = new Label(skill.Value.ToString());
-				valueLabel.AddToClassList("skill-value");
 				chip.Add(valueLabel);
 
 				string capturedSkillName = skillName;
 				string capturedSkillDesc = skillDesc;
 				_tooltip.RegisterTrigger(chip, $"skill-{skill.SkillId}-{entry.CharacterId}", _ => BuildSimpleTooltip(capturedSkillName, capturedSkillDesc), new System.Collections.Generic.HashSet<string>());
 
-				skillsBlock.Add(chip);
+				statsBlock.Add(chip);
 			}
-			card.Add(skillsBlock);
+			info.Add(statsBlock);
+			card.Add(info);
+
+			if (!string.IsNullOrEmpty(roleDesc)) {
+				string capturedDesc = roleDesc;
+				_tooltip.RegisterTrigger(card, $"role-{entry.RoleId}-{entry.CharacterId}", _ => BuildSimpleTooltip(roleName, capturedDesc), new System.Collections.Generic.HashSet<string>());
+			}
 
 			return card;
+		}
+
+		static string GetSkillTintClass(string skillId) {
+			switch (skillId) {
+				case "power": return "gs-icon--tint-mil";
+				case "charm": return "gs-icon--tint-dip";
+				case "stinginess": return "gs-icon--tint-eco";
+				case "intrigue": return "gs-icon--tint-sec";
+				default: return "gs-icon--tint-light";
+			}
 		}
 
 		VisualElement BuildSimpleTooltip(string header, string body) {

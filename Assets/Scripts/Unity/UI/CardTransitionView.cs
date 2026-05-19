@@ -34,19 +34,52 @@ namespace GS.Unity.UI {
 			_cardCopy.AddToClassList("action-card");
 			_cardCopy.AddToClassList("action-card--available");
 
-			var nameKey = actionConfig?.Find(actionId)?.NameKey;
-			var nameText = nameKey != null ? loc.Get(nameKey) : actionId;
-			var nameLabel = new Label(nameText);
-			nameLabel.AddToClassList("action-card-name");
-			_cardCopy.Add(nameLabel);
+			var def = actionConfig?.Find(actionId);
+			string nameText = def != null ? loc.Get(def.NameKey) : actionId;
 
-			var imageElement = new VisualElement();
-			imageElement.AddToClassList("action-card-image");
+			var header = new Label(nameText);
+			header.AddToClassList("action-card-header");
+			_cardCopy.Add(header);
+
+			var art = new VisualElement();
+			art.AddToClassList("action-card-art");
 			var frontSprite = visualConfig?.FindFront(actionId);
 			if (frontSprite != null) {
-				imageElement.style.backgroundImage = new StyleBackground(frontSprite);
+				art.style.backgroundImage = new StyleBackground(frontSprite);
 			}
-			_cardCopy.Add(imageElement);
+			_cardCopy.Add(art);
+
+			if (def != null) {
+				var body = new VisualElement();
+				body.AddToClassList("action-card-body");
+				var desc = new Label(loc.Get(def.DescKey));
+				desc.AddToClassList("action-card-desc");
+				body.Add(desc);
+
+				var footer = new VisualElement();
+				footer.AddToClassList("action-card-footer");
+				var pct = new Label($"{(int)(def.SuccessRate * 100)}%");
+				pct.AddToClassList("action-card-success-pct");
+				footer.Add(pct);
+
+				if (def.Prices.Count > 0) {
+					var costRow = new VisualElement();
+					costRow.AddToClassList("action-card-cost");
+					foreach (var price in def.Prices) {
+						string amtStr = price.Amount == System.Math.Floor(price.Amount) ? $"{(int)price.Amount}" : $"{price.Amount:F1}";
+						var costLabel = new Label(amtStr);
+						costLabel.AddToClassList("action-card-cost-label");
+						costRow.Add(costLabel);
+					}
+					var costIcon = new VisualElement();
+					costIcon.AddToClassList("action-card-cost-icon");
+					costRow.Add(costIcon);
+					footer.Add(costRow);
+				}
+
+				body.Add(footer);
+				_cardCopy.Add(body);
+			}
 
 			_cardCopy.style.position = Position.Absolute;
 			_cardCopy.style.width = 240f;

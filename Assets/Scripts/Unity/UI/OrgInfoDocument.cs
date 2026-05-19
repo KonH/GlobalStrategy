@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -27,6 +28,7 @@ namespace GS.Unity.UI {
 		Button _actionsToggleBtn;
 		OrgActionsView _actionsView;
 		bool _actionsOpen;
+		public event Action<bool> OnSubPanelOpened;
 		ActionConfig _actionConfig;
 		ActionVisualConfig _actionVisualConfig;
 		CardPlayAnimator _cardPlayAnimator;
@@ -159,8 +161,10 @@ namespace GS.Unity.UI {
 				}
 			}
 			if (_charsToggleBtn != null) {
-				_charsToggleBtn.text = open ? "▼ Characters" : "▲ Characters";
+				var lbl = _charsToggleBtn.Q<Label>();
+				if (lbl != null) { lbl.text = open ? "Characters ▼" : "Characters ▲"; }
 			}
+			OnSubPanelOpened?.Invoke(_charsOpen || _actionsOpen);
 		}
 
 		void ToggleActions() {
@@ -177,8 +181,10 @@ namespace GS.Unity.UI {
 				}
 			}
 			if (_actionsToggleBtn != null) {
-				_actionsToggleBtn.text = open ? "▼ Actions" : "▲ Actions";
+				var lbl = _actionsToggleBtn.Q<Label>();
+				if (lbl != null) { lbl.text = open ? "Actions ▼" : "Actions ▲"; }
 			}
+			OnSubPanelOpened?.Invoke(_charsOpen || _actionsOpen);
 		}
 
 		void OnActionCardClicked(string actionId, VisualElement cardElement) {

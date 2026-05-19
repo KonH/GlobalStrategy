@@ -27,55 +27,109 @@
     margin-right: 40px;
 }
 
+/* Card shell */
 .action-card {
     width: 240px;
-    min-height: 320px;
+    height: 300px;
     flex-direction: column;
-    align-items: center;
     border-width: 2px;
-    border-radius: 6px;
-    padding: 12px;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: rgb(212, 196, 160);
 }
 
 .action-card--available {
-    border-color: rgb(139, 109, 56);
-    background-color: rgb(240, 228, 196);
+    border-color: rgb(136, 204, 255);
 }
 
 .action-card--unavailable {
     border-color: rgb(139, 109, 56);
-    background-color: rgb(200, 190, 165);
-    opacity: 0.6;
+    opacity: 0.55;
 }
 
-.action-card-name {
-    font-size: 18px;
-    color: rgb(80, 55, 20);
+.action-card--success {
+    border-color: rgb(40, 168, 74);
+}
+
+.action-card--fail {
+    border-color: rgb(224, 64, 64);
+}
+
+/* Header bar */
+.action-card-header {
+    background-color: rgb(26, 42, 72);
+    color: rgb(240, 232, 208);
+    font-size: 20px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
-    margin-bottom: 6px;
+    padding: 4px 6px;
+    border-bottom-width: 1px;
+    border-color: rgb(200, 160, 64);
+    white-space: normal;
+    -unity-font: url("project://database/Assets/UI/Fonts/Cinzel-Bold.ttf?fileID=12800000&guid=f580297c1d9f7c74984732caed69c108&type=3#Cinzel-Bold");
 }
 
-.action-card-image {
-    width: 160px;
-    height: 160px;
-    margin-bottom: 6px;
-}
-
-.action-card-price {
-    font-size: 16px;
-    -unity-text-align: middle-center;
-}
-
-.action-card-price--affordable {
-    color: rgb(60, 140, 40);
-}
-
-.action-card-price--unaffordable {
-    color: rgb(180, 50, 50);
-}
-
-.action-card-play-btn {
-    margin-top: auto;
+/* Art area */
+.action-card-art {
     width: 100%;
+    height: 130px;
+    overflow: hidden;
+    background-color: rgb(106, 136, 152);
+    align-items: center;
+    justify-content: center;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+/* Body */
+.action-card-body {
+    padding: 5px 6px;
+    flex: 1;
+    flex-direction: column;
+}
+
+.action-card-desc {
+    font-size: 18px;
+    color: rgb(58, 40, 16);
+    white-space: normal;
+    -unity-font: url("project://database/Assets/UI/Fonts/IMFellEnglish-Regular.ttf?fileID=12800000&guid=1130d97d7eaf22b47b5ca1eb6354def6&type=3#IMFellEnglish-Regular");
+}
+
+.action-card-success-pct {
+    font-size: 16px;
+    color: rgb(136, 136, 168);
+    -unity-font: url("project://database/Assets/UI/Fonts/IMFellEnglish-Regular.ttf?fileID=12800000&guid=1130d97d7eaf22b47b5ca1eb6354def6&type=3#IMFellEnglish-Regular");
+}
+
+/* Footer row: chance % on left, cost on right — inline inside body */
+.action-card-footer {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 6px 4px;
+    margin-top: auto;
+}
+
+/* Cost section inside footer — no background, inline */
+.action-card-cost {
+    flex-direction: row;
+    align-items: center;
+}
+
+.action-card-cost-label {
+    font-size: 16px;
+    color: rgb(42, 26, 8);
+    margin-right: 4px;
+    -unity-font: url("project://database/Assets/UI/Fonts/Cinzel-Bold.ttf?fileID=12800000&guid=f580297c1d9f7c74984732caed69c108&type=3#Cinzel-Bold");
+}
+
+.action-card-cost-label--unaffordable {
+    color: rgb(224, 64, 64);
+}
+
+.action-card-cost-icon {
+    width: 16px;
+    height: 16px;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: rgb(200, 160, 64);
+    background-image: url("project://database/Assets/UI/Icons/coin.svg?fileID=11400000&guid=b8c9d0e1f2a301234567890123456789&type=3#coin");
 }

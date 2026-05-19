@@ -7,7 +7,7 @@ namespace GS.Editor.Utils {
 	public static class ScreenshotCapture {
 		const string OutputFolder = "Screenshots";
 
-		[MenuItem("Game/Screenshot %#s")]
+		[MenuItem("GS/Screenshot %#s")]
 		static void TakeScreenshot() {
 			string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "..", OutputFolder));
 			Directory.CreateDirectory(folder);
@@ -19,7 +19,7 @@ namespace GS.Editor.Utils {
 			Debug.Log($"[Screenshot] Saved to: {path}");
 		}
 
-		[MenuItem("Game/Screenshot %#s", validate = true)]
+		[MenuItem("GS/Screenshot %#s", validate = true)]
 		static bool TakeScreenshotValidate() => EditorApplication.isPlaying;
 	}
 }

@@ -59,28 +59,51 @@ namespace GS.Unity.UI {
 			cardEl.AddToClassList(canAfford ? "action-card--available" : "action-card--unavailable");
 
 			string name = def != null ? _loc.Get(def.NameKey) : card.ActionId;
-			var nameLabel = new Label(name);
-			nameLabel.AddToClassList("action-card-name");
-			cardEl.Add(nameLabel);
+			var header = new Label(name);
+			header.AddToClassList("action-card-header");
+			cardEl.Add(header);
 
-			var img = new VisualElement();
-			img.AddToClassList("action-card-image");
+			var art = new VisualElement();
+			art.AddToClassList("action-card-art");
 			var sprite = _visualConfig?.FindFront(card.ActionId);
 			if (sprite != null) {
-				img.style.backgroundImage = new StyleBackground(sprite);
+				art.style.backgroundImage = new StyleBackground(sprite);
 			}
-			cardEl.Add(img);
+			cardEl.Add(art);
 
-			if (def != null && def.Prices.Count > 0) {
-				foreach (var price in def.Prices) {
-					var resConfig = _resourceConfig?.FindResource(price.ResourceId);
-					string resName = resConfig != null ? _loc.Get(resConfig.NameKey) : price.ResourceId;
-					var priceLabel = new Label($"{price.Amount:F0} {resName}");
-					priceLabel.AddToClassList("action-card-price");
-					priceLabel.AddToClassList(canAfford ? "action-card-price--affordable" : "action-card-price--unaffordable");
-					cardEl.Add(priceLabel);
+			var body = new VisualElement();
+			body.AddToClassList("action-card-body");
+			if (def != null) {
+				var desc = new Label(_loc.Get(def.DescKey));
+				desc.AddToClassList("action-card-desc");
+				body.Add(desc);
+
+				var footer = new VisualElement();
+				footer.AddToClassList("action-card-footer");
+
+				var pct = new Label($"{(int)(def.SuccessRate * 100)}%");
+				pct.AddToClassList("action-card-success-pct");
+				footer.Add(pct);
+
+				if (def.Prices.Count > 0) {
+					var costRow = new VisualElement();
+					costRow.AddToClassList("action-card-cost");
+					foreach (var price in def.Prices) {
+						string amtStr = price.Amount == System.Math.Floor(price.Amount) ? $"{(int)price.Amount}" : $"{price.Amount:F1}";
+						var costLabel = new Label(amtStr);
+						costLabel.AddToClassList("action-card-cost-label");
+						if (!canAfford) { costLabel.AddToClassList("action-card-cost-label--unaffordable"); }
+						costRow.Add(costLabel);
+					}
+					var costIcon = new VisualElement();
+					costIcon.AddToClassList("action-card-cost-icon");
+					costRow.Add(costIcon);
+					footer.Add(costRow);
 				}
+
+				body.Add(footer);
 			}
+			cardEl.Add(body);
 
 			string capturedId = card.ActionId;
 			if (canAfford) {

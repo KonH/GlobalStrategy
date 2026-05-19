@@ -13,6 +13,9 @@
             </ui:VisualElement>
             <ui:VisualElement name="resources-container" class="resources-container" />
         </ui:VisualElement>
-        <ui:Button name="chars-toggle-btn" class="chars-toggle-btn gs-btn gs-btn--small" text="▲ Characters" />
+        <ui:Button name="chars-toggle-btn" class="chars-toggle-btn gs-btn gs-btn--small">
+                <ui:VisualElement class="chars-toggle-btn-icon" picking-mode="Ignore" />
+                <ui:Label text="Characters &#x25B2;" picking-mode="Ignore" />
+            </ui:Button>
     </ui:VisualElement>
 </ui:UXML>

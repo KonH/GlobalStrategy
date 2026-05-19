@@ -10,7 +10,7 @@ namespace GS.Editor.Map {
 		const int Cols = 8;
 		const int Rows = 4;
 
-		[MenuItem("Game/Map/Split Map Texture")]
+		[MenuItem("GS/Map/Split Map Texture")]
 		static void SplitMapTexture() {
 			string defaultPath = Path.GetFullPath(DefaultSourcePath);
 			string sourcePath = EditorUtility.OpenFilePanelWithFilters(

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.UIElements;
 using GS.Main;
 using GS.Game.Configs;
@@ -17,6 +18,8 @@ namespace GS.Unity.UI {
 		CountryInfluenceState _influenceState;
 		bool _charsOpen;
 		string _lastCountryId;
+
+		public event Action<bool> OnCharsOpened;
 
 		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig) {
 			_root = root;
@@ -78,8 +81,10 @@ namespace GS.Unity.UI {
 				}
 			}
 			if (_charsToggleBtn != null) {
-				_charsToggleBtn.text = open ? "▼ Characters" : "▲ Characters";
+				var lbl = _charsToggleBtn.Q<Label>();
+				if (lbl != null) { lbl.text = open ? "Characters ▼" : "Characters ▲"; }
 			}
+			OnCharsOpened?.Invoke(open);
 		}
 
 		void RefreshInfluence(CountryInfluenceState influence) {

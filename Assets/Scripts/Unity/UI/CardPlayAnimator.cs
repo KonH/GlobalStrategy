@@ -148,6 +148,11 @@ namespace GS.Unity.UI {
 				Debug.LogWarning("[CardPlayAnimator] Timed out waiting for action result.");
 			}
 			bool success = _state.LastAction.Success;
+			if (cardTestCard != null) {
+				cardTestCard.RemoveFromClassList("action-card--available");
+				cardTestCard.EnableInClassList("action-card--success", success);
+				cardTestCard.EnableInClassList("action-card--fail", !success);
+			}
 			string discoveredCountryId = _state.DiscoveredCountries.RecentlyDiscovered;
 
 			if (rollLabel != null) {
@@ -156,7 +161,7 @@ namespace GS.Unity.UI {
 					? new StyleColor(new Color(0.4f, 0.9f, 0.4f))
 					: new StyleColor(new Color(0.9f, 0.3f, 0.3f));
 			}
-			yield return new WaitForSeconds(0.5f);
+			yield return new WaitForSeconds(1.5f);
 
 			// Step 8: transition card from test slot to deck
 			transitionDone = false;
@@ -221,33 +226,29 @@ namespace GS.Unity.UI {
 				yield return new WaitForSeconds(1f);
 
 				if (flyText != null) {
-					string name = discoveredCountryId.Replace("_", " ");
-					flyText.text = $"Discovered: {name}!";
+					string localizedName = _loc.Get($"country_name.{discoveredCountryId}");
+					if (string.IsNullOrEmpty(localizedName) || localizedName == $"country_name.{discoveredCountryId}") {
+						localizedName = discoveredCountryId.Replace("_", " ");
+					}
+					flyText.text = $"Discovered: {localizedName}!";
 					flyText.style.display = DisplayStyle.Flex;
 					flyText.style.opacity = 0f;
-					flyText.style.translate = new StyleTranslate(new Translate(Length.Percent(-50), Length.Percent(20)));
+					flyText.style.translate = new StyleTranslate(new Translate(Length.Percent(-50), Length.Percent(0)));
 
 					float t = 0f;
-					while (t < 0.4f) {
+					while (t < 0.5f) {
 						t += Time.deltaTime;
-						float progress = Mathf.Clamp01(t / 0.4f);
-						flyText.style.opacity = progress;
-						float yPercent = Mathf.Lerp(20f, -50f, progress);
-						flyText.style.translate = new StyleTranslate(new Translate(Length.Percent(-50), Length.Percent(yPercent)));
+						flyText.style.opacity = Mathf.Clamp01(t / 0.5f);
 						yield return null;
 					}
 					flyText.style.opacity = 1f;
-					flyText.style.translate = new StyleTranslate(new Translate(Length.Percent(-50), Length.Percent(-50)));
 
-					yield return new WaitForSeconds(1.5f);
+					yield return new WaitForSeconds(2f);
 
 					t = 0f;
-					while (t < 0.4f) {
+					while (t < 0.5f) {
 						t += Time.deltaTime;
-						float progress = Mathf.Clamp01(t / 0.4f);
-						flyText.style.opacity = 1f - progress;
-						float yPercent = Mathf.Lerp(-50f, -120f, progress);
-						flyText.style.translate = new StyleTranslate(new Translate(Length.Percent(-50), Length.Percent(yPercent)));
+						flyText.style.opacity = 1f - Mathf.Clamp01(t / 0.5f);
 						yield return null;
 					}
 					flyText.style.display = DisplayStyle.None;
@@ -264,21 +265,56 @@ namespace GS.Unity.UI {
 
 		void PopulateTestCard(VisualElement cardSlot, string actionId) {
 			cardSlot.Clear();
+			cardSlot.RemoveFromClassList("action-card--success");
+			cardSlot.RemoveFromClassList("action-card--fail");
 
 			var def = _actionConfig?.Find(actionId);
 			string name = def != null ? _loc.Get(def.NameKey) : actionId;
 
-			var nameLabel = new Label(name);
-			nameLabel.AddToClassList("action-card-name");
-			cardSlot.Add(nameLabel);
+			var header = new Label(name);
+			header.AddToClassList("action-card-header");
+			cardSlot.Add(header);
 
-			var img = new VisualElement();
-			img.AddToClassList("action-card-image");
+			var art = new VisualElement();
+			art.AddToClassList("action-card-art");
 			var sprite = _visualConfig?.FindFront(actionId);
 			if (sprite != null) {
-				img.style.backgroundImage = new StyleBackground(sprite);
+				art.style.backgroundImage = new StyleBackground(sprite);
 			}
-			cardSlot.Add(img);
+			cardSlot.Add(art);
+
+			var body = new VisualElement();
+			body.AddToClassList("action-card-body");
+			if (def != null) {
+				var desc = new Label(_loc.Get(def.DescKey));
+				desc.AddToClassList("action-card-desc");
+				body.Add(desc);
+
+				var footer = new VisualElement();
+				footer.AddToClassList("action-card-footer");
+
+				var pct = new Label($"{(int)(def.SuccessRate * 100)}%");
+				pct.AddToClassList("action-card-success-pct");
+				footer.Add(pct);
+
+				if (def.Prices.Count > 0) {
+					var costRow = new VisualElement();
+					costRow.AddToClassList("action-card-cost");
+					foreach (var price in def.Prices) {
+						string amtStr = price.Amount == System.Math.Floor(price.Amount) ? $"{(int)price.Amount}" : $"{price.Amount:F1}";
+						var costLabel = new Label(amtStr);
+						costLabel.AddToClassList("action-card-cost-label");
+						costRow.Add(costLabel);
+					}
+					var costIcon = new VisualElement();
+					costIcon.AddToClassList("action-card-cost-icon");
+					costRow.Add(costIcon);
+					footer.Add(costRow);
+				}
+
+				body.Add(footer);
+			}
+			cardSlot.Add(body);
 		}
 	}
 }
