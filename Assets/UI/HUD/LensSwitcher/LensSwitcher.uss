@@ -1,15 +1,14 @@
 .lens-switcher {
     flex-direction: row;
     align-items: center;
-    gap: 4px;
 }
 
 .lens-expand-panel {
     flex-direction: row;
-    gap: 4px;
 }
 
 .lens-icon-btn {
+    margin-right: 4px;
     width: 40px;
     height: 40px;
     padding: 4px;

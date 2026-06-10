@@ -18,10 +18,10 @@
 #time-controls {
     flex-direction: row;
     align-items: center;
-    gap: 4px;
 }
 
 #time-controls Button {
+    margin-right: 4px;
     width: 52px;
     height: 38px;
     font-size: 20px;

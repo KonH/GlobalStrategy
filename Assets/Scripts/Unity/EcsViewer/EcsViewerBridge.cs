@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.IO;
 using System.Net;
@@ -13,7 +14,9 @@ using VContainer;
 
 namespace GS.Unity.EcsViewer {
 	public class EcsViewerBridge : MonoBehaviour {
+#if !UNITY_WEBGL
 		[SerializeField] bool _enabled = true;
+#endif
 
 		public static string? CurrentUrl { get; private set; }
 

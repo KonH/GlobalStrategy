@@ -13,7 +13,6 @@
     padding: 16px 16px;
     flex-direction: column;
     align-items: stretch;
-    gap: 0;
 }
 
 .org-name {
@@ -36,9 +35,12 @@
 
 .org-toggle-block {
     flex-direction: column;
-    gap: 4px;
     align-items: stretch;
     min-width: 180px;
+}
+
+.chars-toggle-btn {
+    margin-bottom: 4px;
 }
 
 .org-characters-slide {
