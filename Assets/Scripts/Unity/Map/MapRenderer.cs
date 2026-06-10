@@ -7,12 +7,8 @@ using DomainCountryConfig = GS.Game.Configs.CountryConfig;
 
 namespace GS.Unity.Map {
 	public class MapRenderer : MonoBehaviour {
+		[SerializeField] Material _materialTemplate;
 		List<GameObject> _featureObjects = new List<GameObject>();
-		Shader _shader;
-
-		void Awake() {
-			_shader = Shader.Find("Sprites/Default");
-		}
 
 		public IReadOnlyList<GameObject> FeatureObjects => _featureObjects;
 
@@ -53,7 +49,7 @@ namespace GS.Unity.Map {
 					}
 				}
 
-				var mat = new Material(_shader);
+				var mat = new Material(_materialTemplate);
 				mat.color = color;
 				go.AddComponent<MeshRenderer>().material = mat;
 				go.AddComponent<FeatureIdentifier>().SetFeature(feature);

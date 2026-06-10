@@ -14,12 +14,12 @@ Because the project uses only Unity built-in shaders and no custom ShaderGraph o
 
 Steps that Claude/AI can perform autonomously via file edits and MCP tools — no Unity Editor UI interaction required.
 
-- [ ] **Install the URP package** — Add `"com.unity.render-pipelines.universal": "17.x.x"` to `Packages/manifest.json`, refresh Unity, and confirm compilation completes with no errors.
-- [ ] **Create URP Pipeline Asset files** — Write `Assets/Settings/UniversalRenderPipelineAsset.asset` and `UniversalRenderPipelineAsset_Renderer.asset` at defaults; the Forward renderer suits this project's flat map geometry.
-- [ ] **Assign the pipeline in GraphicsSettings.asset** — Set `m_CustomRenderPipeline` in `ProjectSettings/GraphicsSettings.asset` to reference the new pipeline asset.
-- [ ] **Assign the pipeline in QualitySettings.asset** — Set `customRenderPipeline` in every quality level in `ProjectSettings/QualitySettings.asset` to the same asset, covering all tiers including WebGL.
-- [ ] **Clean up stale m_AlwaysIncludedShaders entries** — Grep `ProjectSettings/GraphicsSettings.asset` for `m_AlwaysIncludedShaders`, remove stale Built-in shader references, and replace with URP equivalents where still needed.
-- [ ] **Grep scripts for Shader.Find calls** — Search `Assets/Scripts/` for `Shader.Find`; any hits must be resolved via Preloaded Assets (WebGL rule) before the build step.
+- [x] **Install the URP package** — Add `"com.unity.render-pipelines.universal": "17.x.x"` to `Packages/manifest.json`, refresh Unity, and confirm compilation completes with no errors.
+- [x] **Create URP Pipeline Asset files** — Write `Assets/Settings/UniversalRenderPipelineAsset.asset` and `UniversalRenderPipelineAsset_Renderer.asset` at defaults; the Forward renderer suits this project's flat map geometry.
+- [x] **Assign the pipeline in GraphicsSettings.asset** — Set `m_CustomRenderPipeline` in `ProjectSettings/GraphicsSettings.asset` to reference the new pipeline asset.
+- [x] **Assign the pipeline in QualitySettings.asset** — Set `customRenderPipeline` in every quality level in `ProjectSettings/QualitySettings.asset` to the same asset, covering all tiers including WebGL.
+- [x] **Clean up stale m_AlwaysIncludedShaders entries** — Grep `ProjectSettings/GraphicsSettings.asset` for `m_AlwaysIncludedShaders`, remove stale Built-in shader references, and replace with URP equivalents where still needed.
+- [x] **Grep scripts for Shader.Find calls** — Search `Assets/Scripts/` for `Shader.Find`; any hits must be resolved via Preloaded Assets (WebGL rule) before the build step.
 
 ---
 

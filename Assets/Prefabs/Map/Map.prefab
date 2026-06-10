@@ -92,6 +92,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81cc66b2352b476468259d5d507420e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GS.Unity.Map::GS.Unity.Map.MapRenderer
+  _materialTemplate: {fileID: 2100000, guid: fe0925a90b731404ab778cdf7f98f1fa, type: 2}
 --- !u!1 &8762894501792918241
 GameObject:
   m_ObjectHideFlags: 0
@@ -182,7 +183,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -218,3 +219,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82838bf412473cf4bbb10ea940971da2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GS.Unity.Map::GS.Unity.Map.MapImageOverlay
+  _materialTemplate: {fileID: 2100000, guid: 3c0ae1fc5042ff640bf55417c325a3d4, type: 2}

@@ -34,7 +34,7 @@ namespace GS.Unity.Map {
 
 		void ApplyFilter() {
 			var featureToOrg = BuildFeatureToOrgMap();
-			foreach (var renderer in Object.FindObjectsByType<MapRenderer>(FindObjectsSortMode.None)) {
+			foreach (var renderer in Object.FindObjectsByType<MapRenderer>()) {
 				foreach (var go in renderer.FeatureObjects) {
 					if (go == null) {
 						continue;

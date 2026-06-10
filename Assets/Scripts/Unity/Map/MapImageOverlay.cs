@@ -3,8 +3,10 @@ using UnityEngine;
 namespace GS.Unity.Map {
 	[RequireComponent(typeof(Renderer))]
 	public class MapImageOverlay : MonoBehaviour {
+		[SerializeField] Material _materialTemplate;
+
 		public void Setup(Texture2D texture) {
-			var mat = new Material(Shader.Find("Unlit/Texture"));
+			var mat = new Material(_materialTemplate);
 			mat.mainTexture = texture;
 			GetComponent<Renderer>().material = mat;
 			transform.localScale = new Vector3(CoordinateConverter.MapWidth, CoordinateConverter.MapHeight, 1f);
@@ -33,7 +35,7 @@ namespace GS.Unity.Map {
 
 					go.AddComponent<MeshFilter>().mesh = CreateQuadMesh();
 
-					var mat = new Material(Shader.Find("Unlit/Texture"));
+					var mat = new Material(_materialTemplate);
 					mat.mainTexture = tile;
 					go.AddComponent<MeshRenderer>().material = mat;
 				}
