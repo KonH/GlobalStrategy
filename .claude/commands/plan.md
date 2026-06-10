@@ -25,3 +25,13 @@ The architect writes the plan file directly. You (orchestrator) then:
 - If the plan touches any code under `src/`, include a **Tests** section covering what unit/integration tests should be added or updated
 - Do NOT make any code, asset, or file changes — only write the plan document
 - End every plan with the line: `Use /implement to start working on the plan or request changes.`
+
+## Step Block Structure
+
+Split steps into two sections:
+
+**Section 1 — Agent Steps** (Claude performs autonomously via file edits and MCP tools):
+- Use markdown checkboxes: `- [ ] **Step title** — concise description`
+
+**Section 2 — User Steps** (requires manual Unity Editor interaction, visual inspection, or external tools):
+- Use numbered headings (`### N. Title`) with body text — no checkboxes

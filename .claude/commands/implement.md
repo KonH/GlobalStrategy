@@ -18,6 +18,7 @@ After each sub-agent phase:
 1. Relay its results and any compilation errors to the user
 2. Verify the work (check console errors, read changed files) before moving to the next phase
 3. If a phase fails, diagnose and re-brief the sub-agent with the fix context — do not skip ahead
+4. Mark each completed agent step in the plan file by changing `- [ ]` to `- [x]`
 
 ## Pre-flight Checks
 
