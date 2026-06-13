@@ -1,4 +1,15 @@
-Implement the plan at `Docs/Plans/$ARGUMENTS`. If no argument is provided, find the latest plan in `Docs/Plans/` by sorting file names and picking the last one (files are prefixed with a numeric index, e.g. `02_map-improvements.md`).
+Implement the plan at `Docs/Specs/<index>_<name>/plan.md` or `Docs/Plans/<index>_<name>.md` (whichever is found).
+
+## Plan Discovery
+
+**With `$ARGUMENTS`:**
+1. Resolve against `Docs/Specs/` first — look for `Docs/Specs/<arg>/plan.md` or a folder whose name starts with `<arg>`
+2. If not found, fall back to `Docs/Plans/<arg>`
+
+**Without `$ARGUMENTS`:**
+1. List all `*/plan.md` files under `Docs/Specs/` and all `.md` files under `Docs/Plans/`
+2. Extract the leading numeric prefix from each
+3. Use the file with the highest numeric prefix across both directories
 
 ## Orchestration
 

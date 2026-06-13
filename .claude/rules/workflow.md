@@ -25,6 +25,8 @@ Normal work that needs no confirmation: reading files, searching, writing/editin
 Still confirm before: deleting files or branches, force-pushing, creating PRs, sending messages to external services, any action that is hard to reverse or affects shared state.
 
 **Explicit approval checkpoints (do not skip these):**
+- After `/specify` writes a spec — present it to the user and stop; do not run `/plan` until the user approves
+- After `/plan` surfaces constitution violations — present each violation and wait for user to confirm resolution before finalising the plan
 - After `/plan` writes a plan — stop and wait for user feedback before proceeding
 - After `/plan-review` — present concerns and wait for user to say which to apply
 - After `/code-review` — present concerns and wait for user to say which to apply

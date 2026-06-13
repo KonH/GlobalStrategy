@@ -1,6 +1,18 @@
-Review the latest plan in `Docs/Plans/` (or the plan file specified in $ARGUMENTS) for potential problems before implementation begins.
+Review the latest plan in `Docs/Specs/` or `Docs/Plans/` (or the plan file specified in `$ARGUMENTS`) for potential problems before implementation begins.
 
-Rules:
+## Plan Discovery
+
+**With `$ARGUMENTS`:**
+1. Resolve against `Docs/Specs/` first — look for `Docs/Specs/<arg>/plan.md` or a folder whose name starts with `<arg>`
+2. If not found, fall back to `Docs/Plans/<arg>`
+
+**Without `$ARGUMENTS`:**
+1. List all `*/plan.md` files under `Docs/Specs/` and all `.md` files under `Docs/Plans/`
+2. Extract the leading numeric prefix from each
+3. Use the file with the highest numeric prefix across both directories
+
+## Rules
+
 - Read the plan file first, then read relevant project rules from `.claude/rules/` that apply to the plan's scope
 - Spawn a sub-agent to perform the review independently (it should re-read the plan and rules itself)
 - The sub-agent must NOT modify any files — review only
