@@ -52,20 +52,29 @@ namespace GS.Unity.UI {
 			}
 			card.Add(portrait);
 
-			var info = new VisualElement();
-			info.AddToClassList("char-info");
-
 			var nameParts = new System.Collections.Generic.List<string>();
 			foreach (var key in entry.NamePartKeys) {
 				nameParts.Add(_loc.Get(key));
 			}
+			var nameOverlay = new VisualElement();
+			nameOverlay.AddToClassList("char-name-overlay");
 			var nameLabel = new Label(string.Join(" ", nameParts));
 			nameLabel.AddToClassList("char-name");
-			info.Add(nameLabel);
+			nameOverlay.Add(nameLabel);
+			portrait.Add(nameOverlay);
+
+			var info = new VisualElement();
+			info.AddToClassList("char-info");
 
 			var roleLabel = new Label(roleName);
 			roleLabel.AddToClassList("char-role");
 			info.Add(roleLabel);
+
+			string opinionText = entry.Opinion >= 0 ? $"+{entry.Opinion}" : $"{entry.Opinion}";
+			var opinionLabel = new Label(opinionText);
+			opinionLabel.AddToClassList("char-opinion");
+			opinionLabel.AddToClassList(entry.Opinion < 0 ? "gs-color-negative" : "gs-color-positive");
+			info.Add(opinionLabel);
 
 			var statsBlock = new VisualElement();
 			statsBlock.AddToClassList("char-stats");

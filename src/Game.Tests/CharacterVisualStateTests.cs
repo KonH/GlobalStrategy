@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using ECS;
 using GS.Configs;
+using GS.Game.Commands;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Main;
@@ -93,7 +94,11 @@ namespace GS.Game.Tests {
 					new CountryEntry { CountryId = "Great_Britain", DisplayName = "Great Britain", IsAvailable = true }
 				}
 			};
-			var orgConfig = new OrganizationConfig { Organizations = new List<OrganizationEntry>() };
+			var orgConfig = new OrganizationConfig {
+				Organizations = new List<OrganizationEntry> {
+					new OrganizationEntry { OrganizationId = "gs", DisplayName = "Great Society", HqCountryId = "Great_Britain", BaseInfluence = 10, InitialGold = 100, InitialAgentSlots = 0 }
+				}
+			};
 			var gameSettings = new GameSettings {
 				StartYear = 1880,
 				DefaultLocale = "en",
@@ -109,6 +114,7 @@ namespace GS.Game.Tests {
 				new StaticConfig<GameSettings>(gameSettings),
 				new StaticConfig<ResourceConfig>(resourceConfig),
 				new StaticConfig<OrganizationConfig>(orgConfig),
+				initialOrganizationId: "gs",
 				character: new StaticConfig<CharacterConfig>(characterConfig)
 			);
 			return new GameLogic(ctx);
@@ -171,6 +177,29 @@ namespace GS.Game.Tests {
 				foreach (var skill in c.Skills) {
 					Assert.True(skill.Value > 0);
 				}
+			}
+		}
+
+		[Fact]
+		public void character_state_entries_have_opinion_field() {
+			var logic = BuildLogic(BuildCharacterConfig());
+			logic.Commands.Push(new SelectCountryCommand { CountryId = "Great_Britain" });
+			logic.Update(0f);
+			foreach (var entry in logic.VisualState.SelectedCharacters.Characters) {
+				Assert.Equal(0, entry.Opinion);
+			}
+		}
+
+		[Fact]
+		public void opinion_included_in_visual_state_after_cheat_command() {
+			var logic = BuildLogic(BuildCharacterConfig());
+			logic.Commands.Push(new SelectCountryCommand { CountryId = "Great_Britain" });
+			logic.Update(0f);
+			string orgId = logic.VisualState.PlayerOrganization.OrgId;
+			logic.Commands.Push(new DebugImproveOpinionCommand { CountryId = "Great_Britain", OrgId = orgId });
+			logic.Update(0f);
+			foreach (var entry in logic.VisualState.SelectedCharacters.Characters) {
+				Assert.Equal(50, entry.Opinion);
 			}
 		}
 	}

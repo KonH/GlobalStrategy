@@ -39,8 +39,19 @@ namespace GS.Main {
 			}
 			string selectedCountryId = _state.SelectedCountry.CountryId;
 
+			string playerOrgId = "";
+			int[] orgRequired = { TypeId<Organization>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(orgRequired, null)) {
+				Organization[] orgs = arch.GetColumn<Organization>();
+				if (arch.Count > 0) {
+					playerOrgId = orgs[0].OrganizationId;
+					break;
+				}
+			}
+
 			var charData = new Dictionary<string, (string roleId, string[] namePartKeys)>();
 			var charSkills = new Dictionary<string, List<SkillEntry>>();
+			var charOpinions = new Dictionary<string, CharacterOpinion>();
 
 			int[] charRequired = { TypeId<Character>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(charRequired, null)) {
@@ -52,6 +63,19 @@ namespace GS.Main {
 					}
 					charData[chars[i].CharacterId] = (chars[i].RoleId, chars[i].NamePartKeys);
 					charSkills[chars[i].CharacterId] = new List<SkillEntry>();
+				}
+			}
+
+			int[] charOpinionRequired = { TypeId<Character>.Value, TypeId<CharacterOpinion>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(charOpinionRequired, null)) {
+				Character[] chars = arch.GetColumn<Character>();
+				CharacterOpinion[] opinions = arch.GetColumn<CharacterOpinion>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (chars[i].CountryId != selectedCountryId) {
+						continue;
+					}
+					charOpinions[chars[i].CharacterId] = opinions[i];
 				}
 			}
 
@@ -69,7 +93,16 @@ namespace GS.Main {
 
 			var entries = new List<CharacterStateEntry>();
 			foreach (var (charId, (roleId, namePartKeys)) in charData) {
-				entries.Add(new CharacterStateEntry(charId, roleId, namePartKeys, charSkills[charId]));
+				int effective = 0;
+				if (charOpinions.TryGetValue(charId, out var opinionData)) {
+					int baseOpinion = opinionData.BaseOpinionPerOrg != null && opinionData.BaseOpinionPerOrg.TryGetValue(playerOrgId, out var b) ? b : 0;
+					int mods = 0;
+					if (opinionData.ModifiersPerOrg != null && opinionData.ModifiersPerOrg.TryGetValue(playerOrgId, out var list)) {
+						foreach (var m in list) { mods += m.Value; }
+					}
+					effective = Math.Clamp(baseOpinion + mods, -100, 100);
+				}
+				entries.Add(new CharacterStateEntry(charId, roleId, namePartKeys, charSkills[charId], effective));
 			}
 			entries.Sort((a, b) => {
 				int ai = Array.IndexOf(s_roleOrder, a.RoleId);
@@ -129,7 +162,7 @@ namespace GS.Main {
 					CharacterStateEntry? charEntry = null;
 					string cid = slots[i].CharacterId;
 					if (!string.IsNullOrEmpty(cid) && charData.TryGetValue(cid, out var cd)) {
-						charEntry = new CharacterStateEntry(cid, cd.roleId, cd.namePartKeys, charSkills[cid]);
+						charEntry = new CharacterStateEntry(cid, cd.roleId, cd.namePartKeys, charSkills[cid], 0);
 					}
 					slotEntries.Add(new OrgCharacterSlotEntry(
 						slots[i].RoleId, slots[i].SlotIndex, charEntry, slots[i].IsAvailable));

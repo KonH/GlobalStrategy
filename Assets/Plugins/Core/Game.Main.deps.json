@@ -25,7 +25,7 @@
       "Core.Configs/1.0.0": {
         "runtime": {
           "Core.Configs.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -33,7 +33,7 @@
       "Core.Map/1.0.0": {
         "runtime": {
           "Core.Map.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -41,7 +41,7 @@
       "ECS.Core/1.0.0": {
         "runtime": {
           "ECS.Core.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -52,7 +52,7 @@
         },
         "runtime": {
           "ECS.Core.Extensions.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -60,7 +60,7 @@
       "Game.Commands/1.0.0": {
         "runtime": {
           "Game.Commands.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -68,7 +68,7 @@
       "Game.Components/1.0.0": {
         "runtime": {
           "Game.Components.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -76,7 +76,7 @@
       "Game.Configs/1.0.0": {
         "runtime": {
           "Game.Configs.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -90,7 +90,7 @@
         },
         "runtime": {
           "Game.Systems.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }

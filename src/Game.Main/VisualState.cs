@@ -119,11 +119,13 @@ namespace GS.Main {
 		public string RoleId { get; }
 		public string[] NamePartKeys { get; }
 		public IReadOnlyList<SkillEntry> Skills { get; }
-		public CharacterStateEntry(string characterId, string roleId, string[] namePartKeys, IReadOnlyList<SkillEntry> skills) {
+		public int Opinion { get; }
+		public CharacterStateEntry(string characterId, string roleId, string[] namePartKeys, IReadOnlyList<SkillEntry> skills, int opinion) {
 			CharacterId = characterId;
 			RoleId = roleId;
 			NamePartKeys = namePartKeys;
 			Skills = skills;
+			Opinion = opinion;
 		}
 	}
 

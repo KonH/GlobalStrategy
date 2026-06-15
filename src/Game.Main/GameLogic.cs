@@ -63,6 +63,7 @@ namespace GS.Main {
 			DateTime currentTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
 			ResourceSystem.Update(_world, _previousTime, currentTime);
 			InfluenceSystem.Update(_world, _previousTime, currentTime);
+			OpinionSystem.Update(_world, _previousTime, currentTime);
 
 			foreach (var cmd in _commandAccessor.ReadChangeInfluenceCommand().AsSpan()) {
 				ApplyChangeInfluence(cmd.OrgId, cmd.CountryId, cmd.Delta);
@@ -89,6 +90,9 @@ namespace GS.Main {
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugDropCharacterCommand().AsSpan()) {
 				ApplyDebugDropCharacter(cmd.OwnerId, cmd.RoleId, cmd.SlotIndex);
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugImproveOpinionCommand().AsSpan()) {
+				ApplyDebugImproveOpinion(cmd.CountryId, cmd.OrgId);
 			}
 
 			var lastActionResult = new ActionSystem.ActionResult();
@@ -221,6 +225,10 @@ namespace GS.Main {
 				RoleId = roleId,
 				NamePartKeys = namePartKeys
 			});
+			_world.Add(charEntity, new CharacterOpinion {
+				BaseOpinionPerOrg = new System.Collections.Generic.Dictionary<string, int>(),
+				ModifiersPerOrg   = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<OpinionModifier>>()
+			});
 			foreach (var skillDef in CharacterConfig.Skills) {
 				int sv;
 				if (nextEntry.Skills.TryGetValue(skillDef.SkillId, out var ss)) {
@@ -253,6 +261,29 @@ namespace GS.Main {
 				string charId = FindCountryCharacterId(ownerId, roleId);
 				if (!string.IsNullOrEmpty(charId)) {
 					RemoveCharacterEntity(charId);
+				}
+			}
+		}
+
+		void ApplyDebugImproveOpinion(string countryId, string orgId) {
+			int[] required = { TypeId<Character>.Value, TypeId<CharacterOpinion>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(required, null)) {
+				Character[] chars = arch.GetColumn<Character>();
+				CharacterOpinion[] opinions = arch.GetColumn<CharacterOpinion>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (chars[i].CountryId != countryId) {
+						continue;
+					}
+					ref CharacterOpinion opinion = ref opinions[i];
+					if (opinion.ModifiersPerOrg == null) {
+						opinion.ModifiersPerOrg = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<OpinionModifier>>();
+					}
+					if (!opinion.ModifiersPerOrg.TryGetValue(orgId, out var list)) {
+						list = new System.Collections.Generic.List<OpinionModifier>();
+						opinion.ModifiersPerOrg[orgId] = list;
+					}
+					list.Add(new OpinionModifier { SourceId = "cheat_improve_opinion", Value = 50, ChangeValue = -1 });
 				}
 			}
 		}

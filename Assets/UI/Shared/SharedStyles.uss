@@ -520,6 +520,21 @@
     -unity-background-scale-mode: scale-and-crop;
 }
 
+.char-name-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(14, 26, 46, 0.75);
+    padding: 3px 5px;
+}
+
+.char-opinion {
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin-top: 2px;
+}
+
 .char-info {
     padding: 4px 5px;
     background-color: rgb(26, 42, 72);

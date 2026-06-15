@@ -134,6 +134,13 @@ namespace GS.Unity.UI {
 					dropBtn.AddToClassList("debug-panel-button");
 					characterDebugContainer.Add(dropBtn);
 				}
+
+				var improveOpinionBtn = new Button(() => PushImproveOpinionCommand(_state?.SelectedCountry?.CountryId ?? ""));
+				improveOpinionBtn.text = "Improve Opinion";
+				improveOpinionBtn.AddToClassList("gs-btn");
+				improveOpinionBtn.AddToClassList("gs-btn--small");
+				improveOpinionBtn.AddToClassList("debug-panel-button");
+				characterDebugContainer.Add(improveOpinionBtn);
 			}
 
 			RebuildOrgCharDebugButtons();
@@ -369,6 +376,13 @@ namespace GS.Unity.UI {
 		void PushDropCharacter(string ownerId, string roleId, int slotIndex) {
 			if (string.IsNullOrEmpty(ownerId) || _commands == null) { return; }
 			_commands.Push(new DebugDropCharacterCommand { OwnerId = ownerId, RoleId = roleId, SlotIndex = slotIndex });
+		}
+
+		void PushImproveOpinionCommand(string countryId) {
+			if (string.IsNullOrEmpty(countryId) || _commands == null) { return; }
+			string orgId = _state?.PlayerOrganization?.OrgId ?? "";
+			if (string.IsNullOrEmpty(orgId)) { return; }
+			_commands.Push(new DebugImproveOpinionCommand { CountryId = countryId, OrgId = orgId });
 		}
 
 		void HandleOrgSubPanelOpened(bool anyOpen) {
