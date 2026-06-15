@@ -25,3 +25,11 @@
 .menu-button {
     width: 100%;
 }
+
+.version-label {
+    position: absolute;
+    right: 12px;
+    bottom: 8px;
+    color: rgb(255, 255, 255);
+    text-shadow: 1px 1px 2px rgb(0, 0, 0);
+}

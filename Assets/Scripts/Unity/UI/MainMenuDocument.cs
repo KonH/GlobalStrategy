@@ -21,6 +21,7 @@ namespace GS.Unity.UI {
 		Button _btnLoad;
 		Button _btnSettings;
 		Button _btnExit;
+		Label _versionLabel;
 
 		[Inject]
 		void Construct(SaveFileManager saveFileManager, SceneLoader sceneLoader, LoadWindowDocument loadWindow, SettingsWindowDocument settingsWindow, VisualState state, ILocalization loc) {
@@ -57,12 +58,16 @@ namespace GS.Unity.UI {
 			_btnSettings = root.Q<Button>("btn-settings");
 			_btnExit = root.Q<Button>("btn-exit");
 			root.Q<Label>("title-label").text = "Global Strategy";
+			_versionLabel = root.Q<Label>("version-label");
+			if (_versionLabel != null) {
+				_versionLabel.text = $"v{Application.version}";
+			}
 
-			_btnPlay.clicked += () => _sceneLoader.LoadSelectCountry();
-			_btnResume.clicked += OnResume;
-			_btnLoad.clicked += () => _loadWindow?.Show();
-			_btnSettings.clicked += () => _settingsWindow?.Show();
-			_btnExit.clicked += () => Application.Quit();
+			_btnPlay.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnPlay.ContainsPoint(e.localPosition)) _sceneLoader.LoadSelectCountry(); });
+			_btnResume.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnResume.ContainsPoint(e.localPosition)) OnResume(); });
+			_btnLoad.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnLoad.ContainsPoint(e.localPosition)) _loadWindow?.Show(); });
+			_btnSettings.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnSettings.ContainsPoint(e.localPosition)) _settingsWindow?.Show(); });
+			_btnExit.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnExit.ContainsPoint(e.localPosition)) Application.Quit(); });
 
 			if (_loadWindow != null) {
 				_loadWindow.SavesChanged += RefreshSaveButtons;

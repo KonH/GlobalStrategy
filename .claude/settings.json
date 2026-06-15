@@ -2,5 +2,18 @@
   "permissions": {
     "allow": [],
     "deny": []
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Skill(skill:implement)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -File .claude/bump_version.ps1"
+          }
+        ]
+      }
+    ]
   }
 }
