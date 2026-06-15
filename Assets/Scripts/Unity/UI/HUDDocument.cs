@@ -35,6 +35,7 @@ namespace GS.Unity.UI {
 		int _lastOrgAgentSlotCount = -1;
 		bool _orgPanelOpen;
 		LensSwitcherView _lensSwitcher;
+		OrgLensCountryView _orgLensCountryView;
 
 		[Inject]
 		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, GameMenuDocument gameMenu, OrgInfoDocument orgInfoDocument) {
@@ -68,6 +69,7 @@ namespace GS.Unity.UI {
 				OnSpeedChange);
 			_lensSwitcher = new LensSwitcherView(root.Q("lens-switcher"), _tooltip, _loc);
 			_lensSwitcher.OnLensSelected = OnLensSelected;
+			_orgLensCountryView = new OrgLensCountryView(root.Q("org-lens-country-info"));
 			if (_orgInfoDocument != null) {
 				_orgInfoDocument.OnSubPanelOpened += HandleOrgSubPanelOpened;
 			}
@@ -164,6 +166,7 @@ namespace GS.Unity.UI {
 			_state.SelectedInfluence.PropertyChanged  += HandleInfluenceChanged;
 			_state.SelectedCharacters.PropertyChanged += HandleCharactersChanged;
 			_state.MapLens.PropertyChanged            += HandleLensChanged;
+			_state.OrgMap.PropertyChanged             += HandleOrgMapChanged;
 			_state.PlayerOrgCharacters.PropertyChanged += HandleOrgCharactersChanged;
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			RefreshCountryViews();
@@ -184,6 +187,7 @@ namespace GS.Unity.UI {
 			_state.SelectedInfluence.PropertyChanged  -= HandleInfluenceChanged;
 			_state.SelectedCharacters.PropertyChanged -= HandleCharactersChanged;
 			_state.MapLens.PropertyChanged            -= HandleLensChanged;
+			_state.OrgMap.PropertyChanged             -= HandleOrgMapChanged;
 			_state.PlayerOrgCharacters.PropertyChanged -= HandleOrgCharactersChanged;
 			_lastOrgAgentSlotCount = -1;
 			if (_orgInfoDocument != null) {
@@ -207,11 +211,20 @@ namespace GS.Unity.UI {
 		}
 
 		void RefreshCountryViews() {
-			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters);
-			_playerOrgView.Refresh(_state.PlayerOrganization, _state.PlayerResources);
-			if (_orgPanelOpen && _countryInfoRoot != null) {
-				_countryInfoRoot.style.display = DisplayStyle.None;
+			bool isOrgLens = _state.MapLens.Lens == MapLens.Org;
+			if (isOrgLens) {
+				if (_countryInfoRoot != null) {
+					_countryInfoRoot.style.display = DisplayStyle.None;
+				}
+				_orgLensCountryView?.Refresh(_state.SelectedCountry, _state.OrgMap, _state.SelectedInfluence);
+			} else {
+				_orgLensCountryView?.Hide();
+				_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters);
+				if (_orgPanelOpen && _countryInfoRoot != null) {
+					_countryInfoRoot.style.display = DisplayStyle.None;
+				}
 			}
+			_playerOrgView.Refresh(_state.PlayerOrganization, _state.PlayerResources);
 		}
 
 		void RefreshInfluenceDebugRow() {
@@ -282,7 +295,10 @@ namespace GS.Unity.UI {
 
 		void HandleLensChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
+			RefreshCountryViews();
 		}
+
+		void HandleOrgMapChanged(object sender, PropertyChangedEventArgs e) => RefreshCountryViews();
 
 		void OnLensSelected(MapLens lens) {
 			_commands.Push(new ChangeLensCommand { Lens = lens });

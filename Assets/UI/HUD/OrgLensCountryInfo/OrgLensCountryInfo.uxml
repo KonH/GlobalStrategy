@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/HUD/OrgLensCountryInfo/OrgLensCountryInfo.uss"/>
+    <ui:VisualElement name="org-lens-country-bar" class="org-lens-country-bar">
+        <ui:Label name="org-name" class="gs-label" text="" />
+        <ui:Label name="org-no-dominant" class="gs-hint" text="No dominant organization" />
+    </ui:VisualElement>
+</ui:UXML>
