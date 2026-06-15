@@ -3,12 +3,11 @@ Capture feature intent and acceptance criteria before planning begins. Writes `D
 ## Index Derivation
 
 The spec index is shared with `Docs/Plans/`. To find the next index:
-1. List all files in `Docs/Plans/` and all folders in `Docs/Specs/`
-2. Extract the leading numeric prefix from each name
-3. Take the highest number found across both directories and add 1
-4. Zero-pad to two digits (e.g. `32`)
-
-The first spec created after plan `31_spec-kit-adoption.md` will be `32_`.
+1. Use `Glob` with pattern `Docs/Plans/*.md` to list plan files
+2. Use **Bash** (`ls Docs/Specs`) to list spec folders — do NOT use Glob with a trailing slash (`Docs/Specs/*/`), it silently returns nothing on Windows
+3. Extract the leading numeric prefix from each name/folder
+4. Take the highest number found across both directories and add 1
+5. Zero-pad to two digits (e.g. `35`)
 
 ## Orchestration
 
