@@ -82,7 +82,7 @@ namespace GS.Unity.Map {
 
 		bool IsDiscovered(string mapFeatureId) {
 			var ids = _state?.DiscoveredCountries?.CountryIds;
-			if (ids == null || ids.Count == 0) { return true; }
+			if (ids == null) { return true; }
 			var country = _domainCountryConfig?.FindByFeatureId(mapFeatureId);
 			string domainId = country != null ? country.CountryId : mapFeatureId;
 			return ids.Contains(domainId);

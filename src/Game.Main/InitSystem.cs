@@ -118,10 +118,7 @@ namespace GS.Main {
 						RoleId = role.RoleId,
 						NamePartKeys = namePartKeys
 					});
-					world.Add(charEntity, new CharacterOpinion {
-						BaseOpinionPerOrg = new Dictionary<string, int>(),
-						ModifiersPerOrg   = new Dictionary<string, List<OpinionModifier>>()
-					});
+					world.Add(charEntity, new CharacterOpinion());
 					foreach (var skillDef in characterConfig.Skills) {
 						int skillValue;
 						if (charEntry.Skills.TryGetValue(skillDef.SkillId, out var skillSettings)) {

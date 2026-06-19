@@ -103,7 +103,11 @@ namespace GS.Main {
 			if (targetType == typeof(double)) {
 				return double.Parse(value, CultureInfo.InvariantCulture);
 			}
-			return Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
+			try {
+				return Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
+			} catch {
+				return null;
+			}
 		}
 	}
 }
