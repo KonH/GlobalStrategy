@@ -17,21 +17,19 @@ def main():
     COMFY_URL = "http://127.0.0.1:8188"
 
     workflow = {
-        "3": {"class_type": "KSampler", "inputs": {
+        "4":  {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "flux1-schnell-fp8.safetensors"}},
+        "3":  {"class_type": "KSampler", "inputs": {
             "seed": random.randint(0, 2**32),
             "steps": 4, "cfg": 1.0, "sampler_name": "euler",
             "scheduler": "simple", "denoise": 1.0,
             "model": ["4", 0], "positive": ["6", 0],
             "negative": ["7", 0], "latent_image": ["5", 0]
         }},
-        "4":  {"class_type": "UNETLoader",      "inputs": {"unet_name": "flux1-schnell-fp8.safetensors", "weight_dtype": "fp8_e4m3fn"}},
         "5":  {"class_type": "EmptyLatentImage", "inputs": {"width": width, "height": height, "batch_size": 1}},
-        "6":  {"class_type": "CLIPTextEncode",  "inputs": {"text": prompt_text, "clip": ["10", 0]}},
-        "7":  {"class_type": "CLIPTextEncode",  "inputs": {"text": "", "clip": ["10", 0]}},
-        "8":  {"class_type": "VAEDecode",        "inputs": {"samples": ["3", 0], "vae": ["11", 0]}},
+        "6":  {"class_type": "CLIPTextEncode",  "inputs": {"text": prompt_text, "clip": ["4", 1]}},
+        "7":  {"class_type": "CLIPTextEncode",  "inputs": {"text": "", "clip": ["4", 1]}},
+        "8":  {"class_type": "VAEDecode",        "inputs": {"samples": ["3", 0], "vae": ["4", 2]}},
         "9":  {"class_type": "SaveImage",        "inputs": {"filename_prefix": "output", "images": ["8", 0]}},
-        "10": {"class_type": "DualCLIPLoader",  "inputs": {"clip_name1": "t5xxl_fp8_e4m3fn.safetensors", "clip_name2": "clip_l.safetensors", "type": "flux"}},
-        "11": {"class_type": "VAELoader",        "inputs": {"vae_name": "ae.safetensors"}}
     }
 
     payload = json.dumps({"prompt": workflow}).encode()

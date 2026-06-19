@@ -9,7 +9,7 @@ ComfyUI/                    ← outer folder (gitignored)
 ├── python_embeded/
 └── ComfyUI/                ← inner folder — the actual app
     └── models/
-        ├── unet/           ← flux1-schnell-fp8.safetensors
+        ├── checkpoints/    ← flux1-schnell-fp8.safetensors  (full checkpoint from Comfy-Org)
         ├── vae/            ← ae.safetensors
         └── clip/           ← clip_l.safetensors, t5xxl_fp8_e4m3fn.safetensors
 ```
