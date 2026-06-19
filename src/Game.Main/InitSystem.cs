@@ -82,6 +82,7 @@ namespace GS.Main {
 			CreateActionEntities(world, context, rng);
 			CreateOrgCharacterEntities(world, context, rng);
 			CreateCharacterEntities(world, context, rng);
+			CreateCountryActionEntities(world, context, rng);
 
 			int initEntity = world.Create();
 			world.Add(initEntity, new IsInitialized());
@@ -376,6 +377,69 @@ namespace GS.Main {
 			}
 
 			DiscoverInitialCountries(world, context);
+		}
+
+		static void CreateCountryActionEntities(World world, GameLogicContext context, Random rng) {
+			var countryActionConfig = context.CountryAction.Load();
+			if (countryActionConfig.Actions.Count == 0) { return; }
+			var countryConfig = context.Country.Load();
+
+			string orgId = context.InitialOrganizationId;
+			if (string.IsNullOrEmpty(orgId)) { return; }
+
+			// Build char lookup: countryId -> roleId -> list of charIds
+			var charsByCountryAndRole = new Dictionary<string, Dictionary<string, List<string>>>();
+			int[] charReq = { TypeId<Character>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(charReq, null)) {
+				Character[] chars = arch.GetColumn<Character>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					string cid = chars[i].CountryId;
+					string rid = chars[i].RoleId;
+					string charId = chars[i].CharacterId;
+					if (string.IsNullOrEmpty(cid)) { continue; }
+					if (!charsByCountryAndRole.TryGetValue(cid, out var byRole)) {
+						byRole = new Dictionary<string, List<string>>();
+						charsByCountryAndRole[cid] = byRole;
+					}
+					if (!byRole.TryGetValue(rid, out var list)) {
+						list = new List<string>();
+						byRole[rid] = list;
+					}
+					list.Add(charId);
+				}
+			}
+
+			foreach (var entry in countryConfig.Countries) {
+				if (!entry.IsAvailable) { continue; }
+				foreach (var def in countryActionConfig.Actions) {
+					// Determine targets
+					var targets = new List<string>();
+					if (def.TargetRole == "") {
+						targets.Add("");
+					} else {
+						charsByCountryAndRole.TryGetValue(entry.CountryId, out var byRole);
+						if (byRole != null && byRole.TryGetValue(def.TargetRole, out var charIds)) {
+							targets.AddRange(charIds);
+						}
+					}
+
+					for (int copyIndex = 0; copyIndex < def.DeckCopies; copyIndex++) {
+						foreach (string targetCharId in targets) {
+							int e = world.Create();
+							world.Add(e, new CountryActionCard {
+								OrgId = orgId,
+								CountryId = entry.CountryId,
+								ActionId = def.ActionId,
+								TargetCharacterId = targetCharId
+							});
+							if (def.PreDealtToHand && copyIndex == 0) {
+								world.Add(e, new InHand { SlotIndex = 0 });
+							}
+						}
+					}
+				}
+			}
 		}
 
 		static void DiscoverInitialCountries(World world, GameLogicContext context) {

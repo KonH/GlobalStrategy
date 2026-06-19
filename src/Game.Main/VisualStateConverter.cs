@@ -9,12 +9,14 @@ namespace GS.Main {
 	class VisualStateConverter {
 		readonly VisualState _state;
 		readonly System.Collections.Generic.HashSet<string> _previousDiscoveredIds = new();
+		CountryActionConfig? _countryActionConfig;
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
 
-		internal VisualStateConverter(VisualState state) {
+		internal VisualStateConverter(VisualState state, CountryActionConfig? countryActionConfig = null) {
 			_state = state;
+			_countryActionConfig = countryActionConfig;
 		}
 
 		internal void Update(IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
@@ -30,6 +32,7 @@ namespace GS.Main {
 			UpdateOrgMap(world, orgEntity);
 			UpdateDiscoveredCountries(world);
 			UpdateOrgActions(world);
+			UpdateCountryActions(world, gameTimeEntity);
 		}
 
 		void UpdateCharacters(IReadOnlyWorld world) {
@@ -459,6 +462,135 @@ namespace GS.Main {
 			}
 			hand.Sort((a, b) => a.SlotIndex.CompareTo(b.SlotIndex));
 			_state.PlayerOrgActions.Set(hand, deck, handSize);
+		}
+
+		void UpdateCountryActions(IReadOnlyWorld world, int gameTimeEntity) {
+			if (!_state.SelectedCountry.IsValid || !_state.PlayerOrganization.IsValid || _countryActionConfig == null) {
+				_state.SelectedCountryActions.Set(
+					new List<CountryActionCardEntry>(),
+					new List<CountryActionCardEntry>(),
+					0, DateTime.MinValue);
+				return;
+			}
+			string orgId = _state.PlayerOrganization.OrgId;
+			string countryId = _state.SelectedCountry.CountryId;
+
+			DateTime currentTime = gameTimeEntity >= 0
+				? world.Get<GameTime>(gameTimeEntity).CurrentTime
+				: DateTime.MinValue;
+
+			// Compute org influence in country
+			int orgInfluence = 0;
+			int usedTotal = 0;
+			int[] infReq = { TypeId<InfluenceEffect>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(infReq, null)) {
+				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (effects[i].CountryId == countryId) {
+						usedTotal += effects[i].Value;
+						if (effects[i].OrgId == orgId) {
+							orgInfluence += effects[i].Value;
+						}
+					}
+				}
+			}
+
+			// Build char name keys lookup: charId -> namePartKeys
+			var charNameKeys = new Dictionary<string, string[]>();
+			int[] charReq = { TypeId<Character>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(charReq, null)) {
+				Character[] chars = arch.GetColumn<Character>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (chars[i].CountryId == countryId) {
+						charNameKeys[chars[i].CharacterId] = chars[i].NamePartKeys ?? Array.Empty<string>();
+					}
+				}
+			}
+
+			// Build cooldown map: (actionId, targetCharId) -> CooldownEndTime
+			var cooldownMap = new Dictionary<(string, string), DateTime>();
+			int[] cooldownReq = { TypeId<CountryActionCard>.Value, TypeId<ActionCooldown>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(cooldownReq, null)) {
+				CountryActionCard[] cards = arch.GetColumn<CountryActionCard>();
+				ActionCooldown[] cooldowns = arch.GetColumn<ActionCooldown>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (cards[i].OrgId == orgId && cards[i].CountryId == countryId) {
+						var key = (cards[i].ActionId, cards[i].TargetCharacterId);
+						cooldownMap[key] = cooldowns[i].CooldownEndTime;
+					}
+				}
+			}
+
+			var hand = new List<CountryActionCardEntry>();
+			var deck = new List<CountryActionCardEntry>();
+
+			// Hand cards
+			int[] handReq = { TypeId<CountryActionCard>.Value, TypeId<InHand>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(handReq, null)) {
+				CountryActionCard[] cards = arch.GetColumn<CountryActionCard>();
+				InHand[] hands = arch.GetColumn<InHand>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (cards[i].OrgId != orgId || cards[i].CountryId != countryId) { continue; }
+					var entry = BuildEntry(cards[i], hands[i].SlotIndex, true, orgInfluence, usedTotal, cooldownMap, charNameKeys, currentTime);
+					if (entry != null) { hand.Add(entry); }
+				}
+			}
+
+			// Deck cards
+			int[] deckReq = { TypeId<CountryActionCard>.Value };
+			int[] excludeHand = { TypeId<InHand>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(deckReq, excludeHand)) {
+				CountryActionCard[] cards = arch.GetColumn<CountryActionCard>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (cards[i].OrgId != orgId || cards[i].CountryId != countryId) { continue; }
+					var entry = BuildEntry(cards[i], -1, false, orgInfluence, usedTotal, cooldownMap, charNameKeys, currentTime);
+					if (entry != null) { deck.Add(entry); }
+				}
+			}
+
+			hand.Sort((a, b) => a.SlotIndex.CompareTo(b.SlotIndex));
+			_state.SelectedCountryActions.Set(hand, deck, 3, currentTime);
+		}
+
+		CountryActionCardEntry? BuildEntry(
+			CountryActionCard card, int slotIndex, bool isInHand,
+			int orgInfluence, int usedTotal,
+			Dictionary<(string, string), DateTime> cooldownMap,
+			Dictionary<string, string[]> charNameKeys,
+			DateTime currentTime) {
+			var def = _countryActionConfig?.Find(card.ActionId);
+			if (def == null) { return null; }
+
+			float successRate = def.SuccessRateBase + (def.SuccessRateInfluenceDivisor > 0
+				? orgInfluence / (float)def.SuccessRateInfluenceDivisor : 0f);
+			if (successRate > 1f) { successRate = 1f; }
+			bool isDynamic = def.SuccessRateInfluenceDivisor > 0;
+			int influenceBase = (int)(def.SuccessRateBase * 100);
+			int influenceBonus = isDynamic ? (int)(orgInfluence / (float)def.SuccessRateInfluenceDivisor * 100) : 0;
+
+			DateTime cooldownEnd = DateTime.MinValue;
+			bool isOnCooldown = cooldownMap.TryGetValue((card.ActionId, card.TargetCharacterId), out cooldownEnd)
+				&& cooldownEnd > currentTime;
+
+			bool insufficientInfluence = orgInfluence < def.InfluenceThreshold;
+			bool poolFull = card.ActionId == "sphere_of_pressure" && usedTotal >= 100;
+			bool isUnplayable = insufficientInfluence || poolFull || isOnCooldown;
+			string unplayableReason = isOnCooldown ? "" : (poolFull ? "pool_full" : (insufficientInfluence ? "insufficient_influence" : ""));
+
+			charNameKeys.TryGetValue(card.TargetCharacterId ?? "", out var nameKeys);
+
+			return new CountryActionCardEntry(
+				card.ActionId, slotIndex, isInHand,
+				card.TargetCharacterId ?? "", nameKeys ?? Array.Empty<string>(),
+				successRate, isDynamic, influenceBase, influenceBonus,
+				isUnplayable, unplayableReason, def.InfluenceThreshold,
+				isOnCooldown, isOnCooldown ? cooldownEnd : DateTime.MinValue,
+				orgInfluence);
 		}
 
 		List<EffectStateEntry> BuildEffects(IReadOnlyWorld world, string countryId, string resourceId) {

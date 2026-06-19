@@ -152,6 +152,7 @@ namespace GS.Unity.UI {
 		}
 
 		void SetCharsOpen(bool open) {
+			if (open && _actionsOpen) { SetActionsOpen(false); }
 			_charsOpen = open;
 			if (_charsSlide != null) {
 				if (open) {
@@ -172,6 +173,7 @@ namespace GS.Unity.UI {
 		}
 
 		void SetActionsOpen(bool open) {
+			if (open && _charsOpen) { SetCharsOpen(false); }
 			_actionsOpen = open;
 			if (_actionsSlide != null) {
 				if (open) {

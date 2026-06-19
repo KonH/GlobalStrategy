@@ -36,9 +36,12 @@ namespace GS.Unity.UI {
 		bool _orgPanelOpen;
 		LensSwitcherView _lensSwitcher;
 		OrgLensCountryView _orgLensCountryView;
+		CountryActionConfig _countryActionConfig;
+		ActionVisualConfig _actionVisualConfig;
+		CardPlayAnimator _cardPlayAnimator;
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, GameMenuDocument gameMenu, OrgInfoDocument orgInfoDocument) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, GameMenuDocument gameMenu, OrgInfoDocument orgInfoDocument, CountryActionConfig countryActionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
@@ -47,6 +50,9 @@ namespace GS.Unity.UI {
 			_characterVisualConfig = characterVisualConfig;
 			_gameMenu = gameMenu;
 			_orgInfoDocument = orgInfoDocument;
+			_countryActionConfig = countryActionConfig;
+			_actionVisualConfig = actionVisualConfig;
+			_cardPlayAnimator = cardPlayAnimator;
 		}
 
 		void Awake() {
@@ -60,8 +66,9 @@ namespace GS.Unity.UI {
 			_tooltip = new TooltipSystem(root.Q("hud-root"));
 
 			_countryInfoRoot = root.Q("country-info");
-			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig);
+			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _countryActionConfig, _actionVisualConfig);
 			_countryInfo.OnCharsOpened += HandleOrgSubPanelOpened;
+			_countryInfo.OnCountryActionCardClicked += HandleCountryActionCardClicked;
 			_playerOrgView = new PlayerOrgView(root.Q("player-country"), _loc, _resourceConfig, _tooltip);
 			_timeView = new TimeView(
 				root.Q("time-panel"),
@@ -85,6 +92,7 @@ namespace GS.Unity.UI {
 		}
 
 		void Start() {
+			_cardPlayAnimator?.SetCountryActionsView(_countryInfo.ActionsView);
 			var root = _document.rootVisualElement;
 			_btnMenu = root.Q<Button>("btn-menu");
 			_btnMenu.clicked += () => _gameMenu?.Show();
@@ -164,6 +172,7 @@ namespace GS.Unity.UI {
 			if (_state == null) {
 				return;
 			}
+			if (_cardPlayAnimator != null) { _cardPlayAnimator.OnCardPlayComplete += HandleCardPlayComplete; }
 			_state.SelectedCountry.PropertyChanged    += HandleCountryChanged;
 			_state.PlayerOrganization.PropertyChanged += HandlePlayerOrgChanged;
 			_state.Time.PropertyChanged               += HandleTimeChanged;
@@ -172,6 +181,7 @@ namespace GS.Unity.UI {
 			_state.SelectedResources.PropertyChanged  += HandleSelectedResourcesChanged;
 			_state.SelectedInfluence.PropertyChanged  += HandleInfluenceChanged;
 			_state.SelectedCharacters.PropertyChanged += HandleCharactersChanged;
+			_state.SelectedCountryActions.PropertyChanged += HandleCountryActionsChanged;
 			_state.MapLens.PropertyChanged            += HandleLensChanged;
 			_state.OrgMap.PropertyChanged             += HandleOrgMapChanged;
 			_state.PlayerOrgCharacters.PropertyChanged += HandleOrgCharactersChanged;
@@ -185,6 +195,7 @@ namespace GS.Unity.UI {
 			if (_state == null) {
 				return;
 			}
+			if (_cardPlayAnimator != null) { _cardPlayAnimator.OnCardPlayComplete -= HandleCardPlayComplete; }
 			_state.SelectedCountry.PropertyChanged    -= HandleCountryChanged;
 			_state.PlayerOrganization.PropertyChanged -= HandlePlayerOrgChanged;
 			_state.Time.PropertyChanged               -= HandleTimeChanged;
@@ -193,6 +204,7 @@ namespace GS.Unity.UI {
 			_state.SelectedResources.PropertyChanged  -= HandleSelectedResourcesChanged;
 			_state.SelectedInfluence.PropertyChanged  -= HandleInfluenceChanged;
 			_state.SelectedCharacters.PropertyChanged -= HandleCharactersChanged;
+			_state.SelectedCountryActions.PropertyChanged -= HandleCountryActionsChanged;
 			_state.MapLens.PropertyChanged            -= HandleLensChanged;
 			_state.OrgMap.PropertyChanged             -= HandleOrgMapChanged;
 			_state.PlayerOrgCharacters.PropertyChanged -= HandleOrgCharactersChanged;
@@ -201,6 +213,7 @@ namespace GS.Unity.UI {
 				_orgInfoDocument.OnSubPanelOpened -= HandleOrgSubPanelOpened;
 			}
 			_countryInfo.OnCharsOpened -= HandleOrgSubPanelOpened;
+			_countryInfo.OnCountryActionCardClicked -= HandleCountryActionCardClicked;
 		}
 
 		void Update() {
@@ -226,7 +239,7 @@ namespace GS.Unity.UI {
 				_orgLensCountryView?.Refresh(_state.SelectedCountry, _state.OrgMap, _state.SelectedInfluence);
 			} else {
 				_orgLensCountryView?.Hide();
-				_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters);
+				_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions);
 				if (_orgPanelOpen && _countryInfoRoot != null) {
 					_countryInfoRoot.style.display = DisplayStyle.None;
 				}
@@ -263,8 +276,11 @@ namespace GS.Unity.UI {
 		}
 
 		void HandleInfluenceChanged(object sender, PropertyChangedEventArgs e) {
+			if (_cardPlayAnimator != null && _cardPlayAnimator.IsPlaying) { return; }
 			RefreshCountryViews();
 		}
+
+		void HandleCardPlayComplete() => RefreshCountryViews();
 
 		void HandleTimeChanged(object sender, PropertyChangedEventArgs e) {
 			_timeView.Refresh(_state.Time);
@@ -281,11 +297,21 @@ namespace GS.Unity.UI {
 		}
 
 		void HandleSelectedResourcesChanged(object sender, PropertyChangedEventArgs e) {
-			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters);
+			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions);
 		}
 
 		void HandleCharactersChanged(object sender, PropertyChangedEventArgs e) {
 			RefreshCountryViews();
+		}
+
+		void HandleCountryActionsChanged(object sender, PropertyChangedEventArgs e) => RefreshCountryViews();
+
+		void HandleCountryActionCardClicked(string actionId, string targetCharId, VisualElement el) {
+			if (_cardPlayAnimator == null || _state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) { return; }
+			_cardPlayAnimator.StartCountryCardPlay(
+				_state.PlayerOrganization.OrgId,
+				_state.SelectedCountry.CountryId,
+				actionId, targetCharId, el);
 		}
 
 		void OnPauseToggle() {

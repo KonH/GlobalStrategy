@@ -65,7 +65,8 @@
     padding: 4px 6px;
     border-bottom-width: 1px;
     border-color: rgb(200, 160, 64);
-    white-space: normal;
+    white-space: nowrap;
+    overflow: hidden;
     -unity-font: url("project://database/Assets/UI/Fonts/Cinzel-Bold.ttf?fileID=12800000&guid=f580297c1d9f7c74984732caed69c108&type=3#Cinzel-Bold");
 }
 
@@ -91,6 +92,9 @@
     font-size: 18px;
     color: rgb(58, 40, 16);
     white-space: normal;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
     -unity-font: url("project://database/Assets/UI/Fonts/IMFellEnglish-Regular.ttf?fileID=12800000&guid=1130d97d7eaf22b47b5ca1eb6354def6&type=3#IMFellEnglish-Regular");
 }
 
@@ -106,7 +110,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 2px 6px 4px;
-    margin-top: auto;
+    flex-shrink: 0;
 }
 
 /* Cost section inside footer — no background, inline */

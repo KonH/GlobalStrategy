@@ -25,6 +25,7 @@ namespace GS.Unity.DI {
 		[SerializeField] TextAsset _characterConfigAsset;
 		[SerializeField] TextAsset _actionConfigAsset;
 		[SerializeField] TextAsset _effectConfigAsset;
+		[SerializeField] TextAsset _countryActionConfigAsset;
 
 		protected override void Configure(IContainerBuilder builder) {
 			var storage = new PersistentStorage();
@@ -48,7 +49,8 @@ namespace GS.Unity.DI {
 				character: _characterConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.CharacterConfig>(_characterConfigAsset) : null,
 				action: _actionConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.ActionConfig>(_actionConfigAsset) : null,
 				effect: _effectConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.EffectConfig>(_effectConfigAsset) : null,
-				mapGeometry: new MapGeometryConfig(_geoJsonConfig)
+				mapGeometry: new MapGeometryConfig(_geoJsonConfig),
+				countryAction: _countryActionConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.CountryActionConfig>(_countryActionConfigAsset) : null
 			);
 
 			var domainCountryConfig = new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset).Load();
@@ -61,6 +63,7 @@ namespace GS.Unity.DI {
 			builder.Register(c => c.Resolve<GameLogic>().ResourceConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().CharacterConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().ActionConfig, Lifetime.Singleton);
+			builder.Register(c => c.Resolve<GameLogic>().CountryActionConfig, Lifetime.Singleton);
 			builder.RegisterInstance(_actionVisualConfig);
 
 			builder.RegisterInstance<IPersistentStorage>(storage);

@@ -42,3 +42,60 @@
     flex-direction: column;
     min-width: 200px;
 }
+
+.actions-slide {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    padding: 8px 16px 12px;
+    opacity: 0;
+    translate: 0 20px;
+    transition-property: opacity, translate;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-out;
+    display: none;
+}
+
+.actions-slide--open {
+    display: flex;
+    opacity: 1;
+    translate: 0 0;
+}
+
+/* Toggle button block */
+.country-toggle-block {
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 160px;
+    gap: 4px;
+}
+
+/* Hand-only overlays — not shared with test/flying cards */
+.action-card-cooldown-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 4px;
+}
+
+.action-card-cooldown-label {
+    font-size: 12px;
+    color: rgb(220, 200, 150);
+    -unity-text-align: middle-center;
+}
+
+.action-card-unplayable-reason {
+    font-size: 12px;
+    color: rgb(200, 80, 80);
+    white-space: normal;
+    padding: 2px 4px;
+}
+
+.action-card-target {
+    font-size: 11px;
+    color: rgb(180, 160, 120);
+    white-space: normal;
+}

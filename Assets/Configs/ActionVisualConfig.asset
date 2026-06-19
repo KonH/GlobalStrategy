@@ -17,3 +17,21 @@ MonoBehaviour:
   - actionId: discover_country
     frontImage: {fileID: -1664331322968743427, guid: 53e256e9cfdcced4692382c9e7a8c2ca, type: 3}
     backImage: {fileID: -2458957394299649226, guid: 1c6106ccfe009cd4791bf7e52d8378d4, type: 3}
+  - actionId: sphere_of_pressure
+    frontImage: {fileID: -7234567890123456789, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6, type: 3}
+    backImage: {fileID: 0}
+  - actionId: letter_of_commendation_diplomacy_advisor
+    frontImage: {fileID: -6234567890123456789, guid: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7, type: 3}
+    backImage: {fileID: 0}
+  - actionId: letter_of_commendation_economic_advisor
+    frontImage: {fileID: -5234567890123456789, guid: c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8, type: 3}
+    backImage: {fileID: 0}
+  - actionId: letter_of_commendation_military_advisor
+    frontImage: {fileID: -4234567890123456789, guid: d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9, type: 3}
+    backImage: {fileID: 0}
+  - actionId: letter_of_commendation_secret_advisor
+    frontImage: {fileID: -3234567890123456789, guid: e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0, type: 3}
+    backImage: {fileID: 0}
+  - actionId: royal_audience
+    frontImage: {fileID: -2234567890123456789, guid: f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1, type: 3}
+    backImage: {fileID: 0}

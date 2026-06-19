@@ -18,22 +18,29 @@ namespace GS.Unity.UI {
 		MapCameraController _cameraController;
 		CountryConfig _domainConfig;
 		ActionConfig _actionConfig;
+		CountryActionConfig _countryActionConfig;
 		ActionVisualConfig _visualConfig;
 		ILocalization _loc;
 		bool _isPlaying;
 		CardTransitionView _transitionView;
 		OrgActionsView _actionsView;
+		CountryActionsView _countryActionsView;
 		bool _resultReady;
+
+		public bool IsPlaying => _isPlaying;
+		public event Action OnCardPlayComplete;
 
 		[Inject]
 		void Construct(VisualState state, IWriteOnlyCommandAccessor commands,
 			MapCameraController cameraController, CountryConfig domainConfig,
-			ActionConfig actionConfig, ActionVisualConfig visualConfig, ILocalization loc) {
+			ActionConfig actionConfig, CountryActionConfig countryActionConfig,
+			ActionVisualConfig visualConfig, ILocalization loc) {
 			_state = state;
 			_commands = commands;
 			_cameraController = cameraController;
 			_domainConfig = domainConfig;
 			_actionConfig = actionConfig;
+			_countryActionConfig = countryActionConfig;
 			_visualConfig = visualConfig;
 			_loc = loc;
 		}
@@ -72,6 +79,15 @@ namespace GS.Unity.UI {
 
 		internal void SetActionsView(OrgActionsView view) {
 			_actionsView = view;
+		}
+
+		internal void SetCountryActionsView(CountryActionsView view) {
+			_countryActionsView = view;
+		}
+
+		public void StartCountryCardPlay(string orgId, string countryId, string actionId, string targetCharId, VisualElement clickedCard) {
+			if (_isPlaying) { return; }
+			StartCoroutine(PlayCountrySequence(orgId, countryId, actionId, targetCharId, clickedCard));
 		}
 
 		IEnumerator PlaySequence(string orgId, string actionId, VisualElement clickedCard) {
@@ -261,60 +277,150 @@ namespace GS.Unity.UI {
 			ModalState.IsModalOpen = false;
 			_commands.Push(new UnpauseCommand());
 			_isPlaying = false;
+			OnCardPlayComplete?.Invoke();
+		}
+
+		IEnumerator PlayCountrySequence(string orgId, string countryId, string actionId, string targetCharId, VisualElement clickedCard) {
+			_isPlaying = true;
+			_resultReady = false;
+			ModalState.IsModalOpen = true;
+			if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = true; }
+
+			_commands.Push(new PlayCountryActionCommand { OrgId = orgId, CountryId = countryId, ActionId = actionId, TargetCharacterId = targetCharId });
+			_commands.Push(new PauseCommand());
+
+			var root = _hudDocument.rootVisualElement;
+			var overlay = root.Q("card-test-overlay");
+			var cardTestCard = root.Q("card-test-card");
+			var rollBlock = root.Q("roll-block");
+			var rollLabel = root.Q<Label>("roll-result-label");
+
+			if (overlay != null) {
+				PopulateCountryTestCard(cardTestCard, actionId);
+				overlay.style.display = DisplayStyle.Flex;
+				overlay.style.opacity = 0f;
+				if (cardTestCard != null) { cardTestCard.style.opacity = 0f; }
+			}
+
+			bool transitionDone = false;
+			var fromRect = clickedCard.worldBound;
+			clickedCard.style.opacity = 0f;
+			var deckRect = _countryActionsView?.DeckPileElement?.worldBound ?? Rect.zero;
+
+			_transitionView.ShowCountry(actionId, fromRect, cardTestCard, 0.77f, _countryActionConfig, _visualConfig, _loc, () => transitionDone = true);
+			while (!transitionDone) { yield return null; }
+
+			if (overlay != null) { overlay.style.opacity = 1f; }
+			if (cardTestCard != null) { cardTestCard.style.opacity = 1f; }
+			_transitionView.Hide();
+
+			if (rollBlock != null) {
+				rollBlock.style.display = DisplayStyle.Flex;
+				rollBlock.style.opacity = 0f;
+				float t = 0f;
+				while (t < 0.3f) { t += Time.deltaTime; rollBlock.style.opacity = Mathf.Clamp01(t / 0.3f); yield return null; }
+				rollBlock.style.opacity = 1f;
+			}
+
+			float startTime = Time.time;
+			while (Time.time - startTime < 2f || !_resultReady) {
+				if (rollLabel != null) { rollLabel.text = $"{UnityEngine.Random.Range(1, 101)}%"; }
+				yield return new WaitForSeconds(0.33f);
+				if (Time.time - startTime > 10f) { break; }
+			}
+
+			if (!_resultReady) { Debug.LogWarning("[CardPlayAnimator] Country action timed out waiting for result."); }
+			bool success = _state.LastAction.Success;
+			if (cardTestCard != null) {
+				cardTestCard.RemoveFromClassList("action-card--available");
+				cardTestCard.EnableInClassList("action-card--success", success);
+				cardTestCard.EnableInClassList("action-card--fail", !success);
+			}
+			if (rollLabel != null) {
+				rollLabel.text = success ? "Success!" : "Fail!";
+				rollLabel.style.color = success
+					? new StyleColor(new Color(0.4f, 0.9f, 0.4f))
+					: new StyleColor(new Color(0.9f, 0.3f, 0.3f));
+			}
+			yield return new WaitForSeconds(1.5f);
+
+			transitionDone = false;
+			var fromTestRect = cardTestCard != null ? cardTestCard.worldBound : Rect.zero;
+			var deckElement = _countryActionsView?.DeckPileElement;
+			_transitionView.ShowCountry(actionId, fromTestRect, deckElement ?? cardTestCard, 0.77f, _countryActionConfig, _visualConfig, _loc, () => transitionDone = true);
+			if (overlay != null) { overlay.style.display = DisplayStyle.None; }
+			if (rollBlock != null) { rollBlock.style.display = DisplayStyle.None; }
+			while (!transitionDone) { yield return null; }
+			_transitionView.Hide();
+
+			// If success with opinion effect, pause briefly before continuing
+			if (success) {
+				var def = _countryActionConfig?.Find(actionId);
+				if (def != null && !string.IsNullOrEmpty(def.OpinionModifierSourceId)) {
+					yield return new WaitForSeconds(0.5f);
+				}
+			}
+
+			// Allow one Refresh to rebuild hand, then animate new card
+			if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = false; }
+			yield return null;
+			if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = true; }
+
+			VisualElement newHandCard = null;
+			if (_countryActionsView != null) {
+				var handContainer = _countryActionsView.HandContainer;
+				int childCount = handContainer?.childCount ?? 0;
+				if (childCount > 1) {
+					var lastWrapper = handContainer[childCount - 1];
+					newHandCard = lastWrapper?.Q(className: "action-card");
+				}
+				if (newHandCard != null) { newHandCard.style.opacity = 0f; }
+			}
+
+			if (newHandCard != null) {
+				transitionDone = false;
+				string newActionId = "";
+				if (_state.SelectedCountryActions.Hand.Count > 0) {
+					newActionId = _state.SelectedCountryActions.Hand[_state.SelectedCountryActions.Hand.Count - 1].ActionId;
+				}
+				_transitionView.ShowCountry(newActionId, deckRect, newHandCard, 0.5f, _countryActionConfig, _visualConfig, _loc, () => transitionDone = true);
+				while (!transitionDone) { yield return null; }
+				newHandCard.style.opacity = 1f;
+				_transitionView.Hide();
+			}
+
+			if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = false; }
+			_state.LastAction.Clear();
+			ModalState.IsModalOpen = false;
+			_commands.Push(new UnpauseCommand());
+			_isPlaying = false;
+			OnCardPlayComplete?.Invoke();
+		}
+
+		void PopulateCountryTestCard(VisualElement cardSlot, string actionId) {
+			if (cardSlot == null) { return; }
+			var def = _countryActionConfig?.Find(actionId);
+			string name = def != null ? _loc.Get(def.NameKey) : actionId;
+			string desc = def != null ? _loc.Get(def.DescKey) : "";
+			string successPct = def != null ? $"{(int)(def.SuccessRateBase * 100)}%" : "?%";
+			string goldCostText = null;
+			if (def != null) {
+				goldCostText = def.GoldCost == System.Math.Floor(def.GoldCost) ? $"{(int)def.GoldCost}" : $"{def.GoldCost:F1}";
+			}
+			ActionCardBuilder.PopulateSlot(cardSlot, name, desc, successPct, goldCostText, _visualConfig?.FindFront(actionId));
 		}
 
 		void PopulateTestCard(VisualElement cardSlot, string actionId) {
-			cardSlot.Clear();
-			cardSlot.RemoveFromClassList("action-card--success");
-			cardSlot.RemoveFromClassList("action-card--fail");
-
 			var def = _actionConfig?.Find(actionId);
 			string name = def != null ? _loc.Get(def.NameKey) : actionId;
-
-			var header = new Label(name);
-			header.AddToClassList("action-card-header");
-			cardSlot.Add(header);
-
-			var art = new VisualElement();
-			art.AddToClassList("action-card-art");
-			var sprite = _visualConfig?.FindFront(actionId);
-			if (sprite != null) {
-				art.style.backgroundImage = new StyleBackground(sprite);
+			string desc = def != null ? _loc.Get(def.DescKey) : "";
+			string successPct = def != null ? $"{(int)(def.SuccessRate * 100)}%" : "?%";
+			string goldCostText = null;
+			if (def?.Prices?.Count > 0) {
+				var price = def.Prices[0];
+				goldCostText = price.Amount == System.Math.Floor(price.Amount) ? $"{(int)price.Amount}" : $"{price.Amount:F1}";
 			}
-			cardSlot.Add(art);
-
-			var body = new VisualElement();
-			body.AddToClassList("action-card-body");
-			if (def != null) {
-				var desc = new Label(_loc.Get(def.DescKey));
-				desc.AddToClassList("action-card-desc");
-				body.Add(desc);
-
-				var footer = new VisualElement();
-				footer.AddToClassList("action-card-footer");
-
-				var pct = new Label($"{(int)(def.SuccessRate * 100)}%");
-				pct.AddToClassList("action-card-success-pct");
-				footer.Add(pct);
-
-				if (def.Prices.Count > 0) {
-					var costRow = new VisualElement();
-					costRow.AddToClassList("action-card-cost");
-					foreach (var price in def.Prices) {
-						string amtStr = price.Amount == System.Math.Floor(price.Amount) ? $"{(int)price.Amount}" : $"{price.Amount:F1}";
-						var costLabel = new Label(amtStr);
-						costLabel.AddToClassList("action-card-cost-label");
-						costRow.Add(costLabel);
-					}
-					var costIcon = new VisualElement();
-					costIcon.AddToClassList("action-card-cost-icon");
-					costRow.Add(costIcon);
-					footer.Add(costRow);
-				}
-
-				body.Add(footer);
-			}
-			cardSlot.Add(body);
+			ActionCardBuilder.PopulateSlot(cardSlot, name, desc, successPct, goldCostText, _visualConfig?.FindFront(actionId));
 		}
 	}
 }

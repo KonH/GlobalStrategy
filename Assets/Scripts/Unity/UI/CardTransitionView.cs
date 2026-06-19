@@ -30,57 +30,53 @@ namespace GS.Unity.UI {
 				_overlay.Remove(_cardCopy);
 			}
 
-			_cardCopy = new VisualElement();
-			_cardCopy.AddToClassList("action-card");
-			_cardCopy.AddToClassList("action-card--available");
-
 			var def = actionConfig?.Find(actionId);
 			string nameText = def != null ? loc.Get(def.NameKey) : actionId;
-
-			var header = new Label(nameText);
-			header.AddToClassList("action-card-header");
-			_cardCopy.Add(header);
-
-			var art = new VisualElement();
-			art.AddToClassList("action-card-art");
-			var frontSprite = visualConfig?.FindFront(actionId);
-			if (frontSprite != null) {
-				art.style.backgroundImage = new StyleBackground(frontSprite);
+			string descText = def != null ? loc.Get(def.DescKey) : "";
+			string successPct = def != null ? $"{(int)(def.SuccessRate * 100)}%" : "?%";
+			string goldCostText = null;
+			if (def?.Prices?.Count > 0) {
+				var price = def.Prices[0];
+				goldCostText = price.Amount == System.Math.Floor(price.Amount) ? $"{(int)price.Amount}" : $"{price.Amount:F1}";
 			}
-			_cardCopy.Add(art);
+			var sprite = visualConfig?.FindFront(actionId);
 
+			var built = ActionCardBuilder.Build(nameText, descText, successPct, goldCostText, sprite);
+			_cardCopy = built.Card;
+			_cardCopy.AddToClassList("action-card--available");
+			PlaceAndAnimate(fromRect, toElement, duration, onComplete);
+		}
+
+		public void ShowCountry(
+			string actionId,
+			Rect fromRect,
+			VisualElement toElement,
+			float duration,
+			CountryActionConfig countryActionConfig,
+			ActionVisualConfig visualConfig,
+			ILocalization loc,
+			Action onComplete) {
+			if (_cardCopy != null) {
+				_overlay.Remove(_cardCopy);
+			}
+
+			var def = countryActionConfig?.Find(actionId);
+			string nameText = def != null ? loc.Get(def.NameKey) : actionId;
+			string descText = def != null ? loc.Get(def.DescKey) : "";
+			string successPct = def != null ? $"{(int)(def.SuccessRateBase * 100)}%" : "?%";
+			string goldCostText = null;
 			if (def != null) {
-				var body = new VisualElement();
-				body.AddToClassList("action-card-body");
-				var desc = new Label(loc.Get(def.DescKey));
-				desc.AddToClassList("action-card-desc");
-				body.Add(desc);
-
-				var footer = new VisualElement();
-				footer.AddToClassList("action-card-footer");
-				var pct = new Label($"{(int)(def.SuccessRate * 100)}%");
-				pct.AddToClassList("action-card-success-pct");
-				footer.Add(pct);
-
-				if (def.Prices.Count > 0) {
-					var costRow = new VisualElement();
-					costRow.AddToClassList("action-card-cost");
-					foreach (var price in def.Prices) {
-						string amtStr = price.Amount == System.Math.Floor(price.Amount) ? $"{(int)price.Amount}" : $"{price.Amount:F1}";
-						var costLabel = new Label(amtStr);
-						costLabel.AddToClassList("action-card-cost-label");
-						costRow.Add(costLabel);
-					}
-					var costIcon = new VisualElement();
-					costIcon.AddToClassList("action-card-cost-icon");
-					costRow.Add(costIcon);
-					footer.Add(costRow);
-				}
-
-				body.Add(footer);
-				_cardCopy.Add(body);
+				goldCostText = def.GoldCost == System.Math.Floor(def.GoldCost) ? $"{(int)def.GoldCost}" : $"{def.GoldCost:F1}";
 			}
+			var sprite = visualConfig?.FindFront(actionId);
 
+			var built = ActionCardBuilder.Build(nameText, descText, successPct, goldCostText, sprite);
+			_cardCopy = built.Card;
+			_cardCopy.AddToClassList("action-card--available");
+			PlaceAndAnimate(fromRect, toElement, duration, onComplete);
+		}
+
+		void PlaceAndAnimate(Rect fromRect, VisualElement toElement, float duration, Action onComplete) {
 			_cardCopy.style.position = Position.Absolute;
 			_cardCopy.style.width = 240f;
 			_cardCopy.style.height = 320f;

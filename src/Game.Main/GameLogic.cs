@@ -20,6 +20,7 @@ namespace GS.Main {
 		int _proximityEntity = -1;
 		DateTime _previousTime;
 		ActionConfig _actionConfig = null!;
+		CountryActionConfig _countryActionConfig = null!;
 
 		public VisualState VisualState { get; } = new VisualState();
 		public IWriteOnlyCommandAccessor Commands { get; }
@@ -27,10 +28,10 @@ namespace GS.Main {
 		public ResourceConfig ResourceConfig { get; private set; } = null!;
 		public CharacterConfig CharacterConfig { get; private set; } = null!;
 		public ActionConfig ActionConfig { get; private set; } = null!;
+		public CountryActionConfig CountryActionConfig { get; private set; } = null!;
 
 		public GameLogic(GameLogicContext context) {
 			_context = context;
-			_visualStateConverter = new VisualStateConverter(VisualState);
 			Commands = (IWriteOnlyCommandAccessor)_commandAccessor;
 			_rng = new Random();
 
@@ -38,6 +39,9 @@ namespace GS.Main {
 			CharacterConfig = context.Character.Load();
 			ActionConfig = context.Action.Load();
 			_actionConfig = ActionConfig;
+			_countryActionConfig = context.CountryAction.Load();
+			CountryActionConfig = _countryActionConfig;
+			_visualStateConverter = new VisualStateConverter(VisualState, _countryActionConfig);
 			var settings = context.GameSettings.Load();
 			_speedMultipliers = settings.SpeedMultipliers;
 			_previousTime = new DateTime(settings.StartYear, 1, 1);
@@ -64,6 +68,7 @@ namespace GS.Main {
 			ResourceSystem.Update(_world, _previousTime, currentTime);
 			InfluenceSystem.Update(_world, _previousTime, currentTime);
 			OpinionSystem.Update(_world, _previousTime, currentTime);
+			CountryActionSystem.TickCooldowns(_world, currentTime);
 
 			foreach (var cmd in _commandAccessor.ReadChangeInfluenceCommand().AsSpan()) {
 				ApplyChangeInfluence(cmd.OrgId, cmd.CountryId, cmd.Delta);
@@ -101,6 +106,14 @@ namespace GS.Main {
 				lastActionId = cmd.ActionId;
 				lastActionResult = ActionSystem.ProcessPlayAction(
 					_world, cmd, _actionConfig, _proximityEntity, _rng);
+			}
+			foreach (var cmd in _commandAccessor.ReadPlayCountryActionCommand().AsSpan()) {
+				lastActionId = cmd.ActionId;
+				var r = CountryActionSystem.ProcessPlayCountryAction(
+					_world, cmd, _countryActionConfig, currentTime, _rng);
+				if (r.Executed) {
+					lastActionResult = new ActionSystem.ActionResult { Executed = r.Executed, Success = r.Success };
+				}
 			}
 
 			_commandAccessor.Clear();

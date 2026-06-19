@@ -245,6 +245,53 @@ namespace GS.Main {
 		}
 	}
 
+	public class CountryActionCardEntry {
+		public string ActionId { get; }
+		public int SlotIndex { get; }
+		public bool IsInHand { get; }
+		public string TargetCharacterId { get; }
+		public string[] TargetCharacterNameKeys { get; }
+		public float SuccessRate { get; }
+		public bool IsRateDynamic { get; }
+		public int InfluenceBase { get; }
+		public int InfluenceBonus { get; }
+		public bool IsUnplayable { get; }
+		public string UnplayableReason { get; }
+		public int InfluenceThreshold { get; }
+		public bool IsOnCooldown { get; }
+		public DateTime CooldownEnd { get; }
+		public int CurrentOrgInfluence { get; }
+
+		public CountryActionCardEntry(
+			string actionId, int slotIndex, bool isInHand,
+			string targetCharacterId, string[] targetCharacterNameKeys,
+			float successRate, bool isRateDynamic, int influenceBase, int influenceBonus,
+			bool isUnplayable, string unplayableReason, int influenceThreshold,
+			bool isOnCooldown, DateTime cooldownEnd, int currentOrgInfluence) {
+			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
+			TargetCharacterId = targetCharacterId; TargetCharacterNameKeys = targetCharacterNameKeys;
+			SuccessRate = successRate; IsRateDynamic = isRateDynamic;
+			InfluenceBase = influenceBase; InfluenceBonus = influenceBonus;
+			IsUnplayable = isUnplayable; UnplayableReason = unplayableReason;
+			InfluenceThreshold = influenceThreshold;
+			IsOnCooldown = isOnCooldown; CooldownEnd = cooldownEnd;
+			CurrentOrgInfluence = currentOrgInfluence;
+		}
+	}
+
+	public class CountryActionsState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public IReadOnlyList<CountryActionCardEntry> Hand { get; private set; } = Array.Empty<CountryActionCardEntry>();
+		public IReadOnlyList<CountryActionCardEntry> Deck { get; private set; } = Array.Empty<CountryActionCardEntry>();
+		public int HandSize { get; private set; }
+		public DateTime CurrentTime { get; private set; }
+
+		public void Set(List<CountryActionCardEntry> hand, List<CountryActionCardEntry> deck, int handSize, DateTime currentTime) {
+			Hand = hand; Deck = deck; HandSize = handSize; CurrentTime = currentTime;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class VisualState {
 		public SelectedCountryState SelectedCountry { get; } = new SelectedCountryState();
 		public PlayerCountryState PlayerCountry { get; } = new PlayerCountryState();
@@ -262,5 +309,6 @@ namespace GS.Main {
 		public DiscoveredCountriesState DiscoveredCountries { get; } = new DiscoveredCountriesState();
 		public OrgActionsState PlayerOrgActions             { get; } = new OrgActionsState();
 		public LastActionResultState LastAction             { get; } = new LastActionResultState();
+		public CountryActionsState SelectedCountryActions  { get; } = new CountryActionsState();
 	}
 }
