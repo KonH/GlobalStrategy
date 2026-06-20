@@ -4,7 +4,47 @@
       "effectId": "discover_country",
       "effectType": "DiscoverCountry",
       "nameKey": "effect.discover_country.name",
-      "descKey": "effect.discover_country.desc"
+      "descKey": "effect.discover_country.desc",
+      "minCountryChance": 0.01
+    },
+    {
+      "effectId": "sphere_of_pressure_influence",
+      "effectType": "InfluenceChange",
+      "nameKey": "effect.sphere_of_pressure_influence.name",
+      "descKey": "effect.sphere_of_pressure_influence.desc",
+      "amount": 10
+    },
+    {
+      "effectId": "letter_commendation_influence",
+      "effectType": "InfluenceChange",
+      "nameKey": "effect.letter_commendation_influence.name",
+      "descKey": "effect.letter_commendation_influence.desc",
+      "amount": 1
+    },
+    {
+      "effectId": "letter_commendation_opinion",
+      "effectType": "OpinionModifier",
+      "nameKey": "effect.letter_commendation_opinion.name",
+      "descKey": "effect.letter_commendation_opinion.desc",
+      "sourceId": "letter_of_commendation",
+      "initialValue": 50,
+      "decayPerMonth": 1
+    },
+    {
+      "effectId": "royal_audience_influence",
+      "effectType": "InfluenceChange",
+      "nameKey": "effect.royal_audience_influence.name",
+      "descKey": "effect.royal_audience_influence.desc",
+      "amount": 2
+    },
+    {
+      "effectId": "royal_audience_opinion",
+      "effectType": "OpinionModifier",
+      "nameKey": "effect.royal_audience_opinion.name",
+      "descKey": "effect.royal_audience_opinion.desc",
+      "sourceId": "royal_audience",
+      "initialValue": 25,
+      "decayPerMonth": 1
     }
   ]
 }

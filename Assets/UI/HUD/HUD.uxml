@@ -24,6 +24,10 @@
                 <ui:Button name="btn-influence-plus" text="Influence+" class="gs-btn gs-btn--small debug-panel-button"/>
                 <ui:Button name="btn-influence-minus" text="Influence-" class="gs-btn gs-btn--small debug-panel-button"/>
             </ui:VisualElement>
+            <ui:VisualElement style="flex-direction: row;">
+                <ui:Button name="btn-gold-plus" text="+1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
+                <ui:Button name="btn-gold-minus" text="-1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
+            </ui:VisualElement>
             <ui:VisualElement name="character-debug-container" style="flex-direction: column;" />
             <ui:VisualElement name="org-char-debug-container" style="flex-direction: column;" />
         </ui:VisualElement>

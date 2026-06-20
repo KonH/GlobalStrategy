@@ -258,8 +258,6 @@ namespace GS.Main {
 		public bool IsUnplayable { get; }
 		public string UnplayableReason { get; }
 		public int InfluenceThreshold { get; }
-		public bool IsOnCooldown { get; }
-		public DateTime CooldownEnd { get; }
 		public int CurrentOrgInfluence { get; }
 
 		public CountryActionCardEntry(
@@ -267,14 +265,13 @@ namespace GS.Main {
 			string targetCharacterId, string[] targetCharacterNameKeys,
 			float successRate, bool isRateDynamic, int influenceBase, int influenceBonus,
 			bool isUnplayable, string unplayableReason, int influenceThreshold,
-			bool isOnCooldown, DateTime cooldownEnd, int currentOrgInfluence) {
+			int currentOrgInfluence) {
 			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
 			TargetCharacterId = targetCharacterId; TargetCharacterNameKeys = targetCharacterNameKeys;
 			SuccessRate = successRate; IsRateDynamic = isRateDynamic;
 			InfluenceBase = influenceBase; InfluenceBonus = influenceBonus;
 			IsUnplayable = isUnplayable; UnplayableReason = unplayableReason;
 			InfluenceThreshold = influenceThreshold;
-			IsOnCooldown = isOnCooldown; CooldownEnd = cooldownEnd;
 			CurrentOrgInfluence = currentOrgInfluence;
 		}
 	}

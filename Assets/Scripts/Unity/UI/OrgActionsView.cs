@@ -81,15 +81,15 @@ namespace GS.Unity.UI {
 				var footer = new VisualElement();
 				footer.AddToClassList("action-card-footer");
 
-				var pct = new Label($"{(int)(def.SuccessRate * 100)}%");
+				var pct = new Label($"{(int)(GS.Game.Configs.ExpressionNode.Evaluate(def.SuccessRateNode, new GS.Game.Configs.ExpressionContext()) * 100)}%");
 				pct.AddToClassList("action-card-success-pct");
 				footer.Add(pct);
 
-				if (def.Prices.Count > 0) {
+				if (def.Cost.Count > 0) {
 					var costRow = new VisualElement();
 					costRow.AddToClassList("action-card-cost");
-					foreach (var price in def.Prices) {
-						string amtStr = price.Amount == System.Math.Floor(price.Amount) ? $"{(int)price.Amount}" : $"{price.Amount:F1}";
+					foreach (var cost in def.Cost) {
+						string amtStr = cost.Amount == System.Math.Floor(cost.Amount) ? $"{(int)cost.Amount}" : $"{cost.Amount:F1}";
 						var costLabel = new Label(amtStr);
 						costLabel.AddToClassList("action-card-cost-label");
 						if (!canAfford) { costLabel.AddToClassList("action-card-cost-label--unaffordable"); }
@@ -169,7 +169,7 @@ namespace GS.Unity.UI {
 		VisualElement BuildCardTooltip(ActionDefinition def, bool available) {
 			var root = new VisualElement();
 			string desc = _loc.Get(def.DescKey);
-			int pct = (int)(def.SuccessRate * 100f);
+			int pct = (int)(GS.Game.Configs.ExpressionNode.Evaluate(def.SuccessRateNode, new GS.Game.Configs.ExpressionContext()) * 100);
 			var descLabel = new Label($"{desc}\n{pct}% success");
 			descLabel.AddToClassList("gs-content");
 			root.Add(descLabel);
@@ -181,8 +181,8 @@ namespace GS.Unity.UI {
 		}
 
 		static bool CanAffordAll(ActionDefinition def, CountryResourcesState resources) {
-			foreach (var price in def.Prices) {
-				if (GetResourceValue(resources, price.ResourceId) < price.Amount) { return false; }
+			foreach (var cost in def.Cost) {
+				if (GetResourceValue(resources, cost.ResourceId) < cost.Amount) { return false; }
 			}
 			return true;
 		}

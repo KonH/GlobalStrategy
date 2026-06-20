@@ -16,6 +16,7 @@ namespace GS.Game.Systems {
 			World world,
 			PlayActionCommand cmd,
 			ActionConfig actionConfig,
+			EffectConfig effectConfig,
 			int proximityEntity,
 			Random rng) {
 			var result = new ActionResult();
@@ -24,27 +25,42 @@ namespace GS.Game.Systems {
 			var actionDef = actionConfig.Find(cmd.ActionId);
 			if (actionDef == null) { return result; }
 
-			if (!CanAfford(world, cmd.OwnerId, actionDef.Prices)) { return result; }
-			DeductPrices(world, cmd.OwnerId, actionDef.Prices);
+			if (!CanAfford(world, cmd.OwnerId, actionDef.Cost)) { return result; }
+			DeductPrices(world, cmd.OwnerId, actionDef.Cost);
 
 			result.Executed = true;
 
+			// Compute org influence for success rate
+			double orgInfluence = 0;
+			int[] infReq = { TypeId<InfluenceEffect>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(infReq, null)) {
+				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (effects[i].OrgId == cmd.OwnerId) {
+						orgInfluence += effects[i].Value;
+					}
+				}
+			}
+
+			float successRate = (float)ExpressionNode.Evaluate(actionDef.SuccessRateNode, new ExpressionContext { Influence = orgInfluence });
+
 			float roll = (float)rng.NextDouble();
-			result.Success = roll < actionDef.SuccessRate;
+			result.Success = roll < successRate;
 
 			ReturnCardToDeck(world, cmd.OwnerId, cmd.ActionId);
 			DrawCard(world, cmd.OwnerId, rng);
 
 			if (result.Success) {
-				ApplyDiscoverCountry(world, cmd.OwnerId, actionDef, proximityEntity, rng);
+				ApplyDiscoverCountry(world, cmd.OwnerId, actionDef, effectConfig, proximityEntity, rng);
 			}
 
 			return result;
 		}
 
-		static bool CanAfford(World world, string ownerId, List<ActionPrice> prices) {
-			foreach (var price in prices) {
-				if (!HasResource(world, ownerId, price.ResourceId, price.Amount)) { return false; }
+		static bool CanAfford(World world, string ownerId, List<ActionCost> costs) {
+			foreach (var cost in costs) {
+				if (!HasResource(world, ownerId, cost.ResourceId, cost.Amount)) { return false; }
 			}
 			return true;
 		}
@@ -63,16 +79,16 @@ namespace GS.Game.Systems {
 			return false;
 		}
 
-		static void DeductPrices(World world, string ownerId, List<ActionPrice> prices) {
-			foreach (var price in prices) {
+		static void DeductPrices(World world, string ownerId, List<ActionCost> costs) {
+			foreach (var cost in costs) {
 				int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
 				foreach (var arch in world.GetMatchingArchetypes(req, null)) {
 					ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
 					Resource[] resources = arch.GetColumn<Resource>();
 					int count = arch.Count;
 					for (int i = 0; i < count; i++) {
-						if (owners[i].OwnerId != ownerId || resources[i].ResourceId != price.ResourceId) { continue; }
-						resources[i].Value -= price.Amount;
+						if (owners[i].OwnerId != ownerId || resources[i].ResourceId != cost.ResourceId) { continue; }
+						resources[i].Value -= cost.Amount;
 						break;
 					}
 				}
@@ -142,8 +158,19 @@ namespace GS.Game.Systems {
 			World world,
 			string ownerId,
 			ActionDefinition actionDef,
+			EffectConfig effectConfig,
 			int proximityEntity,
 			Random rng) {
+
+			// Find MinCountryChance from DiscoverCountryEffectParams
+			float minChance = 0.01f;
+			foreach (var effectId in actionDef.EffectIds) {
+				var effectEntry = effectConfig.Find(effectId);
+				if (effectEntry is DiscoverCountryEffectParams discoverParams) {
+					minChance = (float)discoverParams.MinCountryChance;
+					break;
+				}
+			}
 
 			string playerCountryId = FindPlayerCountryId(world);
 
@@ -175,7 +202,6 @@ namespace GS.Game.Systems {
 
 			float totalWeight = 0f;
 			var weights = new float[allCountries.Count];
-			float minChance = actionDef.MinCountryChance;
 
 			for (int i = 0; i < allCountries.Count; i++) {
 				string b = allCountries[i].countryId;

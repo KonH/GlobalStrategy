@@ -13,7 +13,6 @@ namespace GS.Main {
 		public IConfigSource<CharacterConfig> Character { get; }
 		public IConfigSource<ActionConfig> Action { get; }
 		public IConfigSource<EffectConfig> Effect { get; }
-		public IConfigSource<CountryActionConfig> CountryAction { get; }
 		public IConfigSource<List<GS.Core.Map.MapFeature>>? MapGeometry { get; }
 		public IPersistentStorage? Storage { get; }
 		public ISnapshotSerializer? Serializer { get; }
@@ -36,8 +35,7 @@ namespace GS.Main {
 			IConfigSource<CharacterConfig>? character = null,
 			IConfigSource<ActionConfig>? action = null,
 			IConfigSource<EffectConfig>? effect = null,
-			IConfigSource<List<GS.Core.Map.MapFeature>>? mapGeometry = null,
-			IConfigSource<CountryActionConfig>? countryAction = null) {
+			IConfigSource<List<GS.Core.Map.MapFeature>>? mapGeometry = null) {
 			GeoJson = geoJson;
 			MapEntry = mapEntry;
 			Country = country;
@@ -47,7 +45,6 @@ namespace GS.Main {
 			Character = character ?? new EmptyCharacterConfig();
 			Action = action ?? new EmptyActionConfig();
 			Effect = effect ?? new EmptyEffectConfig();
-			CountryAction = countryAction ?? new EmptyCountryActionConfig();
 			MapGeometry = mapGeometry;
 			Storage = storage;
 			Serializer = serializer;
@@ -66,10 +63,6 @@ namespace GS.Main {
 
 		sealed class EmptyEffectConfig : IConfigSource<EffectConfig> {
 			public EffectConfig Load() => new EffectConfig();
-		}
-
-		sealed class EmptyCountryActionConfig : IConfigSource<CountryActionConfig> {
-			public CountryActionConfig Load() => new CountryActionConfig();
 		}
 	}
 }

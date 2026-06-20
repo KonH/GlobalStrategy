@@ -36,12 +36,12 @@ namespace GS.Unity.UI {
 		bool _orgPanelOpen;
 		LensSwitcherView _lensSwitcher;
 		OrgLensCountryView _orgLensCountryView;
-		CountryActionConfig _countryActionConfig;
+		ActionConfig _actionConfig;
 		ActionVisualConfig _actionVisualConfig;
 		CardPlayAnimator _cardPlayAnimator;
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, GameMenuDocument gameMenu, OrgInfoDocument orgInfoDocument, CountryActionConfig countryActionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, GameMenuDocument gameMenu, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
@@ -50,7 +50,7 @@ namespace GS.Unity.UI {
 			_characterVisualConfig = characterVisualConfig;
 			_gameMenu = gameMenu;
 			_orgInfoDocument = orgInfoDocument;
-			_countryActionConfig = countryActionConfig;
+			_actionConfig = actionConfig;
 			_actionVisualConfig = actionVisualConfig;
 			_cardPlayAnimator = cardPlayAnimator;
 		}
@@ -66,7 +66,7 @@ namespace GS.Unity.UI {
 			_tooltip = new TooltipSystem(root.Q("hud-root"));
 
 			_countryInfoRoot = root.Q("country-info");
-			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _countryActionConfig, _actionVisualConfig);
+			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _actionConfig, _actionVisualConfig);
 			_countryInfo.OnCharsOpened += HandleOrgSubPanelOpened;
 			_countryInfo.OnCountryActionCardClicked += HandleCountryActionCardClicked;
 			_playerOrgView = new PlayerOrgView(root.Q("player-country"), _loc, _resourceConfig, _tooltip);
@@ -117,6 +117,15 @@ namespace GS.Unity.UI {
 				btnInfluenceMinus.clicked += () => PushInfluenceCommand(-5);
 			}
 			RefreshInfluenceDebugRow();
+
+			var btnGoldPlus  = root.Q<Button>("btn-gold-plus");
+			var btnGoldMinus = root.Q<Button>("btn-gold-minus");
+			if (btnGoldPlus != null) {
+				btnGoldPlus.clicked += () => PushChangeGoldCommand(+1000);
+			}
+			if (btnGoldMinus != null) {
+				btnGoldMinus.clicked += () => PushChangeGoldCommand(-1000);
+			}
 
 			// Country character debug buttons
 			var characterDebugContainer = root.Q("character-debug-container");
@@ -239,7 +248,7 @@ namespace GS.Unity.UI {
 				_orgLensCountryView?.Refresh(_state.SelectedCountry, _state.OrgMap, _state.SelectedInfluence);
 			} else {
 				_orgLensCountryView?.Hide();
-				_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions);
+				_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions, _state.PlayerResources);
 				if (_orgPanelOpen && _countryInfoRoot != null) {
 					_countryInfoRoot.style.display = DisplayStyle.None;
 				}
@@ -253,6 +262,14 @@ namespace GS.Unity.UI {
 			}
 			_influenceDebugRow.style.display =
 				_state != null && _state.SelectedCountry.IsValid ? DisplayStyle.Flex : DisplayStyle.None;
+		}
+
+		void PushChangeGoldCommand(double amount) {
+			if (_state == null || !_state.PlayerOrganization.IsValid) { return; }
+			_commands.Push(new GS.Game.Commands.DebugChangeGoldCommand {
+				OrgId = _state.PlayerOrganization.OrgId,
+				Amount = amount
+			});
 		}
 
 		void PushInfluenceCommand(int delta) {
@@ -294,10 +311,11 @@ namespace GS.Unity.UI {
 
 		void HandlePlayerResourcesChanged(object sender, PropertyChangedEventArgs e) {
 			_playerOrgView.Refresh(_state.PlayerOrganization, _state.PlayerResources);
+			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions, _state.PlayerResources);
 		}
 
 		void HandleSelectedResourcesChanged(object sender, PropertyChangedEventArgs e) {
-			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions);
+			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions, _state.PlayerResources);
 		}
 
 		void HandleCharactersChanged(object sender, PropertyChangedEventArgs e) {

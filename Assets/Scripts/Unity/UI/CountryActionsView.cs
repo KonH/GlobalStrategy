@@ -10,7 +10,7 @@ namespace GS.Unity.UI {
 	class CountryActionsView {
 		readonly VisualElement _handContainer;
 		readonly ILocalization _loc;
-		readonly CountryActionConfig _config;
+		readonly ActionConfig _config;
 		readonly ActionVisualConfig _visualConfig;
 		readonly TooltipSystem _tooltip;
 
@@ -22,7 +22,7 @@ namespace GS.Unity.UI {
 		public CountryActionsView(
 			VisualElement handContainer,
 			ILocalization loc,
-			CountryActionConfig config,
+			ActionConfig config,
 			ActionVisualConfig visualConfig,
 			TooltipSystem tooltip) {
 			_handContainer = handContainer;
@@ -32,16 +32,16 @@ namespace GS.Unity.UI {
 			_tooltip = tooltip;
 		}
 
-		public void Refresh(CountryActionsState state, CountryResourcesState resources) {
+		public void Refresh(CountryActionsState state, CountryResourcesState orgResources) {
 			if (SuppressRefresh) { return; }
 			_handContainer.Clear();
 			_handContainer.Add(BuildDeckPile(state.Deck.Count));
 			foreach (var card in state.Hand) {
-				_handContainer.Add(BuildHandCard(card, state.CurrentTime, resources));
+				_handContainer.Add(BuildHandCard(card, orgResources));
 			}
 		}
 
-		VisualElement BuildHandCard(CountryActionCardEntry card, DateTime currentTime, CountryResourcesState resources) {
+		VisualElement BuildHandCard(CountryActionCardEntry card, CountryResourcesState orgResources) {
 			var wrapper = new VisualElement();
 			wrapper.AddToClassList("card-lift-wrapper");
 
@@ -49,19 +49,19 @@ namespace GS.Unity.UI {
 			string name = def != null ? _loc.Get(def.NameKey) : card.ActionId;
 			string descText = def != null ? _loc.Get(def.DescKey) : "";
 			string successPct = $"{(int)(card.SuccessRate * 100)}%";
-			double gold = def?.GoldCost ?? 0;
-			string goldCostText = gold == System.Math.Floor(gold) ? $"{(int)gold}" : $"{gold:F1}";
+			string goldCostText = GetGoldCostText(def);
 			var sprite = _visualConfig?.FindFront(card.ActionId);
 
-			bool canPlay = !card.IsUnplayable && !card.IsOnCooldown;
+			double goldCost = GetGoldCost(def);
+			bool canAffordGold = goldCost <= 0 || GetResourceValue(orgResources, "gold") >= goldCost;
+			bool canPlay = !card.IsUnplayable && canAffordGold;
 
 			var result = ActionCardBuilder.Build(name, descText, successPct, goldCostText, sprite);
 			var cardEl = result.Card;
 			cardEl.AddToClassList(canPlay ? "action-card--available" : "action-card--unavailable");
 
-			if (result.CostLabel != null && def != null) {
-				bool canAfford = GetResourceValue(resources, "gold") >= def.GoldCost;
-				if (!canAfford) { result.CostLabel.AddToClassList("action-card-cost-label--unaffordable"); }
+			if (result.CostLabel != null && !canAffordGold) {
+				result.CostLabel.AddToClassList("action-card-cost-label--unaffordable");
 			}
 
 			if (card.IsRateDynamic && result.SuccessPct != null) {
@@ -84,17 +84,11 @@ namespace GS.Unity.UI {
 				result.Body.Insert(1, targetLabel);
 			}
 
-			if (card.IsOnCooldown) {
-				var overlay = new VisualElement();
-				overlay.AddToClassList("action-card-cooldown-overlay");
-				var cooldownLabel = new Label(FormatCooldown(card.CooldownEnd, currentTime));
-				cooldownLabel.AddToClassList("action-card-cooldown-label");
-				overlay.Add(cooldownLabel);
-				cardEl.Add(overlay);
-			} else if (card.IsUnplayable && !string.IsNullOrEmpty(card.UnplayableReason)) {
+			if (card.IsUnplayable && !string.IsNullOrEmpty(card.UnplayableReason)) {
+				int minInfluence = def != null ? ExtractMinInfluence(def) : 0;
 				string reasonText = card.UnplayableReason == "pool_full"
 					? _loc.Get("action.country.unplayable.pool_full")
-					: string.Format(_loc.Get("action.country.unplayable.insufficient_influence"), card.InfluenceThreshold);
+					: string.Format(_loc.Get("action.country.unplayable.insufficient_influence"), minInfluence);
 				var reasonLabel = new Label(reasonText);
 				reasonLabel.AddToClassList("action-card-unplayable-reason");
 				cardEl.Add(reasonLabel);
@@ -163,15 +157,29 @@ namespace GS.Unity.UI {
 			return wrapper;
 		}
 
-		static string FormatCooldown(DateTime end, DateTime now) {
-			TimeSpan remaining = end - now;
-			if (remaining <= TimeSpan.Zero) { return "less than a day"; }
-			int days = (int)remaining.TotalDays;
-			if (days >= 365) { return $"{days / 365} year(s)"; }
-			if (days >= 30) { return $"{days / 30} month(s)"; }
-			if (days >= 2) { return $"{days} days"; }
-			if (days == 1) { return "1 day"; }
-			return "less than a day";
+		static int ExtractMinInfluence(ActionDefinition def) {
+			foreach (var cond in def.Conditions) {
+				if (cond.Type == "gte" && cond.Members != null && cond.Members.Count >= 2) {
+					if (cond.Members[0].Type == "influence" && cond.Members[1].Type == "value") {
+						return (int)cond.Members[1].Value;
+					}
+				}
+			}
+			return 0;
+		}
+
+		static double GetGoldCost(ActionDefinition? def) {
+			if (def == null) { return 0; }
+			foreach (var c in def.Cost) {
+				if (c.ResourceId == "gold") { return c.Amount; }
+			}
+			return 0;
+		}
+
+		static string GetGoldCostText(ActionDefinition? def) {
+			double gold = GetGoldCost(def);
+			if (gold == 0) { return null; }
+			return gold == System.Math.Floor(gold) ? $"{(int)gold}" : $"{gold:F1}";
 		}
 
 		static double GetResourceValue(CountryResourcesState resources, string resourceId) {

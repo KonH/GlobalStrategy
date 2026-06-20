@@ -33,12 +33,8 @@ namespace GS.Unity.UI {
 			var def = actionConfig?.Find(actionId);
 			string nameText = def != null ? loc.Get(def.NameKey) : actionId;
 			string descText = def != null ? loc.Get(def.DescKey) : "";
-			string successPct = def != null ? $"{(int)(def.SuccessRate * 100)}%" : "?%";
-			string goldCostText = null;
-			if (def?.Prices?.Count > 0) {
-				var price = def.Prices[0];
-				goldCostText = price.Amount == System.Math.Floor(price.Amount) ? $"{(int)price.Amount}" : $"{price.Amount:F1}";
-			}
+			string successPct = def != null ? $"{(int)(GS.Game.Configs.ExpressionNode.Evaluate(def.SuccessRateNode, new GS.Game.Configs.ExpressionContext()) * 100)}%" : "?%";
+			string goldCostText = GetGoldCostText(def);
 			var sprite = visualConfig?.FindFront(actionId);
 
 			var built = ActionCardBuilder.Build(nameText, descText, successPct, goldCostText, sprite);
@@ -52,22 +48,21 @@ namespace GS.Unity.UI {
 			Rect fromRect,
 			VisualElement toElement,
 			float duration,
-			CountryActionConfig countryActionConfig,
+			ActionConfig actionConfig,
 			ActionVisualConfig visualConfig,
 			ILocalization loc,
-			Action onComplete) {
+			Action onComplete,
+			string successPctOverride = null) {
 			if (_cardCopy != null) {
 				_overlay.Remove(_cardCopy);
 			}
 
-			var def = countryActionConfig?.Find(actionId);
+			var def = actionConfig?.Find(actionId);
 			string nameText = def != null ? loc.Get(def.NameKey) : actionId;
 			string descText = def != null ? loc.Get(def.DescKey) : "";
-			string successPct = def != null ? $"{(int)(def.SuccessRateBase * 100)}%" : "?%";
-			string goldCostText = null;
-			if (def != null) {
-				goldCostText = def.GoldCost == System.Math.Floor(def.GoldCost) ? $"{(int)def.GoldCost}" : $"{def.GoldCost:F1}";
-			}
+			string successPct = successPctOverride
+				?? (def != null ? $"{(int)(GS.Game.Configs.ExpressionNode.Evaluate(def.SuccessRateNode, new GS.Game.Configs.ExpressionContext()) * 100)}%" : "?%");
+			string goldCostText = GetGoldCostText(def);
 			var sprite = visualConfig?.FindFront(actionId);
 
 			var built = ActionCardBuilder.Build(nameText, descText, successPct, goldCostText, sprite);
@@ -124,6 +119,16 @@ namespace GS.Unity.UI {
 			foreach (var child in el.Children()) {
 				SetPickingIgnoreRecursive(child);
 			}
+		}
+
+		static string GetGoldCostText(GS.Game.Configs.ActionDefinition? def) {
+			if (def == null) { return null; }
+			foreach (var c in def.Cost) {
+				if (c.ResourceId == "gold") {
+					return c.Amount == System.Math.Floor(c.Amount) ? $"{(int)c.Amount}" : $"{c.Amount:F1}";
+				}
+			}
+			return null;
 		}
 	}
 }

@@ -20,7 +20,7 @@ namespace GS.Main {
 		int _proximityEntity = -1;
 		DateTime _previousTime;
 		ActionConfig _actionConfig = null!;
-		CountryActionConfig _countryActionConfig = null!;
+		EffectConfig _effectConfig = null!;
 
 		public VisualState VisualState { get; } = new VisualState();
 		public IWriteOnlyCommandAccessor Commands { get; }
@@ -28,7 +28,7 @@ namespace GS.Main {
 		public ResourceConfig ResourceConfig { get; private set; } = null!;
 		public CharacterConfig CharacterConfig { get; private set; } = null!;
 		public ActionConfig ActionConfig { get; private set; } = null!;
-		public CountryActionConfig CountryActionConfig { get; private set; } = null!;
+		public EffectConfig EffectConfig { get; private set; } = null!;
 
 		public GameLogic(GameLogicContext context) {
 			_context = context;
@@ -39,9 +39,9 @@ namespace GS.Main {
 			CharacterConfig = context.Character.Load();
 			ActionConfig = context.Action.Load();
 			_actionConfig = ActionConfig;
-			_countryActionConfig = context.CountryAction.Load();
-			CountryActionConfig = _countryActionConfig;
-			_visualStateConverter = new VisualStateConverter(VisualState, _countryActionConfig);
+			_effectConfig = context.Effect.Load();
+			EffectConfig = _effectConfig;
+			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig);
 			var settings = context.GameSettings.Load();
 			_speedMultipliers = settings.SpeedMultipliers;
 			_previousTime = new DateTime(settings.StartYear, 1, 1);
@@ -68,7 +68,6 @@ namespace GS.Main {
 			ResourceSystem.Update(_world, _previousTime, currentTime);
 			InfluenceSystem.Update(_world, _previousTime, currentTime);
 			OpinionSystem.Update(_world, _previousTime, currentTime);
-			CountryActionSystem.TickCooldowns(_world, currentTime);
 
 			foreach (var cmd in _commandAccessor.ReadChangeInfluenceCommand().AsSpan()) {
 				ApplyChangeInfluence(cmd.OrgId, cmd.CountryId, cmd.Delta);
@@ -99,18 +98,21 @@ namespace GS.Main {
 			foreach (var cmd in _commandAccessor.ReadDebugImproveOpinionCommand().AsSpan()) {
 				ApplyDebugImproveOpinion(cmd.CountryId, cmd.OrgId);
 			}
+			foreach (var cmd in _commandAccessor.ReadDebugChangeGoldCommand().AsSpan()) {
+				ApplyDebugChangeGold(cmd.OrgId, cmd.Amount);
+			}
 
 			var lastActionResult = new ActionSystem.ActionResult();
 			string lastActionId = "";
 			foreach (var cmd in _commandAccessor.ReadPlayActionCommand().AsSpan()) {
 				lastActionId = cmd.ActionId;
 				lastActionResult = ActionSystem.ProcessPlayAction(
-					_world, cmd, _actionConfig, _proximityEntity, _rng);
+					_world, cmd, _actionConfig, _effectConfig, _proximityEntity, _rng);
 			}
 			foreach (var cmd in _commandAccessor.ReadPlayCountryActionCommand().AsSpan()) {
 				lastActionId = cmd.ActionId;
 				var r = CountryActionSystem.ProcessPlayCountryAction(
-					_world, cmd, _countryActionConfig, currentTime, _rng);
+					_world, cmd, _actionConfig, _effectConfig, currentTime, _rng);
 				if (r.Executed) {
 					lastActionResult = new ActionSystem.ActionResult { Executed = r.Executed, Success = r.Success };
 				}
@@ -297,6 +299,21 @@ namespace GS.Main {
 						opinion.ModifiersPerOrg[orgId] = list;
 					}
 					list.Add(new OpinionModifier { SourceId = "cheat_improve_opinion", Value = 50, ChangeValue = -1 });
+				}
+			}
+		}
+
+		void ApplyDebugChangeGold(string orgId, double amount) {
+			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (owners[i].OwnerId == orgId && resources[i].ResourceId == "gold") {
+						resources[i].Value = System.Math.Max(0, resources[i].Value + amount);
+						return;
+					}
 				}
 			}
 		}

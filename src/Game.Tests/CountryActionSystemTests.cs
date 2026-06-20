@@ -15,33 +15,51 @@ namespace GS.Game.Tests {
 		const string AdvisorActionId = "letter_of_commendation_diplomacy_advisor";
 		const string CharId = "char_001";
 
-		static CountryActionConfig BuildConfig(
+		static (ActionConfig actionConfig, EffectConfig effectConfig) BuildConfig(
 			string actionId = ActionId,
-			float successRateBase = 1.0f,
-			int influenceThreshold = 0,
-			int cooldownMonths = 1,
-			int influenceOnSuccess = 10,
+			double successRate = 1.0,
+			int influenceAmount = 10,
 			double goldCost = 50,
 			string opinionSourceId = "",
-			int opinionValue = 5,
-			int opinionChangeValue = 0,
-			int successRateInfluenceDivisor = 0) {
-			return new CountryActionConfig {
-				Actions = new List<CountryActionDefinition> {
-					new CountryActionDefinition {
+			int opinionInitialValue = 5,
+			int opinionDecayPerMonth = 1,
+			ExpressionNode? conditionNode = null) {
+			var influenceEffects = new List<ActionEffectDefinition>();
+			if (influenceAmount > 0) {
+				influenceEffects.Add(new InfluenceChangeEffectParams {
+					EffectId = $"{actionId}_influence",
+					EffectType = "InfluenceChange",
+					Amount = influenceAmount
+				});
+			}
+			if (!string.IsNullOrEmpty(opinionSourceId)) {
+				influenceEffects.Add(new OpinionModifierEffectParams {
+					EffectId = $"{actionId}_opinion",
+					EffectType = "OpinionModifier",
+					SourceId = opinionSourceId,
+					InitialValue = opinionInitialValue,
+					DecayPerMonth = opinionDecayPerMonth
+				});
+			}
+			var effectIds = new List<string>();
+			foreach (var e in influenceEffects) { effectIds.Add(e.EffectId); }
+
+			var conditions = new List<ExpressionNode>();
+			if (conditionNode != null) { conditions.Add(conditionNode); }
+
+			var actionConfig = new ActionConfig {
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
 						ActionId = actionId,
-						SuccessRateBase = successRateBase,
-						InfluenceThreshold = influenceThreshold,
-						CooldownMonths = cooldownMonths,
-						InfluenceOnSuccess = influenceOnSuccess,
-						GoldCost = goldCost,
-						OpinionModifierSourceId = opinionSourceId,
-						OpinionModifierValue = opinionValue,
-						OpinionModifierChangeValue = opinionChangeValue,
-						SuccessRateInfluenceDivisor = successRateInfluenceDivisor
+						SuccessRateNode = new ExpressionNode { Type = "value", Value = successRate },
+						Cost = goldCost > 0 ? new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = goldCost } } : new List<ActionCost>(),
+						EffectIds = effectIds,
+						Conditions = conditions
 					}
 				}
 			};
+			var effectConfig = new EffectConfig { Effects = influenceEffects };
+			return (actionConfig, effectConfig);
 		}
 
 		static (World world, int goldEntity, int cardHandEntity) BuildWorld(double gold = 500) {
@@ -89,13 +107,11 @@ namespace GS.Game.Tests {
 			return count;
 		}
 
-		static bool HasCooldown(World world, int entity) => world.Has<ActionCooldown>(entity);
-
 		[Fact]
 		void play_returns_not_executed_if_no_gold() {
 			var (world, goldEntity, _) = BuildWorld(gold: 10);
-			var config = BuildConfig(goldCost: 50);
-			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, DateTime.UtcNow, new Random(1));
+			var (config, effectConfig) = BuildConfig(goldCost: 50);
+			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 			Assert.False(result.Executed);
 			Assert.Equal(10.0, world.Get<Resource>(goldEntity).Value);
 		}
@@ -103,8 +119,8 @@ namespace GS.Game.Tests {
 		[Fact]
 		void play_deducts_gold_on_execution() {
 			var (world, goldEntity, _) = BuildWorld(gold: 200);
-			var config = BuildConfig(goldCost: 50);
-			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, DateTime.UtcNow, new Random(1));
+			var (config, effectConfig) = BuildConfig(goldCost: 50);
+			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 			Assert.True(result.Executed);
 			Assert.Equal(150.0, world.Get<Resource>(goldEntity).Value);
 		}
@@ -112,16 +128,42 @@ namespace GS.Game.Tests {
 		[Fact]
 		void play_returns_not_executed_below_influence_threshold() {
 			var (world, _, _) = BuildWorld();
-			var config = BuildConfig(influenceThreshold: 10);
-			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, DateTime.UtcNow, new Random(1));
+			// Condition: influence >= 10
+			var condition = new ExpressionNode {
+				Type = "gte",
+				Members = new List<ExpressionNode> {
+					new ExpressionNode { Type = "influence" },
+					new ExpressionNode { Type = "value", Value = 10 }
+				}
+			};
+			var (config, effectConfig) = BuildConfig(conditionNode: condition);
+			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 			Assert.False(result.Executed);
+		}
+
+		[Fact]
+		void play_allowed_when_conditions_met() {
+			var (world, _, _) = BuildWorld();
+			// Add influence so condition passes
+			int inflEntity = world.Create();
+			world.Add(inflEntity, new InfluenceEffect { OrgId = OrgId, CountryId = CountryId, Value = 10 });
+			var condition = new ExpressionNode {
+				Type = "gte",
+				Members = new List<ExpressionNode> {
+					new ExpressionNode { Type = "influence" },
+					new ExpressionNode { Type = "value", Value = 10 }
+				}
+			};
+			var (config, effectConfig) = BuildConfig(conditionNode: condition, influenceAmount: 0);
+			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
+			Assert.True(result.Executed);
 		}
 
 		[Fact]
 		void play_success_adds_influence() {
 			var (world, _, _) = BuildWorld();
-			var config = BuildConfig(successRateBase: 1.0f, influenceOnSuccess: 10);
-			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, DateTime.UtcNow, new Random(1));
+			var (config, effectConfig) = BuildConfig(successRate: 1.0, influenceAmount: 10);
+			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 			Assert.True(result.Success);
 			Assert.Equal(10, CountInfluenceEffects(world, OrgId, CountryId));
 		}
@@ -129,8 +171,8 @@ namespace GS.Game.Tests {
 		[Fact]
 		void play_failure_does_not_add_influence() {
 			var (world, _, _) = BuildWorld();
-			var config = BuildConfig(successRateBase: 0.0f, influenceOnSuccess: 10);
-			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, DateTime.UtcNow, new Random(1));
+			var (config, effectConfig) = BuildConfig(successRate: 0.0, influenceAmount: 10);
+			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 			Assert.False(result.Success);
 			Assert.Equal(0, CountInfluenceEffects(world, OrgId, CountryId));
 		}
@@ -143,8 +185,8 @@ namespace GS.Game.Tests {
 			int fillEntity = world.Create();
 			world.Add(fillEntity, new InfluenceEffect { OrgId = OrgId, CountryId = CountryId, Value = 95 });
 
-			var config = BuildConfig(successRateBase: 1.0f, influenceOnSuccess: 10);
-			CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, DateTime.UtcNow, new Random(1));
+			var (config, effectConfig) = BuildConfig(successRate: 1.0, influenceAmount: 10);
+			CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 
 			// Should only add 5 to reach cap of 100
 			Assert.Equal(100, CountInfluenceEffects(world, OrgId, CountryId));
@@ -157,71 +199,32 @@ namespace GS.Game.Tests {
 			int fillEntity = world.Create();
 			world.Add(fillEntity, new InfluenceEffect { OrgId = OrgId, CountryId = CountryId, Value = 100 });
 
-			var config = BuildConfig(successRateBase: 1.0f, influenceOnSuccess: 10);
-			CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, DateTime.UtcNow, new Random(1));
+			var (config, effectConfig) = BuildConfig(successRate: 1.0, influenceAmount: 10);
+			CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 
 			Assert.Equal(100, CountInfluenceEffects(world, OrgId, CountryId));
-		}
-
-		[Fact]
-		void play_assigns_cooldown_to_all_copies() {
-			var (world, _, cardHandEntity) = BuildWorld();
-
-			int cardDeckEntity = world.Create();
-			world.Add(cardDeckEntity, new CountryActionCard {
-				OrgId = OrgId, CountryId = CountryId, ActionId = ActionId, TargetCharacterId = ""
-			});
-
-			var config = BuildConfig(cooldownMonths: 1);
-			CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, DateTime.UtcNow, new Random(1));
-
-			Assert.True(HasCooldown(world, cardHandEntity));
-			Assert.True(HasCooldown(world, cardDeckEntity));
-		}
-
-		[Fact]
-		void tick_removes_expired_cooldown() {
-			var (world, _, cardEntity) = BuildWorld();
-
-			var pastTime = DateTime.UtcNow.AddMonths(-1);
-			world.Add(cardEntity, new ActionCooldown { CooldownEndTime = pastTime });
-
-			CountryActionSystem.TickCooldowns(world, DateTime.UtcNow);
-
-			Assert.False(HasCooldown(world, cardEntity));
-		}
-
-		[Fact]
-		void tick_keeps_active_cooldown() {
-			var (world, _, cardEntity) = BuildWorld();
-
-			var futureTime = DateTime.UtcNow.AddMonths(2);
-			world.Add(cardEntity, new ActionCooldown { CooldownEndTime = futureTime });
-
-			CountryActionSystem.TickCooldowns(world, DateTime.UtcNow);
-
-			Assert.True(HasCooldown(world, cardEntity));
 		}
 
 		[Fact]
 		void play_draws_from_eligible_deck_card() {
 			var (world, _, _) = BuildWorld();
 
-			// Deck card uses a different action so it isn't put on cooldown when the hand card is played
 			int deckCard = world.Create();
 			world.Add(deckCard, new CountryActionCard {
 				OrgId = OrgId, CountryId = CountryId, ActionId = AdvisorActionId, TargetCharacterId = ""
 			});
 
-			var config = new CountryActionConfig {
-				Actions = new List<CountryActionDefinition> {
-					new CountryActionDefinition { ActionId = ActionId, SuccessRateBase = 1.0f, CooldownMonths = 1, GoldCost = 50 },
-					new CountryActionDefinition { ActionId = AdvisorActionId, SuccessRateBase = 1.0f, CooldownMonths = 1, GoldCost = 50, InfluenceThreshold = 0 }
+			var actionConfig = new ActionConfig {
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition { ActionId = ActionId, SuccessRateNode = new ExpressionNode { Type = "value", Value = 1.0 }, Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50 } } },
+					new ActionDefinition { ActionId = AdvisorActionId, SuccessRateNode = new ExpressionNode { Type = "value", Value = 1.0 }, Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50 } } }
 				}
 			};
-			CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, DateTime.UtcNow, new Random(1));
+			var effectConfig = new EffectConfig();
+			CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), actionConfig, effectConfig, DateTime.UtcNow, new Random(1));
 
-			Assert.Equal(1, CountHandCards(world));
+			// Played card returns to deck (no cooldown) and both it and the advisor deck card are drawn
+			Assert.Equal(2, CountHandCards(world));
 		}
 
 		[Fact]
@@ -234,9 +237,9 @@ namespace GS.Game.Tests {
 				ModifiersPerOrg = new Dictionary<string, List<OpinionModifier>>()
 			});
 
-			var config = BuildConfig(successRateBase: 1.0f, opinionSourceId: "commendation", opinionValue: 5, opinionChangeValue: 0);
+			var (config, effectConfig) = BuildConfig(successRate: 1.0, opinionSourceId: "commendation", opinionInitialValue: 5, opinionDecayPerMonth: 0, influenceAmount: 0);
 			CountryActionSystem.ProcessPlayCountryAction(
-				world, MakeCmd(targetCharId: CharId), config, DateTime.UtcNow, new Random(1));
+				world, MakeCmd(targetCharId: CharId), config, effectConfig, DateTime.UtcNow, new Random(1));
 
 			ref CharacterOpinion opinion = ref world.Get<CharacterOpinion>(charEntity);
 			Assert.True(opinion.ModifiersPerOrg.ContainsKey(OrgId));
@@ -254,29 +257,14 @@ namespace GS.Game.Tests {
 				ModifiersPerOrg = new Dictionary<string, List<OpinionModifier>>()
 			});
 
-			var config = BuildConfig(successRateBase: 0.0f, opinionSourceId: "commendation");
+			var (config, effectConfig) = BuildConfig(successRate: 0.0, opinionSourceId: "commendation", influenceAmount: 0);
 			CountryActionSystem.ProcessPlayCountryAction(
-				world, MakeCmd(targetCharId: CharId), config, DateTime.UtcNow, new Random(1));
+				world, MakeCmd(targetCharId: CharId), config, effectConfig, DateTime.UtcNow, new Random(1));
 
 			ref CharacterOpinion opinion = ref world.Get<CharacterOpinion>(charEntity);
 			bool hasModifier = opinion.ModifiersPerOrg != null && opinion.ModifiersPerOrg.ContainsKey(OrgId);
 			Assert.False(hasModifier);
 		}
 
-		[Fact]
-		void cooldown_cards_not_drawn_to_hand() {
-			var (world, _, _) = BuildWorld();
-
-			int deckCard = world.Create();
-			world.Add(deckCard, new CountryActionCard {
-				OrgId = OrgId, CountryId = CountryId, ActionId = ActionId, TargetCharacterId = ""
-			});
-			world.Add(deckCard, new ActionCooldown { CooldownEndTime = DateTime.UtcNow.AddMonths(1) });
-
-			var config = BuildConfig();
-			CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, DateTime.UtcNow, new Random(1));
-
-			Assert.Equal(0, CountHandCards(world));
-		}
 	}
 }

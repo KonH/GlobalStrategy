@@ -1,11 +1,7 @@
 using System.Collections.Generic;
 
 namespace GS.Game.Configs {
-	public class ActionCondition {
-		public string ConditionType { get; set; } = "";
-	}
-
-	public class ActionPrice {
+	public class ActionCost {
 		public string ResourceId { get; set; } = "gold";
 		public double Amount     { get; set; } = 0;
 	}
@@ -15,11 +11,13 @@ namespace GS.Game.Configs {
 		public string Rarity         { get; set; } = "Standard";
 		public string NameKey        { get; set; } = "";
 		public string DescKey        { get; set; } = "";
-		public List<ActionCondition> Conditions { get; set; } = new();
-		public List<ActionPrice> Prices { get; set; } = new();
+		public string OwnerType      { get; set; } = "";
+		public string TargetRole     { get; set; } = "";
+		public int DeckCopies        { get; set; } = 3;
+		public List<ExpressionNode> Conditions { get; set; } = new();
+		public List<ActionCost> Cost { get; set; } = new();
 		public List<string> EffectIds { get; set; } = new();
-		public float SuccessRate     { get; set; } = 1.0f;
-		public float MinCountryChance { get; set; } = 0.01f;
+		public ExpressionNode? SuccessRateNode { get; set; } = null;
 	}
 
 	public class ActionOwnerDefaults {

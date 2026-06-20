@@ -9,14 +9,14 @@ namespace GS.Main {
 	class VisualStateConverter {
 		readonly VisualState _state;
 		readonly System.Collections.Generic.HashSet<string> _previousDiscoveredIds = new();
-		CountryActionConfig? _countryActionConfig;
+		ActionConfig? _actionConfig;
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
 
-		internal VisualStateConverter(VisualState state, CountryActionConfig? countryActionConfig = null) {
+		internal VisualStateConverter(VisualState state, ActionConfig? actionConfig = null) {
 			_state = state;
-			_countryActionConfig = countryActionConfig;
+			_actionConfig = actionConfig;
 		}
 
 		internal void Update(IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
@@ -465,7 +465,7 @@ namespace GS.Main {
 		}
 
 		void UpdateCountryActions(IReadOnlyWorld world, int gameTimeEntity) {
-			if (!_state.SelectedCountry.IsValid || !_state.PlayerOrganization.IsValid || _countryActionConfig == null) {
+			if (!_state.SelectedCountry.IsValid || !_state.PlayerOrganization.IsValid || _actionConfig == null) {
 				_state.SelectedCountryActions.Set(
 					new List<CountryActionCardEntry>(),
 					new List<CountryActionCardEntry>(),
@@ -509,21 +509,6 @@ namespace GS.Main {
 				}
 			}
 
-			// Build cooldown map: (actionId, targetCharId) -> CooldownEndTime
-			var cooldownMap = new Dictionary<(string, string), DateTime>();
-			int[] cooldownReq = { TypeId<CountryActionCard>.Value, TypeId<ActionCooldown>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(cooldownReq, null)) {
-				CountryActionCard[] cards = arch.GetColumn<CountryActionCard>();
-				ActionCooldown[] cooldowns = arch.GetColumn<ActionCooldown>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (cards[i].OrgId == orgId && cards[i].CountryId == countryId) {
-						var key = (cards[i].ActionId, cards[i].TargetCharacterId);
-						cooldownMap[key] = cooldowns[i].CooldownEndTime;
-					}
-				}
-			}
-
 			var hand = new List<CountryActionCardEntry>();
 			var deck = new List<CountryActionCardEntry>();
 
@@ -535,7 +520,7 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (cards[i].OrgId != orgId || cards[i].CountryId != countryId) { continue; }
-					var entry = BuildEntry(cards[i], hands[i].SlotIndex, true, orgInfluence, usedTotal, cooldownMap, charNameKeys, currentTime);
+					var entry = BuildEntry(cards[i], hands[i].SlotIndex, true, orgInfluence, usedTotal, charNameKeys);
 					if (entry != null) { hand.Add(entry); }
 				}
 			}
@@ -548,39 +533,37 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (cards[i].OrgId != orgId || cards[i].CountryId != countryId) { continue; }
-					var entry = BuildEntry(cards[i], -1, false, orgInfluence, usedTotal, cooldownMap, charNameKeys, currentTime);
+					var entry = BuildEntry(cards[i], -1, false, orgInfluence, usedTotal, charNameKeys);
 					if (entry != null) { deck.Add(entry); }
 				}
 			}
 
 			hand.Sort((a, b) => a.SlotIndex.CompareTo(b.SlotIndex));
-			_state.SelectedCountryActions.Set(hand, deck, 3, currentTime);
+			int countryHandSize = _actionConfig?.GetHandSize("country") ?? 3;
+			_state.SelectedCountryActions.Set(hand, deck, countryHandSize, currentTime);
 		}
 
 		CountryActionCardEntry? BuildEntry(
 			CountryActionCard card, int slotIndex, bool isInHand,
 			int orgInfluence, int usedTotal,
-			Dictionary<(string, string), DateTime> cooldownMap,
-			Dictionary<string, string[]> charNameKeys,
-			DateTime currentTime) {
-			var def = _countryActionConfig?.Find(card.ActionId);
+			Dictionary<string, string[]> charNameKeys) {
+			var def = _actionConfig?.Find(card.ActionId);
 			if (def == null) { return null; }
 
-			float successRate = def.SuccessRateBase + (def.SuccessRateInfluenceDivisor > 0
-				? orgInfluence / (float)def.SuccessRateInfluenceDivisor : 0f);
+			bool isDynamic = def.SuccessRateNode?.Type != "value";
+			var ctx = new ExpressionContext { Influence = orgInfluence };
+			float successRate = (float)ExpressionNode.Evaluate(def.SuccessRateNode, ctx);
 			if (successRate > 1f) { successRate = 1f; }
-			bool isDynamic = def.SuccessRateInfluenceDivisor > 0;
-			int influenceBase = (int)(def.SuccessRateBase * 100);
-			int influenceBonus = isDynamic ? (int)(orgInfluence / (float)def.SuccessRateInfluenceDivisor * 100) : 0;
+			int influenceBase = (int)(ExpressionNode.Evaluate(def.SuccessRateNode, new ExpressionContext { Influence = 0 }) * 100);
+			int influenceBonus = isDynamic ? (int)(ExpressionNode.Evaluate(def.SuccessRateNode, ctx) * 100) - influenceBase : 0;
 
-			DateTime cooldownEnd = DateTime.MinValue;
-			bool isOnCooldown = cooldownMap.TryGetValue((card.ActionId, card.TargetCharacterId), out cooldownEnd)
-				&& cooldownEnd > currentTime;
-
-			bool insufficientInfluence = orgInfluence < def.InfluenceThreshold;
+			bool insufficientInfluence = false;
+			foreach (var cond in def.Conditions) {
+				if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { insufficientInfluence = true; break; }
+			}
 			bool poolFull = card.ActionId == "sphere_of_pressure" && usedTotal >= 100;
-			bool isUnplayable = insufficientInfluence || poolFull || isOnCooldown;
-			string unplayableReason = isOnCooldown ? "" : (poolFull ? "pool_full" : (insufficientInfluence ? "insufficient_influence" : ""));
+			bool isUnplayable = insufficientInfluence || poolFull;
+			string unplayableReason = poolFull ? "pool_full" : (insufficientInfluence ? "insufficient_influence" : "");
 
 			charNameKeys.TryGetValue(card.TargetCharacterId ?? "", out var nameKeys);
 
@@ -588,8 +571,7 @@ namespace GS.Main {
 				card.ActionId, slotIndex, isInHand,
 				card.TargetCharacterId ?? "", nameKeys ?? Array.Empty<string>(),
 				successRate, isDynamic, influenceBase, influenceBonus,
-				isUnplayable, unplayableReason, def.InfluenceThreshold,
-				isOnCooldown, isOnCooldown ? cooldownEnd : DateTime.MinValue,
+				isUnplayable, unplayableReason, 0,
 				orgInfluence);
 		}
 

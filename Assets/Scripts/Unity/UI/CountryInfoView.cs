@@ -29,7 +29,7 @@ namespace GS.Unity.UI {
 		public CountryActionsView ActionsView => _actionsView;
 		public void OpenChars() => SetCharsOpen(true);
 
-		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, CountryActionConfig countryActionConfig, ActionVisualConfig actionVisualConfig) {
+		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig) {
 			_root = root;
 			_name = root.Q<Label>("country-name");
 			_influenceRow = root.Q("influence-row");
@@ -51,10 +51,10 @@ namespace GS.Unity.UI {
 			if (_actionsSlide != null) {
 				_actionsSlide.pickingMode = PickingMode.Ignore;
 				var actionsInstance = root.Q("actions-instance");
-				if (actionsInstance != null && countryActionConfig != null) {
+				if (actionsInstance != null && actionConfig != null) {
 					_actionsView = new CountryActionsView(
 						actionsInstance.Q("hand-container"),
-						loc, countryActionConfig, actionVisualConfig, tooltip);
+						loc, actionConfig, actionVisualConfig, tooltip);
 					_actionsView.OnCardClicked = (actionId, targetCharId, el) =>
 						OnCountryActionCardClicked?.Invoke(actionId, targetCharId, el);
 				}
@@ -71,7 +71,7 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		public void Refresh(SelectedCountryState selected, PlayerCountryState player, CountryResourcesState resources, CountryInfluenceState influence, CountryCharactersState characters, CountryActionsState countryActions) {
+		public void Refresh(SelectedCountryState selected, PlayerCountryState player, CountryResourcesState resources, CountryInfluenceState influence, CountryCharactersState characters, CountryActionsState countryActions, CountryResourcesState playerResources = null) {
 			_root.style.display = selected.IsValid ? DisplayStyle.Flex : DisplayStyle.None;
 			if (selected.IsValid) {
 				_name.text = _loc.Get($"country_name.{selected.CountryId}");
@@ -98,7 +98,7 @@ namespace GS.Unity.UI {
 			_resourcesView.Refresh(resources);
 			_charactersView.Refresh(characters);
 			if (countryActions != null) {
-				_actionsView?.Refresh(countryActions, resources);
+				_actionsView?.Refresh(countryActions, playerResources ?? resources);
 			}
 		}
 

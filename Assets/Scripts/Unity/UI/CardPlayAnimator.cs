@@ -18,7 +18,7 @@ namespace GS.Unity.UI {
 		MapCameraController _cameraController;
 		CountryConfig _domainConfig;
 		ActionConfig _actionConfig;
-		CountryActionConfig _countryActionConfig;
+		EffectConfig _effectConfig;
 		ActionVisualConfig _visualConfig;
 		ILocalization _loc;
 		bool _isPlaying;
@@ -33,14 +33,14 @@ namespace GS.Unity.UI {
 		[Inject]
 		void Construct(VisualState state, IWriteOnlyCommandAccessor commands,
 			MapCameraController cameraController, CountryConfig domainConfig,
-			ActionConfig actionConfig, CountryActionConfig countryActionConfig,
+			ActionConfig actionConfig, EffectConfig effectConfig,
 			ActionVisualConfig visualConfig, ILocalization loc) {
 			_state = state;
 			_commands = commands;
 			_cameraController = cameraController;
 			_domainConfig = domainConfig;
 			_actionConfig = actionConfig;
-			_countryActionConfig = countryActionConfig;
+			_effectConfig = effectConfig;
 			_visualConfig = visualConfig;
 			_loc = loc;
 		}
@@ -284,6 +284,17 @@ namespace GS.Unity.UI {
 			_isPlaying = true;
 			_resultReady = false;
 			ModalState.IsModalOpen = true;
+
+			// Capture success rate before any state change or command push
+			float capturedSuccessRate = 0f;
+			foreach (var c in _state.SelectedCountryActions.Hand) {
+				if (c.ActionId == actionId && c.TargetCharacterId == targetCharId) {
+					capturedSuccessRate = c.SuccessRate;
+					break;
+				}
+			}
+			string capturedSuccessPct = $"{(int)(capturedSuccessRate * 100)}%";
+
 			if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = true; }
 
 			_commands.Push(new PlayCountryActionCommand { OrgId = orgId, CountryId = countryId, ActionId = actionId, TargetCharacterId = targetCharId });
@@ -296,7 +307,7 @@ namespace GS.Unity.UI {
 			var rollLabel = root.Q<Label>("roll-result-label");
 
 			if (overlay != null) {
-				PopulateCountryTestCard(cardTestCard, actionId);
+				PopulateCountryTestCard(cardTestCard, actionId, capturedSuccessRate);
 				overlay.style.display = DisplayStyle.Flex;
 				overlay.style.opacity = 0f;
 				if (cardTestCard != null) { cardTestCard.style.opacity = 0f; }
@@ -307,7 +318,7 @@ namespace GS.Unity.UI {
 			clickedCard.style.opacity = 0f;
 			var deckRect = _countryActionsView?.DeckPileElement?.worldBound ?? Rect.zero;
 
-			_transitionView.ShowCountry(actionId, fromRect, cardTestCard, 0.77f, _countryActionConfig, _visualConfig, _loc, () => transitionDone = true);
+			_transitionView.ShowCountry(actionId, fromRect, cardTestCard, 0.77f, _actionConfig, _visualConfig, _loc, () => transitionDone = true, capturedSuccessPct);
 			while (!transitionDone) { yield return null; }
 
 			if (overlay != null) { overlay.style.opacity = 1f; }
@@ -347,7 +358,7 @@ namespace GS.Unity.UI {
 			transitionDone = false;
 			var fromTestRect = cardTestCard != null ? cardTestCard.worldBound : Rect.zero;
 			var deckElement = _countryActionsView?.DeckPileElement;
-			_transitionView.ShowCountry(actionId, fromTestRect, deckElement ?? cardTestCard, 0.77f, _countryActionConfig, _visualConfig, _loc, () => transitionDone = true);
+			_transitionView.ShowCountry(actionId, fromTestRect, deckElement ?? cardTestCard, 0.77f, _actionConfig, _visualConfig, _loc, () => transitionDone = true, capturedSuccessPct);
 			if (overlay != null) { overlay.style.display = DisplayStyle.None; }
 			if (rollBlock != null) { rollBlock.style.display = DisplayStyle.None; }
 			while (!transitionDone) { yield return null; }
@@ -355,8 +366,8 @@ namespace GS.Unity.UI {
 
 			// If success with opinion effect, pause briefly before continuing
 			if (success) {
-				var def = _countryActionConfig?.Find(actionId);
-				if (def != null && !string.IsNullOrEmpty(def.OpinionModifierSourceId)) {
+				var def = _actionConfig?.Find(actionId);
+				if (def != null && HasOpinionEffect(def)) {
 					yield return new WaitForSeconds(0.5f);
 				}
 			}
@@ -380,10 +391,13 @@ namespace GS.Unity.UI {
 			if (newHandCard != null) {
 				transitionDone = false;
 				string newActionId = "";
+				string newSuccessPct = null;
 				if (_state.SelectedCountryActions.Hand.Count > 0) {
-					newActionId = _state.SelectedCountryActions.Hand[_state.SelectedCountryActions.Hand.Count - 1].ActionId;
+					var newCard = _state.SelectedCountryActions.Hand[_state.SelectedCountryActions.Hand.Count - 1];
+					newActionId = newCard.ActionId;
+					newSuccessPct = $"{(int)(newCard.SuccessRate * 100)}%";
 				}
-				_transitionView.ShowCountry(newActionId, deckRect, newHandCard, 0.5f, _countryActionConfig, _visualConfig, _loc, () => transitionDone = true);
+				_transitionView.ShowCountry(newActionId, deckRect, newHandCard, 0.5f, _actionConfig, _visualConfig, _loc, () => transitionDone = true, newSuccessPct);
 				while (!transitionDone) { yield return null; }
 				newHandCard.style.opacity = 1f;
 				_transitionView.Hide();
@@ -397,16 +411,13 @@ namespace GS.Unity.UI {
 			OnCardPlayComplete?.Invoke();
 		}
 
-		void PopulateCountryTestCard(VisualElement cardSlot, string actionId) {
+		void PopulateCountryTestCard(VisualElement cardSlot, string actionId, float successRate) {
 			if (cardSlot == null) { return; }
-			var def = _countryActionConfig?.Find(actionId);
+			var def = _actionConfig?.Find(actionId);
 			string name = def != null ? _loc.Get(def.NameKey) : actionId;
 			string desc = def != null ? _loc.Get(def.DescKey) : "";
-			string successPct = def != null ? $"{(int)(def.SuccessRateBase * 100)}%" : "?%";
-			string goldCostText = null;
-			if (def != null) {
-				goldCostText = def.GoldCost == System.Math.Floor(def.GoldCost) ? $"{(int)def.GoldCost}" : $"{def.GoldCost:F1}";
-			}
+			string successPct = $"{(int)(successRate * 100)}%";
+			string goldCostText = GetGoldCostText(def);
 			ActionCardBuilder.PopulateSlot(cardSlot, name, desc, successPct, goldCostText, _visualConfig?.FindFront(actionId));
 		}
 
@@ -414,13 +425,30 @@ namespace GS.Unity.UI {
 			var def = _actionConfig?.Find(actionId);
 			string name = def != null ? _loc.Get(def.NameKey) : actionId;
 			string desc = def != null ? _loc.Get(def.DescKey) : "";
-			string successPct = def != null ? $"{(int)(def.SuccessRate * 100)}%" : "?%";
-			string goldCostText = null;
-			if (def?.Prices?.Count > 0) {
-				var price = def.Prices[0];
-				goldCostText = price.Amount == System.Math.Floor(price.Amount) ? $"{(int)price.Amount}" : $"{price.Amount:F1}";
-			}
+			string successPct = def != null ? $"{(int)(GS.Game.Configs.ExpressionNode.Evaluate(def.SuccessRateNode, new GS.Game.Configs.ExpressionContext()) * 100)}%" : "?%";
+			string goldCostText = GetGoldCostText(def);
 			ActionCardBuilder.PopulateSlot(cardSlot, name, desc, successPct, goldCostText, _visualConfig?.FindFront(actionId));
+		}
+
+		bool HasOpinionEffect(GS.Game.Configs.ActionDefinition def) {
+			if (_effectConfig == null) { return false; }
+			foreach (var effectId in def.EffectIds) {
+				var effect = _effectConfig.Find(effectId);
+				if (effect is GS.Game.Configs.OpinionModifierEffectParams op && !string.IsNullOrEmpty(op.SourceId)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		static string GetGoldCostText(GS.Game.Configs.ActionDefinition? def) {
+			if (def == null) { return null; }
+			foreach (var c in def.Cost) {
+				if (c.ResourceId == "gold") {
+					return c.Amount == System.Math.Floor(c.Amount) ? $"{(int)c.Amount}" : $"{c.Amount:F1}";
+				}
+			}
+			return null;
 		}
 	}
 }

@@ -12,27 +12,11 @@ namespace GS.Game.Systems {
 			public bool Success;
 		}
 
-		public static void TickCooldowns(World world, DateTime currentTime) {
-			int[] required = { TypeId<CountryActionCard>.Value, TypeId<ActionCooldown>.Value };
-			var toRemove = new List<int>();
-			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				ActionCooldown[] cooldowns = arch.GetColumn<ActionCooldown>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (cooldowns[i].CooldownEndTime <= currentTime) {
-						toRemove.Add(arch.Entities[i]);
-					}
-				}
-			}
-			foreach (int e in toRemove) {
-				world.Remove<ActionCooldown>(e);
-			}
-		}
-
 		public static ActionResult ProcessPlayCountryAction(
 			World world,
 			PlayCountryActionCommand cmd,
-			CountryActionConfig config,
+			ActionConfig config,
+			EffectConfig effectConfig,
 			DateTime currentTime,
 			Random rng) {
 			var result = new ActionResult();
@@ -53,26 +37,15 @@ namespace GS.Game.Systems {
 				}
 			}
 
-			// Eligibility check
-			if (orgInfluence < def.InfluenceThreshold) { return result; }
-
-			// Check and deduct gold
-			int[] resReq = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
-			bool deducted = false;
-			foreach (var arch in world.GetMatchingArchetypes(resReq, null)) {
-				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
-				Resource[] resources = arch.GetColumn<Resource>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId != cmd.OrgId || resources[i].ResourceId != "gold") { continue; }
-					if (resources[i].Value < def.GoldCost) { return result; }
-					resources[i].Value -= def.GoldCost;
-					deducted = true;
-					break;
-				}
-				if (deducted) { break; }
+			// Eligibility check via conditions
+			var condCtx = new ExpressionContext { Influence = orgInfluence };
+			foreach (var cond in def.Conditions) {
+				if (ExpressionNode.Evaluate(cond, condCtx) == 0.0) { return result; }
 			}
-			if (!deducted) { return result; }
+
+			// Check and deduct cost
+			if (!CanAffordCost(world, cmd.OrgId, def.Cost)) { return result; }
+			DeductCost(world, cmd.OrgId, def.Cost);
 
 			result.Executed = true;
 
@@ -98,83 +71,67 @@ namespace GS.Game.Systems {
 				world.Remove<InHand>(playedEntity);
 			}
 
-			// Add ActionCooldown to ALL matching CountryActionCard entities
-			int[] allCardReq = { TypeId<CountryActionCard>.Value };
-			var toCooldown = new List<int>();
-			foreach (var arch in world.GetMatchingArchetypes(allCardReq, null)) {
-				CountryActionCard[] cards = arch.GetColumn<CountryActionCard>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (cards[i].OrgId == cmd.OrgId && cards[i].CountryId == cmd.CountryId &&
-					    cards[i].ActionId == cmd.ActionId && cards[i].TargetCharacterId == cmd.TargetCharacterId) {
-						toCooldown.Add(arch.Entities[i]);
-					}
-				}
-			}
-			var cooldownEnd = currentTime.AddMonths(def.CooldownMonths);
-			foreach (int e in toCooldown) {
-				if (!world.Has<ActionCooldown>(e)) {
-					world.Add(e, new ActionCooldown { CooldownEndTime = cooldownEnd });
-				} else {
-					ref ActionCooldown cd = ref world.Get<ActionCooldown>(e);
-					cd.CooldownEndTime = cooldownEnd;
-				}
-			}
-
 			// Roll success
-			float successRate = def.SuccessRateBase + (def.SuccessRateInfluenceDivisor > 0
-				? orgInfluence / (float)def.SuccessRateInfluenceDivisor : 0f);
+			float successRate = (float)ExpressionNode.Evaluate(def.SuccessRateNode, new ExpressionContext { Influence = orgInfluence });
 			if (successRate > 1f) { successRate = 1f; }
 			result.Success = (float)rng.NextDouble() < successRate;
 
 			if (result.Success) {
-				// Add influence if pool not full
-				if (def.InfluenceOnSuccess > 0) {
-					int usedTotal = 0;
-					foreach (var arch in world.GetMatchingArchetypes(infReq, null)) {
-						InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
-						int count = arch.Count;
-						for (int i = 0; i < count; i++) {
-							if (effects[i].CountryId == cmd.CountryId) {
-								usedTotal += effects[i].Value;
+				// Apply influence effects
+				foreach (var effectId in def.EffectIds) {
+					var effectEntry = effectConfig.Find(effectId);
+					if (effectEntry is InfluenceChangeEffectParams influenceParams && influenceParams.Amount > 0) {
+						int usedTotal = 0;
+						foreach (var arch in world.GetMatchingArchetypes(infReq, null)) {
+							InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+							int count = arch.Count;
+							for (int i = 0; i < count; i++) {
+								if (effects[i].CountryId == cmd.CountryId) {
+									usedTotal += effects[i].Value;
+								}
 							}
 						}
-					}
-					if (usedTotal < 100) {
-						int toAdd = Math.Min(def.InfluenceOnSuccess, 100 - usedTotal);
-						int ie = world.Create();
-						world.Add(ie, new InfluenceEffect {
-							OrgId = cmd.OrgId,
-							CountryId = cmd.CountryId,
-							Value = toAdd,
-							EffectId = $"country_action_{cmd.OrgId}_{cmd.ActionId}_{currentTime.Ticks}"
-						});
+						if (usedTotal < 100) {
+							int toAdd = Math.Min(influenceParams.Amount, 100 - usedTotal);
+							int ie = world.Create();
+							world.Add(ie, new InfluenceEffect {
+								OrgId = cmd.OrgId,
+								CountryId = cmd.CountryId,
+								Value = toAdd,
+								EffectId = $"country_action_{cmd.OrgId}_{cmd.ActionId}_{currentTime.Ticks}"
+							});
+						}
 					}
 				}
 
-				// Add opinion modifier to target character
-				if (!string.IsNullOrEmpty(def.OpinionModifierSourceId) && !string.IsNullOrEmpty(cmd.TargetCharacterId)) {
-					int[] charReq = { TypeId<Character>.Value, TypeId<CharacterOpinion>.Value };
-					foreach (var arch in world.GetMatchingArchetypes(charReq, null)) {
-						Character[] chars = arch.GetColumn<Character>();
-						CharacterOpinion[] opinions = arch.GetColumn<CharacterOpinion>();
-						int count = arch.Count;
-						for (int i = 0; i < count; i++) {
-							if (chars[i].CharacterId != cmd.TargetCharacterId) { continue; }
-							ref CharacterOpinion opinion = ref opinions[i];
-							if (opinion.ModifiersPerOrg == null) {
-								opinion.ModifiersPerOrg = new Dictionary<string, List<OpinionModifier>>();
+				// Apply opinion modifier effects
+				foreach (var effectId in def.EffectIds) {
+					var effectEntry = effectConfig.Find(effectId);
+					if (effectEntry is OpinionModifierEffectParams opinionParams) {
+						if (!string.IsNullOrEmpty(opinionParams.SourceId) && !string.IsNullOrEmpty(cmd.TargetCharacterId)) {
+							int[] charReq = { TypeId<Character>.Value, TypeId<CharacterOpinion>.Value };
+							foreach (var arch in world.GetMatchingArchetypes(charReq, null)) {
+								Character[] chars = arch.GetColumn<Character>();
+								CharacterOpinion[] opinions = arch.GetColumn<CharacterOpinion>();
+								int count = arch.Count;
+								for (int i = 0; i < count; i++) {
+									if (chars[i].CharacterId != cmd.TargetCharacterId) { continue; }
+									ref CharacterOpinion opinion = ref opinions[i];
+									if (opinion.ModifiersPerOrg == null) {
+										opinion.ModifiersPerOrg = new Dictionary<string, List<OpinionModifier>>();
+									}
+									if (!opinion.ModifiersPerOrg.TryGetValue(cmd.OrgId, out var list)) {
+										list = new List<OpinionModifier>();
+										opinion.ModifiersPerOrg[cmd.OrgId] = list;
+									}
+									list.Add(new OpinionModifier {
+										SourceId = opinionParams.SourceId,
+										Value = opinionParams.InitialValue,
+										ChangeValue = -opinionParams.DecayPerMonth
+									});
+									break;
+								}
 							}
-							if (!opinion.ModifiersPerOrg.TryGetValue(cmd.OrgId, out var list)) {
-								list = new List<OpinionModifier>();
-								opinion.ModifiersPerOrg[cmd.OrgId] = list;
-							}
-							list.Add(new OpinionModifier {
-								SourceId = def.OpinionModifierSourceId,
-								Value = def.OpinionModifierValue,
-								ChangeValue = def.OpinionModifierChangeValue
-							});
-							break;
 						}
 					}
 				}
@@ -192,7 +149,7 @@ namespace GS.Game.Systems {
 				}
 			}
 
-			// Find eligible deck cards (no InHand, no ActionCooldown, threshold met)
+			// Find eligible deck cards (no InHand, conditions met)
 			int[] deckReq = { TypeId<CountryActionCard>.Value };
 			int[] excludeInHand = { TypeId<InHand>.Value };
 
@@ -203,29 +160,25 @@ namespace GS.Game.Systems {
 				for (int i = 0; i < count; i++) {
 					if (cards[i].OrgId != cmd.OrgId || cards[i].CountryId != cmd.CountryId) { continue; }
 					var d = config.Find(cards[i].ActionId);
-					if (d == null || d.InfluenceThreshold > newOrgInfluence) { continue; }
+					if (d == null) { continue; }
+					bool eligible = true;
+					var drawCtx = new ExpressionContext { Influence = newOrgInfluence };
+					foreach (var cond in d.Conditions) {
+						if (ExpressionNode.Evaluate(cond, drawCtx) == 0.0) {
+							eligible = false;
+							break;
+						}
+					}
+					if (!eligible) { continue; }
 					noHandIds.Add(arch.Entities[i]);
 				}
 			}
-			int[] cooldownOnly = { TypeId<CountryActionCard>.Value, TypeId<ActionCooldown>.Value };
-			var onCooldownIds = new HashSet<int>();
-			foreach (var arch in world.GetMatchingArchetypes(cooldownOnly, null)) {
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					onCooldownIds.Add(arch.Entities[i]);
-				}
-			}
-			var eligible = new List<int>();
-			foreach (int id in noHandIds) {
-				if (!onCooldownIds.Contains(id)) {
-					eligible.Add(id);
-				}
-			}
+			var eligible2 = new List<int>(noHandIds);
 
 			// Fisher-Yates shuffle
-			for (int i = eligible.Count - 1; i > 0; i--) {
+			for (int i = eligible2.Count - 1; i > 0; i--) {
 				int j = rng.Next(i + 1);
-				(eligible[i], eligible[j]) = (eligible[j], eligible[i]);
+				(eligible2[i], eligible2[j]) = (eligible2[j], eligible2[i]);
 			}
 
 			// Fill hand up to MaxHandSize
@@ -241,16 +194,56 @@ namespace GS.Game.Systems {
 					}
 				}
 			}
-			int toDraw = Math.Min(MaxHandSize - occupiedSlots.Count, eligible.Count);
+			int toDraw = Math.Min(MaxHandSize - occupiedSlots.Count, eligible2.Count);
 			int drawIdx = 0;
 			for (int slot = 0; slot < MaxHandSize && drawIdx < toDraw; slot++) {
 				if (!occupiedSlots.Contains(slot)) {
-					world.Add(eligible[drawIdx], new InHand { SlotIndex = slot });
+					world.Add(eligible2[drawIdx], new InHand { SlotIndex = slot });
 					drawIdx++;
 				}
 			}
 
 			return result;
+		}
+
+		static bool CanAffordCost(World world, string ownerId, List<ActionCost> costs) {
+			foreach (var cost in costs) {
+				int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+				bool found = false;
+				foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+					ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+					Resource[] resources = arch.GetColumn<Resource>();
+					int count = arch.Count;
+					for (int i = 0; i < count; i++) {
+						if (owners[i].OwnerId != ownerId || resources[i].ResourceId != cost.ResourceId) { continue; }
+						if (resources[i].Value < cost.Amount) { return false; }
+						found = true;
+						break;
+					}
+					if (found) { break; }
+				}
+				if (!found && cost.Amount > 0) { return false; }
+			}
+			return true;
+		}
+
+		static void DeductCost(World world, string ownerId, List<ActionCost> costs) {
+			foreach (var cost in costs) {
+				int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+				bool deducted = false;
+				foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+					ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+					Resource[] resources = arch.GetColumn<Resource>();
+					int count = arch.Count;
+					for (int i = 0; i < count; i++) {
+						if (owners[i].OwnerId != ownerId || resources[i].ResourceId != cost.ResourceId) { continue; }
+						resources[i].Value -= cost.Amount;
+						deducted = true;
+						break;
+					}
+					if (deducted) { break; }
+				}
+			}
 		}
 	}
 }

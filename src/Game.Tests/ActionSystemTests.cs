@@ -9,7 +9,7 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class ActionSystemTests {
-		static (World world, int goldEntity, int cardEntity, int pmEntity) BuildActionWorld(float successRate = 1.0f) {
+		static (World world, int goldEntity, int cardEntity, int pmEntity) BuildActionWorld(double successRate = 1.0) {
 			var world = new World();
 
 			// Countries
@@ -49,25 +49,35 @@ namespace GS.Game.Tests {
 			return (world, goldEntity, cardEntity, pmEntity);
 		}
 
-		static ActionConfig BuildActionConfig(float successRate = 1.0f) {
-			return new ActionConfig {
+		static (ActionConfig actionConfig, EffectConfig effectConfig) BuildConfigs(double successRate = 1.0) {
+			var actionConfig = new ActionConfig {
 				Defaults = new List<ActionOwnerDefaults> {
 					new ActionOwnerDefaults { OwnerType = "org", HandSize = 1 }
 				},
 				Actions = new List<ActionDefinition> {
 					new ActionDefinition {
 						ActionId = "discover_country",
-						SuccessRate = successRate,
-						Prices = new List<ActionPrice> {
-							new ActionPrice { ResourceId = "gold", Amount = 100 }
+						SuccessRateNode = new ExpressionNode { Type = "value", Value = successRate },
+						Cost = new List<ActionCost> {
+							new ActionCost { ResourceId = "gold", Amount = 100 }
 						},
-						MinCountryChance = 0.01f
+						EffectIds = new List<string> { "discover_country_effect" }
 					}
 				},
 				OrgPools = new List<OrgActionPool> {
 					new OrgActionPool { OrgId = "Illuminati", ActionIds = new List<string> { "discover_country" } }
 				}
 			};
+			var effectConfig = new EffectConfig {
+				Effects = new List<ActionEffectDefinition> {
+					new DiscoverCountryEffectParams {
+						EffectId = "discover_country_effect",
+						EffectType = "DiscoverCountry",
+						MinCountryChance = 0.01
+					}
+				}
+			};
+			return (actionConfig, effectConfig);
 		}
 
 		static PlayActionCommand MakeCmd() {
@@ -85,10 +95,10 @@ namespace GS.Game.Tests {
 		[Fact]
 		void play_action_deducts_gold() {
 			var (world, goldEntity, _, pmEntity) = BuildActionWorld();
-			var config = BuildActionConfig(1.0f);
+			var (config, effectConfig) = BuildConfigs(1.0);
 			var rng = new Random(42);
 
-			ActionSystem.ProcessPlayAction(world, MakeCmd(), config, pmEntity, rng);
+			ActionSystem.ProcessPlayAction(world, MakeCmd(), config, effectConfig, pmEntity, rng);
 
 			Assert.Equal(400.0, world.Get<Resource>(goldEntity).Value);
 		}
@@ -100,10 +110,10 @@ namespace GS.Game.Tests {
 			ref Resource gold = ref world.Get<Resource>(goldEntity);
 			gold.Value = 50;
 
-			var config = BuildActionConfig(1.0f);
+			var (config, effectConfig) = BuildConfigs(1.0);
 			var rng = new Random(42);
 
-			var result = ActionSystem.ProcessPlayAction(world, MakeCmd(), config, pmEntity, rng);
+			var result = ActionSystem.ProcessPlayAction(world, MakeCmd(), config, effectConfig, pmEntity, rng);
 
 			Assert.False(result.Executed);
 			Assert.Equal(50.0, world.Get<Resource>(goldEntity).Value);
@@ -112,10 +122,10 @@ namespace GS.Game.Tests {
 		[Fact]
 		void play_action_success_marks_country_discovered() {
 			var (world, _, _, pmEntity) = BuildActionWorld();
-			var config = BuildActionConfig(1.0f);
+			var (config, effectConfig) = BuildConfigs(1.0);
 			var rng = new Random(42);
 
-			ActionSystem.ProcessPlayAction(world, MakeCmd(), config, pmEntity, rng);
+			ActionSystem.ProcessPlayAction(world, MakeCmd(), config, effectConfig, pmEntity, rng);
 
 			int discoveredCount = 0;
 			int[] req = { TypeId<Country>.Value, TypeId<IsDiscovered>.Value };
@@ -129,10 +139,10 @@ namespace GS.Game.Tests {
 		[Fact]
 		void play_action_failure_does_not_discover() {
 			var (world, _, _, pmEntity) = BuildActionWorld();
-			var config = BuildActionConfig(0.0f);
+			var (config, effectConfig) = BuildConfigs(0.0);
 			var rng = new Random(42);
 
-			ActionSystem.ProcessPlayAction(world, MakeCmd(), config, pmEntity, rng);
+			ActionSystem.ProcessPlayAction(world, MakeCmd(), config, effectConfig, pmEntity, rng);
 
 			// Only Russia should be discovered
 			int discoveredCount = 0;
@@ -148,7 +158,7 @@ namespace GS.Game.Tests {
 			// With a single card in pool: after playing, card goes to deck, then immediately re-drawn.
 			// Verify that exactly 1 card is in hand (the cycle completes) and all cards still belong to owner.
 			var (world, _, cardEntity, pmEntity) = BuildActionWorld();
-			var config = BuildActionConfig(1.0f);
+			var (config, effectConfig) = BuildConfigs(1.0);
 			var rng = new Random(42);
 
 			// Before play: 1 in hand
@@ -159,7 +169,7 @@ namespace GS.Game.Tests {
 			}
 			Assert.Equal(1, handBefore);
 
-			ActionSystem.ProcessPlayAction(world, MakeCmd(), config, pmEntity, rng);
+			ActionSystem.ProcessPlayAction(world, MakeCmd(), config, effectConfig, pmEntity, rng);
 
 			// After play: still 1 in hand (card cycled through deck and re-drawn)
 			int handAfter = 0;
@@ -182,10 +192,10 @@ namespace GS.Game.Tests {
 			int card2Entity = world.Create();
 			world.Add(card2Entity, new ActionCard { ActionId = "discover_country", OwnerId = "Illuminati" });
 
-			var config = BuildActionConfig(1.0f);
+			var (config, effectConfig) = BuildConfigs(1.0);
 			var rng = new Random(42);
 
-			ActionSystem.ProcessPlayAction(world, MakeCmd(), config, pmEntity, rng);
+			ActionSystem.ProcessPlayAction(world, MakeCmd(), config, effectConfig, pmEntity, rng);
 
 			// Exactly one card should be in hand
 			int handCount = 0;
@@ -203,10 +213,10 @@ namespace GS.Game.Tests {
 		[Fact]
 		void play_action_executed_sets_result() {
 			var (world, _, _, pmEntity) = BuildActionWorld();
-			var config = BuildActionConfig(1.0f);
+			var (config, effectConfig) = BuildConfigs(1.0);
 			var rng = new Random(42);
 
-			var result = ActionSystem.ProcessPlayAction(world, MakeCmd(), config, pmEntity, rng);
+			var result = ActionSystem.ProcessPlayAction(world, MakeCmd(), config, effectConfig, pmEntity, rng);
 
 			Assert.True(result.Executed);
 			Assert.True(result.Success);

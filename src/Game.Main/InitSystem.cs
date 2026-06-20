@@ -380,8 +380,12 @@ namespace GS.Main {
 		}
 
 		static void CreateCountryActionEntities(World world, GameLogicContext context, Random rng) {
-			var countryActionConfig = context.CountryAction.Load();
-			if (countryActionConfig.Actions.Count == 0) { return; }
+			var actionConfig = context.Action.Load();
+			var countryActions = new List<ActionDefinition>();
+			foreach (var a in actionConfig.Actions) {
+				if (a.OwnerType == "country") { countryActions.Add(a); }
+			}
+			if (countryActions.Count == 0) { return; }
 			var countryConfig = context.Country.Load();
 
 			string orgId = context.InitialOrganizationId;
@@ -410,9 +414,14 @@ namespace GS.Main {
 				}
 			}
 
+			int handSize = actionConfig.GetHandSize("country");
+
 			foreach (var entry in countryConfig.Countries) {
 				if (!entry.IsAvailable) { continue; }
-				foreach (var def in countryActionConfig.Actions) {
+
+				var createdEntities = new List<(int entity, string actionId)>();
+
+				foreach (var def in countryActions) {
 					// Determine targets
 					var targets = new List<string>();
 					if (def.TargetRole == "") {
@@ -433,13 +442,55 @@ namespace GS.Main {
 								ActionId = def.ActionId,
 								TargetCharacterId = targetCharId
 							});
-							if (def.PreDealtToHand && copyIndex == 0) {
-								world.Add(e, new InHand { SlotIndex = 0 });
-							}
+							createdEntities.Add((e, def.ActionId));
 						}
 					}
 				}
+
+				// Populate initial hand
+				if (handSize > 0 && createdEntities.Count > 0) {
+					int orgInfluence = GetOrgInfluenceInCountry(world, orgId, entry.CountryId);
+					var eligibleEntities = new List<int>();
+					foreach (var (e, actionId) in createdEntities) {
+						var d = actionConfig.Find(actionId);
+						if (d == null) { continue; }
+						bool eligible = true;
+						var ctx = new ExpressionContext { Influence = orgInfluence };
+						foreach (var cond in d.Conditions) {
+							if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
+								eligible = false;
+								break;
+							}
+						}
+						if (eligible) { eligibleEntities.Add(e); }
+					}
+
+					// Fisher-Yates shuffle
+					for (int i = eligibleEntities.Count - 1; i > 0; i--) {
+						int j = rng.Next(i + 1);
+						(eligibleEntities[i], eligibleEntities[j]) = (eligibleEntities[j], eligibleEntities[i]);
+					}
+
+					for (int slot = 0; slot < handSize && slot < eligibleEntities.Count; slot++) {
+						world.Add(eligibleEntities[slot], new InHand { SlotIndex = slot });
+					}
+				}
 			}
+		}
+
+		static int GetOrgInfluenceInCountry(World world, string orgId, string countryId) {
+			int total = 0;
+			int[] req = { TypeId<InfluenceEffect>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (effects[i].OrgId == orgId && effects[i].CountryId == countryId) {
+						total += effects[i].Value;
+					}
+				}
+			}
+			return total;
 		}
 
 		static void DiscoverInitialCountries(World world, GameLogicContext context) {

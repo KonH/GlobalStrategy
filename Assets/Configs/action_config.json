@@ -1,20 +1,204 @@
 {
   "defaults": [
-    { "ownerType": "org",       "handSize": 1 },
-    { "ownerType": "country",   "handSize": 0 },
-    { "ownerType": "character", "handSize": 0 }
+    { "ownerType": "org",     "handSize": 1 },
+    { "ownerType": "country", "handSize": 3 }
   ],
   "actions": [
     {
       "actionId": "discover_country",
+      "ownerType": "org",
       "rarity": "Standard",
       "nameKey": "action.discover_country.name",
       "descKey": "action.discover_country.desc",
+      "targetRole": "",
+      "deckCopies": 1,
       "conditions": [],
-      "prices": [{ "resourceId": "gold", "amount": 100.0 }],
+      "cost": [{ "resourceId": "gold", "amount": 100.0 }],
       "effectIds": ["discover_country"],
-      "successRate": 0.75,
-      "minCountryChance": 0.01
+      "successRateNode": { "type": "value", "value": 0.75 }
+    },
+    {
+      "actionId": "sphere_of_pressure",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.sphere_of_pressure.name",
+      "descKey": "action.sphere_of_pressure.desc",
+      "targetRole": "",
+      "deckCopies": 3,
+      "conditions": [],
+      "cost": [{ "resourceId": "gold", "amount": 200.0 }],
+      "effectIds": ["sphere_of_pressure_influence"],
+      "successRateNode": { "type": "value", "value": 0.5 }
+    },
+    {
+      "actionId": "letter_of_commendation_diplomacy_advisor",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.letter_of_commendation_diplomacy_advisor.name",
+      "descKey": "action.letter_of_commendation_diplomacy_advisor.desc",
+      "targetRole": "diplomacy_advisor",
+      "deckCopies": 3,
+      "conditions": [
+        {
+          "type": "gte",
+          "members": [
+            { "type": "influence" },
+            { "type": "value", "value": 10 }
+          ]
+        }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 50.0 }],
+      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"],
+      "successRateNode": {
+        "type": "clamp",
+        "members": [
+          {
+            "type": "add",
+            "members": [
+              { "type": "value", "value": 0.3 },
+              { "type": "div", "members": [ { "type": "influence" }, { "type": "value", "value": 2 } ] }
+            ]
+          },
+          { "type": "value", "value": 0 },
+          { "type": "value", "value": 1 }
+        ]
+      }
+    },
+    {
+      "actionId": "letter_of_commendation_economic_advisor",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.letter_of_commendation_economic_advisor.name",
+      "descKey": "action.letter_of_commendation_economic_advisor.desc",
+      "targetRole": "economic_advisor",
+      "deckCopies": 3,
+      "conditions": [
+        {
+          "type": "gte",
+          "members": [
+            { "type": "influence" },
+            { "type": "value", "value": 10 }
+          ]
+        }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 50.0 }],
+      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"],
+      "successRateNode": {
+        "type": "clamp",
+        "members": [
+          {
+            "type": "add",
+            "members": [
+              { "type": "value", "value": 0.3 },
+              { "type": "div", "members": [ { "type": "influence" }, { "type": "value", "value": 20 } ] }
+            ]
+          },
+          { "type": "value", "value": 0 },
+          { "type": "value", "value": 1 }
+        ]
+      }
+    },
+    {
+      "actionId": "letter_of_commendation_military_advisor",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.letter_of_commendation_military_advisor.name",
+      "descKey": "action.letter_of_commendation_military_advisor.desc",
+      "targetRole": "military_advisor",
+      "deckCopies": 3,
+      "conditions": [
+        {
+          "type": "gte",
+          "members": [
+            { "type": "influence" },
+            { "type": "value", "value": 10 }
+          ]
+        }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 50.0 }],
+      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"],
+      "successRateNode": {
+        "type": "clamp",
+        "members": [
+          {
+            "type": "add",
+            "members": [
+              { "type": "value", "value": 0.3 },
+              { "type": "div", "members": [ { "type": "influence" }, { "type": "value", "value": 20 } ] }
+            ]
+          },
+          { "type": "value", "value": 0 },
+          { "type": "value", "value": 1 }
+        ]
+      }
+    },
+    {
+      "actionId": "letter_of_commendation_secret_advisor",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.letter_of_commendation_secret_advisor.name",
+      "descKey": "action.letter_of_commendation_secret_advisor.desc",
+      "targetRole": "secret_advisor",
+      "deckCopies": 3,
+      "conditions": [
+        {
+          "type": "gte",
+          "members": [
+            { "type": "influence" },
+            { "type": "value", "value": 10 }
+          ]
+        }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 50.0 }],
+      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"],
+      "successRateNode": {
+        "type": "clamp",
+        "members": [
+          {
+            "type": "add",
+            "members": [
+              { "type": "value", "value": 0.3 },
+              { "type": "div", "members": [ { "type": "influence" }, { "type": "value", "value": 20 } ] }
+            ]
+          },
+          { "type": "value", "value": 0 },
+          { "type": "value", "value": 1 }
+        ]
+      }
+    },
+    {
+      "actionId": "royal_audience",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.royal_audience.name",
+      "descKey": "action.royal_audience.desc",
+      "targetRole": "ruler",
+      "deckCopies": 3,
+      "conditions": [
+        {
+          "type": "gte",
+          "members": [
+            { "type": "influence" },
+            { "type": "value", "value": 20 }
+          ]
+        }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 100.0 }],
+      "effectIds": ["royal_audience_influence", "royal_audience_opinion"],
+      "successRateNode": {
+        "type": "clamp",
+        "members": [
+          {
+            "type": "add",
+            "members": [
+              { "type": "value", "value": 0.2 },
+              { "type": "div", "members": [ { "type": "influence" }, { "type": "value", "value": 30 } ] }
+            ]
+          },
+          { "type": "value", "value": 0 },
+          { "type": "value", "value": 1 }
+        ]
+      }
     }
   ],
   "orgPools": [
