@@ -1,5 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/Overlay/OrgInfo/OrgInfo.uss"/>
     <ui:Style src="project://database/Assets/UI/Overlay/OrgInfo/OrgActions.uss"/>
     <ui:Style src="project://database/Assets/UI/HUD/CountryInfo/CountryInfo.uss" />
     <ui:VisualElement name="characters-slide" class="characters-slide">
@@ -20,11 +21,12 @@
             <ui:VisualElement name="resources-container" class="resources-container" />
         </ui:VisualElement>
         <ui:VisualElement class="country-toggle-block">
-            <ui:Button name="chars-toggle-btn" class="gs-btn gs-btn--small">
-                <ui:VisualElement class="chars-toggle-btn-icon" picking-mode="Ignore" />
+            <ui:Button name="chars-toggle-btn" class="chars-toggle-btn gs-btn gs-btn--small">
+                <ui:VisualElement class="org-toggle-btn-icon org-toggle-btn-icon--characters" picking-mode="Ignore" />
                 <ui:Label text="Characters &#x25B2;" picking-mode="Ignore" />
             </ui:Button>
-            <ui:Button name="actions-toggle-btn" class="gs-btn gs-btn--small">
+            <ui:Button name="actions-toggle-btn" class="chars-toggle-btn gs-btn gs-btn--small">
+                <ui:VisualElement class="org-toggle-btn-icon org-toggle-btn-icon--actions" picking-mode="Ignore" />
                 <ui:Label text="Actions &#x25B2;" picking-mode="Ignore" />
             </ui:Button>
         </ui:VisualElement>

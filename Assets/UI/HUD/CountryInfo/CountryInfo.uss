@@ -67,8 +67,7 @@
 .country-toggle-block {
     flex-direction: column;
     align-items: stretch;
-    min-width: 160px;
-    gap: 4px;
+    min-width: 180px;
 }
 
 /* Hand-only overlays — not shared with test/flying cards */
