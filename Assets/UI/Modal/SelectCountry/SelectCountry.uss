@@ -11,7 +11,7 @@
 
 .info-panel {
     padding: 16px 20px;
-    width: 280px;
+    width: 320px;
 }
 
 .country-name {
