@@ -3,7 +3,7 @@ using VContainer.Unity;
 using GS.Main;
 
 namespace GS.Unity.UI {
-	class AnimationBarrierDriver : ITickable {
+	public class AnimationBarrierDriver : ITickable {
 		readonly VisualState _state;
 
 		public AnimationBarrierDriver(VisualState state) {

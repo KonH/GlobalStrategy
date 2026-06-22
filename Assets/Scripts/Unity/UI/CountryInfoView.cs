@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
@@ -10,23 +11,23 @@ namespace GS.Unity.UI {
 		readonly VisualElement _root;
 		readonly Label _name;
 		readonly Label _influenceLabel;
-		readonly VisualElement _influenceRow;
-		readonly VisualElement _charsSlide;
-		readonly Button _charsToggleBtn;
-		readonly VisualElement _actionsSlide;
-		readonly Button _actionsToggleBtn;
+		readonly VisualElement? _influenceRow;
+		readonly VisualElement? _charsSlide;
+		readonly Button? _charsToggleBtn;
+		readonly VisualElement? _actionsSlide;
+		readonly Button? _actionsToggleBtn;
 		readonly ILocalization _loc;
 		readonly ResourcesView _resourcesView;
 		readonly CharactersView _charactersView;
-		CountryActionsView _actionsView;
-		CountryInfluenceState _influenceState;
+		CountryActionsView? _actionsView;
+		CountryInfluenceState? _influenceState;
 		bool _charsOpen;
 		bool _actionsOpen;
-		string _lastCountryId;
+		string? _lastCountryId;
 
-		public event Action<bool> OnSubPanelOpened;
-		public event Action<string, string, VisualElement> OnCountryActionCardClicked;
-		public CountryActionsView ActionsView => _actionsView;
+		public event Action<bool>? OnSubPanelOpened;
+		public event Action<string, string, VisualElement>? OnCountryActionCardClicked;
+		public CountryActionsView? ActionsView => _actionsView;
 		public void OpenChars() => SetCharsOpen(true);
 
 		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, Dictionary<string, AnimatableInt>? characterOpinions = null) {
@@ -71,7 +72,7 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		public void Refresh(SelectedCountryState selected, PlayerCountryState player, CountryResourcesState resources, CountryInfluenceState influence, CountryCharactersState characters, CountryActionsState countryActions, CountryResourcesState playerResources = null) {
+		public void Refresh(SelectedCountryState selected, PlayerCountryState player, CountryResourcesState resources, CountryInfluenceState influence, CountryCharactersState characters, CountryActionsState countryActions, CountryResourcesState? playerResources = null) {
 			_root.style.display = selected.IsValid ? DisplayStyle.Flex : DisplayStyle.None;
 			if (selected.IsValid) {
 				_name.text = _loc.Get($"country_name.{selected.CountryId}");

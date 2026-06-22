@@ -150,7 +150,7 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 			var slots = GetCharacterSlots(logic.World, "Illuminati");
 			var masterSlots = slots.FindAll(s => s.RoleId == "master");
-			Assert.Equal(1, masterSlots.Count);
+			Assert.Single(masterSlots);
 		}
 
 		[Fact]

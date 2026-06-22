@@ -1,3 +1,4 @@
+#nullable enable
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -11,7 +12,7 @@ namespace GS.Unity.UI {
 		readonly ILocalization _loc;
 		readonly CharacterConfig _characterConfig;
 		readonly TooltipSystem _tooltip;
-		readonly CharacterVisualConfig _visualConfig;
+		readonly CharacterVisualConfig? _visualConfig;
 		readonly Dictionary<string, AnimatableInt>? _characterOpinions;
 
 		public CharactersView(VisualElement container, ILocalization loc, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig visualConfig, Dictionary<string, AnimatableInt>? characterOpinions = null) {
@@ -91,7 +92,7 @@ namespace GS.Unity.UI {
 
 			foreach (var skillDef in _characterConfig.Skills) {
 				if (!roleSkillIds.Contains(skillDef.SkillId)) { continue; }
-				SkillEntry skill = null;
+				SkillEntry? skill = null;
 				foreach (var s in entry.Skills) {
 					if (s.SkillId == skillDef.SkillId) { skill = s; break; }
 				}

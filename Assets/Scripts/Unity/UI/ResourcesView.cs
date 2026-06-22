@@ -1,3 +1,4 @@
+#nullable enable
 using System.Collections.Generic;
 using UnityEngine.UIElements;
 using GS.Main;
@@ -163,7 +164,7 @@ namespace GS.Unity.UI {
 			return root;
 		}
 
-		VisualElement BuildMonthlyEffectList(TooltipContext ctx, string headerText, ResourceStateEntry resource, ResourceDefinition resDef, bool positiveOnly) {
+		VisualElement BuildMonthlyEffectList(TooltipContext ctx, string headerText, ResourceStateEntry resource, ResourceDefinition? resDef, bool positiveOnly) {
 			var root = new VisualElement();
 
 			var header = new Label(headerText);
@@ -206,7 +207,7 @@ namespace GS.Unity.UI {
 			return root;
 		}
 
-		VisualElement BuildInstantEffectList(TooltipContext ctx, string headerText, ResourceStateEntry resource, ResourceDefinition resDef) {
+		VisualElement BuildInstantEffectList(TooltipContext ctx, string headerText, ResourceStateEntry resource, ResourceDefinition? resDef) {
 			var root = new VisualElement();
 
 			var header = new Label(headerText);

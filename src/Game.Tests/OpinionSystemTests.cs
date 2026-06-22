@@ -33,7 +33,7 @@ namespace GS.Game.Tests {
 			int[] req = { TypeId<CharacterOpinion>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
 				CharacterOpinion[] ops = arch.GetColumn<CharacterOpinion>();
-				Assert.Equal(1, ops[0].ModifiersPerOrg["org1"].Count);
+				Assert.Single(ops[0].ModifiersPerOrg["org1"]);
 				Assert.Equal(2, ops[0].ModifiersPerOrg["org1"][0].Value);
 			}
 		}
@@ -58,7 +58,7 @@ namespace GS.Game.Tests {
 			int[] req = { TypeId<CharacterOpinion>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
 				CharacterOpinion[] ops = arch.GetColumn<CharacterOpinion>();
-				Assert.Equal(0, ops[0].ModifiersPerOrg["org1"].Count);
+				Assert.Empty(ops[0].ModifiersPerOrg["org1"]);
 			}
 		}
 
