@@ -37,6 +37,7 @@ namespace GS.Main {
 
 		void UpdateCharacters(IReadOnlyWorld world) {
 			if (!_state.SelectedCountry.IsValid) {
+				_state.CharacterOpinions.Clear();
 				_state.SelectedCharacters.Set(new List<CharacterStateEntry>());
 				return;
 			}
@@ -114,6 +115,17 @@ namespace GS.Main {
 				if (bi < 0) { bi = int.MaxValue; }
 				return ai.CompareTo(bi);
 			});
+
+			var newCharIds = new System.Collections.Generic.HashSet<string>();
+			foreach (var entry in entries) {
+				_state.CharacterOpinions.GetOrCreate(entry.CharacterId).SetActual(entry.Opinion);
+				newCharIds.Add(entry.CharacterId);
+			}
+			var keysToRemove = new System.Collections.Generic.List<string>();
+			foreach (var key in _state.CharacterOpinions.Keys) {
+				if (!newCharIds.Contains(key)) { keysToRemove.Add(key); }
+			}
+			foreach (var key in keysToRemove) { _state.CharacterOpinions.Remove(key); }
 
 			_state.SelectedCharacters.Set(entries);
 		}
@@ -243,6 +255,12 @@ namespace GS.Main {
 				playerOrgId,
 				BuildResources(world, playerOrgId),
 				orgInfluenceIncomes);
+			foreach (var entry in _state.PlayerResources.Resources) {
+				if (entry.ResourceId == "gold") {
+					_state.PlayerGold.SetActual(entry.Value);
+					break;
+				}
+			}
 			_state.SelectedResources.Set(
 				_state.SelectedCountry.IsValid,
 				selectedCountryId,
@@ -278,6 +296,7 @@ namespace GS.Main {
 		void UpdateSelectedInfluence(IReadOnlyWorld world) {
 			string selectedCountryId = _state.SelectedCountry.IsValid ? _state.SelectedCountry.CountryId : "";
 			if (!_state.SelectedCountry.IsValid) {
+				_state.SelectedCountryUsedInfluence.SetActual(0);
 				_state.SelectedInfluence.Set(0, new List<OrgInfluenceEntry>());
 				return;
 			}
@@ -337,6 +356,7 @@ namespace GS.Main {
 				entries.Add(new OrgInfluenceEntry(orgId, displayName, influence, baseInfl, permInfl, gain));
 			}
 			entries.Sort((a, b) => b.Influence.CompareTo(a.Influence));
+			_state.SelectedCountryUsedInfluence.SetActual(usedTotal);
 			_state.SelectedInfluence.Set(usedTotal, entries);
 		}
 

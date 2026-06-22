@@ -307,5 +307,8 @@ namespace GS.Main {
 		public OrgActionsState PlayerOrgActions             { get; } = new OrgActionsState();
 		public LastActionResultState LastAction             { get; } = new LastActionResultState();
 		public CountryActionsState SelectedCountryActions  { get; } = new CountryActionsState();
+		public AnimatableDouble PlayerGold { get; } = new AnimatableDouble();
+		public AnimatableInt SelectedCountryUsedInfluence { get; } = new AnimatableInt();
+		public Dictionary<string, AnimatableInt> CharacterOpinions { get; } = new Dictionary<string, AnimatableInt>();
 	}
 }
