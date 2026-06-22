@@ -1,6 +1,6 @@
 using System;
-using System.Collections;
 using System.ComponentModel;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
@@ -51,7 +51,7 @@ namespace GS.Unity.UI {
 			if (overlay == null) {
 				Debug.LogError("[CardPlayAnimator] card-transition-overlay not found in UIDocument.", this);
 			}
-			_transitionView = new CardTransitionView(overlay, this);
+			_transitionView = new CardTransitionView(overlay);
 		}
 
 		void OnEnable() {
@@ -74,7 +74,7 @@ namespace GS.Unity.UI {
 
 		public void StartCardPlay(string orgId, string actionId, VisualElement clickedCard) {
 			if (_isPlaying) { return; }
-			StartCoroutine(PlaySequence(orgId, actionId, clickedCard));
+			PlaySequence(orgId, actionId, clickedCard);
 		}
 
 		internal void SetActionsView(OrgActionsView view) {
@@ -87,10 +87,10 @@ namespace GS.Unity.UI {
 
 		public void StartCountryCardPlay(string orgId, string countryId, string actionId, string targetCharId, VisualElement clickedCard) {
 			if (_isPlaying) { return; }
-			StartCoroutine(PlayCountrySequence(orgId, countryId, actionId, targetCharId, clickedCard));
+			PlayCountrySequence(orgId, countryId, actionId, targetCharId, clickedCard);
 		}
 
-		IEnumerator PlaySequence(string orgId, string actionId, VisualElement clickedCard) {
+		async UniTaskVoid PlaySequence(string orgId, string actionId, VisualElement clickedCard) {
 			_isPlaying = true;
 			_resultReady = false;
 			ModalState.IsModalOpen = true;
@@ -99,7 +99,6 @@ namespace GS.Unity.UI {
 			_commands.Push(new PlayActionCommand { OwnerId = orgId, ActionId = actionId });
 			_commands.Push(new PauseCommand());
 
-			// Step 2: prepare card-test-overlay (visible but transparent)
 			var root = _hudDocument.rootVisualElement;
 			var overlay = root.Q("card-test-overlay");
 			var cardTestCard = root.Q("card-test-card");
@@ -116,19 +115,13 @@ namespace GS.Unity.UI {
 				}
 			}
 
-			// Step 3: transition card from hand position to test slot
-			bool transitionDone = false;
 			var fromRect = clickedCard.worldBound;
 			clickedCard.style.opacity = 0f;
 
-			// Step 5: capture deck rect before any state change
+			// Capture deck rect before any state change
 			var deckRect = _actionsView?.DeckPileElement?.worldBound ?? Rect.zero;
 
-			_transitionView.Show(actionId, fromRect, cardTestCard, 0.77f,
-				_actionConfig, _visualConfig, _loc, () => transitionDone = true);
-
-			// Step 6: wait for card to reach test position
-			while (!transitionDone) { yield return null; }
+			await _transitionView.Show(actionId, fromRect, cardTestCard, 0.77f, _actionConfig, _visualConfig, _loc);
 
 			if (overlay != null) {
 				overlay.style.opacity = 1f;
@@ -138,7 +131,6 @@ namespace GS.Unity.UI {
 			}
 			_transitionView.Hide();
 
-			// Step 7: animate roll, wait for result
 			if (rollBlock != null) {
 				rollBlock.style.display = DisplayStyle.Flex;
 				rollBlock.style.opacity = 0f;
@@ -146,7 +138,7 @@ namespace GS.Unity.UI {
 				while (t < 0.3f) {
 					t += Time.deltaTime;
 					rollBlock.style.opacity = Mathf.Clamp01(t / 0.3f);
-					yield return null;
+					await UniTask.NextFrame();
 				}
 				rollBlock.style.opacity = 1f;
 			}
@@ -156,7 +148,7 @@ namespace GS.Unity.UI {
 				if (rollLabel != null) {
 					rollLabel.text = $"{UnityEngine.Random.Range(1, 101)}%";
 				}
-				yield return new WaitForSeconds(0.33f);
+				await UniTask.Delay(330);
 				if (Time.time - startTime > 10f) { break; }
 			}
 
@@ -177,31 +169,20 @@ namespace GS.Unity.UI {
 					? new StyleColor(new Color(0.4f, 0.9f, 0.4f))
 					: new StyleColor(new Color(0.9f, 0.3f, 0.3f));
 			}
-			yield return new WaitForSeconds(1.5f);
+			await UniTask.Delay(1500);
 
-			// Step 8: transition card from test slot to deck
-			transitionDone = false;
+			// Start card-to-deck transition, then hide overlay concurrently before awaiting
 			var fromTestRect = cardTestCard != null ? cardTestCard.worldBound : Rect.zero;
 			var deckElement = _actionsView?.DeckPileElement;
-
-			_transitionView.Show(actionId, fromTestRect, deckElement ?? cardTestCard, 0.77f,
-				_actionConfig, _visualConfig, _loc, () => transitionDone = true);
-
-			// Step 9: hide test overlay and roll block
-			if (overlay != null) {
-				overlay.style.display = DisplayStyle.None;
-			}
-			if (rollBlock != null) {
-				rollBlock.style.display = DisplayStyle.None;
-			}
-
-			// Step 10: wait for card-to-deck transition
-			while (!transitionDone) { yield return null; }
+			var deckTransitionTask = _transitionView.Show(actionId, fromTestRect, deckElement ?? cardTestCard, 0.77f, _actionConfig, _visualConfig, _loc);
+			if (overlay != null) { overlay.style.display = DisplayStyle.None; }
+			if (rollBlock != null) { rollBlock.style.display = DisplayStyle.None; }
+			await deckTransitionTask;
 			_transitionView.Hide();
 
-			// Step 11: allow one Refresh() to rebuild hand with new card, then re-suppress
+			// Allow one Refresh() to rebuild hand with new card, then re-suppress
 			if (_actionsView != null) { _actionsView.SuppressRefresh = false; }
-			yield return null;
+			await UniTask.NextFrame();
 			if (_actionsView != null) { _actionsView.SuppressRefresh = true; }
 
 			VisualElement newHandCard = null;
@@ -217,18 +198,12 @@ namespace GS.Unity.UI {
 				}
 			}
 
-			// Step 12: transition from deck to new hand card position
 			if (newHandCard != null) {
-				transitionDone = false;
 				string newActionId = "";
 				if (_state.PlayerOrgActions.Hand.Count > 0) {
 					newActionId = _state.PlayerOrgActions.Hand[_state.PlayerOrgActions.Hand.Count - 1].ActionId;
 				}
-				_transitionView.Show(newActionId, deckRect, newHandCard, 0.5f,
-					_actionConfig, _visualConfig, _loc, () => transitionDone = true);
-
-				// Step 13: wait for transition, then show new card
-				while (!transitionDone) { yield return null; }
+				await _transitionView.Show(newActionId, deckRect, newHandCard, 0.5f, _actionConfig, _visualConfig, _loc);
 				newHandCard.style.opacity = 1f;
 				_transitionView.Hide();
 			}
@@ -236,10 +211,9 @@ namespace GS.Unity.UI {
 				_actionsView.SuppressRefresh = false;
 			}
 
-			// Step 14: show discovery fly-text if success
 			if (success && !string.IsNullOrEmpty(discoveredCountryId)) {
 				_cameraController?.PanToCountry(discoveredCountryId);
-				yield return new WaitForSeconds(1f);
+				await UniTask.Delay(1000);
 
 				if (flyText != null) {
 					string localizedName = _loc.Get($"country_name.{discoveredCountryId}");
@@ -255,23 +229,22 @@ namespace GS.Unity.UI {
 					while (t < 0.5f) {
 						t += Time.deltaTime;
 						flyText.style.opacity = Mathf.Clamp01(t / 0.5f);
-						yield return null;
+						await UniTask.NextFrame();
 					}
 					flyText.style.opacity = 1f;
 
-					yield return new WaitForSeconds(2f);
+					await UniTask.Delay(2000);
 
 					t = 0f;
 					while (t < 0.5f) {
 						t += Time.deltaTime;
 						flyText.style.opacity = 1f - Mathf.Clamp01(t / 0.5f);
-						yield return null;
+						await UniTask.NextFrame();
 					}
 					flyText.style.display = DisplayStyle.None;
 				}
 			}
 
-			// Step 15: unlock
 			_state.DiscoveredCountries.ClearRecentlyDiscovered();
 			_state.LastAction.Clear();
 			ModalState.IsModalOpen = false;
@@ -280,7 +253,7 @@ namespace GS.Unity.UI {
 			OnCardPlayComplete?.Invoke();
 		}
 
-		IEnumerator PlayCountrySequence(string orgId, string countryId, string actionId, string targetCharId, VisualElement clickedCard) {
+		async UniTaskVoid PlayCountrySequence(string orgId, string countryId, string actionId, string targetCharId, VisualElement clickedCard) {
 			_isPlaying = true;
 			_resultReady = false;
 			ModalState.IsModalOpen = true;
@@ -313,13 +286,11 @@ namespace GS.Unity.UI {
 				if (cardTestCard != null) { cardTestCard.style.opacity = 0f; }
 			}
 
-			bool transitionDone = false;
 			var fromRect = clickedCard.worldBound;
 			clickedCard.style.opacity = 0f;
 			var deckRect = _countryActionsView?.DeckPileElement?.worldBound ?? Rect.zero;
 
-			_transitionView.ShowCountry(actionId, fromRect, cardTestCard, 0.77f, _actionConfig, _visualConfig, _loc, () => transitionDone = true, capturedSuccessPct);
-			while (!transitionDone) { yield return null; }
+			await _transitionView.ShowCountry(actionId, fromRect, cardTestCard, 0.77f, _actionConfig, _visualConfig, _loc, capturedSuccessPct);
 
 			if (overlay != null) { overlay.style.opacity = 1f; }
 			if (cardTestCard != null) { cardTestCard.style.opacity = 1f; }
@@ -329,14 +300,14 @@ namespace GS.Unity.UI {
 				rollBlock.style.display = DisplayStyle.Flex;
 				rollBlock.style.opacity = 0f;
 				float t = 0f;
-				while (t < 0.3f) { t += Time.deltaTime; rollBlock.style.opacity = Mathf.Clamp01(t / 0.3f); yield return null; }
+				while (t < 0.3f) { t += Time.deltaTime; rollBlock.style.opacity = Mathf.Clamp01(t / 0.3f); await UniTask.NextFrame(); }
 				rollBlock.style.opacity = 1f;
 			}
 
 			float startTime = Time.time;
 			while (Time.time - startTime < 2f || !_resultReady) {
 				if (rollLabel != null) { rollLabel.text = $"{UnityEngine.Random.Range(1, 101)}%"; }
-				yield return new WaitForSeconds(0.33f);
+				await UniTask.Delay(330);
 				if (Time.time - startTime > 10f) { break; }
 			}
 
@@ -353,28 +324,28 @@ namespace GS.Unity.UI {
 					? new StyleColor(new Color(0.4f, 0.9f, 0.4f))
 					: new StyleColor(new Color(0.9f, 0.3f, 0.3f));
 			}
-			yield return new WaitForSeconds(1.5f);
+			await UniTask.Delay(1500);
 
-			transitionDone = false;
+			// Start card-to-deck transition, then hide overlay concurrently before awaiting
 			var fromTestRect = cardTestCard != null ? cardTestCard.worldBound : Rect.zero;
 			var deckElement = _countryActionsView?.DeckPileElement;
-			_transitionView.ShowCountry(actionId, fromTestRect, deckElement ?? cardTestCard, 0.77f, _actionConfig, _visualConfig, _loc, () => transitionDone = true, capturedSuccessPct);
+			var deckTransitionTask = _transitionView.ShowCountry(actionId, fromTestRect, deckElement ?? cardTestCard, 0.77f, _actionConfig, _visualConfig, _loc, capturedSuccessPct);
 			if (overlay != null) { overlay.style.display = DisplayStyle.None; }
 			if (rollBlock != null) { rollBlock.style.display = DisplayStyle.None; }
-			while (!transitionDone) { yield return null; }
+			await deckTransitionTask;
 			_transitionView.Hide();
 
 			// If success with opinion effect, pause briefly before continuing
 			if (success) {
 				var def = _actionConfig?.Find(actionId);
 				if (def != null && HasOpinionEffect(def)) {
-					yield return new WaitForSeconds(0.5f);
+					await UniTask.Delay(500);
 				}
 			}
 
 			// Allow one Refresh to rebuild hand, then animate new card
 			if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = false; }
-			yield return null;
+			await UniTask.NextFrame();
 			if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = true; }
 
 			VisualElement newHandCard = null;
@@ -389,7 +360,6 @@ namespace GS.Unity.UI {
 			}
 
 			if (newHandCard != null) {
-				transitionDone = false;
 				string newActionId = "";
 				string newSuccessPct = null;
 				if (_state.SelectedCountryActions.Hand.Count > 0) {
@@ -397,8 +367,7 @@ namespace GS.Unity.UI {
 					newActionId = newCard.ActionId;
 					newSuccessPct = $"{(int)(newCard.SuccessRate * 100)}%";
 				}
-				_transitionView.ShowCountry(newActionId, deckRect, newHandCard, 0.5f, _actionConfig, _visualConfig, _loc, () => transitionDone = true, newSuccessPct);
-				while (!transitionDone) { yield return null; }
+				await _transitionView.ShowCountry(newActionId, deckRect, newHandCard, 0.5f, _actionConfig, _visualConfig, _loc, newSuccessPct);
 				newHandCard.style.opacity = 1f;
 				_transitionView.Hide();
 			}
