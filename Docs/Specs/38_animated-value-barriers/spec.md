@@ -30,10 +30,20 @@ As a player, I want UI values (gold, influence, opinion) to animate smoothly fro
 
 ### AnimationBarrier (pure C#)
 
+Two concrete barrier types matching their animatable:
+
+**`AnimationBarrierDouble`** (for gold):
 ```
-string Name          — debug label only
-int    Offset        — current animated offset in whole units; ticks toward 0
-int    InitialOffset — snapshot at creation; total steps to animate
+string Name             — debug label only
+double Offset           — current animated offset; smooth lerp toward 0
+double InitialOffset    — snapshot at creation
+```
+
+**`AnimationBarrierInt`** (for influence, opinion):
+```
+string Name             — debug label only
+int    Offset           — current animated offset in whole units; ticks toward 0
+int    InitialOffset    — snapshot at creation; total steps to animate
 ```
 
 ### AnimatableDouble / AnimatableInt (pure C#, persistent on VisualState)
@@ -43,16 +53,18 @@ Two typed classes with the same shape:
 ```
 T      Actual     — set by VisualStateConverter each tick
 T      Display    — computed: Actual + sum(barrier.Offset)
-List<AnimationBarrier>  — attached barriers; survive SetActual
+List<T-typed barrier>   — attached barriers; survive SetActual
 INotifyPropertyChanged  — fires on SetActual and on Detach
-Attach(name, offset) → AnimationBarrier
+Attach(name, offset) → barrier
 Detach(barrier)      → removes, fires PropertyChanged
 NotifyDisplayChanged()  — called by driver each frame while barriers tick
 ```
 
 Instantiated once; live for the lifetime of `VisualState`. `VisualStateConverter` never recreates them.
 
-**Step animation:** the driver advances `barrier.Offset` by whole integer steps, not a smooth lerp. Each frame it calculates `stepsThisFrame = floor(elapsed / duration * abs(InitialOffset)) - stepsAlreadyApplied` and decrements offset by that many units. This produces a counting effect (e.g. influence ticking 10 → 9 → 8 … → 0).
+**Gold (`AnimatableDouble`):** smooth double lerp — `offset = Lerp(initialOffset, 0, elapsed / duration)`. Displayed with `:F1`.
+
+**Influence / Opinion (`AnimatableInt`):** integer step animation — each frame `stepsThisFrame = floor(elapsed / duration * abs(InitialOffset)) - stepsAlreadyApplied`; offset decrements by that many whole units. Produces a counting effect (e.g. 10 → 9 → 8 … → 0).
 
 ### AnimationBarrierDriver (pure C#, ITickable)
 
