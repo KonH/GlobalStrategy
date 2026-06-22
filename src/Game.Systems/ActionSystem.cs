@@ -10,6 +10,7 @@ namespace GS.Game.Systems {
 		public struct ActionResult {
 			public bool Executed;
 			public bool Success;
+			public List<IEffect> Effects;
 		}
 
 		public static ActionResult ProcessPlayAction(
@@ -29,6 +30,10 @@ namespace GS.Game.Systems {
 			DeductPrices(world, cmd.OwnerId, actionDef.Cost);
 
 			result.Executed = true;
+			result.Effects = new List<IEffect>();
+			foreach (var cost in actionDef.Cost) {
+				result.Effects.Add(new ResourceChange { OwnerId = cmd.OwnerId, ResourceId = cost.ResourceId, Diff = -cost.Amount });
+			}
 
 			// Compute org influence for success rate
 			double orgInfluence = 0;
@@ -236,6 +241,202 @@ namespace GS.Game.Systems {
 			}
 
 			world.Add(allCountries[chosen].entity, new IsDiscovered());
+		}
+
+		public static ActionResult ProcessPlayCountryAction(
+			World world,
+			PlayCountryActionCommand cmd,
+			ActionConfig config,
+			EffectConfig effectConfig,
+			DateTime currentTime,
+			Random rng) {
+			var result = new ActionResult();
+			result.Effects = new List<IEffect>();
+
+			var def = config.Find(cmd.ActionId);
+			if (def == null) { return result; }
+
+			int orgInfluence = GetOrgInfluenceInCountry(world, cmd.OrgId, cmd.CountryId);
+
+			var condCtx = new ExpressionContext { Influence = orgInfluence };
+			foreach (var cond in def.Conditions) {
+				if (ExpressionNode.Evaluate(cond, condCtx) == 0.0) { return result; }
+			}
+
+			if (!CanAfford(world, cmd.OrgId, def.Cost)) { return result; }
+			DeductPrices(world, cmd.OrgId, def.Cost);
+
+			result.Executed = true;
+			foreach (var cost in def.Cost) {
+				result.Effects.Add(new ResourceChange { OwnerId = cmd.OrgId, ResourceId = cost.ResourceId, Diff = -cost.Amount });
+			}
+
+			int vacatedSlot = RemoveCountryPlayedCard(world, cmd);
+
+			float successRate = (float)ExpressionNode.Evaluate(def.SuccessRateNode, new ExpressionContext { Influence = orgInfluence });
+			if (successRate > 1f) { successRate = 1f; }
+			result.Success = (float)rng.NextDouble() < successRate;
+
+			if (result.Success) {
+				ApplyCountryActionEffects(world, cmd, def, effectConfig, currentTime, result);
+			}
+
+			DrawCountryCard(world, cmd, config, rng, vacatedSlot);
+
+			return result;
+		}
+
+		static int GetOrgInfluenceInCountry(World world, string orgId, string countryId) {
+			int total = 0;
+			int[] infReq = { TypeId<InfluenceEffect>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(infReq, null)) {
+				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (effects[i].OrgId == orgId && effects[i].CountryId == countryId) {
+						total += effects[i].Value;
+					}
+				}
+			}
+			return total;
+		}
+
+		static int RemoveCountryPlayedCard(World world, PlayCountryActionCommand cmd) {
+			int vacatedSlot = 0;
+			int[] handReq = { TypeId<CountryActionCard>.Value, TypeId<InHand>.Value };
+			int playedEntity = -1;
+			foreach (var arch in world.GetMatchingArchetypes(handReq, null)) {
+				CountryActionCard[] cards = arch.GetColumn<CountryActionCard>();
+				InHand[] hands = arch.GetColumn<InHand>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (cards[i].OrgId == cmd.OrgId && cards[i].CountryId == cmd.CountryId &&
+					    cards[i].ActionId == cmd.ActionId && cards[i].TargetCharacterId == cmd.TargetCharacterId) {
+						vacatedSlot = hands[i].SlotIndex;
+						playedEntity = arch.Entities[i];
+						break;
+					}
+				}
+				if (playedEntity >= 0) { break; }
+			}
+			if (playedEntity >= 0) {
+				world.Remove<InHand>(playedEntity);
+			}
+			return vacatedSlot;
+		}
+
+		static void ApplyCountryActionEffects(
+			World world,
+			PlayCountryActionCommand cmd,
+			ActionDefinition def,
+			EffectConfig effectConfig,
+			DateTime currentTime,
+			ActionResult result) {
+			int[] infReq = { TypeId<InfluenceEffect>.Value };
+			foreach (var effectId in def.EffectIds) {
+				var effectEntry = effectConfig.Find(effectId);
+				if (effectEntry is InfluenceChangeEffectParams influenceParams && influenceParams.Amount > 0) {
+					int usedTotal = 0;
+					foreach (var arch in world.GetMatchingArchetypes(infReq, null)) {
+						InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+						int count = arch.Count;
+						for (int i = 0; i < count; i++) {
+							if (effects[i].CountryId == cmd.CountryId) {
+								usedTotal += effects[i].Value;
+							}
+						}
+					}
+					if (usedTotal < 100) {
+						int toAdd = Math.Min(influenceParams.Amount, 100 - usedTotal);
+						int ie = world.Create();
+						world.Add(ie, new InfluenceEffect {
+							OrgId = cmd.OrgId,
+							CountryId = cmd.CountryId,
+							Value = toAdd,
+							EffectId = $"country_action_{cmd.OrgId}_{cmd.ActionId}_{currentTime.Ticks}"
+						});
+						result.Effects.Add(new InfluenceAdded { OrgId = cmd.OrgId, CountryId = cmd.CountryId, Amount = toAdd });
+					}
+				} else if (effectEntry is OpinionModifierEffectParams opinionParams) {
+					if (!string.IsNullOrEmpty(opinionParams.SourceId) && !string.IsNullOrEmpty(cmd.TargetCharacterId)) {
+						int[] charReq = { TypeId<Character>.Value, TypeId<CharacterOpinion>.Value };
+						foreach (var arch in world.GetMatchingArchetypes(charReq, null)) {
+							Character[] chars = arch.GetColumn<Character>();
+							CharacterOpinion[] opinions = arch.GetColumn<CharacterOpinion>();
+							int count = arch.Count;
+							for (int i = 0; i < count; i++) {
+								if (chars[i].CharacterId != cmd.TargetCharacterId) { continue; }
+								ref CharacterOpinion opinion = ref opinions[i];
+								if (opinion.ModifiersPerOrg == null) {
+									opinion.ModifiersPerOrg = new Dictionary<string, List<OpinionModifier>>();
+								}
+								if (!opinion.ModifiersPerOrg.TryGetValue(cmd.OrgId, out var list)) {
+									list = new List<OpinionModifier>();
+									opinion.ModifiersPerOrg[cmd.OrgId] = list;
+								}
+								list.Add(new OpinionModifier {
+									SourceId = opinionParams.SourceId,
+									Value = opinionParams.InitialValue,
+									ChangeValue = -opinionParams.DecayPerMonth
+								});
+								result.Effects.Add(new CharacterOpinionChange { CountryId = cmd.CountryId, CharacterId = cmd.TargetCharacterId, Diff = opinionParams.InitialValue });
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		static void DrawCountryCard(World world, PlayCountryActionCommand cmd, ActionConfig config, Random rng, int vacatedSlot) {
+			int newOrgInfluence = GetOrgInfluenceInCountry(world, cmd.OrgId, cmd.CountryId);
+
+			int[] deckReq = { TypeId<CountryActionCard>.Value };
+			int[] excludeInHand = { TypeId<InHand>.Value };
+			var eligible = new List<int>();
+			foreach (var arch in world.GetMatchingArchetypes(deckReq, excludeInHand)) {
+				CountryActionCard[] cards = arch.GetColumn<CountryActionCard>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (cards[i].OrgId != cmd.OrgId || cards[i].CountryId != cmd.CountryId) { continue; }
+					var d = config.Find(cards[i].ActionId);
+					if (d == null) { continue; }
+					bool ok = true;
+					var drawCtx = new ExpressionContext { Influence = newOrgInfluence };
+					foreach (var cond in d.Conditions) {
+						if (ExpressionNode.Evaluate(cond, drawCtx) == 0.0) { ok = false; break; }
+					}
+					if (ok) { eligible.Add(arch.Entities[i]); }
+				}
+			}
+
+			for (int i = eligible.Count - 1; i > 0; i--) {
+				int j = rng.Next(i + 1);
+				(eligible[i], eligible[j]) = (eligible[j], eligible[i]);
+			}
+
+			const int MaxHandSize = 3;
+			int[] handReq = { TypeId<CountryActionCard>.Value, TypeId<InHand>.Value };
+			var occupiedSlots = new HashSet<int>();
+			foreach (var arch in world.GetMatchingArchetypes(handReq, null)) {
+				CountryActionCard[] cards = arch.GetColumn<CountryActionCard>();
+				InHand[] hands = arch.GetColumn<InHand>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (cards[i].OrgId == cmd.OrgId && cards[i].CountryId == cmd.CountryId) {
+						occupiedSlots.Add(hands[i].SlotIndex);
+					}
+				}
+			}
+
+			int toDraw = Math.Min(MaxHandSize - occupiedSlots.Count, eligible.Count);
+			int drawIdx = 0;
+			for (int slot = 0; slot < MaxHandSize && drawIdx < toDraw; slot++) {
+				if (!occupiedSlots.Contains(slot)) {
+					world.Add(eligible[drawIdx], new InHand { SlotIndex = slot });
+					drawIdx++;
+				}
+			}
 		}
 
 		static string FindPlayerCountryId(World world) {

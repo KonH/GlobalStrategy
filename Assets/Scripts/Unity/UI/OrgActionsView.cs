@@ -190,7 +190,7 @@ namespace GS.Unity.UI {
 		static double GetResourceValue(CountryResourcesState resources, string resourceId) {
 			if (resources == null) { return 0; }
 			foreach (var r in resources.Resources) {
-				if (r.ResourceId == resourceId) { return r.Value; }
+				if (r.ResourceId == resourceId) { return r.Value.Display; }
 			}
 			return 0;
 		}

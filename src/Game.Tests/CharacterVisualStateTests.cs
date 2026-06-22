@@ -137,7 +137,7 @@ namespace GS.Game.Tests {
 		void characters_state_empty_when_no_country_selected() {
 			var logic = BuildLogic(BuildCharacterConfig());
 			logic.Update(0f);
-			Assert.Empty(logic.VisualState.SelectedCharacters.Characters);
+			Assert.Empty(logic.VisualState.SelectedCountry.Characters.Characters);
 		}
 
 		[Fact]
@@ -146,7 +146,7 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 			SelectCountry(logic.World, "Great_Britain");
 			logic.Update(0f);
-			Assert.Equal(5, logic.VisualState.SelectedCharacters.Characters.Count);
+			Assert.Equal(5, logic.VisualState.SelectedCountry.Characters.Characters.Count);
 		}
 
 		[Fact]
@@ -156,7 +156,7 @@ namespace GS.Game.Tests {
 			SelectCountry(logic.World, "Great_Britain");
 			logic.Update(0f);
 			var roleIds = new HashSet<string>();
-			foreach (var c in logic.VisualState.SelectedCharacters.Characters) {
+			foreach (var c in logic.VisualState.SelectedCountry.Characters.Characters) {
 				roleIds.Add(c.RoleId);
 			}
 			Assert.Contains("ruler", roleIds);
@@ -172,7 +172,7 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 			SelectCountry(logic.World, "Great_Britain");
 			logic.Update(0f);
-			foreach (var c in logic.VisualState.SelectedCharacters.Characters) {
+			foreach (var c in logic.VisualState.SelectedCountry.Characters.Characters) {
 				Assert.NotEmpty(c.Skills);
 				foreach (var skill in c.Skills) {
 					Assert.True(skill.Value > 0);
@@ -185,8 +185,8 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic(BuildCharacterConfig());
 			logic.Commands.Push(new SelectCountryCommand { CountryId = "Great_Britain" });
 			logic.Update(0f);
-			foreach (var entry in logic.VisualState.SelectedCharacters.Characters) {
-				Assert.Equal(0, entry.Opinion);
+			foreach (var entry in logic.VisualState.SelectedCountry.Characters.Characters) {
+				Assert.Equal(0, entry.Opinion.Actual);
 			}
 		}
 
@@ -198,8 +198,8 @@ namespace GS.Game.Tests {
 			string orgId = logic.VisualState.PlayerOrganization.OrgId;
 			logic.Commands.Push(new DebugImproveOpinionCommand { CountryId = "Great_Britain", OrgId = orgId });
 			logic.Update(0f);
-			foreach (var entry in logic.VisualState.SelectedCharacters.Characters) {
-				Assert.Equal(50, entry.Opinion);
+			foreach (var entry in logic.VisualState.SelectedCountry.Characters.Characters) {
+				Assert.Equal(50, entry.Opinion.Actual);
 			}
 		}
 	}

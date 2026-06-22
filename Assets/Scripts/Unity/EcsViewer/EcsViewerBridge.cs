@@ -22,8 +22,10 @@ namespace GS.Unity.EcsViewer {
 
 		GameLogic _logic = null!;
 		PauseToken _pauseToken = null!;
-		WorldObserver _observer = null!;
 		HttpListener _listener = null!;
+#if !UNITY_WEBGL
+		WorldObserver _observer = null!;
+#endif
 
 		[Inject]
 		void Construct(GameLogic logic, PauseToken pauseToken) {
@@ -183,6 +185,7 @@ namespace GS.Unity.EcsViewer {
 			throw new NotSupportedException();
 		}
 		public override void WriteJson(JsonWriter writer, EntityRefValue? value, JsonSerializer serializer) {
+			if (value == null) { writer.WriteNull(); return; }
 			writer.WriteStartObject();
 			writer.WritePropertyName("__entityRef");
 			writer.WriteValue(value.EntityId);

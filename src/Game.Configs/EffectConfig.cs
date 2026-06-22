@@ -31,10 +31,10 @@ namespace GS.Game.Configs {
 				string effectType = obj["effectType"]?.Value<string>() ?? "";
 				ActionEffectDefinition item;
 				switch (effectType) {
-					case "DiscoverCountry": item = obj.ToObject<DiscoverCountryEffectParams>(serializer); break;
-					case "InfluenceChange": item = obj.ToObject<InfluenceChangeEffectParams>(serializer); break;
-					case "OpinionModifier": item = obj.ToObject<OpinionModifierEffectParams>(serializer); break;
-					default:                item = obj.ToObject<ActionEffectDefinition>(serializer);      break;
+					case "DiscoverCountry": item = obj.ToObject<DiscoverCountryEffectParams>(serializer)!; break;
+					case "InfluenceChange": item = obj.ToObject<InfluenceChangeEffectParams>(serializer)!; break;
+					case "OpinionModifier": item = obj.ToObject<OpinionModifierEffectParams>(serializer)!; break;
+					default:                item = obj.ToObject<ActionEffectDefinition>(serializer)!;      break;
 				}
 				result.Add(item);
 			}

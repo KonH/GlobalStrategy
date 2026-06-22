@@ -79,18 +79,18 @@ namespace GS.Unity.UI {
 		void OnEnable() {
 			if (_state == null) { return; }
 			_state.PlayerOrganization.PropertyChanged  += HandleOrgChanged;
-			_state.PlayerResources.PropertyChanged     += HandleResourcesChanged;
-			_state.PlayerOrgCharacters.PropertyChanged += HandleCharactersChanged;
-			_state.PlayerOrgActions.PropertyChanged    += HandleActionsChanged;
+			_state.PlayerOrganization.Resources.PropertyChanged     += HandleResourcesChanged;
+			_state.PlayerOrganization.Characters.PropertyChanged += HandleCharactersChanged;
+			_state.PlayerOrganization.Actions.PropertyChanged    += HandleActionsChanged;
 			Refresh();
 		}
 
 		void OnDisable() {
 			if (_state == null) { return; }
 			_state.PlayerOrganization.PropertyChanged  -= HandleOrgChanged;
-			_state.PlayerResources.PropertyChanged     -= HandleResourcesChanged;
-			_state.PlayerOrgCharacters.PropertyChanged -= HandleCharactersChanged;
-			_state.PlayerOrgActions.PropertyChanged    -= HandleActionsChanged;
+			_state.PlayerOrganization.Resources.PropertyChanged     -= HandleResourcesChanged;
+			_state.PlayerOrganization.Characters.PropertyChanged -= HandleCharactersChanged;
+			_state.PlayerOrganization.Actions.PropertyChanged    -= HandleActionsChanged;
 		}
 
 		void Update() {
@@ -132,16 +132,16 @@ namespace GS.Unity.UI {
 			if (_orgName != null) {
 				_orgName.text = org.DisplayName;
 			}
-			_resourcesView?.Refresh(_state.PlayerResources);
-			_charactersView?.Refresh(_state.PlayerOrgCharacters);
-			_actionsView?.Refresh(_state.PlayerOrgActions, _state.PlayerResources);
+			_resourcesView?.Refresh(_state.PlayerOrganization.Resources);
+			_charactersView?.Refresh(_state.PlayerOrganization.Characters);
+			_actionsView?.Refresh(_state.PlayerOrganization.Actions, _state.PlayerOrganization.Resources);
 
-			bool hasChars = _state.PlayerOrgCharacters.Slots.Count > 0;
+			bool hasChars = _state.PlayerOrganization.Characters.Slots.Count > 0;
 			if (_charsToggleBtn != null) {
 				_charsToggleBtn.style.display = hasChars ? DisplayStyle.Flex : DisplayStyle.None;
 			}
 
-			bool hasActions = _state.PlayerOrgActions.Hand.Count > 0 || _state.PlayerOrgActions.Deck.Count > 0;
+			bool hasActions = _state.PlayerOrganization.Actions.Hand.Count > 0 || _state.PlayerOrganization.Actions.Deck.Count > 0;
 			if (_actionsToggleBtn != null) {
 				_actionsToggleBtn.style.display = hasActions ? DisplayStyle.Flex : DisplayStyle.None;
 			}

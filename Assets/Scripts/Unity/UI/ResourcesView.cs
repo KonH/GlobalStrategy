@@ -1,3 +1,4 @@
+#nullable enable
 using System.Collections.Generic;
 using UnityEngine.UIElements;
 using GS.Main;
@@ -10,7 +11,6 @@ namespace GS.Unity.UI {
 		readonly ILocalization _loc;
 		readonly ResourceConfig _config;
 		readonly TooltipSystem _tooltip;
-
 		public ResourcesView(VisualElement container, ILocalization loc, ResourceConfig config, TooltipSystem tooltip) {
 			_container = container;
 			_loc = loc;
@@ -34,7 +34,9 @@ namespace GS.Unity.UI {
 				var label = new Label();
 				label.AddToClassList("gs-label");
 				label.AddToClassList("resource-label");
-				label.text = $"{resource.Value:F0}";
+				label.text = resource.ResourceId == "gold"
+					? $"{resource.Value.AsInt()}"
+					: $"{resource.Value.Display:F0}";
 				row.Add(label);
 
 				var capturedResource = resource;
@@ -158,7 +160,7 @@ namespace GS.Unity.UI {
 			return root;
 		}
 
-		VisualElement BuildMonthlyEffectList(TooltipContext ctx, string headerText, ResourceStateEntry resource, ResourceDefinition resDef, bool positiveOnly) {
+		VisualElement BuildMonthlyEffectList(TooltipContext ctx, string headerText, ResourceStateEntry resource, ResourceDefinition? resDef, bool positiveOnly) {
 			var root = new VisualElement();
 
 			var header = new Label(headerText);
@@ -201,7 +203,7 @@ namespace GS.Unity.UI {
 			return root;
 		}
 
-		VisualElement BuildInstantEffectList(TooltipContext ctx, string headerText, ResourceStateEntry resource, ResourceDefinition resDef) {
+		VisualElement BuildInstantEffectList(TooltipContext ctx, string headerText, ResourceStateEntry resource, ResourceDefinition? resDef) {
 			var root = new VisualElement();
 
 			var header = new Label(headerText);

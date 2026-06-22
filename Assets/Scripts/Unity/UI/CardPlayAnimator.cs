@@ -26,6 +26,7 @@ namespace GS.Unity.UI {
 		OrgActionsView _actionsView;
 		CountryActionsView _countryActionsView;
 		bool _resultReady;
+		CardPlayBarriersHolder _barrierHolder;
 
 		public bool IsPlaying => _isPlaying;
 		public event Action OnCardPlayComplete;
@@ -67,9 +68,35 @@ namespace GS.Unity.UI {
 		}
 
 		void HandleLastActionChanged(object sender, PropertyChangedEventArgs e) {
-			if (_state != null && _state.LastAction.HasResult) {
-				_resultReady = true;
+			if (_state == null || !_state.LastAction.HasResult) { return; }
+
+			// Build barriers BEFORE VisualStateConverter.Update() calls SetActual.
+			// GameLogic fires this event synchronously before updating animatable values,
+			// so barriers are in place when the display values would otherwise jump.
+			_barrierHolder = new CardPlayBarriersHolder();
+
+			foreach (var effect in _state.LastAction.Effects) {
+				if (effect is GS.Game.Components.ResourceChange rc && rc.ResourceId == "gold") {
+					AnimatableDouble goldAnimatable = null;
+					foreach (var res in _state.PlayerOrganization.Resources.Resources) {
+						if (res.ResourceId == "gold") { goldAnimatable = res.Value; break; }
+					}
+					if (goldAnimatable != null) {
+						_barrierHolder.AddDouble("gold", goldAnimatable, -rc.Diff);
+					}
+				} else if (effect is GS.Game.Components.InfluenceAdded ia && ia.Amount > 0) {
+					_barrierHolder.AddInt("influence", _state.SelectedCountry.Influence.UsedInfluence, -ia.Amount);
+				} else if (effect is GS.Game.Components.CharacterOpinionChange coc && coc.Diff != 0) {
+					foreach (var entry in _state.SelectedCountry.Characters.Characters) {
+						if (entry.CharacterId == coc.CharacterId) {
+							_barrierHolder.AddInt("opinion", entry.Opinion, -coc.Diff);
+							break;
+						}
+					}
+				}
 			}
+
+			_resultReady = true;
 		}
 
 		public void StartCardPlay(string orgId, string actionId, VisualElement clickedCard) {
@@ -93,8 +120,10 @@ namespace GS.Unity.UI {
 		async UniTaskVoid PlaySequence(string orgId, string actionId, VisualElement clickedCard) {
 			_isPlaying = true;
 			_resultReady = false;
+			_barrierHolder = null;
 			ModalState.IsModalOpen = true;
 			if (_actionsView != null) { _actionsView.SuppressRefresh = true; }
+
 			// Push action before pause so both are processed in the same game tick
 			_commands.Push(new PlayActionCommand { OwnerId = orgId, ActionId = actionId });
 			_commands.Push(new PauseCommand());
@@ -156,6 +185,17 @@ namespace GS.Unity.UI {
 				Debug.LogWarning("[CardPlayAnimator] Timed out waiting for action result.");
 			}
 			bool success = _state.LastAction.Success;
+
+			// Release or cancel gold barrier based on outcome.
+			// Barrier was created in HandleLastActionChanged before SetActual fired.
+			UniTask goldTask = UniTask.CompletedTask;
+			if (success && _barrierHolder != null && _barrierHolder.Has("gold")) {
+				goldTask = _barrierHolder.Animate("gold", 0.5f);
+			} else {
+				_barrierHolder?.CancelAll();
+				_barrierHolder = null;
+			}
+
 			if (cardTestCard != null) {
 				cardTestCard.RemoveFromClassList("action-card--available");
 				cardTestCard.EnableInClassList("action-card--success", success);
@@ -200,8 +240,8 @@ namespace GS.Unity.UI {
 
 			if (newHandCard != null) {
 				string newActionId = "";
-				if (_state.PlayerOrgActions.Hand.Count > 0) {
-					newActionId = _state.PlayerOrgActions.Hand[_state.PlayerOrgActions.Hand.Count - 1].ActionId;
+				if (_state.PlayerOrganization.Actions.Hand.Count > 0) {
+					newActionId = _state.PlayerOrganization.Actions.Hand[_state.PlayerOrganization.Actions.Hand.Count - 1].ActionId;
 				}
 				await _transitionView.Show(newActionId, deckRect, newHandCard, 0.5f, _actionConfig, _visualConfig, _loc);
 				newHandCard.style.opacity = 1f;
@@ -249,6 +289,8 @@ namespace GS.Unity.UI {
 			_state.LastAction.Clear();
 			ModalState.IsModalOpen = false;
 			_commands.Push(new UnpauseCommand());
+			await goldTask;
+			_barrierHolder = null;
 			_isPlaying = false;
 			OnCardPlayComplete?.Invoke();
 		}
@@ -256,11 +298,12 @@ namespace GS.Unity.UI {
 		async UniTaskVoid PlayCountrySequence(string orgId, string countryId, string actionId, string targetCharId, VisualElement clickedCard) {
 			_isPlaying = true;
 			_resultReady = false;
+			_barrierHolder = null;
 			ModalState.IsModalOpen = true;
 
 			// Capture success rate before any state change or command push
 			float capturedSuccessRate = 0f;
-			foreach (var c in _state.SelectedCountryActions.Hand) {
+			foreach (var c in _state.SelectedCountry.CountryActions.Hand) {
 				if (c.ActionId == actionId && c.TargetCharacterId == targetCharId) {
 					capturedSuccessRate = c.SuccessRate;
 					break;
@@ -335,12 +378,23 @@ namespace GS.Unity.UI {
 			await deckTransitionTask;
 			_transitionView.Hide();
 
-			// If success with opinion effect, pause briefly before continuing
-			if (success) {
-				var def = _actionConfig?.Find(actionId);
-				if (def != null && HasOpinionEffect(def)) {
-					await UniTask.Delay(500);
+			// Release or cancel influence/opinion barriers based on outcome.
+			UniTask barrierTask = UniTask.CompletedTask;
+			if (success && _barrierHolder != null) {
+				bool hasInfluence = _barrierHolder.Has("influence");
+				bool hasOpinion = _barrierHolder.Has("opinion");
+				if (hasInfluence && hasOpinion) {
+					barrierTask = UniTask.WhenAll(
+						_barrierHolder.Animate("influence", 1.0f),
+						_barrierHolder.Animate("opinion", 1.0f));
+				} else if (hasInfluence) {
+					barrierTask = _barrierHolder.Animate("influence", 1.0f);
+				} else if (hasOpinion) {
+					barrierTask = _barrierHolder.Animate("opinion", 1.0f);
 				}
+			} else {
+				_barrierHolder?.CancelAll();
+				_barrierHolder = null;
 			}
 
 			// Allow one Refresh to rebuild hand, then animate new card
@@ -362,8 +416,8 @@ namespace GS.Unity.UI {
 			if (newHandCard != null) {
 				string newActionId = "";
 				string newSuccessPct = null;
-				if (_state.SelectedCountryActions.Hand.Count > 0) {
-					var newCard = _state.SelectedCountryActions.Hand[_state.SelectedCountryActions.Hand.Count - 1];
+				if (_state.SelectedCountry.CountryActions.Hand.Count > 0) {
+					var newCard = _state.SelectedCountry.CountryActions.Hand[_state.SelectedCountry.CountryActions.Hand.Count - 1];
 					newActionId = newCard.ActionId;
 					newSuccessPct = $"{(int)(newCard.SuccessRate * 100)}%";
 				}
@@ -376,6 +430,8 @@ namespace GS.Unity.UI {
 			_state.LastAction.Clear();
 			ModalState.IsModalOpen = false;
 			_commands.Push(new UnpauseCommand());
+			await barrierTask;
+			_barrierHolder = null;
 			_isPlaying = false;
 			OnCardPlayComplete?.Invoke();
 		}
@@ -397,17 +453,6 @@ namespace GS.Unity.UI {
 			string successPct = def != null ? $"{(int)(GS.Game.Configs.ExpressionNode.Evaluate(def.SuccessRateNode, new GS.Game.Configs.ExpressionContext()) * 100)}%" : "?%";
 			string goldCostText = GetGoldCostText(def);
 			ActionCardBuilder.PopulateSlot(cardSlot, name, desc, successPct, goldCostText, _visualConfig?.FindFront(actionId));
-		}
-
-		bool HasOpinionEffect(GS.Game.Configs.ActionDefinition def) {
-			if (_effectConfig == null) { return false; }
-			foreach (var effectId in def.EffectIds) {
-				var effect = _effectConfig.Find(effectId);
-				if (effect is GS.Game.Configs.OpinionModifierEffectParams op && !string.IsNullOrEmpty(op.SourceId)) {
-					return true;
-				}
-			}
-			return false;
 		}
 
 		static string GetGoldCostText(GS.Game.Configs.ActionDefinition def) {

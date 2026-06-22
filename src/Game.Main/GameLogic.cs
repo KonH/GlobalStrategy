@@ -102,27 +102,31 @@ namespace GS.Main {
 				ApplyDebugChangeGold(cmd.OrgId, cmd.Amount);
 			}
 
-			var lastActionResult = new ActionSystem.ActionResult();
+			var orgActionResult = new ActionSystem.ActionResult();
+			var countryActionResult = new ActionSystem.ActionResult();
 			string lastActionId = "";
 			foreach (var cmd in _commandAccessor.ReadPlayActionCommand().AsSpan()) {
 				lastActionId = cmd.ActionId;
-				lastActionResult = ActionSystem.ProcessPlayAction(
+				orgActionResult = ActionSystem.ProcessPlayAction(
 					_world, cmd, _actionConfig, _effectConfig, _proximityEntity, _rng);
 			}
 			foreach (var cmd in _commandAccessor.ReadPlayCountryActionCommand().AsSpan()) {
 				lastActionId = cmd.ActionId;
-				var r = CountryActionSystem.ProcessPlayCountryAction(
+				countryActionResult = ActionSystem.ProcessPlayCountryAction(
 					_world, cmd, _actionConfig, _effectConfig, currentTime, _rng);
-				if (r.Executed) {
-					lastActionResult = new ActionSystem.ActionResult { Executed = r.Executed, Success = r.Success };
-				}
 			}
 
 			_commandAccessor.Clear();
-			_visualStateConverter.Update(_world, _gameTimeEntity, _localeEntity, _orgEntity);
-			if (lastActionResult.Executed) {
-				VisualState.LastAction.Set(lastActionResult.Success, lastActionId);
+			// Fire LastAction.Set BEFORE VisualStateConverter.Update so Unity handlers can create
+			// animation barriers synchronously before SetActual fires on animatable values.
+			if (orgActionResult.Executed || countryActionResult.Executed) {
+				bool success = orgActionResult.Executed ? orgActionResult.Success : countryActionResult.Success;
+				var effects = new System.Collections.Generic.List<GS.Game.Components.IEffect>();
+				if (orgActionResult.Effects != null) { effects.AddRange(orgActionResult.Effects); }
+				if (countryActionResult.Effects != null) { effects.AddRange(countryActionResult.Effects); }
+				VisualState.LastAction.Set(success, lastActionId, effects);
 			}
+			_visualStateConverter.Update(deltaTime, _world, _gameTimeEntity, _localeEntity, _orgEntity);
 		}
 
 		public void LoadState(string saveName) {

@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
@@ -10,23 +11,23 @@ namespace GS.Unity.UI {
 		readonly VisualElement _root;
 		readonly Label _name;
 		readonly Label _influenceLabel;
-		readonly VisualElement _influenceRow;
-		readonly VisualElement _charsSlide;
-		readonly Button _charsToggleBtn;
-		readonly VisualElement _actionsSlide;
-		readonly Button _actionsToggleBtn;
+		readonly VisualElement? _influenceRow;
+		readonly VisualElement? _charsSlide;
+		readonly Button? _charsToggleBtn;
+		readonly VisualElement? _actionsSlide;
+		readonly Button? _actionsToggleBtn;
 		readonly ILocalization _loc;
 		readonly ResourcesView _resourcesView;
 		readonly CharactersView _charactersView;
-		CountryActionsView _actionsView;
-		CountryInfluenceState _influenceState;
+		CountryActionsView? _actionsView;
+		CountryInfluenceState? _influenceState;
 		bool _charsOpen;
 		bool _actionsOpen;
-		string _lastCountryId;
+		string? _lastCountryId;
 
-		public event Action<bool> OnCharsOpened;
-		public event Action<string, string, VisualElement> OnCountryActionCardClicked;
-		public CountryActionsView ActionsView => _actionsView;
+		public event Action<bool>? OnSubPanelOpened;
+		public event Action<string, string, VisualElement>? OnCountryActionCardClicked;
+		public CountryActionsView? ActionsView => _actionsView;
 		public void OpenChars() => SetCharsOpen(true);
 
 		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig) {
@@ -71,7 +72,7 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		public void Refresh(SelectedCountryState selected, PlayerCountryState player, CountryResourcesState resources, CountryInfluenceState influence, CountryCharactersState characters, CountryActionsState countryActions, CountryResourcesState playerResources = null) {
+		public void Refresh(SelectedCountryState selected, CountryResourcesState resources, CountryInfluenceState influence, CountryCharactersState characters, CountryActionsState countryActions, CountryResourcesState? playerResources = null) {
 			_root.style.display = selected.IsValid ? DisplayStyle.Flex : DisplayStyle.None;
 			if (selected.IsValid) {
 				_name.text = _loc.Get($"country_name.{selected.CountryId}");
@@ -126,7 +127,7 @@ namespace GS.Unity.UI {
 				var lbl = _charsToggleBtn.Q<Label>();
 				if (lbl != null) { lbl.text = open ? "Characters ▼" : "Characters ▲"; }
 			}
-			OnCharsOpened?.Invoke(open);
+			OnSubPanelOpened?.Invoke(open);
 		}
 
 		void SetActionsOpen(bool open) {
@@ -145,7 +146,14 @@ namespace GS.Unity.UI {
 				var lbl = _actionsToggleBtn.Q<Label>();
 				if (lbl != null) { lbl.text = open ? "Actions ▼" : "Actions ▲"; }
 			}
-			OnCharsOpened?.Invoke(open);
+			OnSubPanelOpened?.Invoke(open);
+		}
+
+		public void RefreshUsedInfluence() {
+			if (_influenceRow == null || _influenceLabel == null) { return; }
+			int pool = _influenceState != null ? _influenceState.PoolSize : 100;
+			int used = _influenceState != null ? _influenceState.UsedInfluence.Display : 0;
+			_influenceLabel.text = $"{_loc.Get("hud.country_influence")}: {used}/{pool}";
 		}
 
 		void RefreshInfluence(CountryInfluenceState influence) {
@@ -153,7 +161,7 @@ namespace GS.Unity.UI {
 				return;
 			}
 			_influenceRow.style.display = DisplayStyle.Flex;
-			int used = influence != null ? influence.UsedInfluence : 0;
+			int used = influence != null ? influence.UsedInfluence.Display : 0;
 			int pool = influence != null ? influence.PoolSize : 100;
 			_influenceLabel.text = $"{_loc.Get("hud.country_influence")}: {used}/{pool}";
 		}

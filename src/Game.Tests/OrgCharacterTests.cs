@@ -150,7 +150,7 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 			var slots = GetCharacterSlots(logic.World, "Illuminati");
 			var masterSlots = slots.FindAll(s => s.RoleId == "master");
-			Assert.Equal(1, masterSlots.Count);
+			Assert.Single(masterSlots);
 		}
 
 		[Fact]
@@ -208,14 +208,14 @@ namespace GS.Game.Tests {
 			var logic = BuildOrgCharacterLogic(agentSlots: 3);
 			logic.Update(0f);
 			// 1 master slot + 3 agent slots = 4
-			Assert.Equal(4, logic.VisualState.PlayerOrgCharacters.Slots.Count);
+			Assert.Equal(4, logic.VisualState.PlayerOrganization.Characters.Slots.Count);
 		}
 
 		[Fact]
 		void filled_slot_has_character_entry() {
 			var logic = BuildOrgCharacterLogic(agentSlots: 3);
 			logic.Update(0f);
-			var slots = logic.VisualState.PlayerOrgCharacters.Slots;
+			var slots = logic.VisualState.PlayerOrganization.Characters.Slots;
 			OrgCharacterSlotEntry? masterSlot = null;
 			foreach (var s in slots) {
 				if (s.RoleId == "master" && s.SlotIndex == 0) { masterSlot = s; break; }
@@ -228,7 +228,7 @@ namespace GS.Game.Tests {
 		void empty_slot_has_null_character_entry() {
 			var logic = BuildOrgCharacterLogic(agentSlots: 3);
 			logic.Update(0f);
-			var slots = logic.VisualState.PlayerOrgCharacters.Slots;
+			var slots = logic.VisualState.PlayerOrganization.Characters.Slots;
 			OrgCharacterSlotEntry? agentSlot1 = null;
 			foreach (var s in slots) {
 				if (s.RoleId == "agent" && s.SlotIndex == 1) { agentSlot1 = s; break; }

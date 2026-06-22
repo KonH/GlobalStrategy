@@ -1,3 +1,4 @@
+#nullable enable
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -11,7 +12,7 @@ namespace GS.Unity.UI {
 		readonly ILocalization _loc;
 		readonly CharacterConfig _characterConfig;
 		readonly TooltipSystem _tooltip;
-		readonly CharacterVisualConfig _visualConfig;
+		readonly CharacterVisualConfig? _visualConfig;
 
 		public CharactersView(VisualElement container, ILocalization loc, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig visualConfig) {
 			_container = container;
@@ -70,10 +71,11 @@ namespace GS.Unity.UI {
 			roleLabel.AddToClassList("char-role");
 			info.Add(roleLabel);
 
-			string opinionText = entry.Opinion >= 0 ? $"+{entry.Opinion}" : $"{entry.Opinion}";
+			int displayOpinion = entry.Opinion.Display;
+			string opinionText = displayOpinion >= 0 ? $"+{displayOpinion}" : $"{displayOpinion}";
 			var opinionLabel = new Label(opinionText);
 			opinionLabel.AddToClassList("char-opinion");
-			opinionLabel.AddToClassList(entry.Opinion < 0 ? "gs-color-negative" : "gs-color-positive");
+			opinionLabel.AddToClassList(displayOpinion < 0 ? "gs-color-negative" : "gs-color-positive");
 			info.Add(opinionLabel);
 
 			var statsBlock = new VisualElement();
@@ -85,7 +87,7 @@ namespace GS.Unity.UI {
 
 			foreach (var skillDef in _characterConfig.Skills) {
 				if (!roleSkillIds.Contains(skillDef.SkillId)) { continue; }
-				SkillEntry skill = null;
+				SkillEntry? skill = null;
 				foreach (var s in entry.Skills) {
 					if (s.SkillId == skillDef.SkillId) { skill = s; break; }
 				}
