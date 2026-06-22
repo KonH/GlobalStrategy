@@ -31,16 +31,18 @@ As a player, I want UI values (gold, influence, opinion) to animate smoothly fro
 ### AnimationBarrier (pure C#)
 
 ```
-string Name       — debug label only
-double Offset     — current animated offset; ticks toward 0
-double InitialOffset — snapshot at creation; used as lerp start
+string Name          — debug label only
+int    Offset        — current animated offset in whole units; ticks toward 0
+int    InitialOffset — snapshot at creation; total steps to animate
 ```
 
-### AnimatableValue (pure C#, persistent on VisualState)
+### AnimatableDouble / AnimatableInt (pure C#, persistent on VisualState)
+
+Two typed classes with the same shape:
 
 ```
-double Actual     — set by VisualStateConverter each tick
-double Display    — computed: Actual + sum(barrier.Offset)
+T      Actual     — set by VisualStateConverter each tick
+T      Display    — computed: Actual + sum(barrier.Offset)
 List<AnimationBarrier>  — attached barriers; survive SetActual
 INotifyPropertyChanged  — fires on SetActual and on Detach
 Attach(name, offset) → AnimationBarrier
@@ -48,20 +50,22 @@ Detach(barrier)      → removes, fires PropertyChanged
 NotifyDisplayChanged()  — called by driver each frame while barriers tick
 ```
 
-`AnimatableValue` is instantiated once and lives for the lifetime of `VisualState`. `VisualStateConverter` never recreates it.
+Instantiated once; live for the lifetime of `VisualState`. `VisualStateConverter` never recreates them.
 
-### AnimationBarrierDriver (MonoBehaviour, Unity layer)
+**Step animation:** the driver advances `barrier.Offset` by whole integer steps, not a smooth lerp. Each frame it calculates `stepsThisFrame = floor(elapsed / duration * abs(InitialOffset)) - stepsAlreadyApplied` and decrements offset by that many units. This produces a counting effect (e.g. influence ticking 10 → 9 → 8 … → 0).
 
-Registered with VContainer. Runs every Unity frame via `Update()`.
+### AnimationBarrierDriver (pure C#, ITickable)
+
+Registered with VContainer as an entry point. `Tick()` is called every Unity frame by VContainer independently of ECS pause state. Reads `Time.deltaTime` directly.
 
 ```
-Hold(AnimatableValue, double offset, string name) → AnimationBarrier
+Hold(animatable, int offset, string name) → AnimationBarrier
 Release(AnimationBarrier, float duration) → UniTask
-AutoRelease(AnimatableValue, double offset, float duration, string name) → UniTask
+AutoRelease(animatable, int offset, float duration, string name) → UniTask
 Cancel(AnimationBarrier) — removes immediately, no animation
 ```
 
-Lerp: each frame, `barrier.Offset = Lerp(barrier.InitialOffset, 0, elapsed / duration)`. Calls `value.NotifyDisplayChanged()` each frame. On completion, calls `value.Detach(barrier)` and resolves the `UniTask`.
+On completion per barrier: calls `animatable.Detach(barrier)` and resolves the `UniTask`.
 
 ### VisualState additions
 
@@ -94,10 +98,10 @@ Sequence:
 - Easing curves — linear lerp is sufficient for this iteration.
 - Any visual polish beyond reading `Display` instead of `Actual` (no colour flash, no bounce).
 
-## Ambiguities
+## Resolved Design Decisions
 
-- [NEEDS CLARIFICATION: Which specific numeric value under `CountryInfluenceState.OrgEntries` gets an `AnimatableValue`? Candidate: the player org's used influence in the selected country. Confirm the exact field path before implementation.]
+- **Influence field:** The player org's used influence in the selected country is the animated value.
 
-- [NEEDS CLARIFICATION: Opinion is an integer value. Should there be a separate `AnimatableInt` typed class (with `int Display`), or is it acceptable to cast `double Display` to `int` in the view? Using `AnimatableValue` (double) with a cast keeps the implementation to one class but loses type safety at the view layer.]
+- **Typed classes:** Use separate `AnimatableDouble` and `AnimatableInt` classes rather than a single generic. All three animated values (gold, influence, opinion) animate in **integer steps of 1** — the offset decrements by whole units per tick, producing a counting effect rather than a smooth lerp. The driver calculates the number of steps to advance each frame from `elapsed / duration * totalSteps`.
 
-- [NEEDS CLARIFICATION: Which GameObject in the scene should host `AnimationBarrierDriver`? Candidate: the existing HUD GameObject, or a dedicated `AnimationBarrierDriver` GameObject under the scene root. Confirm placement to avoid ambiguity in VContainer registration.]
+- **Driver as pure C# `ITickable`:** `AnimationBarrierDriver` is a plain C# class registered with VContainer as an entry point (`ITickable`). No MonoBehaviour or GameObject required. VContainer calls `Tick()` every Unity frame independently of ECS pause state. `Time.deltaTime` is read inside `Tick()` (Unity layer dependency is acceptable here).
