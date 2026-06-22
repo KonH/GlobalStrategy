@@ -1,6 +1,9 @@
 {
   "permissions": {
-    "allow": [],
+    "allow": [
+      "mcp__UnityMCP__read_console",
+      "PowerShell(Get-ChildItem *)"
+    ],
     "deny": []
   },
   "hooks": {}
