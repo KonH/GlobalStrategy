@@ -119,7 +119,7 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		static string GetGoldCostText(GS.Game.Configs.ActionDefinition? def) {
+		static string GetGoldCostText(GS.Game.Configs.ActionDefinition def) {
 			if (def == null) { return null; }
 			foreach (var c in def.Cost) {
 				if (c.ResourceId == "gold") {

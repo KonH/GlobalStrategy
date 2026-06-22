@@ -168,7 +168,7 @@ namespace GS.Unity.UI {
 			return 0;
 		}
 
-		static double GetGoldCost(ActionDefinition? def) {
+		static double GetGoldCost(ActionDefinition def) {
 			if (def == null) { return 0; }
 			foreach (var c in def.Cost) {
 				if (c.ResourceId == "gold") { return c.Amount; }
@@ -176,7 +176,7 @@ namespace GS.Unity.UI {
 			return 0;
 		}
 
-		static string GetGoldCostText(ActionDefinition? def) {
+		static string GetGoldCostText(ActionDefinition def) {
 			double gold = GetGoldCost(def);
 			if (gold == 0) { return null; }
 			return gold == System.Math.Floor(gold) ? $"{(int)gold}" : $"{gold:F1}";
