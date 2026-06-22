@@ -20,10 +20,10 @@ namespace GS.Unity.EcsViewer {
 
 		public static string? CurrentUrl { get; private set; }
 
-		GameLogic _logic;
-		PauseToken _pauseToken;
-		WorldObserver _observer;
-		HttpListener _listener;
+		GameLogic _logic = null!;
+		PauseToken _pauseToken = null!;
+		WorldObserver _observer = null!;
+		HttpListener _listener = null!;
 
 		[Inject]
 		void Construct(GameLogic logic, PauseToken pauseToken) {
@@ -179,10 +179,10 @@ namespace GS.Unity.EcsViewer {
 	}
 
 	class EntityRefValueJsonConverter : JsonConverter<EntityRefValue> {
-		public override EntityRefValue ReadJson(JsonReader reader, Type objectType, EntityRefValue existingValue, bool hasExistingValue, JsonSerializer serializer) {
+		public override EntityRefValue ReadJson(JsonReader reader, Type objectType, EntityRefValue? existingValue, bool hasExistingValue, JsonSerializer serializer) {
 			throw new NotSupportedException();
 		}
-		public override void WriteJson(JsonWriter writer, EntityRefValue value, JsonSerializer serializer) {
+		public override void WriteJson(JsonWriter writer, EntityRefValue? value, JsonSerializer serializer) {
 			writer.WriteStartObject();
 			writer.WritePropertyName("__entityRef");
 			writer.WriteValue(value.EntityId);
