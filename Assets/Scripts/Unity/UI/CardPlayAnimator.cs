@@ -95,6 +95,11 @@ namespace GS.Unity.UI {
 			_resultReady = false;
 			ModalState.IsModalOpen = true;
 			if (_actionsView != null) { _actionsView.SuppressRefresh = true; }
+			var goldCost = GetGoldCost(actionId);
+			AnimationBarrierDouble goldBarrier = null;
+			if (goldCost > 0 && _state?.PlayerGold != null) {
+				goldBarrier = _state.PlayerGold.Hold(-goldCost, 6.0f);
+			}
 			// Push action before pause so both are processed in the same game tick
 			_commands.Push(new PlayActionCommand { OwnerId = orgId, ActionId = actionId });
 			_commands.Push(new PauseCommand());
@@ -156,6 +161,14 @@ namespace GS.Unity.UI {
 				Debug.LogWarning("[CardPlayAnimator] Timed out waiting for action result.");
 			}
 			bool success = _state.LastAction.Success;
+			if (goldBarrier != null) {
+				if (success) {
+					goldBarrier.Release(0.5f);
+				} else {
+					_state.PlayerGold.Cancel(goldBarrier);
+					goldBarrier = null;
+				}
+			}
 			if (cardTestCard != null) {
 				cardTestCard.RemoveFromClassList("action-card--available");
 				cardTestCard.EnableInClassList("action-card--success", success);
@@ -249,6 +262,9 @@ namespace GS.Unity.UI {
 			_state.LastAction.Clear();
 			ModalState.IsModalOpen = false;
 			_commands.Push(new UnpauseCommand());
+			if (goldBarrier != null) {
+				await UniTask.WaitUntil(() => goldBarrier.IsComplete);
+			}
 			_isPlaying = false;
 			OnCardPlayComplete?.Invoke();
 		}
@@ -269,6 +285,20 @@ namespace GS.Unity.UI {
 			string capturedSuccessPct = $"{(int)(capturedSuccessRate * 100)}%";
 
 			if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = true; }
+
+			int influenceCost = 0;
+			string targetCharId2 = targetCharId;
+			foreach (var c in _state.SelectedCountryActions.Hand) {
+				if (c.ActionId == actionId && c.TargetCharacterId == targetCharId) {
+					influenceCost = c.InfluenceBase + c.InfluenceBonus;
+					break;
+				}
+			}
+			AnimationBarrierInt infBarrier = null;
+			AnimationBarrierInt opinBarrier = null;
+			if (_state?.SelectedCountryUsedInfluence != null && influenceCost > 0) {
+				infBarrier = _state.SelectedCountryUsedInfluence.Hold(influenceCost, 6.0f);
+			}
 
 			_commands.Push(new PlayCountryActionCommand { OrgId = orgId, CountryId = countryId, ActionId = actionId, TargetCharacterId = targetCharId });
 			_commands.Push(new PauseCommand());
@@ -335,6 +365,17 @@ namespace GS.Unity.UI {
 			await deckTransitionTask;
 			_transitionView.Hide();
 
+			if (success) {
+				if (infBarrier != null) { infBarrier.Release(1.0f); }
+				if (opinBarrier != null) { opinBarrier.Release(1.0f); }
+			} else {
+				if (infBarrier != null) { _state.SelectedCountryUsedInfluence.Cancel(infBarrier); infBarrier = null; }
+				if (opinBarrier != null && _state.CharacterOpinions != null) {
+					_state.CharacterOpinions.GetOrCreate(targetCharId2).Cancel(opinBarrier);
+					opinBarrier = null;
+				}
+			}
+
 			// If success with opinion effect, pause briefly before continuing
 			if (success) {
 				var def = _actionConfig?.Find(actionId);
@@ -376,6 +417,8 @@ namespace GS.Unity.UI {
 			_state.LastAction.Clear();
 			ModalState.IsModalOpen = false;
 			_commands.Push(new UnpauseCommand());
+			if (infBarrier != null) { await UniTask.WaitUntil(() => infBarrier.IsComplete); }
+			if (opinBarrier != null) { await UniTask.WaitUntil(() => opinBarrier.IsComplete); }
 			_isPlaying = false;
 			OnCardPlayComplete?.Invoke();
 		}
@@ -418,6 +461,15 @@ namespace GS.Unity.UI {
 				}
 			}
 			return null;
+		}
+
+		double GetGoldCost(string actionId) {
+			var def = _actionConfig?.Find(actionId);
+			if (def == null) { return 0.0; }
+			foreach (var c in def.Cost) {
+				if (c.ResourceId == "gold") { return c.Amount; }
+			}
+			return 0.0;
 		}
 	}
 }

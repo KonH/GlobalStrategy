@@ -81,6 +81,7 @@ namespace GS.Unity.DI {
 
 			builder.Register<ECS.Viewer.PauseToken>(VContainer.Lifetime.Singleton);
 			builder.RegisterEntryPoint<GameLoopRunner>();
+			builder.RegisterEntryPoint<AnimationBarrierDriver>();
 			builder.RegisterComponentInHierarchy<EcsViewerBridge>();
 
 			builder.RegisterComponentInHierarchy<GameMenuDocument>();

@@ -29,7 +29,7 @@ namespace GS.Unity.UI {
 		public CountryActionsView ActionsView => _actionsView;
 		public void OpenChars() => SetCharsOpen(true);
 
-		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig) {
+		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, Dictionary<string, AnimatableInt>? characterOpinions = null) {
 			_root = root;
 			_name = root.Q<Label>("country-name");
 			_influenceRow = root.Q("influence-row");
@@ -40,7 +40,7 @@ namespace GS.Unity.UI {
 			_actionsToggleBtn = root.Q<Button>("actions-toggle-btn");
 			_loc = loc;
 			_resourcesView = new ResourcesView(root.Q("resources-container"), loc, resourceConfig, tooltip);
-			_charactersView = new CharactersView(root.Q("characters-container"), loc, characterConfig, tooltip, characterVisualConfig);
+			_charactersView = new CharactersView(root.Q("characters-container"), loc, characterConfig, tooltip, characterVisualConfig, characterOpinions);
 
 			if (_influenceRow != null) {
 				tooltip.RegisterTrigger(_influenceRow, "country-influence", BuildInfluenceTooltip, new HashSet<string>());
@@ -146,6 +146,12 @@ namespace GS.Unity.UI {
 				if (lbl != null) { lbl.text = open ? "Actions ▼" : "Actions ▲"; }
 			}
 			OnCharsOpened?.Invoke(open);
+		}
+
+		public void RefreshUsedInfluence(int usedDisplay) {
+			if (_influenceRow == null || _influenceLabel == null) { return; }
+			int pool = _influenceState != null ? _influenceState.PoolSize : 100;
+			_influenceLabel.text = $"{_loc.Get("hud.country_influence")}: {usedDisplay}/{pool}";
 		}
 
 		void RefreshInfluence(CountryInfluenceState influence) {

@@ -66,10 +66,10 @@ namespace GS.Unity.UI {
 			_tooltip = new TooltipSystem(root.Q("hud-root"));
 
 			_countryInfoRoot = root.Q("country-info");
-			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _actionConfig, _actionVisualConfig);
+			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _actionConfig, _actionVisualConfig, _state?.CharacterOpinions);
 			_countryInfo.OnCharsOpened += HandleOrgSubPanelOpened;
 			_countryInfo.OnCountryActionCardClicked += HandleCountryActionCardClicked;
-			_playerOrgView = new PlayerOrgView(root.Q("player-country"), _loc, _resourceConfig, _tooltip);
+			_playerOrgView = new PlayerOrgView(root.Q("player-country"), _loc, _resourceConfig, _tooltip, _state?.PlayerGold);
 			_timeView = new TimeView(
 				root.Q("time-panel"),
 				OnPauseToggle,
@@ -194,6 +194,7 @@ namespace GS.Unity.UI {
 			_state.MapLens.PropertyChanged            += HandleLensChanged;
 			_state.OrgMap.PropertyChanged             += HandleOrgMapChanged;
 			_state.PlayerOrgCharacters.PropertyChanged += HandleOrgCharactersChanged;
+			_state.SelectedCountryUsedInfluence.PropertyChanged += HandleAnimatedInfluenceChanged;
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			RefreshCountryViews();
 			RefreshInfluenceDebugRow();
@@ -217,6 +218,7 @@ namespace GS.Unity.UI {
 			_state.MapLens.PropertyChanged            -= HandleLensChanged;
 			_state.OrgMap.PropertyChanged             -= HandleOrgMapChanged;
 			_state.PlayerOrgCharacters.PropertyChanged -= HandleOrgCharactersChanged;
+			_state.SelectedCountryUsedInfluence.PropertyChanged -= HandleAnimatedInfluenceChanged;
 			_lastOrgAgentSlotCount = -1;
 			if (_orgInfoDocument != null) {
 				_orgInfoDocument.OnSubPanelOpened -= HandleOrgSubPanelOpened;
@@ -434,6 +436,10 @@ namespace GS.Unity.UI {
 			if (lensSwitcherEl != null) {
 				lensSwitcherEl.style.display = anyOpen ? DisplayStyle.None : DisplayStyle.Flex;
 			}
+		}
+
+		void HandleAnimatedInfluenceChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
+			_countryInfo?.RefreshUsedInfluence((int)_state.SelectedCountryUsedInfluence.Display);
 		}
 
 		void HandleOrgCharactersChanged(object sender, PropertyChangedEventArgs e) {

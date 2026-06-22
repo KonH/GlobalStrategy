@@ -8,10 +8,10 @@ namespace GS.Unity.UI {
 		readonly Label _name;
 		readonly ResourcesView _resourcesView;
 
-		public PlayerOrgView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, TooltipSystem tooltip) {
+		public PlayerOrgView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, TooltipSystem tooltip, AnimatableDouble? playerGoldAnimatable = null) {
 			_root = root;
 			_name = root.Q<Label>("player-country-name");
-			_resourcesView = new ResourcesView(root.Q("resources-container"), loc, resourceConfig, tooltip);
+			_resourcesView = new ResourcesView(root.Q("resources-container"), loc, resourceConfig, tooltip, playerGoldAnimatable);
 		}
 
 		public void Refresh(PlayerOrganizationState state, CountryResourcesState resources) {

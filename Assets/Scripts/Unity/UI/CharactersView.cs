@@ -12,13 +12,15 @@ namespace GS.Unity.UI {
 		readonly CharacterConfig _characterConfig;
 		readonly TooltipSystem _tooltip;
 		readonly CharacterVisualConfig _visualConfig;
+		readonly Dictionary<string, AnimatableInt>? _characterOpinions;
 
-		public CharactersView(VisualElement container, ILocalization loc, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig visualConfig) {
+		public CharactersView(VisualElement container, ILocalization loc, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig visualConfig, Dictionary<string, AnimatableInt>? characterOpinions = null) {
 			_container = container;
 			_loc = loc;
 			_characterConfig = characterConfig;
 			_tooltip = tooltip;
 			_visualConfig = visualConfig;
+			_characterOpinions = characterOpinions;
 			if (_visualConfig == null) {
 				Debug.LogError("[CharactersView] CharacterVisualConfig is null — portraits will not display. Assign the asset in GameLifetimeScope.");
 			}
@@ -70,10 +72,14 @@ namespace GS.Unity.UI {
 			roleLabel.AddToClassList("char-role");
 			info.Add(roleLabel);
 
-			string opinionText = entry.Opinion >= 0 ? $"+{entry.Opinion}" : $"{entry.Opinion}";
+			int displayOpinion = entry.Opinion;
+			if (_characterOpinions != null && _characterOpinions.TryGetValue(entry.CharacterId, out var opinionAnimatable)) {
+				displayOpinion = opinionAnimatable.Display;
+			}
+			string opinionText = displayOpinion >= 0 ? $"+{displayOpinion}" : $"{displayOpinion}";
 			var opinionLabel = new Label(opinionText);
 			opinionLabel.AddToClassList("char-opinion");
-			opinionLabel.AddToClassList(entry.Opinion < 0 ? "gs-color-negative" : "gs-color-positive");
+			opinionLabel.AddToClassList(displayOpinion < 0 ? "gs-color-negative" : "gs-color-positive");
 			info.Add(opinionLabel);
 
 			var statsBlock = new VisualElement();
