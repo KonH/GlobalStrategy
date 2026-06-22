@@ -1,5 +1,4 @@
-using System;
-using System.Collections;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
 using GS.Game.Configs;
@@ -9,23 +8,20 @@ using GS.Unity.Common;
 namespace GS.Unity.UI {
 	class CardTransitionView {
 		VisualElement _overlay;
-		MonoBehaviour _coroutineHost;
 		VisualElement _cardCopy;
 
-		public CardTransitionView(VisualElement overlay, MonoBehaviour coroutineHost) {
+		public CardTransitionView(VisualElement overlay) {
 			_overlay = overlay;
-			_coroutineHost = coroutineHost;
 		}
 
-		public void Show(
+		public async UniTask Show(
 			string actionId,
 			Rect fromRect,
 			VisualElement toElement,
 			float duration,
 			ActionConfig actionConfig,
 			ActionVisualConfig visualConfig,
-			ILocalization loc,
-			Action onComplete) {
+			ILocalization loc) {
 			if (_cardCopy != null) {
 				_overlay.Remove(_cardCopy);
 			}
@@ -40,10 +36,10 @@ namespace GS.Unity.UI {
 			var built = ActionCardBuilder.Build(nameText, descText, successPct, goldCostText, sprite);
 			_cardCopy = built.Card;
 			_cardCopy.AddToClassList("action-card--available");
-			PlaceAndAnimate(fromRect, toElement, duration, onComplete);
+			await PlaceAndAnimate(fromRect, toElement, duration);
 		}
 
-		public void ShowCountry(
+		public async UniTask ShowCountry(
 			string actionId,
 			Rect fromRect,
 			VisualElement toElement,
@@ -51,7 +47,6 @@ namespace GS.Unity.UI {
 			ActionConfig actionConfig,
 			ActionVisualConfig visualConfig,
 			ILocalization loc,
-			Action onComplete,
 			string successPctOverride = null) {
 			if (_cardCopy != null) {
 				_overlay.Remove(_cardCopy);
@@ -68,10 +63,10 @@ namespace GS.Unity.UI {
 			var built = ActionCardBuilder.Build(nameText, descText, successPct, goldCostText, sprite);
 			_cardCopy = built.Card;
 			_cardCopy.AddToClassList("action-card--available");
-			PlaceAndAnimate(fromRect, toElement, duration, onComplete);
+			await PlaceAndAnimate(fromRect, toElement, duration);
 		}
 
-		void PlaceAndAnimate(Rect fromRect, VisualElement toElement, float duration, Action onComplete) {
+		async UniTask PlaceAndAnimate(Rect fromRect, VisualElement toElement, float duration) {
 			_cardCopy.style.position = Position.Absolute;
 			_cardCopy.style.width = 240f;
 			_cardCopy.style.height = 320f;
@@ -83,28 +78,31 @@ namespace GS.Unity.UI {
 			_overlay.Add(_cardCopy);
 			SetPickingIgnoreRecursive(_cardCopy);
 
+			var tcs = new UniTaskCompletionSource();
 			EventCallback<GeometryChangedEvent> onGeometry = null;
 			onGeometry = _ => {
 				_cardCopy.UnregisterCallback(onGeometry);
-				var toWorld = toElement.worldBound;
-				var toLocal = _overlay.WorldToLocal(new Vector2(toWorld.x, toWorld.y));
-				_coroutineHost.StartCoroutine(AnimateCard(fromLocal, toLocal, duration, onComplete));
+				tcs.TrySetResult();
 			};
 			_cardCopy.RegisterCallback(onGeometry);
+			await tcs.Task;
+
+			var toWorld = toElement.worldBound;
+			var toLocal = _overlay.WorldToLocal(new Vector2(toWorld.x, toWorld.y));
+			await AnimateCard(fromLocal, toLocal, duration);
 		}
 
-		IEnumerator AnimateCard(Vector2 from, Vector2 to, float duration, Action onComplete) {
+		async UniTask AnimateCard(Vector2 from, Vector2 to, float duration) {
 			float elapsed = 0f;
 			while (elapsed < duration) {
 				elapsed += Time.deltaTime;
 				float t = Mathf.Clamp01(elapsed / duration);
 				_cardCopy.style.left = Mathf.Lerp(from.x, to.x, t);
 				_cardCopy.style.top = Mathf.Lerp(from.y, to.y, t);
-				yield return null;
+				await UniTask.NextFrame();
 			}
 			_cardCopy.style.left = to.x;
 			_cardCopy.style.top = to.y;
-			onComplete?.Invoke();
 		}
 
 		public void Hide() {
