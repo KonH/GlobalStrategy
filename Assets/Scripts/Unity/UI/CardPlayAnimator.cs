@@ -74,7 +74,7 @@ namespace GS.Unity.UI {
 
 		public void StartCardPlay(string orgId, string actionId, VisualElement clickedCard) {
 			if (_isPlaying) { return; }
-			PlaySequence(orgId, actionId, clickedCard);
+			PlaySequence(orgId, actionId, clickedCard).Forget();
 		}
 
 		internal void SetActionsView(OrgActionsView view) {
@@ -87,7 +87,7 @@ namespace GS.Unity.UI {
 
 		public void StartCountryCardPlay(string orgId, string countryId, string actionId, string targetCharId, VisualElement clickedCard) {
 			if (_isPlaying) { return; }
-			PlayCountrySequence(orgId, countryId, actionId, targetCharId, clickedCard);
+			PlayCountrySequence(orgId, countryId, actionId, targetCharId, clickedCard).Forget();
 		}
 
 		async UniTaskVoid PlaySequence(string orgId, string actionId, VisualElement clickedCard) {
@@ -458,7 +458,7 @@ namespace GS.Unity.UI {
 			return false;
 		}
 
-		static string GetGoldCostText(GS.Game.Configs.ActionDefinition? def) {
+		static string GetGoldCostText(GS.Game.Configs.ActionDefinition def) {
 			if (def == null) { return null; }
 			foreach (var c in def.Cost) {
 				if (c.ResourceId == "gold") {
