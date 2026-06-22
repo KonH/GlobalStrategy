@@ -1,0 +1,34 @@
+﻿actually, it's a mess, we need to refactor approach and many things around
+what I want to change:
+- display gold always without fractions
+  - simplify here, for double implementation add AsInt additional helpers
+  - simplify CardPlayBarriersHolder
+- CharacterStateEntry
+  - Opinion - animated value
+  - no additional param in CharactersView and CountryInfoView
+- CountryInfluenceState
+  - UsedInfluence - animated value
+  - no usedDisplay in CountryInfoView
+- ResourcesView
+  - no playerGoldAnimatable
+- ResourceStateEntry
+  - Value - animated
+- VisualState:
+  - PlayerCountry, PlayerResources - doesn't make sense now, player control org
+  - SelectedResources, SelectedInfluence, SelectedCharacters, SelectedCountryActions, SelectedCountryUsedInfluence, CharacterOpinions move to SelectedCountry and remove prefix
+  - PlayerOrgCharacters, PlayerOrgActions move to PlayerOrganization
+  - remove PlayerGold, provide resources dictionary in PlayerOrganizationState
+- LastActionResultState:
+  - should not have specific changes, it is not extendable
+  - hold List<IEffect>
+  - ResourceChange(ownerId, resourceId, diff) : IEffect
+  - CharacterOpinionChange(countryId, characterId, diff) : IEffect
+- ActionSystem/CountryActionSystem:
+  - ActionResult should be shared, no specific GoldSpent, InfluenceAdded etc, use single List<IEffect>
+  - maybe could reuse code through shared static helper methods
+  - ideally we should have one ActionSystem which could work with all entity types
+  - if we could use single system - simplify GameLogic with last action result logic
+- AnimationBarrrierDriver:
+  - actually, do we need it?
+  - maybe we need it on VisualState layer?
+  - I don't like that we define animated values in one file and animate them in another, easy to forget
