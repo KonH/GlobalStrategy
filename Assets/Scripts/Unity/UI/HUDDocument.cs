@@ -59,27 +59,13 @@ namespace GS.Unity.UI {
 			_document = GetComponent<UIDocument>();
 			_root = _document.rootVisualElement;
 			var root = _root;
-			if (_loc == null) {
-				Debug.LogWarning("[HUDDocument] _loc is null in Awake — injection has not happened yet");
-			}
 
 			_tooltip = new TooltipSystem(root.Q("hud-root"));
-
-			_countryInfoRoot = root.Q("country-info");
-			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _actionConfig, _actionVisualConfig, _state?.CharacterOpinions);
-			_countryInfo.OnCharsOpened += HandleOrgSubPanelOpened;
-			_countryInfo.OnCountryActionCardClicked += HandleCountryActionCardClicked;
-			_playerOrgView = new PlayerOrgView(root.Q("player-country"), _loc, _resourceConfig, _tooltip, _state?.PlayerGold);
 			_timeView = new TimeView(
 				root.Q("time-panel"),
 				OnPauseToggle,
 				OnSpeedChange);
-			_lensSwitcher = new LensSwitcherView(root.Q("lens-switcher"), _tooltip, _loc);
-			_lensSwitcher.OnLensSelected = OnLensSelected;
 			_orgLensCountryView = new OrgLensCountryView(root.Q("org-lens-country-info"));
-			if (_orgInfoDocument != null) {
-				_orgInfoDocument.OnSubPanelOpened += HandleOrgSubPanelOpened;
-			}
 
 			var playerOrgRoot = root.Q("player-country");
 			if (playerOrgRoot != null) {
@@ -92,6 +78,16 @@ namespace GS.Unity.UI {
 		}
 
 		void Start() {
+			_countryInfoRoot = _root.Q("country-info");
+			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _actionConfig, _actionVisualConfig, _state?.CharacterOpinions);
+			_countryInfo.OnSubPanelOpened += HandleOrgSubPanelOpened;
+			_countryInfo.OnCountryActionCardClicked += HandleCountryActionCardClicked;
+			_playerOrgView = new PlayerOrgView(_root.Q("player-country"), _loc, _resourceConfig, _tooltip, _state?.PlayerGold);
+			_lensSwitcher = new LensSwitcherView(_root.Q("lens-switcher"), _tooltip, _loc);
+			_lensSwitcher.OnLensSelected = OnLensSelected;
+			if (_orgInfoDocument != null) {
+				_orgInfoDocument.OnSubPanelOpened += HandleOrgSubPanelOpened;
+			}
 			_cardPlayAnimator?.SetCountryActionsView(_countryInfo.ActionsView);
 			var root = _document.rootVisualElement;
 			_btnMenu = root.Q<Button>("btn-menu");
@@ -223,8 +219,8 @@ namespace GS.Unity.UI {
 			if (_orgInfoDocument != null) {
 				_orgInfoDocument.OnSubPanelOpened -= HandleOrgSubPanelOpened;
 			}
-			_countryInfo.OnCharsOpened -= HandleOrgSubPanelOpened;
-			_countryInfo.OnCountryActionCardClicked -= HandleCountryActionCardClicked;
+			if (_countryInfo != null) { _countryInfo.OnSubPanelOpened -= HandleOrgSubPanelOpened; }
+			if (_countryInfo != null) { _countryInfo.OnCountryActionCardClicked -= HandleCountryActionCardClicked; }
 		}
 
 		void Update() {
@@ -250,12 +246,12 @@ namespace GS.Unity.UI {
 				_orgLensCountryView?.Refresh(_state.SelectedCountry, _state.OrgMap, _state.SelectedInfluence);
 			} else {
 				_orgLensCountryView?.Hide();
-				_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions, _state.PlayerResources);
+				_countryInfo?.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions, _state.PlayerResources);
 				if (_orgPanelOpen && _countryInfoRoot != null) {
 					_countryInfoRoot.style.display = DisplayStyle.None;
 				}
 			}
-			_playerOrgView.Refresh(_state.PlayerOrganization, _state.PlayerResources);
+			_playerOrgView?.Refresh(_state.PlayerOrganization, _state.PlayerResources);
 		}
 
 		void RefreshInfluenceDebugRow() {
@@ -312,12 +308,12 @@ namespace GS.Unity.UI {
 		}
 
 		void HandlePlayerResourcesChanged(object sender, PropertyChangedEventArgs e) {
-			_playerOrgView.Refresh(_state.PlayerOrganization, _state.PlayerResources);
-			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions, _state.PlayerResources);
+			_playerOrgView?.Refresh(_state.PlayerOrganization, _state.PlayerResources);
+			_countryInfo?.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions, _state.PlayerResources);
 		}
 
 		void HandleSelectedResourcesChanged(object sender, PropertyChangedEventArgs e) {
-			_countryInfo.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions, _state.PlayerResources);
+			_countryInfo?.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions, _state.PlayerResources);
 		}
 
 		void HandleCharactersChanged(object sender, PropertyChangedEventArgs e) {

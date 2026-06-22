@@ -287,7 +287,6 @@ namespace GS.Unity.UI {
 			if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = true; }
 
 			int influenceCost = 0;
-			string targetCharId2 = targetCharId;
 			foreach (var c in _state.SelectedCountryActions.Hand) {
 				if (c.ActionId == actionId && c.TargetCharacterId == targetCharId) {
 					influenceCost = c.InfluenceBase + c.InfluenceBonus;
@@ -298,6 +297,12 @@ namespace GS.Unity.UI {
 			AnimationBarrierInt opinBarrier = null;
 			if (_state?.SelectedCountryUsedInfluence != null && influenceCost > 0) {
 				infBarrier = _state.SelectedCountryUsedInfluence.Hold(influenceCost, 6.0f);
+			}
+			if (_state?.CharacterOpinions != null && !string.IsNullOrEmpty(targetCharId)) {
+				int opinionDelta = GetOpinionDelta(actionId);
+				if (opinionDelta != 0) {
+					opinBarrier = _state.CharacterOpinions.GetOrCreate(targetCharId).Hold(-opinionDelta, 6.0f);
+				}
 			}
 
 			_commands.Push(new PlayCountryActionCommand { OrgId = orgId, CountryId = countryId, ActionId = actionId, TargetCharacterId = targetCharId });
@@ -371,7 +376,7 @@ namespace GS.Unity.UI {
 			} else {
 				if (infBarrier != null) { _state.SelectedCountryUsedInfluence.Cancel(infBarrier); infBarrier = null; }
 				if (opinBarrier != null && _state.CharacterOpinions != null) {
-					_state.CharacterOpinions.GetOrCreate(targetCharId2).Cancel(opinBarrier);
+					_state.CharacterOpinions.GetOrCreate(targetCharId).Cancel(opinBarrier);
 					opinBarrier = null;
 				}
 			}
@@ -470,6 +475,18 @@ namespace GS.Unity.UI {
 				if (c.ResourceId == "gold") { return c.Amount; }
 			}
 			return 0.0;
+		}
+
+		int GetOpinionDelta(string actionId) {
+			var def = _actionConfig?.Find(actionId);
+			if (def == null || _effectConfig == null) { return 0; }
+			foreach (var effectId in def.EffectIds) {
+				var effect = _effectConfig.Find(effectId);
+				if (effect is GS.Game.Configs.OpinionModifierEffectParams op) {
+					return op.InitialValue;
+				}
+			}
+			return 0;
 		}
 	}
 }

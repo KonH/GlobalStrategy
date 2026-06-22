@@ -5,17 +5,15 @@ namespace GS.Main {
 		int _initialOffset;
 		float _duration;
 		float _accumulated;
-		bool _forceComplete;
 
 		public int Offset { get; private set; }
-		public bool IsComplete => _forceComplete || Offset == 0;
+		public bool IsComplete => Offset == 0;
 
 		internal AnimationBarrierInt(int offset, float duration) {
 			_initialOffset = offset;
 			Offset = offset;
 			_duration = duration;
 			_accumulated = 0f;
-			_forceComplete = false;
 		}
 
 		public void Release(float newDuration) {

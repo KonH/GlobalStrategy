@@ -14,7 +14,8 @@ namespace GS.Unity.UI {
 			float dt = Time.deltaTime;
 			_state.PlayerGold.Tick(dt);
 			_state.SelectedCountryUsedInfluence.Tick(dt);
-			foreach (var animatable in _state.CharacterOpinions.Values) {
+			var opinions = new System.Collections.Generic.List<AnimatableInt>(_state.CharacterOpinions.Values);
+			foreach (var animatable in opinions) {
 				animatable.Tick(dt);
 			}
 		}

@@ -24,7 +24,7 @@ namespace GS.Unity.UI {
 		bool _actionsOpen;
 		string _lastCountryId;
 
-		public event Action<bool> OnCharsOpened;
+		public event Action<bool> OnSubPanelOpened;
 		public event Action<string, string, VisualElement> OnCountryActionCardClicked;
 		public CountryActionsView ActionsView => _actionsView;
 		public void OpenChars() => SetCharsOpen(true);
@@ -126,7 +126,7 @@ namespace GS.Unity.UI {
 				var lbl = _charsToggleBtn.Q<Label>();
 				if (lbl != null) { lbl.text = open ? "Characters ▼" : "Characters ▲"; }
 			}
-			OnCharsOpened?.Invoke(open);
+			OnSubPanelOpened?.Invoke(open);
 		}
 
 		void SetActionsOpen(bool open) {
@@ -145,7 +145,7 @@ namespace GS.Unity.UI {
 				var lbl = _actionsToggleBtn.Q<Label>();
 				if (lbl != null) { lbl.text = open ? "Actions ▼" : "Actions ▲"; }
 			}
-			OnCharsOpened?.Invoke(open);
+			OnSubPanelOpened?.Invoke(open);
 		}
 
 		public void RefreshUsedInfluence(int usedDisplay) {
