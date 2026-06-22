@@ -82,7 +82,7 @@ namespace GS.Unity.UI {
 						if (res.ResourceId == "gold") { goldAnimatable = res.Value; break; }
 					}
 					if (goldAnimatable != null) {
-						_barrierHolder.AddDouble("gold", goldAnimatable, rc.Diff);
+						_barrierHolder.AddDouble("gold", goldAnimatable, -rc.Diff);
 					}
 				} else if (effect is GS.Game.Components.InfluenceAdded ia && ia.Amount > 0) {
 					_barrierHolder.AddInt("influence", _state.SelectedCountry.Influence.UsedInfluence, -ia.Amount);
