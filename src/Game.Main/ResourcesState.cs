@@ -18,10 +18,10 @@ namespace GS.Main {
 
 	public class ResourceStateEntry {
 		public string ResourceId { get; }
-		public double Value { get; }
+		public AnimatableDouble Value { get; }
 		public IReadOnlyList<EffectStateEntry> Effects { get; }
 
-		public ResourceStateEntry(string resourceId, double value, IReadOnlyList<EffectStateEntry> effects) {
+		public ResourceStateEntry(string resourceId, AnimatableDouble value, IReadOnlyList<EffectStateEntry> effects) {
 			ResourceId = resourceId;
 			Value = value;
 			Effects = effects;

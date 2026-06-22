@@ -11,14 +11,11 @@ namespace GS.Unity.UI {
 		readonly ILocalization _loc;
 		readonly ResourceConfig _config;
 		readonly TooltipSystem _tooltip;
-		readonly AnimatableDouble? _playerGoldAnimatable;
-
-		public ResourcesView(VisualElement container, ILocalization loc, ResourceConfig config, TooltipSystem tooltip, AnimatableDouble? playerGoldAnimatable = null) {
+		public ResourcesView(VisualElement container, ILocalization loc, ResourceConfig config, TooltipSystem tooltip) {
 			_container = container;
 			_loc = loc;
 			_config = config;
 			_tooltip = tooltip;
-			_playerGoldAnimatable = playerGoldAnimatable;
 		}
 
 		public void Refresh(CountryResourcesState state) {
@@ -37,10 +34,9 @@ namespace GS.Unity.UI {
 				var label = new Label();
 				label.AddToClassList("gs-label");
 				label.AddToClassList("resource-label");
-				double displayValue = (resource.ResourceId == "gold" && _playerGoldAnimatable != null)
-					? _playerGoldAnimatable.Display
-					: resource.Value;
-				label.text = $"{displayValue:F0}";
+				label.text = resource.ResourceId == "gold"
+					? $"{resource.Value.AsInt()}"
+					: $"{resource.Value.Display:F0}";
 				row.Add(label);
 
 				var capturedResource = resource;

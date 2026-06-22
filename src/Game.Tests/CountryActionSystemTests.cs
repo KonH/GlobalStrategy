@@ -111,7 +111,7 @@ namespace GS.Game.Tests {
 		void play_returns_not_executed_if_no_gold() {
 			var (world, goldEntity, _) = BuildWorld(gold: 10);
 			var (config, effectConfig) = BuildConfig(goldCost: 50);
-			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
+			var result = ActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 			Assert.False(result.Executed);
 			Assert.Equal(10.0, world.Get<Resource>(goldEntity).Value);
 		}
@@ -120,7 +120,7 @@ namespace GS.Game.Tests {
 		void play_deducts_gold_on_execution() {
 			var (world, goldEntity, _) = BuildWorld(gold: 200);
 			var (config, effectConfig) = BuildConfig(goldCost: 50);
-			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
+			var result = ActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 			Assert.True(result.Executed);
 			Assert.Equal(150.0, world.Get<Resource>(goldEntity).Value);
 		}
@@ -137,7 +137,7 @@ namespace GS.Game.Tests {
 				}
 			};
 			var (config, effectConfig) = BuildConfig(conditionNode: condition);
-			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
+			var result = ActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 			Assert.False(result.Executed);
 		}
 
@@ -155,7 +155,7 @@ namespace GS.Game.Tests {
 				}
 			};
 			var (config, effectConfig) = BuildConfig(conditionNode: condition, influenceAmount: 0);
-			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
+			var result = ActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 			Assert.True(result.Executed);
 		}
 
@@ -163,7 +163,7 @@ namespace GS.Game.Tests {
 		void play_success_adds_influence() {
 			var (world, _, _) = BuildWorld();
 			var (config, effectConfig) = BuildConfig(successRate: 1.0, influenceAmount: 10);
-			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
+			var result = ActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 			Assert.True(result.Success);
 			Assert.Equal(10, CountInfluenceEffects(world, OrgId, CountryId));
 		}
@@ -172,7 +172,7 @@ namespace GS.Game.Tests {
 		void play_failure_does_not_add_influence() {
 			var (world, _, _) = BuildWorld();
 			var (config, effectConfig) = BuildConfig(successRate: 0.0, influenceAmount: 10);
-			var result = CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
+			var result = ActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 			Assert.False(result.Success);
 			Assert.Equal(0, CountInfluenceEffects(world, OrgId, CountryId));
 		}
@@ -186,7 +186,7 @@ namespace GS.Game.Tests {
 			world.Add(fillEntity, new InfluenceEffect { OrgId = OrgId, CountryId = CountryId, Value = 95 });
 
 			var (config, effectConfig) = BuildConfig(successRate: 1.0, influenceAmount: 10);
-			CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
+			ActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 
 			// Should only add 5 to reach cap of 100
 			Assert.Equal(100, CountInfluenceEffects(world, OrgId, CountryId));
@@ -200,7 +200,7 @@ namespace GS.Game.Tests {
 			world.Add(fillEntity, new InfluenceEffect { OrgId = OrgId, CountryId = CountryId, Value = 100 });
 
 			var (config, effectConfig) = BuildConfig(successRate: 1.0, influenceAmount: 10);
-			CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
+			ActionSystem.ProcessPlayCountryAction(world, MakeCmd(), config, effectConfig, DateTime.UtcNow, new Random(1));
 
 			Assert.Equal(100, CountInfluenceEffects(world, OrgId, CountryId));
 		}
@@ -221,7 +221,7 @@ namespace GS.Game.Tests {
 				}
 			};
 			var effectConfig = new EffectConfig();
-			CountryActionSystem.ProcessPlayCountryAction(world, MakeCmd(), actionConfig, effectConfig, DateTime.UtcNow, new Random(1));
+			ActionSystem.ProcessPlayCountryAction(world, MakeCmd(), actionConfig, effectConfig, DateTime.UtcNow, new Random(1));
 
 			// Played card returns to deck (no cooldown) and both it and the advisor deck card are drawn
 			Assert.Equal(2, CountHandCards(world));
@@ -238,7 +238,7 @@ namespace GS.Game.Tests {
 			});
 
 			var (config, effectConfig) = BuildConfig(successRate: 1.0, opinionSourceId: "commendation", opinionInitialValue: 5, opinionDecayPerMonth: 0, influenceAmount: 0);
-			CountryActionSystem.ProcessPlayCountryAction(
+			ActionSystem.ProcessPlayCountryAction(
 				world, MakeCmd(targetCharId: CharId), config, effectConfig, DateTime.UtcNow, new Random(1));
 
 			ref CharacterOpinion opinion = ref world.Get<CharacterOpinion>(charEntity);
@@ -258,7 +258,7 @@ namespace GS.Game.Tests {
 			});
 
 			var (config, effectConfig) = BuildConfig(successRate: 0.0, opinionSourceId: "commendation", influenceAmount: 0);
-			CountryActionSystem.ProcessPlayCountryAction(
+			ActionSystem.ProcessPlayCountryAction(
 				world, MakeCmd(targetCharId: CharId), config, effectConfig, DateTime.UtcNow, new Random(1));
 
 			ref CharacterOpinion opinion = ref world.Get<CharacterOpinion>(charEntity);

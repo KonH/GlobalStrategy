@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using GS.Game.Commands;
+using GS.Game.Components;
 
 namespace GS.Main {
 	public class SelectedCountryState : INotifyPropertyChanged {
@@ -9,6 +10,10 @@ namespace GS.Main {
 
 		public bool IsValid { get; private set; }
 		public string CountryId { get; private set; } = "";
+		public CountryResourcesState Resources { get; } = new CountryResourcesState();
+		public CountryInfluenceState Influence { get; } = new CountryInfluenceState();
+		public CountryCharactersState Characters { get; } = new CountryCharactersState();
+		public CountryActionsState CountryActions { get; } = new CountryActionsState();
 
 		public void Set(bool isValid, string countryId) {
 			IsValid = isValid;
@@ -31,30 +36,22 @@ namespace GS.Main {
 		}
 	}
 
-	public class PlayerCountryState : INotifyPropertyChanged {
-		public event PropertyChangedEventHandler? PropertyChanged;
-
-		public bool IsValid { get; private set; }
-		public string CountryId { get; private set; } = "";
-
-		public void Set(bool isValid, string countryId) {
-			IsValid = isValid;
-			CountryId = countryId;
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
-		}
-	}
-
 	public class PlayerOrganizationState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public bool IsValid { get; private set; }
 		public string OrgId { get; private set; } = "";
 		public string DisplayName { get; private set; } = "";
+		public string HqCountryId { get; private set; } = "";
+		public CountryResourcesState Resources { get; } = new CountryResourcesState();
+		public OrgCharactersState Characters { get; } = new OrgCharactersState();
+		public OrgActionsState Actions { get; } = new OrgActionsState();
 
-		public void Set(bool isValid, string orgId, string displayName) {
+		public void Set(bool isValid, string orgId, string displayName, string hqCountryId = "") {
 			IsValid = isValid;
 			OrgId = orgId;
 			DisplayName = displayName;
+			HqCountryId = hqCountryId;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -97,12 +94,12 @@ namespace GS.Main {
 	public class CountryInfluenceState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
-		public int UsedInfluence { get; private set; }
+		public AnimatableInt UsedInfluence { get; } = new AnimatableInt();
 		public int PoolSize => 100;
 		public IReadOnlyList<OrgInfluenceEntry> OrgEntries { get; private set; } = Array.Empty<OrgInfluenceEntry>();
 
 		public void Set(int used, List<OrgInfluenceEntry> entries) {
-			UsedInfluence = used;
+			UsedInfluence.SetActual(used);
 			OrgEntries = entries;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
@@ -119,8 +116,8 @@ namespace GS.Main {
 		public string RoleId { get; }
 		public string[] NamePartKeys { get; }
 		public IReadOnlyList<SkillEntry> Skills { get; }
-		public int Opinion { get; }
-		public CharacterStateEntry(string characterId, string roleId, string[] namePartKeys, IReadOnlyList<SkillEntry> skills, int opinion) {
+		public AnimatableInt Opinion { get; }
+		public CharacterStateEntry(string characterId, string roleId, string[] namePartKeys, IReadOnlyList<SkillEntry> skills, AnimatableInt opinion) {
 			CharacterId = characterId;
 			RoleId = roleId;
 			NamePartKeys = namePartKeys;
@@ -235,19 +232,15 @@ namespace GS.Main {
 		public bool HasResult { get; private set; }
 		public bool Success   { get; private set; }
 		public string ActionId { get; private set; } = "";
-		public double GoldSpent { get; private set; }
-		public int InfluenceAdded { get; private set; }
-		public string OpinionTargetCharId { get; private set; } = "";
-		public int OpinionDelta { get; private set; }
-		public void Set(bool success, string actionId, double goldSpent = 0, int influenceAdded = 0, string opinionTargetCharId = "", int opinionDelta = 0) {
+		public List<IEffect> Effects { get; private set; } = new List<IEffect>();
+		public void Set(bool success, string actionId, List<IEffect> effects) {
 			HasResult = true; Success = success; ActionId = actionId;
-			GoldSpent = goldSpent; InfluenceAdded = influenceAdded;
-			OpinionTargetCharId = opinionTargetCharId ?? ""; OpinionDelta = opinionDelta;
+			Effects = effects ?? new List<IEffect>();
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 		public void Clear() {
 			HasResult = false; Success = false; ActionId = "";
-			GoldSpent = 0; InfluenceAdded = 0; OpinionTargetCharId = ""; OpinionDelta = 0;
+			Effects = new List<IEffect>();
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -298,24 +291,13 @@ namespace GS.Main {
 
 	public class VisualState {
 		public SelectedCountryState SelectedCountry { get; } = new SelectedCountryState();
-		public PlayerCountryState PlayerCountry { get; } = new PlayerCountryState();
 		public TimeState Time { get; } = new TimeState();
 		public LocaleState Locale { get; } = new LocaleState();
-		public CountryResourcesState PlayerResources { get; } = new CountryResourcesState();
-		public CountryResourcesState SelectedResources { get; } = new CountryResourcesState();
 		public PlayerOrganizationState PlayerOrganization { get; } = new PlayerOrganizationState();
 		public SelectedOrganizationState SelectedOrganization { get; } = new SelectedOrganizationState();
-		public CountryInfluenceState SelectedInfluence { get; } = new CountryInfluenceState();
-		public CountryCharactersState SelectedCharacters { get; } = new CountryCharactersState();
-		public OrgCharactersState PlayerOrgCharacters { get; } = new OrgCharactersState();
 		public MapLensState MapLens { get; } = new MapLensState();
 		public OrgMapState OrgMap { get; } = new OrgMapState();
 		public DiscoveredCountriesState DiscoveredCountries { get; } = new DiscoveredCountriesState();
-		public OrgActionsState PlayerOrgActions             { get; } = new OrgActionsState();
-		public LastActionResultState LastAction             { get; } = new LastActionResultState();
-		public CountryActionsState SelectedCountryActions  { get; } = new CountryActionsState();
-		public AnimatableDouble PlayerGold { get; } = new AnimatableDouble();
-		public AnimatableInt SelectedCountryUsedInfluence { get; } = new AnimatableInt();
-		public Dictionary<string, AnimatableInt> CharacterOpinions { get; } = new Dictionary<string, AnimatableInt>();
+		public LastActionResultState LastAction { get; } = new LastActionResultState();
 	}
 }

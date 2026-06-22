@@ -9,6 +9,8 @@ namespace GS.Main {
 	class VisualStateConverter {
 		readonly VisualState _state;
 		readonly System.Collections.Generic.HashSet<string> _previousDiscoveredIds = new();
+		readonly Dictionary<string, AnimatableInt> _characterOpinionAnimatables = new();
+		readonly Dictionary<(string, string), AnimatableDouble> _resourceAnimatables = new();
 		ActionConfig? _actionConfig;
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
@@ -19,9 +21,8 @@ namespace GS.Main {
 			_actionConfig = actionConfig;
 		}
 
-		internal void Update(IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
+		internal void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
 			UpdateSelectedCountry(world);
-			UpdatePlayerCountry(world);
 			UpdateTime(world, gameTimeEntity);
 			UpdateLocale(world, localeEntity);
 			UpdatePlayerOrganization(world, orgEntity);
@@ -33,12 +34,21 @@ namespace GS.Main {
 			UpdateDiscoveredCountries(world);
 			UpdateOrgActions(world);
 			UpdateCountryActions(world, gameTimeEntity);
+
+			// Tick all animatables
+			foreach (var animatable in _characterOpinionAnimatables.Values) {
+				animatable.Tick(deltaTime);
+			}
+			foreach (var animatable in _resourceAnimatables.Values) {
+				animatable.Tick(deltaTime);
+			}
+			_state.SelectedCountry.Influence.UsedInfluence.Tick(deltaTime);
 		}
 
 		void UpdateCharacters(IReadOnlyWorld world) {
 			if (!_state.SelectedCountry.IsValid) {
-				_state.CharacterOpinions.Clear();
-				_state.SelectedCharacters.Set(new List<CharacterStateEntry>());
+				_characterOpinionAnimatables.Clear();
+				_state.SelectedCountry.Characters.Set(new List<CharacterStateEntry>());
 				return;
 			}
 			string selectedCountryId = _state.SelectedCountry.CountryId;
@@ -106,7 +116,12 @@ namespace GS.Main {
 					}
 					effective = Math.Clamp(baseOpinion + mods, -100, 100);
 				}
-				entries.Add(new CharacterStateEntry(charId, roleId, namePartKeys, charSkills[charId], effective));
+				if (!_characterOpinionAnimatables.TryGetValue(charId, out var opinionAnimatable)) {
+					opinionAnimatable = new AnimatableInt();
+					_characterOpinionAnimatables[charId] = opinionAnimatable;
+				}
+				opinionAnimatable.SetActual(effective);
+				entries.Add(new CharacterStateEntry(charId, roleId, namePartKeys, charSkills[charId], opinionAnimatable));
 			}
 			entries.Sort((a, b) => {
 				int ai = Array.IndexOf(s_roleOrder, a.RoleId);
@@ -118,21 +133,20 @@ namespace GS.Main {
 
 			var newCharIds = new System.Collections.Generic.HashSet<string>();
 			foreach (var entry in entries) {
-				_state.CharacterOpinions.GetOrCreate(entry.CharacterId).SetActual(entry.Opinion);
 				newCharIds.Add(entry.CharacterId);
 			}
 			var keysToRemove = new System.Collections.Generic.List<string>();
-			foreach (var key in _state.CharacterOpinions.Keys) {
+			foreach (var key in _characterOpinionAnimatables.Keys) {
 				if (!newCharIds.Contains(key)) { keysToRemove.Add(key); }
 			}
-			foreach (var key in keysToRemove) { _state.CharacterOpinions.Remove(key); }
+			foreach (var key in keysToRemove) { _characterOpinionAnimatables.Remove(key); }
 
-			_state.SelectedCharacters.Set(entries);
+			_state.SelectedCountry.Characters.Set(entries);
 		}
 
 		void UpdateOrgCharacters(IReadOnlyWorld world) {
 			if (!_state.PlayerOrganization.IsValid) {
-				_state.PlayerOrgCharacters.Set(new List<OrgCharacterSlotEntry>());
+				_state.PlayerOrganization.Characters.Set(new List<OrgCharacterSlotEntry>());
 				return;
 			}
 			string orgId = _state.PlayerOrganization.OrgId;
@@ -177,7 +191,7 @@ namespace GS.Main {
 					CharacterStateEntry? charEntry = null;
 					string cid = slots[i].CharacterId;
 					if (!string.IsNullOrEmpty(cid) && charData.TryGetValue(cid, out var cd)) {
-						charEntry = new CharacterStateEntry(cid, cd.roleId, cd.namePartKeys, charSkills[cid], 0);
+						charEntry = new CharacterStateEntry(cid, cd.roleId, cd.namePartKeys, charSkills[cid], new AnimatableInt());
 					}
 					slotEntries.Add(new OrgCharacterSlotEntry(
 						slots[i].RoleId, slots[i].SlotIndex, charEntry, slots[i].IsAvailable));
@@ -193,7 +207,7 @@ namespace GS.Main {
 				return rc != 0 ? rc : a.SlotIndex.CompareTo(b.SlotIndex);
 			});
 
-			_state.PlayerOrgCharacters.Set(slotEntries);
+			_state.PlayerOrganization.Characters.Set(slotEntries);
 		}
 
 		void UpdateSelectedCountry(IReadOnlyWorld world) {
@@ -209,19 +223,6 @@ namespace GS.Main {
 			_state.SelectedCountry.Set(false, "");
 		}
 
-		void UpdatePlayerCountry(IReadOnlyWorld world) {
-			int[] required = { TypeId<Country>.Value, TypeId<Player>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
-				if (arch.Count == 0) {
-					continue;
-				}
-				Country[] countries = arch.GetColumn<Country>();
-				_state.PlayerCountry.Set(true, countries[0].CountryId);
-				return;
-			}
-			_state.PlayerCountry.Set(false, "");
-		}
-
 		void UpdateTime(IReadOnlyWorld world, int gameTimeEntity) {
 			ref GameTime time = ref world.Get<GameTime>(gameTimeEntity);
 			_state.Time.Set(time.CurrentTime, time.IsPaused, time.MultiplierIndex);
@@ -234,11 +235,16 @@ namespace GS.Main {
 
 		void UpdatePlayerOrganization(IReadOnlyWorld world, int orgEntity) {
 			if (orgEntity < 0) {
-				_state.PlayerOrganization.Set(false, "", "");
+				_state.PlayerOrganization.Set(false, "", "", "");
 				return;
 			}
 			ref Organization org = ref world.Get<Organization>(orgEntity);
-			_state.PlayerOrganization.Set(true, org.OrganizationId, org.DisplayName);
+			string playerCountryId = "";
+			int[] playerReq = { TypeId<Country>.Value, TypeId<Player>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(playerReq, null)) {
+				if (arch.Count > 0) { playerCountryId = arch.GetColumn<Country>()[0].CountryId; break; }
+			}
+			_state.PlayerOrganization.Set(true, org.OrganizationId, org.DisplayName, playerCountryId);
 		}
 
 		void UpdateResources(IReadOnlyWorld world) {
@@ -250,18 +256,12 @@ namespace GS.Main {
 				orgInfluenceIncomes = BuildInfluenceIncomesForOrg(world, playerOrgId);
 			}
 
-			_state.PlayerResources.Set(
+			_state.PlayerOrganization.Resources.Set(
 				_state.PlayerOrganization.IsValid,
 				playerOrgId,
 				BuildResources(world, playerOrgId),
 				orgInfluenceIncomes);
-			foreach (var entry in _state.PlayerResources.Resources) {
-				if (entry.ResourceId == "gold") {
-					_state.PlayerGold.SetActual(entry.Value);
-					break;
-				}
-			}
-			_state.SelectedResources.Set(
+			_state.SelectedCountry.Resources.Set(
 				_state.SelectedCountry.IsValid,
 				selectedCountryId,
 				BuildResources(world, selectedCountryId));
@@ -296,8 +296,7 @@ namespace GS.Main {
 		void UpdateSelectedInfluence(IReadOnlyWorld world) {
 			string selectedCountryId = _state.SelectedCountry.IsValid ? _state.SelectedCountry.CountryId : "";
 			if (!_state.SelectedCountry.IsValid) {
-				_state.SelectedCountryUsedInfluence.SetActual(0);
-				_state.SelectedInfluence.Set(0, new List<OrgInfluenceEntry>());
+				_state.SelectedCountry.Influence.Set(0, new List<OrgInfluenceEntry>());
 				return;
 			}
 
@@ -356,8 +355,7 @@ namespace GS.Main {
 				entries.Add(new OrgInfluenceEntry(orgId, displayName, influence, baseInfl, permInfl, gain));
 			}
 			entries.Sort((a, b) => b.Influence.CompareTo(a.Influence));
-			_state.SelectedCountryUsedInfluence.SetActual(usedTotal);
-			_state.SelectedInfluence.Set(usedTotal, entries);
+			_state.SelectedCountry.Influence.Set(usedTotal, entries);
 		}
 
 		List<ResourceStateEntry> BuildResources(IReadOnlyWorld world, string countryId) {
@@ -374,8 +372,14 @@ namespace GS.Main {
 					if (owners[i].OwnerId != countryId) {
 						continue;
 					}
+					var key = (countryId, resources[i].ResourceId);
+					if (!_resourceAnimatables.TryGetValue(key, out var animatable)) {
+						animatable = new AnimatableDouble();
+						_resourceAnimatables[key] = animatable;
+					}
+					animatable.SetActual(resources[i].Value);
 					var effects = BuildEffects(world, countryId, resources[i].ResourceId);
-					result.Add(new ResourceStateEntry(resources[i].ResourceId, resources[i].Value, effects));
+					result.Add(new ResourceStateEntry(resources[i].ResourceId, animatable, effects));
 				}
 			}
 			return result;
@@ -443,7 +447,7 @@ namespace GS.Main {
 
 		void UpdateOrgActions(IReadOnlyWorld world) {
 			if (!_state.PlayerOrganization.IsValid) {
-				_state.PlayerOrgActions.Set(
+				_state.PlayerOrganization.Actions.Set(
 					new System.Collections.Generic.List<ActionCardEntry>(),
 					new System.Collections.Generic.List<ActionCardEntry>(), 0);
 				return;
@@ -481,12 +485,12 @@ namespace GS.Main {
 				}
 			}
 			hand.Sort((a, b) => a.SlotIndex.CompareTo(b.SlotIndex));
-			_state.PlayerOrgActions.Set(hand, deck, handSize);
+			_state.PlayerOrganization.Actions.Set(hand, deck, handSize);
 		}
 
 		void UpdateCountryActions(IReadOnlyWorld world, int gameTimeEntity) {
 			if (!_state.SelectedCountry.IsValid || !_state.PlayerOrganization.IsValid || _actionConfig == null) {
-				_state.SelectedCountryActions.Set(
+				_state.SelectedCountry.CountryActions.Set(
 					new List<CountryActionCardEntry>(),
 					new List<CountryActionCardEntry>(),
 					0, DateTime.MinValue);
@@ -560,7 +564,7 @@ namespace GS.Main {
 
 			hand.Sort((a, b) => a.SlotIndex.CompareTo(b.SlotIndex));
 			int countryHandSize = _actionConfig?.GetHandSize("country") ?? 3;
-			_state.SelectedCountryActions.Set(hand, deck, countryHandSize, currentTime);
+			_state.SelectedCountry.CountryActions.Set(hand, deck, countryHandSize, currentTime);
 		}
 
 		CountryActionCardEntry? BuildEntry(

@@ -40,6 +40,8 @@ namespace GS.Main {
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 
+		public int AsInt() => (int)Display;
+
 		public void Tick(float deltaTime) {
 			double prevDisplay = Display;
 

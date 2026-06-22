@@ -80,10 +80,10 @@ namespace GS.Unity.UI {
 
 		void Start() {
 			_countryInfoRoot = _root.Q("country-info");
-			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _actionConfig, _actionVisualConfig, _state?.CharacterOpinions);
+			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _actionConfig, _actionVisualConfig);
 			_countryInfo.OnSubPanelOpened += HandleOrgSubPanelOpened;
 			_countryInfo.OnCountryActionCardClicked += HandleCountryActionCardClicked;
-			_playerOrgView = new PlayerOrgView(_root.Q("player-country"), _loc, _resourceConfig, _tooltip, _state?.PlayerGold);
+			_playerOrgView = new PlayerOrgView(_root.Q("player-country"), _loc, _resourceConfig, _tooltip);
 			_lensSwitcher = new LensSwitcherView(_root.Q("lens-switcher"), _tooltip, _loc);
 			_lensSwitcher.OnLensSelected = OnLensSelected;
 			if (_orgInfoDocument != null) {
@@ -134,14 +134,14 @@ namespace GS.Unity.UI {
 					}
 					if (!usedInCountryPool) { continue; }
 					string capturedRoleId = role.RoleId;
-					var nextBtn = new Button(() => PushCycleCharacter(_state?.PlayerCountry?.CountryId ?? "", capturedRoleId, 0));
+					var nextBtn = new Button(() => PushCycleCharacter(_state?.PlayerOrganization?.HqCountryId ?? "", capturedRoleId, 0));
 					nextBtn.text = $"Next: {role.RoleId}";
 					nextBtn.AddToClassList("gs-btn");
 					nextBtn.AddToClassList("gs-btn--small");
 					nextBtn.AddToClassList("debug-panel-button");
 					characterDebugContainer.Add(nextBtn);
 
-					var dropBtn = new Button(() => PushDropCharacter(_state?.PlayerCountry?.CountryId ?? "", capturedRoleId, 0));
+					var dropBtn = new Button(() => PushDropCharacter(_state?.PlayerOrganization?.HqCountryId ?? "", capturedRoleId, 0));
 					dropBtn.text = $"Drop: {role.RoleId}";
 					dropBtn.AddToClassList("gs-btn");
 					dropBtn.AddToClassList("gs-btn--small");
@@ -183,15 +183,15 @@ namespace GS.Unity.UI {
 			_state.PlayerOrganization.PropertyChanged += HandlePlayerOrgChanged;
 			_state.Time.PropertyChanged               += HandleTimeChanged;
 			_state.Locale.PropertyChanged             += HandleLocaleChanged;
-			_state.PlayerResources.PropertyChanged    += HandlePlayerResourcesChanged;
-			_state.SelectedResources.PropertyChanged  += HandleSelectedResourcesChanged;
-			_state.SelectedInfluence.PropertyChanged  += HandleInfluenceChanged;
-			_state.SelectedCharacters.PropertyChanged += HandleCharactersChanged;
-			_state.SelectedCountryActions.PropertyChanged += HandleCountryActionsChanged;
+			_state.PlayerOrganization.Resources.PropertyChanged    += HandlePlayerResourcesChanged;
+			_state.SelectedCountry.Resources.PropertyChanged  += HandleSelectedResourcesChanged;
+			_state.SelectedCountry.Influence.PropertyChanged  += HandleInfluenceChanged;
+			_state.SelectedCountry.Characters.PropertyChanged += HandleCharactersChanged;
+			_state.SelectedCountry.CountryActions.PropertyChanged += HandleCountryActionsChanged;
 			_state.MapLens.PropertyChanged            += HandleLensChanged;
 			_state.OrgMap.PropertyChanged             += HandleOrgMapChanged;
-			_state.PlayerOrgCharacters.PropertyChanged += HandleOrgCharactersChanged;
-			_state.SelectedCountryUsedInfluence.PropertyChanged += HandleAnimatedInfluenceChanged;
+			_state.PlayerOrganization.Characters.PropertyChanged += HandleOrgCharactersChanged;
+			_state.SelectedCountry.Influence.UsedInfluence.PropertyChanged += HandleInfluenceTickChanged;
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			RefreshCountryViews();
 			RefreshInfluenceDebugRow();
@@ -207,15 +207,15 @@ namespace GS.Unity.UI {
 			_state.PlayerOrganization.PropertyChanged -= HandlePlayerOrgChanged;
 			_state.Time.PropertyChanged               -= HandleTimeChanged;
 			_state.Locale.PropertyChanged             -= HandleLocaleChanged;
-			_state.PlayerResources.PropertyChanged    -= HandlePlayerResourcesChanged;
-			_state.SelectedResources.PropertyChanged  -= HandleSelectedResourcesChanged;
-			_state.SelectedInfluence.PropertyChanged  -= HandleInfluenceChanged;
-			_state.SelectedCharacters.PropertyChanged -= HandleCharactersChanged;
-			_state.SelectedCountryActions.PropertyChanged -= HandleCountryActionsChanged;
+			_state.PlayerOrganization.Resources.PropertyChanged    -= HandlePlayerResourcesChanged;
+			_state.SelectedCountry.Resources.PropertyChanged  -= HandleSelectedResourcesChanged;
+			_state.SelectedCountry.Influence.PropertyChanged  -= HandleInfluenceChanged;
+			_state.SelectedCountry.Characters.PropertyChanged -= HandleCharactersChanged;
+			_state.SelectedCountry.CountryActions.PropertyChanged -= HandleCountryActionsChanged;
 			_state.MapLens.PropertyChanged            -= HandleLensChanged;
 			_state.OrgMap.PropertyChanged             -= HandleOrgMapChanged;
-			_state.PlayerOrgCharacters.PropertyChanged -= HandleOrgCharactersChanged;
-			_state.SelectedCountryUsedInfluence.PropertyChanged -= HandleAnimatedInfluenceChanged;
+			_state.PlayerOrganization.Characters.PropertyChanged -= HandleOrgCharactersChanged;
+			_state.SelectedCountry.Influence.UsedInfluence.PropertyChanged -= HandleInfluenceTickChanged;
 			_lastOrgAgentSlotCount = -1;
 			if (_orgInfoDocument != null) {
 				_orgInfoDocument.OnSubPanelOpened -= HandleOrgSubPanelOpened;
@@ -244,15 +244,15 @@ namespace GS.Unity.UI {
 				if (_countryInfoRoot != null) {
 					_countryInfoRoot.style.display = DisplayStyle.None;
 				}
-				_orgLensCountryView?.Refresh(_state.SelectedCountry, _state.OrgMap, _state.SelectedInfluence);
+				_orgLensCountryView?.Refresh(_state.SelectedCountry, _state.OrgMap, _state.SelectedCountry.Influence);
 			} else {
 				_orgLensCountryView?.Hide();
-				_countryInfo?.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions, _state.PlayerResources, (int)_state.SelectedCountryUsedInfluence.Display);
+				_countryInfo?.Refresh(_state.SelectedCountry, _state.SelectedCountry.Resources, _state.SelectedCountry.Influence, _state.SelectedCountry.Characters, _state.SelectedCountry.CountryActions, _state.PlayerOrganization.Resources);
 				if (_orgPanelOpen && _countryInfoRoot != null) {
 					_countryInfoRoot.style.display = DisplayStyle.None;
 				}
 			}
-			_playerOrgView?.Refresh(_state.PlayerOrganization, _state.PlayerResources);
+			_playerOrgView?.Refresh(_state.PlayerOrganization, _state.PlayerOrganization.Resources);
 		}
 
 		void RefreshInfluenceDebugRow() {
@@ -265,7 +265,7 @@ namespace GS.Unity.UI {
 
 		void PushChangeGoldCommand(double amount) {
 			if (_state == null || !_state.PlayerOrganization.IsValid) { return; }
-			if (amount > 0 && _state.PlayerGold != null) {
+			if (amount > 0) {
 				AnimateGoldDebug(amount).Forget();
 				return;
 			}
@@ -276,13 +276,16 @@ namespace GS.Unity.UI {
 		}
 
 		async UniTaskVoid AnimateGoldDebug(double amount) {
-			// Barrier created before the command so it compensates when SetActual fires next frame.
-			var barrier = _state.PlayerGold.Hold(-amount);
+			AnimatableDouble goldAnimatable = null;
+			foreach (var res in _state.PlayerOrganization.Resources.Resources) {
+				if (res.ResourceId == "gold") { goldAnimatable = res.Value; break; }
+			}
+			if (goldAnimatable == null) { return; }
+			var barrier = goldAnimatable.Hold(-amount);
 			_commands.Push(new GS.Game.Commands.DebugChangeGoldCommand {
 				OrgId = _state.PlayerOrganization.OrgId,
 				Amount = amount
 			});
-			// Wait one frame for GameLogic to process the command and SetActual to fire.
 			await UniTask.NextFrame();
 			barrier.Release(3.0f);
 			await UniTask.WaitUntil(() => barrier.IsComplete);
@@ -326,12 +329,12 @@ namespace GS.Unity.UI {
 		}
 
 		void HandlePlayerResourcesChanged(object sender, PropertyChangedEventArgs e) {
-			_playerOrgView?.Refresh(_state.PlayerOrganization, _state.PlayerResources);
-			_countryInfo?.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions, _state.PlayerResources);
+			_playerOrgView?.Refresh(_state.PlayerOrganization, _state.PlayerOrganization.Resources);
+			_countryInfo?.Refresh(_state.SelectedCountry, _state.SelectedCountry.Resources, _state.SelectedCountry.Influence, _state.SelectedCountry.Characters, _state.SelectedCountry.CountryActions, _state.PlayerOrganization.Resources);
 		}
 
 		void HandleSelectedResourcesChanged(object sender, PropertyChangedEventArgs e) {
-			_countryInfo?.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions, _state.PlayerResources);
+			_countryInfo?.Refresh(_state.SelectedCountry, _state.SelectedCountry.Resources, _state.SelectedCountry.Influence, _state.SelectedCountry.Characters, _state.SelectedCountry.CountryActions, _state.PlayerOrganization.Resources);
 		}
 
 		void HandleCharactersChanged(object sender, PropertyChangedEventArgs e) {
@@ -403,8 +406,8 @@ namespace GS.Unity.UI {
 			orgCharDebugContainer.Add(masterDropBtn);
 
 			int agentCount = 0;
-			if (_state?.PlayerOrgCharacters?.Slots != null) {
-				foreach (var slot in _state.PlayerOrgCharacters.Slots) {
+			if (_state?.PlayerOrganization?.Characters?.Slots != null) {
+				foreach (var slot in _state.PlayerOrganization.Characters.Slots) {
 					if (slot.RoleId == "agent") { agentCount++; }
 				}
 			}
@@ -452,14 +455,14 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		void HandleAnimatedInfluenceChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
-			_countryInfo?.RefreshUsedInfluence((int)_state.SelectedCountryUsedInfluence.Display);
+		void HandleInfluenceTickChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
+			_countryInfo?.RefreshUsedInfluence();
 		}
 
 		void HandleOrgCharactersChanged(object sender, PropertyChangedEventArgs e) {
 			int agentCount = 0;
-			if (_state?.PlayerOrgCharacters?.Slots != null) {
-				foreach (var slot in _state.PlayerOrgCharacters.Slots) {
+			if (_state?.PlayerOrganization?.Characters?.Slots != null) {
+				foreach (var slot in _state.PlayerOrganization.Characters.Slots) {
 					if (slot.RoleId == "agent") { agentCount++; }
 				}
 			}

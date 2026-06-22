@@ -75,20 +75,25 @@ namespace GS.Unity.UI {
 			// so barriers are in place when the display values would otherwise jump.
 			_barrierHolder = new CardPlayBarriersHolder();
 
-			double goldSpent = _state.LastAction.GoldSpent;
-			if (goldSpent > 0 && _state.PlayerGold != null) {
-				_barrierHolder.AddDouble("gold", _state.PlayerGold, -goldSpent);
-			}
-
-			int influenceAdded = _state.LastAction.InfluenceAdded;
-			if (influenceAdded > 0 && _state.SelectedCountryUsedInfluence != null) {
-				_barrierHolder.AddInt("influence", _state.SelectedCountryUsedInfluence, -influenceAdded);
-			}
-
-			string opinionCharId = _state.LastAction.OpinionTargetCharId;
-			int opinionDelta = _state.LastAction.OpinionDelta;
-			if (!string.IsNullOrEmpty(opinionCharId) && opinionDelta != 0 && _state.CharacterOpinions != null) {
-				_barrierHolder.AddInt("opinion", _state.CharacterOpinions.GetOrCreate(opinionCharId), -opinionDelta);
+			foreach (var effect in _state.LastAction.Effects) {
+				if (effect is GS.Game.Components.ResourceChange rc && rc.ResourceId == "gold") {
+					AnimatableDouble goldAnimatable = null;
+					foreach (var res in _state.PlayerOrganization.Resources.Resources) {
+						if (res.ResourceId == "gold") { goldAnimatable = res.Value; break; }
+					}
+					if (goldAnimatable != null) {
+						_barrierHolder.AddDouble("gold", goldAnimatable, rc.Diff);
+					}
+				} else if (effect is GS.Game.Components.InfluenceAdded ia && ia.Amount > 0) {
+					_barrierHolder.AddInt("influence", _state.SelectedCountry.Influence.UsedInfluence, -ia.Amount);
+				} else if (effect is GS.Game.Components.CharacterOpinionChange coc && coc.Diff != 0) {
+					foreach (var entry in _state.SelectedCountry.Characters.Characters) {
+						if (entry.CharacterId == coc.CharacterId) {
+							_barrierHolder.AddInt("opinion", entry.Opinion, -coc.Diff);
+							break;
+						}
+					}
+				}
 			}
 
 			_resultReady = true;
@@ -235,8 +240,8 @@ namespace GS.Unity.UI {
 
 			if (newHandCard != null) {
 				string newActionId = "";
-				if (_state.PlayerOrgActions.Hand.Count > 0) {
-					newActionId = _state.PlayerOrgActions.Hand[_state.PlayerOrgActions.Hand.Count - 1].ActionId;
+				if (_state.PlayerOrganization.Actions.Hand.Count > 0) {
+					newActionId = _state.PlayerOrganization.Actions.Hand[_state.PlayerOrganization.Actions.Hand.Count - 1].ActionId;
 				}
 				await _transitionView.Show(newActionId, deckRect, newHandCard, 0.5f, _actionConfig, _visualConfig, _loc);
 				newHandCard.style.opacity = 1f;
@@ -298,7 +303,7 @@ namespace GS.Unity.UI {
 
 			// Capture success rate before any state change or command push
 			float capturedSuccessRate = 0f;
-			foreach (var c in _state.SelectedCountryActions.Hand) {
+			foreach (var c in _state.SelectedCountry.CountryActions.Hand) {
 				if (c.ActionId == actionId && c.TargetCharacterId == targetCharId) {
 					capturedSuccessRate = c.SuccessRate;
 					break;
@@ -411,8 +416,8 @@ namespace GS.Unity.UI {
 			if (newHandCard != null) {
 				string newActionId = "";
 				string newSuccessPct = null;
-				if (_state.SelectedCountryActions.Hand.Count > 0) {
-					var newCard = _state.SelectedCountryActions.Hand[_state.SelectedCountryActions.Hand.Count - 1];
+				if (_state.SelectedCountry.CountryActions.Hand.Count > 0) {
+					var newCard = _state.SelectedCountry.CountryActions.Hand[_state.SelectedCountry.CountryActions.Hand.Count - 1];
 					newActionId = newCard.ActionId;
 					newSuccessPct = $"{(int)(newCard.SuccessRate * 100)}%";
 				}
