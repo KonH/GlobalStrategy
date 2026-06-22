@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
@@ -246,7 +247,7 @@ namespace GS.Unity.UI {
 				_orgLensCountryView?.Refresh(_state.SelectedCountry, _state.OrgMap, _state.SelectedInfluence);
 			} else {
 				_orgLensCountryView?.Hide();
-				_countryInfo?.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions, _state.PlayerResources);
+				_countryInfo?.Refresh(_state.SelectedCountry, _state.PlayerCountry, _state.SelectedResources, _state.SelectedInfluence, _state.SelectedCharacters, _state.SelectedCountryActions, _state.PlayerResources, (int)_state.SelectedCountryUsedInfluence.Display);
 				if (_orgPanelOpen && _countryInfoRoot != null) {
 					_countryInfoRoot.style.display = DisplayStyle.None;
 				}
@@ -264,10 +265,27 @@ namespace GS.Unity.UI {
 
 		void PushChangeGoldCommand(double amount) {
 			if (_state == null || !_state.PlayerOrganization.IsValid) { return; }
+			if (amount > 0 && _state.PlayerGold != null) {
+				AnimateGoldDebug(amount).Forget();
+				return;
+			}
 			_commands.Push(new GS.Game.Commands.DebugChangeGoldCommand {
 				OrgId = _state.PlayerOrganization.OrgId,
 				Amount = amount
 			});
+		}
+
+		async UniTaskVoid AnimateGoldDebug(double amount) {
+			// Barrier created before the command so it compensates when SetActual fires next frame.
+			var barrier = _state.PlayerGold.Hold(-amount);
+			_commands.Push(new GS.Game.Commands.DebugChangeGoldCommand {
+				OrgId = _state.PlayerOrganization.OrgId,
+				Amount = amount
+			});
+			// Wait one frame for GameLogic to process the command and SetActual to fire.
+			await UniTask.NextFrame();
+			barrier.Release(3.0f);
+			await UniTask.WaitUntil(() => barrier.IsComplete);
 		}
 
 		void PushInfluenceCommand(int delta) {

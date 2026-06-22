@@ -5,27 +5,26 @@ namespace GS.Main {
 		int _initialOffset;
 		float _duration;
 		float _accumulated;
+		bool _started;
 
 		public int Offset { get; private set; }
-		public bool IsComplete => Offset == 0;
+		public bool IsComplete => _started && Offset == 0;
 
-		internal AnimationBarrierInt(int offset, float duration) {
+		internal AnimationBarrierInt(int offset) {
 			_initialOffset = offset;
 			Offset = offset;
-			_duration = duration;
-			_accumulated = 0f;
 		}
 
-		public void Release(float newDuration) {
+		public void Release(float duration) {
 			_initialOffset = Offset;
-			_duration = newDuration > 0f ? newDuration : 0f;
+			_duration = duration > 0f ? duration : 0f;
 			_accumulated = 0f;
+			_started = true;
 		}
 
 		public void Tick(float deltaTime) {
-			if (IsComplete) { return; }
+			if (!_started || IsComplete) { return; }
 			if (_duration <= 0f) { Offset = 0; return; }
-
 			float stepsPerSecond = Math.Abs(_initialOffset) / _duration;
 			_accumulated += deltaTime * stepsPerSecond;
 			int steps = (int)_accumulated;

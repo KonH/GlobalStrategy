@@ -10,6 +10,9 @@ namespace GS.Game.Systems {
 		public struct ActionResult {
 			public bool Executed;
 			public bool Success;
+			public int InfluenceAdded;
+			public string OpinionTargetCharId;
+			public int OpinionDelta;
 		}
 
 		public static ActionResult ProcessPlayCountryAction(
@@ -100,6 +103,7 @@ namespace GS.Game.Systems {
 								Value = toAdd,
 								EffectId = $"country_action_{cmd.OrgId}_{cmd.ActionId}_{currentTime.Ticks}"
 							});
+							result.InfluenceAdded += toAdd;
 						}
 					}
 				}
@@ -129,6 +133,8 @@ namespace GS.Game.Systems {
 										Value = opinionParams.InitialValue,
 										ChangeValue = -opinionParams.DecayPerMonth
 									});
+									result.OpinionTargetCharId = cmd.TargetCharacterId;
+									result.OpinionDelta = opinionParams.InitialValue;
 									break;
 								}
 							}

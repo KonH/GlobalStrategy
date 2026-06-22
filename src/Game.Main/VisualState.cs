@@ -235,12 +235,19 @@ namespace GS.Main {
 		public bool HasResult { get; private set; }
 		public bool Success   { get; private set; }
 		public string ActionId { get; private set; } = "";
-		public void Set(bool success, string actionId) {
+		public double GoldSpent { get; private set; }
+		public int InfluenceAdded { get; private set; }
+		public string OpinionTargetCharId { get; private set; } = "";
+		public int OpinionDelta { get; private set; }
+		public void Set(bool success, string actionId, double goldSpent = 0, int influenceAdded = 0, string opinionTargetCharId = "", int opinionDelta = 0) {
 			HasResult = true; Success = success; ActionId = actionId;
+			GoldSpent = goldSpent; InfluenceAdded = influenceAdded;
+			OpinionTargetCharId = opinionTargetCharId ?? ""; OpinionDelta = opinionDelta;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 		public void Clear() {
 			HasResult = false; Success = false; ActionId = "";
+			GoldSpent = 0; InfluenceAdded = 0; OpinionTargetCharId = ""; OpinionDelta = 0;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}

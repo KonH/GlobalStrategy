@@ -3,25 +3,25 @@ namespace GS.Main {
 		double _initialOffset;
 		float _duration;
 		float _elapsed;
+		bool _started;
 
 		public double Offset { get; private set; }
-		public bool IsComplete => _elapsed >= _duration || (_duration <= 0f && Offset == 0.0);
+		public bool IsComplete => _started && _elapsed >= _duration;
 
-		internal AnimationBarrierDouble(double offset, float duration) {
+		internal AnimationBarrierDouble(double offset) {
 			_initialOffset = offset;
 			Offset = offset;
-			_duration = duration;
-			_elapsed = 0f;
 		}
 
-		public void Release(float newDuration) {
+		public void Release(float duration) {
 			_initialOffset = Offset;
 			_elapsed = 0f;
-			_duration = newDuration > 0f ? newDuration : 0f;
+			_duration = duration > 0f ? duration : 0f;
+			_started = true;
 		}
 
 		public void Tick(float deltaTime) {
-			if (IsComplete) { return; }
+			if (!_started || IsComplete) { return; }
 			_elapsed += deltaTime;
 			float t = _duration > 0f ? (_elapsed / _duration) : 1f;
 			if (t > 1f) { t = 1f; }

@@ -10,6 +10,7 @@ namespace GS.Game.Systems {
 		public struct ActionResult {
 			public bool Executed;
 			public bool Success;
+			public double GoldSpent;
 		}
 
 		public static ActionResult ProcessPlayAction(
@@ -29,6 +30,9 @@ namespace GS.Game.Systems {
 			DeductPrices(world, cmd.OwnerId, actionDef.Cost);
 
 			result.Executed = true;
+			foreach (var cost in actionDef.Cost) {
+				if (cost.ResourceId == "gold") { result.GoldSpent = cost.Amount; break; }
+			}
 
 			// Compute org influence for success rate
 			double orgInfluence = 0;

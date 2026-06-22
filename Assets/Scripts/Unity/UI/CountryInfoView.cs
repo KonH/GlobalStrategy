@@ -72,7 +72,7 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		public void Refresh(SelectedCountryState selected, PlayerCountryState player, CountryResourcesState resources, CountryInfluenceState influence, CountryCharactersState characters, CountryActionsState countryActions, CountryResourcesState? playerResources = null) {
+		public void Refresh(SelectedCountryState selected, PlayerCountryState player, CountryResourcesState resources, CountryInfluenceState influence, CountryCharactersState characters, CountryActionsState countryActions, CountryResourcesState? playerResources = null, int? usedDisplay = null) {
 			_root.style.display = selected.IsValid ? DisplayStyle.Flex : DisplayStyle.None;
 			if (selected.IsValid) {
 				_name.text = _loc.Get($"country_name.{selected.CountryId}");
@@ -95,7 +95,7 @@ namespace GS.Unity.UI {
 			}
 
 			_influenceState = influence;
-			RefreshInfluence(influence);
+			RefreshInfluence(influence, usedDisplay);
 			_resourcesView.Refresh(resources);
 			_charactersView.Refresh(characters);
 			if (countryActions != null) {
@@ -155,12 +155,12 @@ namespace GS.Unity.UI {
 			_influenceLabel.text = $"{_loc.Get("hud.country_influence")}: {usedDisplay}/{pool}";
 		}
 
-		void RefreshInfluence(CountryInfluenceState influence) {
+		void RefreshInfluence(CountryInfluenceState influence, int? usedDisplay = null) {
 			if (_influenceRow == null) {
 				return;
 			}
 			_influenceRow.style.display = DisplayStyle.Flex;
-			int used = influence != null ? influence.UsedInfluence : 0;
+			int used = usedDisplay ?? (influence != null ? influence.UsedInfluence : 0);
 			int pool = influence != null ? influence.PoolSize : 100;
 			_influenceLabel.text = $"{_loc.Get("hud.country_influence")}: {used}/{pool}";
 		}

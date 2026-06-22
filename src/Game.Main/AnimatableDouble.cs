@@ -24,8 +24,8 @@ namespace GS.Main {
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 
-		public AnimationBarrierDouble Hold(double offset, float duration) {
-			var barrier = new AnimationBarrierDouble(offset, duration);
+		public AnimationBarrierDouble Hold(double offset) {
+			var barrier = new AnimationBarrierDouble(offset);
 			_barriers.Add(barrier);
 			return barrier;
 		}
