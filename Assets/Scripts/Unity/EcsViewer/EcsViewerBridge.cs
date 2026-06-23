@@ -14,7 +14,7 @@ using VContainer;
 
 namespace GS.Unity.EcsViewer {
 	public class EcsViewerBridge : MonoBehaviour {
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
 		[SerializeField] bool _enabled = true;
 #endif
 
@@ -23,7 +23,7 @@ namespace GS.Unity.EcsViewer {
 		GameLogic _logic = null!;
 		PauseToken _pauseToken = null!;
 		HttpListener _listener = null!;
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
 		WorldObserver _observer = null!;
 #endif
 
@@ -34,7 +34,7 @@ namespace GS.Unity.EcsViewer {
 		}
 
 		void Awake() {
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
 			if (!_enabled) {
 				return;
 			}
@@ -54,7 +54,7 @@ namespace GS.Unity.EcsViewer {
 			CurrentUrl = null;
 		}
 
-#if !UNITY_WEBGL
+#if !UNITY_WEBGL || UNITY_EDITOR
 		async Task Loop() {
 			while (_listener != null && _listener.IsListening) {
 				HttpListenerContext ctx;
