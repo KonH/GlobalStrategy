@@ -22,6 +22,7 @@ namespace GS.Main {
 		}
 
 		internal void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
+			UpdateLastFrameEffects(world);
 			UpdateSelectedCountry(world);
 			UpdateTime(world, gameTimeEntity);
 			UpdateLocale(world, localeEntity);
@@ -45,6 +46,23 @@ namespace GS.Main {
 			_state.SelectedCountry.Influence.UsedInfluence.Tick(deltaTime);
 		}
 
+		void UpdateLastFrameEffects(IReadOnlyWorld world) {
+			var effects = new List<VisualResourceChangeEffect>();
+			int[] req = { TypeId<ResourceChange>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+				ResourceChange[] changes = arch.GetColumn<ResourceChange>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					effects.Add(new VisualResourceChangeEffect(
+						changes[i].EffectId,
+						changes[i].ResourceId,
+						changes[i].OwnerId,
+						changes[i].Amount));
+				}
+			}
+			_state.LastFrameEffects.Set(effects);
+		}
+
 		void UpdateCharacters(IReadOnlyWorld world) {
 			if (!_state.SelectedCountry.IsValid) {
 				_characterOpinionAnimatables.Clear();
@@ -65,7 +83,8 @@ namespace GS.Main {
 
 			var charData = new Dictionary<string, (string roleId, string[] namePartKeys)>();
 			var charSkills = new Dictionary<string, List<SkillEntry>>();
-			var charOpinions = new Dictionary<string, CharacterOpinion>();
+			string opinionResourceId = $"opinion_{playerOrgId}";
+			var charOpinionValues = new Dictionary<string, int>();
 
 			int[] charRequired = { TypeId<Character>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(charRequired, null)) {
@@ -80,42 +99,25 @@ namespace GS.Main {
 				}
 			}
 
-			int[] charOpinionRequired = { TypeId<Character>.Value, TypeId<CharacterOpinion>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(charOpinionRequired, null)) {
-				Character[] chars = arch.GetColumn<Character>();
-				CharacterOpinion[] opinions = arch.GetColumn<CharacterOpinion>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (chars[i].CountryId != selectedCountryId) {
-						continue;
-					}
-					charOpinions[chars[i].CharacterId] = opinions[i];
-				}
-			}
-
 			int[] resRequired = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(resRequired, null)) {
 				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
 				Resource[] resources = arch.GetColumn<Resource>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (charSkills.TryGetValue(owners[i].OwnerId, out var skillList)) {
-						skillList.Add(new SkillEntry(resources[i].ResourceId, (int)resources[i].Value));
+					if (owners[i].OwnerType == OwnerType.Character) {
+						if (resources[i].ResourceId == opinionResourceId && charData.ContainsKey(owners[i].OwnerId)) {
+							charOpinionValues[owners[i].OwnerId] = Math.Clamp((int)resources[i].Value, -100, 100);
+						} else if (charSkills.TryGetValue(owners[i].OwnerId, out var skillList)) {
+							skillList.Add(new SkillEntry(resources[i].ResourceId, (int)resources[i].Value));
+						}
 					}
 				}
 			}
 
 			var entries = new List<CharacterStateEntry>();
 			foreach (var (charId, (roleId, namePartKeys)) in charData) {
-				int effective = 0;
-				if (charOpinions.TryGetValue(charId, out var opinionData)) {
-					int baseOpinion = opinionData.BaseOpinionPerOrg != null && opinionData.BaseOpinionPerOrg.TryGetValue(playerOrgId, out var b) ? b : 0;
-					int mods = 0;
-					if (opinionData.ModifiersPerOrg != null && opinionData.ModifiersPerOrg.TryGetValue(playerOrgId, out var list)) {
-						foreach (var m in list) { mods += m.Value; }
-					}
-					effective = Math.Clamp(baseOpinion + mods, -100, 100);
-				}
+				charOpinionValues.TryGetValue(charId, out int effective);
 				if (!_characterOpinionAnimatables.TryGetValue(charId, out var opinionAnimatable)) {
 					opinionAnimatable = new AnimatableInt();
 					_characterOpinionAnimatables[charId] = opinionAnimatable;
@@ -173,7 +175,7 @@ namespace GS.Main {
 				Resource[] resources = arch.GetColumn<Resource>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (charSkills.TryGetValue(owners[i].OwnerId, out var skillList)) {
+					if (owners[i].OwnerType == OwnerType.Character && charSkills.TryGetValue(owners[i].OwnerId, out var skillList)) {
 						skillList.Add(new SkillEntry(resources[i].ResourceId, (int)resources[i].Value));
 					}
 				}
@@ -467,7 +469,8 @@ namespace GS.Main {
 			var deck = new System.Collections.Generic.List<ActionCardEntry>();
 
 			int[] handReq = { TypeId<ActionCard>.Value, TypeId<InHand>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(handReq, null)) {
+			int[] excludeCountry = { TypeId<CountryContext>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(handReq, excludeCountry)) {
 				ActionCard[] cards = arch.GetColumn<ActionCard>();
 				InHand[] hands = arch.GetColumn<InHand>();
 				for (int i = 0; i < arch.Count; i++) {
@@ -476,8 +479,8 @@ namespace GS.Main {
 				}
 			}
 			int[] deckReq = { TypeId<ActionCard>.Value };
-			int[] excludeInHand = { TypeId<InHand>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(deckReq, excludeInHand)) {
+			int[] excludeInHandOrCountry = { TypeId<InHand>.Value, TypeId<CountryContext>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(deckReq, excludeInHandOrCountry)) {
 				ActionCard[] cards = arch.GetColumn<ActionCard>();
 				for (int i = 0; i < arch.Count; i++) {
 					if (cards[i].OwnerId != orgId) { continue; }
@@ -491,8 +494,8 @@ namespace GS.Main {
 		void UpdateCountryActions(IReadOnlyWorld world, int gameTimeEntity) {
 			if (!_state.SelectedCountry.IsValid || !_state.PlayerOrganization.IsValid || _actionConfig == null) {
 				_state.SelectedCountry.CountryActions.Set(
-					new List<CountryActionCardEntry>(),
-					new List<CountryActionCardEntry>(),
+					new List<ActionCardEntry>(),
+					new List<ActionCardEntry>(),
 					0, DateTime.MinValue);
 				return;
 			}
@@ -520,44 +523,37 @@ namespace GS.Main {
 				}
 			}
 
-			// Build char name keys lookup: charId -> namePartKeys
-			var charNameKeys = new Dictionary<string, string[]>();
-			int[] charReq = { TypeId<Character>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(charReq, null)) {
-				Character[] chars = arch.GetColumn<Character>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (chars[i].CountryId == countryId) {
-						charNameKeys[chars[i].CharacterId] = chars[i].NamePartKeys ?? Array.Empty<string>();
-					}
-				}
-			}
+			var hand = new List<ActionCardEntry>();
+			var deck = new List<ActionCardEntry>();
 
-			var hand = new List<CountryActionCardEntry>();
-			var deck = new List<CountryActionCardEntry>();
+			// Collect all country card entities with OrgContext + CountryContext + ActionCard
+			int[] baseReq = { TypeId<ActionCard>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
+			int[] handReq = { TypeId<ActionCard>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<InHand>.Value };
+			int[] excludeHand = { TypeId<InHand>.Value };
 
 			// Hand cards
-			int[] handReq = { TypeId<CountryActionCard>.Value, TypeId<InHand>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(handReq, null)) {
-				CountryActionCard[] cards = arch.GetColumn<CountryActionCard>();
+				ActionCard[] cards = arch.GetColumn<ActionCard>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				CountryContext[] countries = arch.GetColumn<CountryContext>();
 				InHand[] hands = arch.GetColumn<InHand>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (cards[i].OrgId != orgId || cards[i].CountryId != countryId) { continue; }
-					var entry = BuildEntry(cards[i], hands[i].SlotIndex, true, orgInfluence, usedTotal, charNameKeys);
+					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId) { continue; }
+					var entry = BuildEntry(cards[i].ActionId, hands[i].SlotIndex, true, orgInfluence, usedTotal);
 					if (entry != null) { hand.Add(entry); }
 				}
 			}
 
 			// Deck cards
-			int[] deckReq = { TypeId<CountryActionCard>.Value };
-			int[] excludeHand = { TypeId<InHand>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(deckReq, excludeHand)) {
-				CountryActionCard[] cards = arch.GetColumn<CountryActionCard>();
+			foreach (var arch in world.GetMatchingArchetypes(baseReq, excludeHand)) {
+				ActionCard[] cards = arch.GetColumn<ActionCard>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				CountryContext[] countries = arch.GetColumn<CountryContext>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (cards[i].OrgId != orgId || cards[i].CountryId != countryId) { continue; }
-					var entry = BuildEntry(cards[i], -1, false, orgInfluence, usedTotal, charNameKeys);
+					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId) { continue; }
+					var entry = BuildEntry(cards[i].ActionId, -1, false, orgInfluence, usedTotal);
 					if (entry != null) { deck.Add(entry); }
 				}
 			}
@@ -567,36 +563,23 @@ namespace GS.Main {
 			_state.SelectedCountry.CountryActions.Set(hand, deck, countryHandSize, currentTime);
 		}
 
-		CountryActionCardEntry? BuildEntry(
-			CountryActionCard card, int slotIndex, bool isInHand,
-			int orgInfluence, int usedTotal,
-			Dictionary<string, string[]> charNameKeys) {
-			var def = _actionConfig?.Find(card.ActionId);
+		ActionCardEntry? BuildEntry(
+			string actionId, int slotIndex, bool isInHand,
+			int orgInfluence, int usedTotal) {
+			var def = _actionConfig?.Find(actionId);
 			if (def == null) { return null; }
 
-			bool isDynamic = def.SuccessRateNode?.Type != "value";
 			var ctx = new ExpressionContext { Influence = orgInfluence };
-			float successRate = (float)ExpressionNode.Evaluate(def.SuccessRateNode, ctx);
-			if (successRate > 1f) { successRate = 1f; }
-			int influenceBase = (int)(ExpressionNode.Evaluate(def.SuccessRateNode, new ExpressionContext { Influence = 0 }) * 100);
-			int influenceBonus = isDynamic ? (int)(ExpressionNode.Evaluate(def.SuccessRateNode, ctx) * 100) - influenceBase : 0;
 
 			bool insufficientInfluence = false;
 			foreach (var cond in def.Conditions) {
 				if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { insufficientInfluence = true; break; }
 			}
-			bool poolFull = card.ActionId == "sphere_of_pressure" && usedTotal >= 100;
+			bool poolFull = actionId == "sphere_of_pressure" && usedTotal >= 100;
 			bool isUnplayable = insufficientInfluence || poolFull;
 			string unplayableReason = poolFull ? "pool_full" : (insufficientInfluence ? "insufficient_influence" : "");
 
-			charNameKeys.TryGetValue(card.TargetCharacterId ?? "", out var nameKeys);
-
-			return new CountryActionCardEntry(
-				card.ActionId, slotIndex, isInHand,
-				card.TargetCharacterId ?? "", nameKeys ?? Array.Empty<string>(),
-				successRate, isDynamic, influenceBase, influenceBonus,
-				isUnplayable, unplayableReason, 0,
-				orgInfluence);
+			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason);
 		}
 
 		List<EffectStateEntry> BuildEffects(IReadOnlyWorld world, string countryId, string resourceId) {

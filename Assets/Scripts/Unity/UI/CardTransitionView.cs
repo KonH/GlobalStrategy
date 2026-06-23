@@ -29,11 +29,10 @@ namespace GS.Unity.UI {
 			var def = actionConfig?.Find(actionId);
 			string nameText = def != null ? loc.Get(def.NameKey) : actionId;
 			string descText = def != null ? loc.Get(def.DescKey) : "";
-			string successPct = def != null ? $"{(int)(GS.Game.Configs.ExpressionNode.Evaluate(def.SuccessRateNode, new GS.Game.Configs.ExpressionContext()) * 100)}%" : "?%";
 			string goldCostText = GetGoldCostText(def);
 			var sprite = visualConfig?.FindFront(actionId);
 
-			var built = ActionCardBuilder.Build(nameText, descText, successPct, goldCostText, sprite);
+			var built = ActionCardBuilder.Build(nameText, descText, goldCostText, sprite);
 			_cardCopy = built.Card;
 			_cardCopy.AddToClassList("action-card--available");
 			await PlaceAndAnimate(fromRect, toElement, duration);
@@ -46,8 +45,7 @@ namespace GS.Unity.UI {
 			float duration,
 			ActionConfig actionConfig,
 			ActionVisualConfig visualConfig,
-			ILocalization loc,
-			string successPctOverride = null) {
+			ILocalization loc) {
 			if (_cardCopy != null) {
 				_overlay.Remove(_cardCopy);
 			}
@@ -55,12 +53,10 @@ namespace GS.Unity.UI {
 			var def = actionConfig?.Find(actionId);
 			string nameText = def != null ? loc.Get(def.NameKey) : actionId;
 			string descText = def != null ? loc.Get(def.DescKey) : "";
-			string successPct = successPctOverride
-				?? (def != null ? $"{(int)(GS.Game.Configs.ExpressionNode.Evaluate(def.SuccessRateNode, new GS.Game.Configs.ExpressionContext()) * 100)}%" : "?%");
 			string goldCostText = GetGoldCostText(def);
 			var sprite = visualConfig?.FindFront(actionId);
 
-			var built = ActionCardBuilder.Build(nameText, descText, successPct, goldCostText, sprite);
+			var built = ActionCardBuilder.Build(nameText, descText, goldCostText, sprite);
 			_cardCopy = built.Card;
 			_cardCopy.AddToClassList("action-card--available");
 			await PlaceAndAnimate(fromRect, toElement, duration);

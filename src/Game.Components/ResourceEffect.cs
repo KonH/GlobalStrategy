@@ -4,5 +4,8 @@ namespace GS.Game.Components {
 		public string EffectId;
 		public double Value;
 		public PayType PayType;
+		public double AccumulatedTotal;
+		public double MaxTotal;
+		public bool ClampToZero;
 	}
 }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using GS.Game.Commands;
-using GS.Game.Components;
 
 namespace GS.Main {
 	public class SelectedCountryState : INotifyPropertyChanged {
@@ -206,11 +205,14 @@ namespace GS.Main {
 	}
 
 	public class ActionCardEntry {
-		public string ActionId   { get; }
-		public int    SlotIndex  { get; }
-		public bool   IsInHand   { get; }
-		public ActionCardEntry(string actionId, int slotIndex, bool isInHand) {
+		public string ActionId        { get; }
+		public int    SlotIndex       { get; }
+		public bool   IsInHand        { get; }
+		public bool   IsUnplayable    { get; }
+		public string UnplayableReason { get; }
+		public ActionCardEntry(string actionId, int slotIndex, bool isInHand, bool isUnplayable = false, string unplayableReason = "") {
 			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
+			IsUnplayable = isUnplayable; UnplayableReason = unplayableReason;
 		}
 	}
 
@@ -227,63 +229,42 @@ namespace GS.Main {
 		}
 	}
 
-	public class LastActionResultState : INotifyPropertyChanged {
-		public event PropertyChangedEventHandler? PropertyChanged;
-		public bool HasResult { get; private set; }
-		public bool Success   { get; private set; }
-		public string ActionId { get; private set; } = "";
-		public List<IEffect> Effects { get; private set; } = new List<IEffect>();
-		public void Set(bool success, string actionId, List<IEffect> effects) {
-			HasResult = true; Success = success; ActionId = actionId;
-			Effects = effects ?? new List<IEffect>();
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
-		}
-		public void Clear() {
-			HasResult = false; Success = false; ActionId = "";
-			Effects = new List<IEffect>();
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+	public class VisualResourceChangeEffect {
+		public string EffectId { get; }
+		public string ResourceId { get; }
+		public string OwnerId { get; }
+		public double Amount { get; }
+		public VisualResourceChangeEffect(string effectId, string resourceId, string ownerId, double amount) {
+			EffectId = effectId; ResourceId = resourceId; OwnerId = ownerId; Amount = amount;
 		}
 	}
 
-	public class CountryActionCardEntry {
-		public string ActionId { get; }
-		public int SlotIndex { get; }
-		public bool IsInHand { get; }
-		public string TargetCharacterId { get; }
-		public string[] TargetCharacterNameKeys { get; }
-		public float SuccessRate { get; }
-		public bool IsRateDynamic { get; }
-		public int InfluenceBase { get; }
-		public int InfluenceBonus { get; }
-		public bool IsUnplayable { get; }
-		public string UnplayableReason { get; }
-		public int InfluenceThreshold { get; }
-		public int CurrentOrgInfluence { get; }
+	public class VisualEffectCollection : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public List<VisualResourceChangeEffect> Effects { get; private set; } = new List<VisualResourceChangeEffect>();
 
-		public CountryActionCardEntry(
-			string actionId, int slotIndex, bool isInHand,
-			string targetCharacterId, string[] targetCharacterNameKeys,
-			float successRate, bool isRateDynamic, int influenceBase, int influenceBonus,
-			bool isUnplayable, string unplayableReason, int influenceThreshold,
-			int currentOrgInfluence) {
-			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
-			TargetCharacterId = targetCharacterId; TargetCharacterNameKeys = targetCharacterNameKeys;
-			SuccessRate = successRate; IsRateDynamic = isRateDynamic;
-			InfluenceBase = influenceBase; InfluenceBonus = influenceBonus;
-			IsUnplayable = isUnplayable; UnplayableReason = unplayableReason;
-			InfluenceThreshold = influenceThreshold;
-			CurrentOrgInfluence = currentOrgInfluence;
+		public void Set(List<VisualResourceChangeEffect> effects) {
+			Effects = effects ?? new List<VisualResourceChangeEffect>();
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+
+		public IReadOnlyList<VisualResourceChangeEffect> GetEffectsByResourceId(string resourceId) {
+			var result = new List<VisualResourceChangeEffect>();
+			foreach (var e in Effects) {
+				if (e.ResourceId == resourceId) { result.Add(e); }
+			}
+			return result;
 		}
 	}
 
 	public class CountryActionsState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
-		public IReadOnlyList<CountryActionCardEntry> Hand { get; private set; } = Array.Empty<CountryActionCardEntry>();
-		public IReadOnlyList<CountryActionCardEntry> Deck { get; private set; } = Array.Empty<CountryActionCardEntry>();
+		public IReadOnlyList<ActionCardEntry> Hand { get; private set; } = Array.Empty<ActionCardEntry>();
+		public IReadOnlyList<ActionCardEntry> Deck { get; private set; } = Array.Empty<ActionCardEntry>();
 		public int HandSize { get; private set; }
 		public DateTime CurrentTime { get; private set; }
 
-		public void Set(List<CountryActionCardEntry> hand, List<CountryActionCardEntry> deck, int handSize, DateTime currentTime) {
+		public void Set(List<ActionCardEntry> hand, List<ActionCardEntry> deck, int handSize, DateTime currentTime) {
 			Hand = hand; Deck = deck; HandSize = handSize; CurrentTime = currentTime;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
@@ -298,6 +279,6 @@ namespace GS.Main {
 		public MapLensState MapLens { get; } = new MapLensState();
 		public OrgMapState OrgMap { get; } = new OrgMapState();
 		public DiscoveredCountriesState DiscoveredCountries { get; } = new DiscoveredCountriesState();
-		public LastActionResultState LastAction { get; } = new LastActionResultState();
+		public VisualEffectCollection LastFrameEffects { get; } = new VisualEffectCollection();
 	}
 }

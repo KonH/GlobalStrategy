@@ -15,7 +15,7 @@ namespace GS.Game.Systems {
 				TypeId<ResourceEffect>.Value
 			};
 
-			var toApply = new List<(string OwnerId, string ResourceId, double Value)>();
+			var toApply = new List<(string OwnerId, string ResourceId, double Value, bool ClampToZero, int EffectEntity)>();
 			var toDestroy = new List<int>();
 
 			foreach (Archetype arch in world.GetMatchingArchetypes(effectRequired, null)) {
@@ -31,7 +31,22 @@ namespace GS.Game.Systems {
 					if (!shouldApply) {
 						continue;
 					}
-					toApply.Add((owners[i].OwnerId, links[i].ResourceId, effect.Value));
+
+					double valueToApply = effect.Value;
+					if (effect.MaxTotal > 0) {
+						double remaining = effect.MaxTotal - Math.Abs(effect.AccumulatedTotal);
+						if (remaining <= 0) {
+							continue;
+						}
+						double absVal = Math.Abs(effect.Value);
+						double clampedAbs = Math.Min(absVal, remaining);
+						valueToApply = effect.Value < 0 ? -clampedAbs : clampedAbs;
+						effect.AccumulatedTotal += Math.Abs(valueToApply);
+						effects[i] = effect;
+					}
+
+					toApply.Add((owners[i].OwnerId, links[i].ResourceId, valueToApply, effect.ClampToZero, entities[i]));
+
 					if (effect.PayType == PayType.Instant) {
 						toDestroy.Add(entities[i]);
 					}
@@ -43,13 +58,27 @@ namespace GS.Game.Systems {
 				TypeId<Resource>.Value
 			};
 
-			foreach ((string ownerId, string resourceId, double value) in toApply) {
+			foreach ((string ownerId, string resourceId, double value, bool clampToZero, int effectEntity) in toApply) {
 				foreach (Archetype arch in world.GetMatchingArchetypes(resourceRequired, null)) {
 					ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
 					Resource[] resources = arch.GetColumn<Resource>();
 					int count = arch.Count;
 					for (int i = 0; i < count; i++) {
-						if (owners[i].OwnerId == ownerId && resources[i].ResourceId == resourceId) {
+						if (owners[i].OwnerId != ownerId || resources[i].ResourceId != resourceId) {
+							continue;
+						}
+						if (clampToZero) {
+							double current = resources[i].Value;
+							double proposed = current + value;
+							if ((current > 0 && proposed < 0) || (current < 0 && proposed > 0)) {
+								resources[i].Value = 0;
+								if (!toDestroy.Contains(effectEntity)) {
+									toDestroy.Add(effectEntity);
+								}
+							} else {
+								resources[i].Value += value;
+							}
+						} else {
 							resources[i].Value += value;
 						}
 					}

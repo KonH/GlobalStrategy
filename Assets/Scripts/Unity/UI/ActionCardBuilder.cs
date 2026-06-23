@@ -6,28 +6,27 @@ namespace GS.Unity.UI {
 		public struct CardResult {
 			public VisualElement Card;
 			public VisualElement Body;
-			public Label SuccessPct;
 			public Label CostLabel;
 		}
 
-		public static CardResult Build(string name, string desc, string successPct, string goldCostText, Sprite art) {
+		public static CardResult Build(string name, string desc, string goldCostText, Sprite art) {
 			var card = new VisualElement();
 			card.AddToClassList("action-card");
-			var result = Populate(card, name, desc, successPct, goldCostText, art);
+			var result = Populate(card, name, desc, goldCostText, art);
 			result.Card = card;
 			return result;
 		}
 
-		public static CardResult PopulateSlot(VisualElement slot, string name, string desc, string successPct, string goldCostText, Sprite art) {
+		public static CardResult PopulateSlot(VisualElement slot, string name, string desc, string goldCostText, Sprite art) {
 			slot.Clear();
 			slot.RemoveFromClassList("action-card--success");
 			slot.RemoveFromClassList("action-card--fail");
-			var result = Populate(slot, name, desc, successPct, goldCostText, art);
+			var result = Populate(slot, name, desc, goldCostText, art);
 			result.Card = slot;
 			return result;
 		}
 
-		static CardResult Populate(VisualElement container, string name, string desc, string successPct, string goldCostText, Sprite art) {
+		static CardResult Populate(VisualElement container, string name, string desc, string goldCostText, Sprite art) {
 			var header = new Label(name);
 			header.AddToClassList("action-card-header");
 			container.Add(header);
@@ -51,10 +50,6 @@ namespace GS.Unity.UI {
 			var footer = new VisualElement();
 			footer.AddToClassList("action-card-footer");
 
-			var pctLabel = new Label(successPct);
-			pctLabel.AddToClassList("action-card-success-pct");
-			footer.Add(pctLabel);
-
 			Label costLabel = null;
 			if (!string.IsNullOrEmpty(goldCostText)) {
 				var costRow = new VisualElement();
@@ -71,7 +66,7 @@ namespace GS.Unity.UI {
 			body.Add(footer);
 			container.Add(body);
 
-			return new CardResult { Body = body, SuccessPct = pctLabel, CostLabel = costLabel };
+			return new CardResult { Body = body, CostLabel = costLabel };
 		}
 
 		static void SetupDescAutoSize(Label desc, float minSize = 11f) {

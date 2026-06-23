@@ -14,8 +14,7 @@
       "deckCopies": 1,
       "conditions": [],
       "cost": [{ "resourceId": "gold", "amount": 100.0 }],
-      "effectIds": ["discover_country"],
-      "successRateNode": { "type": "value", "value": 0.75 }
+      "effectIds": ["discover_country"]
     },
     {
       "actionId": "sphere_of_pressure",
@@ -27,8 +26,7 @@
       "deckCopies": 3,
       "conditions": [],
       "cost": [{ "resourceId": "gold", "amount": 200.0 }],
-      "effectIds": ["sphere_of_pressure_influence"],
-      "successRateNode": { "type": "value", "value": 0.5 }
+      "effectIds": ["sphere_of_pressure_influence"]
     },
     {
       "actionId": "letter_of_commendation_diplomacy_advisor",
@@ -48,21 +46,7 @@
         }
       ],
       "cost": [{ "resourceId": "gold", "amount": 50.0 }],
-      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"],
-      "successRateNode": {
-        "type": "clamp",
-        "members": [
-          {
-            "type": "add",
-            "members": [
-              { "type": "value", "value": 0.3 },
-              { "type": "div", "members": [ { "type": "influence" }, { "type": "value", "value": 2 } ] }
-            ]
-          },
-          { "type": "value", "value": 0 },
-          { "type": "value", "value": 1 }
-        ]
-      }
+      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"]
     },
     {
       "actionId": "letter_of_commendation_economic_advisor",
@@ -82,21 +66,7 @@
         }
       ],
       "cost": [{ "resourceId": "gold", "amount": 50.0 }],
-      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"],
-      "successRateNode": {
-        "type": "clamp",
-        "members": [
-          {
-            "type": "add",
-            "members": [
-              { "type": "value", "value": 0.3 },
-              { "type": "div", "members": [ { "type": "influence" }, { "type": "value", "value": 20 } ] }
-            ]
-          },
-          { "type": "value", "value": 0 },
-          { "type": "value", "value": 1 }
-        ]
-      }
+      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"]
     },
     {
       "actionId": "letter_of_commendation_military_advisor",
@@ -116,21 +86,7 @@
         }
       ],
       "cost": [{ "resourceId": "gold", "amount": 50.0 }],
-      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"],
-      "successRateNode": {
-        "type": "clamp",
-        "members": [
-          {
-            "type": "add",
-            "members": [
-              { "type": "value", "value": 0.3 },
-              { "type": "div", "members": [ { "type": "influence" }, { "type": "value", "value": 20 } ] }
-            ]
-          },
-          { "type": "value", "value": 0 },
-          { "type": "value", "value": 1 }
-        ]
-      }
+      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"]
     },
     {
       "actionId": "letter_of_commendation_secret_advisor",
@@ -150,21 +106,7 @@
         }
       ],
       "cost": [{ "resourceId": "gold", "amount": 50.0 }],
-      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"],
-      "successRateNode": {
-        "type": "clamp",
-        "members": [
-          {
-            "type": "add",
-            "members": [
-              { "type": "value", "value": 0.3 },
-              { "type": "div", "members": [ { "type": "influence" }, { "type": "value", "value": 20 } ] }
-            ]
-          },
-          { "type": "value", "value": 0 },
-          { "type": "value", "value": 1 }
-        ]
-      }
+      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"]
     },
     {
       "actionId": "royal_audience",
@@ -184,21 +126,7 @@
         }
       ],
       "cost": [{ "resourceId": "gold", "amount": 100.0 }],
-      "effectIds": ["royal_audience_influence", "royal_audience_opinion"],
-      "successRateNode": {
-        "type": "clamp",
-        "members": [
-          {
-            "type": "add",
-            "members": [
-              { "type": "value", "value": 0.2 },
-              { "type": "div", "members": [ { "type": "influence" }, { "type": "value", "value": 30 } ] }
-            ]
-          },
-          { "type": "value", "value": 0 },
-          { "type": "value", "value": 1 }
-        ]
-      }
+      "effectIds": ["royal_audience_influence", "royal_audience_opinion"]
     }
   ],
   "orgPools": [

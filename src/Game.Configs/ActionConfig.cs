@@ -17,7 +17,6 @@ namespace GS.Game.Configs {
 		public List<ExpressionNode> Conditions { get; set; } = new();
 		public List<ActionCost> Cost { get; set; } = new();
 		public List<string> EffectIds { get; set; } = new();
-		public ExpressionNode? SuccessRateNode { get; set; } = null;
 	}
 
 	public class ActionOwnerDefaults {

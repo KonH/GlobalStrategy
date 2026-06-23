@@ -102,30 +102,19 @@ namespace GS.Main {
 				ApplyDebugChangeGold(cmd.OrgId, cmd.Amount);
 			}
 
-			var orgActionResult = new ActionSystem.ActionResult();
-			var countryActionResult = new ActionSystem.ActionResult();
-			string lastActionId = "";
-			foreach (var cmd in _commandAccessor.ReadPlayActionCommand().AsSpan()) {
-				lastActionId = cmd.ActionId;
-				orgActionResult = ActionSystem.ProcessPlayAction(
-					_world, cmd, _actionConfig, _effectConfig, _proximityEntity, _rng);
-			}
-			foreach (var cmd in _commandAccessor.ReadPlayCountryActionCommand().AsSpan()) {
-				lastActionId = cmd.ActionId;
-				countryActionResult = ActionSystem.ProcessPlayCountryAction(
-					_world, cmd, _actionConfig, _effectConfig, currentTime, _rng);
-			}
+			CleanupActionEffectsSystem.Update(_world);
+			InitActionFromPlayCardSystem.Update(_world, _commandAccessor.ReadPlayCardActionCommand());
+			CheckActionConditionSystem.Update(_world, _actionConfig);
+			DeductActionCostSystem.Update(_world, _actionConfig);
+			ActionSucceededSystem.Update(_world, _actionConfig);
+			CreateActionEffectSystem.Update(_world, _actionConfig, _effectConfig, currentTime);
+			DiscoverCountrySystem.Update(_world, _proximityEntity, _rng);
+			RemoveCardFromHandSystem.Update(_world);
+			CheckHandSizeSystem.Update(_world);
+			DrawCardSystem.Update(_world, _actionConfig, _rng);
+			CleanupCardDiscardSystem.Update(_world);
 
 			_commandAccessor.Clear();
-			// Fire LastAction.Set BEFORE VisualStateConverter.Update so Unity handlers can create
-			// animation barriers synchronously before SetActual fires on animatable values.
-			if (orgActionResult.Executed || countryActionResult.Executed) {
-				bool success = orgActionResult.Executed ? orgActionResult.Success : countryActionResult.Success;
-				var effects = new System.Collections.Generic.List<GS.Game.Components.IEffect>();
-				if (orgActionResult.Effects != null) { effects.AddRange(orgActionResult.Effects); }
-				if (countryActionResult.Effects != null) { effects.AddRange(countryActionResult.Effects); }
-				VisualState.LastAction.Set(success, lastActionId, effects);
-			}
 			_visualStateConverter.Update(deltaTime, _world, _gameTimeEntity, _localeEntity, _orgEntity);
 		}
 
@@ -244,10 +233,6 @@ namespace GS.Main {
 				RoleId = roleId,
 				NamePartKeys = namePartKeys
 			});
-			_world.Add(charEntity, new CharacterOpinion {
-				BaseOpinionPerOrg = new System.Collections.Generic.Dictionary<string, int>(),
-				ModifiersPerOrg   = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<OpinionModifier>>()
-			});
 			foreach (var skillDef in CharacterConfig.Skills) {
 				int sv;
 				if (nextEntry.Skills.TryGetValue(skillDef.SkillId, out var ss)) {
@@ -256,7 +241,7 @@ namespace GS.Main {
 					sv = _rng.Next(5, 31);
 				}
 				int se = _world.Create();
-				_world.Add(se, new ResourceOwner(nextEntry.CharacterId));
+				_world.Add(se, new ResourceOwner(nextEntry.CharacterId, OwnerType.Character));
 				_world.Add(se, new Resource { ResourceId = skillDef.SkillId, Value = sv });
 			}
 		}
@@ -285,24 +270,34 @@ namespace GS.Main {
 		}
 
 		void ApplyDebugImproveOpinion(string countryId, string orgId) {
-			int[] required = { TypeId<Character>.Value, TypeId<CharacterOpinion>.Value };
-			foreach (var arch in _world.GetMatchingArchetypes(required, null)) {
+			string opinionResourceId = $"opinion_{orgId}";
+			int[] charReq = { TypeId<Character>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(charReq, null)) {
 				Character[] chars = arch.GetColumn<Character>();
-				CharacterOpinion[] opinions = arch.GetColumn<CharacterOpinion>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (chars[i].CountryId != countryId) {
-						continue;
+					if (chars[i].CountryId != countryId) { continue; }
+					string charId = chars[i].CharacterId;
+					int[] resReq = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+					bool found = false;
+					foreach (var resArch in _world.GetMatchingArchetypes(resReq, null)) {
+						ResourceOwner[] owners = resArch.GetColumn<ResourceOwner>();
+						Resource[] resources = resArch.GetColumn<Resource>();
+						int rc = resArch.Count;
+						for (int j = 0; j < rc; j++) {
+							if (owners[j].OwnerId == charId && resources[j].ResourceId == opinionResourceId) {
+								resources[j].Value = Math.Min(100, resources[j].Value + 50);
+								found = true;
+								break;
+							}
+						}
+						if (found) { break; }
 					}
-					ref CharacterOpinion opinion = ref opinions[i];
-					if (opinion.ModifiersPerOrg == null) {
-						opinion.ModifiersPerOrg = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<OpinionModifier>>();
+					if (!found) {
+						int re = _world.Create();
+						_world.Add(re, new ResourceOwner(charId, OwnerType.Character));
+						_world.Add(re, new Resource { ResourceId = opinionResourceId, Value = 50 });
 					}
-					if (!opinion.ModifiersPerOrg.TryGetValue(orgId, out var list)) {
-						list = new System.Collections.Generic.List<OpinionModifier>();
-						opinion.ModifiersPerOrg[orgId] = list;
-					}
-					list.Add(new OpinionModifier { SourceId = "cheat_improve_opinion", Value = 50, ChangeValue = -1 });
 				}
 			}
 		}
@@ -409,7 +404,7 @@ namespace GS.Main {
 					sv = rng.Next(5, 31);
 				}
 				int se = world.Create();
-				world.Add(se, new ResourceOwner(charEntry.CharacterId));
+				world.Add(se, new ResourceOwner(charEntry.CharacterId, OwnerType.Character));
 				world.Add(se, new Resource { ResourceId = skillDef.SkillId, Value = sv });
 			}
 		}

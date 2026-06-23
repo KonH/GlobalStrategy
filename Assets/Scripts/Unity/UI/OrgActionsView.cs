@@ -81,10 +81,6 @@ namespace GS.Unity.UI {
 				var footer = new VisualElement();
 				footer.AddToClassList("action-card-footer");
 
-				var pct = new Label($"{(int)(GS.Game.Configs.ExpressionNode.Evaluate(def.SuccessRateNode, new GS.Game.Configs.ExpressionContext()) * 100)}%");
-				pct.AddToClassList("action-card-success-pct");
-				footer.Add(pct);
-
 				if (def.Cost.Count > 0) {
 					var costRow = new VisualElement();
 					costRow.AddToClassList("action-card-cost");
@@ -169,8 +165,7 @@ namespace GS.Unity.UI {
 		VisualElement BuildCardTooltip(ActionDefinition def, bool available) {
 			var root = new VisualElement();
 			string desc = _loc.Get(def.DescKey);
-			int pct = (int)(GS.Game.Configs.ExpressionNode.Evaluate(def.SuccessRateNode, new GS.Game.Configs.ExpressionContext()) * 100);
-			var descLabel = new Label($"{desc}\n{pct}% success");
+			var descLabel = new Label(desc);
 			descLabel.AddToClassList("gs-content");
 			root.Add(descLabel);
 			string hintKey = available ? "action.tooltip.play_hint" : "action.tooltip.unaffordable_hint";

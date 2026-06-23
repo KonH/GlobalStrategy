@@ -348,7 +348,7 @@ namespace GS.Unity.UI {
 			_cardPlayAnimator.StartCountryCardPlay(
 				_state.PlayerOrganization.OrgId,
 				_state.SelectedCountry.CountryId,
-				actionId, targetCharId, el);
+				actionId, el);
 		}
 
 		void OnPauseToggle() {

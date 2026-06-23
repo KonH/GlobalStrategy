@@ -119,7 +119,6 @@ namespace GS.Main {
 						RoleId = role.RoleId,
 						NamePartKeys = namePartKeys
 					});
-					world.Add(charEntity, new CharacterOpinion());
 					foreach (var skillDef in characterConfig.Skills) {
 						int skillValue;
 						if (charEntry.Skills.TryGetValue(skillDef.SkillId, out var skillSettings)) {
@@ -128,7 +127,7 @@ namespace GS.Main {
 							skillValue = rng.Next(5, 31);
 						}
 						int skillEntity = world.Create();
-						world.Add(skillEntity, new ResourceOwner(charEntry.CharacterId));
+						world.Add(skillEntity, new ResourceOwner(charEntry.CharacterId, OwnerType.Character));
 						world.Add(skillEntity, new Resource { ResourceId = skillDef.SkillId, Value = skillValue });
 					}
 				}
@@ -229,7 +228,7 @@ namespace GS.Main {
 							skillValue = rng.Next(5, 31);
 						}
 						int skillEntity = world.Create();
-						world.Add(skillEntity, new ResourceOwner(charId));
+						world.Add(skillEntity, new ResourceOwner(charId, OwnerType.Character));
 						world.Add(skillEntity, new Resource { ResourceId = skillDef.SkillId, Value = skillValue });
 					}
 				}
@@ -351,6 +350,10 @@ namespace GS.Main {
 				HandSize  = handSize
 			});
 
+			int deckEntity = world.Create();
+			world.Add(deckEntity, new CardDeck { OrgId = orgId, CountryId = "" });
+			world.Add(deckEntity, new CardHand { HandSize = handSize });
+
 			for (int i = 0; i < pool.Count; i++) {
 				int cardEntity = world.Create();
 				world.Add(cardEntity, new ActionCard {
@@ -436,16 +439,17 @@ namespace GS.Main {
 					for (int copyIndex = 0; copyIndex < def.DeckCopies; copyIndex++) {
 						foreach (string targetCharId in targets) {
 							int e = world.Create();
-							world.Add(e, new CountryActionCard {
-								OrgId = orgId,
-								CountryId = entry.CountryId,
-								ActionId = def.ActionId,
-								TargetCharacterId = targetCharId
-							});
+							world.Add(e, new ActionCard { ActionId = def.ActionId, OwnerId = orgId });
+							world.Add(e, new OrgContext { OrgId = orgId });
+							world.Add(e, new CountryContext { CountryId = entry.CountryId });
 							createdEntities.Add((e, def.ActionId));
 						}
 					}
 				}
+
+				int countryDeckEntity = world.Create();
+				world.Add(countryDeckEntity, new CardDeck { OrgId = orgId, CountryId = entry.CountryId });
+				world.Add(countryDeckEntity, new CardHand { HandSize = handSize });
 
 				// Populate initial hand
 				if (handSize > 0 && createdEntities.Count > 0) {
