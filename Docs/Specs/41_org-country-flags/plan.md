@@ -67,32 +67,20 @@ The Wikimedia Commons thumbnail URL above is a direct PNG render and does not re
 
 ## Agent Steps
 
-- [ ] **Step 1 — Create output directories** — Ensure `.tmp/` exists (it is gitignored; create `.tmp/.gitkeep` if absent). Create `Assets/Textures/Flags/Countries/` and `Assets/Textures/Flags/Orgs/` directories — the download script creates them with `os.makedirs(..., exist_ok=True)`, but writing `.gitkeep` placeholder files now also ensures they are tracked by git.
+- [x] **Step 1 — Create permanent download script** — The download script lives at `.claude/download_flags.py` (alongside `generate_image.py` etc.). It holds the full `COUNTRY_FLAGS` and `ORG_FLAGS` mapping tables and supports `--dry-run` and `--force` flags. To add a new country or org, edit the mapping tables at the top of that file and re-run. The script creates output directories automatically via `os.makedirs(..., exist_ok=True)`.
 
-- [ ] **Step 2 — Write download script** — Write `.tmp/run.py` with the full hardcoded mapping table (countryId → FilePath URL, orgId → direct URL). The script must:
-  - Call `os.makedirs` for both output folders with `exist_ok=True`
-  - Iterate the country mapping; for each entry construct `https://commons.wikimedia.org/w/index.php?title=Special:FilePath/<filename>&width=256`, GET with `allow_redirects=True`, check `Content-Type` starts with `image/`, check `len(content) > 1024`, save to `Assets/Textures/Flags/Countries/<countryId>.png`
-  - Iterate the org mapping; GET the direct PNG URL, apply the same size/type checks, save to `Assets/Textures/Flags/Orgs/<orgId>.png`
-  - Skip (with a log message) files that already exist on disk
-  - Print `OK: <countryId>` / `WARN: <countryId> — <reason>` per file
-  - Print a final summary: `Downloaded X/21 files`
-  - Use a `requests.Session` with a `User-Agent` header (`GlobalStrategyAssetDownloader/1.0`) to avoid bot blocks
-  - Set `timeout=30` on each request
+- [ ] **Step 2 — Install dependencies** — Run `python3 -m pip install requests`
 
-- [ ] **Step 3 — Install dependencies** — Run `python3 -m pip install requests` (Pillow is not needed; Wikimedia's FilePath API returns PNG directly)
+- [ ] **Step 3 — Run download script** — Execute: `python3 .claude/download_flags.py`; observe output for any WARN lines; if any country 404s or returns a bad content-type, try the fallback filename by editing `COUNTRY_FLAGS_FALLBACK` in the script and re-running with `--force`.
 
-- [ ] **Step 4 — Run download script** — Execute directly: `python3 .tmp/run.py`; observe output for any WARN lines; if any country 404s or returns a bad content-type, try the fallback filename noted in the mapping table by editing the script and re-running
+- [ ] **Step 4 — Verify** — The script prints `Verified X/21 files OK` at the end. Only proceed when it reports 21/21.
 
-- [ ] **Step 5 — Verify files** — The download script includes an inline verification block at the end: after all downloads, iterate the 21 expected output paths, confirm each file exists, is larger than 1 KB, and begins with the PNG magic bytes (`\x89PNG`). This runs as part of the single `python3 .tmp/run.py` invocation — no second pass is needed. The script prints a final summary line: `Verified X/21 files OK`.
-
-- [ ] **Step 6 — Delete temp script** — Only after Step 5 prints `Verified 21/21 files OK`, remove `.tmp/run.py` using the Bash tool: `rm .tmp/run.py`
-
-- [ ] **Step 7 — Commit assets** — Only proceed if Step 5 confirmed all 21/21 files present and valid. Then stage and commit:
+- [ ] **Step 5 — Commit assets** — Only proceed if Step 4 confirmed all 21/21 files present and valid. Then stage and commit:
   ```
   git add Assets/Textures/Flags/
   git commit -m "assets: add historical country flags and org images (Stage 1)"
   ```
-  If any files are missing, resolve the WARNs from Step 4 (try fallback filenames from the mapping table) before committing.
+  If any files are missing, resolve the WARNs from Step 3 before committing.
 
 ## User Steps
 
