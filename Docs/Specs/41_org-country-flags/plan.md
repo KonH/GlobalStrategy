@@ -69,22 +69,44 @@ The Wikimedia Commons thumbnail URL above is a direct PNG render and does not re
 
 - [x] **Step 1 — Create permanent download script** — The download script lives at `.claude/download_flags.py` (alongside `generate_image.py` etc.). It holds the full `COUNTRY_FLAGS` and `ORG_FLAGS` mapping tables and supports `--dry-run` and `--force` flags. To add a new country or org, edit the mapping tables at the top of that file and re-run. The script creates output directories automatically via `os.makedirs(..., exist_ok=True)`.
 
-- [ ] **Step 2 — Install dependencies** — Run `python3 -m pip install requests`
-
-- [ ] **Step 3 — Run download script** — Execute: `python3 .claude/download_flags.py`; observe output for any WARN lines; if any country 404s or returns a bad content-type, try the fallback filename by editing `COUNTRY_FLAGS_FALLBACK` in the script and re-running with `--force`.
-
-- [ ] **Step 4 — Verify** — The script prints `Verified X/21 files OK` at the end. Only proceed when it reports 21/21.
-
-- [ ] **Step 5 — Commit assets** — Only proceed if Step 4 confirmed all 21/21 files present and valid. Then stage and commit:
-  ```
-  git add Assets/Textures/Flags/
-  git commit -m "assets: add historical country flags and org images (Stage 1)"
-  ```
-  If any files are missing, resolve the WARNs from Step 3 before committing.
-
 ## User Steps
 
-None for Stage 1 — all steps are fully automated.
+The remote execution environment blocks outbound HTTPS to `commons.wikimedia.org` and `upload.wikimedia.org` (egress policy). Steps 2–5 must be run locally on Windows.
+
+### 1. Install dependencies (Windows)
+
+```powershell
+.venv\Scripts\pip.exe install requests
+```
+
+If no `.venv` exists yet, create one first:
+```powershell
+python -m venv .venv
+.venv\Scripts\pip.exe install requests
+```
+
+### 2. Run the download script (Windows)
+
+```powershell
+.venv\Scripts\python.exe .claude\download_flags.py
+```
+
+Observe output for any `WARN` lines. If a country 404s or returns a bad content-type, edit the entry in `COUNTRY_FLAGS_FALLBACK` inside `.claude\download_flags.py` and re-run with `--force`:
+```powershell
+.venv\Scripts\python.exe .claude\download_flags.py --force
+```
+
+### 3. Verify
+
+The script prints `Verified X/21 files OK` at the end. Only proceed when it reports 21/21.
+
+### 4. Commit and push assets
+
+```powershell
+git add Assets/Textures/Flags/
+git commit -m "assets: add historical country flags and org images (Stage 1)"
+git push
+```
 
 ## Constitution Check
 
