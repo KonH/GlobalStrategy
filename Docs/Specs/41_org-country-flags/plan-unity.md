@@ -32,51 +32,52 @@ All flag display logic is purely in the Unity UI binding layer — no changes to
 
 - [ ] **Step 8 — Update `SelectCountry.uxml`** — In `Assets/UI/Modal/SelectCountry/SelectCountry.uxml`, replace `<ui:Label name="country-name-label" text="" class="gs-header country-name"/>` with a `<ui:VisualElement name="org-name-row" class="flag-name-row">` wrapping a `<ui:VisualElement name="org-flag" class="entity-flag" />` and the original label (same name and class). Note: this UXML is used by `SelectOrgDocument`, which displays org name/data in the SelectCountry scene — the flag shown here is the org flag.
 
-- [ ] **Step 9 — Update `CountryInfoView.cs`** — In `Assets/Scripts/Unity/UI/CountryInfoView.cs`:
+- [ ] **Step 9 — Verify `HUDDocument` already has `CountryVisualConfig` injection** — Read `Assets/Scripts/Unity/UI/HUDDocument.cs` fully to confirm whether `CountryVisualConfig _countryVisualConfig` is already a field and injected. The `[Inject]` method currently accepts `CharacterVisualConfig` but likely not `CountryVisualConfig`. If absent, add `CountryVisualConfig countryVisualConfig` to the `[Inject]` parameter list and store it. `CountryVisualConfig` is already registered in `GameLifetimeScope` — no new registration needed.
+
+- [ ] **Step 10 — Update `CountryInfoView.cs`** — In `Assets/Scripts/Unity/UI/CountryInfoView.cs`:
   - Add `CountryVisualConfig` and `OrgVisualConfig` parameters to the constructor signature (after `actionVisualConfig`).
   - Store both configs as readonly fields `_countryVisualConfig` and `_orgVisualConfig`.
   - In the constructor body, query `_flagElement = root.Q("country-flag")` and store as `readonly VisualElement? _flagElement`.
   - In `Refresh()`, after setting `_name.text`, look up `_countryVisualConfig?.Find(selected.CountryId)`, get its `flag` Sprite, set `_flagElement.style.backgroundImage = new StyleBackground(sprite)` when sprite is non-null and hide the element (`DisplayStyle.None`) when null — only when `selected.IsValid`.
   - In `BuildInfluenceTooltip()`, replace the plain `new Label(...)` row for each org entry with a container `VisualElement` with class `flag-name-row` holding a flag `VisualElement` (class `entity-flag`) and a `Label`. Look up the org entry via `_orgVisualConfig?.Find(entry.OrgId)` to get the Sprite; set `backgroundImage` and hide the flag element if null. Apply `PickingMode.Ignore` to the flag element (it is non-interactive).
 
-- [ ] **Step 10 — Update `HUDDocument.cs` to pass configs to `CountryInfoView`** — In `Assets/Scripts/Unity/UI/HUDDocument.cs`:
+- [ ] **Step 11 — Update `HUDDocument.cs` to pass configs to `CountryInfoView`** — In `Assets/Scripts/Unity/UI/HUDDocument.cs`:
   - Add `OrgVisualConfig _orgVisualConfig;` field.
   - In the `[Inject] void Construct(...)` method, add `OrgVisualConfig orgVisualConfig` parameter and assign `_orgVisualConfig = orgVisualConfig`.
-  - In `Start()`, update the `CountryInfoView` constructor call to pass `_countryVisualConfig` (already injected via `CountryVisualConfig` — verify it is already a field; if not, add it) and `_orgVisualConfig` as the two new trailing arguments.
-  - Note: `CountryVisualConfig` is already registered as a singleton in `GameLifetimeScope`; `OrgVisualConfig` is also already registered. Neither requires a new registration — only the injection point on `HUDDocument` needs updating.
+  - In `Start()`, update the `CountryInfoView` constructor call to pass `_countryVisualConfig` (confirmed present or added in Step 9) and `_orgVisualConfig` as the two new trailing arguments.
+  - Note: `CountryVisualConfig` and `OrgVisualConfig` are already registered singletons in `GameLifetimeScope` — no new registrations needed.
 
-- [ ] **Step 11 — Update `OrgLensCountryView.cs`** — In `Assets/Scripts/Unity/UI/OrgLensCountryView.cs`:
+- [ ] **Step 12 — Update `OrgLensCountryView.cs`** — In `Assets/Scripts/Unity/UI/OrgLensCountryView.cs`:
   - Add `OrgVisualConfig` parameter to the constructor (alongside `root`). Store as `readonly OrgVisualConfig? _orgVisualConfig`.
   - Query `_flagElement = root.Q("org-flag")` in the constructor; store as `readonly VisualElement? _flagElement`.
   - In `Refresh()`, in the branch where `found != null`, after setting `_orgName.text`, look up `_orgVisualConfig?.Find(found.TopOrgId)`, get its `flag` Sprite, set `backgroundImage` on `_flagElement`, and show/hide `_flagElement` based on null.
   - In the `else` branch and in `Hide()`, hide `_flagElement`.
 
-- [ ] **Step 12 — Update `HUDDocument.cs` to pass `OrgVisualConfig` to `OrgLensCountryView`** — In `Assets/Scripts/Unity/UI/HUDDocument.cs`, update the `new OrgLensCountryView(...)` constructor call in `Awake()` to pass `_orgVisualConfig` (already added to the `[Inject]` method in Step 10).
+- [ ] **Step 13 — Update `HUDDocument.cs` to pass `OrgVisualConfig` to `OrgLensCountryView`** — In `Assets/Scripts/Unity/UI/HUDDocument.cs`, update the `new OrgLensCountryView(...)` constructor call in `Awake()` to pass `_orgVisualConfig` (already added to the `[Inject]` method in Step 11).
 
-- [ ] **Step 13 — Update `OrgInfoDocument.cs`** — In `Assets/Scripts/Unity/UI/OrgInfoDocument.cs`:
+- [ ] **Step 14 — Update `OrgInfoDocument.cs`** — In `Assets/Scripts/Unity/UI/OrgInfoDocument.cs`:
   - Add `OrgVisualConfig _orgVisualConfig;` field.
   - In `[Inject] void Construct(...)`, add `OrgVisualConfig orgVisualConfig` parameter and assign `_orgVisualConfig = orgVisualConfig`.
   - In `Awake()`, query `_orgFlagElement = docRoot.Q("org-flag")` after the other element queries; store as `VisualElement _orgFlagElement`.
-  - In `Refresh()`, after setting `_orgName.text = org.DisplayName`, look up `_orgVisualConfig?.Find(org.OrgId)`, get `flag` Sprite, set `_orgFlagElement.style.backgroundImage` and show/hide based on null.
+  - In `Refresh()`, after setting `_orgName.text = org.DisplayName`, add a null-guarded block: `if (_orgFlagElement != null) { var sprite = _orgVisualConfig?.Find(org.OrgId)?.flag; _orgFlagElement.style.backgroundImage = sprite != null ? new StyleBackground(sprite) : StyleBackground.None; _orgFlagElement.style.display = sprite != null ? DisplayStyle.Flex : DisplayStyle.None; }` — the null guard ensures graceful behaviour if the UXML step has not yet been applied.
   - `OrgVisualConfig` is already registered as a singleton in `GameLifetimeScope` — no new registration needed.
 
-- [ ] **Step 14 — Update `PlayerOrgView.cs`** — In `Assets/Scripts/Unity/UI/PlayerOrgView.cs`:
+- [ ] **Step 15 — Update `PlayerOrgView.cs`** — In `Assets/Scripts/Unity/UI/PlayerOrgView.cs`:
   - Add `OrgVisualConfig` parameter to the constructor (after `tooltip`). Store as `readonly OrgVisualConfig? _orgVisualConfig`.
   - Query `_flagElement = root.Q("player-org-flag")` in the constructor; store as `readonly VisualElement? _flagElement`.
   - In `Refresh()`, when `state.IsValid`, look up `_orgVisualConfig?.Find(state.OrgId)` — note: `PlayerOrganizationState` must expose `OrgId` (check `GS.Main.PlayerOrganizationState`; if it does, use it directly; if not, access it via the state that has it). Set `backgroundImage` on `_flagElement` and show/hide based on null.
 
-- [ ] **Step 15 — Update `HUDDocument.cs` to pass `OrgVisualConfig` to `PlayerOrgView`** — In `Assets/Scripts/Unity/UI/HUDDocument.cs`, update the `new PlayerOrgView(...)` constructor call in `Start()` to pass `_orgVisualConfig` as the new trailing argument (added in Step 10).
+- [ ] **Step 16 — Update `HUDDocument.cs` to pass `OrgVisualConfig` to `PlayerOrgView`** — In `Assets/Scripts/Unity/UI/HUDDocument.cs`, update the `new PlayerOrgView(...)` constructor call in `Start()` to pass `_orgVisualConfig` as the new trailing argument (added in Step 11).
 
-- [ ] **Step 16 — Update `SelectOrgDocument.cs`** — In `Assets/Scripts/Unity/UI/SelectOrgDocument.cs`:
-  - Add `OrgVisualConfig _orgVisualConfig;` field.
-  - In `[Inject] void Construct(...)`, add `OrgVisualConfig orgVisualConfig` parameter and assign `_orgVisualConfig = orgVisualConfig`.
-  - In `Start()`, after querying `_orgNameLabel`, query `_orgFlagElement = root.Q("org-flag")`; store as `Label _orgFlagElement` (actually `VisualElement _orgFlagElement`).
-  - In `RefreshUI()`, when `state.IsValid`, look up `_orgVisualConfig?.Find(state.OrgId)`, get `flag` Sprite, set `_orgFlagElement?.style.backgroundImage` and show/hide based on null. When not valid, hide the flag element.
-  - `OrgVisualConfig` is already registered in `SelectCountryLifetimeScope` — no new registration needed.
+- [ ] **Step 17 — Register `SelectOrgDocument` in `SelectCountryLifetimeScope` and update `SelectOrgDocument.cs`** — `SelectOrgDocument` is currently NOT registered in `SelectCountryLifetimeScope`, so its `[Inject]` method never fires. Two changes required:
+  - In `Assets/Scripts/Unity/DI/SelectCountryLifetimeScope.cs`, add `builder.RegisterComponentInHierarchy<SelectOrgDocument>();` to `Configure`. `OrgVisualConfig` is already registered via `builder.RegisterInstance(_orgVisualConfig)` — no additional registration needed.
+  - In `Assets/Scripts/Unity/UI/SelectOrgDocument.cs`:
+    - Add `OrgVisualConfig _orgVisualConfig;` field.
+    - In `[Inject] void Construct(...)`, add `OrgVisualConfig orgVisualConfig` parameter and assign `_orgVisualConfig = orgVisualConfig`.
+    - In `Start()`, after querying `_orgNameLabel`, query `_orgFlagElement = root.Q("org-flag")`; store as `VisualElement _orgFlagElement`.
+    - In `RefreshUI()`, when `state.IsValid`, look up `_orgVisualConfig?.Find(state.OrgId)`, get `flag` Sprite, set `_orgFlagElement?.style.backgroundImage` and show/hide based on null. When not valid, hide the flag element.
 
-- [ ] **Step 17 — Verify `PlayerOrganizationState.OrgId` accessibility** — Search `GS.Main.PlayerOrganizationState` (in the `src/` C# solution or the compiled DLL's public API) to confirm `OrgId` is a public property. If the property name differs, adjust Step 14 accordingly. This is a read-only check — no code change needed if it already exists.
-
-- [ ] **Step 18 — Verify `HUDDocument` already has `CountryVisualConfig` injection** — Read `HUDDocument.cs` fully to confirm whether `CountryVisualConfig _countryVisualConfig` is already a field and injected. The `[Inject]` method currently accepts `CharacterVisualConfig` but not `CountryVisualConfig`. If absent, add `CountryVisualConfig countryVisualConfig` to the `[Inject]` parameter list and store it. `CountryVisualConfig` is already registered in `GameLifetimeScope`.
+- [ ] **Step 18 — Verify `PlayerOrganizationState.OrgId` accessibility** — Search `GS.Main.PlayerOrganizationState` (in the `src/` C# solution or the compiled DLL's public API) to confirm `OrgId` is a public property. If the property name differs, adjust Step 15 accordingly. This is a read-only check — no code change needed if it already exists.
 
 ## User Steps
 
@@ -115,7 +116,7 @@ Stage 1 downloads PNGs into `Assets/Textures/Flags/Countries/` and `Assets/Textu
 
 - **Unity 6 + URP only** — no engine-version-specific APIs used; USS `gap` is used for row spacing (not `margin-left`), per the layout gotcha rules.
 - **ECS for game logic** — no changes to any `src/` ECS code; all changes are in Unity UI binding layer only.
-- **VContainer sole DI** — all new dependencies injected via existing `[Inject]` methods or constructor parameters; no `new` calls for shared config objects; `CountryVisualConfig` and `OrgVisualConfig` are already registered singletons in both `GameLifetimeScope` and `SelectCountryLifetimeScope`.
+- **VContainer sole DI** — all new dependencies injected via `[Inject]` methods or constructor parameters; no `new` calls for shared config objects; `CountryVisualConfig` and `OrgVisualConfig` are already registered singletons in both `GameLifetimeScope` and `SelectCountryLifetimeScope`; `SelectOrgDocument` is added to `SelectCountryLifetimeScope` via `RegisterComponentInHierarchy` so VContainer can inject into it.
 - **UI Toolkit only** — no Canvas/UGUI added; flag images use `VisualElement` with `backgroundImage` style.
 - **One `.asmdef` per feature folder** — no new assemblies created; all changed files are in existing assemblies that already reference the necessary types (`GS.Unity.Map` for the config types, `GS.Unity.UI` for the views).
 - **`PickingMode.Ignore`** applied to the flag `VisualElement` in dynamically created tooltip rows (non-interactive). In UXML, flag elements that are non-interactive should have `picking-mode="Ignore"` set in the UXML markup.

@@ -16,7 +16,7 @@ A Python script in `.tmp/run.py` holds a hardcoded mapping of `countryId → Wik
 https://commons.wikimedia.org/w/index.php?title=Special:FilePath/<filename>&width=256
 ```
 
-This endpoint returns a redirect to the actual CDN PNG render. `requests` follows the redirect automatically with `allow_redirects=True`. Files are saved as-is (PNG from the CDN). If the response content-type is not `image/png` (e.g. an SVG was returned instead) the script also imports `cairosvg` or falls back to saving as `.svg` — but all mapped files are SVGs rendered server-side to PNG by Wikimedia, so the output from the FilePath endpoint will already be a PNG render.
+This endpoint returns a redirect to the actual CDN PNG render. `requests` follows the redirect automatically with `allow_redirects=True`. Files are saved as-is (PNG from the CDN). If the response content-type is not `image/png` the script prints a WARN and skips the file — all mapped files are SVGs rendered server-side to PNG by Wikimedia so the FilePath endpoint returns a PNG render, but the WARN-and-skip guard handles any unexpected response.
 
 For the Illuminati org image a direct PNG URL from Wikimedia Commons is used instead of the FilePath API (the file is a raster PNG, no render step needed).
 
@@ -67,7 +67,7 @@ The Wikimedia Commons thumbnail URL above is a direct PNG render and does not re
 
 ## Agent Steps
 
-- [ ] **Step 1 — Create output directories** — Create `Assets/Textures/Flags/Countries/` and `Assets/Textures/Flags/Orgs/` directories by writing placeholder `.gitkeep` files (or let the download script create them with `os.makedirs(..., exist_ok=True)`)
+- [ ] **Step 1 — Create output directories** — Ensure `.tmp/` exists (it is gitignored; create `.tmp/.gitkeep` if absent). Create `Assets/Textures/Flags/Countries/` and `Assets/Textures/Flags/Orgs/` directories — the download script creates them with `os.makedirs(..., exist_ok=True)`, but writing `.gitkeep` placeholder files now also ensures they are tracked by git.
 
 - [ ] **Step 2 — Write download script** — Write `.tmp/run.py` with the full hardcoded mapping table (countryId → FilePath URL, orgId → direct URL). The script must:
   - Call `os.makedirs` for both output folders with `exist_ok=True`
@@ -79,19 +79,20 @@ The Wikimedia Commons thumbnail URL above is a direct PNG render and does not re
   - Use a `requests.Session` with a `User-Agent` header (`GlobalStrategyAssetDownloader/1.0`) to avoid bot blocks
   - Set `timeout=30` on each request
 
-- [ ] **Step 3 — Install dependencies** — Run `.venv/Scripts/pip.exe install requests` (Pillow is not needed since no image manipulation is required; Wikimedia's FilePath API returns PNG directly)
+- [ ] **Step 3 — Install dependencies** — Run `python3 -m pip install requests` (Pillow is not needed; Wikimedia's FilePath API returns PNG directly)
 
-- [ ] **Step 4 — Run download script** — Execute via `.claude/run.ps1`; observe output for any WARN lines; if any country 404s or returns a bad content-type, try the fallback filename noted in the mapping table by editing the script and re-running
+- [ ] **Step 4 — Run download script** — Execute directly: `python3 .tmp/run.py`; observe output for any WARN lines; if any country 404s or returns a bad content-type, try the fallback filename noted in the mapping table by editing the script and re-running
 
-- [ ] **Step 5 — Verify files** — For each of the 21 expected output paths, confirm the file exists, is larger than 1 KB, and begins with the PNG magic bytes (`\x89PNG`). This can be done with a short inline check at the end of `.tmp/run.py` or as a second pass after deletion of the main script — add a verify block to the script before deleting it
+- [ ] **Step 5 — Verify files** — The download script includes an inline verification block at the end: after all downloads, iterate the 21 expected output paths, confirm each file exists, is larger than 1 KB, and begins with the PNG magic bytes (`\x89PNG`). This runs as part of the single `python3 .tmp/run.py` invocation — no second pass is needed. The script prints a final summary line: `Verified X/21 files OK`.
 
-- [ ] **Step 6 — Delete temp script** — Remove `.tmp/run.py`
+- [ ] **Step 6 — Delete temp script** — Only after Step 5 prints `Verified 21/21 files OK`, remove `.tmp/run.py` using the Bash tool: `rm .tmp/run.py`
 
-- [ ] **Step 7 — Commit assets** — Stage and commit:
+- [ ] **Step 7 — Commit assets** — Only proceed if Step 5 confirmed all 21/21 files present and valid. Then stage and commit:
   ```
   git add Assets/Textures/Flags/
   git commit -m "assets: add historical country flags and org images (Stage 1)"
   ```
+  If any files are missing, resolve the WARNs from Step 4 (try fallback filenames from the mapping table) before committing.
 
 ## User Steps
 
