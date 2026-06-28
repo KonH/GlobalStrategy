@@ -9,6 +9,7 @@ using GS.Game.Commands;
 using GS.Game.Configs;
 using GS.Unity.EcsViewer;
 using GS.Unity.Common;
+using GS.Unity.Map;
 
 namespace GS.Unity.UI {
 	public class HUDDocument : MonoBehaviour {
@@ -23,6 +24,8 @@ namespace GS.Unity.UI {
 		ResourceConfig _resourceConfig;
 		CharacterConfig _characterConfig;
 		CharacterVisualConfig _characterVisualConfig;
+		CountryVisualConfig _countryVisualConfig;
+		OrgVisualConfig _orgVisualConfig;
 		GameMenuDocument _gameMenu;
 		Button _btnMenu;
 		Button _btnDebugToggle;
@@ -42,13 +45,15 @@ namespace GS.Unity.UI {
 		CardPlayAnimator _cardPlayAnimator;
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, GameMenuDocument gameMenu, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
 			_resourceConfig = resourceConfig;
 			_characterConfig = characterConfig;
 			_characterVisualConfig = characterVisualConfig;
+			_countryVisualConfig = countryVisualConfig;
+			_orgVisualConfig = orgVisualConfig;
 			_gameMenu = gameMenu;
 			_orgInfoDocument = orgInfoDocument;
 			_actionConfig = actionConfig;
@@ -66,7 +71,7 @@ namespace GS.Unity.UI {
 				root.Q("time-panel"),
 				OnPauseToggle,
 				OnSpeedChange);
-			_orgLensCountryView = new OrgLensCountryView(root.Q("org-lens-country-info"));
+			_orgLensCountryView = new OrgLensCountryView(root.Q("org-lens-country-info"), _orgVisualConfig);
 
 			var playerOrgRoot = root.Q("player-country");
 			if (playerOrgRoot != null) {
@@ -80,10 +85,10 @@ namespace GS.Unity.UI {
 
 		void Start() {
 			_countryInfoRoot = _root.Q("country-info");
-			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _actionConfig, _actionVisualConfig);
+			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _actionConfig, _actionVisualConfig, _countryVisualConfig, _orgVisualConfig);
 			_countryInfo.OnSubPanelOpened += HandleOrgSubPanelOpened;
 			_countryInfo.OnCountryActionCardClicked += HandleCountryActionCardClicked;
-			_playerOrgView = new PlayerOrgView(_root.Q("player-country"), _loc, _resourceConfig, _tooltip);
+			_playerOrgView = new PlayerOrgView(_root.Q("player-country"), _loc, _resourceConfig, _tooltip, _orgVisualConfig);
 			_lensSwitcher = new LensSwitcherView(_root.Q("lens-switcher"), _tooltip, _loc);
 			_lensSwitcher.OnLensSelected = OnLensSelected;
 			if (_orgInfoDocument != null) {
@@ -452,6 +457,9 @@ namespace GS.Unity.UI {
 			var lensSwitcherEl = _root.Q("lens-switcher");
 			if (lensSwitcherEl != null) {
 				lensSwitcherEl.style.display = anyOpen ? DisplayStyle.None : DisplayStyle.Flex;
+			}
+			if (!anyOpen) {
+				_tooltip?.HideAll();
 			}
 		}
 

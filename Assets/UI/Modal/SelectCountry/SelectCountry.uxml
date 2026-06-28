@@ -3,7 +3,10 @@
     <ui:Style src="project://database/Assets/UI/Modal/SelectCountry/SelectCountry.uss"/>
     <ui:VisualElement name="select-country-root" class="select-country-root" picking-mode="Ignore">
         <ui:VisualElement name="info-panel" class="gs-panel info-panel">
-            <ui:Label name="country-name-label" text="" class="gs-header country-name"/>
+            <ui:VisualElement name="org-name-row" class="flag-name-row">
+                <ui:VisualElement name="org-flag" class="entity-flag" picking-mode="Ignore" />
+                <ui:Label name="country-name-label" text="" class="gs-header country-name"/>
+            </ui:VisualElement>
             <ui:Label name="gold-label" text="" class="gs-label select-org-label gold-label"/>
             <ui:Label name="influence-label" text="" class="gs-label select-org-label"/>
             <ui:Label name="estimated-income-label" text="" class="gs-label select-org-label"/>

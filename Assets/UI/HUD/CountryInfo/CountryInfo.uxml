@@ -13,7 +13,10 @@
     </ui:VisualElement>
     <ui:VisualElement name="country-bar" class="country-bar">
         <ui:VisualElement name="country-main-block" class="country-main-block">
-            <ui:Label name="country-name" class="country-name" text="" />
+            <ui:VisualElement name="country-name-row" class="flag-name-row">
+                <ui:VisualElement name="country-flag" class="entity-flag" picking-mode="Ignore" />
+                <ui:Label name="country-name" class="country-name" text="" />
+            </ui:VisualElement>
             <ui:VisualElement name="influence-row" style="flex-direction: row; align-items: center;">
                 <ui:VisualElement class="influence-icon" />
                 <ui:Label name="influence-label" class="gs-label" text="" />

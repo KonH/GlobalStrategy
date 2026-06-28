@@ -25,10 +25,10 @@ namespace GS.Unity.UI {
 			_btnGeographic = root.Q<Button>("lens-btn-geographic");
 			_btnOrg = root.Q<Button>("lens-btn-org");
 
-			_currentBtn.clicked += ToggleExpand;
-			_btnPolitical.clicked += () => SelectLens(MapLens.Political);
-			_btnGeographic.clicked += () => SelectLens(MapLens.Geographic);
-			_btnOrg.clicked += () => SelectLens(MapLens.Org);
+			_currentBtn.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _currentBtn.ContainsPoint(e.localPosition)) ToggleExpand(); });
+			_btnPolitical.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnPolitical.ContainsPoint(e.localPosition)) SelectLens(MapLens.Political); });
+			_btnGeographic.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnGeographic.ContainsPoint(e.localPosition)) SelectLens(MapLens.Geographic); });
+			_btnOrg.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnOrg.ContainsPoint(e.localPosition)) SelectLens(MapLens.Org); });
 
 			if (tooltip != null && loc != null) {
 				RegisterTooltip(tooltip, loc, _btnPolitical, "lens-political", "hud.lens.political");

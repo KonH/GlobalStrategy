@@ -5,6 +5,7 @@ using GS.Main;
 using GS.Game.Configs;
 using GS.Unity.Map;
 using GS.Unity.Save;
+using GS.Unity.UI;
 
 namespace GS.Unity.DI {
 	public class SelectCountryLifetimeScope : LifetimeScope {
@@ -32,6 +33,7 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<MapController>();
 			builder.RegisterComponentInHierarchy<MapClickHandler>();
 			builder.RegisterComponentInHierarchy<SelectOrgMapFilter>();
+			builder.RegisterComponentInHierarchy<SelectOrgDocument>();
 
 			// Map clicks need IWriteOnlyCommandAccessor — wire through SelectOrgLogic
 			builder.Register<IWriteOnlyCommandAccessor>(

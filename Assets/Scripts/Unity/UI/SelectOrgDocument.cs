@@ -1,5 +1,6 @@
 using GS.Main;
 using GS.Unity.Common;
+using GS.Unity.Map;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
@@ -10,8 +11,10 @@ namespace GS.Unity.UI {
 		SelectOrgLogic _logic;
 		SceneLoader _sceneLoader;
 		ILocalization _localization;
+		OrgVisualConfig _orgVisualConfig;
 		UIDocument _doc;
 		Label _orgNameLabel;
+		VisualElement _orgFlagElement;
 		Label _goldLabel;
 		Label _influenceLabel;
 		Label _estimatedIncomeLabel;
@@ -19,10 +22,11 @@ namespace GS.Unity.UI {
 		Button _btnStart;
 
 		[Inject]
-		void Construct(SelectOrgLogic logic, SceneLoader sceneLoader, ILocalization localization) {
+		void Construct(SelectOrgLogic logic, SceneLoader sceneLoader, ILocalization localization, OrgVisualConfig orgVisualConfig) {
 			_logic = logic;
 			_sceneLoader = sceneLoader;
 			_localization = localization;
+			_orgVisualConfig = orgVisualConfig;
 		}
 
 		void Awake() {
@@ -32,6 +36,7 @@ namespace GS.Unity.UI {
 		void Start() {
 			var root = _doc.rootVisualElement;
 			_orgNameLabel = root.Q<Label>("country-name-label");
+			_orgFlagElement = root.Q("org-flag");
 			_goldLabel = root.Q<Label>("gold-label");
 			_influenceLabel = root.Q<Label>("influence-label");
 			_estimatedIncomeLabel = root.Q<Label>("estimated-income-label");
@@ -58,6 +63,15 @@ namespace GS.Unity.UI {
 			var state = _logic.VisualState.SelectedOrganization;
 			if (state.IsValid) {
 				_orgNameLabel.text = state.DisplayName;
+				if (_orgFlagElement != null) {
+					var sprite = _orgVisualConfig?.Find(state.OrgId)?.flag;
+					if (sprite != null) {
+						_orgFlagElement.style.backgroundImage = new StyleBackground(sprite);
+						_orgFlagElement.style.display = DisplayStyle.Flex;
+					} else {
+						_orgFlagElement.style.display = DisplayStyle.None;
+					}
+				}
 				if (_goldLabel != null) {
 					_goldLabel.text = $"{_localization.Get("select_org.gold")}: {state.InitialGold:F0}";
 				}
@@ -73,6 +87,7 @@ namespace GS.Unity.UI {
 				_btnStart.SetEnabled(true);
 			} else {
 				_orgNameLabel.text = "";
+				if (_orgFlagElement != null) { _orgFlagElement.style.display = DisplayStyle.None; }
 				if (_goldLabel != null) {
 					_goldLabel.text = "";
 				}

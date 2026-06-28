@@ -332,3 +332,45 @@ If any child has `align-self` set — including via a shared stylesheet — it o
 ### Absolute-only children give wrapper zero layout height
 
 If every child of a wrapper has `position: Absolute`, the wrapper has no layout height (only explicit `height`/`min-height` applies). Keep at least one **relative-positioned** child to establish the wrapper's natural height.
+
+## Closeable Overlay Slides
+
+### CSS hiding: use `display: none`, not opacity/translate
+
+`opacity: 0` and `translate` only visually hide an element — it stays in the layout and intercepts pointer events. `display: none` fully removes the element from the picking tree. For slides that must not block clicks when closed, use `display: none` in the base CSS class and `display: flex` in the `--open` modifier.
+
+If opacity/translate is used for the animation, `PickingMode` must be managed in code (see below).
+
+### Recursive PickingMode + post-Refresh re-apply
+
+Two traps when toggling `PickingMode` on a slide container:
+- `PickingMode.Ignore` on a container is **not recursive** — child elements keep `PickingMode.Position` and still intercept events.
+- `Refresh()` typically calls `.Clear()` and recreates child elements; new elements get default `PickingMode.Position`, silently undoing any `Ignore` set on the container.
+
+Correct pattern:
+
+```csharp
+static void SetPickingModeRecursive(VisualElement el, PickingMode mode) {
+    el.pickingMode = mode;
+    foreach (var child in el.Children()) { SetPickingModeRecursive(child, mode); }
+}
+
+void SetSlideOpen(bool open) {
+    if (open) {
+        slide.AddToClassList("slide--open");
+        SetPickingModeRecursive(slide, PickingMode.Position);
+    } else {
+        slide.RemoveFromClassList("slide--open");
+        SetPickingModeRecursive(slide, PickingMode.Ignore);
+        tooltip?.HideAll();  // see Tooltip cleanup below
+    }
+}
+
+// After each Refresh() that rebuilds the slide's children:
+view.Refresh(state);
+if (!_slideOpen) { SetPickingModeRecursive(slide, PickingMode.Ignore); }
+```
+
+### Tooltip cleanup
+
+`PointerLeaveEvent` does not fire when a slide hides via opacity/translate (the element stays in the tree). Open tooltips persist at their last screen position. Call `tooltip.HideAll()` when closing the slide and add `HideAll()` as a public method on `TooltipSystem` if it doesn't exist yet.
