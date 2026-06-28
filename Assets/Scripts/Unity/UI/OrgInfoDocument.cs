@@ -6,6 +6,7 @@ using VContainer;
 using GS.Main;
 using GS.Game.Configs;
 using GS.Unity.Common;
+using GS.Unity.Map;
 
 namespace GS.Unity.UI {
 	public class OrgInfoDocument : MonoBehaviour {
@@ -15,6 +16,8 @@ namespace GS.Unity.UI {
 		ResourceConfig _resourceConfig;
 		CharacterConfig _characterConfig;
 		CharacterVisualConfig _characterVisualConfig;
+		OrgVisualConfig _orgVisualConfig;
+		VisualElement _orgFlagElement;
 		TooltipSystem _tooltip;
 
 		VisualElement _charsSlide;
@@ -35,12 +38,13 @@ namespace GS.Unity.UI {
 
 		[Inject]
 		void Construct(VisualState state, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig,
-			ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator) {
+			OrgVisualConfig orgVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator) {
 			_state = state;
 			_loc = loc;
 			_resourceConfig = resourceConfig;
 			_characterConfig = characterConfig;
 			_characterVisualConfig = characterVisualConfig;
+			_orgVisualConfig = orgVisualConfig;
 			_actionConfig = actionConfig;
 			_actionVisualConfig = actionVisualConfig;
 			_cardPlayAnimator = cardPlayAnimator;
@@ -52,6 +56,7 @@ namespace GS.Unity.UI {
 			_tooltip = new TooltipSystem(docRoot);
 
 			_orgName = docRoot.Q<Label>("org-name");
+			_orgFlagElement = docRoot.Q("org-flag");
 			_charsSlide = docRoot.Q("characters-slide");
 			_charsToggleBtn = docRoot.Q<Button>("chars-toggle-btn");
 			_actionsSlide = docRoot.Q("actions-slide");
@@ -131,6 +136,15 @@ namespace GS.Unity.UI {
 			if (!org.IsValid) { return; }
 			if (_orgName != null) {
 				_orgName.text = org.DisplayName;
+			}
+			if (_orgFlagElement != null) {
+				var sprite = _orgVisualConfig?.Find(org.OrgId)?.flag;
+				if (sprite != null) {
+					_orgFlagElement.style.backgroundImage = new StyleBackground(sprite);
+					_orgFlagElement.style.display = DisplayStyle.Flex;
+				} else {
+					_orgFlagElement.style.display = DisplayStyle.None;
+				}
 			}
 			_resourcesView?.Refresh(_state.PlayerOrganization.Resources);
 			_charactersView?.Refresh(_state.PlayerOrganization.Characters);

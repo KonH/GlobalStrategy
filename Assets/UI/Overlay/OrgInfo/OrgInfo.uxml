@@ -12,7 +12,10 @@
         </ui:VisualElement>
         <ui:VisualElement name="org-bar" class="org-bar">
             <ui:VisualElement name="org-main-block" class="org-main-block">
-                <ui:Label name="org-name" class="org-name" text="" />
+                <ui:VisualElement name="org-name-row" class="flag-name-row">
+                    <ui:VisualElement name="org-flag" class="entity-flag" picking-mode="Ignore" />
+                    <ui:Label name="org-name" class="org-name" text="" />
+                </ui:VisualElement>
                 <ui:VisualElement name="resources-container" class="resources-container" />
             </ui:VisualElement>
             <ui:VisualElement class="org-toggle-block">

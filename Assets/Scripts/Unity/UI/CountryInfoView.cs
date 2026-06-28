@@ -1,15 +1,18 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UIElements;
 using GS.Main;
 using GS.Game.Configs;
 using GS.Unity.Common;
+using GS.Unity.Map;
 
 namespace GS.Unity.UI {
 	class CountryInfoView {
 		readonly VisualElement _root;
 		readonly Label _name;
+		readonly VisualElement? _flagElement;
 		readonly Label _influenceLabel;
 		readonly VisualElement? _influenceRow;
 		readonly VisualElement? _charsSlide;
@@ -19,6 +22,8 @@ namespace GS.Unity.UI {
 		readonly ILocalization _loc;
 		readonly ResourcesView _resourcesView;
 		readonly CharactersView _charactersView;
+		readonly CountryVisualConfig? _countryVisualConfig;
+		readonly OrgVisualConfig? _orgVisualConfig;
 		CountryActionsView? _actionsView;
 		CountryInfluenceState? _influenceState;
 		bool _charsOpen;
@@ -30,9 +35,12 @@ namespace GS.Unity.UI {
 		public CountryActionsView? ActionsView => _actionsView;
 		public void OpenChars() => SetCharsOpen(true);
 
-		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig) {
+		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CountryVisualConfig? countryVisualConfig = null, OrgVisualConfig? orgVisualConfig = null) {
 			_root = root;
 			_name = root.Q<Label>("country-name");
+			_flagElement = root.Q("country-flag");
+			_countryVisualConfig = countryVisualConfig;
+			_orgVisualConfig = orgVisualConfig;
 			_influenceRow = root.Q("influence-row");
 			_influenceLabel = root.Q<Label>("influence-label");
 			_charsSlide = root.Q("characters-slide");
@@ -76,6 +84,15 @@ namespace GS.Unity.UI {
 			_root.style.display = selected.IsValid ? DisplayStyle.Flex : DisplayStyle.None;
 			if (selected.IsValid) {
 				_name.text = _loc.Get($"country_name.{selected.CountryId}");
+				if (_flagElement != null) {
+					var sprite = _countryVisualConfig?.Find(selected.CountryId)?.flag;
+					if (sprite != null) {
+						_flagElement.style.backgroundImage = new StyleBackground(sprite);
+						_flagElement.style.display = DisplayStyle.Flex;
+					} else {
+						_flagElement.style.display = DisplayStyle.None;
+					}
+				}
 			}
 
 			if (selected.CountryId != _lastCountryId) {
@@ -179,10 +196,27 @@ namespace GS.Unity.UI {
 			}
 
 			foreach (var entry in influence.OrgEntries) {
-				var row = new Label($"{entry.DisplayName}: {entry.Influence}");
-				row.AddToClassList("tooltip-effect-name");
-				row.AddToClassList("tooltip-effect-positive");
+				var row = new VisualElement();
+				row.AddToClassList("flag-name-row");
 				row.AddToClassList("tooltip-inner-trigger");
+
+				var flagEl = new VisualElement();
+				flagEl.AddToClassList("entity-flag");
+				flagEl.pickingMode = PickingMode.Ignore;
+				var orgSprite = _orgVisualConfig?.Find(entry.OrgId)?.flag;
+				if (orgSprite != null) {
+					flagEl.style.backgroundImage = new StyleBackground(orgSprite);
+					flagEl.style.display = DisplayStyle.Flex;
+				} else {
+					flagEl.style.display = DisplayStyle.None;
+				}
+				row.Add(flagEl);
+
+				var label = new Label($"{entry.DisplayName}: {entry.Influence}");
+				label.AddToClassList("tooltip-effect-name");
+				label.AddToClassList("tooltip-effect-positive");
+				row.Add(label);
+
 				root.Add(row);
 
 				var capturedEntry = entry;

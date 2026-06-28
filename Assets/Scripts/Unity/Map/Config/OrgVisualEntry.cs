@@ -6,5 +6,6 @@ namespace GS.Unity.Map {
 	public class OrgVisualEntry {
 		public string orgId;
 		public Color color;
+		public Sprite flag;
 	}
 }

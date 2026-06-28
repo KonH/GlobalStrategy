@@ -50,7 +50,25 @@ All scripts live in `.claude/` and must be run from the **project root** so rela
 
 5. Confirm the script reports `Verified N/N files OK`.
 
-6. Commit: `git add Assets/Textures/Flags/` and commit with the assets.
+6. Import the PNG as a Sprite in Unity via MCP:
+   ```
+   manage_texture(action="set_import_settings", path="Textures/Flags/Countries/<countryId>.png", as_sprite=true)
+   ```
+
+7. Get the asset GUID via MCP:
+   ```
+   manage_asset(action="get_info", path="Textures/Flags/Countries/<countryId>.png")
+   ```
+   Note the `guid` from the result.
+
+8. Find the index of the country in `CountryVisualConfig.asset` (its position in the `Entries` list, 0-based) by reading the asset file, then assign the flag via MCP:
+   ```
+   manage_scriptable_object(action="modify",
+     target={"path": "Assets/Configs/CountryVisualConfig.asset"},
+     patches=[{"path": "Entries.Array.data[<index>].flag", "value": {"guid": "<guid>"}}])
+   ```
+
+9. Commit: `git add Assets/Textures/Flags/` and commit with the assets.
 
 ## Adding a new org image
 
@@ -64,6 +82,8 @@ ORG_FLAGS = {
 ```
 
 The output goes to `Assets/Textures/Flags/Orgs/<orgId>.png`.
+
+After downloading, follow the same Unity steps (6–8 above) but target `Textures/Flags/Orgs/<orgId>.png` and `Assets/Configs/OrgVisualConfig.asset` with property path `Entries.Array.data[<index>].flag`.
 
 ## Troubleshooting
 

@@ -7,5 +7,6 @@ namespace GS.Unity.Map {
 		public string countryId;
 		public string displayName;
 		public Color color;
+		public Sprite flag;
 	}
 }

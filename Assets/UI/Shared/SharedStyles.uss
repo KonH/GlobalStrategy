@@ -641,3 +641,18 @@
     flex-wrap: wrap;
     margin-top: 2px;
 }
+
+/* ===== Flag + name row ===== */
+
+.flag-name-row {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.entity-flag {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
