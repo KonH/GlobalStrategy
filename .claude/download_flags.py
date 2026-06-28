@@ -1,8 +1,8 @@
 """
 Flag and org image downloader for GlobalStrategy.
 
-Usage:
-    python3 .claude/download_flags.py [--dry-run] [--force]
+Usage (run from project root):
+    .venv\Scripts\python.exe .claude\download_flags.py [--dry-run] [--force]
 
 Options:
     --dry-run   Print what would be downloaded without saving anything
@@ -27,7 +27,7 @@ import sys
 import requests
 
 # ---------------------------------------------------------------------------
-# Wikimedia Commons SVG flags — rendered locally to PNG via svg_to_png.py.
+# Wikimedia Commons SVG flags — Wikimedia renders SVG to PNG server-side.
 # Format: countryId -> "File:<wikimedia_filename>.svg"
 # Era: 19th century (roughly 1815-1900). Keep filenames era-accurate.
 # ---------------------------------------------------------------------------
