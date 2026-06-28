@@ -24,6 +24,7 @@ namespace GS.Unity.UI {
 		readonly CharactersView _charactersView;
 		readonly CountryVisualConfig? _countryVisualConfig;
 		readonly OrgVisualConfig? _orgVisualConfig;
+		readonly TooltipSystem _tooltip;
 		CountryActionsView? _actionsView;
 		CountryInfluenceState? _influenceState;
 		bool _charsOpen;
@@ -48,6 +49,7 @@ namespace GS.Unity.UI {
 			_actionsSlide = root.Q("actions-slide");
 			_actionsToggleBtn = root.Q<Button>("actions-toggle-btn");
 			_loc = loc;
+			_tooltip = tooltip;
 			_resourcesView = new ResourcesView(root.Q("resources-container"), loc, resourceConfig, tooltip);
 			_charactersView = new CharactersView(root.Q("characters-container"), loc, characterConfig, tooltip, characterVisualConfig);
 
@@ -115,6 +117,7 @@ namespace GS.Unity.UI {
 			RefreshInfluence(influence);
 			_resourcesView.Refresh(resources);
 			_charactersView.Refresh(characters);
+			if (!_charsOpen && _charsSlide != null) { SetPickingModeRecursive(_charsSlide, PickingMode.Ignore); }
 			if (countryActions != null) {
 				_actionsView?.Refresh(countryActions, playerResources ?? resources);
 			}
@@ -134,10 +137,11 @@ namespace GS.Unity.UI {
 			if (_charsSlide != null) {
 				if (open) {
 					_charsSlide.AddToClassList("characters-slide--open");
-					_charsSlide.pickingMode = PickingMode.Position;
+					SetPickingModeRecursive(_charsSlide, PickingMode.Position);
 				} else {
 					_charsSlide.RemoveFromClassList("characters-slide--open");
-					_charsSlide.pickingMode = PickingMode.Ignore;
+					SetPickingModeRecursive(_charsSlide, PickingMode.Ignore);
+					_tooltip?.HideAll();
 				}
 			}
 			if (_charsToggleBtn != null) {
@@ -260,6 +264,13 @@ namespace GS.Unity.UI {
 			root.Add(incomeRow);
 
 			return root;
+		}
+
+		static void SetPickingModeRecursive(VisualElement el, PickingMode mode) {
+			el.pickingMode = mode;
+			foreach (var child in el.Children()) {
+				SetPickingModeRecursive(child, mode);
+			}
 		}
 	}
 }

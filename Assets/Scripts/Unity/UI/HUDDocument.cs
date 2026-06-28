@@ -458,6 +458,9 @@ namespace GS.Unity.UI {
 			if (lensSwitcherEl != null) {
 				lensSwitcherEl.style.display = anyOpen ? DisplayStyle.None : DisplayStyle.Flex;
 			}
+			if (!anyOpen) {
+				_tooltip?.HideAll();
+			}
 		}
 
 		void HandleInfluenceTickChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {

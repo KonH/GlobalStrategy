@@ -15,6 +15,12 @@ namespace GS.Unity.UI {
 	}
 
 	class TooltipSystem {
+		public void HideAll() {
+			while (_stack.Count > 0) {
+				CloseTop();
+			}
+		}
+
 		const float AutoPinSeconds = 2f;
 		const long HideDelayMs = 80;
 		readonly VisualElement _hudRoot;

@@ -74,6 +74,8 @@ namespace GS.Unity.UI {
 				});
 			}
 
+			if (_charsSlide != null) { _charsSlide.pickingMode = PickingMode.Ignore; }
+			if (_actionsSlide != null) { _actionsSlide.pickingMode = PickingMode.Ignore; }
 			_document.rootVisualElement.style.display = DisplayStyle.None;
 		}
 
@@ -148,7 +150,9 @@ namespace GS.Unity.UI {
 			}
 			_resourcesView?.Refresh(_state.PlayerOrganization.Resources);
 			_charactersView?.Refresh(_state.PlayerOrganization.Characters);
+			if (!_charsOpen && _charsSlide != null) { SetPickingModeRecursive(_charsSlide, PickingMode.Ignore); }
 			_actionsView?.Refresh(_state.PlayerOrganization.Actions, _state.PlayerOrganization.Resources);
+			if (!_actionsOpen && _actionsSlide != null) { SetPickingModeRecursive(_actionsSlide, PickingMode.Ignore); }
 
 			bool hasChars = _state.PlayerOrganization.Characters.Slots.Count > 0;
 			if (_charsToggleBtn != null) {
@@ -171,8 +175,11 @@ namespace GS.Unity.UI {
 			if (_charsSlide != null) {
 				if (open) {
 					_charsSlide.AddToClassList("org-characters-slide--open");
+					SetPickingModeRecursive(_charsSlide, PickingMode.Position);
 				} else {
 					_charsSlide.RemoveFromClassList("org-characters-slide--open");
+					SetPickingModeRecursive(_charsSlide, PickingMode.Ignore);
+					_tooltip?.HideAll();
 				}
 			}
 			if (_charsToggleBtn != null) {
@@ -192,8 +199,11 @@ namespace GS.Unity.UI {
 			if (_actionsSlide != null) {
 				if (open) {
 					_actionsSlide.AddToClassList("org-actions-slide--open");
+					SetPickingModeRecursive(_actionsSlide, PickingMode.Position);
 				} else {
 					_actionsSlide.RemoveFromClassList("org-actions-slide--open");
+					SetPickingModeRecursive(_actionsSlide, PickingMode.Ignore);
+					_tooltip?.HideAll();
 				}
 			}
 			if (_actionsToggleBtn != null) {
@@ -201,6 +211,13 @@ namespace GS.Unity.UI {
 				if (lbl != null) { lbl.text = open ? "Actions ▼" : "Actions ▲"; }
 			}
 			OnSubPanelOpened?.Invoke(_charsOpen || _actionsOpen);
+		}
+
+		static void SetPickingModeRecursive(VisualElement el, PickingMode mode) {
+			el.pickingMode = mode;
+			foreach (var child in el.Children()) {
+				SetPickingModeRecursive(child, mode);
+			}
 		}
 
 		void OnActionCardClicked(string actionId, VisualElement cardElement) {
