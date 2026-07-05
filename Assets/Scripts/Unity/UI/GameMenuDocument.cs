@@ -108,7 +108,6 @@ namespace GS.Unity.UI {
 
 		void HandleSaveResultChanged(object sender, PropertyChangedEventArgs e) {
 			var result = _visualState.SaveResult;
-			Debug.Log($"[FlyText] GameMenuDocument.HandleSaveResultChanged: success={result.Success}, errorType={result.ErrorType}, flyTextIsNull={_flyText == null}");
 			if (result.Success) {
 				_flyText?.Notify("game_menu.save.confirmation");
 			} else {

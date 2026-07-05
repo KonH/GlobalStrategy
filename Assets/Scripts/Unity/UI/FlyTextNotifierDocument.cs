@@ -7,14 +7,13 @@ using VContainer;
 namespace GS.Unity.UI {
 	[RequireComponent(typeof(UIDocument))]
 	public class FlyTextNotifierDocument : MonoBehaviour, IFlyTextNotifier {
-		public const int TopMostSortingOrder = 1000;
-
-		const float EntranceDuration = 0.2f;
-		const float HoldDuration = 1.5f;
-		const float ExitDuration = 0.5f;
-		const float EntranceStartScale = 0.5f;
-		const float ExitEndScale = 0.8f;
-		const float ExitMoveDownPx = 40f;
+		[SerializeField] int _topMostSortingOrder = 1000;
+		[SerializeField] float _entranceDuration = 0.2f;
+		[SerializeField] float _holdDuration = 1.5f;
+		[SerializeField] float _exitDuration = 0.5f;
+		[SerializeField] float _entranceStartScale = 0.5f;
+		[SerializeField] float _exitEndScale = 0.8f;
+		[SerializeField] float _exitMoveDownPx = 40f;
 
 		enum Phase {
 			Idle,
@@ -35,25 +34,21 @@ namespace GS.Unity.UI {
 		[Inject]
 		void Construct(ILocalization loc) {
 			_loc = loc;
-			Debug.Log($"[FlyText] Construct: injected, locIsNull={_loc == null}");
 		}
 
 		void Awake() {
 			_doc = GetComponent<UIDocument>();
-			_doc.sortingOrder = TopMostSortingOrder;
-			Debug.Log($"[FlyText] Awake: sortingOrder set to {TopMostSortingOrder}");
+			_doc.sortingOrder = _topMostSortingOrder;
 		}
 
 		void Start() {
 			_root = _doc.rootVisualElement.Q<VisualElement>("fly-text-root");
 			_label = _root.Q<Label>("fly-text-label");
-			Debug.Log($"[FlyText] Start: doc={_doc?.name}, root={(_root != null ? "found" : "NULL")}, label={(_label != null ? "found" : "NULL")}");
 			if (_root == null) {
 				return;
 			}
 			_root.style.display = DisplayStyle.None;
 			SetPickingIgnoreRecursive(_root);
-			Debug.Log($"[FlyText] Start: panel={(_root.panel != null)}, worldBound={_root.worldBound}, resolvedDisplay={_root.resolvedStyle.display}, resolvedOpacity={_root.resolvedStyle.opacity}");
 		}
 
 		public void Notify(string localizationKey, params object[] args) {
@@ -77,40 +72,36 @@ namespace GS.Unity.UI {
 				case Phase.Idle:
 					if (_queue.Count > 0) {
 						StartEntrance(_queue.Dequeue());
-						Debug.Log($"[FlyText] Phase Idle->Entrance: display={_root.resolvedStyle.display}, opacity={_root.resolvedStyle.opacity}, worldBound={_root.worldBound}, layout={_root.layout}, panel={(_root.panel != null)}, labelText=\"{_label.text}\"");
 					}
 					break;
 				case Phase.Entrance: {
 					_elapsed += dt;
-					float t = Mathf.Clamp01(_elapsed / EntranceDuration);
-					float scale = Mathf.Lerp(EntranceStartScale, 1f, t);
+					float t = Mathf.Clamp01(_elapsed / _entranceDuration);
+					float scale = Mathf.Lerp(_entranceStartScale, 1f, t);
 					_root.style.scale = new Scale(new Vector3(scale, scale, 1f));
 					if (t >= 1f) {
 						_phase = Phase.Hold;
 						_elapsed = 0f;
-						Debug.Log($"[FlyText] Phase Entrance->Hold: display={_root.resolvedStyle.display}, opacity={_root.resolvedStyle.opacity}, worldBound={_root.worldBound}");
 					}
 					break;
 				}
 				case Phase.Hold:
 					_elapsed += dt;
-					if (_elapsed >= HoldDuration) {
+					if (_elapsed >= _holdDuration) {
 						_phase = Phase.Exit;
 						_elapsed = 0f;
-						Debug.Log("[FlyText] Phase Hold->Exit");
 					}
 					break;
 				case Phase.Exit: {
 					_elapsed += dt;
-					float et = Mathf.Clamp01(_elapsed / ExitDuration);
-					_root.style.translate = new Translate(0, Mathf.Lerp(0, ExitMoveDownPx, et), 0);
-					float exitScale = Mathf.Lerp(1f, ExitEndScale, et);
+					float et = Mathf.Clamp01(_elapsed / _exitDuration);
+					_root.style.translate = new Translate(0, Mathf.Lerp(0, _exitMoveDownPx, et), 0);
+					float exitScale = Mathf.Lerp(1f, _exitEndScale, et);
 					_root.style.scale = new Scale(new Vector3(exitScale, exitScale, 1f));
 					_root.style.opacity = Mathf.Lerp(1f, 0f, et);
 					if (et >= 1f) {
 						HideAndReset();
 						_phase = Phase.Idle;
-						Debug.Log("[FlyText] Phase Exit->Idle: hidden and reset");
 					}
 					break;
 				}
@@ -121,7 +112,7 @@ namespace GS.Unity.UI {
 			_label.text = text;
 			_root.style.opacity = 1f;
 			_root.style.translate = new Translate(0, 0, 0);
-			_root.style.scale = new Scale(new Vector3(EntranceStartScale, EntranceStartScale, 1f));
+			_root.style.scale = new Scale(new Vector3(_entranceStartScale, _entranceStartScale, 1f));
 			_root.style.display = DisplayStyle.Flex;
 			_phase = Phase.Entrance;
 			_elapsed = 0f;
