@@ -4,8 +4,8 @@ Capture feature intent and acceptance criteria before planning begins. Writes `D
 
 The spec index is shared with `Docs/Plans/`. To find the next index:
 1. Use `Glob` with pattern `Docs/Plans/*.md` to list plan files
-2. Use **Bash** (`ls Docs/Specs`) to list spec folders — do NOT use Glob with a trailing slash (`Docs/Specs/*/`), it silently returns nothing on Windows
-3. Extract the leading numeric prefix from each name/folder
+2. Use `Glob` with pattern `Docs/Specs/*/*.md` to list spec folders — do NOT use a trailing-slash pattern (`Docs/Specs/*/`) or a bare `Docs/Specs/*`, both silently return nothing on Windows; the nested `*/*.md` form matches files one level down and works
+3. Extract the leading numeric prefix from each folder segment in the returned paths
 4. Take the highest number found across both directories and add 1
 5. Zero-pad to two digits (e.g. `35`)
 
