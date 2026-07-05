@@ -14,6 +14,7 @@ namespace GS.Unity.UI {
 		VisualState _visualState;
 		SceneLoader _sceneLoader;
 		ILocalization _loc;
+		IFlyTextNotifier _flyText;
 		UIDocument _doc;
 		VisualElement _root;
 
@@ -23,11 +24,12 @@ namespace GS.Unity.UI {
 		Button _btnExit;
 
 		[Inject]
-		void Construct(IWriteOnlyCommandAccessor commands, VisualState visualState, SceneLoader sceneLoader, ILocalization loc) {
+		void Construct(IWriteOnlyCommandAccessor commands, VisualState visualState, SceneLoader sceneLoader, ILocalization loc, IFlyTextNotifier flyText) {
 			_commands = commands;
 			_visualState = visualState;
 			_sceneLoader = sceneLoader;
 			_loc = loc;
+			_flyText = flyText;
 		}
 
 		void Awake() {
@@ -37,12 +39,14 @@ namespace GS.Unity.UI {
 		void OnEnable() {
 			if (_visualState != null) {
 				_visualState.Locale.PropertyChanged += HandleLocaleChanged;
+				_visualState.SaveResult.PropertyChanged += HandleSaveResultChanged;
 			}
 		}
 
 		void OnDisable() {
 			if (_visualState != null) {
 				_visualState.Locale.PropertyChanged -= HandleLocaleChanged;
+				_visualState.SaveResult.PropertyChanged -= HandleSaveResultChanged;
 			}
 		}
 
@@ -53,9 +57,15 @@ namespace GS.Unity.UI {
 			_btnSave = _root.Q<Button>("btn-save");
 			_btnExit = _root.Q<Button>("btn-exit");
 
-			_btnResume.clicked += Hide;
-			_btnSave.clicked += OnSave;
-			_btnExit.clicked += () => _sceneLoader.LoadMainMenu();
+			_btnResume.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button == 0 && _btnResume.ContainsPoint(e.localPosition)) { Hide(); }
+			});
+			_btnSave.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button == 0 && _btnSave.ContainsPoint(e.localPosition)) { OnSave(); }
+			});
+			_btnExit.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button == 0 && _btnExit.ContainsPoint(e.localPosition)) { _sceneLoader.LoadMainMenu(); }
+			});
 
 			Hide();
 		}
@@ -88,11 +98,22 @@ namespace GS.Unity.UI {
 		}
 
 		void OnSave() {
+			Debug.Log("[FlyText] GameMenuDocument.OnSave: pushing SaveGameCommand");
 			_commands?.Push(new SaveGameCommand());
 		}
 
 		void HandleLocaleChanged(object sender, PropertyChangedEventArgs e) {
 			RefreshTexts();
+		}
+
+		void HandleSaveResultChanged(object sender, PropertyChangedEventArgs e) {
+			var result = _visualState.SaveResult;
+			Debug.Log($"[FlyText] GameMenuDocument.HandleSaveResultChanged: success={result.Success}, errorType={result.ErrorType}, flyTextIsNull={_flyText == null}");
+			if (result.Success) {
+				_flyText?.Notify("game_menu.save.confirmation");
+			} else {
+				_flyText?.Notify("game_menu.save.error", result.ErrorType);
+			}
 		}
 
 		void RefreshTexts() {

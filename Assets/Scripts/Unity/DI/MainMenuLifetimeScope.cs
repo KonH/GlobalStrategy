@@ -35,6 +35,7 @@ namespace GS.Unity.DI {
 
 			builder.RegisterComponentInHierarchy<LoadWindowDocument>();
 			builder.RegisterComponentInHierarchy<SettingsWindowDocument>();
+			builder.RegisterComponentInHierarchy<FlyTextNotifierDocument>().As<IFlyTextNotifier>();
 		}
 	}
 }

@@ -87,6 +87,7 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<SettingsWindowDocument>();
 			builder.RegisterComponentInHierarchy<OrgInfoDocument>();
 			builder.RegisterComponentInHierarchy<CardPlayAnimator>();
+			builder.RegisterComponentInHierarchy<FlyTextNotifierDocument>().As<IFlyTextNotifier>();
 		}
 
 		protected override void OnDestroy() {

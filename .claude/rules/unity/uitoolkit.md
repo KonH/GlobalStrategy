@@ -4,15 +4,18 @@ The project uses Unity UI Toolkit exclusively. Do not add Canvas, UGUI, or uGUI 
 
 ## Layer Model
 
-One `UIDocument` per z-layer — not one per panel. Each layer has its own `PanelSettings` asset:
+In practice, every UI surface in every scene (`GameHUD`, `GameMenuUI`, `SettingsWindowUI`, `MainMenuUI`, `LoadWindowUI`, `FlyTextUI`, etc.) shares a single `PanelSettings` asset:
 
 ```
-Assets/UI/HUD/          → HUDPanelSettings.asset  (sortOrder: 0)  — in-game HUD
-Assets/UI/Overlay/      → OverlayPanelSettings.asset (sortOrder: 1) — contextual panels
-Assets/UI/Modal/        → ModalPanelSettings.asset   (sortOrder: 2) — menus, popups
+Assets/UI/HUD/          → HUDPanelSettings.asset  — the only PanelSettings wired into any scene
+Assets/UI/Overlay/      → OverlayPanelSettings.asset — exists on disk but unused; not referenced by any scene
 ```
 
-Use `manage_ui create_panel_settings` to create PanelSettings assets.
+There is no `ModalPanelSettings.asset`. Layering between documents sharing `HUDPanelSettings.asset` is controlled entirely via `UIDocument.sortingOrder` — higher values draw on top. Most existing documents use `sortingOrder: 0`. `FlyTextNotifierDocument.TopMostSortingOrder` (`1000`) is the current ceiling value, self-enforced in `Awake()` so the fly-text layer always renders above everything else regardless of Inspector setup.
+
+If a future UI surface needs to render above fly text, pick an explicit constant higher than `1000` in code — don't rely on scene-authoring discretion.
+
+Use `manage_ui create_panel_settings` to create additional PanelSettings assets if a genuinely separate render target is ever needed.
 
 ## UXML Composition
 

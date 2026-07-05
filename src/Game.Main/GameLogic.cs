@@ -137,11 +137,22 @@ namespace GS.Main {
 			if (_context.Storage == null || _context.Serializer == null) {
 				return;
 			}
-			var snapshot = SaveSystem.BuildSnapshot(_world);
-			string fileName = isAutoSave ? $"autosave_{snapshot.Header.OrganizationId}" : snapshot.Header.SaveName;
-			_context.Storage.Write(
-				$"Saves/{fileName}.json",
-				_context.Serializer.Serialize(snapshot));
+			try {
+				var snapshot = SaveSystem.BuildSnapshot(_world);
+				string fileName = isAutoSave ? $"autosave_{snapshot.Header.OrganizationId}" : snapshot.Header.SaveName;
+				_context.Storage.Write(
+					$"Saves/{fileName}.json",
+					_context.Serializer.Serialize(snapshot));
+				if (!isAutoSave) {
+					_context.Logger?.LogInfo($"[FlyText] SaveGame succeeded, fileName={fileName}");
+					VisualState.SaveResult.Set(true, null);
+				}
+			} catch (Exception ex) {
+				_context.Logger?.LogError($"[FlyText] SaveGame threw: {ex}");
+				if (!isAutoSave) {
+					VisualState.SaveResult.Set(false, ex.GetType().Name);
+				}
+			}
 		}
 
 		void RefreshSingletonEntities() {
