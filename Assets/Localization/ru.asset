@@ -391,6 +391,10 @@ MonoBehaviour:
     Value: "\u0421\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C"
   - Key: game_menu.exit
     Value: "Выйти"
+  - Key: game_menu.save.confirmation
+    Value: "Игра сохранена."
+  - Key: game_menu.save.error
+    Value: "Ошибка при сохранении игры: {0}"
   - Key: resource.gold.name
     Value: "\u0417\u043E\u043B\u043E\u0442\u043E"
   - Key: resource.gold.description
