@@ -26,7 +26,7 @@ namespace GS.Main {
 			};
 
 			if (shouldSave) {
-				commands.Push(new SaveGameCommand());
+				commands.Push(new SaveGameCommand(IsAutoSave: true));
 			}
 		}
 

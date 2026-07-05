@@ -12,26 +12,30 @@ namespace GS.Unity.UI {
 		IWriteOnlyCommandAccessor _commands;
 		VisualState _visualState;
 		ILocalization _loc;
+		SaveFileManager _saveFileManager;
 		UIDocument _doc;
 		VisualElement _root;
 
 		Label _lblLanguage;
 		Label _lblAutoSave;
+		Label _lblData;
 		Button _btnLangEn;
 		Button _btnLangRu;
 		Button _btnSaveDaily;
 		Button _btnSaveMonthly;
 		Button _btnSaveYearly;
+		Button _btnDeleteSaves;
 		Button _btnBack;
 
 		string _currentLocale = "en";
 		AutoSaveInterval _currentInterval = AutoSaveInterval.Monthly;
 
 		[Inject]
-		void Construct(IWriteOnlyCommandAccessor commands, VisualState visualState, ILocalization loc) {
+		void Construct(IWriteOnlyCommandAccessor commands, VisualState visualState, ILocalization loc, SaveFileManager saveFileManager) {
 			_commands = commands;
 			_visualState = visualState;
 			_loc = loc;
+			_saveFileManager = saveFileManager;
 		}
 
 		void Awake() {
@@ -54,11 +58,13 @@ namespace GS.Unity.UI {
 			_root = _doc.rootVisualElement;
 			_lblLanguage = _root.Q<Label>("lbl-language");
 			_lblAutoSave = _root.Q<Label>("lbl-autosave");
+			_lblData = _root.Q<Label>("lbl-data");
 			_btnLangEn = _root.Q<Button>("btn-lang-en");
 			_btnLangRu = _root.Q<Button>("btn-lang-ru");
 			_btnSaveDaily = _root.Q<Button>("btn-save-daily");
 			_btnSaveMonthly = _root.Q<Button>("btn-save-monthly");
 			_btnSaveYearly = _root.Q<Button>("btn-save-yearly");
+			_btnDeleteSaves = _root.Q<Button>("btn-delete-saves");
 			_btnBack = _root.Q<Button>("btn-back");
 
 			_btnLangEn.clicked += () => SetLocale("en");
@@ -66,6 +72,7 @@ namespace GS.Unity.UI {
 			_btnSaveDaily.clicked += () => SetAutoSave(AutoSaveInterval.Daily);
 			_btnSaveMonthly.clicked += () => SetAutoSave(AutoSaveInterval.Monthly);
 			_btnSaveYearly.clicked += () => SetAutoSave(AutoSaveInterval.Yearly);
+			_btnDeleteSaves.clicked += DeleteAllSaves;
 			_btnBack.clicked += Hide;
 
 			Hide();
@@ -102,7 +109,13 @@ namespace GS.Unity.UI {
 			_btnSaveDaily.text = _loc.Get("settings.save_daily");
 			_btnSaveMonthly.text = _loc.Get("settings.save_monthly");
 			_btnSaveYearly.text = _loc.Get("settings.save_yearly");
+			_lblData.text = _loc.Get("settings.data");
+			_btnDeleteSaves.text = _loc.Get("settings.delete_saves");
 			_btnBack.text = _loc.Get("settings.back");
+		}
+
+		void DeleteAllSaves() {
+			_saveFileManager?.DeleteAllSaves();
 		}
 
 		void SetLocale(string locale) {

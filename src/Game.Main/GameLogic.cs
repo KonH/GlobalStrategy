@@ -85,8 +85,13 @@ namespace GS.Main {
 				AutoSaveSystem.Update(_world, _settingsEntity, _gameTimeEntity, _previousTime, _commandAccessor);
 			}
 
-			if (_commandAccessor.ReadSaveGameCommand().Count > 0) {
-				SaveGame();
+			var saveCommands = _commandAccessor.ReadSaveGameCommand();
+			if (saveCommands.Count > 0) {
+				bool isAutoSave = false;
+				foreach (var cmd in saveCommands.AsSpan()) {
+					isAutoSave = cmd.IsAutoSave;
+				}
+				SaveGame(isAutoSave);
 			}
 
 			foreach (var cmd in _commandAccessor.ReadDebugCycleCharacterCommand().AsSpan()) {
@@ -128,13 +133,14 @@ namespace GS.Main {
 			RefreshSingletonEntities();
 		}
 
-		void SaveGame() {
+		void SaveGame(bool isAutoSave) {
 			if (_context.Storage == null || _context.Serializer == null) {
 				return;
 			}
 			var snapshot = SaveSystem.BuildSnapshot(_world);
+			string fileName = isAutoSave ? $"autosave_{snapshot.Header.OrganizationId}" : snapshot.Header.SaveName;
 			_context.Storage.Write(
-				$"Saves/{snapshot.Header.SaveName}.json",
+				$"Saves/{fileName}.json",
 				_context.Serializer.Serialize(snapshot));
 		}
 

@@ -366,6 +366,10 @@ MonoBehaviour:
     Value: Monthly
   - Key: settings.save_yearly
     Value: Yearly
+  - Key: settings.data
+    Value: Data
+  - Key: settings.delete_saves
+    Value: Delete All Saves
   - Key: settings.back
     Value: Back
   - Key: game_menu.title
