@@ -13,6 +13,7 @@ Create a pull request for the current branch.
 3. Run in parallel:
    - Create the branch remotely if it isn't pushed yet (`git push -u origin <branch>`)
    - `gh pr create --title "..." --body "$(cat <<'EOF' ... EOF)"` using a heredoc so formatting survives
+4. After the PR is created, run `gh pr view --web` to open it in the default browser
 
 ## Rules
 
