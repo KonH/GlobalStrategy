@@ -10,6 +10,7 @@ namespace GS.Main {
 	public class SaveHeader {
 		public string SaveName { get; set; } = "";
 		public string OrganizationId { get; set; } = "";
+		public string SessionId { get; set; } = "";
 		public DateTime GameDate { get; set; }
 		public DateTime SavedAt { get; set; }
 	}

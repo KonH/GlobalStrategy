@@ -18,6 +18,7 @@ namespace GS.Main {
 		int _settingsEntity = -1;
 		int _orgEntity = -1;
 		int _proximityEntity = -1;
+		string _sessionId = Guid.NewGuid().ToString("N");
 		DateTime _previousTime;
 		ActionConfig _actionConfig = null!;
 		EffectConfig _effectConfig = null!;
@@ -130,6 +131,9 @@ namespace GS.Main {
 			string json = _context.Storage.Read($"Saves/{saveName}.json");
 			var snapshot = _context.Serializer.Deserialize(json);
 			LoadSystem.Apply(snapshot, _world);
+			if (!string.IsNullOrEmpty(snapshot.Header.SessionId)) {
+				_sessionId = snapshot.Header.SessionId;
+			}
 			RefreshSingletonEntities();
 		}
 
@@ -139,7 +143,8 @@ namespace GS.Main {
 			}
 			try {
 				var snapshot = SaveSystem.BuildSnapshot(_world);
-				string fileName = isAutoSave ? $"autosave_{snapshot.Header.OrganizationId}" : snapshot.Header.SaveName;
+				snapshot.Header.SessionId = _sessionId;
+				string fileName = isAutoSave ? $"autosave_{snapshot.Header.OrganizationId}_{_sessionId}" : snapshot.Header.SaveName;
 				_context.Storage.Write(
 					$"Saves/{fileName}.json",
 					_context.Serializer.Serialize(snapshot));
