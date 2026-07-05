@@ -47,6 +47,12 @@ namespace GS.Main {
 			_storage.Delete($"Saves/{saveName}.json");
 		}
 
+		public void DeleteAllSaves() {
+			foreach (var save in ListSaves()) {
+				DeleteSave(save.SaveName);
+			}
+		}
+
 		public SaveFileInfo? GetLastSave() {
 			var saves = ListSaves();
 			return saves.Count > 0 ? saves[0] : null;

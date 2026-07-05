@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/FlyText/FlyText.uss"/>
+    <ui:VisualElement name="fly-text-root" class="fly-text-root">
+        <ui:Label name="fly-text-label" text="" class="gs-content gs-header fly-text-label"/>
+    </ui:VisualElement>
+</ui:UXML>

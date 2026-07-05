@@ -270,6 +270,19 @@ namespace GS.Main {
 		}
 	}
 
+	public class SaveResultState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public bool Success { get; private set; }
+		public string? ErrorType { get; private set; }
+
+		public void Set(bool success, string? errorType) {
+			Success = success;
+			ErrorType = errorType;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class VisualState {
 		public SelectedCountryState SelectedCountry { get; } = new SelectedCountryState();
 		public TimeState Time { get; } = new TimeState();
@@ -280,5 +293,6 @@ namespace GS.Main {
 		public OrgMapState OrgMap { get; } = new OrgMapState();
 		public DiscoveredCountriesState DiscoveredCountries { get; } = new DiscoveredCountriesState();
 		public VisualEffectCollection LastFrameEffects { get; } = new VisualEffectCollection();
+		public SaveResultState SaveResult { get; } = new SaveResultState();
 	}
 }

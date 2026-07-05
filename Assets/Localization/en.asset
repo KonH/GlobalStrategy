@@ -366,6 +366,10 @@ MonoBehaviour:
     Value: Monthly
   - Key: settings.save_yearly
     Value: Yearly
+  - Key: settings.data
+    Value: Data
+  - Key: settings.delete_saves
+    Value: Delete All Saves
   - Key: settings.back
     Value: Back
   - Key: game_menu.title
@@ -376,6 +380,10 @@ MonoBehaviour:
     Value: Save
   - Key: game_menu.exit
     Value: Exit
+  - Key: game_menu.save.confirmation
+    Value: Game saved.
+  - Key: game_menu.save.error
+    Value: 'Error happens while saving game: {0}'
   - Key: resource.gold.name
     Value: Gold
   - Key: resource.gold.description

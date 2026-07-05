@@ -19,6 +19,12 @@
                     <ui:Button name="btn-save-yearly" text="Yearly" class="gs-btn gs-btn--small setting-button"/>
                 </ui:VisualElement>
             </ui:VisualElement>
+            <ui:VisualElement class="setting-row">
+                <ui:Label name="lbl-data" text="Data" class="gs-label setting-label"/>
+                <ui:VisualElement class="setting-buttons">
+                    <ui:Button name="btn-delete-saves" text="Delete All Saves" class="gs-btn gs-btn--small gs-btn--destructive setting-button"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
             <ui:Button name="btn-back" text="Back" class="gs-btn gs-btn--primary menu-button"/>
         </ui:VisualElement>
     </ui:VisualElement>
