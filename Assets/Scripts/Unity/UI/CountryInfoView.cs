@@ -146,7 +146,8 @@ namespace GS.Unity.UI {
 			}
 			if (_charsToggleBtn != null) {
 				var lbl = _charsToggleBtn.Q<Label>();
-				if (lbl != null) { lbl.text = open ? "Characters ▼" : "Characters ▲"; }
+				if (lbl != null) { lbl.text = _loc.Get("hud.org_characters"); }
+				SetToggleButtonPressed(_charsToggleBtn, open);
 			}
 			OnSubPanelOpened?.Invoke(open);
 		}
@@ -165,9 +166,15 @@ namespace GS.Unity.UI {
 			}
 			if (_actionsToggleBtn != null) {
 				var lbl = _actionsToggleBtn.Q<Label>();
-				if (lbl != null) { lbl.text = open ? "Actions ▼" : "Actions ▲"; }
+				if (lbl != null) { lbl.text = _loc.Get("hud.actions"); }
+				SetToggleButtonPressed(_actionsToggleBtn, open);
 			}
 			OnSubPanelOpened?.Invoke(open);
+		}
+
+		static void SetToggleButtonPressed(VisualElement btn, bool pressed) {
+			btn.EnableInClassList("gs-toggle-on", pressed);
+			btn.EnableInClassList("gs-toggle-off", !pressed);
 		}
 
 		public void RefreshUsedInfluence() {

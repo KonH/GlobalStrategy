@@ -12,6 +12,8 @@ Unity's bundled WebGL font (LiberationSans) only covers ASCII and basic Latin. A
 
 Replace with ASCII-safe alternatives, or bundle a Unicode font and apply it via `font-family` in USS / PanelSettings.
 
+**Do not use emoji or Unicode symbol glyphs (▲▼●■ etc.) in UI text at all, even outside WebGL.** For state indicators (expanded/collapsed, on/off), prefer a visual state on the control itself — e.g. toggle the `gs-toggle-on`/`gs-toggle-off` classes on the button for a pressed/unpressed look — over encoding state in the label text. If an icon is genuinely needed, generate a proper image asset (see `.claude/rules/image_generation.md` and `.claude/rules/flag_assets.md`) and reference it via `background-image` in USS, rather than relying on a font glyph.
+
 ## Shader stripping: use preloadedAssets, not Shader.Find fallbacks
 
 If `Shader.Find("X")` returns null in a WebGL build, the shader is being stripped. The correct fix is to add the shader's material to **Player Settings → Preloaded Assets**, not to silently fall back to a different shader (which changes rendering behaviour).

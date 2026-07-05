@@ -26,11 +26,11 @@
         <ui:VisualElement class="country-toggle-block">
             <ui:Button name="chars-toggle-btn" class="chars-toggle-btn gs-btn gs-btn--small">
                 <ui:VisualElement class="org-toggle-btn-icon org-toggle-btn-icon--characters" picking-mode="Ignore" />
-                <ui:Label text="Characters &#x25B2;" picking-mode="Ignore" />
+                <ui:Label text="Characters" picking-mode="Ignore" />
             </ui:Button>
             <ui:Button name="actions-toggle-btn" class="chars-toggle-btn gs-btn gs-btn--small">
                 <ui:VisualElement class="org-toggle-btn-icon org-toggle-btn-icon--actions" picking-mode="Ignore" />
-                <ui:Label text="Actions &#x25B2;" picking-mode="Ignore" />
+                <ui:Label text="Actions" picking-mode="Ignore" />
             </ui:Button>
         </ui:VisualElement>
     </ui:VisualElement>
