@@ -1,5 +1,12 @@
 Create a git commit for the staged changes.
 
+## Pre-commit step: branch selection
+
+Before committing, check the current branch:
+1. `git branch --show-current`
+2. If it is `main`: create and switch to a new branch via `git checkout -b feature/<short-kebab-description>`, where `<short-kebab-description>` is a meaningful slug derived from the change being committed (e.g. `feature/province-division-config`). Do this before staging/committing anything else.
+3. If it is anything other than `main` (i.e. already on a feature branch or other non-main branch): leave the branch as-is — do not create or switch branches.
+
 ## Pre-commit step: version bump
 
 Before creating the commit, increment `bundleVersion` in `ProjectSettings/ProjectSettings.asset` and stage the file.

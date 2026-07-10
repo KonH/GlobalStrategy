@@ -11,7 +11,7 @@ try:
 except Exception:
     print("NOT_RUNNING")
 ```
-Run: `& ".claude\run.ps1"`
+Run: `& "scripts\run.ps1"`
 Delete `.tmp/run.py`.
 
 If output is `RUNNING` → report "ComfyUI is already running at http://127.0.0.1:8188" and stop.
@@ -37,7 +37,7 @@ Use Glob to check whether `ComfyUI/run_nvidia_gpu.bat` exists.
    else:
        print("TIMEOUT")
    ```
-   Run: `& ".claude\run.ps1"`
+   Run: `& "scripts\run.ps1"`
    Delete `.tmp/run.py`.
 3. If `READY` → report "ComfyUI started and is ready."
 4. If `TIMEOUT` → report "ComfyUI was started but is not responding after 2 minutes. Check the console window for errors."

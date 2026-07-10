@@ -13,6 +13,10 @@ namespace GS.Game.Loader {
 			PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
 		};
 
+		static readonly JsonSerializerOptions _readOptions = new JsonSerializerOptions {
+			PropertyNameCaseInsensitive = true,
+		};
+
 		static readonly Dictionary<string, string> _colonialParents = new Dictionary<string, string> {
 			{ "Gold_Coast_GB",                "United_Kingdom_of_Great_Britain_and_Ireland" },
 			{ "Hong_Kong",                    "United_Kingdom_of_Great_Britain_and_Ireland" },
@@ -28,7 +32,7 @@ namespace GS.Game.Loader {
 
 		static void Main() {
 			var loaderConfig = JsonSerializer.Deserialize<LoaderConfig>(
-				File.ReadAllText("loader_config.json"))!;
+				File.ReadAllText("loader_config.json"), _readOptions)!;
 
 			Console.WriteLine($"Reading GeoJSON from: {loaderConfig.GeoJsonSourcePath}");
 			string rawJson = File.ReadAllText(loaderConfig.GeoJsonSourcePath);
@@ -37,6 +41,14 @@ namespace GS.Game.Loader {
 
 			string outputDir = loaderConfig.OutputPath;
 			Directory.CreateDirectory(outputDir);
+
+			string countryConfigPath = Path.Combine(outputDir, "country_config.json");
+			CountryConfig? existingCountryConfig = null;
+			if (File.Exists(countryConfigPath)) {
+				existingCountryConfig = JsonSerializer.Deserialize<CountryConfig>(
+					File.ReadAllText(countryConfigPath), _readOptions);
+			}
+			ApplyPreservedFields(countryConfig.Countries, existingCountryConfig);
 
 			File.WriteAllText(
 				Path.Combine(outputDir, "geojson_world.json"),
@@ -47,10 +59,51 @@ namespace GS.Game.Loader {
 				JsonSerializer.Serialize(mapEntries, _writeOptions));
 
 			File.WriteAllText(
-				Path.Combine(outputDir, "country_config.json"),
+				countryConfigPath,
 				JsonSerializer.Serialize(countryConfig, _writeOptions));
 
 			Console.WriteLine($"Wrote {mapEntries.Features.Count} features, {countryConfig.Countries.Count} countries to {outputDir}");
+
+			if (File.Exists(loaderConfig.ProvinceGeoJsonSourcePath)) {
+				Console.WriteLine($"Reading province GeoJSON from: {loaderConfig.ProvinceGeoJsonSourcePath}");
+				string provinceRawJson = File.ReadAllText(loaderConfig.ProvinceGeoJsonSourcePath);
+				var provinceDoc = JsonNode.Parse(provinceRawJson)!;
+
+				var (provinceConfig, geometry, validationErrors) = ProvinceProcessor.Process(provinceDoc, countryConfig);
+				if (validationErrors.Count > 0) {
+					throw new InvalidOperationException(
+						"Province cross-validation failed for countryId(s): " + string.Join(", ", validationErrors));
+				}
+
+				File.WriteAllText(
+					Path.Combine(outputDir, "province_config.json"),
+					JsonSerializer.Serialize(provinceConfig, _writeOptions));
+
+				File.WriteAllText(
+					Path.Combine(outputDir, "provinces_1880.json"),
+					geometry.ToJsonString(_writeOptions));
+
+				Console.WriteLine($"Wrote {provinceConfig.Provinces.Count} provinces to {outputDir}");
+			} else {
+				Console.WriteLine($"Province GeoJSON not found at {loaderConfig.ProvinceGeoJsonSourcePath}, skipping province stage.");
+			}
+		}
+
+		// Copies user/generator-set fields that ProcessGeoJson never sets (IsAvailable, InitialResources)
+		// from an existing country_config.json onto the freshly-rebuilt entries, so re-running the loader
+		// against the live Assets/Configs/country_config.json doesn't wipe them back to defaults.
+		internal static void ApplyPreservedFields(List<CountryEntry> rebuilt, CountryConfig? existing) {
+			if (existing == null) {
+				return;
+			}
+			foreach (var entry in rebuilt) {
+				var existingEntry = existing.FindByCountryId(entry.CountryId);
+				if (existingEntry == null) {
+					continue;
+				}
+				entry.IsAvailable = existingEntry.IsAvailable;
+				entry.InitialResources = existingEntry.InitialResources;
+			}
 		}
 
 		static (List<string> features, MapEntryConfig mapEntries, CountryConfig countryConfig, GeoJsonConfig geoJsonConfig)
@@ -186,5 +239,6 @@ namespace GS.Game.Loader {
 	class LoaderConfig {
 		public string GeoJsonSourcePath { get; set; } = "";
 		public string OutputPath { get; set; } = "";
+		public string ProvinceGeoJsonSourcePath { get; set; } = "";
 	}
 }

@@ -20,6 +20,8 @@
     <ProjectReference Include="../Game.Components/Game.Components.csproj" />
     <ProjectReference Include="../Game.Systems/Game.Systems.csproj" />
     <ProjectReference Include="../Game.Main/Game.Main.csproj" />
+    <ProjectReference Include="../Game.Configs/Game.Configs.csproj" />
+    <ProjectReference Include="../Game.Configs.Loader/Game.Configs.Loader.csproj" />
   </ItemGroup>
 
 </Project>

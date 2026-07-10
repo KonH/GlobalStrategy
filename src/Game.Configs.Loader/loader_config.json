@@ -1,4 +1,5 @@
 {
-  "geoJsonSourcePath": "../../../../Assets/Map/world_1880.json",
-  "outputPath": "../../../../Assets/StreamingAssets/Configs"
+  "geoJsonSourcePath": "../../Assets/Map/world_1880.json",
+  "outputPath": "../../Assets/Configs",
+  "provinceGeoJsonSourcePath": "../../.tmp/provinces_intermediate.geojson"
 }

@@ -2,7 +2,7 @@
 Flag and org image downloader for GlobalStrategy.
 
 Usage (run from project root):
-    .venv\Scripts\python.exe .claude\download_flags.py [--dry-run] [--force]
+    .venv\Scripts\python.exe scripts\download_flags.py [--dry-run] [--force]
 
 Options:
     --dry-run   Print what would be downloaded without saving anything

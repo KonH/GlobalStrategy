@@ -88,7 +88,7 @@ For each word that needs a **new** locale key (not already in en.asset):
 
 If all words already have existing keys, no locale changes are needed.
 
-Use the `.tmp/run.py` pattern (write → `& ".claude\run.ps1"` → `Remove-Item .tmp\run.py`) for any non-trivial JSON/YAML surgery. For a single new entry where the insertion point is clear, direct `Edit` is fine.
+Use the `.tmp/run.py` pattern (write → `& "scripts\run.ps1"` → `Remove-Item .tmp\run.py`) for any non-trivial JSON/YAML surgery. For a single new entry where the insertion point is clear, direct `Edit` is fine.
 
 ### 8. Confirm
 
