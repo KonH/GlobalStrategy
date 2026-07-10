@@ -8,7 +8,7 @@ namespace GS.Game.Configs {
 		public double MinCountryChance { get; set; }
 	}
 
-	public class InfluenceChangeEffectParams : ActionEffectDefinition {
+	public class ControlChangeEffectParams : ActionEffectDefinition {
 		public int Amount { get; set; }
 	}
 
@@ -32,7 +32,7 @@ namespace GS.Game.Configs {
 				ActionEffectDefinition item;
 				switch (effectType) {
 					case "DiscoverCountry": item = obj.ToObject<DiscoverCountryEffectParams>(serializer)!; break;
-					case "InfluenceChange": item = obj.ToObject<InfluenceChangeEffectParams>(serializer)!; break;
+					case "ControlChange": item = obj.ToObject<ControlChangeEffectParams>(serializer)!; break;
 					case "OpinionModifier": item = obj.ToObject<OpinionModifierEffectParams>(serializer)!; break;
 					default:                item = obj.ToObject<ActionEffectDefinition>(serializer)!;      break;
 				}

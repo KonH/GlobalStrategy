@@ -2,11 +2,11 @@
 
 ## Spec
 
-When a player plays a card, gold, influence, and character opinion values currently snap immediately to their new values. This feature introduces animation barriers that hold a displayed value at its pre-action level and then animate it smoothly to the actual game value over a configurable duration, making changes legible and responsive. Gold uses a smooth lerp (AnimatableDouble): the barrier is held for the full sequence duration (6 s), then on success released with a 0.5 s animation; on failure it is cancelled (snap to actual). Influence and opinion use integer step-counting (AnimatableInt) and animate over 1 s after the card fly completes; similarly held for 6 s and released or cancelled based on the roll result. Barriers survive SetActual calls from VisualStateConverter, and AnimationBarrierDriver (ITickable) ticks every Unity frame including while ECS is paused. PropertyChanged is fired by the animatable itself inside Tick — not by the driver. Multiple concurrent barriers on the same value are summed: Display = Actual + sum(barrier.Offset).
+When a player plays a card, gold, control, and character opinion values currently snap immediately to their new values. This feature introduces animation barriers that hold a displayed value at its pre-action level and then animate it smoothly to the actual game value over a configurable duration, making changes legible and responsive. Gold uses a smooth lerp (AnimatableDouble): the barrier is held for the full sequence duration (6 s), then on success released with a 0.5 s animation; on failure it is cancelled (snap to actual). Control and opinion use integer step-counting (AnimatableInt) and animate over 1 s after the card fly completes; similarly held for 6 s and released or cancelled based on the roll result. Barriers survive SetActual calls from VisualStateConverter, and AnimationBarrierDriver (ITickable) ticks every Unity frame including while ECS is paused. PropertyChanged is fired by the animatable itself inside Tick — not by the driver. Multiple concurrent barriers on the same value are summed: Display = Actual + sum(barrier.Offset).
 
 ## Goal
 
-Add smooth animated value transitions for gold, influence, and character opinion when a card is played.
+Add smooth animated value transitions for gold, control, and character opinion when a card is played.
 
 ## Approach
 
@@ -24,7 +24,7 @@ Two typed barrier classes (AnimationBarrierDouble, AnimationBarrierInt) live in 
 
 - [x] **Add animatable fields to VisualState** — In `src/Game.Main/VisualState.cs`, add three public properties to the `VisualState` class:
   - `AnimatableDouble PlayerGold { get; } = new AnimatableDouble();`
-  - `AnimatableInt SelectedCountryUsedInfluence { get; } = new AnimatableInt();` — tracks the total used influence across all orgs (`usedTotal`), matching what the `used/pool` label displays.
+  - `AnimatableInt SelectedCountryUsedControl { get; } = new AnimatableInt();` — tracks the total used control across all orgs (`usedTotal`), matching what the `used/pool` label displays.
   - `Dictionary<string, AnimatableInt> CharacterOpinions { get; } = new Dictionary<string, AnimatableInt>();`
   These are not sub-state classes; they are the animated value wrappers the driver and views read directly.
 
@@ -39,10 +39,10 @@ Two typed barrier classes (AnimationBarrierDouble, AnimationBarrierInt) live in 
 
 - [x] **Wire SetActual in VisualStateConverter** — In `src/Game.Main/VisualStateConverter.cs`:
   - In `UpdateResources()`: after building the player resource list, find the entry with `ResourceId == "gold"` and call `_state.PlayerGold.SetActual(goldEntry.Value)`.
-  - In `UpdateSelectedInfluence()`: after computing `usedTotal`, call `_state.SelectedCountryUsedInfluence.SetActual(usedTotal)` — before the `_state.SelectedInfluence.Set(...)` call.
+  - In `UpdateSelectedControl()`: after computing `usedTotal`, call `_state.SelectedCountryUsedControl.SetActual(usedTotal)` — before the `_state.SelectedControl.Set(...)` call.
   - In `UpdateCharacters()`: after building `entries`, for each `CharacterStateEntry` call `_state.CharacterOpinions.GetOrCreate(charId).SetActual(entry.Opinion)`. After the loop, remove any keys from `_state.CharacterOpinions` that are no longer in the new entries list to avoid stale animatables.
 
-- [x] **Create AnimationBarrierDriver** — Add `Assets/Scripts/Unity/UI/AnimationBarrierDriver.cs`. Implements `ITickable` (VContainer.Unity). Injected with `VisualState _state`. `Tick()` reads `Time.deltaTime` and calls `animatable.Tick(deltaTime)` on `_state.PlayerGold`, `_state.SelectedCountryUsedInfluence`, and each value in `_state.CharacterOpinions`. Each animatable's `Tick(dt)` internally advances all active barriers and fires `PropertyChanged` itself if `Display` changed — the driver does not fire `PropertyChanged` directly. Completed barriers are removed inside the animatable's `Tick`. Driver must be registered in GameLifetimeScope.
+- [x] **Create AnimationBarrierDriver** — Add `Assets/Scripts/Unity/UI/AnimationBarrierDriver.cs`. Implements `ITickable` (VContainer.Unity). Injected with `VisualState _state`. `Tick()` reads `Time.deltaTime` and calls `animatable.Tick(deltaTime)` on `_state.PlayerGold`, `_state.SelectedCountryUsedControl`, and each value in `_state.CharacterOpinions`. Each animatable's `Tick(dt)` internally advances all active barriers and fires `PropertyChanged` itself if `Display` changed — the driver does not fire `PropertyChanged` directly. Completed barriers are removed inside the animatable's `Tick`. Driver must be registered in GameLifetimeScope.
 
 - [x] **Register AnimationBarrierDriver in GameLifetimeScope** — In `Assets/Scripts/Unity/DI/GameLifetimeScope.cs`, add `builder.RegisterEntryPoint<AnimationBarrierDriver>();` alongside the other entry points.
 
@@ -50,7 +50,7 @@ Two typed barrier classes (AnimationBarrierDouble, AnimationBarrierInt) live in 
 
 - [x] **Update CharactersView to use AnimatableInt for opinion display** — In `Assets/Scripts/Unity/UI/CharactersView.cs`, store `Dictionary<string, AnimatableInt>? _characterOpinions` as a constructor field (passed from the caller at construction time). `Refresh(CountryCharactersState state)` signature is unchanged; when building `opinionText`, look up by `entry.CharacterId` and use `.Display` if found, otherwise fall back to `entry.Opinion`. `CountryInfoView` constructs `CharactersView` — update to receive and forward `_state.CharacterOpinions`. `HUDDocument` passes `_state.CharacterOpinions` once at construction.
 
-- [x] **Subscribe HUDDocument to animated influence separately** — In `HUDDocument.OnEnable`, add a subscription to `_state.SelectedCountryUsedInfluence.PropertyChanged` that calls a targeted `RefreshInfluenceDisplay()` helper — no `IsPlaying` guard on this path, since these per-frame ticks ARE the animation. `RefreshInfluenceDisplay()` updates only the influence label in `CountryInfoView` using `_state.SelectedCountryUsedInfluence.Display` for the `used` value. The existing `HandleInfluenceChanged` (subscribed to `_state.SelectedInfluence.PropertyChanged`) retains its `IsPlaying` guard for full `CountryInfoView` rebuilds.
+- [x] **Subscribe HUDDocument to animated control separately** — In `HUDDocument.OnEnable`, add a subscription to `_state.SelectedCountryUsedControl.PropertyChanged` that calls a targeted `RefreshControlDisplay()` helper — no `IsPlaying` guard on this path, since these per-frame ticks ARE the animation. `RefreshControlDisplay()` updates only the control label in `CountryInfoView` using `_state.SelectedCountryUsedControl.Display` for the `used` value. The existing `HandleControlChanged` (subscribed to `_state.SelectedControl.PropertyChanged`) retains its `IsPlaying` guard for full `CountryInfoView` rebuilds.
 
 - [x] **Wire barriers in CardPlayAnimator — gold** — In `Assets/Scripts/Unity/UI/CardPlayAnimator.cs` (no new injection needed — `AnimationBarrierDriver` is a passive `ITickable` and `CardPlayAnimator` operates directly on `_state.PlayerGold`):
   - In `PlaySequence` (org action): before pushing commands, read the gold cost from `_actionConfig.Find(actionId)`. Call `var goldBarrier = _state.PlayerGold.Hold(-goldCost, 6.0f)` — use a duration of 6 s (longer than the full sequence) so the barrier is still live when the roll result is known.
@@ -59,10 +59,10 @@ Two typed barrier classes (AnimationBarrierDouble, AnimationBarrierInt) live in 
   - `await goldDone` (or confirm it is already complete) before clearing `_isPlaying`.
   - Add `Cancel(AnimationBarrierDouble barrier)` to `AnimatableDouble` and `CancelAll()` as a convenience — both zero the offset and remove the barrier.
 
-- [x] **Wire barriers in CardPlayAnimator — influence and opinion (country action)** — In `PlayCountrySequence`:
-  - Before pushing `PlayCountryActionCommand`, capture the influence cost from the matching `CountryActionCardEntry` (`InfluenceBase + InfluenceBonus`). Call `var infBarrier = _state.SelectedCountryUsedInfluence.Hold(influenceCost, 6.0f)` (positive offset — spending increases used-influence). If the action has an opinion effect and `targetCharId` is known, call `var opinBarrier = _state.CharacterOpinions.GetOrCreate(targetCharId).Hold(-expectedOpinionChange, 6.0f)`.
+- [x] **Wire barriers in CardPlayAnimator — control and opinion (country action)** — In `PlayCountrySequence`:
+  - Before pushing `PlayCountryActionCommand`, capture the control cost from the matching `CountryActionCardEntry` (`ControlBase + ControlBonus`). Call `var infBarrier = _state.SelectedCountryUsedControl.Hold(controlCost, 6.0f)` (positive offset — spending increases used-control). If the action has an opinion effect and `targetCharId` is known, call `var opinBarrier = _state.CharacterOpinions.GetOrCreate(targetCharId).Hold(-expectedOpinionChange, 6.0f)`.
   - After the card-to-deck fly and on `success == true`: release both — `var infDone = infBarrier.Release(1.0f)` and `var opinDone = opinBarrier?.Release(1.0f) ?? UniTask.CompletedTask`. Await both.
-  - On failed roll (`success == false`): call `_state.SelectedCountryUsedInfluence.Cancel(infBarrier)` and `_state.CharacterOpinions.GetOrCreate(targetCharId).Cancel(opinBarrier)` to snap immediately.
+  - On failed roll (`success == false`): call `_state.SelectedCountryUsedControl.Cancel(infBarrier)` and `_state.CharacterOpinions.GetOrCreate(targetCharId).Cancel(opinBarrier)` to snap immediately.
   - Keep `_isPlaying = false` only after `UniTask.WhenAll(goldDone, infDone, opinDone)` completes.
 
 - [x] **Update GS.Unity.UI.asmdef if needed** — Check `Assets/Scripts/Unity/UI/GS.Unity.UI.asmdef` references. AnimationBarrierDriver uses `Time.deltaTime` (UnityEngine) and ITickable (VContainer). VContainer GUID `b0214a6008ed146ff8f122a6a9c2f6cc` is already referenced per project rules; confirm and add if absent. No new asmdef needed.
@@ -79,7 +79,7 @@ VContainer registers it as an entry point automatically — no scene wiring need
 
 ### 3. Manual smoke test
 
-Play a country action card while watching the gold, influence, and opinion displays. Gold should hold at its pre-spend value and slide to the new value over ~0.5 s. Influence and opinion should start animating after the card-to-deck fly. On a failed roll verify the displayed values snap back immediately.
+Play a country action card while watching the gold, control, and opinion displays. Gold should hold at its pre-spend value and slide to the new value over ~0.5 s. Control and opinion should start animating after the card-to-deck fly. On a failed roll verify the displayed values snap back immediately.
 
 ## Tests
 

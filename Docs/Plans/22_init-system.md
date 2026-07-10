@@ -62,7 +62,7 @@ Move the following entity-creation logic from `GameLogic` constructor into `Run`
 - **GameTime entity**: `_gameTimeEntity = world.Create(); world.Add(...)` 
 - **Locale entity**: `_localeEntity = world.Create(); world.Add(...)`
 - **AppSettings entity**: `_settingsEntity = world.Create(); world.Add(...)`
-- **Organization entity + gold entity + influence entity**: the `if (orgEntry != null)` block
+- **Organization entity + gold entity + control entity**: the `if (orgEntry != null)` block
 
 `InitSystem` does not return entity IDs — the caller refreshes them via `RefreshSingletonEntities()` after the system runs (see Step 4).
 

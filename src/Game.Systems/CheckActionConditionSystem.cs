@@ -34,8 +34,8 @@ namespace GS.Game.Systems {
 				var def = config.Find(actionId);
 				if (def == null) { continue; }
 
-				int orgInfluence = GetOrgInfluence(world, orgId, countryId);
-				var ctx = new ExpressionContext { Influence = orgInfluence };
+				int orgControl = GetOrgControl(world, orgId, countryId);
+				var ctx = new ExpressionContext { Control = orgControl };
 
 				bool conditionsMet = true;
 				foreach (var cond in def.Conditions) {
@@ -53,12 +53,12 @@ namespace GS.Game.Systems {
 			}
 		}
 
-		static int GetOrgInfluence(World world, string orgId, string countryId) {
+		static int GetOrgControl(World world, string orgId, string countryId) {
 			if (string.IsNullOrEmpty(countryId)) { return 0; }
 			int total = 0;
-			int[] req = { TypeId<InfluenceEffect>.Value };
+			int[] req = { TypeId<ControlEffect>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (effects[i].OrgId == orgId && effects[i].CountryId == countryId) {

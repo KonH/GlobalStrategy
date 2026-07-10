@@ -8,7 +8,7 @@
                 <ui:Label name="country-name-label" text="" class="gs-header country-name"/>
             </ui:VisualElement>
             <ui:Label name="gold-label" text="" class="gs-label select-org-label gold-label"/>
-            <ui:Label name="influence-label" text="" class="gs-label select-org-label"/>
+            <ui:Label name="control-label" text="" class="gs-label select-org-label"/>
             <ui:Label name="estimated-income-label" text="" class="gs-label select-org-label"/>
             <ui:Label text="Click a country on the map to select it" name="hint-label" class="gs-hint hint-label"/>
             <ui:Button name="btn-start" text="Start Game" class="gs-btn gs-btn--primary menu-button"/>

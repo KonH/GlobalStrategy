@@ -129,7 +129,7 @@ Portrait prompts target oil-painting style circa 1880.
 - **Sulayman Pasha al-Faransawi** (Joseph Sève, 1788–1860) — French officer who modernised the Egyptian army
   - *Portrait prompt: Oil painting of a wiry French-Egyptian general in his 60s, hybrid European-Ottoman uniform, Legion d'Honneur alongside Ottoman medals, weathered but sharp expression, Nile delta background*
 - **Ratib Pasha** (c. 1840–1900) — Egyptian military commander during the 1882 campaign
-  - *Portrait prompt: Oil painting of an Egyptian staff officer in his 40s, formal Ottoman-influenced uniform, elaborate fez tassels, tactical maps spread on a campaign desk, Alexandria harbour background*
+  - *Portrait prompt: Oil painting of an Egyptian staff officer in his 40s, formal Ottoman-controld uniform, elaborate fez tassels, tactical maps spread on a campaign desk, Alexandria harbour background*
 
 ### Baron
 - **Nubar Pasha** (1825–1899) — Armenian-Egyptian diplomat and prime minister, master negotiator
@@ -309,7 +309,7 @@ Portrait prompts target oil-painting style circa 1880.
 - **Raffaele Cadorna** (1815–1897) — General who entered Rome in 1870, completing Italian unification
   - *Portrait prompt: Oil painting of a grave Italian general in his 60s, formal army dress uniform, mutton-chop whiskers, breached Porta Pia gate depicted in painting on the wall behind him*
 - **Alfonso Ferrero La Marmora** (1804–1878) — Prime minister, general and founder of the Bersaglieri corps
-  - *Portrait prompt: Oil painting of a disciplined Piedmontese field marshal in his 70s, dark Bersaglieri-influenced uniform, rigid military bearing, Crimea campaign map framed on wall*
+  - *Portrait prompt: Oil painting of a disciplined Piedmontese field marshal in his 70s, dark Bersaglieri-controld uniform, rigid military bearing, Crimea campaign map framed on wall*
 
 ### Baron
 - **Alessandro Rossi** (1819–1898) — Wool textile industrialist and senator, paternalistic factory-owner
@@ -397,7 +397,7 @@ Portrait prompts target oil-painting style circa 1880.
 - **Zhang Zhidong** (1837–1909) — "Self-Strengthening" reformer, industrialist and political thinker
   - *Portrait prompt: Oil painting of an intense Chinese reformer-official in his 40s, scholars' robes, inkbrush in hand, Western technical manuals beside classical texts, Wuhan blast furnace glow through window*
 - **Robert Hart** (1835–1911) — British Inspector-General of the Imperial Maritime Customs, grey eminence
-  - *Portrait prompt: Oil painting of a quietly powerful Irish-British official in his 50s, Chinese customs service uniform with Qing insignia, bland mild expression concealing enormous influence, customs ledgers on an orderly Shanghai desk*
+  - *Portrait prompt: Oil painting of a quietly powerful Irish-British official in his 50s, Chinese customs service uniform with Qing insignia, bland mild expression concealing enormous control, customs ledgers on an orderly Shanghai desk*
 
 ---
 
@@ -432,7 +432,7 @@ Portrait prompts target oil-painting style circa 1880.
   - *Portrait prompt: Oil painting of an elderly Dutch constitutional lawyer in his 70s, sober black academic gown, spectacles on forehead, original 1848 constitution draft in his hands, plain bourgeois study*
 - **Abraham Kuyper** (1837–1920) — Neo-Calvinist political organiser, journalist, founder of Anti-Revolutionary Party
   - *Portrait prompt: Oil painting of an intense Dutch Calvinist agitator in his 40s, dark ministerial coat, fire in his eyes, a pamphlet mid-composition on his cluttered Amsterdam newspaper office desk*
-- **Conrad van Deventer** (1857–1915) — Ethical Policy advocate, colonial reformer and quiet influence
+- **Conrad van Deventer** (1857–1915) — Ethical Policy advocate, colonial reformer and quiet control
   - *Portrait prompt: Oil painting of a principled Dutch colonial jurist in his 30s, plain suit, idealistic expression, Java legal files and hand-drawn irrigation project plans on his Batavia desk*
 
 ---
@@ -445,7 +445,7 @@ Portrait prompts target oil-painting style circa 1880.
 - **Sultan Abdulaziz** (1830–1876) — Reforming but erratic sultan, deposed and died mysteriously
   - *Portrait prompt: Oil painting of a heavyset Ottoman sultan in his 40s, ornate military frock coat with Ottoman orders, full dark beard, alternating moods of ambition and insecurity, Dolmabahçe Palace throne room*
 - **Sultan Murad V** (1840–1904) — Briefly sultan for 93 days, liberal reformer imprisoned for 28 years
-  - *Portrait prompt: Oil painting of a melancholy Ottoman prince in his 30s, European-influenced uniform, sensitive artistic face, playing cards and a half-drunk glass of wine hinting at the illness that ended his reign*
+  - *Portrait prompt: Oil painting of a melancholy Ottoman prince in his 30s, European-controld uniform, sensitive artistic face, playing cards and a half-drunk glass of wine hinting at the illness that ended his reign*
 
 ### General
 - **Gazi Osman Pasha** (1837–1900) — Heroic defender of Plevna against Russia 1877

@@ -392,17 +392,17 @@ MonoBehaviour:
     Value: Base Income
   - Key: effect.base_income.description
     Value: Monthly income from taxes and trade. Applied at the end of each month.
-  - Key: hud.country_influence
-    Value: Influence
-  - Key: hud.influence_tooltip_title
-    Value: Country Influence
-  - Key: hud.influence_tooltip_base
+  - Key: hud.country_control
+    Value: Control
+  - Key: hud.control_tooltip_title
+    Value: Country Control
+  - Key: hud.control_tooltip_base
     Value: "Base:"
-  - Key: hud.influence_tooltip_permanent
+  - Key: hud.control_tooltip_permanent
     Value: "Permanent effect:"
-  - Key: hud.influence_tooltip_leads_to
+  - Key: hud.control_tooltip_leads_to
     Value: "Leads to:"
-  - Key: hud.influence_tooltip_income
+  - Key: hud.control_tooltip_income
     Value: Income
   - Key: hud.lens.political
     Value: Political
@@ -410,8 +410,8 @@ MonoBehaviour:
     Value: Geographic
   - Key: hud.lens.org
     Value: Organizations
-  - Key: select_org.base_influence
-    Value: "Base Influence:"
+  - Key: select_org.base_control
+    Value: "Base Control:"
   - Key: select_org.estimated_income
     Value: "Estimated Income:"
   - Key: character.role.ruler.name
@@ -1575,8 +1575,8 @@ MonoBehaviour:
   - Key: action.royal_audience.desc
     Value: A private audience with the sovereign. The right words may forge a lasting alliance.
   - Key: action.country.unplayable.pool_full
-    Value: No influence pool space remaining
-  - Key: action.country.unplayable.insufficient_influence
-    Value: Requires {0} influence
+    Value: No control pool space remaining
+  - Key: action.country.unplayable.insufficient_control
+    Value: Requires {0} control
   - Key: hud.actions
     Value: Actions

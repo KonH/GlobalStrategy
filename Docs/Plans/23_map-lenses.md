@@ -1,8 +1,8 @@
 # Goal
-Add a Map Lenses feature that lets the player switch between three visual overlays on the map — Geographic (bare map, no highlights), Political (default country colours from `CountryVisualConfig`), and Org (countries tinted by the player's org influence level). A collapsible icon-button switcher sits in the bottom-left corner of the HUD, above the country-info panel. The design must be extensible so future lenses can be added with minimal friction.
+Add a Map Lenses feature that lets the player switch between three visual overlays on the map — Geographic (bare map, no highlights), Political (default country colours from `CountryVisualConfig`), and Org (countries tinted by the player's org control level). A collapsible icon-button switcher sits in the bottom-left corner of the HUD, above the country-info panel. The design must be extensible so future lenses can be added with minimal friction.
 
 # Approach
-A new `MapLens` enum and `MapLensState : INotifyPropertyChanged` are added to `src/Game.Main/VisualState.cs` and wired into `VisualState`. A `ChangeLensCommand` in `src/Game.Commands/` is queued from the UI, processed in `GameLogic.Update`, and reflected back through `VisualStateConverter`. On the Unity side, `MapLensApplier` (a new `ITickable`) reads `VisualState.MapLens` each frame and recolours the active `MapRenderer`'s feature objects according to the active lens; the Political lens delegates to `CountryVisualConfig` as before, the Geographic lens clears all tints to a neutral grey, and the Org lens colours countries by the player's influence share (dark-to-bright gradient). `LensSwitcherView` (plain C#) manages the collapse/expand toggle in UXML, and `HUDDocument` wires it up with injection.
+A new `MapLens` enum and `MapLensState : INotifyPropertyChanged` are added to `src/Game.Main/VisualState.cs` and wired into `VisualState`. A `ChangeLensCommand` in `src/Game.Commands/` is queued from the UI, processed in `GameLogic.Update`, and reflected back through `VisualStateConverter`. On the Unity side, `MapLensApplier` (a new `ITickable`) reads `VisualState.MapLens` each frame and recolours the active `MapRenderer`'s feature objects according to the active lens; the Political lens delegates to `CountryVisualConfig` as before, the Geographic lens clears all tints to a neutral grey, and the Org lens colours countries by the player's control share (dark-to-bright gradient). `LensSwitcherView` (plain C#) manages the collapse/expand toggle in UXML, and `HUDDocument` wires it up with injection.
 
 # Steps
 
@@ -32,13 +32,13 @@ A new `MapLens` enum and `MapLensState : INotifyPropertyChanged` are added to `s
    - In the handler: `var renderer = _mapController.ActiveRenderer; if (renderer == null) return;` — then iterate `renderer.FeatureObjects` and recolour via each feature's cached `MeshRenderer` material (access the `Material` via `meshRenderer.sharedMaterial` or the reference cached at render time — do **not** use `.material` which creates a new instance per call):
      - **Political**: look up `CountryVisualConfig.Find(go.name)`, use its colour at alpha 0.5; fall back to grey.
      - **Geographic**: set all features to `new Color(0.5f, 0.5f, 0.5f, 0.5f)` (uniform grey, no highlights).
-     - **Org**: use `OrgMapState.Entries` (see step 7) to tint countries from a dark neutral to a saturated org colour based on influence ratio.
+     - **Org**: use `OrgMapState.Entries` (see step 7) to tint countries from a dark neutral to a saturated org colour based on control ratio.
 
 7. **Domain — per-country org colour data for Org lens (`src/Game.Main/VisualState.cs`)**
-   - Add `OrgCountryEntry` with `CountryId` and `InfluenceRatio` (0–1 float).
+   - Add `OrgCountryEntry` with `CountryId` and `ControlRatio` (0–1 float).
    - Add `OrgMapState : INotifyPropertyChanged` with `IReadOnlyList<OrgCountryEntry> Entries` and a `Set(List<OrgCountryEntry>)` method.
    - Add `public OrgMapState OrgMap { get; } = new OrgMapState();` to `VisualState`.
-   - Populate in `VisualStateConverter`: iterate countries and compute `playerInfluence / PoolSize` for the player org.
+   - Populate in `VisualStateConverter`: iterate countries and compute `playerControl / PoolSize` for the player org.
    - Rebuild DLLs again after this step.
 
 8. **SVG icons — three lens icons**
@@ -101,7 +101,7 @@ A new `MapLens` enum and `MapLensState : INotifyPropertyChanged` are added to `s
     - Re-assign colours to countries in the config after picking the palette.
 
 18. **Smoke-test**
-    - Enter Play Mode; verify Political lens shows coloured countries, Geographic shows uniform grey, Org tints countries by influence.
+    - Enter Play Mode; verify Political lens shows coloured countries, Geographic shows uniform grey, Org tints countries by control.
     - Verify switcher collapses after selecting a lens and the active-lens button is highlighted.
     - Verify tooltips appear on hover.
     - Verify new country colours are visually distinct on the map.

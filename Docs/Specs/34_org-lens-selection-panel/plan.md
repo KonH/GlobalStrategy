@@ -4,7 +4,7 @@
 
 ### Feature Intent
 
-As a player in Organization lens mode, I want the bottom selection panel to show the dominant organization in the country I click, so that I can quickly understand who controls each territory without switching lens or hunting through the influence list.
+As a player in Organization lens mode, I want the bottom selection panel to show the dominant organization in the country I click, so that I can quickly understand who controls each territory without switching lens or hunting through the control list.
 
 ### Acceptance Criteria
 
@@ -35,7 +35,7 @@ Add a new `OrgLensCountryView` that replaces `CountryInfoView` in the bottom sel
 
 ## Approach
 
-Create a `OrgLensCountryView` plain C# class backed by a new UXML template (`OrgLensCountryInfo.uxml`) and USS file (`OrgLensCountryInfo.uss`). Register the template in `HUD.uxml` as a sibling of the existing `country-info` instance, naming it `org-lens-country-info`. In `HUDDocument`, instantiate `OrgLensCountryView` from the new root element, subscribe `OrgMapState.PropertyChanged` alongside the existing lens and country subscriptions, and extend `RefreshCountryViews()` to toggle visibility between the two views based on the current lens. Dominant-org name resolution follows the spec data flow: look up `SelectedCountry.CountryId` in `OrgMapState.Entries` to get `TopOrgId`, then match that against `SelectedInfluence.OrgEntries` to find the `DisplayName`.
+Create a `OrgLensCountryView` plain C# class backed by a new UXML template (`OrgLensCountryInfo.uxml`) and USS file (`OrgLensCountryInfo.uss`). Register the template in `HUD.uxml` as a sibling of the existing `country-info` instance, naming it `org-lens-country-info`. In `HUDDocument`, instantiate `OrgLensCountryView` from the new root element, subscribe `OrgMapState.PropertyChanged` alongside the existing lens and country subscriptions, and extend `RefreshCountryViews()` to toggle visibility between the two views based on the current lens. Dominant-org name resolution follows the spec data flow: look up `SelectedCountry.CountryId` in `OrgMapState.Entries` to get `TopOrgId`, then match that against `SelectedControl.OrgEntries` to find the `DisplayName`.
 
 ## Agent Steps
 
@@ -47,10 +47,10 @@ Create a `OrgLensCountryView` plain C# class backed by a new UXML template (`Org
   1. A `<ui:Template>` declaration for `OrgLensCountryInfo` pointing to the new UXML file.
   2. A `<ui:Instance>` element named `org-lens-country-info` with class `org-lens-country-info-panel` placed immediately after the `country-info` instance inside `hud-root`.
 
-- [x] **Create OrgLensCountryView.cs** — write `Assets/Scripts/Unity/UI/OrgLensCountryView.cs` as a plain C# class (no MonoBehaviour) in namespace `GS.Unity.UI`. Constructor receives the root `VisualElement`. Queries `org-name` and `org-no-dominant` labels. Exposes `Refresh(SelectedCountryState country, OrgMapState orgMap, CountryInfluenceState influence)`:
+- [x] **Create OrgLensCountryView.cs** — write `Assets/Scripts/Unity/UI/OrgLensCountryView.cs` as a plain C# class (no MonoBehaviour) in namespace `GS.Unity.UI`. Constructor receives the root `VisualElement`. Queries `org-name` and `org-no-dominant` labels. Exposes `Refresh(SelectedCountryState country, OrgMapState orgMap, CountryControlState control)`:
   - If `!country.IsValid` or lens is not Org (caller controls visibility from outside), hide root with `DisplayStyle.None`.
   - Look up `orgMap.Entries` for an entry whose `CountryId == country.CountryId`.
-  - If found: resolve `DisplayName` from `influence.OrgEntries` where `OrgId == entry.TopOrgId`; show `org-name` label with the name (or `entry.TopOrgId` as fallback if no matching entry); hide `org-no-dominant`.
+  - If found: resolve `DisplayName` from `control.OrgEntries` where `OrgId == entry.TopOrgId`; show `org-name` label with the name (or `entry.TopOrgId` as fallback if no matching entry); hide `org-no-dominant`.
   - If not found: hide `org-name`; show `org-no-dominant` label.
   - Show root with `DisplayStyle.Flex`.
 

@@ -28,7 +28,7 @@ namespace GS.Main {
 			UpdateLocale(world, localeEntity);
 			UpdatePlayerOrganization(world, orgEntity);
 			UpdateResources(world);
-			UpdateSelectedInfluence(world);
+			UpdateSelectedControl(world);
 			UpdateCharacters(world);
 			UpdateOrgCharacters(world);
 			UpdateOrgMap(world, orgEntity);
@@ -43,7 +43,7 @@ namespace GS.Main {
 			foreach (var animatable in _resourceAnimatables.Values) {
 				animatable.Tick(deltaTime);
 			}
-			_state.SelectedCountry.Influence.UsedInfluence.Tick(deltaTime);
+			_state.SelectedCountry.Control.UsedControl.Tick(deltaTime);
 		}
 
 		void UpdateLastFrameEffects(IReadOnlyWorld world) {
@@ -253,28 +253,28 @@ namespace GS.Main {
 			string playerOrgId = _state.PlayerOrganization.IsValid ? _state.PlayerOrganization.OrgId : "";
 			string selectedCountryId = _state.SelectedCountry.IsValid ? _state.SelectedCountry.CountryId : "";
 
-			List<InfluenceIncomeEntry>? orgInfluenceIncomes = null;
+			List<ControlIncomeEntry>? orgControlIncomes = null;
 			if (_state.PlayerOrganization.IsValid) {
-				orgInfluenceIncomes = BuildInfluenceIncomesForOrg(world, playerOrgId);
+				orgControlIncomes = BuildControlIncomesForOrg(world, playerOrgId);
 			}
 
 			_state.PlayerOrganization.Resources.Set(
 				_state.PlayerOrganization.IsValid,
 				playerOrgId,
 				BuildResources(world, playerOrgId),
-				orgInfluenceIncomes);
+				orgControlIncomes);
 			_state.SelectedCountry.Resources.Set(
 				_state.SelectedCountry.IsValid,
 				selectedCountryId,
 				BuildResources(world, selectedCountryId));
 		}
 
-		List<InfluenceIncomeEntry> BuildInfluenceIncomesForOrg(IReadOnlyWorld world, string orgId) {
-			var result = new List<InfluenceIncomeEntry>();
-			int[] required = { TypeId<InfluenceEffect>.Value };
+		List<ControlIncomeEntry> BuildControlIncomesForOrg(IReadOnlyWorld world, string orgId) {
+			var result = new List<ControlIncomeEntry>();
+			int[] required = { TypeId<ControlEffect>.Value };
 			var byCountry = new Dictionary<string, int>();
 			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
-				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (effects[i].OrgId != orgId) {
@@ -287,18 +287,18 @@ namespace GS.Main {
 					byCountry[cid] = v + effects[i].Value;
 				}
 			}
-			foreach (var (countryId, influence) in byCountry) {
-				double baseIncome = InfluenceSystem.ComputeBaseMonthlyGold(world, countryId);
-				double gain = Math.Round((influence / 100.0) * baseIncome, 2);
-				result.Add(new InfluenceIncomeEntry(countryId, gain));
+			foreach (var (countryId, control) in byCountry) {
+				double baseIncome = ControlSystem.ComputeBaseMonthlyGold(world, countryId);
+				double gain = Math.Round((control / 100.0) * baseIncome, 2);
+				result.Add(new ControlIncomeEntry(countryId, gain));
 			}
 			return result;
 		}
 
-		void UpdateSelectedInfluence(IReadOnlyWorld world) {
+		void UpdateSelectedControl(IReadOnlyWorld world) {
 			string selectedCountryId = _state.SelectedCountry.IsValid ? _state.SelectedCountry.CountryId : "";
 			if (!_state.SelectedCountry.IsValid) {
-				_state.SelectedCountry.Influence.Set(0, new List<OrgInfluenceEntry>());
+				_state.SelectedCountry.Control.Set(0, new List<OrgControlEntry>());
 				return;
 			}
 
@@ -313,12 +313,12 @@ namespace GS.Main {
 				}
 			}
 
-			// Group influence by org for the selected country (track base vs permanent)
+			// Group control by org for the selected country (track base vs permanent)
 			var byOrgBase = new Dictionary<string, int>();
 			var byOrgPermanent = new Dictionary<string, int>();
-			int[] influenceRequired = { TypeId<InfluenceEffect>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(influenceRequired, null)) {
-				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+			int[] controlRequired = { TypeId<ControlEffect>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(controlRequired, null)) {
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (effects[i].CountryId != selectedCountryId) {
@@ -340,9 +340,9 @@ namespace GS.Main {
 				}
 			}
 
-			double baseIncome = InfluenceSystem.ComputeBaseMonthlyGold(world, selectedCountryId);
+			double baseIncome = ControlSystem.ComputeBaseMonthlyGold(world, selectedCountryId);
 			int usedTotal = 0;
-			var entries = new List<OrgInfluenceEntry>();
+			var entries = new List<OrgControlEntry>();
 			var allOrgs = new System.Collections.Generic.HashSet<string>(byOrgBase.Keys);
 			foreach (var k in byOrgPermanent.Keys) {
 				allOrgs.Add(k);
@@ -350,14 +350,14 @@ namespace GS.Main {
 			foreach (string orgId in allOrgs) {
 				int baseInfl = byOrgBase.TryGetValue(orgId, out int b) ? b : 0;
 				int permInfl = byOrgPermanent.TryGetValue(orgId, out int p) ? p : 0;
-				int influence = baseInfl + permInfl;
-				usedTotal += influence;
+				int control = baseInfl + permInfl;
+				usedTotal += control;
 				string displayName = orgNames.TryGetValue(orgId, out string? n) ? n : orgId;
-				double gain = Math.Round((influence / 100.0) * baseIncome, 2);
-				entries.Add(new OrgInfluenceEntry(orgId, displayName, influence, baseInfl, permInfl, gain));
+				double gain = Math.Round((control / 100.0) * baseIncome, 2);
+				entries.Add(new OrgControlEntry(orgId, displayName, control, baseInfl, permInfl, gain));
 			}
-			entries.Sort((a, b) => b.Influence.CompareTo(a.Influence));
-			_state.SelectedCountry.Influence.Set(usedTotal, entries);
+			entries.Sort((a, b) => b.Control.CompareTo(a.Control));
+			_state.SelectedCountry.Control.Set(usedTotal, entries);
 		}
 
 		List<ResourceStateEntry> BuildResources(IReadOnlyWorld world, string countryId) {
@@ -389,9 +389,9 @@ namespace GS.Main {
 
 		void UpdateOrgMap(IReadOnlyWorld world, int orgEntity) {
 			var byCountryOrg = new Dictionary<string, Dictionary<string, int>>();
-			int[] required = { TypeId<InfluenceEffect>.Value };
+			int[] required = { TypeId<ControlEffect>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
-				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					string cid = effects[i].CountryId;
@@ -407,17 +407,17 @@ namespace GS.Main {
 				}
 			}
 			var entries = new List<OrgCountryEntry>();
-			foreach (var (countryId, orgInfluences) in byCountryOrg) {
+			foreach (var (countryId, orgControls) in byCountryOrg) {
 				string topOrgId = "";
-				int topInfluence = 0;
-				foreach (var (oid, inf) in orgInfluences) {
-					if (inf > topInfluence) {
-						topInfluence = inf;
+				int topControl = 0;
+				foreach (var (oid, inf) in orgControls) {
+					if (inf > topControl) {
+						topControl = inf;
 						topOrgId = oid;
 					}
 				}
-				if (topInfluence > 0) {
-					float ratio = Math.Min(1f, topInfluence / 100f);
+				if (topControl > 0) {
+					float ratio = Math.Min(1f, topControl / 100f);
 					entries.Add(new OrgCountryEntry(countryId, topOrgId, ratio));
 				}
 			}
@@ -506,18 +506,18 @@ namespace GS.Main {
 				? world.Get<GameTime>(gameTimeEntity).CurrentTime
 				: DateTime.MinValue;
 
-			// Compute org influence in country
-			int orgInfluence = 0;
+			// Compute org control in country
+			int orgControl = 0;
 			int usedTotal = 0;
-			int[] infReq = { TypeId<InfluenceEffect>.Value };
+			int[] infReq = { TypeId<ControlEffect>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(infReq, null)) {
-				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (effects[i].CountryId == countryId) {
 						usedTotal += effects[i].Value;
 						if (effects[i].OrgId == orgId) {
-							orgInfluence += effects[i].Value;
+							orgControl += effects[i].Value;
 						}
 					}
 				}
@@ -540,7 +540,7 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId) { continue; }
-					var entry = BuildEntry(cards[i].ActionId, hands[i].SlotIndex, true, orgInfluence, usedTotal);
+					var entry = BuildEntry(cards[i].ActionId, hands[i].SlotIndex, true, orgControl, usedTotal);
 					if (entry != null) { hand.Add(entry); }
 				}
 			}
@@ -553,7 +553,7 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId) { continue; }
-					var entry = BuildEntry(cards[i].ActionId, -1, false, orgInfluence, usedTotal);
+					var entry = BuildEntry(cards[i].ActionId, -1, false, orgControl, usedTotal);
 					if (entry != null) { deck.Add(entry); }
 				}
 			}
@@ -565,19 +565,19 @@ namespace GS.Main {
 
 		ActionCardEntry? BuildEntry(
 			string actionId, int slotIndex, bool isInHand,
-			int orgInfluence, int usedTotal) {
+			int orgControl, int usedTotal) {
 			var def = _actionConfig?.Find(actionId);
 			if (def == null) { return null; }
 
-			var ctx = new ExpressionContext { Influence = orgInfluence };
+			var ctx = new ExpressionContext { Control = orgControl };
 
-			bool insufficientInfluence = false;
+			bool insufficientControl = false;
 			foreach (var cond in def.Conditions) {
-				if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { insufficientInfluence = true; break; }
+				if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { insufficientControl = true; break; }
 			}
 			bool poolFull = actionId == "sphere_of_pressure" && usedTotal >= 100;
-			bool isUnplayable = insufficientInfluence || poolFull;
-			string unplayableReason = poolFull ? "pool_full" : (insufficientInfluence ? "insufficient_influence" : "");
+			bool isUnplayable = insufficientControl || poolFull;
+			string unplayableReason = poolFull ? "pool_full" : (insufficientControl ? "insufficient_control" : "");
 
 			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason);
 		}

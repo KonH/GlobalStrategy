@@ -31,7 +31,7 @@ namespace GS.Unity.UI {
 		Button _btnDebugToggle;
 		VisualElement _debugPanel;
 		Button _btnEcsViewer;
-		VisualElement _influenceDebugRow;
+		VisualElement _controlDebugRow;
 		bool _debugPanelOpen;
 		OrgInfoDocument _orgInfoDocument;
 		VisualElement _root;
@@ -109,16 +109,16 @@ namespace GS.Unity.UI {
 			_btnEcsViewer.style.display = DisplayStyle.None;
 #endif
 
-			_influenceDebugRow = root.Q("influence-debug-row");
-			var btnInfluencePlus  = root.Q<Button>("btn-influence-plus");
-			var btnInfluenceMinus = root.Q<Button>("btn-influence-minus");
-			if (btnInfluencePlus != null) {
-				btnInfluencePlus.clicked += () => PushInfluenceCommand(+5);
+			_controlDebugRow = root.Q("control-debug-row");
+			var btnControlPlus  = root.Q<Button>("btn-control-plus");
+			var btnControlMinus = root.Q<Button>("btn-control-minus");
+			if (btnControlPlus != null) {
+				btnControlPlus.clicked += () => PushControlCommand(+5);
 			}
-			if (btnInfluenceMinus != null) {
-				btnInfluenceMinus.clicked += () => PushInfluenceCommand(-5);
+			if (btnControlMinus != null) {
+				btnControlMinus.clicked += () => PushControlCommand(-5);
 			}
-			RefreshInfluenceDebugRow();
+			RefreshControlDebugRow();
 
 			var btnGoldPlus  = root.Q<Button>("btn-gold-plus");
 			var btnGoldMinus = root.Q<Button>("btn-gold-minus");
@@ -190,16 +190,16 @@ namespace GS.Unity.UI {
 			_state.Locale.PropertyChanged             += HandleLocaleChanged;
 			_state.PlayerOrganization.Resources.PropertyChanged    += HandlePlayerResourcesChanged;
 			_state.SelectedCountry.Resources.PropertyChanged  += HandleSelectedResourcesChanged;
-			_state.SelectedCountry.Influence.PropertyChanged  += HandleInfluenceChanged;
+			_state.SelectedCountry.Control.PropertyChanged  += HandleControlChanged;
 			_state.SelectedCountry.Characters.PropertyChanged += HandleCharactersChanged;
 			_state.SelectedCountry.CountryActions.PropertyChanged += HandleCountryActionsChanged;
 			_state.MapLens.PropertyChanged            += HandleLensChanged;
 			_state.OrgMap.PropertyChanged             += HandleOrgMapChanged;
 			_state.PlayerOrganization.Characters.PropertyChanged += HandleOrgCharactersChanged;
-			_state.SelectedCountry.Influence.UsedInfluence.PropertyChanged += HandleInfluenceTickChanged;
+			_state.SelectedCountry.Control.UsedControl.PropertyChanged += HandleControlTickChanged;
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			RefreshCountryViews();
-			RefreshInfluenceDebugRow();
+			RefreshControlDebugRow();
 			_timeView.Refresh(_state.Time);
 		}
 
@@ -214,13 +214,13 @@ namespace GS.Unity.UI {
 			_state.Locale.PropertyChanged             -= HandleLocaleChanged;
 			_state.PlayerOrganization.Resources.PropertyChanged    -= HandlePlayerResourcesChanged;
 			_state.SelectedCountry.Resources.PropertyChanged  -= HandleSelectedResourcesChanged;
-			_state.SelectedCountry.Influence.PropertyChanged  -= HandleInfluenceChanged;
+			_state.SelectedCountry.Control.PropertyChanged  -= HandleControlChanged;
 			_state.SelectedCountry.Characters.PropertyChanged -= HandleCharactersChanged;
 			_state.SelectedCountry.CountryActions.PropertyChanged -= HandleCountryActionsChanged;
 			_state.MapLens.PropertyChanged            -= HandleLensChanged;
 			_state.OrgMap.PropertyChanged             -= HandleOrgMapChanged;
 			_state.PlayerOrganization.Characters.PropertyChanged -= HandleOrgCharactersChanged;
-			_state.SelectedCountry.Influence.UsedInfluence.PropertyChanged -= HandleInfluenceTickChanged;
+			_state.SelectedCountry.Control.UsedControl.PropertyChanged -= HandleControlTickChanged;
 			_lastOrgAgentSlotCount = -1;
 			if (_orgInfoDocument != null) {
 				_orgInfoDocument.OnSubPanelOpened -= HandleOrgSubPanelOpened;
@@ -249,10 +249,10 @@ namespace GS.Unity.UI {
 				if (_countryInfoRoot != null) {
 					_countryInfoRoot.style.display = DisplayStyle.None;
 				}
-				_orgLensCountryView?.Refresh(_state.SelectedCountry, _state.OrgMap, _state.SelectedCountry.Influence);
+				_orgLensCountryView?.Refresh(_state.SelectedCountry, _state.OrgMap, _state.SelectedCountry.Control);
 			} else {
 				_orgLensCountryView?.Hide();
-				_countryInfo?.Refresh(_state.SelectedCountry, _state.SelectedCountry.Resources, _state.SelectedCountry.Influence, _state.SelectedCountry.Characters, _state.SelectedCountry.CountryActions, _state.PlayerOrganization.Resources);
+				_countryInfo?.Refresh(_state.SelectedCountry, _state.SelectedCountry.Resources, _state.SelectedCountry.Control, _state.SelectedCountry.Characters, _state.SelectedCountry.CountryActions, _state.PlayerOrganization.Resources);
 				if (_orgPanelOpen && _countryInfoRoot != null) {
 					_countryInfoRoot.style.display = DisplayStyle.None;
 				}
@@ -260,11 +260,11 @@ namespace GS.Unity.UI {
 			_playerOrgView?.Refresh(_state.PlayerOrganization, _state.PlayerOrganization.Resources);
 		}
 
-		void RefreshInfluenceDebugRow() {
-			if (_influenceDebugRow == null) {
+		void RefreshControlDebugRow() {
+			if (_controlDebugRow == null) {
 				return;
 			}
-			_influenceDebugRow.style.display =
+			_controlDebugRow.style.display =
 				_state != null && _state.SelectedCountry.IsValid ? DisplayStyle.Flex : DisplayStyle.None;
 		}
 
@@ -296,11 +296,11 @@ namespace GS.Unity.UI {
 			await UniTask.WaitUntil(() => barrier.IsComplete);
 		}
 
-		void PushInfluenceCommand(int delta) {
+		void PushControlCommand(int delta) {
 			if (_state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) {
 				return;
 			}
-			_commands.Push(new ChangeInfluenceCommand {
+			_commands.Push(new ChangeControlCommand {
 				OrgId     = _state.PlayerOrganization.OrgId,
 				CountryId = _state.SelectedCountry.CountryId,
 				Delta     = delta
@@ -309,14 +309,14 @@ namespace GS.Unity.UI {
 
 		void HandleCountryChanged(object sender, PropertyChangedEventArgs e) {
 			RefreshCountryViews();
-			RefreshInfluenceDebugRow();
+			RefreshControlDebugRow();
 		}
 
 		void HandlePlayerOrgChanged(object sender, PropertyChangedEventArgs e) {
 			RefreshCountryViews();
 		}
 
-		void HandleInfluenceChanged(object sender, PropertyChangedEventArgs e) {
+		void HandleControlChanged(object sender, PropertyChangedEventArgs e) {
 			if (_cardPlayAnimator != null && _cardPlayAnimator.IsPlaying) { return; }
 			RefreshCountryViews();
 		}
@@ -335,11 +335,11 @@ namespace GS.Unity.UI {
 
 		void HandlePlayerResourcesChanged(object sender, PropertyChangedEventArgs e) {
 			_playerOrgView?.Refresh(_state.PlayerOrganization, _state.PlayerOrganization.Resources);
-			_countryInfo?.Refresh(_state.SelectedCountry, _state.SelectedCountry.Resources, _state.SelectedCountry.Influence, _state.SelectedCountry.Characters, _state.SelectedCountry.CountryActions, _state.PlayerOrganization.Resources);
+			_countryInfo?.Refresh(_state.SelectedCountry, _state.SelectedCountry.Resources, _state.SelectedCountry.Control, _state.SelectedCountry.Characters, _state.SelectedCountry.CountryActions, _state.PlayerOrganization.Resources);
 		}
 
 		void HandleSelectedResourcesChanged(object sender, PropertyChangedEventArgs e) {
-			_countryInfo?.Refresh(_state.SelectedCountry, _state.SelectedCountry.Resources, _state.SelectedCountry.Influence, _state.SelectedCountry.Characters, _state.SelectedCountry.CountryActions, _state.PlayerOrganization.Resources);
+			_countryInfo?.Refresh(_state.SelectedCountry, _state.SelectedCountry.Resources, _state.SelectedCountry.Control, _state.SelectedCountry.Characters, _state.SelectedCountry.CountryActions, _state.PlayerOrganization.Resources);
 		}
 
 		void HandleCharactersChanged(object sender, PropertyChangedEventArgs e) {
@@ -463,8 +463,8 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		void HandleInfluenceTickChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
-			_countryInfo?.RefreshUsedInfluence();
+		void HandleControlTickChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
+			_countryInfo?.RefreshUsedControl();
 		}
 
 		void HandleOrgCharactersChanged(object sender, PropertyChangedEventArgs e) {

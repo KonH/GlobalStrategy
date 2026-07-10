@@ -69,11 +69,11 @@ namespace GS.Main {
 				world.Add(orgGoldEntity, new ResourceOwner(orgEntry.OrganizationId));
 				world.Add(orgGoldEntity, new Resource { ResourceId = "gold", Value = orgEntry.InitialGold });
 
-				int influenceEntity = world.Create();
-				world.Add(influenceEntity, new InfluenceEffect {
+				int controlEntity = world.Create();
+				world.Add(controlEntity, new ControlEffect {
 					OrgId     = orgEntry.OrganizationId,
 					CountryId = orgEntry.HqCountryId,
-					Value     = orgEntry.BaseInfluence,
+					Value     = orgEntry.BaseControl,
 					EffectId  = $"base_{orgEntry.OrganizationId}"
 				});
 			}
@@ -453,13 +453,13 @@ namespace GS.Main {
 
 				// Populate initial hand
 				if (handSize > 0 && createdEntities.Count > 0) {
-					int orgInfluence = GetOrgInfluenceInCountry(world, orgId, entry.CountryId);
+					int orgControl = GetOrgControlInCountry(world, orgId, entry.CountryId);
 					var eligibleEntities = new List<int>();
 					foreach (var (e, actionId) in createdEntities) {
 						var d = actionConfig.Find(actionId);
 						if (d == null) { continue; }
 						bool eligible = true;
-						var ctx = new ExpressionContext { Influence = orgInfluence };
+						var ctx = new ExpressionContext { Control = orgControl };
 						foreach (var cond in d.Conditions) {
 							if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
 								eligible = false;
@@ -482,11 +482,11 @@ namespace GS.Main {
 			}
 		}
 
-		static int GetOrgInfluenceInCountry(World world, string orgId, string countryId) {
+		static int GetOrgControlInCountry(World world, string orgId, string countryId) {
 			int total = 0;
-			int[] req = { TypeId<InfluenceEffect>.Value };
+			int[] req = { TypeId<ControlEffect>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (effects[i].OrgId == orgId && effects[i].CountryId == countryId) {

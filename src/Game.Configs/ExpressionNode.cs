@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GS.Game.Configs {
 	public class ExpressionContext {
-		public double Influence { get; set; }
+		public double Control { get; set; }
 		public double Opinion { get; set; }
 	}
 
@@ -47,8 +47,8 @@ namespace GS.Game.Configs {
 					if (v > hi) { return hi; }
 					return v;
 				}
-				case "influence": {
-					return ctx.Influence;
+				case "control": {
+					return ctx.Control;
 				}
 				case "opinion": {
 					return ctx.Opinion;

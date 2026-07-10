@@ -13,8 +13,8 @@ namespace GS.Unity.UI {
 		readonly VisualElement _root;
 		readonly Label _name;
 		readonly VisualElement? _flagElement;
-		readonly Label _influenceLabel;
-		readonly VisualElement? _influenceRow;
+		readonly Label _controlLabel;
+		readonly VisualElement? _controlRow;
 		readonly VisualElement? _charsSlide;
 		readonly Button? _charsToggleBtn;
 		readonly VisualElement? _actionsSlide;
@@ -26,7 +26,7 @@ namespace GS.Unity.UI {
 		readonly OrgVisualConfig? _orgVisualConfig;
 		readonly TooltipSystem _tooltip;
 		CountryActionsView? _actionsView;
-		CountryInfluenceState? _influenceState;
+		CountryControlState? _controlState;
 		bool _charsOpen;
 		bool _actionsOpen;
 		string? _lastCountryId;
@@ -42,8 +42,8 @@ namespace GS.Unity.UI {
 			_flagElement = root.Q("country-flag");
 			_countryVisualConfig = countryVisualConfig;
 			_orgVisualConfig = orgVisualConfig;
-			_influenceRow = root.Q("influence-row");
-			_influenceLabel = root.Q<Label>("influence-label");
+			_controlRow = root.Q("control-row");
+			_controlLabel = root.Q<Label>("control-label");
 			_charsSlide = root.Q("characters-slide");
 			_charsToggleBtn = root.Q<Button>("chars-toggle-btn");
 			_actionsSlide = root.Q("actions-slide");
@@ -53,8 +53,8 @@ namespace GS.Unity.UI {
 			_resourcesView = new ResourcesView(root.Q("resources-container"), loc, resourceConfig, tooltip);
 			_charactersView = new CharactersView(root.Q("characters-container"), loc, characterConfig, tooltip, characterVisualConfig);
 
-			if (_influenceRow != null) {
-				tooltip.RegisterTrigger(_influenceRow, "country-influence", BuildInfluenceTooltip, new HashSet<string>());
+			if (_controlRow != null) {
+				tooltip.RegisterTrigger(_controlRow, "country-control", BuildControlTooltip, new HashSet<string>());
 			}
 			if (_charsSlide != null) {
 				_charsSlide.pickingMode = PickingMode.Ignore;
@@ -82,7 +82,7 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		public void Refresh(SelectedCountryState selected, CountryResourcesState resources, CountryInfluenceState influence, CountryCharactersState characters, CountryActionsState countryActions, CountryResourcesState? playerResources = null) {
+		public void Refresh(SelectedCountryState selected, CountryResourcesState resources, CountryControlState control, CountryCharactersState characters, CountryActionsState countryActions, CountryResourcesState? playerResources = null) {
 			_root.style.display = selected.IsValid ? DisplayStyle.Flex : DisplayStyle.None;
 			if (selected.IsValid) {
 				_name.text = _loc.Get($"country_name.{selected.CountryId}");
@@ -113,8 +113,8 @@ namespace GS.Unity.UI {
 				_actionsToggleBtn.style.display = hasActions ? DisplayStyle.Flex : DisplayStyle.None;
 			}
 
-			_influenceState = influence;
-			RefreshInfluence(influence);
+			_controlState = control;
+			RefreshControl(control);
 			_resourcesView.Refresh(resources);
 			_charactersView.Refresh(characters);
 			if (!_charsOpen && _charsSlide != null) { SetPickingModeRecursive(_charsSlide, PickingMode.Ignore); }
@@ -177,36 +177,36 @@ namespace GS.Unity.UI {
 			btn.EnableInClassList("gs-toggle-off", !pressed);
 		}
 
-		public void RefreshUsedInfluence() {
-			if (_influenceRow == null || _influenceLabel == null) { return; }
-			int pool = _influenceState != null ? _influenceState.PoolSize : 100;
-			int used = _influenceState != null ? _influenceState.UsedInfluence.Display : 0;
-			_influenceLabel.text = $"{_loc.Get("hud.country_influence")}: {used}/{pool}";
+		public void RefreshUsedControl() {
+			if (_controlRow == null || _controlLabel == null) { return; }
+			int pool = _controlState != null ? _controlState.PoolSize : 100;
+			int used = _controlState != null ? _controlState.UsedControl.Display : 0;
+			_controlLabel.text = $"{_loc.Get("hud.country_control")}: {used}/{pool}";
 		}
 
-		void RefreshInfluence(CountryInfluenceState influence) {
-			if (_influenceRow == null) {
+		void RefreshControl(CountryControlState control) {
+			if (_controlRow == null) {
 				return;
 			}
-			_influenceRow.style.display = DisplayStyle.Flex;
-			int used = influence != null ? influence.UsedInfluence.Display : 0;
-			int pool = influence != null ? influence.PoolSize : 100;
-			_influenceLabel.text = $"{_loc.Get("hud.country_influence")}: {used}/{pool}";
+			_controlRow.style.display = DisplayStyle.Flex;
+			int used = control != null ? control.UsedControl.Display : 0;
+			int pool = control != null ? control.PoolSize : 100;
+			_controlLabel.text = $"{_loc.Get("hud.country_control")}: {used}/{pool}";
 		}
 
-		VisualElement BuildInfluenceTooltip(TooltipContext ctx) {
+		VisualElement BuildControlTooltip(TooltipContext ctx) {
 			var root = new VisualElement();
 
-			var header = new Label(_loc.Get("hud.influence_tooltip_title"));
+			var header = new Label(_loc.Get("hud.control_tooltip_title"));
 			header.AddToClassList("tooltip-header");
 			root.Add(header);
 
-			var influence = _influenceState;
-			if (influence == null) {
+			var control = _controlState;
+			if (control == null) {
 				return root;
 			}
 
-			foreach (var entry in influence.OrgEntries) {
+			foreach (var entry in control.OrgEntries) {
 				var row = new VisualElement();
 				row.AddToClassList("flag-name-row");
 				row.AddToClassList("tooltip-inner-trigger");
@@ -223,7 +223,7 @@ namespace GS.Unity.UI {
 				}
 				row.Add(flagEl);
 
-				var label = new Label($"{entry.DisplayName}: {entry.Influence}");
+				var label = new Label($"{entry.DisplayName}: {entry.Control}");
 				label.AddToClassList("tooltip-effect-name");
 				label.AddToClassList("tooltip-effect-positive");
 				row.Add(label);
@@ -231,41 +231,41 @@ namespace GS.Unity.UI {
 				root.Add(row);
 
 				var capturedEntry = entry;
-				ctx.RegisterInnerTrigger(row, $"org-influence-{entry.OrgId}", _ =>
-					BuildOrgInfluenceInnerTooltip(capturedEntry));
+				ctx.RegisterInnerTrigger(row, $"org-control-{entry.OrgId}", _ =>
+					BuildOrgControlInnerTooltip(capturedEntry));
 			}
 
 			return root;
 		}
 
-		VisualElement BuildOrgInfluenceInnerTooltip(OrgInfluenceEntry entry) {
+		VisualElement BuildOrgControlInnerTooltip(OrgControlEntry entry) {
 			var root = new VisualElement();
 
 			var header = new Label(entry.DisplayName);
 			header.AddToClassList("tooltip-header");
 			root.Add(header);
 
-			var influenceRow = new Label($"{_loc.Get("hud.country_influence")}: {entry.Influence}");
-			influenceRow.AddToClassList("tooltip-effect-name");
-			root.Add(influenceRow);
+			var controlRow = new Label($"{_loc.Get("hud.country_control")}: {entry.Control}");
+			controlRow.AddToClassList("tooltip-effect-name");
+			root.Add(controlRow);
 
-			var baseRow = new Label($"  {_loc.Get("hud.influence_tooltip_base")} +{entry.BaseInfluence}");
+			var baseRow = new Label($"  {_loc.Get("hud.control_tooltip_base")} +{entry.BaseControl}");
 			baseRow.AddToClassList("tooltip-effect-name");
 			baseRow.AddToClassList("tooltip-effect-positive");
 			root.Add(baseRow);
 
-			if (entry.PermanentInfluence > 0) {
-				var permRow = new Label($"  {_loc.Get("hud.influence_tooltip_permanent")} +{entry.PermanentInfluence}");
+			if (entry.PermanentControl > 0) {
+				var permRow = new Label($"  {_loc.Get("hud.control_tooltip_permanent")} +{entry.PermanentControl}");
 				permRow.AddToClassList("tooltip-effect-name");
 				permRow.AddToClassList("tooltip-effect-positive");
 				root.Add(permRow);
 			}
 
-			var leadsTo = new Label(_loc.Get("hud.influence_tooltip_leads_to"));
+			var leadsTo = new Label(_loc.Get("hud.control_tooltip_leads_to"));
 			leadsTo.AddToClassList("tooltip-effect-name");
 			root.Add(leadsTo);
 
-			var incomeRow = new Label($"  {_loc.Get("hud.influence_tooltip_income")} +{entry.EstimatedMonthlyGold:F1}/month");
+			var incomeRow = new Label($"  {_loc.Get("hud.control_tooltip_income")} +{entry.EstimatedMonthlyGold:F1}/month");
 			incomeRow.AddToClassList("tooltip-effect-name");
 			incomeRow.AddToClassList("tooltip-effect-positive");
 			root.Add(incomeRow);

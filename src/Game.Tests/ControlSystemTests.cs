@@ -5,7 +5,7 @@ using GS.Game.Systems;
 using Xunit;
 
 namespace GS.Game.Tests {
-	public class InfluenceSystemTests {
+	public class ControlSystemTests {
 		static readonly DateTime Jan31 = new DateTime(1880, 1, 31, 23, 0, 0);
 		static readonly DateTime Feb1  = new DateTime(1880, 2,  1,  0, 0, 0);
 		static readonly DateTime Jan1  = new DateTime(1880, 1,  1,  0, 0, 0);
@@ -25,9 +25,9 @@ namespace GS.Game.Tests {
 			world.Add(e, new ResourceEffect { EffectId = "income", Value = value, PayType = PayType.Monthly });
 		}
 
-		static int AddInfluence(World world, string orgId, string countryId, int value, string? effectId = null) {
+		static int AddControl(World world, string orgId, string countryId, int value, string? effectId = null) {
 			int e = world.Create();
-			world.Add(e, new InfluenceEffect {
+			world.Add(e, new ControlEffect {
 				OrgId     = orgId,
 				CountryId = countryId,
 				Value     = value,
@@ -36,15 +36,15 @@ namespace GS.Game.Tests {
 			return e;
 		}
 
-		// Test 1: base influence entity has Value == 10 when created with the expected data
+		// Test 1: base control entity has Value == 10 when created with the expected data
 		[Fact]
 		void base_entity_has_expected_value() {
 			var world = new World();
-			int e = AddInfluence(world, "Org1", "Russia", 10, "base_Org1");
-			int[] required = { TypeId<InfluenceEffect>.Value };
+			int e = AddControl(world, "Org1", "Russia", 10, "base_Org1");
+			int[] required = { TypeId<ControlEffect>.Value };
 			int found = 0;
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				var effects = arch.GetColumn<InfluenceEffect>();
+				var effects = arch.GetColumn<ControlEffect>();
 				for (int i = 0; i < arch.Count; i++) {
 					if (effects[i].CountryId == "Russia" && effects[i].EffectId == "base_Org1") {
 						Assert.Equal(10, effects[i].Value);
@@ -62,24 +62,24 @@ namespace GS.Game.Tests {
 			int countryGold = AddResource(world, "Russia", "gold", 500.0);
 			int orgGold     = AddResource(world, "Org1",   "gold", 0.0);
 			AddMonthlyEffect(world, "Russia", "gold", 1000.0);
-			AddInfluence(world, "Org1", "Russia", 20);
+			AddControl(world, "Org1", "Russia", 20);
 
-			InfluenceSystem.Update(world, Jan31, Feb1);
+			ControlSystem.Update(world, Jan31, Feb1);
 
 			Assert.Equal(300.0, world.Get<Resource>(countryGold).Value, 2);
 			Assert.Equal(200.0, world.Get<Resource>(orgGold).Value, 2);
 		}
 
-		// Test 3: zero influence — org receives nothing
+		// Test 3: zero control — org receives nothing
 		[Fact]
-		void zero_influence_receives_nothing() {
+		void zero_control_receives_nothing() {
 			var world = new World();
 			int countryGold = AddResource(world, "Russia", "gold", 500.0);
 			int orgGold     = AddResource(world, "Org1",   "gold", 0.0);
 			AddMonthlyEffect(world, "Russia", "gold", 1000.0);
-			AddInfluence(world, "Org1", "Russia", 0);
+			AddControl(world, "Org1", "Russia", 0);
 
-			InfluenceSystem.Update(world, Jan31, Feb1);
+			ControlSystem.Update(world, Jan31, Feb1);
 
 			Assert.Equal(500.0, world.Get<Resource>(countryGold).Value);
 			Assert.Equal(0.0, world.Get<Resource>(orgGold).Value);
@@ -92,9 +92,9 @@ namespace GS.Game.Tests {
 			int countryGold = AddResource(world, "Russia", "gold", 500.0);
 			int orgGold     = AddResource(world, "Org1",   "gold", 0.0);
 			AddMonthlyEffect(world, "Russia", "gold", 1000.0);
-			AddInfluence(world, "Org1", "Russia", 20);
+			AddControl(world, "Org1", "Russia", 20);
 
-			InfluenceSystem.Update(world, Jan1, Jan2);
+			ControlSystem.Update(world, Jan1, Jan2);
 
 			Assert.Equal(500.0, world.Get<Resource>(countryGold).Value);
 			Assert.Equal(0.0, world.Get<Resource>(orgGold).Value);
@@ -108,29 +108,29 @@ namespace GS.Game.Tests {
 			int org1Gold    = AddResource(world, "Org1",   "gold", 0.0);
 			int org2Gold    = AddResource(world, "Org2",   "gold", 0.0);
 			AddMonthlyEffect(world, "Russia", "gold", 1000.0);
-			AddInfluence(world, "Org1", "Russia", 20);
-			AddInfluence(world, "Org2", "Russia", 30);
+			AddControl(world, "Org1", "Russia", 20);
+			AddControl(world, "Org2", "Russia", 30);
 
-			InfluenceSystem.Update(world, Jan31, Feb1);
+			ControlSystem.Update(world, Jan31, Feb1);
 
 			Assert.Equal(200.0, world.Get<Resource>(org1Gold).Value, 2);
 			Assert.Equal(300.0, world.Get<Resource>(org2Gold).Value, 2);
 			Assert.Equal(0.0, world.Get<Resource>(countryGold).Value, 2);
 		}
 
-		// Test 5: ApplyChangeInfluence creates/updates permanent entity
+		// Test 5: ApplyChangeControl creates/updates permanent entity
 		[Fact]
-		void apply_change_influence_creates_permanent_entity() {
+		void apply_change_control_creates_permanent_entity() {
 			var world = new World();
-			AddInfluence(world, "Org1", "Russia", 10, "base_Org1");
+			AddControl(world, "Org1", "Russia", 10, "base_Org1");
 
-			InfluenceSystem.ApplyChangeInfluence(world, "Org1", "Russia", 5);
+			ControlSystem.ApplyChangeControl(world, "Org1", "Russia", 5);
 
 			int permanentCount = 0;
 			int permanentValue = 0;
-			int[] required = { TypeId<InfluenceEffect>.Value };
+			int[] required = { TypeId<ControlEffect>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				var effects = arch.GetColumn<InfluenceEffect>();
+				var effects = arch.GetColumn<ControlEffect>();
 				for (int i = 0; i < arch.Count; i++) {
 					if (effects[i].EffectId == "permanent_Org1_Russia") {
 						permanentCount++;
@@ -142,18 +142,18 @@ namespace GS.Game.Tests {
 			Assert.Equal(5, permanentValue);
 		}
 
-		// Test 6: pool cap — cannot exceed 100 - otherOrgsInfluence
+		// Test 6: pool cap — cannot exceed 100 - otherOrgsControl
 		[Fact]
-		void apply_change_influence_clamped_at_pool_cap() {
+		void apply_change_control_clamped_at_pool_cap() {
 			var world = new World();
-			AddInfluence(world, "Org2", "Russia", 80, "base_Org2"); // other org holds 80
+			AddControl(world, "Org2", "Russia", 80, "base_Org2"); // other org holds 80
 
-			InfluenceSystem.ApplyChangeInfluence(world, "Org1", "Russia", 30); // can only get 20
+			ControlSystem.ApplyChangeControl(world, "Org1", "Russia", 30); // can only get 20
 
 			int permanentValue = 0;
-			int[] required = { TypeId<InfluenceEffect>.Value };
+			int[] required = { TypeId<ControlEffect>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				var effects = arch.GetColumn<InfluenceEffect>();
+				var effects = arch.GetColumn<ControlEffect>();
 				for (int i = 0; i < arch.Count; i++) {
 					if (effects[i].EffectId == "permanent_Org1_Russia") {
 						permanentValue = effects[i].Value;
@@ -165,28 +165,28 @@ namespace GS.Game.Tests {
 
 		// Test 7: cannot go below 0
 		[Fact]
-		void apply_change_influence_clamped_at_zero() {
+		void apply_change_control_clamped_at_zero() {
 			var world = new World();
 			int permanentEntity = world.Create();
-			world.Add(permanentEntity, new InfluenceEffect {
+			world.Add(permanentEntity, new ControlEffect {
 				OrgId = "Org1", CountryId = "Russia", Value = 5, EffectId = "permanent_Org1_Russia"
 			});
 
-			InfluenceSystem.ApplyChangeInfluence(world, "Org1", "Russia", -20);
+			ControlSystem.ApplyChangeControl(world, "Org1", "Russia", -20);
 
 			Assert.False(world.IsAlive(permanentEntity));
 		}
 
 		// Test 8: base effect entity remains untouched after command
 		[Fact]
-		void base_entity_untouched_after_change_influence_command() {
+		void base_entity_untouched_after_change_control_command() {
 			var world = new World();
-			int baseEntity = AddInfluence(world, "Org1", "Russia", 10, "base_Org1");
+			int baseEntity = AddControl(world, "Org1", "Russia", 10, "base_Org1");
 
-			InfluenceSystem.ApplyChangeInfluence(world, "Org1", "Russia", 5);
+			ControlSystem.ApplyChangeControl(world, "Org1", "Russia", 5);
 
 			Assert.True(world.IsAlive(baseEntity));
-			Assert.Equal(10, world.Get<InfluenceEffect>(baseEntity).Value);
+			Assert.Equal(10, world.Get<ControlEffect>(baseEntity).Value);
 		}
 	}
 }

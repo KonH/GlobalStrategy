@@ -1,5 +1,5 @@
 namespace GS.Game.Commands {
-	public struct ChangeInfluenceCommand : ICommand {
+	public struct ChangeControlCommand : ICommand {
 		public string OrgId;
 		public string CountryId;
 		public int Delta;

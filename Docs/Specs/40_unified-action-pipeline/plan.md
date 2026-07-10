@@ -10,7 +10,7 @@
 - `InHand` renamed to `CardInHand`; `ActionCard` and `CountryActionCard` removed; unified card entity with context components.
 - Explicit deck entity `CardDeck(orgId, countryId?)` and hand entity `CardHand(handSize)`.
 - Eleven-system pipeline: Cleanup → Init → CheckCondition → DeductCost → ActionSucceeded → CreateEffects → DiscoverCountry → RemoveFromHand → CheckHandSize → DrawCard → CleanupCardDiscard.
-- Old `IEffect` interface, `ResourceChange` class, `InfluenceAdded`, `CharacterOpinionChange` removed; new `ResourceChange` and `DiscoverCountryEffect` are plain ECS structs.
+- Old `IEffect` interface, `ResourceChange` class, `ControlAdded`, `CharacterOpinionChange` removed; new `ResourceChange` and `DiscoverCountryEffect` are plain ECS structs.
 - `ResourceEffect` gains `AccumulatedTotal` / `MaxTotal` fields for bounded monthly effects.
 - Character opinion stored as `Resource` entity with `ResourceOwner(characterId, OwnerType.Character)`; `CharacterOpinion` and `OpinionModifier` components removed.
 - `VisualState.LastAction` replaced by `VisualState.LastFrameEffects: VisualEffectCollection`; `VisualStateConverter` maps ECS `ResourceChange` entities to `VisualResourceChangeEffect`.
@@ -64,7 +64,7 @@ Work bottom-up: define new ECS components first so all downstream code compiles 
 
 - [ ] **Step 19: Implement `InitActionFromPlayCardSystem`** — Create `src/Game.Systems/InitActionFromPlayCardSystem.cs`. Static class, `Update(World world, IReadOnlyList<PlayCardActionCommand> commands)`. For each command: if `cmd.CountryId` is empty, query entities carrying `ActionCard` where `ActionCard.OwnerId == cmd.OrgId && ActionCard.ActionId == cmd.ActionId`; add `Action(cmd.ActionId)`, `OrgContext(cmd.OrgId)`, `CardUse` to the found entity. If `cmd.CountryId` is non-empty, query entities carrying `CountryActionCard` where `OrgId == cmd.OrgId && CountryId == cmd.CountryId && ActionId == cmd.ActionId`; add `Action(cmd.ActionId)`, `OrgContext(cmd.OrgId)`, `CountryContext(cmd.CountryId)`, `CardUse`. The component type definitions (`Action`, `OrgContext`, `CountryContext`, `CardUse`) are already created in Steps 3–5. After Step 32 migrates card creation in `InitSystem`, the query switches to `Action + OrgContext [+ CountryContext]`.
 
-- [ ] **Step 20: Implement `CheckActionConditionSystem`** — Create `src/Game.Systems/CheckActionConditionSystem.cs`. Static class, `Update(World world, ActionConfig config)`. Queries entities with `Action` + `OrgContext`. For each: looks up the `ActionDefinition`. Evaluates `Conditions` using `ExpressionContext { Influence = orgInfluence }` (query `InfluenceEffect` entities if `CountryContext` is present). Checks affordability against `Resource` entities by `ResourceOwner(OrgId)`. If all pass, adds `ActionValid`.
+- [ ] **Step 20: Implement `CheckActionConditionSystem`** — Create `src/Game.Systems/CheckActionConditionSystem.cs`. Static class, `Update(World world, ActionConfig config)`. Queries entities with `Action` + `OrgContext`. For each: looks up the `ActionDefinition`. Evaluates `Conditions` using `ExpressionContext { Control = orgControl }` (query `ControlEffect` entities if `CountryContext` is present). Checks affordability against `Resource` entities by `ResourceOwner(OrgId)`. If all pass, adds `ActionValid`.
 
 - [ ] **Step 21: Implement `DeductActionCostSystem`** — Create `src/Game.Systems/DeductActionCostSystem.cs`. Static class, `Update(World world, ActionConfig config)`. Queries `Action` + `ActionValid`. For each cost in `def.Cost`: deducts from the matching `Resource` entity (by `ResourceOwner(OrgId)` + `resourceId`). Creates a new `ResourceChange` entity: `world.Create()`, add `ResourceChange { EffectId=..., ResourceId=cost.ResourceId, OwnerId=OrgId, Amount=-cost.Amount }`.
 
@@ -72,7 +72,7 @@ Work bottom-up: define new ECS components first so all downstream code compiles 
 
 - [ ] **Step 23: Implement `CreateActionEffectSystem`** — Create `src/Game.Systems/CreateActionEffectSystem.cs`. Static class, `Update(World world, ActionConfig config, EffectConfig effectConfig, DateTime currentTime)`. Queries `Action` + `ActionSucceeded`. For each `effectId` in `def.EffectIds`:
   - `DiscoverCountryEffectParams`: creates a `DiscoverCountryEffect` entity.
-  - `InfluenceChangeEffectParams`: creates an `InfluenceEffect` entity (same as current logic, capped at 100 total).
+  - `ControlChangeEffectParams`: creates an `ControlEffect` entity (same as current logic, capped at 100 total).
   - `OpinionModifierEffectParams` (character opinion): creates a `ResourceChange` entity targeting `opinion_{orgId}` resource on the character's resource entity; also creates a monthly `ResourceEffect` with `MaxTotal = initialValue` for decay. Set `ClampToZero = true` on the monthly decay `ResourceEffect` to replicate the existing opinion-system behaviour that prevents modifiers from overshooting zero.
   - Resource grant effects (if applicable in future): create `ResourceChange` entities.
 
@@ -121,7 +121,7 @@ Work bottom-up: define new ECS components first so all downstream code compiles 
   - For country cards: create entity with `OrgContext(orgId)` + `CountryContext(countryId)` + `Action(actionId)`. Create `CardDeck(orgId, countryId)` + `CardHand(handSize)` entity per (orgId, countryId) pair.
   - Remove all `ActionCard`, `CountryActionCard`, and `ActionOwner` entity creation. Seed `CardInHand` for the initial hand as before.
 
-- [ ] **Step 33: Update `VisualStateConverter` action views to use unified components** — Edit `UpdateOrgActions` and `UpdateCountryActions` in `src/Game.Main/VisualStateConverter.cs` to query `Action` + `OrgContext` (and `CountryContext`) instead of `ActionCard` / `CountryActionCard`. Query `CardDeck` + `CardHand` for hand-size data. Remove only `IsRateDynamic`, `InfluenceBase`, and `InfluenceBonus` fields from `CountryActionCardEntry` in `VisualState.cs` — keep `SuccessRate` as it is read by `CardPlayAnimator.PlayCountrySequence` during animation. Update `CountryActionsView` and `ActionCardBuilder` to no longer read or render `IsRateDynamic`, `InfluenceBase`, or `InfluenceBonus`.
+- [ ] **Step 33: Update `VisualStateConverter` action views to use unified components** — Edit `UpdateOrgActions` and `UpdateCountryActions` in `src/Game.Main/VisualStateConverter.cs` to query `Action` + `OrgContext` (and `CountryContext`) instead of `ActionCard` / `CountryActionCard`. Query `CardDeck` + `CardHand` for hand-size data. Remove only `IsRateDynamic`, `ControlBase`, and `ControlBonus` fields from `CountryActionCardEntry` in `VisualState.cs` — keep `SuccessRate` as it is read by `CardPlayAnimator.PlayCountrySequence` during animation. Update `CountryActionsView` and `ActionCardBuilder` to no longer read or render `IsRateDynamic`, `ControlBase`, or `ControlBonus`.
 
 - [ ] **Step 34: Remove old command types** — Delete `src/Game.Commands/PlayActionCommand.cs` and `src/Game.Commands/PlayCountryActionCommand.cs`. Remove `ReadPlayActionCommand` and `ReadPlayCountryActionCommand` from the command accessor source generator input / generated file.
 
@@ -129,7 +129,7 @@ Work bottom-up: define new ECS components first so all downstream code compiles 
   - `src/Game.Components/ActionCard.cs`
   - `src/Game.Components/CountryActionCard.cs`
   - `src/Game.Components/InHand.cs` (replaced by `CardInHand`)
-  - `src/Game.Components/Effects.cs` (the old `IEffect`, `ResourceChange` class, `CharacterOpinionChange`, `InfluenceAdded`)
+  - `src/Game.Components/Effects.cs` (the old `IEffect`, `ResourceChange` class, `CharacterOpinionChange`, `ControlAdded`)
   - `src/Game.Components/ActionOwner.cs`
 
 - [ ] **Step 36: Remove `ActionSystem.cs`** — Delete `src/Game.Systems/ActionSystem.cs`. Confirm no remaining references via build.
@@ -139,7 +139,7 @@ Work bottom-up: define new ECS components first so all downstream code compiles 
   - Replace `_commands.Push(new PlayCountryActionCommand { ... })` with `_commands.Push(new PlayCardActionCommand { OrgId = orgId, CountryId = countryId, ActionId = actionId })`.
   - Replace `_state.LastAction.PropertyChanged` subscription with `_state.LastFrameEffects.PropertyChanged`.
   - Replace `_state.LastAction.HasResult` / `.Success` / `.Effects` / `.Clear()` accesses with `LastFrameEffects` equivalents.
-  - Update `HandleLastActionChanged` to iterate `LastFrameEffects` entries (now `VisualResourceChangeEffect`) instead of `IEffect` subclasses. The animation shows the card with no text; the resource-change effect wiring maps `ResourceChange` (resourceId == "gold") and influence (`ResourceChange` to `influence_{countryId}` resource) for the gold deduction animation. Capture all required effect data (e.g. resource IDs, amounts for barriers) synchronously inside `HandleLastActionChanged` — `LastFrameEffects` will be empty on the next frame.
+  - Update `HandleLastActionChanged` to iterate `LastFrameEffects` entries (now `VisualResourceChangeEffect`) instead of `IEffect` subclasses. The animation shows the card with no text; the resource-change effect wiring maps `ResourceChange` (resourceId == "gold") and control (`ResourceChange` to `control_{countryId}` resource) for the gold deduction animation. Capture all required effect data (e.g. resource IDs, amounts for barriers) synchronously inside `HandleLastActionChanged` — `LastFrameEffects` will be empty on the next frame.
 
 - [ ] **Step 38: Build and fix compilation errors** — Run `dotnet build src/GlobalStrategy.Core.sln` and resolve any remaining references to deleted types. Rebuild Unity (refresh assets). Check `read_console` for errors.
 
@@ -152,7 +152,7 @@ After implementation, enter Play mode. Play an org action card and confirm:
 - "Discovered" overlay fires on success.
 
 Play a country action card and confirm:
-- Influence increases (or is capped).
+- Control increases (or is capped).
 - Opinion changes animate correctly.
 
 ### 2. Run test suite
@@ -168,7 +168,7 @@ Run `dotnet test src/GlobalStrategy.Core.sln` and confirm all tests pass (or not
 - `pipeline_card_action_always_succeeds` — assert `ActionSucceeded` present on card entity after DiceRoll step for any valid action.
 - `pipeline_discovers_country_on_org_action_success` — assert `IsDiscovered` added to a second country.
 - `pipeline_draws_replacement_card_after_play` — assert `CardInHand` count for the deck remains at `CardHand.HandSize` after play.
-- `pipeline_country_action_adds_influence_on_success` — push `PlayCardActionCommand` with `CountryId`, assert `InfluenceEffect` created.
+- `pipeline_country_action_adds_control_on_success` — push `PlayCardActionCommand` with `CountryId`, assert `ControlEffect` created.
 - `pipeline_country_action_adds_opinion_resource_on_success` — assert `Resource` entity with `resourceId = "opinion_{orgId}"` created for character owner.
 - `cleanup_system_removes_prior_frame_components` — assert `Action`, `ResourceChange`, `DiscoverCountryEffect` absent after cleanup.
 

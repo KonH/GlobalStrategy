@@ -96,7 +96,7 @@ namespace GS.Game.Tests {
 			};
 			var orgConfig = new OrganizationConfig {
 				Organizations = new List<OrganizationEntry> {
-					new OrganizationEntry { OrganizationId = "gs", DisplayName = "Great Society", HqCountryId = "Great_Britain", BaseInfluence = 10, InitialGold = 100, InitialAgentSlots = 0 }
+					new OrganizationEntry { OrganizationId = "gs", DisplayName = "Great Society", HqCountryId = "Great_Britain", BaseControl = 10, InitialGold = 100, InitialAgentSlots = 0 }
 				}
 			};
 			var gameSettings = new GameSettings {

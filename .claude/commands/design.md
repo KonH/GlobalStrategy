@@ -93,7 +93,7 @@ Speed-active button override: `background:#1E5030; color:#90FFB8; border-color:#
 | `pause.svg` | Pause button | `filter: brightness(0) invert(0.94) sepia(0.12)` |
 | `play.svg` | Play button (shown when paused) | same |
 | `menu.svg` | Menu button | same |
-| `influence.svg` | Influence counter | same |
+| `control.svg` | Control counter | same |
 
 Use `<img class="btn-icon" src="icons/X.svg">` inside buttons, `<img class="coin-icon" src="icons/coin.svg">` in counters.
 

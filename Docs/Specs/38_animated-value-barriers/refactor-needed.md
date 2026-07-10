@@ -6,8 +6,8 @@ what I want to change:
 - CharacterStateEntry
   - Opinion - animated value
   - no additional param in CharactersView and CountryInfoView
-- CountryInfluenceState
-  - UsedInfluence - animated value
+- CountryControlState
+  - UsedControl - animated value
   - no usedDisplay in CountryInfoView
 - ResourcesView
   - no playerGoldAnimatable
@@ -15,7 +15,7 @@ what I want to change:
   - Value - animated
 - VisualState:
   - PlayerCountry, PlayerResources - doesn't make sense now, player control org
-  - SelectedResources, SelectedInfluence, SelectedCharacters, SelectedCountryActions, SelectedCountryUsedInfluence, CharacterOpinions move to SelectedCountry and remove prefix
+  - SelectedResources, SelectedControl, SelectedCharacters, SelectedCountryActions, SelectedCountryUsedControl, CharacterOpinions move to SelectedCountry and remove prefix
   - PlayerOrgCharacters, PlayerOrgActions move to PlayerOrganization
   - remove PlayerGold, provide resources dictionary in PlayerOrganizationState
 - LastActionResultState:
@@ -24,7 +24,7 @@ what I want to change:
   - ResourceChange(ownerId, resourceId, diff) : IEffect
   - CharacterOpinionChange(countryId, characterId, diff) : IEffect
 - ActionSystem/CountryActionSystem:
-  - ActionResult should be shared, no specific GoldSpent, InfluenceAdded etc, use single List<IEffect>
+  - ActionResult should be shared, no specific GoldSpent, ControlAdded etc, use single List<IEffect>
   - maybe could reuse code through shared static helper methods
   - ideally we should have one ActionSystem which could work with all entity types
   - if we could use single system - simplify GameLogic with last action result logic

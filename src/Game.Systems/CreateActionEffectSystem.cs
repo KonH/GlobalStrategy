@@ -39,12 +39,12 @@ namespace GS.Game.Systems {
 					if (effectDef is DiscoverCountryEffectParams) {
 						int e = world.Create();
 						world.Add(e, new DiscoverCountryEffect { EffectId = effectId });
-					} else if (effectDef is InfluenceChangeEffectParams influenceParams && influenceParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
-						int usedTotal = GetTotalInfluenceInCountry(world, countryId);
+					} else if (effectDef is ControlChangeEffectParams controlParams && controlParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
+						int usedTotal = GetTotalControlInCountry(world, countryId);
 						if (usedTotal < 100) {
-							int toAdd = Math.Min(influenceParams.Amount, 100 - usedTotal);
+							int toAdd = Math.Min(controlParams.Amount, 100 - usedTotal);
 							int ie = world.Create();
-							world.Add(ie, new InfluenceEffect {
+							world.Add(ie, new ControlEffect {
 								OrgId = orgId,
 								CountryId = countryId,
 								Value = toAdd,
@@ -52,8 +52,8 @@ namespace GS.Game.Systems {
 							});
 							int rc = world.Create();
 							world.Add(rc, new ResourceChange {
-								EffectId = $"influence_{orgId}_{countryId}_{currentTime.Ticks}",
-								ResourceId = $"influence_{countryId}",
+								EffectId = $"control_{orgId}_{countryId}_{currentTime.Ticks}",
+								ResourceId = $"control_{countryId}",
 								OwnerId = orgId,
 								Amount = toAdd
 							});
@@ -86,11 +86,11 @@ namespace GS.Game.Systems {
 			}
 		}
 
-		static int GetTotalInfluenceInCountry(World world, string countryId) {
+		static int GetTotalControlInCountry(World world, string countryId) {
 			int total = 0;
-			int[] req = { TypeId<InfluenceEffect>.Value };
+			int[] req = { TypeId<ControlEffect>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (effects[i].CountryId == countryId) { total += effects[i].Value; }

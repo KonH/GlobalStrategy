@@ -4,7 +4,7 @@ using ECS;
 using GS.Game.Components;
 
 namespace GS.Game.Systems {
-	public static class InfluenceSystem {
+	public static class ControlSystem {
 		public static void Update(World world, DateTime previousTime, DateTime currentTime) {
 			bool isMonthBoundary = previousTime.Month != currentTime.Month
 				|| previousTime.Year != currentTime.Year;
@@ -12,14 +12,14 @@ namespace GS.Game.Systems {
 				return;
 			}
 
-			// Group influence effects by country → (org → totalValue)
+			// Group control effects by country → (org → totalValue)
 			var byCountry = new Dictionary<string, Dictionary<string, int>>();
-			int[] influenceRequired = { TypeId<InfluenceEffect>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(influenceRequired, null)) {
-				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+			int[] controlRequired = { TypeId<ControlEffect>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(controlRequired, null)) {
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					ref InfluenceEffect fx = ref effects[i];
+					ref ControlEffect fx = ref effects[i];
 					if (!byCountry.TryGetValue(fx.CountryId, out var orgMap)) {
 						orgMap = new Dictionary<string, int>();
 						byCountry[fx.CountryId] = orgMap;
@@ -46,18 +46,18 @@ namespace GS.Game.Systems {
 					continue;
 				}
 
-				int totalInfluence = 0;
+				int totalControl = 0;
 				foreach (var v in orgMap.Values) {
-					totalInfluence += v;
+					totalControl += v;
 				}
-				if (totalInfluence <= 0) {
+				if (totalControl <= 0) {
 					continue;
 				}
 
 				double totalGain = 0;
 				var orgGains = new List<(string OrgId, double Gain)>();
-				foreach (var (orgId, orgInfluence) in orgMap) {
-					double gain = Math.Round((orgInfluence / 100.0) * countryBaseIncome, 2);
+				foreach (var (orgId, orgControl) in orgMap) {
+					double gain = Math.Round((orgControl / 100.0) * countryBaseIncome, 2);
 					if (gain <= 0) {
 						continue;
 					}
@@ -107,14 +107,14 @@ namespace GS.Game.Systems {
 			return total;
 		}
 
-		public static void ApplyChangeInfluence(World world, string orgId, string countryId, int delta) {
+		public static void ApplyChangeControl(World world, string orgId, string countryId, int delta) {
 			int otherOrgsTotal = 0;
 			int existingEntity = -1;
 			int existingValue = 0;
 			string permanentEffectId = $"permanent_{orgId}_{countryId}";
-			int[] required = { TypeId<InfluenceEffect>.Value };
+			int[] required = { TypeId<ControlEffect>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
-				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
 				int[] entities = arch.Entities;
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
@@ -136,12 +136,12 @@ namespace GS.Game.Systems {
 				if (newVal == 0) {
 					world.Destroy(existingEntity);
 				} else {
-					ref InfluenceEffect fx = ref world.Get<InfluenceEffect>(existingEntity);
+					ref ControlEffect fx = ref world.Get<ControlEffect>(existingEntity);
 					fx.Value = newVal;
 				}
 			} else if (newVal > 0) {
 				int e = world.Create();
-				world.Add(e, new InfluenceEffect {
+				world.Add(e, new ControlEffect {
 					OrgId     = orgId,
 					CountryId = countryId,
 					Value     = newVal,

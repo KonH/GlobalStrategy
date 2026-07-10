@@ -16,15 +16,15 @@ Using `+delta` overshoots: `Display = newActual + delta`, then animates back dow
 
 ## Releasing multiple barriers in parallel
 
-When a single action creates barriers on more than one animatable (e.g. influence **and** opinion from the same card), release them with `UniTask.WhenAll`:
+When a single action creates barriers on more than one animatable (e.g. control **and** opinion from the same card), release them with `UniTask.WhenAll`:
 
 ```csharp
-if (hasInfluence && hasOpinion) {
+if (hasControl && hasOpinion) {
     barrierTask = UniTask.WhenAll(
-        _barrierHolder.Animate("influence", 1.0f),
+        _barrierHolder.Animate("control", 1.0f),
         _barrierHolder.Animate("opinion", 1.0f));
-} else if (hasInfluence) {
-    barrierTask = _barrierHolder.Animate("influence", 1.0f);
+} else if (hasControl) {
+    barrierTask = _barrierHolder.Animate("control", 1.0f);
 } else if (hasOpinion) {
     barrierTask = _barrierHolder.Animate("opinion", 1.0f);
 }

@@ -120,38 +120,38 @@ namespace GS.Unity.UI {
 					BuildInstantEffectList(innerCtx, capturedText, resource, resDef));
 			}
 
-			// Influence income rows (gold resource only)
-			if (resource.ResourceId == "gold" && state.InfluenceIncomes.Count > 0) {
-				double influenceTotal = 0;
-				foreach (var inc in state.InfluenceIncomes) {
-					influenceTotal += inc.MonthlyGold;
+			// Control income rows (gold resource only)
+			if (resource.ResourceId == "gold" && state.ControlIncomes.Count > 0) {
+				double controlTotal = 0;
+				foreach (var inc in state.ControlIncomes) {
+					controlTotal += inc.MonthlyGold;
 				}
-				string influenceText = $"+{influenceTotal:F1}/month";
-				var influenceRow = new Label(influenceText);
-				influenceRow.AddToClassList("tooltip-effect-name");
-				influenceRow.AddToClassList("tooltip-effect-positive");
-				influenceRow.AddToClassList("tooltip-inner-trigger");
-				root.Add(influenceRow);
+				string controlText = $"+{controlTotal:F1}/month";
+				var controlRow = new Label(controlText);
+				controlRow.AddToClassList("tooltip-effect-name");
+				controlRow.AddToClassList("tooltip-effect-positive");
+				controlRow.AddToClassList("tooltip-inner-trigger");
+				root.Add(controlRow);
 
 				var capturedState = state;
-				string capturedText = influenceText;
-				ctx.RegisterInnerTrigger(influenceRow, "gold.influence", innerCtx =>
-					BuildInfluenceIncomeList(capturedText, capturedState));
+				string capturedText = controlText;
+				ctx.RegisterInnerTrigger(controlRow, "gold.control", innerCtx =>
+					BuildControlIncomeList(capturedText, capturedState));
 			}
 
 			return root;
 		}
 
-		VisualElement BuildInfluenceIncomeList(string headerText, CountryResourcesState state) {
+		VisualElement BuildControlIncomeList(string headerText, CountryResourcesState state) {
 			var root = new VisualElement();
 
 			var header = new Label(headerText);
 			header.AddToClassList("tooltip-header");
 			root.Add(header);
 
-			foreach (var inc in state.InfluenceIncomes) {
+			foreach (var inc in state.ControlIncomes) {
 				string countryName = _loc.Get($"country_name.{inc.CountryId}");
-				var row = new Label($"Influence ({countryName}): +{inc.MonthlyGold:F1}/month");
+				var row = new Label($"Control ({countryName}): +{inc.MonthlyGold:F1}/month");
 				row.AddToClassList("tooltip-effect-name");
 				row.AddToClassList("tooltip-effect-positive");
 				root.Add(row);

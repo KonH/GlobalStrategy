@@ -39,7 +39,7 @@ All flag display logic is purely in the Unity UI binding layer — no changes to
   - Store both configs as readonly fields `_countryVisualConfig` and `_orgVisualConfig`.
   - In the constructor body, query `_flagElement = root.Q("country-flag")` and store as `readonly VisualElement? _flagElement`.
   - In `Refresh()`, after setting `_name.text`, look up `_countryVisualConfig?.Find(selected.CountryId)`, get its `flag` Sprite, set `_flagElement.style.backgroundImage = new StyleBackground(sprite)` when sprite is non-null and hide the element (`DisplayStyle.None`) when null — only when `selected.IsValid`.
-  - In `BuildInfluenceTooltip()`, replace the plain `new Label(...)` row for each org entry with a container `VisualElement` with class `flag-name-row` holding a flag `VisualElement` (class `entity-flag`) and a `Label`. Look up the org entry via `_orgVisualConfig?.Find(entry.OrgId)` to get the Sprite; set `backgroundImage` and hide the flag element if null. Apply `PickingMode.Ignore` to the flag element (it is non-interactive).
+  - In `BuildControlTooltip()`, replace the plain `new Label(...)` row for each org entry with a container `VisualElement` with class `flag-name-row` holding a flag `VisualElement` (class `entity-flag`) and a `Label`. Look up the org entry via `_orgVisualConfig?.Find(entry.OrgId)` to get the Sprite; set `backgroundImage` and hide the flag element if null. Apply `PickingMode.Ignore` to the flag element (it is non-interactive).
 
 - [x] **Step 11 — Update `HUDDocument.cs` to pass configs to `CountryInfoView`** — In `Assets/Scripts/Unity/UI/HUDDocument.cs`:
   - Add `OrgVisualConfig _orgVisualConfig;` field.
@@ -109,7 +109,7 @@ Stage 1 downloads PNGs into `Assets/Textures/Flags/Countries/` and `Assets/Textu
 - Click a country with a flag assigned — confirm the 64×64 flag image appears to the left of the country name in the `CountryInfo` HUD panel.
 - Click a country without a flag assigned — confirm the name label appears without any image or error.
 - Open the Org Info panel — confirm the org flag appears beside the org name.
-- Open the influence tooltip on a country — confirm each org row in the tooltip shows the org flag beside the org name.
+- Open the control tooltip on a country — confirm each org row in the tooltip shows the org flag beside the org name.
 - Open the `CountrySelection` scene and select an org — confirm the org flag appears beside the org name in the selection panel.
 
 ## Constitution Check

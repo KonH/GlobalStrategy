@@ -89,8 +89,8 @@ namespace GS.Game.Systems {
 		}
 
 		static void DrawCountryCards(World world, ActionConfig config, Random rng, string orgId, string countryId, int toDraw) {
-			int orgInfluence = GetOrgInfluenceInCountry(world, orgId, countryId);
-			var ctx = new ExpressionContext { Influence = orgInfluence };
+			int orgControl = GetOrgControlInCountry(world, orgId, countryId);
+			var ctx = new ExpressionContext { Control = orgControl };
 
 			int[] deckReq = { TypeId<ActionCard>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
 			int[] excludeInHand = { TypeId<InHand>.Value };
@@ -141,11 +141,11 @@ namespace GS.Game.Systems {
 			}
 		}
 
-		static int GetOrgInfluenceInCountry(World world, string orgId, string countryId) {
+		static int GetOrgControlInCountry(World world, string orgId, string countryId) {
 			int total = 0;
-			int[] req = { TypeId<InfluenceEffect>.Value };
+			int[] req = { TypeId<ControlEffect>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				InfluenceEffect[] effects = arch.GetColumn<InfluenceEffect>();
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (effects[i].OrgId == orgId && effects[i].CountryId == countryId) { total += effects[i].Value; }

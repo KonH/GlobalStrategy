@@ -119,7 +119,7 @@ namespace GS.Unity.Map {
 					continue;
 				}
 				var c = OrgIdToColor(e.TopOrgId);
-				c.a = 0.35f + 0.45f * e.InfluenceRatio;
+				c.a = 0.35f + 0.45f * e.ControlRatio;
 				return c;
 			}
 			return new Color(0, 0, 0, 0);

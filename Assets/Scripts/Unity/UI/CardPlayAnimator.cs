@@ -83,10 +83,10 @@ namespace GS.Unity.UI {
 					if (goldAnimatable != null) {
 						_barrierHolder.AddDouble("gold", goldAnimatable, -effect.Amount);
 					}
-				} else if (effect.ResourceId.StartsWith("influence_")) {
-					var usedInfluence = _state.SelectedCountry.Influence.UsedInfluence;
-					if (usedInfluence != null) {
-						_barrierHolder.AddInt("influence", usedInfluence, -(int)effect.Amount);
+				} else if (effect.ResourceId.StartsWith("control_")) {
+					var usedControl = _state.SelectedCountry.Control.UsedControl;
+					if (usedControl != null) {
+						_barrierHolder.AddInt("control", usedControl, -(int)effect.Amount);
 					}
 				} else if (effect.ResourceId.StartsWith("opinion_")) {
 					foreach (var entry in _state.SelectedCountry.Characters.Characters) {
@@ -320,15 +320,15 @@ namespace GS.Unity.UI {
 			await deckTransitionTask;
 			_transitionView.Hide();
 
-			// Release or cancel influence/opinion barriers based on outcome.
+			// Release or cancel control/opinion barriers based on outcome.
 			UniTask barrierTask = UniTask.CompletedTask;
 			if (success && _barrierHolder != null) {
-				bool hasInfluence = _barrierHolder.Has("influence");
+				bool hasControl = _barrierHolder.Has("control");
 				bool hasOpinion = _barrierHolder.Has("opinion");
-				if (hasInfluence && hasOpinion) {
-					barrierTask = UniTask.WhenAll(_barrierHolder.Animate("influence", 1.0f), _barrierHolder.Animate("opinion", 1.0f));
-				} else if (hasInfluence) {
-					barrierTask = _barrierHolder.Animate("influence", 1.0f);
+				if (hasControl && hasOpinion) {
+					barrierTask = UniTask.WhenAll(_barrierHolder.Animate("control", 1.0f), _barrierHolder.Animate("opinion", 1.0f));
+				} else if (hasControl) {
+					barrierTask = _barrierHolder.Animate("control", 1.0f);
 				} else if (hasOpinion) {
 					barrierTask = _barrierHolder.Animate("opinion", 1.0f);
 				}

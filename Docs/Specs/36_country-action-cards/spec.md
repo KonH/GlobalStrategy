@@ -2,7 +2,7 @@
 
 ## Feature Intent
 
-As a player, I want to play action cards targeting a selected country — improving influence and building relations with its characters — so that engaging with individual countries has a meaningful, card-driven gameplay loop beyond passively accumulating influence.
+As a player, I want to play action cards targeting a selected country — improving control and building relations with its characters — so that engaging with individual countries has a meaningful, card-driven gameplay loop beyond passively accumulating control.
 
 ## Acceptance Criteria
 
@@ -10,19 +10,19 @@ As a player, I want to play action cards targeting a selected country — improv
 
 - **Given** the player's organisation is initialised **When** the action system sets up country-action hands **Then** the country-action hand for each country is capped at 3 cards (`handSize = 3`).
 
-- **Given** a country has no prior interaction history **When** the player first selects it **Then** the hand contains exactly one card: "Sphere of Pressure" (the Add Influence card), placed in slot 0; the remaining two slots are empty.
+- **Given** a country has no prior interaction history **When** the player first selects it **Then** the hand contains exactly one card: "Sphere of Pressure" (the Add Control card), placed in slot 0; the remaining two slots are empty.
 
 - **Given** the player selects a country they have previously interacted with **When** the hand panel is displayed **Then** it shows whatever cards are currently in that country's hand (persisted across selections).
 
 ---
 
-### Card: Add Influence — "Sphere of Pressure"
+### Card: Add Control — "Sphere of Pressure"
 
 - **Given** the player opens country actions **When** "Sphere of Pressure" is in hand **Then** it is displayed with success rate 50%, cost 200 gold, and the description from the Card Proposals section.
 
-- **Given** the country influence pool is full (total claimed influence across all orgs ≥ 100) **When** "Sphere of Pressure" is evaluated **Then** it is shown as unplayable (greyed out) and the condition label reads "No influence pool space remaining"; it is playable whenever at least 1 pool point is unclaimed.
+- **Given** the country control pool is full (total claimed control across all orgs ≥ 100) **When** "Sphere of Pressure" is evaluated **Then** it is shown as unplayable (greyed out) and the condition label reads "No control pool space remaining"; it is playable whenever at least 1 pool point is unclaimed.
 
-- **Given** the country influence pool has at least 1 unclaimed point and the player has 200+ gold **When** the player plays "Sphere of Pressure" **Then** a success roll is made at 50%; on success, 10 influence is added to the player's org in that country (excess beyond the pool cap of 100 is silently discarded; the play is still considered successful); on failure, no influence is added; in both cases the card leaves the hand.
+- **Given** the country control pool has at least 1 unclaimed point and the player has 200+ gold **When** the player plays "Sphere of Pressure" **Then** a success roll is made at 50%; on success, 10 control is added to the player's org in that country (excess beyond the pool cap of 100 is silently discarded; the play is still considered successful); on failure, no control is added; in both cases the card leaves the hand.
 
 - **Given** "Sphere of Pressure" has been played **When** the cooldown timer starts **Then** another copy of this card cannot re-enter the hand for 1 calendar month; the deck contains 3 copies total, so subsequent draws are possible once the cooldown expires.
 
@@ -32,13 +32,13 @@ As a player, I want to play action cards targeting a selected country — improv
 
 - **Given** there is at least one advisor-role character in the selected country **When** the action system builds the deck for that country **Then** one distinct named card exists per advisor role (Foreign Minister card, Finance Minister card, Military Advisor card, Interior Minister card, etc.), each carrying the advisor's `characterId` as its target and its own name and description; each advisor card contributes 3 copies to the deck.
 
-- **Given** the player's org has fewer than 10 influence in a country **When** the draw system evaluates advisor cards for that country **Then** none of them are eligible to enter the hand; they remain in the deck.
+- **Given** the player's org has fewer than 10 control in a country **When** the draw system evaluates advisor cards for that country **Then** none of them are eligible to enter the hand; they remain in the deck.
 
-- **Given** the player's org has 10+ influence in a country **When** a hand slot becomes free (after playing a card) **Then** an advisor card (for any advisor in that country) may be drawn at random into the hand if one is available in the deck.
+- **Given** the player's org has 10+ control in a country **When** a hand slot becomes free (after playing a card) **Then** an advisor card (for any advisor in that country) may be drawn at random into the hand if one is available in the deck.
 
-- **Given** an advisor card (e.g. "Diplomatic Dispatch", "Treasury Commission") is in hand **When** displayed **Then** it shows its own distinct card name and description (from Card Proposals), the targeted advisor's name in a secondary label, the dynamic success rate formula `30% + influence/2` evaluated at the current influence value, cost 50 gold.
+- **Given** an advisor card (e.g. "Diplomatic Dispatch", "Treasury Commission") is in hand **When** displayed **Then** it shows its own distinct card name and description (from Card Proposals), the targeted advisor's name in a secondary label, the dynamic success rate formula `30% + control/2` evaluated at the current control value, cost 50 gold.
 
-- **Given** the player plays an advisor card with 40 influence **When** the success roll is made **Then** the effective success rate is 50% (30% base + 20% from 40÷2); on success: an `OpinionModifier { SourceId = "letter_of_commendation", Value = 50, ChangeValue = -1 }` is added to the targeted advisor (lasting ~50 months) and, if the country influence pool is not yet full (at least 1 unclaimed point remains), 1 influence is added to the player's org in that country (excess beyond cap is silently discarded); on failure: neither effect applies; in both cases the card leaves the hand.
+- **Given** the player plays an advisor card with 40 control **When** the success roll is made **Then** the effective success rate is 50% (30% base + 20% from 40÷2); on success: an `OpinionModifier { SourceId = "letter_of_commendation", Value = 50, ChangeValue = -1 }` is added to the targeted advisor (lasting ~50 months) and, if the country control pool is not yet full (at least 1 unclaimed point remains), 1 control is added to the player's org in that country (excess beyond cap is silently discarded); on failure: neither effect applies; in both cases the card leaves the hand.
 
 - **Given** an advisor card has been played **When** cooldown starts **Then** no copy of that specific advisor's card can re-enter the hand for 2 calendar months.
 
@@ -48,13 +48,13 @@ As a player, I want to play action cards targeting a selected country — improv
 
 - **Given** a country has a ruler-role character **When** the deck for that country is built **Then** "Royal Audience" cards targeting that ruler are included (3 copies in the deck).
 
-- **Given** the player's org has fewer than 20 influence in a country **When** the draw system evaluates "Royal Audience" cards **Then** none are eligible to enter the hand.
+- **Given** the player's org has fewer than 20 control in a country **When** the draw system evaluates "Royal Audience" cards **Then** none are eligible to enter the hand.
 
-- **Given** the player's org has 20+ influence in a country **When** a hand slot becomes free **Then** a "Royal Audience" card may be drawn into the hand if one is available in the deck.
+- **Given** the player's org has 20+ control in a country **When** a hand slot becomes free **Then** a "Royal Audience" card may be drawn into the hand if one is available in the deck.
 
-- **Given** "Royal Audience" is in hand **When** displayed **Then** it shows the dynamic success rate `20% + influence/3` evaluated at current influence, cost 100 gold, and the description from Card Proposals.
+- **Given** "Royal Audience" is in hand **When** displayed **Then** it shows the dynamic success rate `20% + control/3` evaluated at current control, cost 100 gold, and the description from Card Proposals.
 
-- **Given** the player plays "Royal Audience" with 30 influence **When** the success roll is made **Then** the effective rate is 30% (20% base + 10% from 30÷3); on success: an `OpinionModifier { SourceId = "royal_audience", Value = 25, ChangeValue = -1 }` is added to the targeted ruler (lasting ~25 months) and, if the country influence pool is not yet full (at least 1 unclaimed point remains), 2 influence is added to the player's org in that country (excess beyond cap is silently discarded); on failure: neither effect applies; in both cases the card leaves the hand.
+- **Given** the player plays "Royal Audience" with 30 control **When** the success roll is made **Then** the effective rate is 30% (20% base + 10% from 30÷3); on success: an `OpinionModifier { SourceId = "royal_audience", Value = 25, ChangeValue = -1 }` is added to the targeted ruler (lasting ~25 months) and, if the country control pool is not yet full (at least 1 unclaimed point remains), 2 control is added to the player's org in that country (excess beyond cap is silently discarded); on failure: neither effect applies; in both cases the card leaves the hand.
 
 - **Given** "Royal Audience" has been played **When** cooldown starts **Then** no copy for the same ruler can re-enter the hand for 3 calendar months.
 
@@ -62,9 +62,9 @@ As a player, I want to play action cards targeting a selected country — improv
 
 ### Post-Play Flow
 
-- **Given** any country action card is played **When** the play resolves (success or failure) **Then** the system immediately re-evaluates which cards in the deck are eligible for the current influence level and draws one at random from the eligible subset into the vacated hand slot if any eligible card exists.
+- **Given** any country action card is played **When** the play resolves (success or failure) **Then** the system immediately re-evaluates which cards in the deck are eligible for the current control level and draws one at random from the eligible subset into the vacated hand slot if any eligible card exists.
 
-- **Given** a card is drawn after play **When** influence has risen due to the just-played card **Then** the new influence value (post-effect) is used for eligibility checks, not the pre-play value.
+- **Given** a card is drawn after play **When** control has risen due to the just-played card **Then** the new control value (post-effect) is used for eligibility checks, not the pre-play value.
 
 - **Given** a card's cooldown has not yet expired **When** the draw system runs **Then** that card (all copies for the same advisor/ruler target if applicable) is skipped and the next eligible card is considered.
 
@@ -88,9 +88,9 @@ As a player, I want to play action cards targeting a selected country — improv
 
 ### Dynamic Success Rate Tooltip
 
-- **Given** a card has a dynamic success rate (Letter of Commendation or Royal Audience) **When** the player hovers over the success rate percentage **Then** a tooltip appears showing the breakdown, e.g. "50% = 30% base + 20% from 40 influence".
+- **Given** a card has a dynamic success rate (Letter of Commendation or Royal Audience) **When** the player hovers over the success rate percentage **Then** a tooltip appears showing the breakdown, e.g. "50% = 30% base + 20% from 40 control".
 
-- **Given** the influence value changes (e.g. after playing another card) **When** the tooltip is re-opened **Then** it reflects the updated influence and recalculated total.
+- **Given** the control value changes (e.g. after playing another card) **When** the tooltip is re-opened **Then** it reflects the updated control and recalculated total.
 
 - **Given** a card has a fixed success rate (Sphere of Pressure) **When** the player hovers over the rate **Then** no breakdown tooltip is shown (the value is static and self-explanatory).
 
@@ -118,7 +118,7 @@ As a player, I want to play action cards targeting a selected country — improv
 
 ## Card Proposals
 
-### Add Influence — "Sphere of Pressure"
+### Add Control — "Sphere of Pressure"
 
 > *Dispatch your agents to consolidate the organisation's foothold. A show of coordinated strength may tip the balance of local loyalties.*
 
@@ -128,7 +128,7 @@ As a player, I want to play action cards targeting a selected country — improv
 
 ### Improve Advisor Relations — Per-Advisor Cards
 
-Each advisor role has its own distinct card name and description. All share the same mechanical profile (cost 50 gold, `30% + influence/2` success rate, `OpinionModifier` on success, +1 influence if pool not full). The targeted advisor's name is shown in a secondary label on the card face.
+Each advisor role has its own distinct card name and description. All share the same mechanical profile (cost 50 gold, `30% + control/2` success rate, `OpinionModifier` on success, +1 control if pool not full). The targeted advisor's name is shown in a secondary label on the card face.
 
 ---
 
@@ -168,7 +168,7 @@ Each advisor role has its own distinct card name and description. All share the 
 
 > *Securing a private audience with the sovereign is a rare honour. The right words, delivered face to face, may sow the seeds of a lasting alliance.*
 
-- **Flavour note:** Captures the personal diplomacy of 19th-century statecraft, where direct ruler access was a coveted instrument of influence. The targeted ruler's name is shown in a secondary label on the card face.
+- **Flavour note:** Captures the personal diplomacy of 19th-century statecraft, where direct ruler access was a coveted instrument of control. The targeted ruler's name is shown in a secondary label on the card face.
 
 ---
 
@@ -177,7 +177,7 @@ Each advisor role has its own distinct card name and description. All share the 
 - Action cards targeting countries where the player's org has no presence — "Sphere of Pressure" is bootstrapped into the initial hand regardless of pool state, giving the player an entry point.
 - Opponent AI organisations using country action cards.
 - Card artwork generation (placeholder art is acceptable for initial delivery).
-- Negative-outcome cards or cards that reduce another org's influence.
+- Negative-outcome cards or cards that reduce another org's control.
 - Country characters other than advisors and rulers being targeted by these cards.
 - An "undo" or cancel mechanic after a card play begins.
 - Any cooldown mechanic for the initial "Sphere of Pressure" card that is pre-dealt at game start (the cooldown only applies after it is played and a copy re-enters the hand from the deck).

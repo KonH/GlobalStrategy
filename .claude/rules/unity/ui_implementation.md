@@ -74,6 +74,6 @@ Workflow:
 
 ## Format Strings for Fractional Gold Values
 
-The game's base monthly income is `1.0` gold/country. Influence incomes are fractions (e.g. `0.1`).
+The game's base monthly income is `1.0` gold/country. Control incomes are fractions (e.g. `0.1`).
 
 Always use `:F1` (not `:F0`) for income/monetary values — `:F0` silently rounds small values to zero and shows misleading `+0/month`.

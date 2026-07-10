@@ -21,7 +21,7 @@ namespace GS.Unity.UI {
 			_root.style.display = DisplayStyle.None;
 		}
 
-		public void Refresh(SelectedCountryState country, OrgMapState orgMap, CountryInfluenceState influence) {
+		public void Refresh(SelectedCountryState country, OrgMapState orgMap, CountryControlState control) {
 			if (!country.IsValid) {
 				_root.style.display = DisplayStyle.None;
 				return;
@@ -37,7 +37,7 @@ namespace GS.Unity.UI {
 
 			if (found != null) {
 				string displayName = found.TopOrgId;
-				foreach (var org in influence.OrgEntries) {
+				foreach (var org in control.OrgEntries) {
 					if (org.OrgId == found.TopOrgId) {
 						displayName = org.DisplayName;
 						break;

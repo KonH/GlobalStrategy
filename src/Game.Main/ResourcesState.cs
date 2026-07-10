@@ -28,11 +28,11 @@ namespace GS.Main {
 		}
 	}
 
-	public class InfluenceIncomeEntry {
+	public class ControlIncomeEntry {
 		public string CountryId { get; }
 		public double MonthlyGold { get; }
 
-		public InfluenceIncomeEntry(string countryId, double monthlyGold) {
+		public ControlIncomeEntry(string countryId, double monthlyGold) {
 			CountryId = countryId;
 			MonthlyGold = monthlyGold;
 		}
@@ -44,14 +44,14 @@ namespace GS.Main {
 		public bool IsValid { get; private set; }
 		public string CountryId { get; private set; } = "";
 		public IReadOnlyList<ResourceStateEntry> Resources { get; private set; } = Array.Empty<ResourceStateEntry>();
-		public IReadOnlyList<InfluenceIncomeEntry> InfluenceIncomes { get; private set; } = Array.Empty<InfluenceIncomeEntry>();
+		public IReadOnlyList<ControlIncomeEntry> ControlIncomes { get; private set; } = Array.Empty<ControlIncomeEntry>();
 
 		public void Set(bool isValid, string countryId, List<ResourceStateEntry> resources,
-				IReadOnlyList<InfluenceIncomeEntry>? influenceIncomes = null) {
+				IReadOnlyList<ControlIncomeEntry>? controlIncomes = null) {
 			IsValid = isValid;
 			CountryId = countryId;
 			Resources = resources;
-			InfluenceIncomes = influenceIncomes ?? Array.Empty<InfluenceIncomeEntry>();
+			ControlIncomes = controlIncomes ?? Array.Empty<ControlIncomeEntry>();
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}

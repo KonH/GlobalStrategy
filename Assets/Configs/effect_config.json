@@ -8,17 +8,17 @@
       "minCountryChance": 0.01
     },
     {
-      "effectId": "sphere_of_pressure_influence",
-      "effectType": "InfluenceChange",
-      "nameKey": "effect.sphere_of_pressure_influence.name",
-      "descKey": "effect.sphere_of_pressure_influence.desc",
+      "effectId": "sphere_of_pressure_control",
+      "effectType": "ControlChange",
+      "nameKey": "effect.sphere_of_pressure_control.name",
+      "descKey": "effect.sphere_of_pressure_control.desc",
       "amount": 10
     },
     {
-      "effectId": "letter_commendation_influence",
-      "effectType": "InfluenceChange",
-      "nameKey": "effect.letter_commendation_influence.name",
-      "descKey": "effect.letter_commendation_influence.desc",
+      "effectId": "letter_commendation_control",
+      "effectType": "ControlChange",
+      "nameKey": "effect.letter_commendation_control.name",
+      "descKey": "effect.letter_commendation_control.desc",
       "amount": 1
     },
     {
@@ -31,10 +31,10 @@
       "decayPerMonth": 1
     },
     {
-      "effectId": "royal_audience_influence",
-      "effectType": "InfluenceChange",
-      "nameKey": "effect.royal_audience_influence.name",
-      "descKey": "effect.royal_audience_influence.desc",
+      "effectId": "royal_audience_control",
+      "effectType": "ControlChange",
+      "nameKey": "effect.royal_audience_control.name",
+      "descKey": "effect.royal_audience_control.desc",
       "amount": 2
     },
     {

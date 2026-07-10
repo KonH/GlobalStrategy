@@ -18,7 +18,7 @@ namespace GS.Game.Tests {
 			typeof(ResourceLink),
 			typeof(ResourceEffect),
 			typeof(Organization),
-			typeof(InfluenceEffect)
+			typeof(ControlEffect)
 		};
 
 		static readonly Type[] ExpectedNotSavable = {

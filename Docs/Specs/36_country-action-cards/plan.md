@@ -2,13 +2,13 @@
 
 ## Spec
 
-Players can play action cards targeting a selected country to improve influence and build relations with its characters. Three card types exist:
+Players can play action cards targeting a selected country to improve control and build relations with its characters. Three card types exist:
 
-- **Sphere of Pressure** (`sphere_of_pressure`): fixed 50% success, 200 gold, +10 influence on success, 1-month cooldown. Pre-dealt to hand slot 0 for every country. Unplayable when influence pool ≥ 100.
-- **Letter of Commendation** (`letter_of_commendation_{roleId}`): per advisor role (diplomacy/economic/military/secret), 30%+influence/2 success, 50 gold, +opinion modifier (Value=50, ChangeValue=-1) on success, +1 influence if pool not full. 2-month cooldown. Requires ≥10 influence to draw.
-- **Royal Audience** (`royal_audience`): targets ruler, 20%+influence/3 success, 100 gold, +opinion modifier (Value=25, ChangeValue=-1) on success, +2 influence if pool not full. 3-month cooldown. Requires ≥20 influence to draw.
+- **Sphere of Pressure** (`sphere_of_pressure`): fixed 50% success, 200 gold, +10 control on success, 1-month cooldown. Pre-dealt to hand slot 0 for every country. Unplayable when control pool ≥ 100.
+- **Letter of Commendation** (`letter_of_commendation_{roleId}`): per advisor role (diplomacy/economic/military/secret), 30%+control/2 success, 50 gold, +opinion modifier (Value=50, ChangeValue=-1) on success, +1 control if pool not full. 2-month cooldown. Requires ≥10 control to draw.
+- **Royal Audience** (`royal_audience`): targets ruler, 20%+control/3 success, 100 gold, +opinion modifier (Value=25, ChangeValue=-1) on success, +2 control if pool not full. 3-month cooldown. Requires ≥20 control to draw.
 
-All card decks hold 3 copies. Post-play, the system draws one eligible card from the deck using updated influence. Cooldown display: "N year(s)", "N month(s)", "N days", "1 day", "less than a day". Dynamic-rate cards show a tooltip breakdown on hover. Country panel gets an "Actions" button that opens the 3-slot hand + deck pile. OrgInfoDocument bug fix: Characters and Actions slides must be mutually exclusive.
+All card decks hold 3 copies. Post-play, the system draws one eligible card from the deck using updated control. Cooldown display: "N year(s)", "N month(s)", "N days", "1 day", "less than a day". Dynamic-rate cards show a tooltip breakdown on hover. Country panel gets an "Actions" button that opens the 3-slot hand + deck pile. OrgInfoDocument bug fix: Characters and Actions slides must be mutually exclusive.
 
 Out of scope: AI using cards, undo.
 
@@ -37,16 +37,16 @@ New ECS components (`CountryActionCard`, `ActionCooldown`) track per-country car
 ### Phase 2 — Config
 
 - [x] **Create `src/Game.Configs/CountryActionConfig.cs`** — define two classes:
-  - `CountryActionDefinition` with properties: `string ActionId`, `string NameKey`, `string DescKey`, `string TargetRole`, `int DeckCopies`, `bool PreDealtToHand`, `int CooldownMonths`, `int InfluenceThreshold`, `float SuccessRateBase`, `int SuccessRateInfluenceDivisor` (0 = fixed rate), `double GoldCost`, `int InfluenceOnSuccess`, `string OpinionModifierSourceId`, `int OpinionModifierValue`, `int OpinionModifierChangeValue`.
+  - `CountryActionDefinition` with properties: `string ActionId`, `string NameKey`, `string DescKey`, `string TargetRole`, `int DeckCopies`, `bool PreDealtToHand`, `int CooldownMonths`, `int ControlThreshold`, `float SuccessRateBase`, `int SuccessRateControlDivisor` (0 = fixed rate), `double GoldCost`, `int ControlOnSuccess`, `string OpinionModifierSourceId`, `int OpinionModifierValue`, `int OpinionModifierChangeValue`.
   - `CountryActionConfig` with property `List<CountryActionDefinition> Actions` (init to `new()`) and method `public CountryActionDefinition? Find(string actionId)` that iterates and returns the matching entry or null.
 
 - [x] **Create `Assets/Configs/country_action_config.json`** — write the JSON with the `"actions"` array containing 6 entries (one per card type listed below). Use camelCase field names to match Newtonsoft.Json default. Entries:
-  1. `sphere_of_pressure`: targetRole="" , preDealtToHand=true, cooldownMonths=1, influenceThreshold=0, successRateBase=0.5, successRateInfluenceDivisor=0, goldCost=200.0, influenceOnSuccess=10, opinionModifierSourceId="", opinionModifierValue=0, opinionModifierChangeValue=0, deckCopies=3, nameKey="action.sphere_of_pressure.name", descKey="action.sphere_of_pressure.desc"
-  2. `letter_of_commendation_diplomacy_advisor`: targetRole="diplomacy_advisor", preDealtToHand=false, cooldownMonths=2, influenceThreshold=10, successRateBase=0.3, successRateInfluenceDivisor=2, goldCost=50.0, influenceOnSuccess=1, opinionModifierSourceId="letter_of_commendation", opinionModifierValue=50, opinionModifierChangeValue=-1, deckCopies=3, nameKey="action.letter_of_commendation_diplomacy_advisor.name", descKey="action.letter_of_commendation_diplomacy_advisor.desc"
+  1. `sphere_of_pressure`: targetRole="" , preDealtToHand=true, cooldownMonths=1, controlThreshold=0, successRateBase=0.5, successRateControlDivisor=0, goldCost=200.0, controlOnSuccess=10, opinionModifierSourceId="", opinionModifierValue=0, opinionModifierChangeValue=0, deckCopies=3, nameKey="action.sphere_of_pressure.name", descKey="action.sphere_of_pressure.desc"
+  2. `letter_of_commendation_diplomacy_advisor`: targetRole="diplomacy_advisor", preDealtToHand=false, cooldownMonths=2, controlThreshold=10, successRateBase=0.3, successRateControlDivisor=2, goldCost=50.0, controlOnSuccess=1, opinionModifierSourceId="letter_of_commendation", opinionModifierValue=50, opinionModifierChangeValue=-1, deckCopies=3, nameKey="action.letter_of_commendation_diplomacy_advisor.name", descKey="action.letter_of_commendation_diplomacy_advisor.desc"
   3. `letter_of_commendation_economic_advisor`: same as above but targetRole="economic_advisor", actionId and keys adjusted accordingly
   4. `letter_of_commendation_military_advisor`: targetRole="military_advisor"
   5. `letter_of_commendation_secret_advisor`: targetRole="secret_advisor"
-  6. `royal_audience`: targetRole="ruler", preDealtToHand=false, cooldownMonths=3, influenceThreshold=20, successRateBase=0.2, successRateInfluenceDivisor=3, goldCost=100.0, influenceOnSuccess=2, opinionModifierSourceId="royal_audience", opinionModifierValue=25, opinionModifierChangeValue=-1, deckCopies=3, nameKey="action.royal_audience.name", descKey="action.royal_audience.desc"
+  6. `royal_audience`: targetRole="ruler", preDealtToHand=false, cooldownMonths=3, controlThreshold=20, successRateBase=0.2, successRateControlDivisor=3, goldCost=100.0, controlOnSuccess=2, opinionModifierSourceId="royal_audience", opinionModifierValue=25, opinionModifierChangeValue=-1, deckCopies=3, nameKey="action.royal_audience.name", descKey="action.royal_audience.desc"
 
 ### Phase 3 — Command
 
@@ -67,24 +67,24 @@ New ECS components (`CountryActionCard`, `ActionCooldown`) track per-country car
   1. Look up `CountryActionDefinition def = config.Find(cmd.ActionId)`. If null, return default.
   2. Find the org's gold entity: iterate `ResourceOwner` + `Resource` where `OwnerId == cmd.OrgId && ResourceId == "gold"`. If gold < def.GoldCost, return default (not Executed).
   3. Deduct gold: `resources[i].Value -= def.GoldCost`.
-  4. Compute player org influence in country: iterate `InfluenceEffect` entities where `OrgId == cmd.OrgId && CountryId == cmd.CountryId`, sum `Value` → `int orgInfluence`.
-  5. Check eligibility: if `orgInfluence < def.InfluenceThreshold`, return `new ActionResult { Executed = true, Success = false }` (gold was already deducted — this shouldn't happen if UI guards correctly, but be safe; alternatively, deduct gold only after eligibility check. Opt for eligibility check BEFORE gold deduction: move step 2–3 after step 4–5).
+  4. Compute player org control in country: iterate `ControlEffect` entities where `OrgId == cmd.OrgId && CountryId == cmd.CountryId`, sum `Value` → `int orgControl`.
+  5. Check eligibility: if `orgControl < def.ControlThreshold`, return `new ActionResult { Executed = true, Success = false }` (gold was already deducted — this shouldn't happen if UI guards correctly, but be safe; alternatively, deduct gold only after eligibility check. Opt for eligibility check BEFORE gold deduction: move step 2–3 after step 4–5).
   
      **Revised order:**
      1. Find def (return default if null).
-     2. Compute `orgInfluence` (sum InfluenceEffect for orgId+countryId).
-     3. Check eligibility (`orgInfluence < def.InfluenceThreshold`) → return default if ineligible.
+     2. Compute `orgControl` (sum ControlEffect for orgId+countryId).
+     3. Check eligibility (`orgControl < def.ControlThreshold`) → return default if ineligible.
      4. Check and deduct gold → return default if cannot afford.
      5. Mark `result.Executed = true`.
      6. Remove `InHand` from the played entity: iterate `CountryActionCard + InHand` where card matches (OrgId, CountryId, ActionId, TargetCharacterId), call `world.Remove<InHand>(entityId)`. Store the vacated `SlotIndex`.
      7. Add `ActionCooldown { CooldownEndTime = currentTime.AddMonths(def.CooldownMonths) }` to ALL `CountryActionCard` entities where (OrgId, CountryId, ActionId, TargetCharacterId) match — collect into a list first, then add.
-     8. Roll RNG: `float successRate = def.SuccessRateBase + (def.SuccessRateInfluenceDivisor > 0 ? orgInfluence / (float)def.SuccessRateInfluenceDivisor : 0f)`. Clamp to 1.0f. `result.Success = (float)rng.NextDouble() < successRate`.
+     8. Roll RNG: `float successRate = def.SuccessRateBase + (def.SuccessRateControlDivisor > 0 ? orgControl / (float)def.SuccessRateControlDivisor : 0f)`. Clamp to 1.0f. `result.Success = (float)rng.NextDouble() < successRate`.
      9. On success:
-        - If `def.InfluenceOnSuccess > 0`: compute total influence pool used (iterate ALL `InfluenceEffect` for `CountryId == cmd.CountryId`, sum all org values → `int usedTotal`). If `usedTotal < 100`: create a new `InfluenceEffect` entity with `OrgId = cmd.OrgId`, `CountryId = cmd.CountryId`, `Value = Math.Min(def.InfluenceOnSuccess, 100 - usedTotal)`, `EffectId = $"country_action_{cmd.OrgId}_{cmd.ActionId}_{currentTime.Ticks}"`.
+        - If `def.ControlOnSuccess > 0`: compute total control pool used (iterate ALL `ControlEffect` for `CountryId == cmd.CountryId`, sum all org values → `int usedTotal`). If `usedTotal < 100`: create a new `ControlEffect` entity with `OrgId = cmd.OrgId`, `CountryId = cmd.CountryId`, `Value = Math.Min(def.ControlOnSuccess, 100 - usedTotal)`, `EffectId = $"country_action_{cmd.OrgId}_{cmd.ActionId}_{currentTime.Ticks}"`.
         - If `def.OpinionModifierSourceId != ""` and `!string.IsNullOrEmpty(cmd.TargetCharacterId)`: find entity with `Character.CharacterId == cmd.TargetCharacterId` and `CharacterOpinion` component. Add to `opinion.ModifiersPerOrg[cmd.OrgId]` a new `OpinionModifier { SourceId = def.OpinionModifierSourceId, Value = def.OpinionModifierValue, ChangeValue = def.OpinionModifierChangeValue }`. Initialise the dictionary and list if null.
      10. Draw next card:
-        - Recompute `orgInfluence` (now post-effect) by iterating InfluenceEffect again.
-        - Find all `CountryActionCard` entities for (OrgId, CountryId) that have neither `InHand` nor `ActionCooldown` components. Filter: `config.Find(card.ActionId)?.InfluenceThreshold <= orgInfluence`. Collect into a `List<int>` of entity IDs.
+        - Recompute `orgControl` (now post-effect) by iterating ControlEffect again.
+        - Find all `CountryActionCard` entities for (OrgId, CountryId) that have neither `InHand` nor `ActionCooldown` components. Filter: `config.Find(card.ActionId)?.ControlThreshold <= orgControl`. Collect into a `List<int>` of entity IDs.
         - Fisher-Yates shuffle the list with `rng`.
         - If the list is non-empty, add `InHand { SlotIndex = vacatedSlot }` to the first entity.
      11. Return result.
@@ -128,10 +128,10 @@ New ECS components (`CountryActionCard`, `ActionCooldown`) track per-country car
     bool IsInHand
     string TargetCharacterId
     string TargetCharacterName   // resolved display name from locale keys
-    float SuccessRate             // computed: base + influence/divisor
-    bool IsRateDynamic            // true when successRateInfluenceDivisor > 0
-    int InfluenceBase             // for tooltip: successRateBase as int %
-    int InfluenceBonus            // for tooltip: contribution from current influence
+    float SuccessRate             // computed: base + control/divisor
+    bool IsRateDynamic            // true when successRateControlDivisor > 0
+    int ControlBase             // for tooltip: successRateBase as int %
+    int ControlBonus            // for tooltip: contribution from current control
     bool IsUnplayable
     string UnplayableReason
     bool IsOnCooldown
@@ -163,8 +163,8 @@ New ECS components (`CountryActionCard`, `ActionCooldown`) track per-country car
     - `_state.SelectedCountryActions.Set(new List<CountryActionCardEntry>(), new List<CountryActionCardEntry>(), 0);` return.
   - `string orgId = _state.PlayerOrganization.OrgId;`
   - `string countryId = _state.SelectedCountry.CountryId;`
-  - Compute `int orgInfluence`: iterate `InfluenceEffect` entities where `OrgId == orgId && CountryId == countryId`, sum Value.
-  - Compute `int usedTotal`: iterate ALL `InfluenceEffect` entities where `CountryId == countryId`, sum Value.
+  - Compute `int orgControl`: iterate `ControlEffect` entities where `OrgId == orgId && CountryId == countryId`, sum Value.
+  - Compute `int usedTotal`: iterate ALL `ControlEffect` entities where `CountryId == countryId`, sum Value.
   - Build char name lookup: iterate `Character` entities where `CountryId == countryId`, build `Dictionary<string, string[]> charNameKeys` keyed by CharacterId.
   - Build cooldown lookup: iterate `CountryActionCard + ActionCooldown` entities where `OrgId == orgId && CountryId == countryId`, build `Dictionary<(string actionId, string targetCharId), DateTime> cooldownMap`.
   - Iterate `CountryActionCard` entities (without `InHand` exclude) for (OrgId == orgId, CountryId == countryId):
@@ -174,20 +174,20 @@ New ECS components (`CountryActionCard`, `ActionCooldown`) track per-country car
       2. `int[] deckReq = { TypeId<CountryActionCard>.Value };`, exclude `{ TypeId<InHand>.Value }` → deck list.
   - For each card (hand + deck), build a `CountryActionCardEntry`:
     - `def = _countryActionConfig.Find(card.ActionId)` — skip if def is null.
-    - `float successRate = def.SuccessRateBase + (def.SuccessRateInfluenceDivisor > 0 ? orgInfluence / (float)def.SuccessRateInfluenceDivisor : 0f)`. Clamp to 1.0f.
-    - `bool isDynamic = def.SuccessRateInfluenceDivisor > 0`.
-    - `int influenceBase = (int)(def.SuccessRateBase * 100)`.
-    - `int influenceBonus = isDynamic ? (int)(orgInfluence / (float)def.SuccessRateInfluenceDivisor * 100) : 0`.
+    - `float successRate = def.SuccessRateBase + (def.SuccessRateControlDivisor > 0 ? orgControl / (float)def.SuccessRateControlDivisor : 0f)`. Clamp to 1.0f.
+    - `bool isDynamic = def.SuccessRateControlDivisor > 0`.
+    - `int controlBase = (int)(def.SuccessRateBase * 100)`.
+    - `int controlBonus = isDynamic ? (int)(orgControl / (float)def.SuccessRateControlDivisor * 100) : 0`.
     - Cooldown: check cooldownMap with key `(card.ActionId, card.TargetCharacterId)`.
-    - `bool isUnplayable`: `orgInfluence < def.InfluenceThreshold` OR (`def.ActionId == "sphere_of_pressure" && usedTotal >= 100`) OR `isOnCooldown`.
-    - `string unplayableReason`: if influence below threshold → use locale key `"action.country.unplayable.insufficient_influence"` format with threshold value (pass the threshold int, the view formats it). Store raw threshold in a separate field OR pass the reason string computed here. Since `VisualStateConverter` doesn't have locale access, store `UnplayableReason` as a key+arg composite or just store a code. Simplest: store the threshold value as part of the reason string like `"insufficient_influence:10"` and let the view parse it, OR store the numeric threshold in `CountryActionCardEntry` and let the view format. **Decision: add `int InfluenceThreshold` property to `CountryActionCardEntry` and set `UnplayableReason` to either `"pool_full"` or `"insufficient_influence"` (a code string). The view resolves the locale key from the code.** Add `int InfluenceThreshold` property to the entry.
+    - `bool isUnplayable`: `orgControl < def.ControlThreshold` OR (`def.ActionId == "sphere_of_pressure" && usedTotal >= 100`) OR `isOnCooldown`.
+    - `string unplayableReason`: if control below threshold → use locale key `"action.country.unplayable.insufficient_control"` format with threshold value (pass the threshold int, the view formats it). Store raw threshold in a separate field OR pass the reason string computed here. Since `VisualStateConverter` doesn't have locale access, store `UnplayableReason` as a key+arg composite or just store a code. Simplest: store the threshold value as part of the reason string like `"insufficient_control:10"` and let the view parse it, OR store the numeric threshold in `CountryActionCardEntry` and let the view format. **Decision: add `int ControlThreshold` property to `CountryActionCardEntry` and set `UnplayableReason` to either `"pool_full"` or `"insufficient_control"` (a code string). The view resolves the locale key from the code.** Add `int ControlThreshold` property to the entry.
     - `string targetCharacterName`: if `charNameKeys.TryGetValue(card.TargetCharacterId, out var keys)` → store the keys array. The view will call `loc.Get()` on them to build the name. Since VisualStateConverter doesn't know locale, store `string[] TargetCharacterNameKeys` instead of `string TargetCharacterName` on the entry. Rename the field in `CountryActionCardEntry` to `string[] TargetCharacterNameKeys`.
   - Sort hand by SlotIndex. Call `_state.SelectedCountryActions.Set(hand, deck, 3)`.
 
   **Correction to `CountryActionCardEntry` fields after the above:**
   - Replace `string TargetCharacterName` with `string[] TargetCharacterNameKeys`.
-  - Add `int InfluenceThreshold`.
-  - Keep `string UnplayableReason` as a code: `""`, `"pool_full"`, or `"insufficient_influence"`.
+  - Add `int ControlThreshold`.
+  - Keep `string UnplayableReason` as a code: `""`, `"pool_full"`, or `"insufficient_control"`.
 
 ### Phase 9 — GameLogic
 
@@ -251,8 +251,8 @@ New ECS components (`CountryActionCard`, `ActionCooldown`) track per-country car
   action.letter_of_commendation_secret_advisor.desc → "A whispered arrangement, conveyed through cut-outs and sealed with mutual benefit. Some alliances are better left unwritten."
   action.royal_audience.name → "Royal Audience"
   action.royal_audience.desc → "Securing a private audience with the sovereign is a rare honour. The right words, delivered face to face, may sow the seeds of a lasting alliance."
-  action.country.unplayable.pool_full → "No influence pool space remaining"
-  action.country.unplayable.insufficient_influence → "Requires {0} influence"
+  action.country.unplayable.pool_full → "No control pool space remaining"
+  action.country.unplayable.insufficient_control → "Requires {0} control"
   ```
 
 - [x] **Edit `Assets/Localization/ru.asset`** — add the same keys with the same English strings as placeholder Russian translations (the same English text for now).
@@ -461,13 +461,13 @@ New ECS components (`CountryActionCard`, `ActionCooldown`) track per-country car
   - Art `VisualElement` with class `"action-card-art"`. Resolve sprite: `var sprite = _visualConfig?.FindFront(card.ActionId);` and if non-null set `art.style.backgroundImage = new StyleBackground(sprite);` — same pattern as `OrgActionsView.BuildHandCard`.
   - Body: description label, footer with success% label and cost label.
     - Success% label: `$"{(int)(card.SuccessRate * 100)}%"`. Add class `"action-card-success-pct"`.
-    - If `card.IsRateDynamic`, register a tooltip on the success% label showing `"X% = Ybase% + Zbonus% from W influence"` using `card.InfluenceBase`, `card.InfluenceBonus`, and current influence value. To get current influence value: `card.InfluenceBase + card.InfluenceBonus` already represents the split; derive `int influenceUsed = card.SuccessRateInfluenceDivisor * card.InfluenceBonus / 100`. Actually, store the raw influence value separately: add `int CurrentOrgInfluence` to `CountryActionCardEntry` and set it in `VisualStateConverter`. Then the tooltip can say e.g. `$"{(int)(card.SuccessRate*100)}% = {card.InfluenceBase}% base + {card.InfluenceBonus}% from {card.CurrentOrgInfluence} influence"`.
+    - If `card.IsRateDynamic`, register a tooltip on the success% label showing `"X% = Ybase% + Zbonus% from W control"` using `card.ControlBase`, `card.ControlBonus`, and current control value. To get current control value: `card.ControlBase + card.ControlBonus` already represents the split; derive `int controlUsed = card.SuccessRateControlDivisor * card.ControlBonus / 100`. Actually, store the raw control value separately: add `int CurrentOrgControl` to `CountryActionCardEntry` and set it in `VisualStateConverter`. Then the tooltip can say e.g. `$"{(int)(card.SuccessRate*100)}% = {card.ControlBase}% base + {card.ControlBonus}% from {card.CurrentOrgControl} control"`.
     - Cost label: `$"{(int)def.GoldCost}"` + gold icon class. Check affordability: `resources?.Gold >= def.GoldCost` (or just compare against the resource list). Use same helper as `OrgActionsView.GetResourceValue`.
     - If `card.TargetCharacterNameKeys?.Length > 0`: add a secondary label for the target name. Build name string: `string.Join(" ", card.TargetCharacterNameKeys.Select(k => _loc.Get(k)))`.
   - Cooldown overlay: if `card.IsOnCooldown`: add a `VisualElement` overlay with class `"action-card-cooldown-overlay"` containing a `Label` with the formatted duration. Format duration via helper `FormatCooldown(DateTime end, DateTime now)`:
     - `TimeSpan span = end - now`. Use `DateTime.UtcNow` — but we don't have current time in the view. **Decision: add `DateTime CurrentTime` to `CountryActionsState` (set in `VisualStateConverter` from `gameTimeEntity`)**. Pass it through `Refresh`. Actually, add `public DateTime CurrentTime { get; private set; }` to `CountryActionsState` and set it in `VisualStateConverter.UpdateCountryActions` by passing `world.Get<GameTime>(gameTimeEntity).CurrentTime`. The `VisualStateConverter.UpdateCountryActions` call needs `gameTimeEntity` — pass it as a parameter from `Update(world, gameTimeEntity, ...)` which already has it.
     - `TimeSpan remaining = card.CooldownEnd - state.CurrentTime`. Format: days = `(int)remaining.TotalDays`. If `days >= 365`: `$"{days/365} year(s)"`. Else if `days >= 30`: `$"{days/30} month(s)"`. Else if `days >= 2`: `$"{days} days"`. Else if `days == 1`: `"1 day"`. Else: `"less than a day"`.
-  - Unplayable reason label: if `card.IsUnplayable && !card.IsOnCooldown`: add a `Label` with class `"action-card-unplayable-reason"`. Resolve text: if `card.UnplayableReason == "pool_full"` → `_loc.Get("action.country.unplayable.pool_full")`; if `"insufficient_influence"` → `string.Format(_loc.Get("action.country.unplayable.insufficient_influence"), card.InfluenceThreshold)`.
+  - Unplayable reason label: if `card.IsUnplayable && !card.IsOnCooldown`: add a `Label` with class `"action-card-unplayable-reason"`. Resolve text: if `card.UnplayableReason == "pool_full"` → `_loc.Get("action.country.unplayable.pool_full")`; if `"insufficient_control"` → `string.Format(_loc.Get("action.country.unplayable.insufficient_control"), card.ControlThreshold)`.
   - Click handler: if `!card.IsUnplayable && !card.IsOnCooldown`:
     ```
     string capturedAction = card.ActionId;
@@ -483,7 +483,7 @@ New ECS components (`CountryActionCard`, `ActionCooldown`) track per-country car
 
   `VisualElement BuildDeckPile(int deckCount)` — copy from `OrgActionsView.BuildDeckPile`. Use `_visualConfig?.defaultBackImage` for the back sprite, same as `OrgActionsView`. Class names are the same.
 
-  **Amend `CountryActionCardEntry`** to add `int CurrentOrgInfluence` field (set to orgInfluence in VisualStateConverter for every card in the country). Also **amend `CountryActionsState`** to add `DateTime CurrentTime` property.
+  **Amend `CountryActionCardEntry`** to add `int CurrentOrgControl` field (set to orgControl in VisualStateConverter for every card in the country). Also **amend `CountryActionsState`** to add `DateTime CurrentTime` property.
 
   **Amend `VisualStateConverter.UpdateCountryActions`** signature to receive `int gameTimeEntity` (already available in `Update`). Update the `Update` method call: pass `gameTimeEntity` as a parameter to `UpdateCountryActions(world, gameTimeEntity)`. In `UpdateCountryActions`, read `DateTime currentTime = world.Get<GameTime>(gameTimeEntity).CurrentTime;` and set `_state.SelectedCountryActions.CurrentTime = currentTime` inside the `Set` call (update the `Set` method signature to `Set(List<...> hand, List<...> deck, int handSize, DateTime currentTime)`).
 
@@ -636,11 +636,11 @@ New ECS components (`CountryActionCard`, `ActionCooldown`) track per-country car
 
 2. **Test mutual exclusion in OrgInfoDocument**: Open the Org panel (player org info). Open the Characters slide. Click Actions — verify Characters closes. Open Characters again — verify Actions closes.
 
-3. **Test Sphere of Pressure**: With a country selected showing ≥1 free influence pool point, click the "Sphere of Pressure" card. Confirm gold decreases by 200 and influence increases by up to 10 on success.
+3. **Test Sphere of Pressure**: With a country selected showing ≥1 free control pool point, click the "Sphere of Pressure" card. Confirm gold decreases by 200 and control increases by up to 10 on success.
 
-4. **Test influence pool full**: Use debug influence buttons to push a country's pool to 100. Verify Sphere of Pressure shows as greyed out with "No influence pool space remaining".
+4. **Test control pool full**: Use debug control buttons to push a country's pool to 100. Verify Sphere of Pressure shows as greyed out with "No control pool space remaining".
 
-5. **Test Letter of Commendation draw**: Use the debug ChangeInfluence to set org influence in a country to ≥10. Advance game time. Verify an advisor card draws into the hand.
+5. **Test Letter of Commendation draw**: Use the debug ChangeControl to set org control in a country to ≥10. Advance game time. Verify an advisor card draws into the hand.
 
 6. **Test cooldown display**: Play a card. Verify the card shows a cooldown label in the appropriate format (N months) and cannot be clicked.
 
@@ -656,11 +656,11 @@ Add `src/Game.Tests/CountryActionSystemTests.cs` with the following test cases:
 
 - `sphere_of_pressure_pre_dealt_in_hand_on_init` — call `InitSystem.Update` with a test `GameLogicContext` that includes a `CountryActionConfig` with `sphere_of_pressure` (preDealtToHand=true). Assert exactly one `CountryActionCard` entity with `ActionId == "sphere_of_pressure"` has an `InHand` component for the player org and the test country. Assert the other 2 copies do NOT have `InHand`.
 
-- `play_sphere_of_pressure_success_adds_influence` — set up world with org gold ≥ 200, no existing influence. Force success by seeding `Random` deterministically (or mock — use seed 0 if `rng.NextDouble() < 0.5` succeeds on first roll, otherwise use a known seed). Push `PlayCountryActionCommand` and call `CountryActionSystem.ProcessPlayCountryAction`. Assert `result.Executed == true`, `result.Success == true`, assert one `InfluenceEffect` entity exists for (orgId, countryId) with `Value == 10`.
+- `play_sphere_of_pressure_success_adds_control` — set up world with org gold ≥ 200, no existing control. Force success by seeding `Random` deterministically (or mock — use seed 0 if `rng.NextDouble() < 0.5` succeeds on first roll, otherwise use a known seed). Push `PlayCountryActionCommand` and call `CountryActionSystem.ProcessPlayCountryAction`. Assert `result.Executed == true`, `result.Success == true`, assert one `ControlEffect` entity exists for (orgId, countryId) with `Value == 10`.
 
-- `play_sphere_of_pressure_does_not_exceed_pool` — pre-populate a 95-value `InfluenceEffect` for the country. Play the card with forced success. Assert the new influence added is ≤ 5 (capped at 100 total pool). Assert total influence = 100.
+- `play_sphere_of_pressure_does_not_exceed_pool` — pre-populate a 95-value `ControlEffect` for the country. Play the card with forced success. Assert the new control added is ≤ 5 (capped at 100 total pool). Assert total control = 100.
 
-- `play_sphere_of_pressure_failure_no_influence` — force failure (seed rng to always return `> 0.5`). Assert no `InfluenceEffect` entity is created.
+- `play_sphere_of_pressure_failure_no_control` — force failure (seed rng to always return `> 0.5`). Assert no `ControlEffect` entity is created.
 
 - `played_card_goes_on_cooldown` — after processing a play command, assert ALL 3 `CountryActionCard` entities for `sphere_of_pressure` (same orgId, countryId) have `ActionCooldown` component. Assert `CooldownEndTime == currentTime.AddMonths(1)`.
 
@@ -668,13 +668,13 @@ Add `src/Game.Tests/CountryActionSystemTests.cs` with the following test cases:
 
 - `cooldown_expires_after_months` — add `ActionCooldown { CooldownEndTime = T }`. Call `CountryActionSystem.TickCooldowns(world, T)`. Assert `ActionCooldown` component is removed. Call with `T - 1 second` — assert component remains.
 
-- `advisor_card_not_eligible_below_threshold` — set orgInfluence = 5, place advisor card in deck. Vacate a hand slot (play sphere_of_pressure). Assert advisor card is NOT drawn (hand slot remains empty after sphere play).
+- `advisor_card_not_eligible_below_threshold` — set orgControl = 5, place advisor card in deck. Vacate a hand slot (play sphere_of_pressure). Assert advisor card is NOT drawn (hand slot remains empty after sphere play).
 
-- `advisor_card_eligible_at_threshold` — set orgInfluence ≥ 10, place advisor card in deck. Vacate a slot. Assert the advisor card IS drawn into the vacated slot.
+- `advisor_card_eligible_at_threshold` — set orgControl ≥ 10, place advisor card in deck. Vacate a slot. Assert the advisor card IS drawn into the vacated slot.
 
 - `play_advisor_card_adds_opinion_on_success` — set up character entity with `CharacterOpinion`. Process `PlayCountryActionCommand` with `ActionId = "letter_of_commendation_diplomacy_advisor"` and `TargetCharacterId`. Force success. Assert `CharacterOpinion.ModifiersPerOrg[orgId]` contains one modifier with `SourceId == "letter_of_commendation"` and `Value == 50`.
 
-- `royal_audience_requires_20_influence` — set orgInfluence = 15. Attempt to process `royal_audience`. Assert `result.Executed == false` (eligibility check blocks it, gold not deducted).
+- `royal_audience_requires_20_control` — set orgControl = 15. Attempt to process `royal_audience`. Assert `result.Executed == false` (eligibility check blocks it, gold not deducted).
 
 ---
 

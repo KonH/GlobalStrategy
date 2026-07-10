@@ -64,10 +64,10 @@ namespace GS.Unity.UI {
 			}
 
 			if (card.IsUnplayable && !string.IsNullOrEmpty(card.UnplayableReason)) {
-				int minInfluence = def != null ? ExtractMinInfluence(def) : 0;
+				int minControl = def != null ? ExtractMinControl(def) : 0;
 				string reasonText = card.UnplayableReason == "pool_full"
 					? _loc.Get("action.country.unplayable.pool_full")
-					: string.Format(_loc.Get("action.country.unplayable.insufficient_influence"), minInfluence);
+					: string.Format(_loc.Get("action.country.unplayable.insufficient_control"), minControl);
 				var reasonLabel = new Label(reasonText);
 				reasonLabel.AddToClassList("action-card-unplayable-reason");
 				cardEl.Add(reasonLabel);
@@ -135,10 +135,10 @@ namespace GS.Unity.UI {
 			return wrapper;
 		}
 
-		static int ExtractMinInfluence(ActionDefinition def) {
+		static int ExtractMinControl(ActionDefinition def) {
 			foreach (var cond in def.Conditions) {
 				if (cond.Type == "gte" && cond.Members != null && cond.Members.Count >= 2) {
-					if (cond.Members[0].Type == "influence" && cond.Members[1].Type == "value") {
+					if (cond.Members[0].Type == "control" && cond.Members[1].Type == "value") {
 						return (int)cond.Members[1].Value;
 					}
 				}

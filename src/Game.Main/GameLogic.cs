@@ -67,11 +67,11 @@ namespace GS.Main {
 
 			DateTime currentTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
 			ResourceSystem.Update(_world, _previousTime, currentTime);
-			InfluenceSystem.Update(_world, _previousTime, currentTime);
+			ControlSystem.Update(_world, _previousTime, currentTime);
 			OpinionSystem.Update(_world, _previousTime, currentTime);
 
-			foreach (var cmd in _commandAccessor.ReadChangeInfluenceCommand().AsSpan()) {
-				ApplyChangeInfluence(cmd.OrgId, cmd.CountryId, cmd.Delta);
+			foreach (var cmd in _commandAccessor.ReadChangeControlCommand().AsSpan()) {
+				ApplyChangeControl(cmd.OrgId, cmd.CountryId, cmd.Delta);
 			}
 
 			SelectCountrySystem.Update(_world, _commandAccessor.ReadSelectCountryCommand());
@@ -183,8 +183,8 @@ namespace GS.Main {
 			return -1;
 		}
 
-		void ApplyChangeInfluence(string orgId, string countryId, int delta) {
-			InfluenceSystem.ApplyChangeInfluence(_world, orgId, countryId, delta);
+		void ApplyChangeControl(string orgId, string countryId, int delta) {
+			ControlSystem.ApplyChangeControl(_world, orgId, countryId, delta);
 		}
 
 		void ApplyDebugCycleCharacter(string ownerId, string roleId, int slotIndex) {

@@ -162,7 +162,7 @@
     -unity-background-image-tint-color: rgb(200, 160, 64);
 }
 
-/* tint-inf: influence (cyan-blue) */
+/* tint-inf: control (cyan-blue) */
 .gs-icon--tint-inf {
     -unity-background-image-tint-color: rgb(64, 160, 220);
 }
@@ -196,8 +196,8 @@
     background-image: url("project://database/Assets/UI/Icons/coin.png?fileID=2800000&guid=46e003f67ebde7347a8004dd120d478a&type=3#coin");
 }
 
-.gs-icon--png-influence {
-    background-image: url("project://database/Assets/UI/Icons/influence.svg?fileID=11400000&guid=dc912c33694389345a78cfdfb52e2299&type=3#influence");
+.gs-icon--png-control {
+    background-image: url("project://database/Assets/UI/Icons/control.svg?fileID=11400000&guid=dc912c33694389345a78cfdfb52e2299&type=3#control");
 }
 
 .gs-icon--png-crown {
@@ -647,12 +647,12 @@
 .flag-name-row {
     flex-direction: row;
     align-items: center;
-    gap: 8px;
 }
 
 .entity-flag {
     width: 64px;
     height: 64px;
+    margin-right: 8px;
     flex-shrink: 0;
     -unity-background-scale-mode: scale-to-fit;
 }

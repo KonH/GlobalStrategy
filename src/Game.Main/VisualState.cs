@@ -10,7 +10,7 @@ namespace GS.Main {
 		public bool IsValid { get; private set; }
 		public string CountryId { get; private set; } = "";
 		public CountryResourcesState Resources { get; } = new CountryResourcesState();
-		public CountryInfluenceState Influence { get; } = new CountryInfluenceState();
+		public CountryControlState Control { get; } = new CountryControlState();
 		public CountryCharactersState Characters { get; } = new CountryCharactersState();
 		public CountryActionsState CountryActions { get; } = new CountryActionsState();
 
@@ -72,33 +72,33 @@ namespace GS.Main {
 		}
 	}
 
-	public class OrgInfluenceEntry {
+	public class OrgControlEntry {
 		public string OrgId { get; }
 		public string DisplayName { get; }
-		public int Influence { get; }
-		public int BaseInfluence { get; }
-		public int PermanentInfluence { get; }
+		public int Control { get; }
+		public int BaseControl { get; }
+		public int PermanentControl { get; }
 		public double EstimatedMonthlyGold { get; }
 
-		public OrgInfluenceEntry(string orgId, string displayName, int influence, int baseInfluence, int permanentInfluence, double estimatedMonthlyGold) {
+		public OrgControlEntry(string orgId, string displayName, int control, int baseControl, int permanentControl, double estimatedMonthlyGold) {
 			OrgId = orgId;
 			DisplayName = displayName;
-			Influence = influence;
-			BaseInfluence = baseInfluence;
-			PermanentInfluence = permanentInfluence;
+			Control = control;
+			BaseControl = baseControl;
+			PermanentControl = permanentControl;
 			EstimatedMonthlyGold = estimatedMonthlyGold;
 		}
 	}
 
-	public class CountryInfluenceState : INotifyPropertyChanged {
+	public class CountryControlState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
-		public AnimatableInt UsedInfluence { get; } = new AnimatableInt();
+		public AnimatableInt UsedControl { get; } = new AnimatableInt();
 		public int PoolSize => 100;
-		public IReadOnlyList<OrgInfluenceEntry> OrgEntries { get; private set; } = Array.Empty<OrgInfluenceEntry>();
+		public IReadOnlyList<OrgControlEntry> OrgEntries { get; private set; } = Array.Empty<OrgControlEntry>();
 
-		public void Set(int used, List<OrgInfluenceEntry> entries) {
-			UsedInfluence.SetActual(used);
+		public void Set(int used, List<OrgControlEntry> entries) {
+			UsedControl.SetActual(used);
 			OrgEntries = entries;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
@@ -171,11 +171,11 @@ namespace GS.Main {
 	public class OrgCountryEntry {
 		public string CountryId { get; }
 		public string TopOrgId { get; }
-		public float InfluenceRatio { get; }
-		public OrgCountryEntry(string countryId, string topOrgId, float influenceRatio) {
+		public float ControlRatio { get; }
+		public OrgCountryEntry(string countryId, string topOrgId, float controlRatio) {
 			CountryId = countryId;
 			TopOrgId = topOrgId;
-			InfluenceRatio = influenceRatio;
+			ControlRatio = controlRatio;
 		}
 	}
 

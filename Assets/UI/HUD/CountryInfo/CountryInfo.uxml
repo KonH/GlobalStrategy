@@ -17,9 +17,9 @@
                 <ui:VisualElement name="country-flag" class="entity-flag" picking-mode="Ignore" />
                 <ui:Label name="country-name" class="country-name" text="" />
             </ui:VisualElement>
-            <ui:VisualElement name="influence-row" style="flex-direction: row; align-items: center;">
-                <ui:VisualElement class="influence-icon" />
-                <ui:Label name="influence-label" class="gs-label" text="" />
+            <ui:VisualElement name="control-row" style="flex-direction: row; align-items: center;">
+                <ui:VisualElement class="control-icon" />
+                <ui:Label name="control-label" class="gs-label" text="" />
             </ui:VisualElement>
             <ui:VisualElement name="resources-container" class="resources-container" />
         </ui:VisualElement>

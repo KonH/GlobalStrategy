@@ -38,7 +38,7 @@ As a developer, I want org-action and country-action execution unified into a si
 
 ### Effect components (no IEffect interface)
 
-- **Given** the `IEffect` interface and its implementors (`ResourceChange` class, `InfluenceAdded`, `CharacterOpinionChange`) existed **When** the refactor is complete **Then** all are removed; the new `ResourceChange` is a plain ECS component struct with no interface, distinct from the old class of the same name
+- **Given** the `IEffect` interface and its implementors (`ResourceChange` class, `ControlAdded`, `CharacterOpinionChange`) existed **When** the refactor is complete **Then** all are removed; the new `ResourceChange` is a plain ECS component struct with no interface, distinct from the old class of the same name
 - **Given** a `DiscoverCountryEffect(effectId)` component **When** the discovery system reads it **Then** no interface dispatch occurs; the system queries the component type directly
 - **Given** a `ResourceChange(effectId, resourceId, ownerId, amount)` component **When** the resource system reads it **Then** it is a plain data component carrying the actual mutation, with no virtual methods
 
@@ -59,7 +59,7 @@ As a developer, I want org-action and country-action execution unified into a si
 - **Given** the pipeline has run for a frame **When** `VisualStateConverter` executes **Then** `LastFrameEffects` is populated from all `ResourceChange` and `DiscoverCountryEffect` entities present after the pipeline; each `ResourceChange` entity maps to a `VisualResourceChangeEffect` (a visual-layer object implementing `IVisualEffect`, not an ECS component) which drives UI animation (e.g. gold deduction animation)
 - **Given** `LastFrameEffects` is populated **When** UI animation code needs effects for a specific played card **Then** it calls `LastFrameEffects.GetEffectsByActionId(actionId)` and filters by the played card's `actionId`
 - **Given** a card-play animation is running **When** the card is displayed in the card view **Then** no text is shown on the card and no text animation plays; there is no roll result display
-- **Given** a card in hand is displayed **When** the card view renders **Then** no success rate, influence base, influence bonus, or dynamic-rate indicator is shown; `CountryActionCardEntry` has `SuccessRate`, `IsRateDynamic`, `InfluenceBase`, `InfluenceBonus` fields removed.
+- **Given** a card in hand is displayed **When** the card view renders **Then** no success rate, control base, control bonus, or dynamic-rate indicator is shown; `CountryActionCardEntry` has `SuccessRate`, `IsRateDynamic`, `ControlBase`, `ControlBonus` fields removed.
 
 ### ActionSystem removal
 

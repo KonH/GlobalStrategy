@@ -51,7 +51,7 @@ As a player, I want to see each country character's opinion of my organization a
 ## Out of Scope
 
 - Opinion of org characters (master/agent) toward other orgs — this feature covers country characters only.
-- Non-cheat gameplay mechanics that raise or lower opinion (actions, events, influence).
+- Non-cheat gameplay mechanics that raise or lower opinion (actions, events, control).
 - Separate per-org opinion tracking — only opinion toward a single org (the player org) is surfaced in the UI; the data model may store it keyed by org but the UI only renders the player org value.
 - Persisting modifier `SourceId` strings in a config file — `"cheat_improve_opinion"` is a hardcoded constant.
 - Showing opinion in the org character panel (`OrgCharactersView`) — only the country character card (`CharactersView`) is changed.

@@ -26,7 +26,7 @@
       "deckCopies": 3,
       "conditions": [],
       "cost": [{ "resourceId": "gold", "amount": 200.0 }],
-      "effectIds": ["sphere_of_pressure_influence"]
+      "effectIds": ["sphere_of_pressure_control"]
     },
     {
       "actionId": "letter_of_commendation_diplomacy_advisor",
@@ -40,13 +40,13 @@
         {
           "type": "gte",
           "members": [
-            { "type": "influence" },
+            { "type": "control" },
             { "type": "value", "value": 10 }
           ]
         }
       ],
       "cost": [{ "resourceId": "gold", "amount": 50.0 }],
-      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"]
+      "effectIds": ["letter_commendation_control", "letter_commendation_opinion"]
     },
     {
       "actionId": "letter_of_commendation_economic_advisor",
@@ -60,13 +60,13 @@
         {
           "type": "gte",
           "members": [
-            { "type": "influence" },
+            { "type": "control" },
             { "type": "value", "value": 10 }
           ]
         }
       ],
       "cost": [{ "resourceId": "gold", "amount": 50.0 }],
-      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"]
+      "effectIds": ["letter_commendation_control", "letter_commendation_opinion"]
     },
     {
       "actionId": "letter_of_commendation_military_advisor",
@@ -80,13 +80,13 @@
         {
           "type": "gte",
           "members": [
-            { "type": "influence" },
+            { "type": "control" },
             { "type": "value", "value": 10 }
           ]
         }
       ],
       "cost": [{ "resourceId": "gold", "amount": 50.0 }],
-      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"]
+      "effectIds": ["letter_commendation_control", "letter_commendation_opinion"]
     },
     {
       "actionId": "letter_of_commendation_secret_advisor",
@@ -100,13 +100,13 @@
         {
           "type": "gte",
           "members": [
-            { "type": "influence" },
+            { "type": "control" },
             { "type": "value", "value": 10 }
           ]
         }
       ],
       "cost": [{ "resourceId": "gold", "amount": 50.0 }],
-      "effectIds": ["letter_commendation_influence", "letter_commendation_opinion"]
+      "effectIds": ["letter_commendation_control", "letter_commendation_opinion"]
     },
     {
       "actionId": "royal_audience",
@@ -120,13 +120,13 @@
         {
           "type": "gte",
           "members": [
-            { "type": "influence" },
+            { "type": "control" },
             { "type": "value", "value": 20 }
           ]
         }
       ],
       "cost": [{ "resourceId": "gold", "amount": 100.0 }],
-      "effectIds": ["royal_audience_influence", "royal_audience_opinion"]
+      "effectIds": ["royal_audience_control", "royal_audience_opinion"]
     }
   ],
   "orgPools": [

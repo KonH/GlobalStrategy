@@ -53,7 +53,7 @@ All game logic lives in the ECS layer (`src/`). A new `CharacterOpinion` compone
   ```
   Pass `effective` as the `opinion` argument to `new CharacterStateEntry(...)`.
 
-- [x] **Call `OpinionSystem.Update` in `GameLogic.Update`** — In `src/Game.Main/GameLogic.cs`, after `InfluenceSystem.Update(_world, _previousTime, currentTime);` (line 65), add:
+- [x] **Call `OpinionSystem.Update` in `GameLogic.Update`** — In `src/Game.Main/GameLogic.cs`, after `ControlSystem.Update(_world, _previousTime, currentTime);` (line 65), add:
   ```csharp
   OpinionSystem.Update(_world, _previousTime, currentTime);
   ```

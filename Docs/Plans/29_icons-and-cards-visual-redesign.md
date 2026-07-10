@@ -33,7 +33,7 @@ Add the following blocks after the existing `.gs-icon--coin` rule. These cover a
     -unity-background-image-tint-color: rgb(200, 160, 64);
 }
 
-/* tint-inf: influence (cyan-blue) */
+/* tint-inf: control (cyan-blue) */
 .gs-icon--tint-inf {
     -unity-background-image-tint-color: rgb(64, 160, 220);
 }
@@ -71,8 +71,8 @@ Background-image rules for the 12 icons (get GUIDs from the respective `.png.met
 .gs-icon--png-coin {
     background-image: url("project://database/Assets/UI/Icons/coin.png?fileID=2800000&guid=46e003f67ebde7347a8004dd120d478a&type=3#coin");
 }
-.gs-icon--png-influence {
-    background-image: url("project://database/Assets/UI/Icons/influence.png?fileID=2800000&guid=5000d0a84170c354f8e76b2c31b7e13e&type=3#influence");
+.gs-icon--png-control {
+    background-image: url("project://database/Assets/UI/Icons/control.png?fileID=2800000&guid=5000d0a84170c354f8e76b2c31b7e13e&type=3#control");
 }
 .gs-icon--png-crown {
     background-image: url("project://database/Assets/UI/Icons/crown.png?fileID=2800000&guid=5c327d21e97f1c84fbb44bdc989b7910&type=3#crown");

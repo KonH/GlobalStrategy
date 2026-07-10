@@ -16,7 +16,7 @@ As a player, I want to see the historical flag of each country and a representat
   - The player org display (`PlayerOrgView`)
   - The org lens country view (`OrgLensCountryView`) showing the top influencing org
   - The `SelectOrg` document (`SelectOrgDocument`)
-  - The influence tooltip inside `CountryInfoView` (inline org-name list)
+  - The control tooltip inside `CountryInfoView` (inline org-name list)
 
 - **Given** a country has no flag asset wired in `CountryVisualConfig` **When** that country is displayed **Then** the name label shows without any image (no broken icon, no error)
 
@@ -44,4 +44,4 @@ As a player, I want to see the historical flag of each country and a representat
 - **Org images:** real-world sourced PNG images for known historical/mythological organizations (e.g. Illuminati eye-in-pyramid symbol); downloaded from public internet sources
 - **Format:** PNG only, sourced at native resolution (larger than 64×64 is fine; Unity will scale down)
 - **Display size:** 64×64 px unified render size; aspect ratio differences in source images are handled by `scale-mode: scale-to-fit` in USS — this value may be tuned later
-- **Influence tooltip:** org flags also appear in the inline org-name list inside the `CountryInfo` influence tooltip
+- **Control tooltip:** org flags also appear in the inline org-name list inside the `CountryInfo` control tooltip

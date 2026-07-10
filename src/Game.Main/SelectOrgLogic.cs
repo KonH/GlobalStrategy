@@ -43,16 +43,16 @@ namespace GS.Main {
 			return _hqToOrg.TryGetValue(hqCountryId, out var org) ? org.OrganizationId : "";
 		}
 
-		public int GetBaseInfluence(string orgId) {
+		public int GetBaseControl(string orgId) {
 			foreach (var entry in _hqToOrg.Values) {
 				if (entry.OrganizationId == orgId) {
-					return entry.BaseInfluence;
+					return entry.BaseControl;
 				}
 			}
 			return 0;
 		}
 
-		public double ComputeBaseInfluenceIncome(string orgId) {
+		public double ComputeBaseControlIncome(string orgId) {
 			OrganizationEntry? orgEntry = null;
 			foreach (var entry in _hqToOrg.Values) {
 				if (entry.OrganizationId == orgId) {
@@ -73,7 +73,7 @@ namespace GS.Main {
 					}
 				}
 			}
-			return (orgEntry.BaseInfluence / 100.0) * hqBaseIncome;
+			return (orgEntry.BaseControl / 100.0) * hqBaseIncome;
 		}
 
 		public void Update() {

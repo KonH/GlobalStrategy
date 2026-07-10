@@ -22,9 +22,9 @@ As a developer, I want the VisualState, action systems, and animation infrastruc
 
 - **Given** `CharactersView` displays a character's opinion **When** it reads opinion **Then** it reads `entry.Opinion.Display` directly; there is no `Dictionary<string, AnimatableInt> characterOpinions` parameter in `CharactersView` or `CountryInfoView`.
 
-- **Given** `CountryInfluenceState` represents the player org's used influence in the selected country **When** influence changes **Then** `UsedInfluence` is an `AnimatableInt`; callers read `UsedInfluence.Display` for the animated display value.
+- **Given** `CountryControlState` represents the player org's used control in the selected country **When** control changes **Then** `UsedControl` is an `AnimatableInt`; callers read `UsedControl.Display` for the animated display value.
 
-- **Given** `CountryInfoView` displays used influence **When** it renders the influence label **Then** it reads `influence.UsedInfluence.Display`; there is no separate `usedDisplay` parameter in `Refresh` or `RefreshUsedInfluence`.
+- **Given** `CountryInfoView` displays used control **When** it renders the control label **Then** it reads `control.UsedControl.Display`; there is no separate `usedDisplay` parameter in `Refresh` or `RefreshUsedControl`.
 
 - **Given** `ResourceStateEntry` holds the value for a resource **When** it is read by a view **Then** `Value` is an `AnimatableDouble`; callers read `entry.Value.Display` (cast to int for gold) for the animated display value.
 
@@ -46,7 +46,7 @@ As a developer, I want the VisualState, action systems, and animation infrastruc
 
 - **Given** `VisualState.PlayerOrganization` **When** inspected **Then** it contains a resource dictionary (`Dictionary<string, AnimatableDouble>`) replacing both the removed `PlayerGold` property and the old `CountryResourcesState`-based approach for org resources; gold is accessed as `PlayerOrganization.Resources["gold"]`. `CountryResourcesState` (with `ResourceStateEntry` entries) is retained only for selected-country resources — it is not used for org resources.
 
-- **Given** `VisualState.SelectedCountry` **When** inspected **Then** it now groups the following sub-states that were previously top-level: `Resources`, `Influence`, `Characters`, `CountryActions`, `UsedInfluence`, `CharacterOpinions` (now embedded in `CharacterStateEntry.Opinion`). The `Selected` prefix is removed from all these property names.
+- **Given** `VisualState.SelectedCountry` **When** inspected **Then** it now groups the following sub-states that were previously top-level: `Resources`, `Control`, `Characters`, `CountryActions`, `UsedControl`, `CharacterOpinions` (now embedded in `CharacterStateEntry.Opinion`). The `Selected` prefix is removed from all these property names.
 
 - **Given** `VisualState.PlayerOrganization` **When** inspected **Then** it now groups `Characters` (formerly `PlayerOrgCharacters`) and `Actions` (formerly `PlayerOrgActions`).
 
@@ -58,19 +58,19 @@ As a developer, I want the VisualState, action systems, and animation infrastruc
 
 - **Given** `CardPlayBarriersHolder` **When** it manages animation barriers **Then** it works directly with the animatable values embedded in state entries rather than accepting raw `AnimatableDouble`/`AnimatableInt` references; the internal split between `_doubles` and `_ints` dictionaries is collapsed if a common interface allows it.
 
-- **Given** a card play animation completes **When** barriers are released **Then** the same observable animated transitions occur as before (gold counts down, influence counts up, opinion counts up or down); no regression in animation behaviour.
+- **Given** a card play animation completes **When** barriers are released **Then** the same observable animated transitions occur as before (gold counts down, control counts up, opinion counts up or down); no regression in animation behaviour.
 
 ---
 
 ### LastActionResultState — Effect List
 
-- **Given** `LastActionResultState` **When** a card play resolves **Then** it holds `List<IEffect>` instead of specific fields (`GoldSpent`, `InfluenceAdded`, `OpinionTargetCharId`, `OpinionDelta`).
+- **Given** `LastActionResultState` **When** a card play resolves **Then** it holds `List<IEffect>` instead of specific fields (`GoldSpent`, `ControlAdded`, `OpinionTargetCharId`, `OpinionDelta`).
 
 - **Given** `IEffect` **When** implemented **Then** at minimum two concrete types exist:
   - `ResourceChange(ownerId, resourceId, diff)` — represents a resource gain or loss
   - `CharacterOpinionChange(countryId, characterId, diff)` — represents a character opinion delta
 
-- **Given** `CardPlayAnimator` reads `LastActionResultState` **When** it processes a result **Then** it iterates `LastAction.Effects` and dispatches on type to drive animation barriers; no code reads `GoldSpent`, `InfluenceAdded`, `OpinionTargetCharId`, or `OpinionDelta` directly.
+- **Given** `CardPlayAnimator` reads `LastActionResultState` **When** it processes a result **Then** it iterates `LastAction.Effects` and dispatches on type to drive animation barriers; no code reads `GoldSpent`, `ControlAdded`, `OpinionTargetCharId`, or `OpinionDelta` directly.
 
 - **Given** a new action type is introduced that produces a new kind of effect **When** `LastActionResultState` is used **Then** only a new `IEffect` implementation is needed; `LastActionResultState` itself does not need to change.
 
@@ -81,7 +81,7 @@ As a developer, I want the VisualState, action systems, and animation infrastruc
 - **Given** `ActionSystem` and `CountryActionSystem` exist **When** refactored **Then** they are replaced by a single `ActionSystem` that handles both `PlayActionCommand` and `PlayCountryActionCommand`; `CountryActionSystem.cs` is deleted.
 
 - **Given** `ActionSystem` processes any action command **When** it runs **Then** it follows one shared pipeline:
-  1. Build `ExpressionContext` from org influence (scoped to `countryId` if provided, global otherwise)
+  1. Build `ExpressionContext` from org control (scoped to `countryId` if provided, global otherwise)
   2. Evaluate `ActionDefinition.Conditions` — return `Executed=false` if any condition is zero
   3. Check and deduct resource cost
   4. Remove the played card from hand (matching on full card identity)
@@ -92,14 +92,14 @@ As a developer, I want the VisualState, action systems, and animation infrastruc
 
 - **Given** effect application **When** the system iterates `actionDef.EffectIds` **Then** it resolves each to an `ActionEffectDefinition` and calls the matching static applier:
   - `DiscoverCountryEffectParams` → `DiscoverCountryApplier.Apply(world, orgId, params, random)`
-  - `InfluenceChangeEffectParams` → `InfluenceChangeApplier.Apply(world, orgId, countryId, params)`
+  - `ControlChangeEffectParams` → `ControlChangeApplier.Apply(world, orgId, countryId, params)`
   - `OpinionModifierEffectParams` → `OpinionModifierApplier.Apply(world, orgId, countryId, targetCharId, params)`
 
-- **Given** `ActionResult` **When** refactored **Then** it is a single shared type: `bool Executed`, `bool Success`, `List<IEffect> Effects`; the old per-system result types with specific fields (`GoldSpent`, `InfluenceAdded`, `OpinionTargetCharId`, `OpinionDelta`) are deleted.
+- **Given** `ActionResult` **When** refactored **Then** it is a single shared type: `bool Executed`, `bool Success`, `List<IEffect> Effects`; the old per-system result types with specific fields (`GoldSpent`, `ControlAdded`, `OpinionTargetCharId`, `OpinionDelta`) are deleted.
 
 - **Given** an applier runs **When** it produces an observable game change **Then** it adds the corresponding `IEffect` to the result's `Effects` list:
   - Resource deduction → `ResourceChange(ownerId, resourceId, diff)`
-  - Influence gain → `InfluenceAdded(orgId, countryId, amount)`
+  - Control gain → `ControlAdded(orgId, countryId, amount)`
   - Opinion change → `CharacterOpinionChange(countryId, characterId, diff)`
 
 - **Given** `GameLogic` reads `ActionResult` **When** it populates `LastActionResultState` **Then** it copies `result.Effects` directly; no action-type-specific code in `GameLogic`.
@@ -120,7 +120,7 @@ As a developer, I want the VisualState, action systems, and animation infrastruc
 
 - Changes to card configs, action definitions, or balance values.
 - New action types beyond what already exists.
-- New animated values beyond the three already animating (gold, used influence, character opinion).
+- New animated values beyond the three already animating (gold, used control, character opinion).
 - Saving/loading of animated value mid-animation state.
 - Visual changes to how values are displayed (styling, colour, transitions) — only format changes mandated by the integer-display rule.
 - Localization key changes.
