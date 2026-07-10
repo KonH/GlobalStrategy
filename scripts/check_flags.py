@@ -3,7 +3,7 @@ Diagnose flag download failures by querying the Wikimedia MediaWiki API
 for a list of filenames and printing their resolved URLs and MIME types.
 
 Usage:
-    python .claude/check_flags.py [File:Filename.svg ...]
+    python scripts/check_flags.py [File:Filename.svg ...]
 
 With no arguments, checks the hardcoded FAILING list below.
 """

@@ -25,6 +25,7 @@
 - **Unity MCP usage:** `.claude/rules/unity/mcp_usage.md`
 - **Map system architecture:** `.claude/rules/unity/map_system.md`
 - **Map config generator:** `.claude/rules/unity/map_config_generator.md`
+- **Province config generator:** `.claude/rules/unity/province_config_generator.md`
 - **UI Toolkit architecture:** `.claude/rules/unity/uitoolkit.md`
 - **VContainer / DI:** `.claude/rules/unity/vcontainer.md`
 - **Unity plugins (DLLs):** `.claude/rules/unity/plugins.md`

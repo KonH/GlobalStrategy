@@ -12,7 +12,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Algeria",
@@ -26,7 +27,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "American_Samoa",
@@ -40,7 +42,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Anguilla",
@@ -54,7 +57,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Annam",
@@ -68,7 +72,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Antigua_and_Barbuda",
@@ -82,7 +87,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Arabia",
@@ -96,7 +102,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Argentina",
@@ -125,7 +132,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Ato_trading_confederacy",
@@ -139,7 +147,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Austria_Hungary",
@@ -168,7 +177,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Basutoland",
@@ -182,7 +192,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Belgium",
@@ -191,6 +202,7 @@
         "Belgium"
       ],
       "secondaryMapFeatureIds": [],
+      "initialResources": [],
       "isAvailable": true
     },
     {
@@ -205,7 +217,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Benin",
@@ -219,7 +232,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Bhutan",
@@ -233,7 +247,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Bokhara_Khanate",
@@ -247,7 +262,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Bolivia",
@@ -261,7 +277,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Borgu_States",
@@ -275,7 +292,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Bosnia_Herzegovina",
@@ -289,7 +307,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "British_Guiana",
@@ -303,7 +322,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "British_Raj",
@@ -317,7 +337,8 @@
           "resourceId": "gold",
           "value": 150
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Brunei",
@@ -331,7 +352,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Buganda",
@@ -345,7 +367,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Bulgaria",
@@ -359,7 +382,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Bunyoro",
@@ -373,7 +397,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Burundi",
@@ -387,7 +412,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Calabar",
@@ -401,7 +427,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Canada",
@@ -409,7 +436,9 @@
       "mainMapFeatureIds": [
         "Canada"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [],
+      "isAvailable": false
     },
     {
       "countryId": "Cape_Colony",
@@ -423,7 +452,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Ceylon",
@@ -437,7 +467,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Chile",
@@ -451,7 +482,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Colombia",
@@ -465,7 +497,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Congo",
@@ -479,7 +512,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Costa_Rica",
@@ -493,7 +527,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Cotonou",
@@ -507,7 +542,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Dahomey",
@@ -521,7 +557,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Dendi_Kingdom",
@@ -535,7 +572,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Denmark",
@@ -552,7 +590,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Dominica",
@@ -566,7 +605,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Dominican_Republic",
@@ -580,7 +620,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Dutch_Guiana",
@@ -594,7 +635,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Ecuador",
@@ -608,7 +650,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Egypt",
@@ -637,7 +680,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Ethiopia",
@@ -666,7 +710,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "France",
@@ -699,7 +744,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "French_Indochina",
@@ -713,7 +759,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Futa_Jalon",
@@ -727,7 +774,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Futa_Toro",
@@ -741,7 +789,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Gabon",
@@ -755,7 +804,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Gambia",
@@ -769,7 +819,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Germany",
@@ -799,7 +850,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Griqualand_West",
@@ -813,7 +865,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Guadeloupe",
@@ -827,7 +880,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Guatemala",
@@ -841,7 +895,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Haiti",
@@ -855,7 +910,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Harer_Egypt",
@@ -869,7 +925,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Honduras",
@@ -883,7 +940,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Ibadan",
@@ -897,7 +955,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Imerina",
@@ -911,7 +970,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Imperial_Japan",
@@ -955,7 +1015,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Kanem_Bornu",
@@ -969,7 +1030,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Kingdom_of_Brazil",
@@ -998,7 +1060,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Kong_Empire",
@@ -1012,7 +1075,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Korea",
@@ -1026,7 +1090,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Kuba",
@@ -1040,7 +1105,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Lagos",
@@ -1054,7 +1120,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Liberia",
@@ -1068,7 +1135,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Lozi",
@@ -1082,7 +1150,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Luba",
@@ -1096,7 +1165,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Lunda",
@@ -1110,7 +1180,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Luxembourg",
@@ -1124,7 +1195,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "M_ori",
@@ -1138,7 +1210,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Madagascar",
@@ -1152,7 +1225,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Malaya",
@@ -1166,7 +1240,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Malta",
@@ -1180,7 +1255,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Manchu_Empire",
@@ -1209,7 +1285,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Mexico",
@@ -1223,7 +1300,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Mirambo_Unyanyembe_Ukimbu",
@@ -1237,7 +1315,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Montenegro",
@@ -1251,7 +1330,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Montserrat",
@@ -1265,7 +1345,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Morocco",
@@ -1279,7 +1360,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Mossi_States",
@@ -1293,7 +1375,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Mozambique",
@@ -1307,7 +1390,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Natal",
@@ -1321,7 +1405,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Ndebele",
@@ -1335,7 +1420,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Nepal",
@@ -1349,7 +1435,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Netherlands",
@@ -1360,6 +1447,7 @@
       "secondaryMapFeatureIds": [
         "Netherlands_Indies"
       ],
+      "initialResources": [],
       "isAvailable": true
     },
     {
@@ -1374,7 +1462,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Nguni",
@@ -1388,7 +1477,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Ngwato",
@@ -1402,7 +1492,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Nicaragua",
@@ -1416,7 +1507,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Niue",
@@ -1430,7 +1522,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Oman",
@@ -1444,7 +1537,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Opobo",
@@ -1458,7 +1552,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Orange_Free_State",
@@ -1472,7 +1567,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Ottoman_Empire",
@@ -1501,7 +1597,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Oyo",
@@ -1515,7 +1612,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Papua_New_Guinea",
@@ -1529,7 +1627,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Paraguay",
@@ -1543,7 +1642,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Persia",
@@ -1572,7 +1672,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Philippines",
@@ -1586,7 +1687,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Polynesians",
@@ -1600,7 +1702,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Portugal",
@@ -1631,7 +1734,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Qatar",
@@ -1645,7 +1749,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Rabih_az_Zubayr",
@@ -1659,7 +1764,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Rattanakosin_Kingdom",
@@ -1673,7 +1779,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Romania",
@@ -1687,7 +1794,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Russian_Empire",
@@ -1717,7 +1825,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Saint_Barthelemy",
@@ -1731,7 +1840,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Saint_Kitts_and_Nevis",
@@ -1745,7 +1855,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Saint_Martin",
@@ -1759,7 +1870,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Samoa",
@@ -1773,7 +1885,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Serbia",
@@ -1787,7 +1900,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Shona",
@@ -1801,7 +1915,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Sierra_Leone",
@@ -1815,7 +1930,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Sokoto_Caliphate",
@@ -1829,7 +1945,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Spain",
@@ -1859,7 +1976,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Sultanate_of_Damagaram",
@@ -1873,7 +1991,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Sultanate_of_Utetera",
@@ -1887,7 +2006,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Sultinate_of_Zanzibar",
@@ -1901,7 +2021,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Swaziland",
@@ -1915,7 +2036,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "SwedenNorway",
@@ -1924,6 +2046,7 @@
         "SwedenNorway"
       ],
       "secondaryMapFeatureIds": [],
+      "initialResources": [],
       "isAvailable": true
     },
     {
@@ -1932,7 +2055,9 @@
       "mainMapFeatureIds": [
         "Switzerland"
       ],
-      "secondaryMapFeatureIds": []
+      "secondaryMapFeatureIds": [],
+      "initialResources": [],
+      "isAvailable": false
     },
     {
       "countryId": "Taiwan",
@@ -1946,7 +2071,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Teke",
@@ -1960,7 +2086,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Tonga",
@@ -1974,7 +2101,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Transvaal",
@@ -1988,7 +2116,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Trucial_Oman",
@@ -2002,7 +2131,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Tukular_Caliphate",
@@ -2016,7 +2146,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "United_Kingdom_of_Great_Britain_and_Ireland",
@@ -2071,7 +2202,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Venezuela",
@@ -2085,7 +2217,8 @@
           "resourceId": "gold",
           "value": 75
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Wadai_Empire",
@@ -2099,7 +2232,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Wassoulou_Empire",
@@ -2113,7 +2247,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Yaka",
@@ -2127,7 +2262,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Yeke",
@@ -2141,7 +2277,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "Zululand",
@@ -2155,7 +2292,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     },
     {
       "countryId": "central_Asian_khanates",
@@ -2169,7 +2307,8 @@
           "resourceId": "gold",
           "value": 50
         }
-      ]
+      ],
+      "isAvailable": false
     }
   ]
 }

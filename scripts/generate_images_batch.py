@@ -1,7 +1,7 @@
 """
 Batch image generation via ComfyUI.
 
-Usage: .venv\Scripts\python.exe .claude\generate_images_batch.py <config.json>
+Usage: .venv\Scripts\python.exe scripts\generate_images_batch.py <config.json>
 
 Config file format (.tmp/images.json):
 [
