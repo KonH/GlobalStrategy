@@ -133,6 +133,10 @@
     {
       "orgId": "Illuminati",
       "actionIds": ["discover_country"]
+    },
+    {
+      "orgId": "Masons",
+      "actionIds": ["discover_country"]
     }
   ]
 }

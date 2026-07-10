@@ -631,3 +631,21 @@ MonoBehaviour:
     portrait: {fileID: 6196392179366861854, guid: 4215884bbb8d4b54ea247397e2314136, type: 3}
   - characterId: illuminati_agent_6
     portrait: {fileID: -368766595122080513, guid: 5dacf5b2547767848bcde39e5ef37600, type: 3}
+  - characterId: masons_master_1
+    portrait: {fileID: 21300000, guid: 89a77bdfc91e3fc489c4e2031796f5f4, type: 3}
+  - characterId: masons_master_2
+    portrait: {fileID: 21300000, guid: 01e07ab09490bb847a6367e31084a8de, type: 3}
+  - characterId: masons_master_3
+    portrait: {fileID: 21300000, guid: 5b6c904de9c325a4ba3fbd7629858021, type: 3}
+  - characterId: masons_agent_1
+    portrait: {fileID: 21300000, guid: 385051f4f8987a94e8b3e51ce2f885b5, type: 3}
+  - characterId: masons_agent_2
+    portrait: {fileID: 21300000, guid: 5f828133110828046b000fd88e0a8d63, type: 3}
+  - characterId: masons_agent_3
+    portrait: {fileID: 21300000, guid: 5f690b65290eaae46b078a814bdc5f5e, type: 3}
+  - characterId: masons_agent_4
+    portrait: {fileID: 21300000, guid: 914dd19d56e3908459afee74ee3e7134, type: 3}
+  - characterId: masons_agent_5
+    portrait: {fileID: 21300000, guid: be22939869b5cf543b845912a93ce648, type: 3}
+  - characterId: masons_agent_6
+    portrait: {fileID: 21300000, guid: cf19ee973fc97e744b4c31eb29d28d3b, type: 3}

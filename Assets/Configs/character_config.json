@@ -5061,6 +5061,60 @@
           }
         ]
       }
+    },
+    {
+      "orgId": "Masons",
+      "slots": {
+        "master": [
+          {
+            "characterId": "masons_master_1",
+            "namePartKeys": ["character.name.part.jacques", "character.name.part.de_molay"],
+            "skills": { "charm": { "minValue": 72, "maxValue": 95 } }
+          },
+          {
+            "characterId": "masons_master_2",
+            "namePartKeys": ["character.name.part.etienne", "character.name.part.fontaine"],
+            "skills": { "charm": { "minValue": 65, "maxValue": 90 } }
+          },
+          {
+            "characterId": "masons_master_3",
+            "namePartKeys": ["character.name.part.philippe", "character.name.part.lacombe"],
+            "skills": { "charm": { "minValue": 68, "maxValue": 92 } }
+          }
+        ],
+        "agent": [
+          {
+            "characterId": "masons_agent_1",
+            "namePartKeys": ["character.name.part.antoine", "character.name.part.dubois"],
+            "skills": { "intrigue": { "minValue": 60, "maxValue": 90 } }
+          },
+          {
+            "characterId": "masons_agent_2",
+            "namePartKeys": ["character.name.part.marguerite", "character.name.part.rousseau"],
+            "skills": { "intrigue": { "minValue": 55, "maxValue": 85 } }
+          },
+          {
+            "characterId": "masons_agent_3",
+            "namePartKeys": ["character.name.part.julien", "character.name.part.chevalier"],
+            "skills": { "intrigue": { "minValue": 50, "maxValue": 80 } }
+          },
+          {
+            "characterId": "masons_agent_4",
+            "namePartKeys": ["character.name.part.camille", "character.name.part.fabre"],
+            "skills": { "intrigue": { "minValue": 58, "maxValue": 88 } }
+          },
+          {
+            "characterId": "masons_agent_5",
+            "namePartKeys": ["character.name.part.edouard", "character.name.part.lemaire"],
+            "skills": { "intrigue": { "minValue": 52, "maxValue": 82 } }
+          },
+          {
+            "characterId": "masons_agent_6",
+            "namePartKeys": ["character.name.part.isabelle", "character.name.part.girard"],
+            "skills": { "intrigue": { "minValue": 48, "maxValue": 78 } }
+          }
+        ]
+      }
     }
   ]
 }

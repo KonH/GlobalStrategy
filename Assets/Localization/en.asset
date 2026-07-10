@@ -344,6 +344,8 @@ MonoBehaviour:
     Value: Gold
   - Key: organization_name.Illuminati
     Value: Illuminati
+  - Key: organization_name.Masons
+    Value: Masons
   - Key: load.title
     Value: Load Game
   - Key: load.back
@@ -1532,6 +1534,40 @@ MonoBehaviour:
     Value: Otto
   - Key: character.name.part.brandt
     Value: Brandt
+  - Key: character.name.part.jacques
+    Value: Jacques
+  - Key: character.name.part.de_molay
+    Value: de Molay
+  - Key: character.name.part.etienne
+    Value: Étienne
+  - Key: character.name.part.fontaine
+    Value: Fontaine
+  - Key: character.name.part.philippe
+    Value: Philippe
+  - Key: character.name.part.lacombe
+    Value: Lacombe
+  - Key: character.name.part.antoine
+    Value: Antoine
+  - Key: character.name.part.dubois
+    Value: Dubois
+  - Key: character.name.part.marguerite
+    Value: Marguerite
+  - Key: character.name.part.rousseau
+    Value: Rousseau
+  - Key: character.name.part.julien
+    Value: Julien
+  - Key: character.name.part.chevalier
+    Value: Chevalier
+  - Key: character.name.part.camille
+    Value: Camille
+  - Key: character.name.part.fabre
+    Value: Fabre
+  - Key: character.name.part.lemaire
+    Value: Lemaire
+  - Key: character.name.part.isabelle
+    Value: Isabelle
+  - Key: character.name.part.girard
+    Value: Girard
   - Key: hud.org_characters
     Value: Characters
   - Key: hud.slot_empty

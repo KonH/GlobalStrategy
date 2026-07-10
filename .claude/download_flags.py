@@ -67,6 +67,7 @@ COUNTRY_FLAGS_FALLBACK = {
 # ---------------------------------------------------------------------------
 ORG_FLAGS = {
     "Illuminati": "File:Eye_of_Providence.svg",
+    "Masons": "File:Square_compasses.svg",
 }
 
 # ---------------------------------------------------------------------------
