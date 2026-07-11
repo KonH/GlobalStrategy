@@ -245,6 +245,15 @@ namespace GS.Unity.UI {
 
 		void RefreshCountryViews() {
 			bool isOrgLens = _state.MapLens.Lens == MapLens.Org;
+			bool isProvinceLens = _state.MapLens.Lens == MapLens.Province;
+			if (isProvinceLens) {
+				if (_countryInfoRoot != null) {
+					_countryInfoRoot.style.display = DisplayStyle.None;
+				}
+				_orgLensCountryView?.Hide();
+				_playerOrgView?.Refresh(_state.PlayerOrganization, _state.PlayerOrganization.Resources);
+				return;
+			}
 			if (isOrgLens) {
 				if (_countryInfoRoot != null) {
 					_countryInfoRoot.style.display = DisplayStyle.None;

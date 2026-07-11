@@ -412,6 +412,8 @@ MonoBehaviour:
     Value: Geographic
   - Key: hud.lens.org
     Value: Organizations
+  - Key: hud.lens.province
+    Value: Province
   - Key: select_org.base_control
     Value: "Base Control:"
   - Key: select_org.estimated_income

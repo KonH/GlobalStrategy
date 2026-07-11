@@ -33,6 +33,67 @@ namespace GS.Unity.Map {
 		}
 
 		static void AppendRingMesh(Ring ring, List<Vector3> vertices, List<int> triangles) {
+			var verts = UnwrapAndProjectRing(ring);
+			if (verts == null) {
+				return;
+			}
+
+			int baseIndex = vertices.Count;
+			foreach (var v in verts) {
+				vertices.Add(new Vector3(v.x, v.y, 0f));
+			}
+
+			var tris = Triangulate(verts);
+			foreach (var t in tris) {
+				triangles.Add(baseIndex + t);
+			}
+		}
+
+		public static Mesh BuildBorderMesh(Ring ring, float width) {
+			var verts = UnwrapAndProjectRing(ring);
+			if (verts == null) {
+				return null;
+			}
+
+			var vertices = new List<Vector3>();
+			var triangles = new List<int>();
+			float halfWidth = width / 2f;
+			int n = verts.Length;
+
+			for (int i = 0; i < n; i++) {
+				Vector2 a = verts[i];
+				Vector2 b = verts[(i + 1) % n];
+				Vector2 dir = (b - a).normalized;
+				Vector2 perp = new Vector2(-dir.y, dir.x) * halfWidth;
+
+				int baseIndex = vertices.Count;
+				vertices.Add(new Vector3(a.x - perp.x, a.y - perp.y, 0f));
+				vertices.Add(new Vector3(a.x + perp.x, a.y + perp.y, 0f));
+				vertices.Add(new Vector3(b.x - perp.x, b.y - perp.y, 0f));
+				vertices.Add(new Vector3(b.x + perp.x, b.y + perp.y, 0f));
+
+				triangles.Add(baseIndex + 0);
+				triangles.Add(baseIndex + 1);
+				triangles.Add(baseIndex + 2);
+				triangles.Add(baseIndex + 2);
+				triangles.Add(baseIndex + 1);
+				triangles.Add(baseIndex + 3);
+			}
+
+			if (vertices.Count == 0) {
+				return null;
+			}
+
+			var mesh = new Mesh();
+			mesh.indexFormat = IndexFormat.UInt32;
+			mesh.SetVertices(vertices);
+			mesh.SetTriangles(triangles, 0);
+			mesh.RecalculateNormals();
+			mesh.RecalculateBounds();
+			return mesh;
+		}
+
+		static Vector2[] UnwrapAndProjectRing(Ring ring) {
 			var points = ring.Points;
 			int count = points.Count;
 
@@ -45,7 +106,7 @@ namespace GS.Unity.Map {
 				}
 			}
 			if (count < 3) {
-				return;
+				return null;
 			}
 
 			// Unwrap longitude: remove antimeridian jumps so the ring stays continuous.
@@ -89,16 +150,7 @@ namespace GS.Unity.Map {
 					verts[i] = CoordinateConverter.ToWorld(new Vector2d(unwrappedLon[i], points[i].Lat));
 				}
 			}
-
-			int baseIndex = vertices.Count;
-			foreach (var v in verts) {
-				vertices.Add(new Vector3(v.x, v.y, 0f));
-			}
-
-			var tris = Triangulate(verts);
-			foreach (var t in tris) {
-				triangles.Add(baseIndex + t);
-			}
+			return verts;
 		}
 
 		static int[] Triangulate(Vector2[] pts) {
