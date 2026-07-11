@@ -49,14 +49,36 @@ namespace GS.Unity.Map {
 			}
 		}
 
-		public static Mesh BuildBorderMesh(Ring ring, float width) {
-			var verts = UnwrapAndProjectRing(ring);
-			if (verts == null) {
+		public static Mesh BuildBorderMesh(IReadOnlyList<Polygon> polygons, float width) {
+			var vertices = new List<Vector3>();
+			var triangles = new List<int>();
+
+			foreach (var polygon in polygons) {
+				if (polygon.Rings.Count == 0) {
+					continue;
+				}
+				AppendBorderRingMesh(polygon.Rings[0], width, vertices, triangles);
+			}
+
+			if (vertices.Count == 0) {
 				return null;
 			}
 
-			var vertices = new List<Vector3>();
-			var triangles = new List<int>();
+			var mesh = new Mesh();
+			mesh.indexFormat = IndexFormat.UInt32;
+			mesh.SetVertices(vertices);
+			mesh.SetTriangles(triangles, 0);
+			mesh.RecalculateNormals();
+			mesh.RecalculateBounds();
+			return mesh;
+		}
+
+		static void AppendBorderRingMesh(Ring ring, float width, List<Vector3> vertices, List<int> triangles) {
+			var verts = UnwrapAndProjectRing(ring);
+			if (verts == null) {
+				return;
+			}
+
 			float halfWidth = width / 2f;
 			int n = verts.Length;
 
@@ -79,18 +101,6 @@ namespace GS.Unity.Map {
 				triangles.Add(baseIndex + 1);
 				triangles.Add(baseIndex + 3);
 			}
-
-			if (vertices.Count == 0) {
-				return null;
-			}
-
-			var mesh = new Mesh();
-			mesh.indexFormat = IndexFormat.UInt32;
-			mesh.SetVertices(vertices);
-			mesh.SetTriangles(triangles, 0);
-			mesh.RecalculateNormals();
-			mesh.RecalculateBounds();
-			return mesh;
 		}
 
 		static Vector2[] UnwrapAndProjectRing(Ring ring) {

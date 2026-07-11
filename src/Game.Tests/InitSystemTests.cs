@@ -74,8 +74,8 @@ namespace GS.Game.Tests {
 			var mapEntry = new MapEntryConfig();
 			var provinceConfig = new ProvinceConfig {
 				Provinces = new List<ProvinceEntry> {
-					new ProvinceEntry { ProvinceId = "prov_a", CountryId = "Great_Britain", DisplayName = "Prov A" },
-					new ProvinceEntry { ProvinceId = "prov_b", CountryId = "France", DisplayName = "Prov B" }
+					new ProvinceEntry { ProvinceId = "prov_a", CountryId = "Great_Britain" },
+					new ProvinceEntry { ProvinceId = "prov_b", CountryId = "France" }
 				}
 			};
 

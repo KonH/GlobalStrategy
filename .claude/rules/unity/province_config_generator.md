@@ -39,27 +39,45 @@ re-run this script.
    - **Micro** — area < 3,000 km²: single province = country's own polygon,
      `displayName` = country's `displayName`. No admin-1/Voronoi attempted.
    - **Option A** — `geopandas.overlay(admin1, country_polygon, how="intersection")`.
-     Accepted only if piece count is in `[2, 40]` **and** ≤30% of pieces (by count) are
+     Accepted only if piece count is in `[2, 300]` **and** ≤30% of pieces (by count) are
      "slivers" (<0.5% of country area). Names come from the admin-1 feature's `name`/
      `woe_name` property.
    - **Option C** (fallback when Option A fails the fit-quality gate) — scatter
-     `clamp(round(area_km2 / 50_000), 3, 15)` seed points via rejection sampling with a
-     **deterministic RNG seeded from an MD5 hash of `countryId`** (never unseeded —
-     required for reproducible re-runs), build a `scipy.spatial.Voronoi` tessellation,
-     clip each cell to the country polygon, and name each province from the nearest
-     `ne_10m_populated_places` point within 200 km (falls back to
-     `"{DisplayName} Province {n}"` if none found). If Option C itself yields zero
-     valid cells, the country falls back further to the Micro rule so no country is
-     ever left with zero provinces.
+     `clamp(round(area_km2 / 10_000), 3, 150)` seed points (both the divisor and the
+     cap are scaled per-country by `PER_COUNTRY_DENSITY_MULTIPLIER`, a dict of
+     `countryId -> multiplier` for areas that need finer detail than the global
+     constants give — e.g. an archipelago that collapses into one Voronoi cell)
+     via rejection sampling with a **deterministic RNG seeded from an MD5 hash of
+     `countryId`** (never unseeded — required for reproducible re-runs), build a
+     `scipy.spatial.Voronoi` tessellation, clip each cell to the country polygon,
+     and name each province from the nearest `ne_10m_populated_places` point —
+     search is uncapped by distance, so a cell is named after its closest known
+     settlement however far away, only falling back to a compass-direction name
+     (e.g. `"Northern Afghanistan"`, relative to the country's own bounding box)
+     if the country has zero populated-places entries at all. If Option C itself
+     yields zero valid cells, the country falls back further to the Micro rule
+     so no country is ever left with zero provinces.
 5. Assigns a deterministic `provinceId` = `{countryId}__{slug(name)}`, with a numeric
    suffix (`_2`, `_3`, ...) on any in-country name collision.
 6. Serializes the combined result to the gitignored intermediate file
    `.tmp/provinces_intermediate.geojson` (properties: `provinceId`, `countryId`,
-   `displayName`, `generationMethod`).
+   `displayName`, `generationMethod`, `compassKey` — the latter is `null` except
+   for the rare compass-direction fallback case above, and only used by the
+   locale step below).
 7. Runs `npx mapshaper -i <file> -simplify keep-shapes <pct>% -o <file>` to reduce
    vertex count for WebGL viability (`keep-shapes` guarantees no polygon degenerates
    to zero area). The simplify percentage is a tunable constant
    (`MAPSHAPER_SIMPLIFY_PCT`) in the script, currently `10`.
+8. Writes `province_name.{provinceId}` locale entries into
+   `Assets/Localization/en.asset` (the generated name verbatim) and
+   `Assets/Localization/ru.asset` — settlement/admin-1 proper nouns are run through
+   a deterministic phonetic Latin→Cyrillic transliteration (`transliterate_to_cyrillic`,
+   a placeholder pending real translation), while compass-direction fallback names
+   use a proper Russian translation table (`COMPASS_RU`) combined with the country's
+   already-translated `country_name.{countryId}` entry — never transliterated, since
+   "Northern"/"Central" etc. are real words, not proper nouns. Re-running the script
+   replaces all `province_name.*` entries in both files but leaves every other key
+   untouched.
 
 At the end, the script prints a per-country generation-method summary (counts of
 Micro / Option A / Option C countries) and any warnings — e.g. a country that fell
@@ -77,8 +95,9 @@ in-memory `CountryConfig` already built in the same `Program.cs` run, cross-vali
 every province's `countryId` against `CountryConfig` (per
 `.claude/rules/config_validation.md` — a mismatch throws rather than silently
 proceeding), and writes `Assets/Configs/province_config.json` (lightweight metadata:
-`provinceId`, `countryId`, `displayName`, `generationMethod`) and
-`Assets/Configs/provinces_1880.json` (passthrough geometry `FeatureCollection`).
+`provinceId`, `countryId`, `generationMethod` — no `displayName`; province names are
+localization-only, see `province_name.*` keys above) and `Assets/Configs/provinces_1880.json`
+(passthrough geometry `FeatureCollection`).
 
 Re-run order: Stage 1 (Python) must be run before Stage 2 (C# loader), since Stage 2
 consumes Stage 1's intermediate file via `loaderConfig.ProvinceGeoJsonSourcePath`.

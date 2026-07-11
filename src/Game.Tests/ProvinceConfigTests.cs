@@ -10,19 +10,16 @@ namespace GS.Game.Tests {
 					new ProvinceEntry {
 						ProvinceId = "France__Ile_de_France",
 						CountryId = "France",
-						DisplayName = "Ile-de-France",
 						GenerationMethod = "OptionA"
 					},
 					new ProvinceEntry {
 						ProvinceId = "France__Normandy",
 						CountryId = "France",
-						DisplayName = "Normandy",
 						GenerationMethod = "OptionA"
 					},
 					new ProvinceEntry {
 						ProvinceId = "Vatican__Vatican_City",
 						CountryId = "Vatican",
-						DisplayName = "Vatican City",
 						GenerationMethod = "Micro"
 					}
 				}
@@ -64,7 +61,6 @@ namespace GS.Game.Tests {
 			var entry = config.FindByProvinceId("Vatican__Vatican_City");
 			Assert.NotNull(entry);
 			Assert.Equal("Vatican", entry!.CountryId);
-			Assert.Equal("Vatican City", entry.DisplayName);
 			Assert.Equal("Micro", entry.GenerationMethod);
 		}
 	}

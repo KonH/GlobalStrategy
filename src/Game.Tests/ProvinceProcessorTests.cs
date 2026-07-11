@@ -15,7 +15,7 @@ namespace GS.Game.Tests {
 			};
 		}
 
-		static JsonNode BuildFeatureCollection(params (string provinceId, string countryId, string displayName, string generationMethod)[] entries) {
+		static JsonNode BuildFeatureCollection(params (string provinceId, string countryId, string generationMethod)[] entries) {
 			var features = new JsonArray();
 			foreach (var entry in entries) {
 				features.Add(new JsonObject {
@@ -23,7 +23,6 @@ namespace GS.Game.Tests {
 					["properties"] = new JsonObject {
 						["provinceId"] = entry.provinceId,
 						["countryId"] = entry.countryId,
-						["displayName"] = entry.displayName,
 						["generationMethod"] = entry.generationMethod,
 					},
 					["geometry"] = new JsonObject { ["type"] = "Polygon", ["coordinates"] = new JsonArray() },
@@ -39,8 +38,8 @@ namespace GS.Game.Tests {
 		void process_extracts_correct_province_entries() {
 			var countryConfig = BuildCountryConfig();
 			var doc = BuildFeatureCollection(
-				("France__Normandy", "France", "Normandy", "OptionA"),
-				("Vatican__Vatican_City", "Vatican", "Vatican City", "Micro"));
+				("France__Normandy", "France", "OptionA"),
+				("Vatican__Vatican_City", "Vatican", "Micro"));
 
 			var (metadata, geometry, errors) = ProvinceProcessor.Process(doc, countryConfig);
 
@@ -49,7 +48,6 @@ namespace GS.Game.Tests {
 			var normandy = metadata.FindByProvinceId("France__Normandy");
 			Assert.NotNull(normandy);
 			Assert.Equal("France", normandy!.CountryId);
-			Assert.Equal("Normandy", normandy.DisplayName);
 			Assert.Equal("OptionA", normandy.GenerationMethod);
 			Assert.NotNull(geometry);
 		}
@@ -58,7 +56,7 @@ namespace GS.Game.Tests {
 		void process_reports_mismatched_country_id() {
 			var countryConfig = BuildCountryConfig();
 			var doc = BuildFeatureCollection(
-				("Atlantis__Central", "Atlantis", "Central", "OptionA"));
+				("Atlantis__Central", "Atlantis", "OptionA"));
 
 			var (metadata, _, errors) = ProvinceProcessor.Process(doc, countryConfig);
 

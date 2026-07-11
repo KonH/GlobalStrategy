@@ -18,7 +18,6 @@ namespace GS.Game.Loader {
 				var props = featureNode["properties"];
 				string provinceId = GetStringProp(props, "provinceId") ?? "";
 				string countryId = GetStringProp(props, "countryId") ?? "";
-				string displayName = GetStringProp(props, "displayName") ?? "";
 				string generationMethod = GetStringProp(props, "generationMethod") ?? "";
 
 				if (countryConfig.FindByCountryId(countryId) == null && seenMismatches.Add(countryId)) {
@@ -28,7 +27,6 @@ namespace GS.Game.Loader {
 				provinces.Add(new ProvinceEntry {
 					ProvinceId = provinceId,
 					CountryId = countryId,
-					DisplayName = displayName,
 					GenerationMethod = generationMethod,
 				});
 			}

@@ -62,21 +62,14 @@ namespace GS.Unity.Map {
 
 				go.AddComponent<ProvinceIdentifier>().SetProvince(provinceId, provinceEntry.CountryId, feature);
 
-				foreach (var polygon in feature.Polygons) {
-					if (polygon.Rings.Count == 0) {
-						continue;
-					}
-					var borderMesh = MapMeshBuilder.BuildBorderMesh(polygon.Rings[0], _borderWidth);
-					if (borderMesh == null) {
-						break;
-					}
+				var borderMesh = MapMeshBuilder.BuildBorderMesh(feature.Polygons, _borderWidth);
+				if (borderMesh != null) {
 					var borderGo = new GameObject(provinceId + "_Border");
 					borderGo.transform.SetParent(go.transform, false);
 					borderGo.AddComponent<MeshFilter>().mesh = borderMesh;
 					var borderRenderer = borderGo.AddComponent<MeshRenderer>();
 					borderRenderer.material = _borderMaterialTemplate;
 					borderRenderer.enabled = false;
-					break;
 				}
 
 				_featureObjects.Add(go);

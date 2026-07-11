@@ -23,7 +23,6 @@ namespace GS.Game.Configs {
 	public class ProvinceEntry {
 		public string ProvinceId { get; set; } = "";
 		public string CountryId { get; set; } = "";
-		public string DisplayName { get; set; } = "";
 		public string GenerationMethod { get; set; } = "";
 	}
 }

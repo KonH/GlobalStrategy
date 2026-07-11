@@ -39,6 +39,7 @@ See Docs/Specs/43_province-division/plan.md for the full design and
 
 import hashlib
 import json
+import math
 import os
 import re
 import subprocess
@@ -61,19 +62,29 @@ COUNTRY_CONFIG_PATH = "Assets/Configs/country_config.json"
 WORLD_GEOJSON_PATH = "Assets/Map/world_1880.json"
 CACHE_DIR = ".tmp/naturalearth"
 INTERMEDIATE_PATH = ".tmp/provinces_intermediate.geojson"
+EN_LOCALE_PATH = "Assets/Localization/en.asset"
+RU_LOCALE_PATH = "Assets/Localization/ru.asset"
+PROVINCE_LOCALE_KEY_PREFIX = "province_name."
 
 EQUAL_AREA_CRS = "EPSG:6933"
 WGS84_CRS = "EPSG:4326"
 
 MICRO_STATE_AREA_KM2 = 3_000.0
 OPTION_A_MIN_PIECES = 2
-OPTION_A_MAX_PIECES = 40
+OPTION_A_MAX_PIECES = 300
 SLIVER_AREA_RATIO = 0.005      # <0.5% of country area counts as a sliver
 SLIVER_MAX_FRACTION = 0.30     # <=30% of pieces may be slivers
 OPTION_C_MIN_SEEDS = 3
-OPTION_C_MAX_SEEDS = 15
-OPTION_C_AREA_PER_SEED_KM2 = 50_000.0
-NEAREST_SETTLEMENT_MAX_KM = 200.0
+OPTION_C_MAX_SEEDS = 150
+OPTION_C_AREA_PER_SEED_KM2 = 10_000.0
+
+# Per-country density multiplier for Option C's seed count — scales both the
+# computed seed count and the global OPTION_C_MAX_SEEDS cap for that country.
+# Use for areas that need finer detail than the global density constants give
+# (e.g. archipelagos that collapse into one Voronoi cell).
+PER_COUNTRY_DENSITY_MULTIPLIER = {
+    "United_Kingdom_of_Great_Britain_and_Ireland": 5.0,
+}
 MAPSHAPER_SIMPLIFY_PCT = 10  # tunable: percentage of vertices kept
 
 NE_ADMIN1_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_1_states_provinces.zip"
@@ -353,28 +364,73 @@ def voronoi_cells(seed_points, polygon):
     return cells
 
 
-def nearest_settlement_name(centroid, places_gdf, sindex=None):
-    # Simple nearest-by-distance search in equal-area-ish degrees; good enough at this scale
+def nearest_settlement_name(centroid, places_gdf):
+    # Uncapped nearest-by-distance search — always names a cell after its closest
+    # known settlement, however far, so remote cells still get a real place name
+    # instead of falling through to a generic "Province N" label.
     places_gdf = places_gdf.copy()
     places_gdf["_dist"] = places_gdf.geometry.distance(centroid)
     nearest = places_gdf.nsmallest(1, "_dist")
     if nearest.empty:
         return None
     row = nearest.iloc[0]
-    # Rough degrees->km conversion at the centroid's latitude for the radius check
-    km_per_deg = 111.0
-    dist_km = row["_dist"] * km_per_deg
-    if dist_km > NEAREST_SETTLEMENT_MAX_KM:
-        return None
     for key in ("name", "NAME", "NAMEASCII"):
         if key in row and row[key]:
             return str(row[key])
     return None
 
 
+_COMPASS_DIRECTIONS = [
+    "Eastern", "Northeastern", "Northern", "Northwestern",
+    "Western", "Southwestern", "Southern", "Southeastern",
+]
+_COMPASS_CENTRAL_RATIO = 0.25  # normalized distance from bbox center below which a cell is "Central"
+
+# Proper Russian translations for the compass fallback names (not transliterated —
+# these are real words, unlike the settlement/admin-1 proper nouns elsewhere).
+# Feminine adjective form, matching existing Russian geographic convention
+# (Северная Америка, Южная Африка, Восточная Европа, Центральная Азия, ...).
+COMPASS_RU = {
+    "Eastern": "Восточная",
+    "Northeastern": "Северо-Восточная",
+    "Northern": "Северная",
+    "Northwestern": "Северо-Западная",
+    "Western": "Западная",
+    "Southwestern": "Юго-Западная",
+    "Southern": "Южная",
+    "Southeastern": "Юго-Восточная",
+    "Central": "Центральная",
+}
+
+
+def compass_direction_name(centroid, country_polygon, display_name):
+    """Fallback name for cells with no settlement data at all: a compass position
+    relative to the country's own bounding box (e.g. "Northern Afghanistan").
+    Returns (english_name, compass_key) — compass_key indexes COMPASS_RU so the
+    locale step can build a properly-translated Russian name instead of
+    transliterating "Northern" phonetically."""
+    minx, miny, maxx, maxy = country_polygon.bounds
+    cx = (minx + maxx) / 2.0
+    cy = (miny + maxy) / 2.0
+    half_w = max((maxx - minx) / 2.0, 1e-6)
+    half_h = max((maxy - miny) / 2.0, 1e-6)
+    nx = (centroid.x - cx) / half_w
+    ny = (centroid.y - cy) / half_h
+
+    if math.hypot(nx, ny) < _COMPASS_CENTRAL_RATIO:
+        return f"Central {display_name}", "Central"
+
+    angle = math.degrees(math.atan2(ny, nx)) % 360.0
+    idx = int(((angle + 22.5) % 360.0) // 45.0)
+    compass_key = _COMPASS_DIRECTIONS[idx]
+    return f"{compass_key} {display_name}", compass_key
+
+
 def try_option_c(country_id, display_name, country_polygon, area_km2, places_gdf, warnings):
-    n_seeds = int(round(area_km2 / OPTION_C_AREA_PER_SEED_KM2))
-    n_seeds = max(OPTION_C_MIN_SEEDS, min(OPTION_C_MAX_SEEDS, n_seeds))
+    multiplier = PER_COUNTRY_DENSITY_MULTIPLIER.get(country_id, 1.0)
+    n_seeds = int(round(area_km2 / OPTION_C_AREA_PER_SEED_KM2 * multiplier))
+    effective_max_seeds = int(round(OPTION_C_MAX_SEEDS * multiplier))
+    n_seeds = max(OPTION_C_MIN_SEEDS, min(effective_max_seeds, n_seeds))
 
     import random
     rng = random.Random(deterministic_seed(country_id))
@@ -395,14 +451,16 @@ def try_option_c(country_id, display_name, country_polygon, area_km2, places_gdf
     local_places = places_gdf.cx[minx - margin:maxx + margin, miny - margin:maxy + margin]
 
     provinces = []
-    for i, cell in enumerate(cells, start=1):
+    for cell in cells:
         centroid = cell.centroid
         name = None
         if not local_places.empty:
             name = nearest_settlement_name(centroid, local_places)
-        if not name:
-            name = f"{display_name} Province {i}"
-        provinces.append({"geometry": cell, "name": name})
+        if name:
+            provinces.append({"geometry": cell, "name": name})
+        else:
+            compass_name, compass_key = compass_direction_name(centroid, country_polygon, display_name)
+            provinces.append({"geometry": cell, "name": compass_name, "compassKey": compass_key})
 
     return provinces
 
@@ -421,6 +479,197 @@ def assign_province_ids(country_id, provinces):
         suffix = "" if count == 1 else f"_{count}"
         prov["provinceId"] = f"{country_id}__{base_slug}{suffix}"
     return provinces
+
+
+# ---------------------------------------------------------------------------
+# Step 6: province_name.* locale entries (en.asset / ru.asset)
+# ---------------------------------------------------------------------------
+_TRANSLIT_MULTI = [
+    ("shch", "щ"), ("tsch", "ч"), ("sch", "ш"),
+    ("kh", "х"), ("ch", "ч"), ("sh", "ш"), ("zh", "ж"), ("ph", "ф"), ("th", "т"),
+    ("ya", "я"), ("yo", "ё"), ("yu", "ю"), ("ja", "я"), ("jo", "ё"), ("ju", "ю"),
+    ("qu", "кв"), ("ck", "к"),
+    ("ee", "и"), ("oo", "у"), ("ou", "у"),
+    ("ai", "ай"), ("ei", "ей"), ("au", "ау"), ("eu", "еу"), ("oe", "э"), ("ae", "э"),
+]
+_TRANSLIT_SINGLE = {
+    "a": "а", "b": "б", "c": "к", "d": "д", "e": "е", "f": "ф", "g": "г",
+    "h": "х", "i": "и", "j": "й", "k": "к", "l": "л", "m": "м", "n": "н",
+    "o": "о", "p": "п", "q": "к", "r": "р", "s": "с", "t": "т", "u": "у",
+    "v": "в", "w": "в", "x": "кс", "y": "и", "z": "з",
+}
+
+
+def transliterate_to_cyrillic(name):
+    """Deterministic phonetic Latin->Cyrillic transliteration — a placeholder for
+    proper nouns (settlement/admin-1 names) that have no established Russian
+    exonym on file. Not a real translation; intended to be replaced incrementally."""
+    result = []
+    i = 0
+    lower = name.lower()
+    n = len(name)
+    while i < n:
+        matched = None
+        for pat, repl in _TRANSLIT_MULTI:
+            if lower.startswith(pat, i):
+                matched = (pat, repl)
+                break
+        if matched:
+            pat, repl = matched
+            if name[i].isupper():
+                repl = repl[0].upper() + repl[1:]
+            result.append(repl)
+            i += len(pat)
+            continue
+        c = lower[i]
+        if c in _TRANSLIT_SINGLE:
+            repl = _TRANSLIT_SINGLE[c]
+            if name[i].isupper():
+                repl = repl[0].upper() + repl[1:]
+            result.append(repl)
+        else:
+            result.append(name[i])  # digits, spaces, punctuation pass through unchanged
+        i += 1
+    return "".join(result)
+
+
+_UNICODE_ESCAPE_RE = re.compile(r"\\u([0-9a-fA-F]{4})")
+
+
+def _unescape_yaml_double_quoted(s):
+    s = _UNICODE_ESCAPE_RE.sub(lambda m: chr(int(m.group(1), 16)), s)
+    return s.replace('\\"', '"').replace("\\\\", "\\")
+
+
+def _parse_yaml_scalar(raw):
+    raw = raw.strip()
+    if len(raw) >= 2 and raw.startswith('"') and raw.endswith('"'):
+        return _unescape_yaml_double_quoted(raw[1:-1])
+    return raw
+
+
+def _yaml_scalar(value):
+    """Render a string as a YAML scalar matching Unity's own serializer style:
+    plain for simple ASCII, double-quoted with \\uXXXX escapes otherwise."""
+    is_simple_ascii = (
+        value != ""
+        and value.strip() == value
+        and all(32 <= ord(c) < 127 for c in value)
+        and not value.startswith(('"', "'", "-", "?", "!", "&", "*", "|", ">", "%", "@", "`"))
+        and ":" not in value
+        and "#" not in value
+    )
+    if is_simple_ascii:
+        return value
+    escaped = []
+    for c in value:
+        if c == '"':
+            escaped.append('\\"')
+        elif c == "\\":
+            escaped.append("\\\\")
+        elif ord(c) < 128:
+            escaped.append(c)
+        else:
+            escaped.append(f"\\u{ord(c):04x}")
+    return '"' + "".join(escaped) + '"'
+
+
+def load_locale_map(path):
+    """Read an existing LocaleConfig .asset's Entries block into a Key->Value dict."""
+    with open(path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+    mapping = {}
+    i = 0
+    while i < len(lines):
+        stripped = lines[i].strip()
+        if stripped.startswith("- Key:"):
+            key = stripped[len("- Key:"):].strip()
+            value = ""
+            if i + 1 < len(lines) and lines[i + 1].strip().startswith("Value:"):
+                value = _parse_yaml_scalar(lines[i + 1].strip()[len("Value:"):])
+            mapping[key] = value
+            i += 2
+        else:
+            i += 1
+    return mapping
+
+
+def update_locale_asset(path, entries):
+    """Replace all `province_name.*` entries in a LocaleConfig .asset's Entries
+    block with `entries` (list of (key, value)), leaving every other key untouched."""
+    with open(path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    entries_idx = None
+    for i, line in enumerate(lines):
+        if line.rstrip("\n") == "  Entries:":
+            entries_idx = i
+            break
+    if entries_idx is None:
+        raise RuntimeError(f"Could not find 'Entries:' block in {path}")
+
+    header = lines[:entries_idx + 1]
+    body = lines[entries_idx + 1:]
+
+    kept = []
+    i = 0
+    while i < len(body):
+        line = body[i]
+        if line.strip().startswith("- Key:"):
+            key = line.strip()[len("- Key:"):].strip()
+            value_line = body[i + 1] if i + 1 < len(body) else ""
+            if not key.startswith(PROVINCE_LOCALE_KEY_PREFIX):
+                kept.append(line)
+                kept.append(value_line)
+            i += 2
+        else:
+            kept.append(line)
+            i += 1
+
+    new_lines = []
+    for key, value in entries:
+        new_lines.append(f"  - Key: {key}\n")
+        new_lines.append(f"    Value: {_yaml_scalar(value)}\n")
+
+    # Guard against a missing trailing newline on the last pre-existing line
+    # (e.g. no final newline at EOF), which would otherwise merge into new_lines[0].
+    if kept and not kept[-1].endswith("\n"):
+        kept[-1] += "\n"
+    elif not kept and not header[-1].endswith("\n"):
+        header[-1] += "\n"
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.writelines(header + kept + new_lines)
+
+    print(f"Updated {path}: {len(entries)} '{PROVINCE_LOCALE_KEY_PREFIX}*' entries")
+
+
+def update_province_locales(all_features):
+    ru_country_names = load_locale_map(RU_LOCALE_PATH)
+
+    en_entries = []
+    ru_entries = []
+    for feature in sorted(all_features, key=lambda f: f["properties"]["provinceId"]):
+        props = feature["properties"]
+        province_id = props["provinceId"]
+        country_id = props["countryId"]
+        display_name = props["displayName"]
+        compass_key = props.get("compassKey")
+        key = f"{PROVINCE_LOCALE_KEY_PREFIX}{province_id}"
+
+        en_entries.append((key, display_name))
+
+        if compass_key is not None:
+            ru_country_name = ru_country_names.get(
+                f"country_name.{country_id}",
+                transliterate_to_cyrillic(display_name[len(compass_key) + 1:]))
+            ru_name = f"{COMPASS_RU[compass_key]} {ru_country_name}"
+        else:
+            ru_name = transliterate_to_cyrillic(display_name)
+        ru_entries.append((key, ru_name))
+
+    update_locale_asset(EN_LOCALE_PATH, en_entries)
+    update_locale_asset(RU_LOCALE_PATH, ru_entries)
 
 
 # ---------------------------------------------------------------------------
@@ -476,6 +725,7 @@ def run(force_download=False):
                     "countryId": country_id,
                     "displayName": prov["name"],
                     "generationMethod": method,
+                    "compassKey": prov.get("compassKey"),
                 },
                 "geometry": mapping(prov["geometry"]),
             })
@@ -500,6 +750,9 @@ def run(force_download=False):
     if result.returncode != 0:
         print(result.stderr)
         raise RuntimeError("mapshaper simplify pass failed")
+
+    print("Updating province_name.* locale entries ...")
+    update_province_locales(all_features)
 
     # ---- Summary ----
     print("\n--- Summary ---")
