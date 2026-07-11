@@ -9,7 +9,6 @@ namespace GS.Unity.Map {
 		Map _current;
 		Map _forward;
 
-		public MapRenderer ActiveRenderer => _current != null ? _current.Renderer : null;
 		public ProvinceRenderer ActiveProvinceRenderer => _current != null ? _current.ProvinceRenderer : null;
 
 		[Inject]

@@ -11,15 +11,13 @@ namespace GS.Unity.Map {
 		bool _dragging;
 		Vector3 _dragOriginWorld;
 		MapController _mapController;
-		CountryConfig _domainConfig;
 		Vector3? _panTarget;
 		float _panSpeed = 5f;
 
 		[Inject]
-		void Construct(MapCameraConfig config, MapController mapController, CountryConfig domainConfig) {
+		void Construct(MapCameraConfig config, MapController mapController) {
 			_config = config;
 			_mapController = mapController;
-			_domainConfig = domainConfig;
 		}
 
 		void Awake() {
@@ -36,12 +34,12 @@ namespace GS.Unity.Map {
 		}
 
 		public void PanToCountry(string countryId) {
-			var renderer = _mapController?.ActiveRenderer;
+			var renderer = _mapController?.ActiveProvinceRenderer;
 			if (renderer == null) { return; }
 			foreach (var go in renderer.FeatureObjects) {
 				if (go == null) { continue; }
-				var entry = _domainConfig?.FindByFeatureId(go.name);
-				if (entry == null || entry.CountryId != countryId) { continue; }
+				var identifier = go.GetComponent<ProvinceIdentifier>();
+				if (identifier == null || identifier.CountryId != countryId) { continue; }
 				var mf = go.GetComponent<MeshFilter>();
 				if (mf == null || mf.mesh == null) { continue; }
 				var center = go.transform.TransformPoint(mf.mesh.bounds.center);

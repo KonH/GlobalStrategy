@@ -283,6 +283,40 @@ namespace GS.Main {
 		}
 	}
 
+	public class ProvinceOwnershipState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyDictionary<string, string> OwnerByProvinceId { get; private set; } = new Dictionary<string, string>();
+		public string RecentProvinceId { get; private set; } = "";
+		public string RecentOldOwnerId { get; private set; } = "";
+		public string RecentNewOwnerId { get; private set; } = "";
+
+		public void Set(
+			IReadOnlyDictionary<string, string> ownerByProvinceId,
+			string recentProvinceId = "",
+			string recentOldOwnerId = "",
+			string recentNewOwnerId = "") {
+			OwnerByProvinceId = ownerByProvinceId;
+			RecentProvinceId = recentProvinceId;
+			RecentOldOwnerId = recentOldOwnerId;
+			RecentNewOwnerId = recentNewOwnerId;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
+	public class SelectedProvinceState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public bool IsValid { get; private set; }
+		public string ProvinceId { get; private set; } = "";
+
+		public void Set(bool isValid, string provinceId) {
+			IsValid = isValid;
+			ProvinceId = provinceId;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class VisualState {
 		public SelectedCountryState SelectedCountry { get; } = new SelectedCountryState();
 		public TimeState Time { get; } = new TimeState();
@@ -294,5 +328,7 @@ namespace GS.Main {
 		public DiscoveredCountriesState DiscoveredCountries { get; } = new DiscoveredCountriesState();
 		public VisualEffectCollection LastFrameEffects { get; } = new VisualEffectCollection();
 		public SaveResultState SaveResult { get; } = new SaveResultState();
+		public ProvinceOwnershipState ProvinceOwnership { get; } = new ProvinceOwnershipState();
+		public SelectedProvinceState SelectedProvince { get; } = new SelectedProvinceState();
 	}
 }

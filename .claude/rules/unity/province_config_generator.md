@@ -82,3 +82,17 @@ proceeding), and writes `Assets/Configs/province_config.json` (lightweight metad
 
 Re-run order: Stage 1 (Python) must be run before Stage 2 (C# loader), since Stage 2
 consumes Stage 1's intermediate file via `loaderConfig.ProvinceGeoJsonSourcePath`.
+
+## `countryId` is seed data, not the permanent owner
+
+Since the Province Ownership feature (`Docs/Specs/45_province-ownership/`),
+`province_config.json`'s `countryId` is consumed exactly once: `ProvinceOwnershipSystem.Seed`
+uses it to initialize the mutable runtime `ProvinceOwnership` component the first time a
+game starts (gated by `InitSystem`'s `IsInitialized` guard). After that, the actual owner
+is runtime state — persisted via `[Savable]` `ProvinceOwnership` — and can change (currently
+only via the `DebugChangeProvinceOwnerCommand` cheat). Rendering, territory aggregation, and
+any "who owns this province" query must read `VisualState.ProvinceOwnership`/
+`ProvinceOwnershipSystem.GetOwner`, not `province_config.json`, after the first init.
+
+This is a consumption-side clarification only — the Python/C# generation pipeline described
+above is completely unchanged by this.

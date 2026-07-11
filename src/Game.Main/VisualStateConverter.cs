@@ -12,6 +12,7 @@ namespace GS.Main {
 		readonly Dictionary<string, AnimatableInt> _characterOpinionAnimatables = new();
 		readonly Dictionary<(string, string), AnimatableDouble> _resourceAnimatables = new();
 		ActionConfig? _actionConfig;
+		int _lastSeenProvinceOwnershipVersion = -1;
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
@@ -35,6 +36,8 @@ namespace GS.Main {
 			UpdateDiscoveredCountries(world);
 			UpdateOrgActions(world);
 			UpdateCountryActions(world, gameTimeEntity);
+			UpdateProvinceOwnership(world);
+			UpdateSelectedProvince(world);
 
 			// Tick all animatables
 			foreach (var animatable in _characterOpinionAnimatables.Values) {
@@ -580,6 +583,43 @@ namespace GS.Main {
 			string unplayableReason = poolFull ? "pool_full" : (insufficientControl ? "insufficient_control" : "");
 
 			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason);
+		}
+
+		void UpdateProvinceOwnership(IReadOnlyWorld world) {
+			int currentVersion = ProvinceOwnershipSystem.GetVersion(world);
+			if (currentVersion == _lastSeenProvinceOwnershipVersion) {
+				return;
+			}
+			_lastSeenProvinceOwnershipVersion = currentVersion;
+
+			var ownerByProvinceId = new Dictionary<string, string>();
+			int[] required = { TypeId<ProvinceOwnership>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				ProvinceOwnership[] ownerships = arch.GetColumn<ProvinceOwnership>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					ownerByProvinceId[ownerships[i].ProvinceId] = ownerships[i].OwnerId;
+				}
+			}
+
+			_state.ProvinceOwnership.Set(
+				ownerByProvinceId,
+				_state.ProvinceOwnership.RecentProvinceId,
+				_state.ProvinceOwnership.RecentOldOwnerId,
+				_state.ProvinceOwnership.RecentNewOwnerId);
+		}
+
+		void UpdateSelectedProvince(IReadOnlyWorld world) {
+			int[] required = { TypeId<ProvinceSelection>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				if (arch.Count == 0) {
+					continue;
+				}
+				ProvinceSelection[] selections = arch.GetColumn<ProvinceSelection>();
+				_state.SelectedProvince.Set(true, selections[0].ProvinceId);
+				return;
+			}
+			_state.SelectedProvince.Set(false, "");
 		}
 
 		List<EffectStateEntry> BuildEffects(IReadOnlyWorld world, string countryId, string resourceId) {
