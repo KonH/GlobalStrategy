@@ -429,6 +429,8 @@ MonoBehaviour:
     Value: "\u0413\u0435\u043E\u0433\u0440\u0430\u0444\u0438\u0447\u0435\u0441\u043A\u0430\u044F"
   - Key: hud.lens.org
     Value: "\u041E\u0440\u0433\u0430\u043D\u0438\u0437\u0430\u0446\u0438\u0438"
+  - Key: hud.lens.province
+    Value: "\u041F\u0440\u043E\u0432\u0438\u043D\u0446\u0438\u0438"
   - Key: select_org.base_control
     Value: "\u0411\u0430\u0437\u043E\u0432\u043E\u0435 \u0432\u043B\u0438\u044F\u043D\u0438\u0435:"
   - Key: select_org.estimated_income

@@ -25,6 +25,7 @@ namespace GS.Unity.DI {
 		[SerializeField] TextAsset _characterConfigAsset;
 		[SerializeField] TextAsset _actionConfigAsset;
 		[SerializeField] TextAsset _effectConfigAsset;
+		[SerializeField] TextAsset _provinceConfigAsset;
 
 		protected override void Configure(IContainerBuilder builder) {
 			var storage = new PersistentStorage();
@@ -53,6 +54,9 @@ namespace GS.Unity.DI {
 
 			var domainCountryConfig = new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset).Load();
 			builder.RegisterInstance(domainCountryConfig);
+
+			var provinceConfig = new TextAssetConfig<GS.Game.Configs.ProvinceConfig>(_provinceConfigAsset).Load();
+			builder.RegisterInstance(provinceConfig);
 
 			builder.RegisterInstance(ctx);
 			builder.Register<GameLogic>(Lifetime.Singleton);

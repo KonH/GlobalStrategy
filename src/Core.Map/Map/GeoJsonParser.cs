@@ -4,7 +4,7 @@ using System.Text;
 
 namespace GS.Core.Map {
 	public static class GeoJsonParser {
-		static readonly string[] _nameKeys = { "NAME", "name", "ADMIN", "admin", "NAME_LONG", "SOVEREIGNT" };
+		static readonly string[] _nameKeys = { "provinceId", "NAME", "name", "ADMIN", "admin", "NAME_LONG", "SOVEREIGNT" };
 
 		public static List<MapFeature> Parse(string json) {
 			var features = new List<MapFeature>();

@@ -10,6 +10,7 @@ namespace GS.Unity.Map {
 		Map _forward;
 
 		public MapRenderer ActiveRenderer => _current != null ? _current.Renderer : null;
+		public ProvinceRenderer ActiveProvinceRenderer => _current != null ? _current.ProvinceRenderer : null;
 
 		[Inject]
 		void Construct(MapLoader loader, Camera camera) {

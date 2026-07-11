@@ -59,24 +59,81 @@ namespace GS.Unity.Map {
 		}
 
 		void ApplyLens(MapLens lens) {
-			var renderer = _mapController?.ActiveRenderer;
-			if (renderer == null) {
+			var provinceRenderer = _mapController?.ActiveProvinceRenderer;
+
+			if (lens == MapLens.Province) {
+				var renderer = _mapController?.ActiveRenderer;
+				if (renderer != null) {
+					foreach (var go in renderer.FeatureObjects) {
+						if (go == null) {
+							continue;
+						}
+						var mr = go.GetComponent<MeshRenderer>();
+						if (mr != null) {
+							mr.enabled = false;
+						}
+					}
+				}
+				if (provinceRenderer != null) {
+					foreach (var go in provinceRenderer.FeatureObjects) {
+						if (go == null) {
+							continue;
+						}
+						var identifier = go.GetComponent<ProvinceIdentifier>();
+						var mr = go.GetComponent<MeshRenderer>();
+						if (identifier == null || mr == null) {
+							continue;
+						}
+						bool discovered = IsCountryDiscovered(identifier.CountryId);
+						SetProvinceRenderersEnabled(go, discovered);
+						if (discovered) {
+							mr.material.color = GetPoliticalColorForCountryId(identifier.CountryId);
+						}
+					}
+				}
 				return;
 			}
-			foreach (var go in renderer.FeatureObjects) {
+
+			if (provinceRenderer != null) {
+				foreach (var go in provinceRenderer.FeatureObjects) {
+					if (go == null) {
+						continue;
+					}
+					SetProvinceRenderersEnabled(go, false);
+				}
+			}
+
+			var countryRenderer = _mapController?.ActiveRenderer;
+			if (countryRenderer == null) {
+				return;
+			}
+			foreach (var go in countryRenderer.FeatureObjects) {
 				if (go == null) {
 					continue;
 				}
-				var mr = go.GetComponent<MeshRenderer>();
-				if (mr == null) {
+				var countryMr = go.GetComponent<MeshRenderer>();
+				if (countryMr == null) {
 					continue;
 				}
 				bool discovered = IsDiscovered(go.name);
-				mr.enabled = discovered;
+				countryMr.enabled = discovered;
 				if (!discovered) {
 					continue;
 				}
-				mr.material.color = GetColor(lens, go.name);
+				countryMr.material.color = GetColor(lens, go.name);
+			}
+		}
+
+		static void SetProvinceRenderersEnabled(GameObject fillGo, bool enabled) {
+			var fillRenderer = fillGo.GetComponent<MeshRenderer>();
+			if (fillRenderer != null) {
+				fillRenderer.enabled = enabled;
+			}
+			foreach (Transform child in fillGo.transform) {
+				var childRenderer = child.GetComponent<MeshRenderer>();
+				if (childRenderer != null) {
+					childRenderer.enabled = enabled;
+				}
 			}
 		}
 
@@ -86,6 +143,22 @@ namespace GS.Unity.Map {
 			var country = _domainCountryConfig?.FindByFeatureId(mapFeatureId);
 			string domainId = country != null ? country.CountryId : mapFeatureId;
 			return ids.Contains(domainId);
+		}
+
+		bool IsCountryDiscovered(string countryId) {
+			var ids = _state?.DiscoveredCountries?.CountryIds;
+			if (ids == null) { return true; }
+			return ids.Contains(countryId);
+		}
+
+		Color GetPoliticalColorForCountryId(string countryId) {
+			var entry = _visualConfig?.Find(countryId);
+			if (entry == null) {
+				return new Color(0.5f, 0.5f, 0.5f, 0.5f);
+			}
+			var c = entry.color;
+			c.a = 0.5f;
+			return c;
 		}
 
 		Color GetColor(MapLens lens, string countryId) {
