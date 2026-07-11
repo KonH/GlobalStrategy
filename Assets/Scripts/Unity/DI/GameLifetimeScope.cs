@@ -49,14 +49,12 @@ namespace GS.Unity.DI {
 				character: _characterConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.CharacterConfig>(_characterConfigAsset) : null,
 				action: _actionConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.ActionConfig>(_actionConfigAsset) : null,
 				effect: _effectConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.EffectConfig>(_effectConfigAsset) : null,
-				mapGeometry: new MapGeometryConfig(_geoJsonConfig)
+				mapGeometry: new MapGeometryConfig(_geoJsonConfig),
+				province: new TextAssetConfig<GS.Game.Configs.ProvinceConfig>(_provinceConfigAsset)
 			);
 
 			var domainCountryConfig = new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset).Load();
 			builder.RegisterInstance(domainCountryConfig);
-
-			var provinceConfig = new TextAssetConfig<GS.Game.Configs.ProvinceConfig>(_provinceConfigAsset).Load();
-			builder.RegisterInstance(provinceConfig);
 
 			builder.RegisterInstance(ctx);
 			builder.Register<GameLogic>(Lifetime.Singleton);
@@ -66,6 +64,7 @@ namespace GS.Unity.DI {
 			builder.Register(c => c.Resolve<GameLogic>().CharacterConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().ActionConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().EffectConfig, Lifetime.Singleton);
+			builder.Register(c => c.Resolve<GameLogic>().ProvinceConfig, Lifetime.Singleton);
 			builder.RegisterInstance(_actionVisualConfig);
 
 			builder.RegisterInstance<IPersistentStorage>(storage);

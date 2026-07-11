@@ -4,49 +4,19 @@ using GS.Configs;
 using GS.Game.Commands;
 using GS.Game.Components;
 using GS.Game.Configs;
+using GS.Game.Systems;
 using GS.Main;
 using Xunit;
 
 namespace GS.Game.Tests {
-	public class InitSystemTests {
+	public class ProvinceOwnershipTests {
 		sealed class StaticConfig<T> : IConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;
 		}
 
-		sealed class MemoryStorage : IPersistentStorage {
-			readonly Dictionary<string, string> _files = new Dictionary<string, string>();
-			public void Write(string path, string content) => _files[path] = content;
-			public string Read(string path) => _files[path];
-			public bool Exists(string path) => _files.ContainsKey(path);
-			public void Delete(string path) => _files.Remove(path);
-			public IReadOnlyList<string> List(string dir) {
-				var result = new List<string>();
-				string prefix = dir + "/";
-				foreach (var key in _files.Keys) {
-					if (key.StartsWith(prefix)) {
-						result.Add(key.Substring(prefix.Length));
-					}
-				}
-				return result;
-			}
-		}
-
-		sealed class CapturingSerializer : ISnapshotSerializer {
-			readonly Dictionary<string, WorldSnapshot> _store = new Dictionary<string, WorldSnapshot>();
-			public string LastSaveName { get; private set; } = "";
-
-			public string Serialize(WorldSnapshot snapshot) {
-				LastSaveName = snapshot.Header.SaveName;
-				_store[snapshot.Header.SaveName] = snapshot;
-				return snapshot.Header.SaveName;
-			}
-
-			public WorldSnapshot Deserialize(string json) => _store[json];
-		}
-
-		static GameLogic BuildLogic(IPersistentStorage? storage = null, ISnapshotSerializer? serializer = null) {
+		static GameLogic BuildLogic() {
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
 					new CountryEntry { CountryId = "Great_Britain", DisplayName = "Great Britain", IsAvailable = true },
@@ -86,8 +56,6 @@ namespace GS.Game.Tests {
 				new StaticConfig<GameSettings>(gameSettings),
 				new StaticConfig<ResourceConfig>(resourceConfig),
 				new StaticConfig<OrganizationConfig>(orgConfig),
-				storage: storage,
-				serializer: serializer,
 				initialPlayerCountryId: "Great_Britain",
 				initialOrganizationId: "Illuminati",
 				province: new StaticConfig<ProvinceConfig>(provinceConfig));
@@ -104,55 +72,83 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void world_is_empty_before_first_update() {
+		void seed_creates_one_ownership_entity_per_province_from_config() {
 			var logic = BuildLogic();
-			Assert.Equal(0, CountEntities<Country>(logic.World));
+			logic.Update(0f);
+
+			Assert.Equal(2, CountEntities<ProvinceOwnership>(logic.World));
+			Assert.Equal("Great_Britain", ProvinceOwnershipSystem.GetOwner(logic.World, "prov_a"));
+			Assert.Equal("France", ProvinceOwnershipSystem.GetOwner(logic.World, "prov_b"));
 		}
 
 		[Fact]
-		void world_is_populated_after_first_update() {
+		void change_owner_updates_owner_field() {
 			var logic = BuildLogic();
 			logic.Update(0f);
-			Assert.True(CountEntities<Country>(logic.World) > 0);
+
+			var (changed, oldOwnerId) = ProvinceOwnershipSystem.ChangeOwner(logic.World, "prov_b", "Great_Britain");
+
+			Assert.True(changed);
+			Assert.Equal("France", oldOwnerId);
+			Assert.Equal("Great_Britain", ProvinceOwnershipSystem.GetOwner(logic.World, "prov_b"));
 		}
 
 		[Fact]
-		void init_does_not_run_twice() {
+		void change_owner_to_same_owner_is_noop() {
 			var logic = BuildLogic();
 			logic.Update(0f);
-			int countFirst = CountEntities<Country>(logic.World);
-			logic.Update(0f);
-			Assert.Equal(countFirst, CountEntities<Country>(logic.World));
+
+			var (changed, oldOwnerId) = ProvinceOwnershipSystem.ChangeOwner(logic.World, "prov_a", "Great_Britain");
+
+			Assert.False(changed);
+			Assert.Equal("", oldOwnerId);
+			Assert.Equal("Great_Britain", ProvinceOwnershipSystem.GetOwner(logic.World, "prov_a"));
 		}
 
 		[Fact]
-		void init_skipped_after_load() {
-			var storage = new MemoryStorage();
-			var serializer = new CapturingSerializer();
-			var logic = BuildLogic(storage, serializer);
-
-			logic.Update(0f);
-			int countAfterInit = CountEntities<Country>(logic.World);
-
-			logic.Commands.Push(new SaveGameCommand());
+		void change_owner_unknown_province_is_noop() {
+			var logic = BuildLogic();
 			logic.Update(0f);
 
-			string saveName = serializer.LastSaveName;
-			logic.LoadState(saveName);
-			logic.Update(0f);
+			var (changed, oldOwnerId) = ProvinceOwnershipSystem.ChangeOwner(logic.World, "prov_unknown", "Great_Britain");
 
-			Assert.Equal(countAfterInit, CountEntities<Country>(logic.World));
+			Assert.False(changed);
+			Assert.Equal("", oldOwnerId);
 		}
 
 		[Fact]
-		void province_ownership_seeded_once_from_config() {
+		void get_provinces_by_owner_reflects_reassignment() {
 			var logic = BuildLogic();
 			logic.Update(0f);
-			int countAfterInit = CountEntities<ProvinceOwnership>(logic.World);
-			Assert.Equal(2, countAfterInit);
 
+			ProvinceOwnershipSystem.ChangeOwner(logic.World, "prov_b", "Great_Britain");
+			var byOwner = ProvinceOwnershipSystem.GetProvincesByOwner(logic.World);
+
+			Assert.True(byOwner.TryGetValue("Great_Britain", out var gbProvinces));
+			Assert.Contains("prov_a", gbProvinces);
+			Assert.Contains("prov_b", gbProvinces);
+			Assert.False(byOwner.TryGetValue("France", out var franceProvinces) && franceProvinces.Contains("prov_b"));
+		}
+
+		[Fact]
+		void get_owner_returns_current_runtime_owner() {
+			var logic = BuildLogic();
 			logic.Update(0f);
-			Assert.Equal(countAfterInit, CountEntities<ProvinceOwnership>(logic.World));
+
+			Assert.Equal("France", ProvinceOwnershipSystem.GetOwner(logic.World, "prov_b"));
+			ProvinceOwnershipSystem.ChangeOwner(logic.World, "prov_b", "Great_Britain");
+			Assert.Equal("Great_Britain", ProvinceOwnershipSystem.GetOwner(logic.World, "prov_b"));
+		}
+
+		[Fact]
+		void debug_change_province_owner_command_updates_owner_through_pipeline() {
+			var logic = BuildLogic();
+			logic.Update(0f);
+
+			logic.Commands.Push(new DebugChangeProvinceOwnerCommand { ProvinceId = "prov_b", NewOwnerId = "Great_Britain" });
+			logic.Update(0f);
+
+			Assert.Equal("Great_Britain", ProvinceOwnershipSystem.GetOwner(logic.World, "prov_b"));
 		}
 	}
 }

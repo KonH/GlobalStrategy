@@ -11,14 +11,12 @@ namespace GS.Unity.Map {
 	public class MapClickHandler : MonoBehaviour {
 		Camera _camera;
 		MapController _mapController;
-		GS.Game.Configs.CountryConfig _domainCountryConfig;
 		IWriteOnlyCommandAccessor _commands;
 		VisualState _state;
 
 		[Inject]
-		void Construct(MapController mapController, GS.Game.Configs.CountryConfig domainCountryConfig, IWriteOnlyCommandAccessor commands, VisualState state) {
+		void Construct(MapController mapController, IWriteOnlyCommandAccessor commands, VisualState state) {
 			_mapController = mapController;
-			_domainCountryConfig = domainCountryConfig;
 			_commands = commands;
 			_state = state;
 		}
@@ -49,9 +47,9 @@ namespace GS.Unity.Map {
 				return;
 			}
 
-			var mapRenderer = _mapController != null ? _mapController.ActiveRenderer : null;
-			if (mapRenderer == null) {
-				Debug.LogWarning($"[MapClick] mapRenderer is null (mapController={_mapController != null})");
+			var provinceRenderer = _mapController != null ? _mapController.ActiveProvinceRenderer : null;
+			if (provinceRenderer == null) {
+				Debug.LogWarning($"[MapClick] provinceRenderer is null (mapController={_mapController != null})");
 				return;
 			}
 
@@ -59,25 +57,16 @@ namespace GS.Unity.Map {
 			var world = _camera.ScreenToWorldPoint(new Vector3(sp.x, sp.y, 0f));
 			Debug.Log($"[MapClick] World pos: {world.x:F2}, {world.y:F2}");
 
-			var id = mapRenderer.FindFeatureAt(new Vector2(world.x, world.y));
+			var id = provinceRenderer.FindFeatureAt(new Vector2(world.x, world.y));
 			if (id == null) {
 				Debug.Log("[MapClick] ocean");
 				_commands?.Push(new SelectCountryCommand(""));
 				return;
 			}
 
-			string mapFeatureId = id.gameObject.name;
-			var country = _domainCountryConfig?.FindByFeatureId(mapFeatureId);
-
-			if (country != null) {
-				bool isMain = country.MainMapFeatureIds.Contains(mapFeatureId);
-				string role = isMain ? "main" : "secondary";
-				Debug.Log($"[MapClick] countryId: '{country.CountryId}', featureId: '{mapFeatureId}', role: {role}");
-				_commands?.Push(new SelectCountryCommand(country.CountryId));
-			} else {
-				Debug.Log($"[MapClick] No country entry for featureId: '{mapFeatureId}' — pushing raw id");
-				_commands?.Push(new SelectCountryCommand(mapFeatureId));
-			}
+			string ownerId = ResolveOwner(id);
+			Debug.Log($"[MapClick] provinceId: '{id.gameObject.name}', ownerId: '{ownerId}'");
+			_commands?.Push(new SelectCountryCommand(ownerId));
 		}
 
 		void HandleProvinceClick(Mouse mouse) {
@@ -98,8 +87,16 @@ namespace GS.Unity.Map {
 			}
 
 			string provinceId = id.gameObject.name;
-			// TODO: hook up province selection UI here
 			Debug.Log($"[MapClick] provinceId: '{provinceId}', countryId: '{id.CountryId}'");
+			_commands.Push(new SelectProvinceCommand { ProvinceId = provinceId });
+		}
+
+		string ResolveOwner(ProvinceIdentifier id) {
+			var owners = _state?.ProvinceOwnership?.OwnerByProvinceId;
+			if (owners != null && owners.TryGetValue(id.ProvinceId, out string ownerId)) {
+				return ownerId;
+			}
+			return id.CountryId;
 		}
 	}
 }

@@ -18,6 +18,7 @@ namespace GS.Main {
 		int _settingsEntity = -1;
 		int _orgEntity = -1;
 		int _proximityEntity = -1;
+		int _provinceSelectionEntity = -1;
 		string _sessionId = Guid.NewGuid().ToString("N");
 		DateTime _previousTime;
 		ActionConfig _actionConfig = null!;
@@ -30,6 +31,7 @@ namespace GS.Main {
 		public CharacterConfig CharacterConfig { get; private set; } = null!;
 		public ActionConfig ActionConfig { get; private set; } = null!;
 		public EffectConfig EffectConfig { get; private set; } = null!;
+		public ProvinceConfig ProvinceConfig { get; private set; } = null!;
 
 		public GameLogic(GameLogicContext context) {
 			_context = context;
@@ -42,6 +44,7 @@ namespace GS.Main {
 			_actionConfig = ActionConfig;
 			_effectConfig = context.Effect.Load();
 			EffectConfig = _effectConfig;
+			ProvinceConfig = context.Province.Load();
 			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig);
 			var settings = context.GameSettings.Load();
 			_speedMultipliers = settings.SpeedMultipliers;
@@ -107,6 +110,19 @@ namespace GS.Main {
 			foreach (var cmd in _commandAccessor.ReadDebugChangeGoldCommand().AsSpan()) {
 				ApplyDebugChangeGold(cmd.OrgId, cmd.Amount);
 			}
+			foreach (var cmd in _commandAccessor.ReadSelectProvinceCommand().AsSpan()) {
+				ApplySelectProvince(cmd.ProvinceId);
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugChangeProvinceOwnerCommand().AsSpan()) {
+				var (changed, oldOwnerId) = ProvinceOwnershipSystem.ChangeOwner(_world, cmd.ProvinceId, cmd.NewOwnerId);
+				if (changed) {
+					VisualState.ProvinceOwnership.Set(
+						VisualState.ProvinceOwnership.OwnerByProvinceId,
+						cmd.ProvinceId,
+						oldOwnerId,
+						cmd.NewOwnerId);
+				}
+			}
 
 			CleanupActionEffectsSystem.Update(_world);
 			InitActionFromPlayCardSystem.Update(_world, _commandAccessor.ReadPlayCardActionCommand());
@@ -166,6 +182,7 @@ namespace GS.Main {
 			_settingsEntity = FindEntityWith<AppSettings>();
 			_orgEntity = FindEntityWith<Organization>();
 			_proximityEntity = FindEntityWith<ProximityMapData>();
+			_provinceSelectionEntity = FindEntityWith<ProvinceSelection>();
 		}
 
 		public void RebuildProximityMap() {
@@ -321,6 +338,16 @@ namespace GS.Main {
 						_world.Add(re, new Resource { ResourceId = opinionResourceId, Value = 50 });
 					}
 				}
+			}
+		}
+
+		void ApplySelectProvince(string provinceId) {
+			if (_provinceSelectionEntity < 0) {
+				_provinceSelectionEntity = _world.Create();
+				_world.Add(_provinceSelectionEntity, new ProvinceSelection { ProvinceId = provinceId });
+			} else {
+				ref ProvinceSelection selection = ref _world.Get<ProvinceSelection>(_provinceSelectionEntity);
+				selection.ProvinceId = provinceId;
 			}
 		}
 

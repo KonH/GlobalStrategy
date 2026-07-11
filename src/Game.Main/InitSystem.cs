@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ECS;
 using GS.Game.Components;
 using GS.Game.Configs;
+using GS.Game.Systems;
 
 namespace GS.Main {
 	static class InitSystem {
@@ -32,6 +33,8 @@ namespace GS.Main {
 				}
 				CreateResourceEntities(world, entry, resourceConfig);
 			}
+
+			ProvinceOwnershipSystem.Seed(world, context.Province.Load());
 
 			var settings = context.GameSettings.Load();
 			var startTime = new DateTime(settings.StartYear, 1, 1);

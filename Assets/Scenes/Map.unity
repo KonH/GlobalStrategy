@@ -335,7 +335,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: GS.Unity.Map::GS.Unity.Map.MapLoader
   _mapPrefab: {fileID: 1768836903777052187, guid: fb641cb516b6f4d448bae962f59efb51, type: 3}
-  _geoJsonAsset: {fileID: 4900000, guid: be898760bb70a164eb980db0f1dfb849, type: 3}
   _provinceGeoJsonAsset: {fileID: 4900000, guid: 4fe851d67ae346540a4f6523c391f1f9, type: 3}
   _mapTiles:
   - {fileID: 2800000, guid: 49f66d4a8ebce4149a3f190615aa1662, type: 3}

@@ -15,16 +15,20 @@ namespace GS.Unity.DI {
 		[SerializeField] TextAsset _countryConfigAsset;
 		[SerializeField] TextAsset _organizationsConfigAsset;
 		[SerializeField] TextAsset _resourceConfigAsset;
+		[SerializeField] TextAsset _provinceConfigAsset;
 
 		protected override void Configure(IContainerBuilder builder) {
 			var countryConfigSource = new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset);
 			var domainCountryConfig = countryConfigSource.Load();
 			var orgConfigSource = new TextAssetConfig<OrganizationConfig>(_organizationsConfigAsset);
 			var resourceConfig = new TextAssetConfig<ResourceConfig>(_resourceConfigAsset).Load();
+			var provinceConfig = new TextAssetConfig<GS.Game.Configs.ProvinceConfig>(_provinceConfigAsset).Load();
 
 			builder.RegisterInstance(domainCountryConfig);
 			builder.Register(_ => new SelectOrgLogic(countryConfigSource, orgConfigSource, resourceConfig), Lifetime.Singleton);
+			builder.Register(c => c.Resolve<SelectOrgLogic>().VisualState, Lifetime.Singleton);
 
+			builder.RegisterInstance(provinceConfig);
 			builder.RegisterInstance(_countryVisualConfig);
 			builder.RegisterInstance(_orgVisualConfig);
 			builder.RegisterInstance(_mapCameraConfig);

@@ -11,15 +11,13 @@ namespace GS.Unity.Map {
 		MapController _mapController;
 		CountryVisualConfig _visualConfig;
 		OrgVisualConfig _orgVisualConfig;
-		CountryConfig _domainCountryConfig;
 
 		[Inject]
-		void Construct(VisualState state, MapController mapController, CountryVisualConfig visualConfig, OrgVisualConfig orgVisualConfig, CountryConfig domainCountryConfig) {
+		void Construct(VisualState state, MapController mapController, CountryVisualConfig visualConfig, OrgVisualConfig orgVisualConfig) {
 			_state = state;
 			_mapController = mapController;
 			_visualConfig = visualConfig;
 			_orgVisualConfig = orgVisualConfig;
-			_domainCountryConfig = domainCountryConfig;
 		}
 
 		void OnEnable() {
@@ -29,6 +27,7 @@ namespace GS.Unity.Map {
 			_state.MapLens.PropertyChanged += HandleLensChanged;
 			_state.OrgMap.PropertyChanged  += HandleOrgMapChanged;
 			_state.DiscoveredCountries.PropertyChanged += HandleDiscoveredChanged;
+			_state.ProvinceOwnership.PropertyChanged += HandleProvinceOwnershipChanged;
 		}
 
 		void Start() {
@@ -42,6 +41,7 @@ namespace GS.Unity.Map {
 			_state.MapLens.PropertyChanged -= HandleLensChanged;
 			_state.OrgMap.PropertyChanged  -= HandleOrgMapChanged;
 			_state.DiscoveredCountries.PropertyChanged -= HandleDiscoveredChanged;
+			_state.ProvinceOwnership.PropertyChanged -= HandleProvinceOwnershipChanged;
 		}
 
 		void HandleLensChanged(object sender, PropertyChangedEventArgs e) {
@@ -58,77 +58,50 @@ namespace GS.Unity.Map {
 			ApplyLens(_state.MapLens.Lens);
 		}
 
+		void HandleProvinceOwnershipChanged(object sender, PropertyChangedEventArgs e) {
+			ApplyLens(_state.MapLens.Lens);
+		}
+
 		void ApplyLens(MapLens lens) {
 			var provinceRenderer = _mapController?.ActiveProvinceRenderer;
-
-			if (lens == MapLens.Province) {
-				var renderer = _mapController?.ActiveRenderer;
-				if (renderer != null) {
-					foreach (var go in renderer.FeatureObjects) {
-						if (go == null) {
-							continue;
-						}
-						var mr = go.GetComponent<MeshRenderer>();
-						if (mr != null) {
-							mr.enabled = false;
-						}
-					}
-				}
-				if (provinceRenderer != null) {
-					foreach (var go in provinceRenderer.FeatureObjects) {
-						if (go == null) {
-							continue;
-						}
-						var identifier = go.GetComponent<ProvinceIdentifier>();
-						var mr = go.GetComponent<MeshRenderer>();
-						if (identifier == null || mr == null) {
-							continue;
-						}
-						bool discovered = IsCountryDiscovered(identifier.CountryId);
-						SetProvinceRenderersEnabled(go, discovered);
-						if (discovered) {
-							mr.material.color = GetPoliticalColorForCountryId(identifier.CountryId);
-						}
-					}
-				}
+			if (provinceRenderer == null) {
 				return;
 			}
 
-			if (provinceRenderer != null) {
-				foreach (var go in provinceRenderer.FeatureObjects) {
-					if (go == null) {
-						continue;
-					}
-					SetProvinceRenderersEnabled(go, false);
-				}
-			}
+			bool showBorders = lens == MapLens.Province;
 
-			var countryRenderer = _mapController?.ActiveRenderer;
-			if (countryRenderer == null) {
-				return;
-			}
-			foreach (var go in countryRenderer.FeatureObjects) {
+			foreach (var go in provinceRenderer.FeatureObjects) {
 				if (go == null) {
 					continue;
 				}
-				var countryMr = go.GetComponent<MeshRenderer>();
-				if (countryMr == null) {
+				var identifier = go.GetComponent<ProvinceIdentifier>();
+				var fillRenderer = go.GetComponent<MeshRenderer>();
+				if (identifier == null || fillRenderer == null) {
 					continue;
 				}
-				bool discovered = IsDiscovered(go.name);
-				countryMr.enabled = discovered;
+
+				string ownerId = ResolveOwner(identifier);
+				bool discovered = IsCountryDiscovered(ownerId);
+
+				fillRenderer.enabled = discovered;
+				SetBorderRenderersEnabled(go, discovered && showBorders);
+
 				if (!discovered) {
 					continue;
 				}
-				countryMr.material.color = GetColor(lens, go.name);
+				fillRenderer.material.color = GetColor(lens, ownerId);
 			}
 		}
 
-		static void SetProvinceRenderersEnabled(GameObject fillGo, bool enabled) {
-			var fillRenderer = fillGo.GetComponent<MeshRenderer>();
-			if (fillRenderer != null) {
-				fillRenderer.enabled = enabled;
+		string ResolveOwner(ProvinceIdentifier identifier) {
+			var owners = _state?.ProvinceOwnership?.OwnerByProvinceId;
+			if (owners != null && owners.TryGetValue(identifier.ProvinceId, out string ownerId)) {
+				return ownerId;
 			}
+			return identifier.CountryId;
+		}
+
+		static void SetBorderRenderersEnabled(GameObject fillGo, bool enabled) {
 			foreach (Transform child in fillGo.transform) {
 				var childRenderer = child.GetComponent<MeshRenderer>();
 				if (childRenderer != null) {
@@ -137,45 +110,25 @@ namespace GS.Unity.Map {
 			}
 		}
 
-		bool IsDiscovered(string mapFeatureId) {
-			var ids = _state?.DiscoveredCountries?.CountryIds;
-			if (ids == null) { return true; }
-			var country = _domainCountryConfig?.FindByFeatureId(mapFeatureId);
-			string domainId = country != null ? country.CountryId : mapFeatureId;
-			return ids.Contains(domainId);
-		}
-
 		bool IsCountryDiscovered(string countryId) {
 			var ids = _state?.DiscoveredCountries?.CountryIds;
 			if (ids == null) { return true; }
 			return ids.Contains(countryId);
 		}
 
-		Color GetPoliticalColorForCountryId(string countryId) {
-			var entry = _visualConfig?.Find(countryId);
-			if (entry == null) {
-				return new Color(0.5f, 0.5f, 0.5f, 0.5f);
-			}
-			var c = entry.color;
-			c.a = 0.5f;
-			return c;
-		}
-
-		Color GetColor(MapLens lens, string countryId) {
+		Color GetColor(MapLens lens, string ownerId) {
 			switch (lens) {
 				case MapLens.Geographic:
 					return new Color(0, 0, 0, 0);
 				case MapLens.Org:
-					return GetOrgColor(countryId);
+					return GetOrgColor(ownerId);
 				default:
-					return GetPoliticalColor(countryId);
+					return GetPoliticalColor(ownerId);
 			}
 		}
 
-		Color GetPoliticalColor(string mapFeatureId) {
-			var country = _domainCountryConfig?.FindByFeatureId(mapFeatureId);
-			string domainId = country != null ? country.CountryId : mapFeatureId;
-			var entry = _visualConfig?.Find(domainId);
+		Color GetPoliticalColor(string ownerId) {
+			var entry = _visualConfig?.Find(ownerId);
 			if (entry == null) {
 				return new Color(0.5f, 0.5f, 0.5f, 0.5f);
 			}
@@ -184,11 +137,9 @@ namespace GS.Unity.Map {
 			return c;
 		}
 
-		Color GetOrgColor(string mapFeatureId) {
-			var country = _domainCountryConfig?.FindByFeatureId(mapFeatureId);
-			string domainId = country != null ? country.CountryId : mapFeatureId;
+		Color GetOrgColor(string ownerId) {
 			foreach (var e in _state.OrgMap.Entries) {
-				if (e.CountryId != domainId) {
+				if (e.CountryId != ownerId) {
 					continue;
 				}
 				var c = OrgIdToColor(e.TopOrgId);

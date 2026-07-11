@@ -43,6 +43,7 @@ namespace GS.Unity.UI {
 		ActionConfig _actionConfig;
 		ActionVisualConfig _actionVisualConfig;
 		CardPlayAnimator _cardPlayAnimator;
+		Button _btnReassignProvince;
 
 		[Inject]
 		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator) {
@@ -160,6 +161,15 @@ namespace GS.Unity.UI {
 				improveOpinionBtn.AddToClassList("gs-btn--small");
 				improveOpinionBtn.AddToClassList("debug-panel-button");
 				characterDebugContainer.Add(improveOpinionBtn);
+
+				var reassignProvinceBtn = new Button(() => PushReassignProvinceCommand());
+				reassignProvinceBtn.text = "Reassign Province to My HQ";
+				reassignProvinceBtn.AddToClassList("gs-btn");
+				reassignProvinceBtn.AddToClassList("gs-btn--small");
+				reassignProvinceBtn.AddToClassList("debug-panel-button");
+				characterDebugContainer.Add(reassignProvinceBtn);
+				_btnReassignProvince = reassignProvinceBtn;
+				RefreshProvinceCheatButton();
 			}
 
 			RebuildOrgCharDebugButtons();
@@ -197,9 +207,11 @@ namespace GS.Unity.UI {
 			_state.OrgMap.PropertyChanged             += HandleOrgMapChanged;
 			_state.PlayerOrganization.Characters.PropertyChanged += HandleOrgCharactersChanged;
 			_state.SelectedCountry.Control.UsedControl.PropertyChanged += HandleControlTickChanged;
+			_state.SelectedProvince.PropertyChanged += HandleSelectedProvinceChanged;
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			RefreshCountryViews();
 			RefreshControlDebugRow();
+			RefreshProvinceCheatButton();
 			_timeView.Refresh(_state.Time);
 		}
 
@@ -221,6 +233,7 @@ namespace GS.Unity.UI {
 			_state.OrgMap.PropertyChanged             -= HandleOrgMapChanged;
 			_state.PlayerOrganization.Characters.PropertyChanged -= HandleOrgCharactersChanged;
 			_state.SelectedCountry.Control.UsedControl.PropertyChanged -= HandleControlTickChanged;
+			_state.SelectedProvince.PropertyChanged -= HandleSelectedProvinceChanged;
 			_lastOrgAgentSlotCount = -1;
 			if (_orgInfoDocument != null) {
 				_orgInfoDocument.OnSubPanelOpened -= HandleOrgSubPanelOpened;
@@ -380,6 +393,25 @@ namespace GS.Unity.UI {
 		void HandleLensChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			RefreshCountryViews();
+			RefreshProvinceCheatButton();
+		}
+
+		void HandleSelectedProvinceChanged(object sender, PropertyChangedEventArgs e) {
+			RefreshProvinceCheatButton();
+		}
+
+		void RefreshProvinceCheatButton() {
+			if (_btnReassignProvince == null || _state == null) { return; }
+			bool show = _state.MapLens.Lens == MapLens.Province && _state.SelectedProvince.IsValid;
+			_btnReassignProvince.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+		}
+
+		void PushReassignProvinceCommand() {
+			if (_state == null || _commands == null) { return; }
+			string provinceId = _state.SelectedProvince.ProvinceId;
+			string hqCountryId = _state.PlayerOrganization.HqCountryId;
+			if (string.IsNullOrEmpty(provinceId) || string.IsNullOrEmpty(hqCountryId)) { return; }
+			_commands.Push(new DebugChangeProvinceOwnerCommand { ProvinceId = provinceId, NewOwnerId = hqCountryId });
 		}
 
 		void HandleOrgMapChanged(object sender, PropertyChangedEventArgs e) => RefreshCountryViews();

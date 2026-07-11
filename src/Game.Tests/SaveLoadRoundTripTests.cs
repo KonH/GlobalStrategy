@@ -267,5 +267,30 @@ namespace GS.Game.Tests {
 			Assert.NotNull(restoredKeys);
 			Assert.Empty(restoredKeys);
 		}
+
+		[Fact]
+		void round_trip_preserves_reassigned_province_ownership() {
+			var world = new World();
+			int provinceEntity = world.Create();
+			world.Add(provinceEntity, new ProvinceOwnership { ProvinceId = "prov_a", OwnerId = "France" });
+
+			ref ProvinceOwnership ownership = ref world.Get<ProvinceOwnership>(provinceEntity);
+			ownership.OwnerId = "Great_Britain";
+
+			var snapshot = Snapshot(world);
+			var restored = new World();
+			Restore(snapshot, restored);
+
+			int[] req = { TypeId<ProvinceOwnership>.Value };
+			string? restoredOwnerId = null;
+			foreach (var arch in restored.GetMatchingArchetypes(req, null)) {
+				if (arch.Count > 0) {
+					restoredOwnerId = arch.GetColumn<ProvinceOwnership>()[0].OwnerId;
+					break;
+				}
+			}
+
+			Assert.Equal("Great_Britain", restoredOwnerId);
+		}
 	}
 }

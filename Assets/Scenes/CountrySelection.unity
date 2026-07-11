@@ -212,6 +212,7 @@ MonoBehaviour:
   _countryConfigAsset: {fileID: 4900000, guid: 7f98da82aa8166e4bbbd9da8e2392f7e, type: 3}
   _organizationsConfigAsset: {fileID: 4900000, guid: b325b81b944b914468f3b6898c3badf2, type: 3}
   _resourceConfigAsset: {fileID: 4900000, guid: 28dfd99e93067d8418e5347d8ed30be4, type: 3}
+  _provinceConfigAsset: {fileID: 4900000, guid: 573fd552be007b54c8013822097fa4ff, type: 3}
 --- !u!4 &20000002
 Transform:
   m_ObjectHideFlags: 0
@@ -367,7 +368,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: GS.Unity.Map::GS.Unity.Map.MapLoader
   _mapPrefab: {fileID: 1768836903777052187, guid: fb641cb516b6f4d448bae962f59efb51, type: 3}
-  _geoJsonAsset: {fileID: 4900000, guid: be898760bb70a164eb980db0f1dfb849, type: 3}
+  _provinceGeoJsonAsset: {fileID: 4900000, guid: 4fe851d67ae346540a4f6523c391f1f9, type: 3}
   _mapTiles:
   - {fileID: 2800000, guid: 49f66d4a8ebce4149a3f190615aa1662, type: 3}
   - {fileID: 2800000, guid: 8044ebd4d2f0e024a9af3c8e2ab9a594, type: 3}
