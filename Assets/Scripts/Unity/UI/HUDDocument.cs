@@ -170,6 +170,13 @@ namespace GS.Unity.UI {
 				characterDebugContainer.Add(reassignProvinceBtn);
 				_btnReassignProvince = reassignProvinceBtn;
 				RefreshProvinceCheatButton();
+
+				var discoverAllBtn = new Button(() => PushDiscoverAllCountriesCommand());
+				discoverAllBtn.text = "Discover All Countries";
+				discoverAllBtn.AddToClassList("gs-btn");
+				discoverAllBtn.AddToClassList("gs-btn--small");
+				discoverAllBtn.AddToClassList("debug-panel-button");
+				characterDebugContainer.Add(discoverAllBtn);
 			}
 
 			RebuildOrgCharDebugButtons();
@@ -412,6 +419,10 @@ namespace GS.Unity.UI {
 			string hqCountryId = _state.PlayerOrganization.HqCountryId;
 			if (string.IsNullOrEmpty(provinceId) || string.IsNullOrEmpty(hqCountryId)) { return; }
 			_commands.Push(new DebugChangeProvinceOwnerCommand { ProvinceId = provinceId, NewOwnerId = hqCountryId });
+		}
+
+		void PushDiscoverAllCountriesCommand() {
+			_commands?.Push(new DebugDiscoverAllCountriesCommand());
 		}
 
 		void HandleOrgMapChanged(object sender, PropertyChangedEventArgs e) => RefreshCountryViews();

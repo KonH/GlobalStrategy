@@ -110,6 +110,9 @@ namespace GS.Main {
 			foreach (var cmd in _commandAccessor.ReadDebugChangeGoldCommand().AsSpan()) {
 				ApplyDebugChangeGold(cmd.OrgId, cmd.Amount);
 			}
+			if (_commandAccessor.ReadDebugDiscoverAllCountriesCommand().Count > 0) {
+				ApplyDebugDiscoverAllCountries();
+			}
 			foreach (var cmd in _commandAccessor.ReadSelectProvinceCommand().AsSpan()) {
 				ApplySelectProvince(cmd.ProvinceId);
 			}
@@ -363,6 +366,22 @@ namespace GS.Main {
 						return;
 					}
 				}
+			}
+		}
+
+		void ApplyDebugDiscoverAllCountries() {
+			var toDiscover = new System.Collections.Generic.List<int>();
+			int[] req = { TypeId<Country>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (!_world.Has<IsDiscovered>(arch.Entities[i])) {
+						toDiscover.Add(arch.Entities[i]);
+					}
+				}
+			}
+			foreach (int entity in toDiscover) {
+				_world.Add(entity, new IsDiscovered());
 			}
 		}
 
