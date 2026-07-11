@@ -5,8 +5,6 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class ProvinceOwnershipSystem {
-		public static int Version { get; private set; }
-
 		public static void Seed(World world, ProvinceConfig config) {
 			foreach (var entry in config.Provinces) {
 				int entity = world.Create();
@@ -15,7 +13,7 @@ namespace GS.Game.Systems {
 					OwnerId = entry.CountryId
 				});
 			}
-			Version++;
+			BumpVersion(world);
 		}
 
 		public static (bool Changed, string OldOwnerId) ChangeOwner(World world, string provinceId, string newOwnerId) {
@@ -32,11 +30,35 @@ namespace GS.Game.Systems {
 						return (false, "");
 					}
 					ownerships[i].OwnerId = newOwnerId;
-					Version++;
+					BumpVersion(world);
 					return (true, oldOwnerId);
 				}
 			}
 			return (false, "");
+		}
+
+		// Per-World change counter for VisualStateConverter's dirty-check — see
+		// ecs_patterns.md: no implicit singletons, state must be scoped per-World.
+		public static int GetVersion(IReadOnlyWorld world) {
+			int[] required = { TypeId<ProvinceOwnershipVersion>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				if (arch.Count > 0) {
+					return arch.GetColumn<ProvinceOwnershipVersion>()[0].Value;
+				}
+			}
+			return 0;
+		}
+
+		static void BumpVersion(World world) {
+			int[] required = { TypeId<ProvinceOwnershipVersion>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				if (arch.Count > 0) {
+					arch.GetColumn<ProvinceOwnershipVersion>()[0].Value++;
+					return;
+				}
+			}
+			int entity = world.Create();
+			world.Add(entity, new ProvinceOwnershipVersion { Value = 1 });
 		}
 
 		public static string GetOwner(IReadOnlyWorld world, string provinceId) {

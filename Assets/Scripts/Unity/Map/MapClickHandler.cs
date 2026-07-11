@@ -83,12 +83,13 @@ namespace GS.Unity.Map {
 			var id = provinceRenderer.FindFeatureAt(new Vector2(world.x, world.y));
 			if (id == null) {
 				Debug.Log("[MapClick] ocean (province lens)");
+				_commands?.Push(new SelectProvinceCommand { ProvinceId = "" });
 				return;
 			}
 
 			string provinceId = id.gameObject.name;
 			Debug.Log($"[MapClick] provinceId: '{provinceId}', countryId: '{id.CountryId}'");
-			_commands.Push(new SelectProvinceCommand { ProvinceId = provinceId });
+			_commands?.Push(new SelectProvinceCommand { ProvinceId = provinceId });
 		}
 
 		string ResolveOwner(ProvinceIdentifier id) {

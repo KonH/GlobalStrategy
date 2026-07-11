@@ -46,6 +46,7 @@ namespace GS.Unity.Map {
 				if (visible) {
 					var mr = go.GetComponent<MeshRenderer>();
 					if (mr != null) {
+						mr.enabled = true;
 						var c = GetOrgColor(orgId);
 						c.a = 0.5f;
 						mr.material.color = c;

@@ -586,7 +586,7 @@ namespace GS.Main {
 		}
 
 		void UpdateProvinceOwnership(IReadOnlyWorld world) {
-			int currentVersion = ProvinceOwnershipSystem.Version;
+			int currentVersion = ProvinceOwnershipSystem.GetVersion(world);
 			if (currentVersion == _lastSeenProvinceOwnershipVersion) {
 				return;
 			}
