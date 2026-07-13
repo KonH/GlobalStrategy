@@ -45,22 +45,16 @@ Add a per-province population `Resource`, seeded at init from a new pipeline-gen
 - [ ] **Wire growth into `GameLogic`** — In `src/Game.Main/GameLogic.cs`: add a `readonly double _populationGrowthPercent;` field, set it from `settings.PopulationGrowthPercentPerMonth` in the constructor (same place `_speedMultipliers` is captured from `settings`). In `Update`, immediately after `OpinionSystem.Update(_world, _previousTime, currentTime);`, add `ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);`. This reuses the already-computed `_previousTime`/`currentTime` pair, so the "no growth on the very first tick" behavior falls out naturally (seed time equals current time on tick 1, exactly like `ResourceSystem`).
 - [ ] **Add/extend tests** — see Tests section below; run `dotnet test src/GlobalStrategy.Core.sln` (`dangerouslyDisableSandbox: true`).
 - [ ] **Update rule docs if needed** — Check whether `.claude/rules/unity/province_config_generator.md`'s Stage 1/Stage 2 field lists need a one-line mention of the new `population` property (documentation currency only; no behavior change to the doc's described pipeline mechanics).
+- [ ] **Rebuild the Core DLLs** — After `src/` changes compile and tests pass, run `dotnet build src/GlobalStrategy.Core.sln -c Release` so `Assets/Plugins/Core/` picks up `OwnerType.Province`, `ProvincePopulationGrowthSystem`, the updated `ProvinceConfig`/`GameSettings`, and the `InitSystem`/`GameLogic` wiring. Let Unity finish its domain reload and confirm `read_console(types=["error"])` is clean.
+- [ ] **Re-run the province generation pipeline with real geometry** — Run `scripts/generate_provinces.py` from the project root (`.venv\Scripts\python.exe scripts\generate_provinces.py`) — the required `geopandas`/`shapely`/`scipy`/`pyproj`/`requests` stack and `npx`/Node.js are confirmed present in this environment. Confirm the script's summary output shows the same per-method country counts as before this change (Micro/OptionA/OptionC counts unaffected — only a `population` property was added) and that no new warnings appear. Then re-run the Stage 2 C# loader (`Game.Configs.Loader`, via its existing `loader_config.json`-driven entry point) to regenerate `Assets/Configs/province_config.json` with the new `population` field populated for every entry.
 
 ### User Steps
 
-### 1. Rebuild the Core DLLs
-
-After the agent's `src/` changes compile and tests pass, run `dotnet build src/GlobalStrategy.Core.sln -c Release` so `Assets/Plugins/Core/` picks up `OwnerType.Province`, `ProvincePopulationGrowthSystem`, the updated `ProvinceConfig`/`GameSettings`, and the `InitSystem`/`GameLogic` wiring. Let Unity finish its domain reload and confirm `read_console(types=["error"])` is clean.
-
-### 2. Re-run the province generation pipeline with real geometry
-
-Run `scripts/generate_provinces.py` from the project root (`.venv\Scripts\python.exe scripts\generate_provinces.py`) — this requires the real `geopandas`/`shapely`/`scipy`/`pyproj`/`requests` stack and `npx`/Node.js on PATH, none of which the agent can exercise in this sandbox. Confirm the script's summary output shows the same per-method country counts as before this change (Micro/OptionA/OptionC counts unaffected — only a `population` property was added) and that no new warnings appear. Then re-run the Stage 2 C# loader (`Game.Configs.Loader`, via its existing `loader_config.json`-driven entry point) to regenerate `Assets/Configs/province_config.json` with the new `population` field populated for every entry.
-
-### 3. Sanity-check seed population values in the Editor
+### 1. Sanity-check seed population values in the Editor
 
 Enter Play mode, and via a temporary debug inspection (e.g. Unity MCP world/entity query, or a quick breakpoint/log) confirm a handful of provinces across different regions (e.g. a dense South/East Asian province vs. a sparse Central Asian one) show plausibly distinct, non-zero `population` `Resource.Value`s matching the region-density design intent, and that two provinces in the same country hold independent values.
 
-### 4. Observe monthly growth and save/reload persistence
+### 2. Observe monthly growth and save/reload persistence
 
 Advance the in-game clock across at least one month boundary (using existing time-speed controls) and confirm province population values increase by the configured percent compounding on the prior value (not reset). Save, reload, and confirm the persisted (grown) values resume compounding rather than reverting to the seed value.
 
