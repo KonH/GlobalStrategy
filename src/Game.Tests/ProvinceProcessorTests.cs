@@ -64,5 +64,46 @@ namespace GS.Game.Tests {
 			Assert.Contains("Atlantis", errors);
 			Assert.Single(metadata.Provinces);
 		}
+
+		[Fact]
+		void process_extracts_population_field() {
+			var countryConfig = BuildCountryConfig();
+			var features = new JsonArray {
+				new JsonObject {
+					["type"] = "Feature",
+					["properties"] = new JsonObject {
+						["provinceId"] = "France__Normandy",
+						["countryId"] = "France",
+						["generationMethod"] = "OptionA",
+						["population"] = 12345.5,
+					},
+					["geometry"] = new JsonObject { ["type"] = "Polygon", ["coordinates"] = new JsonArray() },
+				},
+				new JsonObject {
+					["type"] = "Feature",
+					["properties"] = new JsonObject {
+						["provinceId"] = "Vatican__Vatican_City",
+						["countryId"] = "Vatican",
+						["generationMethod"] = "Micro",
+					},
+					["geometry"] = new JsonObject { ["type"] = "Polygon", ["coordinates"] = new JsonArray() },
+				},
+			};
+			var doc = new JsonObject {
+				["type"] = "FeatureCollection",
+				["features"] = features,
+			};
+
+			var (metadata, _, errors) = ProvinceProcessor.Process(doc, countryConfig);
+
+			Assert.Empty(errors);
+			var normandy = metadata.FindByProvinceId("France__Normandy");
+			Assert.NotNull(normandy);
+			Assert.Equal(12345.5, normandy!.Population);
+
+			var vatican = metadata.FindByProvinceId("Vatican__Vatican_City");
+			Assert.NotNull(vatican);
+			Assert.Equal(0.0, vatican!.Population);
+		}
 	}
 }

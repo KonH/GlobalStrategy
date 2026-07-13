@@ -12,6 +12,7 @@ namespace GS.Main {
 		readonly VisualStateConverter _visualStateConverter;
 		readonly GameLogicContext _context;
 		readonly int[] _speedMultipliers;
+		readonly double _populationGrowthPercent;
 		readonly Random _rng;
 		int _gameTimeEntity = -1;
 		int _localeEntity = -1;
@@ -48,6 +49,7 @@ namespace GS.Main {
 			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig);
 			var settings = context.GameSettings.Load();
 			_speedMultipliers = settings.SpeedMultipliers;
+			_populationGrowthPercent = settings.PopulationGrowthPercentPerMonth;
 			_previousTime = new DateTime(settings.StartYear, 1, 1);
 		}
 
@@ -72,6 +74,7 @@ namespace GS.Main {
 			ResourceSystem.Update(_world, _previousTime, currentTime);
 			ControlSystem.Update(_world, _previousTime, currentTime);
 			OpinionSystem.Update(_world, _previousTime, currentTime);
+			ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);
 
 			foreach (var cmd in _commandAccessor.ReadChangeControlCommand().AsSpan()) {
 				ApplyChangeControl(cmd.OrgId, cmd.CountryId, cmd.Delta);

@@ -63,11 +63,17 @@ re-run this script.
    `.tmp/provinces_intermediate.geojson` (properties: `provinceId`, `countryId`,
    `displayName`, `generationMethod`, `compassKey` — the latter is `null` except
    for the rare compass-direction fallback case above, and only used by the
-   locale step below).
+   locale step below — plus a `population` placeholder, `null` at this point).
 7. Runs `npx mapshaper -i <file> -simplify keep-shapes <pct>% -o <file>` to reduce
    vertex count for WebGL viability (`keep-shapes` guarantees no polygon degenerates
    to zero area). The simplify percentage is a tunable constant
    (`MAPSHAPER_SIMPLIFY_PCT`) in the script, currently `10`.
+7b. Reloads the simplified geometry and fills in each feature's `population`
+    property: a per-`countryId`-region density (people/km², `COUNTRY_REGION` +
+    `REGION_DENSITY_RANGES`, sampled with the same per-country deterministic RNG
+    used for Option C) multiplied by that province's **simplified** polygon area,
+    so the shipped figure matches the geometry Stage 2 actually consumes. Region is
+    generator-time-only — never persisted on `CountryEntry`/`ProvinceEntry`.
 8. Writes `province_name.{provinceId}` locale entries into
    `Assets/Localization/en.asset` (the generated name verbatim) and
    `Assets/Localization/ru.asset` — settlement/admin-1 proper nouns are run through

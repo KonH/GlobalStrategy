@@ -31,7 +31,8 @@ Pipeline summary:
 
 Output:
     .tmp/provinces_intermediate.geojson — FeatureCollection with properties:
-        provinceId, countryId, displayName, generationMethod ("Micro" | "OptionA" | "OptionC")
+        provinceId, countryId, displayName, generationMethod ("Micro" | "OptionA" | "OptionC"),
+        population (density sampled per-region x simplified polygon area, km^2)
 
 See Docs/Specs/43_province-division/plan.md for the full design and
 .claude/rules/unity/province_config_generator.md for the rule-doc summary.
@@ -41,6 +42,7 @@ import hashlib
 import json
 import math
 import os
+import random
 import re
 import subprocess
 import sys
@@ -86,6 +88,206 @@ PER_COUNTRY_DENSITY_MULTIPLIER = {
     "United_Kingdom_of_Great_Britain_and_Ireland": 5.0,
 }
 MAPSHAPER_SIMPLIFY_PCT = 10  # tunable: percentage of vertices kept
+
+# ---------------------------------------------------------------------------
+# Population seeding — region lookup + density ranges (people/km^2).
+# Approximate 1880-era relative density bands, not researched real data
+# (out of scope per Docs/Specs/46_province-population/spec.md). Unmapped
+# countries fall back to "Default" so the pipeline never crashes on a
+# missing entry.
+# ---------------------------------------------------------------------------
+COUNTRY_REGION = {
+    # Western Europe — dense
+    "United_Kingdom_of_Great_Britain_and_Ireland": "WesternEurope",
+    "France": "WesternEurope",
+    "Germany": "WesternEurope",
+    "Belgium": "WesternEurope",
+    "Netherlands": "WesternEurope",
+    "Switzerland": "WesternEurope",
+    "Luxembourg": "WesternEurope",
+    "Italy": "WesternEurope",
+    "Spain": "WesternEurope",
+    "Portugal": "WesternEurope",
+    "Austria_Hungary": "WesternEurope",
+    "Denmark": "WesternEurope",
+    "Malta": "WesternEurope",
+
+    # Northern Europe / Scandinavia — sparse
+    "SwedenNorway": "NorthernEurope",
+
+    # Eastern Europe — moderate
+    "Russian_Empire": "EasternEurope",
+    "Romania": "EasternEurope",
+    "Serbia": "EasternEurope",
+    "Bulgaria": "EasternEurope",
+    "Greece": "EasternEurope",
+    "Ottoman_Empire": "EasternEurope",
+    "Montenegro": "EasternEurope",
+    "Bosnia_Herzegovina": "EasternEurope",
+
+    # East Asia — dense
+    "Manchu_Empire": "EastAsia",
+    "Imperial_Japan": "EastAsia",
+    "Korea": "EastAsia",
+    "Taiwan": "EastAsia",
+
+    # South Asia — dense
+    "British_Raj": "SouthAsia",
+    "Ceylon": "SouthAsia",
+    "Nepal": "SouthAsia",
+    "Bhutan": "SouthAsia",
+
+    # Southeast Asia — moderate/dense
+    "French_Indochina": "SoutheastAsia",
+    "Annam": "SoutheastAsia",
+    "Rattanakosin_Kingdom": "SoutheastAsia",
+    "Malaya": "SoutheastAsia",
+    "Brunei": "SoutheastAsia",
+    "Philippines": "SoutheastAsia",
+
+    # Central Asia / interior deserts — sparse
+    "Afghanistan": "CentralAsia",
+    "Persia": "CentralAsia",
+    "Bokhara_Khanate": "CentralAsia",
+    "central_Asian_khanates": "CentralAsia",
+
+    # Middle East / Arabian peninsula — sparse
+    "Arabia": "MiddleEast",
+    "Oman": "MiddleEast",
+    "Trucial_Oman": "MiddleEast",
+    "Qatar": "MiddleEast",
+
+    # Africa — sparse/moderate
+    "Egypt": "Africa",
+    "Ethiopia": "Africa",
+    "Morocco": "Africa",
+    "Algeria": "Africa",
+    "Congo": "Africa",
+    "Cape_Colony": "Africa",
+    "Transvaal": "Africa",
+    "Orange_Free_State": "Africa",
+    "Natal": "Africa",
+    "Zululand": "Africa",
+    "Swaziland": "Africa",
+    "Basutoland": "Africa",
+    "Griqualand_West": "Africa",
+    "Ndebele": "Africa",
+    "Ngwato": "Africa",
+    "Barotse": "Africa",
+    "Lozi": "Africa",
+    "Nguni": "Africa",
+    "Shona": "Africa",
+    "Madagascar": "Africa",
+    "Imerina": "Africa",
+    "Mozambique": "Africa",
+    "Sultinate_of_Zanzibar": "Africa",
+    "Buganda": "Africa",
+    "Bunyoro": "Africa",
+    "Rwanda": "Africa",
+    "Burundi": "Africa",
+    "Kuba": "Africa",
+    "Luba": "Africa",
+    "Lunda": "Africa",
+    "Yeke": "Africa",
+    "Asante": "Africa",
+    "Dahomey": "Africa",
+    "Benin": "Africa",
+    "Oyo": "Africa",
+    "Ibadan": "Africa",
+    "Lagos": "Africa",
+    "Opobo": "Africa",
+    "Calabar": "Africa",
+    "Sokoto_Caliphate": "Africa",
+    "Kanem_Bornu": "Africa",
+    "Wadai_Empire": "Africa",
+    "Rabih_az_Zubayr": "Africa",
+    "Tukular_Caliphate": "Africa",
+    "Futa_Jalon": "Africa",
+    "Futa_Toro": "Africa",
+    "Kong_Empire": "Africa",
+    "Mossi_States": "Africa",
+    "Ivory_Coast": "Africa",
+    "Gambia": "Africa",
+    "Sierra_Leone": "Africa",
+    "Liberia": "Africa",
+    "Portuguese_Guinea": "Africa",
+    "Spanish_Guinea": "Africa",
+    "Gabon": "Africa",
+    "Cotonou": "Africa",
+    "Borgu_States": "Africa",
+    "Dendi_Kingdom": "Africa",
+    "Ato_trading_confederacy": "Africa",
+    "Yaka": "Africa",
+    "Teke": "Africa",
+    "Harer_Egypt": "Africa",
+    "Mirambo_Unyanyembe_Ukimbu": "Africa",
+    "Mbailundu": "Africa",
+    "Ovimbundu": "Africa",
+    "Sultanate_of_Damagaram": "Africa",
+    "Sultanate_of_Utetera": "Africa",
+    "Wassoulou_Empire": "Africa",
+
+    # Americas — sparse/moderate
+    "United_States_of_America": "Americas",
+    "Canada": "Americas",
+    "Mexico": "Americas",
+    "Kingdom_of_Brazil": "Americas",
+    "Argentina": "Americas",
+    "Chile": "Americas",
+    "Peru": "Americas",
+    "Bolivia": "Americas",
+    "Colombia": "Americas",
+    "Ecuador": "Americas",
+    "Venezuela": "Americas",
+    "Paraguay": "Americas",
+    "Uruguay": "Americas",
+    "Guatemala": "Americas",
+    "Honduras": "Americas",
+    "Nicaragua": "Americas",
+    "Costa_Rica": "Americas",
+    "El_Salvador": "Americas",
+    "Belize": "Americas",
+    "Haiti": "Americas",
+    "Dominican_Republic": "Americas",
+    "British_Guiana": "Americas",
+    "Dutch_Guiana": "Americas",
+    "French_Guiana": "Americas",
+    "Guadeloupe": "Americas",
+    "Antigua_and_Barbuda": "Americas",
+    "Dominica": "Americas",
+    "Saint_Kitts_and_Nevis": "Americas",
+    "Saint_Martin": "Americas",
+    "Saint_Barthelemy": "Americas",
+    "Anguilla": "Americas",
+    "Montserrat": "Americas",
+    "Netherlands_Antilles": "Americas",
+    "Kingdom_of_Hawaii": "Americas",
+
+    # Oceania — sparse/moderate island densities
+    "Fiji": "Oceania",
+    "Tonga": "Oceania",
+    "Samoa": "Oceania",
+    "American_Samoa": "Oceania",
+    "Niue": "Oceania",
+    "Papua_New_Guinea": "Oceania",
+    "M_ori": "Oceania",
+    "Polynesians": "Oceania",
+}
+
+REGION_DENSITY_RANGES = {
+    "WesternEurope": (60.0, 160.0),
+    "NorthernEurope": (5.0, 25.0),
+    "EasternEurope": (20.0, 60.0),
+    "EastAsia": (80.0, 250.0),
+    "SouthAsia": (60.0, 200.0),
+    "SoutheastAsia": (30.0, 90.0),
+    "CentralAsia": (1.0, 10.0),
+    "MiddleEast": (2.0, 15.0),
+    "Africa": (5.0, 30.0),
+    "Americas": (2.0, 20.0),
+    "Oceania": (10.0, 50.0),
+    "Default": (5.0, 40.0),
+}
 
 NE_ADMIN1_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_1_states_provinces.zip"
 NE_PLACES_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_populated_places.zip"
@@ -426,14 +628,11 @@ def compass_direction_name(centroid, country_polygon, display_name):
     return f"{compass_key} {display_name}", compass_key
 
 
-def try_option_c(country_id, display_name, country_polygon, area_km2, places_gdf, warnings):
+def try_option_c(country_id, display_name, country_polygon, area_km2, places_gdf, warnings, rng):
     multiplier = PER_COUNTRY_DENSITY_MULTIPLIER.get(country_id, 1.0)
     n_seeds = int(round(area_km2 / OPTION_C_AREA_PER_SEED_KM2 * multiplier))
     effective_max_seeds = int(round(OPTION_C_MAX_SEEDS * multiplier))
     n_seeds = max(OPTION_C_MIN_SEEDS, min(effective_max_seeds, n_seeds))
-
-    import random
-    rng = random.Random(deterministic_seed(country_id))
 
     seeds = seed_points_in_polygon(country_polygon, n_seeds, rng)
     if len(seeds) < 2:
@@ -688,10 +887,14 @@ def run(force_download=False):
     warnings = []
     all_features = []
 
+    density_by_province_id = {}
+
     for country_id, data in sorted(countries.items()):
         polygon = data["polygon"]
         display_name = data["displayName"]
         area_km2 = data["area_km2"]
+
+        rng = random.Random(deterministic_seed(country_id))
 
         provinces = None
         method = None
@@ -706,7 +909,8 @@ def run(force_download=False):
                 method = "OptionA"
             else:
                 warnings.append(f"{country_id}: Option A rejected ({reject_reason}); trying Option C")
-                option_c_provinces = try_option_c(country_id, display_name, polygon, area_km2, places_gdf, warnings)
+                option_c_provinces = try_option_c(
+                    country_id, display_name, polygon, area_km2, places_gdf, warnings, rng)
                 if option_c_provinces is not None:
                     provinces = option_c_provinces
                     method = "OptionC"
@@ -717,6 +921,11 @@ def run(force_download=False):
         provinces = assign_province_ids(country_id, provinces)
         counts[method + "_countries"] = counts.get(method + "_countries", 0) + 1
 
+        region = COUNTRY_REGION.get(country_id, "Default")
+        density_range = REGION_DENSITY_RANGES[region]
+        for prov in provinces:
+            density_by_province_id[prov["provinceId"]] = rng.uniform(*density_range)
+
         for prov in provinces:
             all_features.append({
                 "type": "Feature",
@@ -726,6 +935,7 @@ def run(force_download=False):
                     "displayName": prov["name"],
                     "generationMethod": method,
                     "compassKey": prov.get("compassKey"),
+                    "population": None,
                 },
                 "geometry": mapping(prov["geometry"]),
             })
@@ -750,6 +960,20 @@ def run(force_download=False):
     if result.returncode != 0:
         print(result.stderr)
         raise RuntimeError("mapshaper simplify pass failed")
+
+    print("Computing province population from simplified geometry ...")
+    with open(INTERMEDIATE_PATH, "r", encoding="utf-8") as f:
+        simplified = json.load(f)
+    all_features = simplified["features"]
+    for feature in all_features:
+        province_id = feature["properties"]["provinceId"]
+        density = density_by_province_id[province_id]
+        geom = shape(feature["geometry"])
+        gs = gpd.GeoSeries([geom], crs=WGS84_CRS).to_crs(EQUAL_AREA_CRS)
+        province_area_km2 = gs.area.iloc[0] / 1_000_000.0
+        feature["properties"]["population"] = density * province_area_km2
+    with open(INTERMEDIATE_PATH, "w", encoding="utf-8") as f:
+        json.dump(simplified, f)
 
     print("Updating province_name.* locale entries ...")
     update_province_locales(all_features)
