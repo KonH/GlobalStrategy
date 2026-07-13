@@ -24,5 +24,6 @@ namespace GS.Game.Configs {
 		public string ProvinceId { get; set; } = "";
 		public string CountryId { get; set; } = "";
 		public string GenerationMethod { get; set; } = "";
+		public double Population { get; set; }
 	}
 }
