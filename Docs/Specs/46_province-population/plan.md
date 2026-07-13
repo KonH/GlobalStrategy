@@ -1,0 +1,99 @@
+# Plan: Province Population
+
+## Spec
+
+Source: `Docs/Specs/46_province-population/spec.md`.
+
+**Intent.** Give each province its own population value, modeled with the existing `Resource`/`ResourceOwner` component shapes (the same ones already used for country-level gold), growing every month by a single global percentage constant. This is a data-layer foundation only — nothing yet reads population beyond its own growth loop.
+
+**Key acceptance criteria:**
+- Every province gets one `Resource { ResourceId = "population", Value }` entity owned via `ResourceOwner(provinceId, OwnerType.Province)` — a new `OwnerType.Province` case is added alongside `Org`/`Country`/`Character`. One independent value per province; no sharing/redistribution across provinces of the same country.
+- Seed values come from a new Stage 1 (`scripts/generate_provinces.py`) step: a `countryId → region` lookup (style of `PER_COUNTRY_DENSITY_MULTIPLIER`), per-region density ranges (people/km²), sampled with the pipeline's existing deterministic per-`countryId` RNG, multiplied by each province's own polygon area. Written as a new field on `ProvinceEntry`/`province_config.json` (Stage 2 C# loader passes it through, `province_name`-style — no separate config file).
+- Monthly growth applied by a new standalone `ProvincePopulationGrowthSystem`, decoupled from `ResourceEffect`/`PayType`/`ResourceLink` — it multiplies matching `Resource.Value` entries by `(1 + percent/100)` directly, gated by the same month-boundary condition already used by `ResourceSystem`/`ControlSystem`/`OpinionSystem`.
+- The percentage is a new global constant in `GameSettings`/`game_settings.json`, default `0.075` (percent/month).
+- `[Savable]` persistence via the existing `Resource`/`ResourceOwner` conventions — no new persisted component types.
+- No growth on the very first tick (mirrors existing `ResourceSystem`/`base_income` behavior — seed time equals current time on tick 1).
+- Province ownership reassignment (`ProvinceOwnershipSystem.ChangeOwner`) must not affect population — it stays keyed by `provinceId`, independent of current owner.
+- Out of scope: no UI, no country-level population aggregate, no other system reading population, no changes to the existing gold/income `ResourceEffect` pipeline, no persisted `region` field on `CountryEntry`/`ProvinceEntry` (region lookup is generator-time-only, lives inside the Python script).
+
+## Goal
+
+Add a per-province population `Resource`, seeded at init from a new pipeline-generated field on `province_config.json`, and grown monthly by a standalone system reading a new global-settings constant — without touching the existing resource-effect/gold pipeline.
+
+## Approach
+
+- **`OwnerType.Province`** — new enum case in `src/Game.Components/OwnerType.cs`, following the existing `Org`/`Country`/`Character` cases.
+- **`ProvinceEntry.Population`** — new `double` field on `src/Game.Configs/ProvinceConfig.cs`, populated by `src/Game.Configs.Loader/ProvinceProcessor.cs` from a new `population` GeoJSON property, itself written by `scripts/generate_provinces.py`'s per-country loop (region lookup + density range + polygon area, using the same per-`countryId`-seeded `random.Random` already used for Option C).
+- **Seeding** — `src/Game.Main/InitSystem.Run` adds one `Resource{ResourceId="population", Value=entry.Population}` + `ResourceOwner(entry.ProvinceId, OwnerType.Province)` entity pair per `ProvinceEntry`, alongside the existing `ProvinceOwnershipSystem.Seed` call (both driven off the same `context.Province.Load()` call — captured into a single local variable so adding the new seeding step doesn't introduce a second `Load()` call within `InitSystem.Run`; this doesn't address the pre-existing, out-of-scope separate load of `ProvinceConfig` in `GameLogic`'s constructor).
+- **Growth** — new `src/Game.Systems/ProvincePopulationGrowthSystem.cs` (static, mirrors `ResourceSystem`'s/`ControlSystem`'s month-boundary + archetype-iteration style): filters `Resource`+`ResourceOwner` entities to `OwnerType.Province` and `ResourceId == PopulationResourceId`, multiplies `Value` by `(1 + monthlyGrowthPercent/100)` once per crossed month boundary. Exposes the `"population"` resource-id string as a `public const string PopulationResourceId` so `InitSystem` and tests share one literal.
+- **Global constant** — `GameSettings.PopulationGrowthPercentPerMonth` (`double`, default `0.075`), JSON key `populationGrowthPercentPerMonth` in `Assets/Configs/game_settings.json`. Loaded once in `GameLogic`'s constructor (new `_populationGrowthPercent` field, same pattern as `_speedMultipliers`) and passed into `ProvincePopulationGrowthSystem.Update` from `GameLogic.Update`, called immediately after `OpinionSystem.Update(...)` (same tick, same `_previousTime`/`currentTime` pair already computed — no new time bookkeeping).
+- **Persistence** — no new `[Savable]` component. `Resource`/`ResourceOwner` are already `[Savable]`; `SaveSystem`/`LoadSystem` discover the new province-owned entities by reflection automatically.
+
+## Steps
+
+### Agent Steps
+
+- [ ] **Add `OwnerType.Province`** — In `src/Game.Components/OwnerType.cs`, add `Province` as a fourth case after `Character`.
+- [ ] **Add `ProvinceEntry.Population`** — In `src/Game.Configs/ProvinceConfig.cs`, add `public double Population { get; set; }` to `ProvinceEntry`.
+- [ ] **Pass population through Stage 2 (`ProvinceProcessor`)** — In `src/Game.Configs.Loader/ProvinceProcessor.cs`'s `Process`, read a new `population` property per feature (add a `GetDoubleProp` helper mirroring `GetStringProp`, returning `0.0` if absent) and set it on the constructed `ProvinceEntry`. Cross-validation of `countryId` is unaffected.
+- [ ] **Add region lookup + density ranges to `scripts/generate_provinces.py`** — Add two module-level dicts near `PER_COUNTRY_DENSITY_MULTIPLIER`: `COUNTRY_REGION` (`countryId -> region key`, covering every country in `country_config.json`; unmapped countries fall back to a `"Default"` region so the pipeline never crashes on a missing entry) and `REGION_DENSITY_RANGES` (`region -> (min_people_per_km2, max_people_per_km2)`), with a `"Default"` entry as the fallback range. Populate plausible 1880-era relative density bands per spec (denser South/East Asia and Western Europe, sparser Northern Europe/Central Asia/interior deserts) — approximate, not researched real data (explicitly out of scope per spec).
+- [ ] **Sample density and attach population per province in `generate_provinces.py`** — In `run()`'s per-country loop: create one `random.Random(deterministic_seed(country_id))` per country up front (reuse the existing `deterministic_seed` helper) and thread it into `try_option_c` as a parameter instead of the RNG it currently constructs internally (removes the internal `rng = random.Random(...)` line in `try_option_c`, keeping the same call sequence for seed placement so existing Voronoi output is unaffected). After the per-country `provinces` list is finalized (covering Micro/OptionA/OptionC alike) and `assign_province_ids` has run, look up the country's region via `COUNTRY_REGION.get(country_id, "Default")` and its density range via `REGION_DENSITY_RANGES`, then for each province **in list order** draw `density = rng.uniform(*density_range)` and stash it as `prov["_density"]` (not yet multiplied by area — the province's final polygon area isn't known until after the mapshaper simplify pass runs later in the pipeline). Add a `"population": None` placeholder to each emitted feature's `properties` dict for now, alongside `provinceId`/`countryId`/`displayName`/`generationMethod`/`compassKey`. Update the module docstring's "Output" property list to include `population`.
+- [ ] **Compute final population from simplified geometry** — After the `npx mapshaper -simplify keep-shapes <pct>%` subprocess call completes successfully (mapshaper preserves feature order and properties), reload `INTERMEDIATE_PATH` from disk (the simplified geometry), compute each feature's area in `EQUAL_AREA_CRS` from that **simplified** polygon (same `gpd.GeoSeries(...).to_crs(...).area` technique used elsewhere), multiply by the matching province's stashed `_density` (matched by `provinceId`), write the result into that feature's `population` property, and re-serialize `INTERMEDIATE_PATH` so the on-disk file's `population` values are computed from the same final geometry that Stage 2/`provinces_1880.json` will ship. This avoids persisting a population figure derived from pre-simplification geometry that no longer matches the delivered polygon's area.
+- [ ] **Add `GameSettings.PopulationGrowthPercentPerMonth`** — In `src/Game.Configs/GameSettings.cs`, add `public double PopulationGrowthPercentPerMonth { get; set; } = 0.075;` alongside `StartYear`/`SpeedMultipliers`/`DefaultLocale`/`AutoSaveInterval`. Add `"populationGrowthPercentPerMonth": 0.075` to `Assets/Configs/game_settings.json`.
+- [ ] **Add `ProvincePopulationGrowthSystem`** — Create `src/Game.Systems/ProvincePopulationGrowthSystem.cs`: `public const string PopulationResourceId = "population";` and `public static void Update(World world, DateTime previousTime, DateTime currentTime, double monthlyGrowthPercent)`. Compute `isMonthBoundary` the same way as `ResourceSystem`/`ControlSystem` (`previousTime.Month != currentTime.Month || previousTime.Year != currentTime.Year`); return early if not crossed. Iterate `world.GetMatchingArchetypes({TypeId<ResourceOwner>.Value, TypeId<Resource>.Value}, null)`, and for each row where `owners[i].OwnerType == OwnerType.Province && resources[i].ResourceId == PopulationResourceId`, set `resources[i].Value *= (1.0 + monthlyGrowthPercent / 100.0)` (direct array-index mutation, no lambda — per `ecs_patterns.md`'s `ref`/lambda gotcha). Do not touch `ResourceEffect`/`ResourceLink`/`PayType` at all.
+- [ ] **Seed province population at init** — In `src/Game.Main/InitSystem.Run`, change the existing `ProvinceOwnershipSystem.Seed(world, context.Province.Load());` line to first assign `var provinceConfig = context.Province.Load();`, call `ProvinceOwnershipSystem.Seed(world, provinceConfig);`, then add a new `CreateProvincePopulationEntities(world, provinceConfig);` call right after. Implement `static void CreateProvincePopulationEntities(World world, ProvinceConfig config)`: for each `ProvinceEntry` in `config.Provinces`, `world.Create()` an entity with `ResourceOwner(entry.ProvinceId, OwnerType.Province)` and `Resource { ResourceId = ProvincePopulationGrowthSystem.PopulationResourceId, Value = entry.Population }` (mirrors `CreateResourceEntities`'s per-country seeding shape, but a single resource per province with no `ResourceEffect`/`ResourceLink`).
+- [ ] **Wire growth into `GameLogic`** — In `src/Game.Main/GameLogic.cs`: add a `readonly double _populationGrowthPercent;` field, set it from `settings.PopulationGrowthPercentPerMonth` in the constructor (same place `_speedMultipliers` is captured from `settings`). In `Update`, immediately after `OpinionSystem.Update(_world, _previousTime, currentTime);`, add `ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);`. This reuses the already-computed `_previousTime`/`currentTime` pair, so the "no growth on the very first tick" behavior falls out naturally (seed time equals current time on tick 1, exactly like `ResourceSystem`).
+- [ ] **Add/extend tests** — see Tests section below; run `dotnet test src/GlobalStrategy.Core.sln` (`dangerouslyDisableSandbox: true`).
+- [ ] **Update rule docs if needed** — Check whether `.claude/rules/unity/province_config_generator.md`'s Stage 1/Stage 2 field lists need a one-line mention of the new `population` property (documentation currency only; no behavior change to the doc's described pipeline mechanics).
+
+### User Steps
+
+### 1. Rebuild the Core DLLs
+
+After the agent's `src/` changes compile and tests pass, run `dotnet build src/GlobalStrategy.Core.sln -c Release` so `Assets/Plugins/Core/` picks up `OwnerType.Province`, `ProvincePopulationGrowthSystem`, the updated `ProvinceConfig`/`GameSettings`, and the `InitSystem`/`GameLogic` wiring. Let Unity finish its domain reload and confirm `read_console(types=["error"])` is clean.
+
+### 2. Re-run the province generation pipeline with real geometry
+
+Run `scripts/generate_provinces.py` from the project root (`.venv\Scripts\python.exe scripts\generate_provinces.py`) — this requires the real `geopandas`/`shapely`/`scipy`/`pyproj`/`requests` stack and `npx`/Node.js on PATH, none of which the agent can exercise in this sandbox. Confirm the script's summary output shows the same per-method country counts as before this change (Micro/OptionA/OptionC counts unaffected — only a `population` property was added) and that no new warnings appear. Then re-run the Stage 2 C# loader (`Game.Configs.Loader`, via its existing `loader_config.json`-driven entry point) to regenerate `Assets/Configs/province_config.json` with the new `population` field populated for every entry.
+
+### 3. Sanity-check seed population values in the Editor
+
+Enter Play mode, and via a temporary debug inspection (e.g. Unity MCP world/entity query, or a quick breakpoint/log) confirm a handful of provinces across different regions (e.g. a dense South/East Asian province vs. a sparse Central Asian one) show plausibly distinct, non-zero `population` `Resource.Value`s matching the region-density design intent, and that two provinces in the same country hold independent values.
+
+### 4. Observe monthly growth and save/reload persistence
+
+Advance the in-game clock across at least one month boundary (using existing time-speed controls) and confirm province population values increase by the configured percent compounding on the prior value (not reset). Save, reload, and confirm the persisted (grown) values resume compounding rather than reverting to the seed value.
+
+## Tests
+
+Test project: `src/Game.Tests/` (xUnit, snake_case `[Fact]` names; harness pattern in `InitSystemTests.cs`/`ProvinceOwnershipTests.cs` — `StaticConfig<T>`, `GameLogicContext` built with a `ProvinceConfig` containing `Population`-bearing `ProvinceEntry`s).
+
+- **New `src/Game.Tests/ProvincePopulationGrowthSystemTests.cs`** (mirrors `ResourceSystemTests.cs`'s `Jan31`/`Feb1`/`Jan1`/`Jan2` constants and world-building helpers):
+  - `population_unaffected_within_same_month` — `ProvincePopulationGrowthSystem.Update(world, Jan1, Jan2, 0.075)` leaves `Resource.Value` unchanged.
+  - `population_grows_by_percent_at_month_boundary` — a province-owned `Resource{ResourceId="population", Value=1000}` with `Update(world, Jan31, Feb1, 0.075)` becomes `1000 * 1.00075 = 1000.75`.
+  - `growth_compounds_across_multiple_months` — two successive month-boundary `Update` calls compound rather than reset (mirrors `ResourceSystemTests.monthly_effect_persists_across_multiple_months`).
+  - `only_province_owner_type_and_matching_resource_id_affected` — a `Resource{ResourceId="population"}` owned with `OwnerType.Country` is untouched; a province-owned `Resource` with a different `ResourceId` (e.g. `"gold"`) is untouched; only `OwnerType.Province` + `ResourceId == PopulationResourceId` rows change.
+  - `two_provinces_of_same_owner_diverge_independently` — two `ProvinceOwnership`-independent population resources with different starting values grow to different absolute values but the same relative percentage, proving no implicit sharing.
+- **Extend `src/Game.Tests/InitSystemTests.cs`** (`BuildLogic`'s `provinceConfig` already has `ProvinceEntry`s — add `Population` values to them): add `province_population_seeded_from_config` — after the first `GameLogic.Update`, one `Resource{ResourceId="population"}` + `ResourceOwner(_, OwnerType.Province)` entity exists per `ProvinceEntry`, `Value == entry.Population`, `OwnerId == entry.ProvinceId` (not `entry.CountryId`).
+- **Extend `src/Game.Tests/ProvinceOwnershipTests.cs`**: add `change_owner_does_not_affect_population` — seed via `BuildLogic`, call `ProvinceOwnershipSystem.ChangeOwner`, then assert the province's population `Resource` entity (keyed by `provinceId` via `ResourceOwner.OwnerId`) is untouched in value and still present under the same `provinceId`.
+- **Extend `src/Game.Tests/SaveLoadRoundTripTests.cs`**: add a case that advances at least one month boundary (growing population), saves via `SaveSystem.BuildSnapshot`, reloads via `LoadSystem.Apply`, and asserts the grown (not seed) value survives and a subsequent month-boundary `Update` continues compounding from the persisted value.
+- **Extend `src/Game.Tests/ProvinceProcessorTests.cs`**: add `process_extracts_population_field` — a feature with a `population` property round-trips into `ProvinceEntry.Population`; a feature missing the property defaults to `0.0` (no crash).
+- **`GameLogic`-level ordering test** (new case in `ProvincePopulationGrowthSystemTests.cs` or alongside existing `GameLogicOrgTests.cs`-style tests): confirm no growth is applied on the very first `Update` call (seed time equals current time on tick 1), matching `ResourceSystem`'s existing first-tick behavior — build a `GameLogic` via the shared harness, call `Update` once with no elapsed time/no multiplier change, and assert the province population `Resource.Value` still equals the seeded `entry.Population`.
+
+Run: `dotnet test src/GlobalStrategy.Core.sln` (with `dangerouslyDisableSandbox: true`).
+
+## Constitution Check
+
+Checked against `Docs/Constitution.md`.
+
+No conflicts found — plan aligns with all principles.
+
+- *ECS for all game logic in `src/`.* `OwnerType.Province`, `ProvincePopulationGrowthSystem`, and the `InitSystem` seeding step all live in `src/Game.Components`/`src/Game.Systems`/`src/Game.Main`. No Unity MonoBehaviour touches game state — this feature has no Unity-side presentation component at all (out of scope per spec: no UI).
+- *VContainer sole DI.* No new Unity-side service, no `new` singleton, no `FindObjectOfType`. `GameSettings`/`ProvinceConfig` continue to flow through the existing `GameLogicContext` → `GameLogic` constructor pattern already wired into VContainer by spec 45; this plan adds one field read from an already-injected config, nothing new to register.
+- *UI Toolkit only.* Not applicable — no UI surface is added (explicitly out of scope).
+- *URP only.* Not applicable — no rendering change.
+- *Plan before implement / spec before plan.* This plan follows an already-approved `Docs/Specs/46_province-population/spec.md`.
+- *File organisation.* All new files land in existing `src/` feature folders (`Game.Components`, `Game.Configs`, `Game.Configs.Loader`, `Game.Systems`, `Game.Main`, `Game.Tests`) plus the existing `scripts/generate_provinces.py` and `Assets/Configs/game_settings.json`. No new `.asmdef`/feature folder is introduced (the plan touches only `src/` C# projects, which are outside the Unity `Assets/Scripts/` asmdef structure entirely).
+- *C# code style.* Tabs, `{}` always, `_`-prefixed private members, no redundant access modifiers — matching every surrounding file read during research (`ResourceSystem.cs`, `ControlSystem.cs`, `ProvinceOwnershipSystem.cs`, `InitSystem.cs`).
+
+Use /implement to start working on the plan or request changes.
