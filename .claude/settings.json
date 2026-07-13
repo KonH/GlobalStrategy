@@ -1,4 +1,15 @@
 {
+  "extraKnownMarketplaces": {
+    "claude-tools": {
+      "source": {
+        "source": "github",
+        "repo": "KonH/ClaudeTools"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "k@claude-tools": true
+  },
   "permissions": {
     "allow": [
       "mcp__UnityMCP__read_console",
