@@ -74,8 +74,8 @@ namespace GS.Game.Tests {
 			var mapEntry = new MapEntryConfig();
 			var provinceConfig = new ProvinceConfig {
 				Provinces = new List<ProvinceEntry> {
-					new ProvinceEntry { ProvinceId = "prov_a", CountryId = "Great_Britain" },
-					new ProvinceEntry { ProvinceId = "prov_b", CountryId = "France" }
+					new ProvinceEntry { ProvinceId = "prov_a", CountryId = "Great_Britain", Population = 1000.0 },
+					new ProvinceEntry { ProvinceId = "prov_b", CountryId = "France", Population = 2000.0 }
 				}
 			};
 
@@ -153,6 +153,59 @@ namespace GS.Game.Tests {
 
 			logic.Update(0f);
 			Assert.Equal(countAfterInit, CountEntities<ProvinceOwnership>(logic.World));
+		}
+
+		[Fact]
+		void province_population_seeded_from_config() {
+			var logic = BuildLogic();
+			logic.Update(0f);
+
+			var provinceConfig = new List<ProvinceEntry> {
+				new ProvinceEntry { ProvinceId = "prov_a", CountryId = "Great_Britain", Population = 1000.0 },
+				new ProvinceEntry { ProvinceId = "prov_b", CountryId = "France", Population = 2000.0 }
+			};
+
+			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (var entry in provinceConfig) {
+				bool found = false;
+				foreach (var arch in logic.World.GetMatchingArchetypes(req, null)) {
+					ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+					Resource[] resources = arch.GetColumn<Resource>();
+					for (int i = 0; i < arch.Count; i++) {
+						if (owners[i].OwnerType != OwnerType.Province
+							|| resources[i].ResourceId != "population"
+							|| owners[i].OwnerId != entry.ProvinceId) {
+							continue;
+						}
+						Assert.False(found, $"Duplicate population entity found for {entry.ProvinceId}");
+						found = true;
+						Assert.Equal(entry.Population, resources[i].Value);
+					}
+				}
+				Assert.True(found, $"No population entity found for {entry.ProvinceId}");
+			}
+		}
+
+		[Fact]
+		void no_population_growth_on_first_update() {
+			var logic = BuildLogic();
+			logic.Update(0f);
+
+			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			double? provAValue = null;
+			foreach (var arch in logic.World.GetMatchingArchetypes(req, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerType == OwnerType.Province
+						&& resources[i].ResourceId == "population"
+						&& owners[i].OwnerId == "prov_a") {
+						provAValue = resources[i].Value;
+					}
+				}
+			}
+
+			Assert.Equal(1000.0, provAValue);
 		}
 	}
 }

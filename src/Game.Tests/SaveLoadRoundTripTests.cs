@@ -292,5 +292,53 @@ namespace GS.Game.Tests {
 
 			Assert.Equal("Great_Britain", restoredOwnerId);
 		}
+
+		[Fact]
+		void round_trip_preserves_grown_province_population_and_continues_compounding() {
+			var world = new World();
+			int popEntity = world.Create();
+			world.Add(popEntity, new ResourceOwner("prov_a", OwnerType.Province));
+			world.Add(popEntity, new Resource {
+				ResourceId = GS.Game.Systems.ProvincePopulationGrowthSystem.PopulationResourceId,
+				Value = 1000.0
+			});
+
+			DateTime jan31 = new DateTime(1880, 1, 31, 23, 0, 0);
+			DateTime feb1 = new DateTime(1880, 2, 1, 0, 0, 0);
+			GS.Game.Systems.ProvincePopulationGrowthSystem.Update(world, jan31, feb1, 0.075);
+			double grownValue = world.Get<Resource>(popEntity).Value;
+			Assert.Equal(1000.75, grownValue, 6);
+
+			var snapshot = Snapshot(world);
+			var restored = new World();
+			Restore(snapshot, restored);
+
+			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			int restoredEntity = -1;
+			double? restoredValue = null;
+			foreach (var arch in restored.GetMatchingArchetypes(req, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerType == OwnerType.Province
+						&& resources[i].ResourceId == GS.Game.Systems.ProvincePopulationGrowthSystem.PopulationResourceId) {
+						restoredEntity = arch.Entities[i];
+						restoredValue = resources[i].Value;
+					}
+				}
+			}
+
+			Assert.NotEqual(-1, restoredEntity);
+			Assert.NotNull(restoredValue);
+			Assert.Equal(grownValue, restoredValue!.Value, 6);
+
+			DateTime feb28 = new DateTime(1880, 2, 28, 23, 0, 0);
+			DateTime mar1 = new DateTime(1880, 3, 1, 0, 0, 0);
+			GS.Game.Systems.ProvincePopulationGrowthSystem.Update(restored, feb28, mar1, 0.075);
+			double afterSecondGrowth = restored.Get<Resource>(restoredEntity).Value;
+
+			Assert.Equal(grownValue * 1.00075, afterSecondGrowth, 6);
+			Assert.NotEqual(grownValue, afterSecondGrowth);
+		}
 	}
 }

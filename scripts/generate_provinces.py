@@ -31,7 +31,8 @@ Pipeline summary:
 
 Output:
     .tmp/provinces_intermediate.geojson — FeatureCollection with properties:
-        provinceId, countryId, displayName, generationMethod ("Micro" | "OptionA" | "OptionC")
+        provinceId, countryId, displayName, generationMethod ("Micro" | "OptionA" | "OptionC"),
+        population (density-per-region sample x final simplified polygon area, km^2)
 
 See Docs/Specs/43_province-division/plan.md for the full design and
 .claude/rules/unity/province_config_generator.md for the rule-doc summary.
@@ -41,6 +42,7 @@ import hashlib
 import json
 import math
 import os
+import random
 import re
 import subprocess
 import sys
@@ -86,6 +88,193 @@ PER_COUNTRY_DENSITY_MULTIPLIER = {
     "United_Kingdom_of_Great_Britain_and_Ireland": 5.0,
 }
 MAPSHAPER_SIMPLIFY_PCT = 10  # tunable: percentage of vertices kept
+
+# ---------------------------------------------------------------------------
+# Population seeding — countryId -> region bucket, region -> density range.
+# Approximate 1880-era relative bands only (not researched real data, per
+# Docs/Specs/46_province-population/spec.md); unmapped countries fall back to
+# "Default" via COUNTRY_REGION.get(country_id, "Default") so the pipeline
+# never crashes on a missing entry.
+# ---------------------------------------------------------------------------
+COUNTRY_REGION = {
+    "Afghanistan": "CentralAsia",
+    "Algeria": "NorthAfrica",
+    "American_Samoa": "Oceania",
+    "Anguilla": "CentralAmerica",
+    "Annam": "SoutheastAsia",
+    "Antigua_and_Barbuda": "CentralAmerica",
+    "Arabia": "MiddleEast",
+    "Argentina": "SouthAmerica",
+    "Asante": "SubSaharanAfrica",
+    "Ato_trading_confederacy": "SubSaharanAfrica",
+    "Austria_Hungary": "EasternEurope",
+    "Barotse": "SubSaharanAfrica",
+    "Basutoland": "SubSaharanAfrica",
+    "Belgium": "WesternEurope",
+    "Belize": "CentralAmerica",
+    "Benin": "SubSaharanAfrica",
+    "Bhutan": "SouthAsia",
+    "Bokhara_Khanate": "CentralAsia",
+    "Bolivia": "SouthAmerica",
+    "Borgu_States": "SubSaharanAfrica",
+    "Bosnia_Herzegovina": "EasternEurope",
+    "British_Guiana": "SouthAmerica",
+    "British_Raj": "SouthAsia",
+    "Brunei": "SoutheastAsia",
+    "Buganda": "SubSaharanAfrica",
+    "Bulgaria": "EasternEurope",
+    "Bunyoro": "SubSaharanAfrica",
+    "Burundi": "SubSaharanAfrica",
+    "Calabar": "SubSaharanAfrica",
+    "Canada": "NorthAmerica",
+    "Cape_Colony": "SubSaharanAfrica",
+    "Ceylon": "SouthAsia",
+    "Chile": "SouthAmerica",
+    "Colombia": "SouthAmerica",
+    "Congo": "SubSaharanAfrica",
+    "Costa_Rica": "CentralAmerica",
+    "Cotonou": "SubSaharanAfrica",
+    "Dahomey": "SubSaharanAfrica",
+    "Dendi_Kingdom": "SubSaharanAfrica",
+    "Denmark": "NorthernEurope",
+    "Dominica": "CentralAmerica",
+    "Dominican_Republic": "CentralAmerica",
+    "Dutch_Guiana": "SouthAmerica",
+    "Ecuador": "SouthAmerica",
+    "Egypt": "NorthAfrica",
+    "El_Salvador": "CentralAmerica",
+    "Ethiopia": "SubSaharanAfrica",
+    "Fiji": "Oceania",
+    "France": "WesternEurope",
+    "French_Guiana": "SouthAmerica",
+    "French_Indochina": "SoutheastAsia",
+    "Futa_Jalon": "SubSaharanAfrica",
+    "Futa_Toro": "SubSaharanAfrica",
+    "Gabon": "SubSaharanAfrica",
+    "Gambia": "SubSaharanAfrica",
+    "Germany": "WesternEurope",
+    "Greece": "SouthernEurope",
+    "Griqualand_West": "SubSaharanAfrica",
+    "Guadeloupe": "CentralAmerica",
+    "Guatemala": "CentralAmerica",
+    "Haiti": "CentralAmerica",
+    "Harer_Egypt": "SubSaharanAfrica",
+    "Honduras": "CentralAmerica",
+    "Ibadan": "SubSaharanAfrica",
+    "Imerina": "SubSaharanAfrica",
+    "Imperial_Japan": "EastAsia",
+    "Italy": "SouthernEurope",
+    "Ivory_Coast": "SubSaharanAfrica",
+    "Kanem_Bornu": "SubSaharanAfrica",
+    "Kingdom_of_Brazil": "SouthAmerica",
+    "Kingdom_of_Hawaii": "Oceania",
+    "Kong_Empire": "SubSaharanAfrica",
+    "Korea": "EastAsia",
+    "Kuba": "SubSaharanAfrica",
+    "Lagos": "SubSaharanAfrica",
+    "Liberia": "SubSaharanAfrica",
+    "Lozi": "SubSaharanAfrica",
+    "Luba": "SubSaharanAfrica",
+    "Lunda": "SubSaharanAfrica",
+    "Luxembourg": "WesternEurope",
+    "M_ori": "Oceania",
+    "Madagascar": "SubSaharanAfrica",
+    "Malaya": "SoutheastAsia",
+    "Malta": "SouthernEurope",
+    "Manchu_Empire": "EastAsia",
+    "Mbailundu": "SubSaharanAfrica",
+    "Mexico": "CentralAmerica",
+    "Mirambo_Unyanyembe_Ukimbu": "SubSaharanAfrica",
+    "Montenegro": "EasternEurope",
+    "Montserrat": "CentralAmerica",
+    "Morocco": "NorthAfrica",
+    "Mossi_States": "SubSaharanAfrica",
+    "Mozambique": "SubSaharanAfrica",
+    "Natal": "SubSaharanAfrica",
+    "Ndebele": "SubSaharanAfrica",
+    "Nepal": "SouthAsia",
+    "Netherlands": "WesternEurope",
+    "Netherlands_Antilles": "CentralAmerica",
+    "Nguni": "SubSaharanAfrica",
+    "Ngwato": "SubSaharanAfrica",
+    "Nicaragua": "CentralAmerica",
+    "Niue": "Oceania",
+    "Oman": "MiddleEast",
+    "Opobo": "SubSaharanAfrica",
+    "Orange_Free_State": "SubSaharanAfrica",
+    "Ottoman_Empire": "MiddleEast",
+    "Ovimbundu": "SubSaharanAfrica",
+    "Oyo": "SubSaharanAfrica",
+    "Papua_New_Guinea": "Oceania",
+    "Paraguay": "SouthAmerica",
+    "Persia": "MiddleEast",
+    "Peru": "SouthAmerica",
+    "Philippines": "SoutheastAsia",
+    "Polynesians": "Oceania",
+    "Portugal": "SouthernEurope",
+    "Portuguese_Guinea": "SubSaharanAfrica",
+    "Qatar": "MiddleEast",
+    "Rabih_az_Zubayr": "SubSaharanAfrica",
+    "Rattanakosin_Kingdom": "SoutheastAsia",
+    "Romania": "EasternEurope",
+    "Russian_Empire": "Russia",
+    "Rwanda": "SubSaharanAfrica",
+    "Saint_Barthelemy": "CentralAmerica",
+    "Saint_Kitts_and_Nevis": "CentralAmerica",
+    "Saint_Martin": "CentralAmerica",
+    "Samoa": "Oceania",
+    "Serbia": "EasternEurope",
+    "Shona": "SubSaharanAfrica",
+    "Sierra_Leone": "SubSaharanAfrica",
+    "Sokoto_Caliphate": "SubSaharanAfrica",
+    "Spain": "SouthernEurope",
+    "Spanish_Guinea": "SubSaharanAfrica",
+    "Sultanate_of_Damagaram": "SubSaharanAfrica",
+    "Sultanate_of_Utetera": "SubSaharanAfrica",
+    "Sultinate_of_Zanzibar": "SubSaharanAfrica",
+    "Swaziland": "SubSaharanAfrica",
+    "SwedenNorway": "NorthernEurope",
+    "Switzerland": "WesternEurope",
+    "Taiwan": "EastAsia",
+    "Teke": "SubSaharanAfrica",
+    "Tonga": "Oceania",
+    "Transvaal": "SubSaharanAfrica",
+    "Trucial_Oman": "MiddleEast",
+    "Tukular_Caliphate": "SubSaharanAfrica",
+    "United_Kingdom_of_Great_Britain_and_Ireland": "WesternEurope",
+    "United_States_of_America": "NorthAmerica",
+    "Uruguay": "SouthAmerica",
+    "Venezuela": "SouthAmerica",
+    "Wadai_Empire": "SubSaharanAfrica",
+    "Wassoulou_Empire": "SubSaharanAfrica",
+    "Yaka": "SubSaharanAfrica",
+    "Yeke": "SubSaharanAfrica",
+    "Zululand": "SubSaharanAfrica",
+    "central_Asian_khanates": "CentralAsia",
+}
+
+# region -> (min_people_per_km2, max_people_per_km2). Approximate relative
+# bands only: South/East Asia and Western Europe are the densest, Northern
+# Europe/Central Asia/Russia's Siberian interior/Oceania are the sparsest.
+REGION_DENSITY_RANGES = {
+    "Default": (5.0, 20.0),
+    "WesternEurope": (40.0, 120.0),
+    "NorthernEurope": (5.0, 25.0),
+    "EasternEurope": (20.0, 60.0),
+    "SouthernEurope": (30.0, 80.0),
+    "MiddleEast": (5.0, 25.0),
+    "NorthAfrica": (5.0, 20.0),
+    "SubSaharanAfrica": (3.0, 15.0),
+    "SouthAsia": (50.0, 150.0),
+    "EastAsia": (40.0, 130.0),
+    "SoutheastAsia": (20.0, 70.0),
+    "CentralAsia": (1.0, 8.0),
+    "NorthAmerica": (2.0, 15.0),
+    "CentralAmerica": (5.0, 30.0),
+    "SouthAmerica": (1.0, 10.0),
+    "Oceania": (1.0, 10.0),
+    "Russia": (2.0, 15.0),
+}
 
 NE_ADMIN1_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_1_states_provinces.zip"
 NE_PLACES_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_populated_places.zip"
@@ -426,14 +615,11 @@ def compass_direction_name(centroid, country_polygon, display_name):
     return f"{compass_key} {display_name}", compass_key
 
 
-def try_option_c(country_id, display_name, country_polygon, area_km2, places_gdf, warnings):
+def try_option_c(country_id, display_name, country_polygon, area_km2, places_gdf, warnings, rng):
     multiplier = PER_COUNTRY_DENSITY_MULTIPLIER.get(country_id, 1.0)
     n_seeds = int(round(area_km2 / OPTION_C_AREA_PER_SEED_KM2 * multiplier))
     effective_max_seeds = int(round(OPTION_C_MAX_SEEDS * multiplier))
     n_seeds = max(OPTION_C_MIN_SEEDS, min(effective_max_seeds, n_seeds))
-
-    import random
-    rng = random.Random(deterministic_seed(country_id))
 
     seeds = seed_points_in_polygon(country_polygon, n_seeds, rng)
     if len(seeds) < 2:
@@ -687,11 +873,17 @@ def run(force_download=False):
     counts = {}
     warnings = []
     all_features = []
+    density_by_province_id = {}
 
     for country_id, data in sorted(countries.items()):
         polygon = data["polygon"]
         display_name = data["displayName"]
         area_km2 = data["area_km2"]
+
+        # One deterministic RNG per country, shared across Option C seed placement
+        # and the population density sampling below — same instance, so total draws
+        # per country stay reproducible across the whole pipeline run.
+        country_rng = random.Random(deterministic_seed(country_id))
 
         provinces = None
         method = None
@@ -706,7 +898,8 @@ def run(force_download=False):
                 method = "OptionA"
             else:
                 warnings.append(f"{country_id}: Option A rejected ({reject_reason}); trying Option C")
-                option_c_provinces = try_option_c(country_id, display_name, polygon, area_km2, places_gdf, warnings)
+                option_c_provinces = try_option_c(
+                    country_id, display_name, polygon, area_km2, places_gdf, warnings, country_rng)
                 if option_c_provinces is not None:
                     provinces = option_c_provinces
                     method = "OptionC"
@@ -717,7 +910,17 @@ def run(force_download=False):
         provinces = assign_province_ids(country_id, provinces)
         counts[method + "_countries"] = counts.get(method + "_countries", 0) + 1
 
+        # Sample a density (people/km^2) per province, in list order, from the
+        # country's region density range — deterministic via the same per-country
+        # rng used above. Final population = density * final (simplified) area,
+        # computed later once mapshaper has produced the shipped geometry.
+        region = COUNTRY_REGION.get(country_id, "Default")
+        density_range = REGION_DENSITY_RANGES[region]
         for prov in provinces:
+            prov["_density"] = country_rng.uniform(*density_range)
+
+        for prov in provinces:
+            density_by_province_id[prov["provinceId"]] = prov["_density"]
             all_features.append({
                 "type": "Feature",
                 "properties": {
@@ -726,6 +929,7 @@ def run(force_download=False):
                     "displayName": prov["name"],
                     "generationMethod": method,
                     "compassKey": prov.get("compassKey"),
+                    "population": None,
                 },
                 "geometry": mapping(prov["geometry"]),
             })
@@ -750,6 +954,33 @@ def run(force_download=False):
     if result.returncode != 0:
         print(result.stderr)
         raise RuntimeError("mapshaper simplify pass failed")
+
+    print("Computing final population from simplified geometry ...")
+    # Reload the simplified geometry mapshaper just wrote — provinceId/order/properties
+    # are preserved, but polygon area has changed, so population must be derived from
+    # this (final, shipped) geometry rather than the pre-simplify polygons above.
+    with open(INTERMEDIATE_PATH, "r", encoding="utf-8") as f:
+        simplified = json.load(f)
+
+    population_by_province_id = {}
+    for feature in simplified["features"]:
+        province_id = feature["properties"]["provinceId"]
+        density = density_by_province_id.get(province_id)
+        geom = shape(feature["geometry"])
+        gs = gpd.GeoSeries([geom], crs=WGS84_CRS).to_crs(EQUAL_AREA_CRS)
+        area_km2 = gs.area.iloc[0] / 1_000_000.0
+        population = density * area_km2 if density is not None else None
+        feature["properties"]["population"] = population
+        population_by_province_id[province_id] = population
+
+    with open(INTERMEDIATE_PATH, "w", encoding="utf-8") as f:
+        json.dump(simplified, f)
+
+    # Keep the in-memory feature list consistent too (update_province_locales below
+    # does not read population, but keep it in sync in case future code does).
+    for feature in all_features:
+        province_id = feature["properties"]["provinceId"]
+        feature["properties"]["population"] = population_by_province_id.get(province_id)
 
     print("Updating province_name.* locale entries ...")
     update_province_locales(all_features)

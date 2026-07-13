@@ -63,11 +63,17 @@ re-run this script.
    `.tmp/provinces_intermediate.geojson` (properties: `provinceId`, `countryId`,
    `displayName`, `generationMethod`, `compassKey` — the latter is `null` except
    for the rare compass-direction fallback case above, and only used by the
-   locale step below).
+   locale step below — plus `population`, computed in step 7 below).
 7. Runs `npx mapshaper -i <file> -simplify keep-shapes <pct>% -o <file>` to reduce
    vertex count for WebGL viability (`keep-shapes` guarantees no polygon degenerates
    to zero area). The simplify percentage is a tunable constant
-   (`MAPSHAPER_SIMPLIFY_PCT`) in the script, currently `10`.
+   (`MAPSHAPER_SIMPLIFY_PCT`) in the script, currently `10`. Immediately afterward,
+   reloads the simplified geometry and computes each province's final `population`
+   as `density_per_km2 * simplified_area_km2` — density is sampled once per province
+   (region density range from `REGION_DENSITY_RANGES`, region looked up per-country via
+   `COUNTRY_REGION`) using the same deterministic per-`countryId` RNG as Option C's
+   Voronoi seeding, but area must come from the post-simplify polygon since that's what
+   ships to Stage 2/`provinces_1880.json`.
 8. Writes `province_name.{provinceId}` locale entries into
    `Assets/Localization/en.asset` (the generated name verbatim) and
    `Assets/Localization/ru.asset` — settlement/admin-1 proper nouns are run through
@@ -95,9 +101,12 @@ in-memory `CountryConfig` already built in the same `Program.cs` run, cross-vali
 every province's `countryId` against `CountryConfig` (per
 `.claude/rules/config_validation.md` — a mismatch throws rather than silently
 proceeding), and writes `Assets/Configs/province_config.json` (lightweight metadata:
-`provinceId`, `countryId`, `generationMethod` — no `displayName`; province names are
+`provinceId`, `countryId`, `generationMethod`, `population` — no `displayName`; province names are
 localization-only, see `province_name.*` keys above) and `Assets/Configs/provinces_1880.json`
-(passthrough geometry `FeatureCollection`).
+(passthrough geometry `FeatureCollection`). `population` is read from a `population` GeoJSON
+property on each feature (defaulting to `0.0` if absent), emitted by Stage 1
+(`scripts/generate_provinces.py`) as a per-region density sample multiplied by each province's
+final (post-simplify) polygon area — see `Docs/Specs/46_province-population/plan.md`.
 
 Re-run order: Stage 1 (Python) must be run before Stage 2 (C# loader), since Stage 2
 consumes Stage 1's intermediate file via `loaderConfig.ProvinceGeoJsonSourcePath`.
