@@ -9,7 +9,7 @@ To test different approaches for implementation - interactive session and autono
 | Stage | Price ($) | Acceptance |
 | ----- | --------- | ---------- |
 | Specify + Plan + Deps | 7.11 | PASS |
-| Manual Sample 1 | | |
+| Manual Sample 1 | 9.17 | PASS |
 | Manual Sample 2 | | |
 | Manual Sample 3 | | |
 | **Manual Avg** | | |
