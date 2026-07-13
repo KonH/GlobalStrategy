@@ -1,11 +1,4 @@
-Create a git commit for the staged changes.
-
-## Pre-commit step: branch selection
-
-Before committing, check the current branch:
-1. `git branch --show-current`
-2. If it is `main`: create and switch to a new branch via `git checkout -b feature/<short-kebab-description>`, where `<short-kebab-description>` is a meaningful slug derived from the change being committed (e.g. `feature/province-division-config`). Do this before staging/committing anything else.
-3. If it is anything other than `main` (i.e. already on a feature branch or other non-main branch): leave the branch as-is — do not create or switch branches.
+Create a git commit for the staged changes: run the project-specific version bump below, then delegate to the shared `k:commit` skill.
 
 ## Pre-commit step: version bump
 
@@ -23,8 +16,6 @@ Steps:
 
 Always run this before committing so the version bump is included in the commit.
 
-## Rules
-- Subject line: short, imperative, no period
-- Explain *why*, not *what* — the diff already shows what changed
-- No bullet-point summaries of changed files
-- Always add `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>` trailer
+## Commit
+
+After the version bump is staged, invoke the `k:commit` skill (from the `k` plugin) and follow it — it handles branch selection off the default branch and the commit message rules.
