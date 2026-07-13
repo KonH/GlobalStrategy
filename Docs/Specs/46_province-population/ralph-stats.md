@@ -11,7 +11,7 @@ To test different approaches for implementation - interactive session and autono
 | Specify + Plan + Deps | 7.11 | PASS |
 | Manual Sample 1 | | |
 | Manual Sample 2 | | |
-| Manual Sample 3 | | |
+| Manual Sample 3 | 5.97 | PASS |
 | **Manual Avg** | | |
 | Ralph Sample 1 | | |
 | Ralph Sample 2 | | |
