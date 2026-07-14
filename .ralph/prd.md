@@ -28,7 +28,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"In src/Game.Configs/ProvinceConfig.cs, add public double Population { get; set; } to ProvinceEntry"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "src",
