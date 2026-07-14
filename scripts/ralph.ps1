@@ -39,10 +39,10 @@ $specDir = $specDirs[0]
 if (-not (Test-Path (Join-Path $specDir.FullName "plan.md"))) { throw "Spec folder $($specDir.Name) has no plan.md - run /plan first." }
 Write-Host "Spec: Docs\Specs\$($specDir.Name)" -ForegroundColor Cyan
 
-# --- Branch: ralph/<index>_<name> ---
+# --- Branch: ralph/<index>_<name> (only auto-switch from main/master; leave any other branch alone) ---
 $ralphBranch = "ralph/$($specDir.Name)"
 $branch = (& git rev-parse --abbrev-ref HEAD).Trim()
-if ($branch -ne $ralphBranch) {
+if ($branch -eq "main" -or $branch -eq "master") {
     $dirty = & git status --porcelain
     if ($dirty) { throw "Working tree is not clean - commit or stash before starting a Ralph run." }
     & git rev-parse --verify --quiet "refs/heads/$ralphBranch" | Out-Null
@@ -52,8 +52,11 @@ if ($branch -ne $ralphBranch) {
         & git checkout -b $ralphBranch
     }
     if ($LASTEXITCODE -ne 0) { throw "Failed to switch to branch $ralphBranch." }
+    $branch = $ralphBranch
+} elseif ($branch -ne $ralphBranch) {
+    Write-Host "Already on non-main branch '$branch' - staying here instead of switching to $ralphBranch." -ForegroundColor Yellow
 }
-Write-Host "Branch: $ralphBranch" -ForegroundColor Cyan
+Write-Host "Branch: $branch" -ForegroundColor Cyan
 
 # --- Metrics ---
 if (-not (Test-Path $csvFile)) {
@@ -102,7 +105,7 @@ function Invoke-ClaudeStep {
     $u = $r.usage
     "$Phase,$Iteration,$($r.total_cost_usd),$($r.num_turns),$($u.input_tokens),$($u.output_tokens),$($u.cache_read_input_tokens),$($u.cache_creation_input_tokens),$($r.duration_ms)," |
         Out-File $csvFile -Append -Encoding utf8
-    Write-Host ("{0}: cost ${1}  turns {2}  duration {3:N0}s" -f $Phase, $r.total_cost_usd, $r.num_turns, ($r.duration_ms / 1000))
+    Write-Host ("{0}: cost `${1}  turns {2}  duration {3:N0}s" -f $Phase, $r.total_cost_usd, $r.num_turns, ($r.duration_ms / 1000))
     return $r
 }
 
@@ -119,6 +122,14 @@ if ($SkipCreatePrd) {
         throw "/create-prd produced no open tasks in $prdFile - check its output before looping."
     }
 }
+
+# --- Guard: MaxIterations should cover at least 1.5x the task count ---
+$taskCount = (Select-String -Path $prdFile -Pattern '"passes":\s*(true|false)').Count
+$minRecommended = [Math]::Ceiling($taskCount * 1.5)
+if ($MaxIterations -lt $minRecommended) {
+    throw "MaxIterations ($MaxIterations) is below the recommended minimum ($minRecommended = $taskCount tasks x 1.5) for $prdFile. Increase -MaxIterations, or split the PRD, before looping."
+}
+Write-Host "PRD has $taskCount tasks; MaxIterations=$MaxIterations (recommended >= $minRecommended)." -ForegroundColor Cyan
 
 # --- Phase 2: the loop ---
 $stopReason = "max_iterations"
@@ -170,7 +181,7 @@ if ($rows) {
     $totalCacheR = ($rows | Measure-Object -Property cache_read -Sum).Sum
     $totalCacheC = ($rows | Measure-Object -Property cache_create -Sum).Sum
     Write-Host ""
-    Write-Host ("TOTAL (all rows in {0}): cost ${1}  turns {2}" -f $csvFile, $totalCost, $totalTurns)
+    Write-Host ("TOTAL (all rows in {0}): cost `${1}  turns {2}" -f $csvFile, $totalCost, $totalTurns)
     Write-Host ("tokens: input {0}  output {1}  cache_read {2}  cache_create {3}" -f `
         $totalInput, $totalOutput, $totalCacheR, $totalCacheC)
 }
