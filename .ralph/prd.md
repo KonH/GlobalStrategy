@@ -39,7 +39,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"Do not change countryId cross-validation behavior"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "config",
