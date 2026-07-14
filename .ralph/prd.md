@@ -73,7 +73,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"Implement static void CreateProvincePopulationEntities(World world, ProvinceConfig config): for each ProvinceEntry, world.Create() an entity with ResourceOwner(entry.ProvinceId, OwnerType.Province) and Resource { ResourceId = ProvincePopulationGrowthSystem.PopulationResourceId, Value = entry.Population }"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "src",

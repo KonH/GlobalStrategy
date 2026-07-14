@@ -100,3 +100,26 @@ Notes for next iteration: Next task is "Seed province population entities at ini
 entity per `ProvinceEntry` with `ResourceOwner(entry.ProvinceId, OwnerType.Province)` and
 `Resource { ResourceId = ProvincePopulationGrowthSystem.PopulationResourceId, Value =
 entry.Population }`. No blockers encountered.
+
+---
+
+## 2026-07-14 — Seed province population entities at init
+
+Task: "Seed province population entities at init" (src).
+
+Change: In `src/Game.Main/InitSystem.cs`, `Run` now captures `var provinceConfig =
+context.Province.Load();` and passes it to both `ProvinceOwnershipSystem.Seed(world,
+provinceConfig)` and a new `CreateProvincePopulationEntities(world, provinceConfig)` call
+(placed right after `Seed`). Added `static void CreateProvincePopulationEntities(World world,
+ProvinceConfig config)`: for each `ProvinceEntry` in `config.Provinces`, creates one entity with
+`ResourceOwner(entry.ProvinceId, OwnerType.Province)` and `Resource { ResourceId =
+ProvincePopulationGrowthSystem.PopulationResourceId, Value = entry.Population }`.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` → Build succeeded, 0 Warning(s), 0 Error(s).
+
+Notes for next iteration: Next task is "Wire population growth into GameLogic.Update" — in
+`src/Game.Main/GameLogic.cs`, add a `readonly double _populationGrowthPercent;` field set from
+`settings.PopulationGrowthPercentPerMonth` in the constructor (same place `_speedMultipliers` is
+captured), and in `Update`, immediately after `OpinionSystem.Update(_world, _previousTime,
+currentTime);`, call `ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime,
+_populationGrowthPercent);`. No blockers encountered.
