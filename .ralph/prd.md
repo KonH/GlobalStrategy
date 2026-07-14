@@ -49,7 +49,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"Add \"populationGrowthPercentPerMonth\": 0.075 to Assets/Configs/game_settings.json"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "src",

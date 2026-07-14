@@ -51,3 +51,24 @@ add `public double PopulationGrowthPercentPerMonth { get; set; } = 0.075;` to
 `src/Game.Configs/GameSettings.cs` alongside `StartYear`/`SpeedMultipliers`/`DefaultLocale`/
 `AutoSaveInterval`, and add `"populationGrowthPercentPerMonth": 0.075` to
 `Assets/Configs/game_settings.json`. No blockers encountered.
+
+---
+
+## 2026-07-14 — Add GameSettings.PopulationGrowthPercentPerMonth
+
+Task: "Add GameSettings.PopulationGrowthPercentPerMonth" (config).
+
+Change: Added `public double PopulationGrowthPercentPerMonth { get; set; } = 0.075;` to
+`GameSettings` in `src/Game.Configs/GameSettings.cs`, alongside the existing
+`StartYear`/`SpeedMultipliers`/`DefaultLocale`/`AutoSaveInterval` properties. Added
+`"populationGrowthPercentPerMonth": 0.075` to `Assets/Configs/game_settings.json`.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` → Build succeeded, 0 Warning(s), 0 Error(s).
+
+Notes for next iteration: Next task is "Add ProvincePopulationGrowthSystem" — create
+`src/Game.Systems/ProvincePopulationGrowthSystem.cs` with `PopulationResourceId = "population"`
+and a static `Update(World world, DateTime previousTime, DateTime currentTime, double monthlyGrowthPercent)`
+that mirrors `ResourceSystem`/`ControlSystem`'s month-boundary detection, then iterates matching
+archetypes for `OwnerType.Province` + `ResourceId == PopulationResourceId` rows and multiplies
+`Value` in place (direct array-index mutation, no lambda — see `.claude/rules/unity/ecs_patterns.md`
+on `ref`/lambda restrictions). No blockers encountered.
