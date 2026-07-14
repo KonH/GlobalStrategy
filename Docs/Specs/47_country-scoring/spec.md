@@ -4,9 +4,13 @@
 
 As a game designer, I want each country to have a numeric score derived from the total population of the provinces it currently owns multiplied by a config-defined coefficient, recalculated once per in-game month after population updates, so that country strength/progress becomes a queryable, comparable value that other systems (or a future UI/leaderboard/AI layer) can consume without each of them re-deriving population aggregation themselves.
 
+## Dependency
+
+This feature depends on `Docs/Specs/46_province-population/spec.md` (branch `feature/province-population-spec`, not yet merged), which establishes per-province population as a `Resource{ResourceId="population", Value}` entity owned via `ResourceOwner(provinceId, OwnerType.Province)`, seeded at init and grown monthly by a standalone `ProvincePopulationGrowthSystem`. This spec's population aggregation reads that same `Resource`/`ResourceOwner` shape — filtering to `OwnerType.Province` and `ResourceId == "population"` — rather than inventing a second population representation. Implementation of this feature cannot start before that dependency lands.
+
 ## Acceptance Criteria
 
-- **Given** a country currently owns one or more provinces, each with a population value, and a configured scoring coefficient **When** the monthly score recalculation runs **Then** the country's score is set to `coefficient * sum(population of all provinces currently owned by that country)`.
+- **Given** a country currently owns one or more provinces, each carrying a `Resource{ResourceId="population"}` entity (per the province-population dependency above), and a configured scoring coefficient **When** the monthly score recalculation runs **Then** the country's score is set to `coefficient * sum(population of all provinces currently owned by that country)`.
 - **Given** a country currently owns zero provinces (e.g. fully conquered/eliminated) **When** the monthly score recalculation runs **Then** that country's score is `0`, not an error and not a skipped/missing value.
 - **Given** the runtime province ownership model (`VisualState.ProvinceOwnership.OwnerByProvinceId`, seeded from `province_config.json` at startup per `.claude/rules/unity/map_system.md`) **When** score is computed for a country **Then** "owned provinces" means provinces whose *current runtime owner* is that country, not the static seed `countryId` recorded in `province_config.json` — so a province that has changed hands (e.g. via `DebugChangeProvinceOwnerCommand`) contributes to its new owner's score, not its original one.
 - **Given** the existing recalculation precedent in `ControlSystem`/`ResourceSystem` (both compare `previousTime` vs `currentTime` month/year and gate their monthly work behind `isMonthBoundary`) **When** this feature adds its own recalculation step (e.g. a `CountryScoreSystem` invoked from `GameLogic.Update()` alongside those systems) **Then** it follows the same `isMonthBoundary` gating pattern rather than introducing a separate/new timing mechanism.
@@ -18,7 +22,7 @@ As a game designer, I want each country to have a numeric score derived from the
 
 ## Out of Scope
 
-- Defining or implementing per-province population as a data source: this feature consumes a population value per province but does not introduce the field, its initial values, its data pipeline, or any mechanism that updates it over time. See Ambiguities — whether that is a hard prerequisite or something this feature must also define is unresolved.
+- Defining or implementing per-province population as a data source, its seeding, or its monthly growth mechanic — that is spec 46 (`province-population`), a dependency of this feature, not part of it. This feature only reads the `Resource{ResourceId="population"}` values that spec produces.
 - Any UI, HUD panel, leaderboard, ranking screen, or other player-facing display of country scores.
 - Any consumption of score by AI decision-making, win/loss conditions, or any other gameplay system beyond making the value available.
 - Any change to `ControlSystem`, `ResourceSystem`, or the resource/control-effect mechanics themselves — this feature only follows their existing month-boundary timing pattern, it does not modify them.
@@ -28,6 +32,5 @@ As a game designer, I want each country to have a numeric score derived from the
 
 ## Ambiguities
 
-- [NEEDS CLARIFICATION: Population does not exist anywhere in the codebase today — `province_config.json` entries have only `provinceId`, `countryId`, `generationMethod`, and `country_config.json` entries have no population field either. Is defining the per-province population data source (config field, generation-pipeline change, initial values) in scope for this feature, or is it an assumed prerequisite/dependency that must land first (in which case this spec should be re-scoped to depend on that prerequisite rather than silently assuming a `Population` field already exists on provinces)?]
 - [NEEDS CLARIFICATION: What consumes the country score once computed? The user's request only specifies the computation, not a consumer (UI display, win condition, leaderboard, AI input). This spec writes acceptance criteria assuming the score only needs to be computed and exposed in queryable form — confirm that's sufficient for this pass, or name the actual consumer so its own requirements can be captured.]
 - [NEEDS CLARIFICATION: On loading a save, should score be recomputed immediately at load time (so a freshly loaded game shows an up-to-date score), or left at its last-persisted value until the next month boundary (consistent with `ControlSystem`/`ResourceSystem`'s existing "only recompute at month boundary" behavior, but potentially showing a stale score right after load)? Related: should `Score` be `[Savable]` at all, or derived fresh at startup like `ProximityMapData` — per `.claude/rules/unity/ecs_patterns.md`, this depends on whether "recomputed monthly, not at startup" makes it a non-derivable, must-persist value, or whether an at-load recompute makes it safe to omit `[Savable]`.]
