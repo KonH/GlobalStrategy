@@ -6,6 +6,8 @@ As a developer building AI-controlled ("bot") organizations, I want the game log
 
 This is part 1 of 3. It delivers only the simulation foundation — no bot decision logic, no scoring formula, no eval statistics.
 
+**Scoring reference.** The scoring logic for the bot initiative must build on the existing (not yet merged) scoring work rather than inventing a parallel mechanism: `Docs/Specs/47_country-scoring/` (spec + plan on branch `claude/country-scoring-spec-tpf83x`), which itself depends on `Docs/Specs/46_province-population/` (branch `feature/province-population-spec`). That plan establishes the patterns any later org-scoring work should follow: a derived, non-`[Savable]` score component; a static system with a month-boundary-gated `Update` plus a forced ungated `Recompute` invoked at init and on load; a global coefficient in `game_settings.json`; and a `GetScore`-style query API. This spec deliberately emits only raw per-org metrics (control, gold) in its results JSON — the derived score arrives in part 3 and should be consistent with that plan.
+
 ## Acceptance Criteria
 
 ### Multi-org world initialization
@@ -54,7 +56,7 @@ This is part 1 of 3. It delivers only the simulation foundation — no bot decis
 - **VisualState changes.** `VisualState` stays targeted at the single player/view org — it only matters for Unity (non-headless) runs. Multi-org state does not flow into `VisualState`, and no new `VisualState` fields are added.
 - **Save-system changes.** The save header's `OrganizationId` remains the player/target org. Headless runs do not save or load; `GameLogicContext.Storage`/`Serializer` stay null in ConsoleRunner and autosave stays inert there.
 - **Bot decision logic, observation facade, bot command API, `BotProfile` feature flags** — part 2. This includes enforcing that bots cannot push global commands (pause/time/locale/save); in part 1 the runner is the only command source.
-- **Eval harness, paired-seed statistics, scoring formula, `/implement-bot-feature` skill, parameter/genetic search** — part 3.
+- **Eval harness, paired-seed statistics, scoring formula, `/implement-bot-feature` skill, parameter/genetic search** — part 3. When the scoring formula is defined there, it must reference the country-scoring plan (`Docs/Specs/47_country-scoring/`, see Scoring reference above) instead of introducing an unrelated scoring mechanism.
 - **Any Unity-side (`Assets/`) changes.** This is `src/`-only work; the Unity build must be behaviourally identical (netstandard2.1 DLLs still build to `Assets/Plugins/Core/`; ConsoleRunner remains net8.0 and is not shipped to Plugins).
 - **Win conditions.** Stop conditions are end game-date, max tick count, and wall-clock timeout only.
 - **Per-org discovery.** `IsDiscovered` remains a global (world-level) country flag as today.
