@@ -62,7 +62,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"Do not touch ResourceEffect/ResourceLink/PayType"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "src",

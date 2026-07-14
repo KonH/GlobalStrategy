@@ -72,3 +72,31 @@ that mirrors `ResourceSystem`/`ControlSystem`'s month-boundary detection, then i
 archetypes for `OwnerType.Province` + `ResourceId == PopulationResourceId` rows and multiplies
 `Value` in place (direct array-index mutation, no lambda — see `.claude/rules/unity/ecs_patterns.md`
 on `ref`/lambda restrictions). No blockers encountered.
+
+---
+
+## 2026-07-14 — Add ProvincePopulationGrowthSystem
+
+Task: "Add ProvincePopulationGrowthSystem" (src).
+
+Change: Created `src/Game.Systems/ProvincePopulationGrowthSystem.cs` with
+`public const string PopulationResourceId = "population"` and a static
+`Update(World world, DateTime previousTime, DateTime currentTime, double monthlyGrowthPercent)`
+that computes `isMonthBoundary` the same way as `ResourceSystem`/`ControlSystem` (month or year
+differs) and returns early if not crossed. Iterates
+`world.GetMatchingArchetypes({TypeId<ResourceOwner>.Value, TypeId<Resource>.Value}, null)` and,
+for rows where `owners[i].OwnerType == OwnerType.Province && resources[i].ResourceId ==
+PopulationResourceId`, multiplies `resources[i].Value` in place by
+`1.0 + monthlyGrowthPercent / 100.0` via direct array-index mutation (no lambda, matching the
+`ref`/lambda restriction in `.claude/rules/unity/ecs_patterns.md`). `ResourceEffect`/
+`ResourceLink`/`PayType` are untouched — this system reads only `ResourceOwner`+`Resource`.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` → Build succeeded, 0 Warning(s), 0 Error(s).
+
+Notes for next iteration: Next task is "Seed province population entities at init" — in
+`src/Game.Main/InitSystem.Run`, capture `var provinceConfig = context.Province.Load();` before
+`ProvinceOwnershipSystem.Seed(world, provinceConfig);`, then add a
+`CreateProvincePopulationEntities(world, provinceConfig);` call right after that creates one
+entity per `ProvinceEntry` with `ResourceOwner(entry.ProvinceId, OwnerType.Province)` and
+`Resource { ResourceId = ProvincePopulationGrowthSystem.PopulationResourceId, Value =
+entry.Population }`. No blockers encountered.
