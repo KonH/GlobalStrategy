@@ -28,7 +28,7 @@ Give each province its own population value, modeled with the existing `Resource
 			"In src/Game.Configs/ProvinceConfig.cs, add public double Population { get; set; } to ProvinceEntry"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "config-loader",
