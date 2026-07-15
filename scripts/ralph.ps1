@@ -30,6 +30,9 @@ $promptFile = ".ralph\PROMPT.md"
 if (-not (Test-Path $promptFile)) { throw "Missing $promptFile - run from the project root." }
 $prdFile = ".ralph\prd.md"
 $csvFile = ".ralph\metrics_$SpecIndex.csv"
+$activityFile = ".ralph\activity.md"
+$logDir = ".ralph\logs"
+if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
 
 # --- Resolve spec folder ---
 $specDirs = @(Get-ChildItem "Docs\Specs" -Directory | Where-Object { $_.Name -match "^${SpecIndex}_" })
@@ -94,12 +97,48 @@ function Invoke-ClaudeStep {
         $claudeArgs += @("--permission-mode", "acceptEdits", "--allowedTools", $AllowedTools)
     }
 
-    $raw = & claude @claudeArgs
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "claude exited with code $LASTEXITCODE in phase '$Phase'." -ForegroundColor Red
+    $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
+    $errFile = Join-Path $logDir "${Phase}_${Iteration}_${stamp}.stderr.log"
+    $raw = & claude @claudeArgs 2>$errFile
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -ne 0) {
+        $stderrText = if (Test-Path $errFile) { Get-Content $errFile -Raw } else { "" }
+        $stdoutText = ($raw -join "`n")
+        $logFile = Join-Path $logDir "${Phase}_${Iteration}_${stamp}.log"
+        @(
+            "phase: $Phase"
+            "iteration: $Iteration"
+            "exit_code: $exitCode"
+            "prompt: $Prompt"
+            ""
+            "--- stdout ---"
+            $stdoutText
+            ""
+            "--- stderr ---"
+            $stderrText
+        ) -join "`n" | Out-File $logFile -Encoding utf8
+
+        Write-Host "claude exited with code $exitCode in phase '$Phase'. Details: $logFile" -ForegroundColor Red
+        if ($stderrText) { Write-Host $stderrText -ForegroundColor Red }
+        if ($stdoutText) { Write-Host ($stdoutText.Substring(0, [Math]::Min(2000, $stdoutText.Length))) -ForegroundColor DarkYellow }
+
         "$Phase,$Iteration,,,,,,,,claude_error" | Out-File $csvFile -Append -Encoding utf8
+
+        $summary = if ($stderrText) { ($stderrText -split "`n" | Select-Object -First 5) -join " " } else { ($stdoutText -split "`n" | Select-Object -First 5) -join " " }
+        @(
+            ""
+            "## $(Get-Date -Format 'yyyy-MM-dd') - Ralph loop error (phase: $Phase, iteration: $Iteration)"
+            ""
+            "claude exited with code $exitCode. See ``$logFile`` for full stdout/stderr."
+            ""
+            "Summary: $summary"
+            ""
+            "---"
+        ) -join "`n" | Out-File $activityFile -Append -Encoding utf8
+
         return $null
     }
+    if (Test-Path $errFile) { Remove-Item $errFile -Force }
 
     $r = ($raw -join "") | ConvertFrom-Json
     $u = $r.usage
