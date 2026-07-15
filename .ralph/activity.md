@@ -75,3 +75,23 @@ Change: In `scripts/generate_provinces.py`:
 Gate: `.venv/Scripts/python.exe -m py_compile scripts/generate_provinces.py` — compiled cleanly.
 
 Notes for next iteration: Next task is "Compute final population from simplified geometry after mapshaper pass" — after the `npx mapshaper -simplify keep-shapes <pct>%` subprocess call succeeds, reload `INTERMEDIATE_PATH` from disk, recompute each feature's area in `EQUAL_AREA_CRS` from the simplified geometry, multiply by the matching province's stashed `_density` (matched by `provinceId` — note `_density` currently lives only on the in-memory `prov` dicts from `run()`, not on the serialized feature, so the reload step will need to build a `provinceId -> density` lookup from the in-memory `all_features`/`provinces` data before reloading, or otherwise carry `_density` through to match against reloaded features), and write the result into that feature's `population` property, then re-serialize `INTERMEDIATE_PATH`. Gate is the same py_compile command. No blockers on this task.
+
+---
+
+## 2026-07-15 — Compute final population from simplified geometry after mapshaper pass
+
+Task: `pipeline` — Compute final population from simplified geometry after mapshaper pass.
+
+Change: In `scripts/generate_provinces.py`'s `run()`:
+- Added a `density_by_province_id = {}` dict initialized alongside `all_features`, populated (`density_by_province_id[prov["provinceId"]] = prov["_density"]`) in the same loop where `prov["_density"]` is first set — this survives the mapshaper round-trip since it's independent of the serialized feature.
+- After the `npx mapshaper -simplify keep-shapes <pct>%` subprocess call succeeds, reload `INTERMEDIATE_PATH` from disk into `simplified_collection`/`simplified_features`.
+- Built `geometries = [shape(feature["geometry"]) for feature in simplified_features]` and computed `areas_km2` via `gpd.GeoSeries(geometries, crs=WGS84_CRS).to_crs(EQUAL_AREA_CRS).area / 1_000_000.0` (same technique used elsewhere in the file, e.g. line 415).
+- For each `(feature, area_km2)` pair, looked up `density_by_province_id[province_id]` and set `feature["properties"]["population"] = area_km2 * density`.
+- Re-serialized `simplified_collection` back to `INTERMEDIATE_PATH`.
+- Reassigned `all_features = simplified_features` so the downstream `update_province_locales(all_features)` call and the final summary's `len(all_features)` operate on the same post-mapshaper feature list whose `population` is now populated (previously `all_features` still pointed at the pre-simplify list with `population: None`).
+
+Gate: `.venv/Scripts/python.exe -m py_compile scripts/generate_provinces.py` — compiled cleanly.
+
+Gotcha reconfirmed: `Edit` against `.ralph/prd.md` failed again with "String to replace not found" despite the text visually matching in `Read` output (tabs/CRLF). Used the same inline-Python fallback pattern as the prior iteration (locate the task's description marker, then flip the next `"passes": false` occurrence after it to `true`) — reliable, keep using it for prd.md flag flips.
+
+Notes for next iteration: Next task is "Add GameSettings.PopulationGrowthPercentPerMonth global constant" — add `public double PopulationGrowthPercentPerMonth { get; set; } = 0.075;` to `src/Game.Configs/GameSettings.cs` alongside `StartYear`/`SpeedMultipliers`/`DefaultLocale`/`AutoSaveInterval`, and add `"populationGrowthPercentPerMonth": 0.075` to `Assets/Configs/game_settings.json`. Gate is `dotnet build src/GlobalStrategy.Core.sln -c Release`. No blockers on this task. Note: this script change was not actually re-run against real geometry yet (that happens in the later "Re-run the province generation pipeline with real geometry" task) — only compiled for syntax.

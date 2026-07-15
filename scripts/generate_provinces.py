@@ -899,6 +899,7 @@ def run(force_download=False):
     counts = {}
     warnings = []
     all_features = []
+    density_by_province_id = {}
 
     for country_id, data in sorted(countries.items()):
         polygon = data["polygon"]
@@ -935,6 +936,7 @@ def run(force_download=False):
         density_range = REGION_DENSITY_RANGES.get(region, REGION_DENSITY_RANGES["Default"])
         for prov in provinces:
             prov["_density"] = rng.uniform(*density_range)
+            density_by_province_id[prov["provinceId"]] = prov["_density"]
 
         for prov in provinces:
             all_features.append({
@@ -970,6 +972,24 @@ def run(force_download=False):
     if result.returncode != 0:
         print(result.stderr)
         raise RuntimeError("mapshaper simplify pass failed")
+
+    print("Computing province population from simplified geometry ...")
+    with open(INTERMEDIATE_PATH, encoding="utf-8") as f:
+        simplified_collection = json.load(f)
+    simplified_features = simplified_collection["features"]
+
+    geometries = [shape(feature["geometry"]) for feature in simplified_features]
+    areas_km2 = gpd.GeoSeries(geometries, crs=WGS84_CRS).to_crs(EQUAL_AREA_CRS).area / 1_000_000.0
+
+    for feature, area_km2 in zip(simplified_features, areas_km2):
+        province_id = feature["properties"]["provinceId"]
+        density = density_by_province_id[province_id]
+        feature["properties"]["population"] = area_km2 * density
+
+    with open(INTERMEDIATE_PATH, "w", encoding="utf-8") as f:
+        json.dump(simplified_collection, f)
+
+    all_features = simplified_features
 
     print("Updating province_name.* locale entries ...")
     update_province_locales(all_features)

@@ -76,7 +76,7 @@ Give each province its own population value, modeled with the existing `Resource
 			"Re-serialize INTERMEDIATE_PATH so the on-disk file's population values are computed from the same final geometry Stage 2/provinces_1880.json will ship"
 		],
 		"gate": ".venv\\Scripts\\python.exe -m py_compile scripts\\generate_provinces.py",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "config",
