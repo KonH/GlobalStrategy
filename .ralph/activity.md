@@ -934,3 +934,49 @@ task 18 passes, this Ralph loop's PRD will have all tasks `passes: true` and the
 should output `<promise>COMPLETE</promise>`.
 
 ---
+
+## 2026-07-15 -- Re-run the province generation pipeline with real geometry and regenerate province_config.json (PASSED, all tasks complete)
+
+Task: "Re-run the province generation pipeline with real geometry and regenerate province_config.json" (pipeline).
+
+Both remaining environment prerequisites confirmed available at the start of this iteration:
+`node --version`/`npx --version` -> `v24.18.0`/`11.16.0`; working tree was clean. This is the last
+remaining task in the PRD (all others already `passes: true`).
+
+Change: Ran Stage 1 (`.venv\Scripts\python.exe scripts\generate_provinces.py` from the project
+root) -> summary: `Total countries processed: 154`, `Micro-state countries: 16`,
+`Option A countries: 47`, `Option C countries: 91`, `Total provinces: 5492` -- matches the
+per-method routing described in the task (only a `population` property was added, no routing
+logic changed, so these counts are the expected outcome, not a regression check against a
+recorded prior baseline which wasn't journaled anywhere). The 91 warnings printed are all the
+expected "Option A rejected (sliver fraction/piece count); trying Option C" fallback messages
+already documented as normal pipeline behavior in `.claude/rules/unity/province_config_generator.md`
+-- no new/unexpected warning types appeared. `npx mapshaper` ran successfully as part of the
+script (Node.js now on PATH, per the prior iteration unblocking task 14). Then ran Stage 2 by
+`cd`-ing into `src/Game.Configs.Loader` and running `dotnet run -c Release` there (the loader
+reads `loader_config.json` via relative path from its own working directory, and that config's
+paths -- `../../Assets/...`, `../../.tmp/provinces_intermediate.geojson` -- are relative to that
+directory too; running `dotnet run --project src/Game.Configs.Loader` from the repo root fails
+with `FileNotFoundException` on `loader_config.json` since the working directory doesn't change
+with `--project`). Output: `Wrote 173 features, 154 countries to ../../Assets/Configs` then
+`Wrote 5492 provinces to ../../Assets/Configs` -- regenerated `Assets/Configs/province_config.json`
+and `Assets/Configs/provinces_1880.json`. Verified via `git diff` that the province_config.json
+diff is exactly the expected shape: every existing entry unchanged (`provinceId`/`countryId`/
+`generationMethod` identical) with only a new `"population": <value>` field appended -- no
+provinceId/countryId churn, confirming the population-field-only nature of this pipeline change.
+
+Gate: `DOTNET_ROLL_FORWARD=LatestMajor dotnet build src/GlobalStrategy.Core.sln -c Release` ->
+`Build succeeded, 0 Warning(s), 0 Error(s)`.
+
+Gotcha for future pipeline re-runs: `dotnet run --project <dir>` does NOT change the process's
+working directory to `<dir>` -- it stays at the caller's cwd. Since `loader_config.json` is read
+via a bare relative path (`File.ReadAllText("loader_config.json")`) and its own contents use
+`../../`-relative paths, the loader must be invoked with cwd already inside
+`src/Game.Configs.Loader` (e.g. `cd src/Game.Configs.Loader && dotnet run -c Release`), not via
+`--project` from the repo root. Also note: the Bash tool's working directory persists across
+calls within an iteration -- after `cd`-ing into `src/Game.Configs.Loader` for Stage 2, a
+subsequent `dotnet build src/GlobalStrategy.Core.sln` call from an assumed-root cwd failed with
+`MSB1009: Project file does not exist` until `cd`-ing back to the repo root explicitly.
+
+This was the final remaining task in `.ralph/prd.md` -- every task now has `"passes": true`. The
+next loop iteration should output exactly `<promise>COMPLETE</promise>` per the loop instructions.

@@ -216,7 +216,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"Re-run the Stage 2 C# loader (Game.Configs.Loader, via its existing loader_config.json-driven entry point) to regenerate Assets/Configs/province_config.json with the new population field populated for every entry"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	}
 ]
 ```
