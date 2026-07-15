@@ -59,16 +59,24 @@ re-run this script.
      so no country is ever left with zero provinces.
 5. Assigns a deterministic `provinceId` = `{countryId}__{slug(name)}`, with a numeric
    suffix (`_2`, `_3`, ...) on any in-country name collision.
-6. Serializes the combined result to the gitignored intermediate file
+6. Assigns each province a `population` value: draws a per-province density
+   (people/km²) from a region-based range (`COUNTRY_REGION`/`REGION_DENSITY_RANGES`,
+   approximate 1880-era relative bands, not researched real data) using the same
+   per-country deterministic RNG as Option C, then — after the mapshaper simplify
+   step below — multiplies that density by the *simplified* polygon's km² so the
+   shipped value matches the final geometry rather than the pre-simplify one.
+7. Serializes the combined result to the gitignored intermediate file
    `.tmp/provinces_intermediate.geojson` (properties: `provinceId`, `countryId`,
-   `displayName`, `generationMethod`, `compassKey` — the latter is `null` except
-   for the rare compass-direction fallback case above, and only used by the
-   locale step below).
-7. Runs `npx mapshaper -i <file> -simplify keep-shapes <pct>% -o <file>` to reduce
+   `displayName`, `generationMethod`, `compassKey`, `population` — `compassKey` is
+   `null` except for the rare compass-direction fallback case above, and only used
+   by the locale step below).
+8. Runs `npx mapshaper -i <file> -simplify keep-shapes <pct>% -o <file>` to reduce
    vertex count for WebGL viability (`keep-shapes` guarantees no polygon degenerates
    to zero area). The simplify percentage is a tunable constant
-   (`MAPSHAPER_SIMPLIFY_PCT`) in the script, currently `10`.
-8. Writes `province_name.{provinceId}` locale entries into
+   (`MAPSHAPER_SIMPLIFY_PCT`) in the script, currently `10`. The `population`
+   values described in step 6 are computed and written back into the intermediate
+   file's geometry-simplified version immediately after this step.
+9. Writes `province_name.{provinceId}` locale entries into
    `Assets/Localization/en.asset` (the generated name verbatim) and
    `Assets/Localization/ru.asset` — settlement/admin-1 proper nouns are run through
    a deterministic phonetic Latin→Cyrillic transliteration (`transliterate_to_cyrillic`,
@@ -95,9 +103,10 @@ in-memory `CountryConfig` already built in the same `Program.cs` run, cross-vali
 every province's `countryId` against `CountryConfig` (per
 `.claude/rules/config_validation.md` — a mismatch throws rather than silently
 proceeding), and writes `Assets/Configs/province_config.json` (lightweight metadata:
-`provinceId`, `countryId`, `generationMethod` — no `displayName`; province names are
-localization-only, see `province_name.*` keys above) and `Assets/Configs/provinces_1880.json`
-(passthrough geometry `FeatureCollection`).
+`provinceId`, `countryId`, `generationMethod`, `population` — no `displayName`; province
+names are localization-only, see `province_name.*` keys above) and
+`Assets/Configs/provinces_1880.json` (passthrough geometry `FeatureCollection`).
+A feature missing a `population` property defaults to `0.0` rather than throwing.
 
 Re-run order: Stage 1 (Python) must be run before Stage 2 (C# loader), since Stage 2
 consumes Stage 1's intermediate file via `loaderConfig.ProvinceGeoJsonSourcePath`.

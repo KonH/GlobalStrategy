@@ -157,7 +157,7 @@ Give each province its own population value, modeled with the existing `Resource
 			"Update only if missing — documentation currency only, no behavior change"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "build",

@@ -186,3 +186,20 @@ Gate: `DOTNET_ROLL_FORWARD=LatestMajor dotnet test src/GlobalStrategy.Core.sln` 
 Flag flip: used the established inline-Python byte-level fallback (find task description marker, flip the next "passes": false after it), then verified via a full JSON-parse dump that this was the only task whose flag changed.
 
 Notes for next iteration: Next task is "Update province_config_generator.md rule doc if needed" — check whether `.claude/rules/unity/province_config_generator.md`'s Stage 1/Stage 2 field lists need a one-line mention of the new `population` property (Stage 1's docstring/output list and Stage 2's `province_config.json` metadata description both currently omit it — likely needs a small addition in both spots), and only edit if genuinely missing. Gate is `dotnet build src/GlobalStrategy.Core.sln -c Release` (a doc-only task, so the build should trivially pass — it is really just confirming nothing else broke). No blockers expected; this is a low-risk documentation-only task.
+
+---
+
+## 2026-07-15 — Update province_config_generator.md rule doc if needed
+
+Task: `docs` — Update province_config_generator.md rule doc if needed.
+
+Change: `.claude/rules/unity/province_config_generator.md` was missing any mention of the new `population` property. Updated:
+- Stage 1 "What it does" list: inserted a new step 6 describing population assignment (per-province density drawn from `COUNTRY_REGION`/`REGION_DENSITY_RANGES` via the per-country deterministic RNG, then multiplied by the post-simplify polygon area), renumbered the old steps 6-8 to 7-9, and added `population` to the intermediate-file properties list (old step 6, now step 7).
+- The mapshaper step (now step 8) gained a note that population values are computed and written back right after simplification.
+- Stage 2 section: added `population` to `province_config.json`'s listed metadata fields, and a note that a missing `population` property defaults to `0.0` rather than throwing (matches `ProvinceProcessor.GetDoubleProp` behavior from the earlier `config-loader` task).
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded, 0 Warning(s), 0 Error(s) (doc-only change, gate just confirms nothing else broke).
+
+Flag flip: used the established inline-Python byte-level fallback (find task description marker, flip the next `"passes": false` after it), confirmed via grep count (14 true / 5 false, up from 13/6) that only this task's flag changed.
+
+Notes for next iteration: Next task is "Rebuild the Core DLLs and confirm clean Unity console" — run `dotnet build src/GlobalStrategy.Core.sln -c Release` (already done as part of this task's gate and prior tasks, DLLs are current), then use Unity MCP `refresh_unity` and `read_console(types=["error"])` to confirm no compile errors in the Editor. This requires Unity MCP/Editor connectivity — if unreachable, journal as blocked per the loop rules rather than skipping verification. No blockers encountered on this (docs) task.
