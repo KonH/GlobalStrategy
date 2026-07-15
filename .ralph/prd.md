@@ -112,7 +112,7 @@ Add a per-province `population` `Resource` (seeded from a new pipeline-generated
 			"first-tick ordering case: build a GameLogic via the shared harness, call Update once with no elapsed time, and assert the province population Resource.Value still equals the seeded entry.Population (no growth on tick 1)"
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "src-main",
