@@ -456,3 +456,29 @@ If Unity remains unavailable in the next iteration too, re-check `mcpforunity://
 attempting `refresh_unity` (avoids the 60s timeout) and re-journal as blocked again rather than skipping
 ahead to the pipeline tasks (task 15 depends on this one being confirmed clean per the PRD's stated
 task order, since Unity-side wiring correctness should be confirmed before further pipeline work).
+
+---
+
+## 2026-07-15 -- Rebuild Core DLLs and confirm clean Unity console (BLOCKED again)
+
+Task: "Rebuild Core DLLs and confirm clean Unity console" (src).
+
+Change: None -- re-checked Unity MCP connectivity before attempting any C# work (DLLs were already
+up to date from the prior iteration's `dotnet build`).
+
+Blocker: `mcp__UnityMCP__refresh_unity(compile="request", mode="force")` again timed out after 60s
+waiting for editor readiness, and the follow-up `read_console(types=["error"])` returned
+`"Unity session not available; please retry"` / `no_unity_session`. Checked
+`mcpforunity://instances` directly (per the prior note, to avoid the 60s timeout on repeat checks
+next time): `{"success": true, "transport": "http", "instance_count": 0, "instances": []}` -- still
+no Unity Editor open/connected to the MCP bridge. Per loop rules, leaving `passes: false` rather
+than marking this passed on the build-only gate.
+
+Notes for next iteration: Same as before -- this task needs a live Unity Editor with the MCP bridge
+running. Check `mcpforunity://instances` first (fast) before calling `refresh_unity` (which blocks
+60s on timeout when no instance is connected). If Unity is still unavailable after two consecutive
+blocked iterations, consider surfacing this to the user directly rather than silently re-blocking
+indefinitely -- the loop cannot make progress on any remaining task (all of tasks 15-18 are
+pipeline/doc tasks that don't depend on task 14, so it may be worth asking the user whether to skip
+ahead to those while Unity is unavailable, since the PRD's stated ordering is a soft preference, not
+a hard dependency enforced by the gates themselves).
