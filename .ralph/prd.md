@@ -171,7 +171,7 @@ Add a per-province `population` `Resource` (seeded from a new pipeline-generated
 			"A feature missing the property defaults to 0.0 (no crash)"
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "docs",

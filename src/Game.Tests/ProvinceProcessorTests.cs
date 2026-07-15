@@ -34,6 +34,28 @@ namespace GS.Game.Tests {
 			};
 		}
 
+		static JsonNode BuildFeatureCollectionWithPopulation(string provinceId, string countryId, string generationMethod, double? population) {
+			var properties = new JsonObject {
+				["provinceId"] = provinceId,
+				["countryId"] = countryId,
+				["generationMethod"] = generationMethod,
+			};
+			if (population.HasValue) {
+				properties["population"] = population.Value;
+			}
+			var features = new JsonArray {
+				new JsonObject {
+					["type"] = "Feature",
+					["properties"] = properties,
+					["geometry"] = new JsonObject { ["type"] = "Polygon", ["coordinates"] = new JsonArray() },
+				}
+			};
+			return new JsonObject {
+				["type"] = "FeatureCollection",
+				["features"] = features,
+			};
+		}
+
 		[Fact]
 		void process_extracts_correct_province_entries() {
 			var countryConfig = BuildCountryConfig();
@@ -63,6 +85,32 @@ namespace GS.Game.Tests {
 			Assert.Single(errors);
 			Assert.Contains("Atlantis", errors);
 			Assert.Single(metadata.Provinces);
+		}
+
+		[Fact]
+		void process_extracts_population_field() {
+			var countryConfig = BuildCountryConfig();
+			var doc = BuildFeatureCollectionWithPopulation("France__Normandy", "France", "OptionA", 12345.6);
+
+			var (metadata, _, errors) = ProvinceProcessor.Process(doc, countryConfig);
+
+			Assert.Empty(errors);
+			var normandy = metadata.FindByProvinceId("France__Normandy");
+			Assert.NotNull(normandy);
+			Assert.Equal(12345.6, normandy!.Population);
+		}
+
+		[Fact]
+		void process_defaults_population_to_zero_when_missing() {
+			var countryConfig = BuildCountryConfig();
+			var doc = BuildFeatureCollectionWithPopulation("France__Normandy", "France", "OptionA", null);
+
+			var (metadata, _, errors) = ProvinceProcessor.Process(doc, countryConfig);
+
+			Assert.Empty(errors);
+			var normandy = metadata.FindByProvinceId("France__Normandy");
+			Assert.NotNull(normandy);
+			Assert.Equal(0.0, normandy!.Population);
 		}
 	}
 }

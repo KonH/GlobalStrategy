@@ -266,3 +266,18 @@ Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 164; the plain
 Notes for next iteration: the next task ("Extend ProvinceProcessorTests for population field extraction") adds `process_extracts_population_field` to `src/Game.Tests/ProvinceProcessorTests.cs` — a feature with a `population` property should round-trip into `ProvinceEntry.Population`, and a feature missing the property should default to `0.0` without crashing. Check that test file's existing structure/helpers first (it likely already has a `GetStringProp`-style pattern test for `displayName`/`countryId` to mirror). Gate is `dotnet test` via `"$USERPROFILE/.dotnet/dotnet.exe" test src/GlobalStrategy.Core.sln`.
 
 ---
+
+## 2026-07-15 — Extend ProvinceProcessorTests for population field extraction
+
+Task: `src-tests` / "Extend ProvinceProcessorTests for population field extraction" (fifteenth task in `.ralph/prd.md`).
+
+Changes:
+- `src/Game.Tests/ProvinceProcessorTests.cs`: added a `BuildFeatureCollectionWithPopulation(provinceId, countryId, generationMethod, population)` helper (population is `double?` — omits the JSON `population` property entirely when `null`, to test the missing-property path distinctly from an explicit `0`). `ProvinceProcessor.Process`/`GetDoubleProp` already existed from an earlier task (task 3) and needed no changes — this task was purely test coverage. Added `process_extracts_population_field` (a feature with `population: 12345.6` round-trips into `ProvinceEntry.Population`) and `process_defaults_population_to_zero_when_missing` (a feature with no `population` property yields `ProvinceEntry.Population == 0.0`, no crash).
+
+Gate: `"$USERPROFILE/.dotnet/dotnet.exe" test src/GlobalStrategy.Core.sln` → **Passed! Failed: 0, Passed: 34, Total: 34 (ECS.Tests)**; **Passed! Failed: 0, Passed: 16, Total: 16 (ECS.Viewer.Tests)**; **Passed! Failed: 0, Passed: 136, Total: 136 (Game.Tests)** — up from 134, confirming both new tests ran and passed.
+
+Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 174; used a direct Python line-index replacement, consistent with prior iterations' notes about the `Edit` tool's exact-string match intermittently failing against this JSON block — this time the `Edit` tool also failed against the CRLF-terminated `ProvinceProcessorTests.cs` file itself when trying to insert new methods; worked around with direct Python byte-level replacements matching the file's actual `\r\n` line endings).
+
+Notes for next iteration: the next task ("Update province_config_generator.md rule doc for the new population property") is docs-only — check whether `.claude/rules/unity/province_config_generator.md`'s Stage 1/Stage 2 field lists need a one-line mention of `population` (Stage 1 already documents the `population` property in its feature-properties list from an earlier task's docstring note; Stage 2 documents `province_config.json`'s fields as "lightweight metadata: provinceId, countryId, generationMethod" — this list is now stale and should mention `population` too). Gate is just `dotnet build` (doc-only change, gate is a formality to confirm nothing broke).
+
+---
