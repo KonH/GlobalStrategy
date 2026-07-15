@@ -109,3 +109,17 @@ Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded,
 Gotcha reconfirmed: `Edit` against `.ralph/prd.md` again failed with "String to replace not found" (CRLF/tabs). Used the same inline-Python byte-level fallback (find task description marker, flip the next `"passes": false` after it) — kept using it, worked reliably.
 
 Notes for next iteration: Next task is "Add ProvincePopulationGrowthSystem" — create `src/Game.Systems/ProvincePopulationGrowthSystem.cs` with `public const string PopulationResourceId = "population";` and `public static void Update(World world, DateTime previousTime, DateTime currentTime, double monthlyGrowthPercent)`. Follow `ResourceSystem`/`ControlSystem`'s month-boundary check pattern, iterate matching archetypes for `ResourceOwner`+`Resource`, and mutate `resources[i].Value` directly (no lambda) for rows where `OwnerType == OwnerType.Province && ResourceId == PopulationResourceId`. Gate is `dotnet build src/GlobalStrategy.Core.sln -c Release`. No blockers on this task.
+
+---
+
+## 2026-07-15 — Add ProvincePopulationGrowthSystem
+
+Task: `systems` — Add ProvincePopulationGrowthSystem.
+
+Change: Created `src/Game.Systems/ProvincePopulationGrowthSystem.cs` with `public const string PopulationResourceId = "population";` and `public static void Update(World world, DateTime previousTime, DateTime currentTime, double monthlyGrowthPercent)`. Follows the same `isMonthBoundary` check pattern as `ResourceSystem`/`ControlSystem` (compares `.Month`/`.Year`, returns early if not crossed). Iterates `world.GetMatchingArchetypes({TypeId<ResourceOwner>.Value, TypeId<Resource>.Value}, null)` and, for rows where `owners[i].OwnerType == OwnerType.Province && resources[i].ResourceId == PopulationResourceId`, mutates `resources[i].Value *= (1.0 + monthlyGrowthPercent / 100.0)` via direct array-index access (no lambda, per `ecs_patterns.md`'s ref/lambda gotcha). Does not touch `ResourceEffect`/`ResourceLink`/`PayType`.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded, 0 Warning(s), 0 Error(s).
+
+Flag flip: used the same inline-Python byte-level fallback pattern (find task description marker, flip the next `"passes": false` after it) to edit `.ralph/prd.md` — `Edit` continues to be unreliable against this CRLF/tab file, keep using the Python fallback.
+
+Notes for next iteration: Next task is "Seed province population entities at init" — in `src/Game.Main/InitSystem.Run`, change the existing `ProvinceOwnershipSystem.Seed(world, context.Province.Load());` line to first assign `var provinceConfig = context.Province.Load();`, then call `ProvinceOwnershipSystem.Seed(world, provinceConfig);`, then add `CreateProvincePopulationEntities(world, provinceConfig);` right after. Implement `static void CreateProvincePopulationEntities(World world, ProvinceConfig config)` mirroring `CreateResourceEntities`'s per-country seeding shape: for each `ProvinceEntry`, `world.Create()` an entity with `ResourceOwner(entry.ProvinceId, OwnerType.Province)` and `Resource { ResourceId = ProvincePopulationGrowthSystem.PopulationResourceId, Value = entry.Population }`. Gate is `dotnet build src/GlobalStrategy.Core.sln -c Release`. Should look at `InitSystem.cs`'s existing `CreateResourceEntities` method for the exact seeding pattern to mirror. No blockers on this task.
