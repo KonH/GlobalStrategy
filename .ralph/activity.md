@@ -113,3 +113,18 @@ Flipped this task's `"passes"` to `true` in `.ralph/prd.md`.
 Note: the `Edit` tool again failed to match the `"passes": false` → `true` replacement for this task's block (same whitespace/encoding quirk noted in the previous entry) — worked around it with a direct Python line-index replacement (line 88), verified afterward via grep.
 
 Notes for next iteration: the next task ("Add ProvincePopulationGrowthSystem") creates `src/Game.Systems/ProvincePopulationGrowthSystem.cs` — check `ResourceSystem`/`ControlSystem` for the existing month-boundary detection pattern and `ecs_patterns.md`'s ref/lambda gotcha (use `AsSpan()`/direct array-index mutation, not a lambda, when mutating matched archetype rows).
+
+---
+
+## 2026-07-15 — Add ProvincePopulationGrowthSystem
+
+Task: `src-systems` / "Add ProvincePopulationGrowthSystem" (eighth task in `.ralph/prd.md`).
+
+Changes:
+- `src/Game.Systems/ProvincePopulationGrowthSystem.cs` (new file): `public const string PopulationResourceId = "population";` and `public static void Update(World world, DateTime previousTime, DateTime currentTime, double monthlyGrowthPercent)`. Computes `isMonthBoundary` the same way as `ResourceSystem`/`ControlSystem` and returns early if not crossed. Iterates `world.GetMatchingArchetypes({TypeId<ResourceOwner>.Value, TypeId<Resource>.Value}, null)` and, for rows where `owners[i].OwnerType == OwnerType.Province && resources[i].ResourceId == PopulationResourceId`, mutates `resources[i].Value *= (1.0 + monthlyGrowthPercent / 100.0)` via direct array-index assignment (no lambda, no `ref` local, per `ecs_patterns.md`). Does not touch `ResourceEffect`/`ResourceLink`/`PayType`.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` → Build succeeded, 0 Warning(s), 0 Error(s).
+
+Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (used a direct line-index Python replacement again — the `Edit` tool's exact-string match against this JSON block continues to fail for reasons not yet diagnosed; a plain grep -n confirms the correct line number before each replacement).
+
+Notes for next iteration: the next task ("Add ProvincePopulationGrowthSystemTests") creates `src/Game.Tests/ProvincePopulationGrowthSystemTests.cs` mirroring `ResourceSystemTests.cs`'s Jan31/Feb1/Jan1/Jan2 constants and world-building helpers. `ProvincePopulationGrowthSystem.Update` and `PopulationResourceId` (just added) are the only new public surface it needs; `ResourceOwner`/`Resource`/`OwnerType.Province` are already available.
