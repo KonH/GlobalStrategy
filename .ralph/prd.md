@@ -135,7 +135,7 @@ Give each province its own population value, modeled with the existing `Resource
 			"first-tick ordering case: build a GameLogic via the shared harness, call Update once with no elapsed time/no multiplier change, and assert the province population Resource.Value still equals the seeded entry.Population"
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "tests",
