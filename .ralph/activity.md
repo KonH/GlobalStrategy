@@ -864,3 +864,12 @@ independent of a live editor session). `node --version` / `npx --version` -> `co
 in Bash (Node.js still not installed). Both prerequisites for tasks 14 and 18 remain unmet; no
 other task has `passes: false`. No change, no code edits, nothing to commit. See the 8th-iteration
 entry above for the full escalation-to-user writeup.
+
+---
+
+## 2026-07-15 -- Still stalled, no change (14th check)
+
+`mcpforunity://instances` -> `instance_count: 0` (no Unity Editor connected). `node --version` /
+`npx --version` -> `command not found` in Bash (Node.js still not installed). Both prerequisites
+for tasks 14 and 18 remain unmet; no other task has `passes: false`. No change, no code edits,
+nothing to commit. See the 8th-iteration entry above for the full escalation-to-user writeup.
