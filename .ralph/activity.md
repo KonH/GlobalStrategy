@@ -251,3 +251,18 @@ Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 154; used a Py
 Notes for next iteration: the next task ("Extend SaveLoadRoundTripTests for grown population persistence") adds a case to `src/Game.Tests/SaveLoadRoundTripTests.cs` that advances at least one month boundary, saves via `SaveSystem.BuildSnapshot`, reloads via `LoadSystem.Apply`, and asserts the grown value survives and continues compounding after reload. Check that test file's existing `BuildLogic`/harness shape first — it likely needs `Population` values added to its `ProvinceEntry`s the same way `InitSystemTests.cs` and `ProvinceOwnershipTests.cs` did. Gate is `dotnet test` via `"$USERPROFILE/.dotnet/dotnet.exe" test src/GlobalStrategy.Core.sln`.
 
 ---
+
+## 2026-07-15 — Extend SaveLoadRoundTripTests for grown population persistence
+
+Task: `src-tests` / "Extend SaveLoadRoundTripTests for grown population persistence" (fourteenth task in `.ralph/prd.md`).
+
+Changes:
+- `src/Game.Tests/SaveLoadRoundTripTests.cs`: added `using GS.Game.Systems;`. Added `round_trip_preserves_grown_population_and_continues_compounding`: builds a fresh `World` (not the shared `BuildWorld` helper, since this test doesn't need the rest of that world's entities) with a single province-owned `population` `Resource` (`ResourceOwner("Russian_Empire__moscow", OwnerType.Province)`, `Value = 1000.0`). Calls `ProvincePopulationGrowthSystem.Update` across a Jan31→Feb1 month boundary (growth to `1000.75`), snapshots via `SaveSystem.BuildSnapshot`, restores into a new `World` via `LoadSystem.Apply`, asserts the grown (not seed) value survived the round trip, then calls `ProvincePopulationGrowthSystem.Update` again on the restored world across a Feb1→Mar1 boundary and asserts the value continues compounding from the persisted value (`grownValue * 1.00075`), not resetting to the original seed.
+
+Gate: `"$USERPROFILE/.dotnet/dotnet.exe" test src/GlobalStrategy.Core.sln` → **Passed! Failed: 0, Passed: 34, Total: 34 (ECS.Tests)**; **Passed! Failed: 0, Passed: 16, Total: 16 (ECS.Viewer.Tests)**; **Passed! Failed: 0, Passed: 134, Total: 134 (Game.Tests)** — up from 133, confirming the new test ran and passed.
+
+Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 164; the plain `Edit` tool failed its exact-string match against this JSON block again — worked around with a direct Python line-index replacement, consistent with prior iterations' notes. Note the `Edit` tool did succeed for the larger code additions in `SaveLoadRoundTripTests.cs` itself once the anchor text used tabs matching the file exactly).
+
+Notes for next iteration: the next task ("Extend ProvinceProcessorTests for population field extraction") adds `process_extracts_population_field` to `src/Game.Tests/ProvinceProcessorTests.cs` — a feature with a `population` property should round-trip into `ProvinceEntry.Population`, and a feature missing the property should default to `0.0` without crashing. Check that test file's existing structure/helpers first (it likely already has a `GetStringProp`-style pattern test for `displayName`/`countryId` to mirror). Gate is `dotnet test` via `"$USERPROFILE/.dotnet/dotnet.exe" test src/GlobalStrategy.Core.sln`.
+
+---

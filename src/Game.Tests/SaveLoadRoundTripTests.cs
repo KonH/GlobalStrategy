@@ -3,6 +3,7 @@ using System.Linq;
 using ECS;
 using ECS.Extensions;
 using GS.Game.Components;
+using GS.Game.Systems;
 using GS.Main;
 using Xunit;
 
@@ -291,6 +292,50 @@ namespace GS.Game.Tests {
 			}
 
 			Assert.Equal("Great_Britain", restoredOwnerId);
+		}
+
+		[Fact]
+		void round_trip_preserves_grown_population_and_continues_compounding() {
+			var world = new World();
+			int populationEntity = world.Create();
+			world.Add(populationEntity, new ResourceOwner("Russian_Empire__moscow", OwnerType.Province));
+			world.Add(populationEntity, new Resource { ResourceId = "population", Value = 1000.0 });
+
+			var jan31 = new DateTime(1882, 1, 31);
+			var feb1 = new DateTime(1882, 2, 1);
+			var mar1 = new DateTime(1882, 3, 1);
+
+			ProvincePopulationGrowthSystem.Update(world, jan31, feb1, 0.075);
+
+			double GetPopulation(World w) {
+				int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+				double? value = null;
+				foreach (var arch in w.GetMatchingArchetypes(req, null)) {
+					for (int i = 0; i < arch.Count; i++) {
+						if (arch.GetColumn<Resource>()[i].ResourceId == "population") {
+							value = arch.GetColumn<Resource>()[i].Value;
+						}
+					}
+				}
+				Assert.NotNull(value);
+				return value.Value;
+			}
+
+			double grownValue = GetPopulation(world);
+			Assert.Equal(1000.75, grownValue, 5);
+
+			var snapshot = Snapshot(world);
+			var restored = new World();
+			Restore(snapshot, restored);
+
+			double restoredValue = GetPopulation(restored);
+			Assert.Equal(grownValue, restoredValue, 5);
+
+			ProvincePopulationGrowthSystem.Update(restored, feb1, mar1, 0.075);
+
+			double furtherGrownValue = GetPopulation(restored);
+			Assert.Equal(grownValue * 1.00075, furtherGrownValue, 5);
+			Assert.True(furtherGrownValue > grownValue);
 		}
 	}
 }
