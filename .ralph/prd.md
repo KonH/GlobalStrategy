@@ -83,7 +83,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"In Update, immediately after OpinionSystem.Update(_world, _previousTime, currentTime);, add ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "test",

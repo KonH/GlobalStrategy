@@ -123,3 +123,30 @@ Notes for next iteration: Next task is "Wire population growth into GameLogic.Up
 captured), and in `Update`, immediately after `OpinionSystem.Update(_world, _previousTime,
 currentTime);`, call `ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime,
 _populationGrowthPercent);`. No blockers encountered.
+
+
+---
+
+## 2026-07-15 -- Wire population growth into GameLogic.Update
+
+Task: "Wire population growth into GameLogic.Update" (src).
+
+Change: The required wiring was already present in `src/Game.Main/GameLogic.cs` from the prior
+iteration's work (field `readonly double _populationGrowthPercent;` declared, assigned from
+`settings.PopulationGrowthPercentPerMonth` in the constructor alongside `_speedMultipliers`, and
+`ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime,
+_populationGrowthPercent);` called in `Update` immediately after `OpinionSystem.Update(...)`).
+No code changes were needed this iteration -- verified the existing state matches the task spec
+exactly and ran the gate to confirm.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` -> Build succeeded, 0 Warning(s), 0 Error(s).
+
+Notes for next iteration: Next task is "Add ProvincePopulationGrowthSystemTests" -- create
+`src/Game.Tests/ProvincePopulationGrowthSystemTests.cs` mirroring `ResourceSystemTests.cs`'s
+Jan31/Feb1/Jan1/Jan2 constants and world-building helpers, covering: no growth within the same
+month, growth by percent at a month boundary (1000 -> 1000.75 at 0.075%), compounding across
+multiple month boundaries, only `OwnerType.Province` + `population` resource id rows affected
+(country-owned population and province-owned non-population resources untouched), and two
+province population resources diverging independently. Gate is `dotnet test
+src/GlobalStrategy.Core.sln`. No blockers encountered; this is the first task in the loop whose
+gate is `dotnet test` rather than a build-only gate.
