@@ -731,3 +731,39 @@ recommending to the user directly that this loop be paused until one of those tw
 prerequisites is met, since repeating the same blocked check every iteration burns budget with no
 progress. Uncommitted `Assets/Plugins/Core/*.dll` changes remain from earlier `dotnet build` runs
 in the working tree, intentionally uncommitted pending task 14's clean-console confirmation.
+
+---
+
+## 2026-07-15 -- Rebuild Core DLLs (BLOCKED, 8th time); Re-run pipeline (still BLOCKED -- Node.js missing); escalating to user
+
+Task attempted: "Rebuild Core DLLs and confirm clean Unity console" (src) -- still blocked.
+
+Checked `mcpforunity://instances` first (fast path): `{"success": true, "transport": "http",
+"instance_count": 0, "instances": []}` -- no Unity Editor connected. Also called
+`refresh_unity(compile="request", mode="force")` directly to double-check: timed out after 60s
+waiting for editor readiness, consistent with the resource check. Leaving `passes: false` per loop
+rules. This is the 8th consecutive blocked attempt.
+
+Task attempted: "Re-run the province generation pipeline with real geometry and regenerate
+province_config.json" (pipeline) -- re-checked environment.
+
+Blocker: `node --version` / `npx --version` still both fail with "command not found" in Bash.
+Node.js remains not installed on this machine. Hard requirement for `scripts/generate_provinces.py`'s
+`npx mapshaper` simplify step (no fallback). Not attempting a system-level Node.js install from
+within this loop. Leaving `passes: false`.
+
+Change: None -- both blockers unchanged from the prior iteration. No other task in `.ralph/prd.md`
+has `passes: false` left to attempt; tasks 1-13, 15, 16, 17 are `passes: true`; 14 and 18 are the
+only remaining tasks and both are blocked purely on environment/tooling outside this loop's control.
+
+Gate: not applicable -- no code change made.
+
+Escalating to the user this iteration (per accumulated guidance in prior entries once multiple
+consecutive blocks pile up with nothing else to fall back to): this loop is now fully stalled with
+8 consecutive blocked iterations on the same two environment prerequisites. It cannot make further
+autonomous progress until a human:
+1. Opens a Unity Editor instance with the MCP bridge connected to this project (for task 14), and/or
+2. Installs Node.js (so `npx` is on PATH) on this machine (for task 18).
+
+Recommend pausing this Ralph loop until at least one of those is resolved, rather than continuing
+to spend iterations re-checking the same two blockers.
