@@ -145,3 +145,11 @@ Gate attempted: `dotnet test src/GlobalStrategy.Core.sln` → **environment bloc
 `.ralph/prd.md`: task left at `"passes": false` (gate did not pass — could not even execute, let alone confirm green).
 
 **Blocker for the next iteration and beyond:** essentially every remaining task in the PRD gates on `dotnet test src/GlobalStrategy.Core.sln`, which cannot run at all until either (a) a .NET 8.0 runtime is installed on this machine, or (b) the user approves retargeting/roll-forward for the affected `net8.0` projects. This needs a human decision before the loop can make further progress on any test-gated task — flagging rather than guessing.
+
+---
+
+## 2026-07-15 — Re-checked blocker (no task attempted)
+
+Re-verified the environment before picking up the next task (`src-tests` / "Add ProvincePopulationGrowthSystemTests", still the first `"passes": false` entry). `dotnet --list-sdks` → still only `10.0.301`; `dotnet --list-runtimes` → still only `10.0.9` entries for `Microsoft.NETCore.App`/`AspNetCore.App`/`WindowsDesktop.App`, no `Microsoft.NETCore.App 8.x`. Confirmed `src/Game.Tests/Game.Tests.csproj` still targets `net8.0` and no `global.json` exists to redirect the SDK. Nothing has changed since the previous iteration's blocker report.
+
+Made no code changes and flipped no task's `"passes"` flag — the blocker is unresolved and still requires a human decision (install a .NET 8 runtime, or explicitly approve a retargeting/roll-forward change to the `net8.0` projects) before any further test-gated task can proceed.
