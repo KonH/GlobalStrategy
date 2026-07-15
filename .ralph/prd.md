@@ -181,7 +181,7 @@ Add a per-province `population` `Resource` (seeded from a new pipeline-generated
 			"Documentation currency only -- no behavior change to the doc's described pipeline mechanics"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "unity-manual",

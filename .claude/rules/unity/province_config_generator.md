@@ -61,13 +61,21 @@ re-run this script.
    suffix (`_2`, `_3`, ...) on any in-country name collision.
 6. Serializes the combined result to the gitignored intermediate file
    `.tmp/provinces_intermediate.geojson` (properties: `provinceId`, `countryId`,
-   `displayName`, `generationMethod`, `compassKey` — the latter is `null` except
-   for the rare compass-direction fallback case above, and only used by the
-   locale step below).
+   `displayName`, `generationMethod`, `compassKey`, `population` — the latter two:
+   `compassKey` is `null` except for the rare compass-direction fallback case above
+   (only used by the locale step below); `population` is a placeholder `None` at
+   this point, filled in by step 7b below).
 7. Runs `npx mapshaper -i <file> -simplify keep-shapes <pct>% -o <file>` to reduce
    vertex count for WebGL viability (`keep-shapes` guarantees no polygon degenerates
    to zero area). The simplify percentage is a tunable constant
    (`MAPSHAPER_SIMPLIFY_PCT`) in the script, currently `10`.
+7b. Reloads the simplified geometry, computes each province's final area in
+   `EQUAL_AREA_CRS`, multiplies by a per-province density sampled from
+   `REGION_DENSITY_RANGES` (keyed by `COUNTRY_REGION.get(countryId, "Default")`,
+   via the country's deterministic per-country RNG), and writes the result into
+   that feature's `population` property — then re-serializes
+   `.tmp/provinces_intermediate.geojson` so the on-disk population values match
+   the final simplified geometry.
 8. Writes `province_name.{provinceId}` locale entries into
    `Assets/Localization/en.asset` (the generated name verbatim) and
    `Assets/Localization/ru.asset` — settlement/admin-1 proper nouns are run through
@@ -95,9 +103,9 @@ in-memory `CountryConfig` already built in the same `Program.cs` run, cross-vali
 every province's `countryId` against `CountryConfig` (per
 `.claude/rules/config_validation.md` — a mismatch throws rather than silently
 proceeding), and writes `Assets/Configs/province_config.json` (lightweight metadata:
-`provinceId`, `countryId`, `generationMethod` — no `displayName`; province names are
-localization-only, see `province_name.*` keys above) and `Assets/Configs/provinces_1880.json`
-(passthrough geometry `FeatureCollection`).
+`provinceId`, `countryId`, `generationMethod`, `population` — no `displayName`; province
+names are localization-only, see `province_name.*` keys above) and
+`Assets/Configs/provinces_1880.json` (passthrough geometry `FeatureCollection`).
 
 Re-run order: Stage 1 (Python) must be run before Stage 2 (C# loader), since Stage 2
 consumes Stage 1's intermediate file via `loaderConfig.ProvinceGeoJsonSourcePath`.

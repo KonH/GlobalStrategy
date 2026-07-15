@@ -281,3 +281,18 @@ Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 174; used a di
 Notes for next iteration: the next task ("Update province_config_generator.md rule doc for the new population property") is docs-only — check whether `.claude/rules/unity/province_config_generator.md`'s Stage 1/Stage 2 field lists need a one-line mention of `population` (Stage 1 already documents the `population` property in its feature-properties list from an earlier task's docstring note; Stage 2 documents `province_config.json`'s fields as "lightweight metadata: provinceId, countryId, generationMethod" — this list is now stale and should mention `population` too). Gate is just `dotnet build` (doc-only change, gate is a formality to confirm nothing broke).
 
 ---
+
+## 2026-07-15 — Update province_config_generator.md rule doc for the new population property
+
+Task: `docs` / "Update province_config_generator.md rule doc for the new population property" (sixteenth task in `.ralph/prd.md`).
+
+Changes:
+- `.claude/rules/unity/province_config_generator.md`: Stage 1's step 6 (serialized intermediate GeoJSON properties list) now mentions `population` as a placeholder `None` filled in later; added a new step 7b describing the post-mapshaper area×density population computation and re-serialization (previously undocumented despite existing in the script from an earlier task). Stage 2's `province_config.json` field list now includes `population` alongside `provinceId`/`countryId`/`generationMethod`.
+
+Gate: `"$USERPROFILE/.dotnet/dotnet.exe" build src/GlobalStrategy.Core.sln -c Release` → Build succeeded, 0 Warning(s), 0 Error(s) (doc-only change; gate is a formality confirming nothing broke).
+
+Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 184; the plain `Edit` tool again failed its exact-string match against this JSON block — worked around with `sed -i '184s/.../.../'`, consistent with prior iterations' notes).
+
+Notes for next iteration: the next task ("Rebuild Core DLLs and confirm clean Unity console") requires Unity MCP — run `dotnet build` (already green from this task, but the task's gate explicitly re-checks), then `refresh_unity` and `read_console(types=["error"])` must report no errors. If Unity MCP is unreachable in that iteration, treat as blocked per the loop rules (journal it, leave `passes: false`) rather than skip verification.
+
+---
