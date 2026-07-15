@@ -170,7 +170,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"Let Unity finish its domain reload"
 		],
 		"gate": "refresh_unity then read_console(types=[\"error\"]) reports no errors",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "pipeline",
