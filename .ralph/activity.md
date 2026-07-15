@@ -327,3 +327,35 @@ iterations back. Remember `DOTNET_ROLL_FORWARD=LatestMajor` before `dotnet test`
 to a raw-byte-dump + `bytes.replace()` workflow for any multi-line edit on this repo's CRLF C#
 test files or `.ralph/prd.md` rather than attempting `Edit` first -- it has failed on every
 multi-line attempt so far in this loop.
+
+---
+
+## 2026-07-15 -- Extend ProvinceProcessorTests with population field extraction case
+
+Task: "Extend ProvinceProcessorTests with population field extraction case" (test).
+
+Change: In `src/Game.Tests/ProvinceProcessorTests.cs`, added a new fact `process_extracts_population_field`.
+It builds a two-feature FeatureCollection directly (bypassing the tuple-based `BuildFeatureCollection` helper,
+since that helper only supports `provinceId`/`countryId`/`generationMethod`): one feature with an explicit
+`"population": 12345.0` property, one feature with no `population` property at all. Asserts
+`ProvinceProcessor.Process` round-trips `Population == 12345.0` for the first province and defaults to `0.0`
+(no crash) for the second, exercising the `GetDoubleProp` helper added several iterations back.
+
+Hit the same CRLF/multi-line-`Edit` failure noted in every recent entry -- went straight to the raw-byte-dump
++ `bytes.replace()` workflow recommended by the prior iteration instead of attempting `Edit` first, which
+worked on the first try.
+
+Gate: `DOTNET_ROLL_FORWARD=LatestMajor` + `dotnet test src/GlobalStrategy.Core.sln --filter
+FullyQualifiedName~ProvinceProcessorTests` -> `Passed! - Failed: 0, Passed: 3, Skipped: 0, Total: 3` in
+Game.Tests.dll (up from 2). Full solution run: `ECS.Tests.dll` 34/34, `ECS.Viewer.Tests.dll` 16/16,
+`Game.Tests.dll` 135/135 (up from 134), 0 failures overall.
+
+Notes for next iteration: Next task is "Add first-tick no-growth ordering test" -- add a new case in
+`ProvincePopulationGrowthSystemTests.cs` (or alongside `GameLogicOrgTests.cs`-style tests) confirming no
+growth is applied on the very first `GameLogic.Update` call. Build a `GameLogic` via the shared harness,
+call `Update` once with no elapsed time/no multiplier change, and assert the province population
+`Resource.Value` still equals the seeded `entry.Population`. Check how `GameLogicOrgTests.cs` (or similar)
+builds its `GameLogic` harness and what "no elapsed time" means in that harness's `Update` signature before
+writing the assertion. Remember `DOTNET_ROLL_FORWARD=LatestMajor` before `dotnet test`, and go straight to
+raw-byte-dump + `bytes.replace()` for any multi-line edit on this repo's CRLF C# test files or
+`.ralph/prd.md`.

@@ -139,7 +139,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"A feature missing the property defaults to 0.0 (no crash)"
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "test",
