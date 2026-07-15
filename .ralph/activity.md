@@ -41,3 +41,19 @@ Also discovered: this machine only has the .NET 10 runtime installed (`dotnet --
 Gate: `DOTNET_ROLL_FORWARD=LatestMajor dotnet test src/GlobalStrategy.Core.sln` — Passed! 34 (ECS.Tests) + 16 (ECS.Viewer.Tests) + 126 (Game.Tests) = 176 total, 0 failures, 0 skipped.
 
 Notes for next iteration: Next task is "Add region lookup and density ranges to generate_provinces.py" — add `COUNTRY_REGION` and `REGION_DENSITY_RANGES` dicts near `PER_COUNTRY_DENSITY_MULTIPLIER` in `scripts/generate_provinces.py`. Gate is `.venv\Scripts\python.exe -m py_compile scripts\generate_provinces.py`. No blockers encountered on this task; remember the CRLF/Edit-tool and DOTNET_ROLL_FORWARD gotchas above.
+
+---
+
+## 2026-07-15 — Add region lookup and density ranges to generate_provinces.py
+
+Task: `pipeline` — Add region lookup and density ranges to generate_provinces.py.
+
+Change: In `scripts/generate_provinces.py`, added `COUNTRY_REGION` (dict, `countryId` -> region key) and `REGION_DENSITY_RANGES` (dict, region -> `(min_people_per_km2, max_people_per_km2)`) near `PER_COUNTRY_DENSITY_MULTIPLIER`. `COUNTRY_REGION` explicitly maps all 154 countryIds currently in `Assets/Configs/country_config.json` (verified via a one-off Python check that `ids - keys` and `keys - ids` are both empty) into 16 regions: WesternEurope, SouthernEurope, NorthernEurope, EasternEurope, SouthAsia, EastAsia, SoutheastAsia, MiddleEast, CentralAsia, NorthAfrica, SubSaharanAfrica, NorthAmerica, CentralAmericaCaribbean, SouthAmerica, Oceania, plus a "Default" fallback (unused today since every current country has an explicit mapping, but required by the task spec for future new countries). Density bands are approximate/invented per the task's guidance (not researched real 1880 data), skewed denser for SouthAsia/EastAsia/WesternEurope and sparser for NorthernEurope/CentralAsia/interior-desert regions, per spec intent.
+
+No other code in the file was touched — `try_option_c`, `run()`, and the rest of the pipeline are unchanged; the actual sampling/attachment of density to provinces is the next task.
+
+Gate: `.venv/Scripts/python.exe -m py_compile scripts/generate_provinces.py` — compiled cleanly (bash tool required forward slashes; backslash path via Bash tool failed with "command not found" since bash swallows the backslashes — use forward slashes for this gate when invoking through the Bash tool, or PowerShell for the literal backslash form).
+
+Gotcha for next iteration: the `Edit` tool failed to match multi-line replacement blocks in `.ralph/prd.md` itself despite visually-identical `Read` output — this file uses tabs for indentation and Edit's exact-string matching over multiple lines was finicky. Wrote a small inline Python script (find the task's unique description marker, then flip the next `"passes": false` after it to `true`) instead of `Edit`/`Write` for this flag-flip; worked reliably and is a good fallback pattern for future prd.md edits.
+
+Notes for next iteration: Next task is "Sample density and attach population per province in generate_provinces.py" — create one seeded `random.Random` per country in `run()`'s loop (reusing `deterministic_seed`), thread it into `try_option_c` (removing its internal `rng = random.Random(...)` line), then after `assign_province_ids` look up `COUNTRY_REGION`/`REGION_DENSITY_RANGES`, draw `density = rng.uniform(*density_range)` per province and stash as `prov['_density']`, and add a `'population': None` placeholder to each feature's properties dict (final population values come from the geometry-based task after this one). Gate is the same py_compile command. No blockers.

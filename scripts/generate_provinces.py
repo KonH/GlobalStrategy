@@ -87,6 +87,219 @@ PER_COUNTRY_DENSITY_MULTIPLIER = {
 }
 MAPSHAPER_SIMPLIFY_PCT = 10  # tunable: percentage of vertices kept
 
+# ---------------------------------------------------------------------------
+# Region -> population-density mapping (approximate 1880-era relative bands,
+# not researched real data). Every countryId in country_config.json should have
+# an explicit entry here; anything missing falls back to "Default".
+# ---------------------------------------------------------------------------
+COUNTRY_REGION = {
+    # Western / Central Europe — historically denser, industrializing
+    "Belgium": "WesternEurope",
+    "France": "WesternEurope",
+    "Germany": "WesternEurope",
+    "Luxembourg": "WesternEurope",
+    "Netherlands": "WesternEurope",
+    "Switzerland": "WesternEurope",
+    "Austria_Hungary": "WesternEurope",
+    "United_Kingdom_of_Great_Britain_and_Ireland": "WesternEurope",
+    "Malta": "WesternEurope",
+
+    # Southern Europe
+    "Italy": "SouthernEurope",
+    "Spain": "SouthernEurope",
+    "Portugal": "SouthernEurope",
+    "Greece": "SouthernEurope",
+
+    # Northern Europe — sparser
+    "Denmark": "NorthernEurope",
+    "SwedenNorway": "NorthernEurope",
+
+    # Eastern Europe / Balkans
+    "Russian_Empire": "EasternEurope",
+    "Bulgaria": "EasternEurope",
+    "Romania": "EasternEurope",
+    "Serbia": "EasternEurope",
+    "Montenegro": "EasternEurope",
+    "Bosnia_Herzegovina": "EasternEurope",
+
+    # South Asia — dense
+    "Afghanistan": "SouthAsia",
+    "Bhutan": "SouthAsia",
+    "British_Raj": "SouthAsia",
+    "Nepal": "SouthAsia",
+    "Ceylon": "SouthAsia",
+
+    # East Asia — dense
+    "Manchu_Empire": "EastAsia",
+    "Imperial_Japan": "EastAsia",
+    "Korea": "EastAsia",
+    "Taiwan": "EastAsia",
+
+    # Southeast Asia
+    "Annam": "SoutheastAsia",
+    "French_Indochina": "SoutheastAsia",
+    "Malaya": "SoutheastAsia",
+    "Brunei": "SoutheastAsia",
+    "Rattanakosin_Kingdom": "SoutheastAsia",
+    "Philippines": "SoutheastAsia",
+
+    # Middle East
+    "Arabia": "MiddleEast",
+    "Egypt": "MiddleEast",
+    "Oman": "MiddleEast",
+    "Qatar": "MiddleEast",
+    "Trucial_Oman": "MiddleEast",
+    "Persia": "MiddleEast",
+    "Ottoman_Empire": "MiddleEast",
+    "Harer_Egypt": "MiddleEast",
+
+    # Central Asia — sparse, interior/desert
+    "Bokhara_Khanate": "CentralAsia",
+    "central_Asian_khanates": "CentralAsia",
+
+    # North Africa
+    "Algeria": "NorthAfrica",
+    "Morocco": "NorthAfrica",
+
+    # Sub-Saharan Africa
+    "Asante": "SubSaharanAfrica",
+    "Ato_trading_confederacy": "SubSaharanAfrica",
+    "Barotse": "SubSaharanAfrica",
+    "Basutoland": "SubSaharanAfrica",
+    "Benin": "SubSaharanAfrica",
+    "Borgu_States": "SubSaharanAfrica",
+    "Buganda": "SubSaharanAfrica",
+    "Bunyoro": "SubSaharanAfrica",
+    "Burundi": "SubSaharanAfrica",
+    "Calabar": "SubSaharanAfrica",
+    "Cape_Colony": "SubSaharanAfrica",
+    "Congo": "SubSaharanAfrica",
+    "Cotonou": "SubSaharanAfrica",
+    "Dahomey": "SubSaharanAfrica",
+    "Dendi_Kingdom": "SubSaharanAfrica",
+    "Futa_Jalon": "SubSaharanAfrica",
+    "Futa_Toro": "SubSaharanAfrica",
+    "Gabon": "SubSaharanAfrica",
+    "Gambia": "SubSaharanAfrica",
+    "Griqualand_West": "SubSaharanAfrica",
+    "Ibadan": "SubSaharanAfrica",
+    "Imerina": "SubSaharanAfrica",
+    "Ivory_Coast": "SubSaharanAfrica",
+    "Kanem_Bornu": "SubSaharanAfrica",
+    "Kong_Empire": "SubSaharanAfrica",
+    "Kuba": "SubSaharanAfrica",
+    "Lagos": "SubSaharanAfrica",
+    "Liberia": "SubSaharanAfrica",
+    "Lozi": "SubSaharanAfrica",
+    "Luba": "SubSaharanAfrica",
+    "Lunda": "SubSaharanAfrica",
+    "Madagascar": "SubSaharanAfrica",
+    "Mbailundu": "SubSaharanAfrica",
+    "Mirambo_Unyanyembe_Ukimbu": "SubSaharanAfrica",
+    "Mossi_States": "SubSaharanAfrica",
+    "Mozambique": "SubSaharanAfrica",
+    "Natal": "SubSaharanAfrica",
+    "Ndebele": "SubSaharanAfrica",
+    "Nguni": "SubSaharanAfrica",
+    "Ngwato": "SubSaharanAfrica",
+    "Opobo": "SubSaharanAfrica",
+    "Orange_Free_State": "SubSaharanAfrica",
+    "Ovimbundu": "SubSaharanAfrica",
+    "Oyo": "SubSaharanAfrica",
+    "Portuguese_Guinea": "SubSaharanAfrica",
+    "Rabih_az_Zubayr": "SubSaharanAfrica",
+    "Rwanda": "SubSaharanAfrica",
+    "Shona": "SubSaharanAfrica",
+    "Sierra_Leone": "SubSaharanAfrica",
+    "Sokoto_Caliphate": "SubSaharanAfrica",
+    "Spanish_Guinea": "SubSaharanAfrica",
+    "Sultanate_of_Damagaram": "SubSaharanAfrica",
+    "Sultanate_of_Utetera": "SubSaharanAfrica",
+    "Sultinate_of_Zanzibar": "SubSaharanAfrica",
+    "Swaziland": "SubSaharanAfrica",
+    "Teke": "SubSaharanAfrica",
+    "Transvaal": "SubSaharanAfrica",
+    "Tukular_Caliphate": "SubSaharanAfrica",
+    "Wadai_Empire": "SubSaharanAfrica",
+    "Wassoulou_Empire": "SubSaharanAfrica",
+    "Yaka": "SubSaharanAfrica",
+    "Yeke": "SubSaharanAfrica",
+    "Zululand": "SubSaharanAfrica",
+
+    # North America
+    "Canada": "NorthAmerica",
+    "United_States_of_America": "NorthAmerica",
+
+    # Central America / Caribbean
+    "Belize": "CentralAmericaCaribbean",
+    "Costa_Rica": "CentralAmericaCaribbean",
+    "El_Salvador": "CentralAmericaCaribbean",
+    "Guatemala": "CentralAmericaCaribbean",
+    "Honduras": "CentralAmericaCaribbean",
+    "Mexico": "CentralAmericaCaribbean",
+    "Nicaragua": "CentralAmericaCaribbean",
+    "Dominican_Republic": "CentralAmericaCaribbean",
+    "Haiti": "CentralAmericaCaribbean",
+    "Anguilla": "CentralAmericaCaribbean",
+    "Antigua_and_Barbuda": "CentralAmericaCaribbean",
+    "Dominica": "CentralAmericaCaribbean",
+    "Guadeloupe": "CentralAmericaCaribbean",
+    "Montserrat": "CentralAmericaCaribbean",
+    "Netherlands_Antilles": "CentralAmericaCaribbean",
+    "Saint_Barthelemy": "CentralAmericaCaribbean",
+    "Saint_Kitts_and_Nevis": "CentralAmericaCaribbean",
+    "Saint_Martin": "CentralAmericaCaribbean",
+    "British_Guiana": "CentralAmericaCaribbean",
+    "Dutch_Guiana": "CentralAmericaCaribbean",
+    "French_Guiana": "CentralAmericaCaribbean",
+
+    # South America
+    "Argentina": "SouthAmerica",
+    "Bolivia": "SouthAmerica",
+    "Chile": "SouthAmerica",
+    "Colombia": "SouthAmerica",
+    "Ecuador": "SouthAmerica",
+    "Kingdom_of_Brazil": "SouthAmerica",
+    "Paraguay": "SouthAmerica",
+    "Peru": "SouthAmerica",
+    "Uruguay": "SouthAmerica",
+    "Venezuela": "SouthAmerica",
+
+    # Oceania
+    "American_Samoa": "Oceania",
+    "Fiji": "Oceania",
+    "Kingdom_of_Hawaii": "Oceania",
+    "M_ori": "Oceania",
+    "Niue": "Oceania",
+    "Papua_New_Guinea": "Oceania",
+    "Polynesians": "Oceania",
+    "Samoa": "Oceania",
+    "Tonga": "Oceania",
+    "Ethiopia": "SubSaharanAfrica",
+}
+
+# (min, max) people per km^2 per region, approximate 1880-era relative bands —
+# denser South/East Asia and Western Europe, sparser Northern Europe/Central
+# Asia/interior deserts.
+REGION_DENSITY_RANGES = {
+    "WesternEurope": (60.0, 140.0),
+    "SouthernEurope": (30.0, 70.0),
+    "NorthernEurope": (5.0, 20.0),
+    "EasternEurope": (20.0, 50.0),
+    "SouthAsia": (80.0, 200.0),
+    "EastAsia": (60.0, 150.0),
+    "SoutheastAsia": (30.0, 90.0),
+    "MiddleEast": (5.0, 25.0),
+    "CentralAsia": (1.0, 8.0),
+    "NorthAfrica": (3.0, 15.0),
+    "SubSaharanAfrica": (5.0, 30.0),
+    "NorthAmerica": (2.0, 15.0),
+    "CentralAmericaCaribbean": (10.0, 60.0),
+    "SouthAmerica": (2.0, 15.0),
+    "Oceania": (2.0, 20.0),
+    "Default": (5.0, 30.0),
+}
+
 NE_ADMIN1_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_1_states_provinces.zip"
 NE_PLACES_URL = "https://naciscdn.org/naturalearth/10m/cultural/ne_10m_populated_places.zip"
 

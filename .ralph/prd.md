@@ -50,7 +50,7 @@ Give each province its own population value, modeled with the existing `Resource
 			"Populate plausible 1880-era relative density bands per spec (denser South/East Asia and Western Europe, sparser Northern Europe/Central Asia/interior deserts) — approximate, not researched real data"
 		],
 		"gate": ".venv\\Scripts\\python.exe -m py_compile scripts\\generate_provinces.py",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "pipeline",
