@@ -19,6 +19,7 @@ namespace GS.Game.Loader {
 				string provinceId = GetStringProp(props, "provinceId") ?? "";
 				string countryId = GetStringProp(props, "countryId") ?? "";
 				string generationMethod = GetStringProp(props, "generationMethod") ?? "";
+				double population = GetDoubleProp(props, "population");
 
 				if (countryConfig.FindByCountryId(countryId) == null && seenMismatches.Add(countryId)) {
 					validationErrors.Add(countryId);
@@ -28,6 +29,7 @@ namespace GS.Game.Loader {
 					ProvinceId = provinceId,
 					CountryId = countryId,
 					GenerationMethod = generationMethod,
+					Population = population,
 				});
 			}
 
@@ -41,6 +43,14 @@ namespace GS.Game.Loader {
 			}
 			var val = props[key];
 			return val != null ? val.GetValue<string>() : null;
+		}
+
+		static double GetDoubleProp(JsonNode? props, string key) {
+			if (props == null) {
+				return 0.0;
+			}
+			var val = props[key];
+			return val != null ? val.GetValue<double>() : 0.0;
 		}
 	}
 }

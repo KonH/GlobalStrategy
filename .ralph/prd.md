@@ -39,7 +39,7 @@ Give each province its own population value, modeled with the existing `Resource
 			"Do not change countryId cross-validation behavior"
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "pipeline",
