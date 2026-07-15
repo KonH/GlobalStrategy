@@ -168,7 +168,7 @@ Give each province its own population value, modeled with the existing `Resource
 			"read_console(types=[\"error\"]) must report no errors"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "pipeline",

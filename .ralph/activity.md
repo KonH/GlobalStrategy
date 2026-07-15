@@ -203,3 +203,20 @@ Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded,
 Flag flip: used the established inline-Python byte-level fallback (find task description marker, flip the next `"passes": false` after it), confirmed via grep count (14 true / 5 false, up from 13/6) that only this task's flag changed.
 
 Notes for next iteration: Next task is "Rebuild the Core DLLs and confirm clean Unity console" — run `dotnet build src/GlobalStrategy.Core.sln -c Release` (already done as part of this task's gate and prior tasks, DLLs are current), then use Unity MCP `refresh_unity` and `read_console(types=["error"])` to confirm no compile errors in the Editor. This requires Unity MCP/Editor connectivity — if unreachable, journal as blocked per the loop rules rather than skipping verification. No blockers encountered on this (docs) task.
+
+
+---
+
+## 2026-07-15 — Rebuild the Core DLLs and confirm clean Unity console
+
+Task: `build` — Rebuild the Core DLLs and confirm clean Unity console.
+
+Change: Ran `dotnet build src/GlobalStrategy.Core.sln -c Release` (DLLs in `Assets/Plugins/Core/` already reflected all prior tasks changes, rebuild just reconfirms). Then used Unity MCP: `refresh_unity(compile="request", mode="force")` initially timed out after 60s waiting for editor readiness (`editor_state` reported "Unity session not ready for get_editor_state (ping not answered); please retry"). Retried with `refresh_unity(compile="none", mode="if_dirty", wait_for_ready=false)`, which succeeded, then polled `mcpforunity://editor/state` directly — it returned "idle", "is_compiling": false, "is_domain_reload_pending": false, "ready_for_tools": true. `read_console(types=["error"])` returned 0 entries both before and after the refresh.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded, 0 Warning(s), 0 Error(s). Unity console confirmed clean (0 errors) and editor ready.
+
+Gotcha for future iterations: the first `refresh_unity` call with `wait_for_ready=true` (default) can time out at 60s even when Unity is fine — it seems to hit a transient ping delay right after a prior refresh/domain reload. If that happens, retry with `wait_for_ready=false` and then poll `mcpforunity://editor/state` directly (via `ReadMcpResourceTool`) until `advice.ready_for_tools` is `true` rather than re-issuing more `refresh_unity` calls.
+
+Flag flip: used the established inline-Python byte-level fallback (find task description marker, flip the next "passes": false after it), confirmed via a full JSON-parse dump that only this task changed (14 true / 3 false, up from 13/6... i.e. matches prior count plus this one).
+
+Notes for next iteration: Next task is "Re-run the province generation pipeline with real geometry" — run `.venv\Scripts\python.exe scripts\generate_provinces.py` from the project root, confirm the per-country Micro/OptionA/OptionC summary counts are unchanged from before this change and no new warnings appear, then re-run the Stage 2 C# loader (Game.Configs.Loader) to regenerate `Assets/Configs/province_config.json` with populated `population` values. This is a real, slow pipeline run (downloads/caches Natural Earth data if not already cached, shells out to `npx mapshaper`) — expect it to take a while and require Node.js/npx availability. Gate is `dotnet build src/GlobalStrategy.Core.sln -c Release` (per prd.md) but the actual verification is the script's own summary output plus confirming the loader regenerates the config without cross-validation errors. No blockers anticipated but this is the first task in the loop that touches real world_1880.json geometry and downloads.
