@@ -359,3 +359,36 @@ builds its `GameLogic` harness and what "no elapsed time" means in that harness'
 writing the assertion. Remember `DOTNET_ROLL_FORWARD=LatestMajor` before `dotnet test`, and go straight to
 raw-byte-dump + `bytes.replace()` for any multi-line edit on this repo's CRLF C# test files or
 `.ralph/prd.md`.
+
+---
+
+## 2026-07-15 -- Add first-tick no-growth ordering test
+
+Task: "Add first-tick no-growth ordering test" (test).
+
+Change: In `src/Game.Tests/ProvincePopulationGrowthSystemTests.cs`, added a `BuildGameLogic()` helper
+(mirroring `InitSystemTests.cs`'s `BuildLogic` pattern: `StaticConfig<T>` wrapper, minimal
+`CountryConfig`/`OrganizationConfig`/`GameSettings`/`ResourceConfig`/`GeoJsonConfig`/`MapEntryConfig`/
+`ProvinceConfig` with a single `prov_a` entry seeded `Population = 1234.0`, built into a `GameLogicContext`
+and `new GameLogic(ctx)`) plus a `GetProvincePopulation(world, provinceId)` helper (same archetype-scan
+pattern as `InitSystemTests`/`ProvinceOwnershipTests`, throws if not found). Added fact
+`first_tick_does_not_apply_growth`: builds the `GameLogic`, calls `Update(0f)` once (the same call that
+triggers `InitSystem`'s seeding), and asserts `GetProvincePopulation(logic.World, "prov_a") == 1234.0`
+(the seeded value, unchanged) -- confirming `ProvincePopulationGrowthSystem.Update`'s month-boundary check
+(driven by `_previousTime`/`currentTime` both starting equal to the settings' `StartYear`-derived initial
+time on the very first tick) does not fire growth before any time has actually elapsed.
+
+Gate: `DOTNET_ROLL_FORWARD=LatestMajor` + `dotnet test src/GlobalStrategy.Core.sln --filter
+FullyQualifiedName~ProvincePopulationGrowthSystemTests` -> `Passed! - Failed: 0, Passed: 6, Skipped: 0,
+Total: 6` in Game.Tests.dll (up from 5). Full solution run: `ECS.Tests.dll` 34/34, `ECS.Viewer.Tests.dll`
+16/16, `Game.Tests.dll` 136/136 (up from 135), 0 failures overall.
+
+Notes for next iteration: Next task is "Update province_config_generator.md rule doc for new population
+field" (category `unity-manual`) -- check whether
+`.claude/rules/unity/province_config_generator.md`'s Stage 1/Stage 2 field lists need a one-line mention of
+the new `population` property (Stage 1 output properties list and Stage 2's `province_config.json`/
+`ProvinceEntry` description both currently omit it). Documentation-only change; gate is still `dotnet build
+src/GlobalStrategy.Core.sln -c Release` (doc edits don't affect the build, so this gate just confirms
+nothing else broke). No code/test changes expected for this task. As with prior CRLF files in this repo,
+verify indentation via a raw-byte dump before any multi-line edit, though this particular file may be
+plain Markdown (LF) -- check before assuming CRLF.

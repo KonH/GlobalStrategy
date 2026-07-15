@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
 using ECS;
+using GS.Configs;
 using GS.Game.Components;
+using GS.Game.Configs;
 using GS.Game.Systems;
+using GS.Main;
 using Xunit;
 
 namespace GS.Game.Tests {
@@ -18,6 +22,79 @@ namespace GS.Game.Tests {
 			world.Add(resourceEntity, new ResourceOwner(ownerId, ownerType));
 			world.Add(resourceEntity, new Resource { ResourceId = resourceId, Value = initialValue });
 			return world;
+		}
+
+		sealed class StaticConfig<T> : IConfigSource<T> {
+			readonly T _value;
+			public StaticConfig(T value) => _value = value;
+			public T Load() => _value;
+		}
+
+		static GameLogic BuildGameLogic() {
+			var countryConfig = new CountryConfig {
+				Countries = new List<CountryEntry> {
+					new CountryEntry { CountryId = "Great_Britain", DisplayName = "Great Britain", IsAvailable = true }
+				}
+			};
+			var orgConfig = new OrganizationConfig {
+				Organizations = new List<OrganizationEntry> {
+					new OrganizationEntry {
+						OrganizationId = "Illuminati",
+						DisplayName = "Illuminati",
+						HqCountryId = "Great_Britain",
+						InitialGold = 1000.0
+					}
+				}
+			};
+			var gameSettings = new GameSettings {
+				StartYear = 1880,
+				DefaultLocale = "en",
+				SpeedMultipliers = new[] { 1, 2, 4 },
+				AutoSaveInterval = "monthly",
+				PopulationGrowthPercentPerMonth = 0.075
+			};
+			var resourceConfig = new ResourceConfig { Resources = new List<ResourceDefinition>() };
+			var geoJson = new GeoJsonConfig();
+			var mapEntry = new MapEntryConfig();
+			var provinceConfig = new ProvinceConfig {
+				Provinces = new List<ProvinceEntry> {
+					new ProvinceEntry { ProvinceId = "prov_a", CountryId = "Great_Britain", Population = 1234.0 }
+				}
+			};
+
+			var ctx = new GameLogicContext(
+				new StaticConfig<GeoJsonConfig>(geoJson),
+				new StaticConfig<MapEntryConfig>(mapEntry),
+				new StaticConfig<CountryConfig>(countryConfig),
+				new StaticConfig<GameSettings>(gameSettings),
+				new StaticConfig<ResourceConfig>(resourceConfig),
+				new StaticConfig<OrganizationConfig>(orgConfig),
+				initialPlayerCountryId: "Great_Britain",
+				initialOrganizationId: "Illuminati",
+				province: new StaticConfig<ProvinceConfig>(provinceConfig));
+			return new GameLogic(ctx);
+		}
+
+		static double GetProvincePopulation(World world, string provinceId) {
+			int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
+				var owners = arch.GetColumn<ResourceOwner>();
+				var resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerType == OwnerType.Province && owners[i].OwnerId == provinceId &&
+						resources[i].ResourceId == ProvincePopulationGrowthSystem.PopulationResourceId) {
+						return resources[i].Value;
+					}
+				}
+			}
+			throw new InvalidOperationException($"No population resource found for province '{provinceId}'.");
+		}
+
+		[Fact]
+		void first_tick_does_not_apply_growth() {
+			var logic = BuildGameLogic();
+			logic.Update(0f);
+			Assert.Equal(1234.0, GetProvincePopulation(logic.World, "prov_a"));
 		}
 
 		[Fact]
