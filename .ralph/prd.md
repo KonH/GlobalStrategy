@@ -39,7 +39,7 @@ Add a per-province `population` `Resource` (seeded from a new pipeline-generated
 			"Leave existing countryId cross-validation logic unchanged"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "pipeline-python",
