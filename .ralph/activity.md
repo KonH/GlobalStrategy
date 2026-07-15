@@ -278,3 +278,52 @@ save/load pipeline (per `Resource`'s existing `[Savable]` attribute, this should
 the generic save/load system, but confirm rather than assume). Remember
 `DOTNET_ROLL_FORWARD=LatestMajor` before `dotnet test`, and prefer single-line `Edit` calls over
 multi-line ones on this repo's CRLF C# test files.
+
+---
+
+## 2026-07-15 -- Extend SaveLoadRoundTripTests with population persistence case
+
+Task: "Extend SaveLoadRoundTripTests with population persistence case" (test).
+
+Change: In `src/Game.Tests/SaveLoadRoundTripTests.cs`, added `using GS.Game.Systems;` and a new
+fact `round_trip_preserves_grown_province_population_and_continues_compounding`. It builds a
+world with a single `ResourceOwner("prov_a", OwnerType.Province)` + `Resource{ResourceId=
+population, Value=1000.0}` entity, advances one month boundary via
+`ProvincePopulationGrowthSystem.Update(world, Jan31, Feb1, 0.075)` (value becomes 1000.75),
+snapshots via `SaveSystem.BuildSnapshot` and restores via `LoadSystem.Apply` into a fresh world,
+asserts the restored value equals the grown (not seed) value, then runs a second month-boundary
+`Update` on the restored world and asserts the value compounds further from the persisted value
+(`grownValue * 1.00075`). Added a local `GetPopulationValue(world, provinceId)` helper (mirrors
+the archetype-scan pattern used in `InitSystemTests`/`ProvinceOwnershipTests`) since this file had
+no existing province-population lookup helper. Confirms `Resource`'s existing `[Savable]`
+attribute is sufficient for province-owned population entities to round-trip through the generic
+save/load pipeline with no dedicated save-system changes needed.
+
+Hit the CRLF/multi-line-Edit issue again (as flagged in prior notes) on this file too -- the
+`Edit` tool's `old_string` match failed even after manually re-deriving indentation from a raw
+byte dump, because my first old/new pair assumed 3 closing braces after the last `Assert.Equal`
+call (`}` for method, `}` for class, `}` for namespace, plus an extra stray one) when the actual
+file only has method-close (2 tabs) + class-close (1 tab) + namespace-close (0 tabs) -- exactly 3
+lines with no phantom extra brace. Fixed by dumping the exact trailing bytes via
+`python3 -c "print(repr(data[-150:]))"`, confirming the true brace/tab structure, then doing a
+`bytes.replace()` on the raw file content (not the `Edit` tool) with `
+`-joined replacement
+lines built at 2-tab ([Fact]/method-declaration) and 3-tab (method-body) indentation to match the
+verified surrounding style. Same raw-byte-replace approach was needed again for `.ralph/prd.md`'s
+JSON (2-tab indentation there, not 3) to flip this task's `"passes"` flag -- worth noting for
+future iterations that `.ralph/prd.md`'s task objects are indented at 2 tabs per field, not 3.
+
+Gate: `DOTNET_ROLL_FORWARD=LatestMajor` + `dotnet test src/GlobalStrategy.Core.sln --filter
+FullyQualifiedName~SaveLoadRoundTripTests` -> `Passed! - Failed: 0, Passed: 12, Skipped: 0, Total:
+12` in Game.Tests.dll (up from 11). Full solution run: `ECS.Tests.dll` 34/34, `ECS.Viewer.Tests.dll`
+16/16, `Game.Tests.dll` 134/134 (up from 133), 0 failures overall.
+
+Notes for next iteration: Next task is "Extend ProvinceProcessorTests with population field
+extraction case" -- in `src/Game.Tests/ProvinceProcessorTests.cs`, add
+`process_extracts_population_field`: a feature with a `population` property should round-trip
+into `ProvinceEntry.Population`, and a feature missing the property should default to `0.0` (no
+crash) -- this exercises the `GetDoubleProp` helper added to `ProvinceProcessor.cs` a few
+iterations back. Remember `DOTNET_ROLL_FORWARD=LatestMajor` before `dotnet test`, and go straight
+to a raw-byte-dump + `bytes.replace()` workflow for any multi-line edit on this repo's CRLF C#
+test files or `.ralph/prd.md` rather than attempting `Edit` first -- it has failed on every
+multi-line attempt so far in this loop.

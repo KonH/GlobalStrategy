@@ -3,6 +3,7 @@ using System.Linq;
 using ECS;
 using ECS.Extensions;
 using GS.Game.Components;
+using GS.Game.Systems;
 using GS.Main;
 using Xunit;
 
@@ -291,6 +292,52 @@ namespace GS.Game.Tests {
 			}
 
 			Assert.Equal("Great_Britain", restoredOwnerId);
+		}
+
+		[Fact]
+		void round_trip_preserves_grown_province_population_and_continues_compounding() {
+			var world = new World();
+			int provinceEntity = world.Create();
+			world.Add(provinceEntity, new ResourceOwner("prov_a", OwnerType.Province));
+			world.Add(provinceEntity, new Resource { ResourceId = "population", Value = 1000.0 });
+
+			var jan31 = new DateTime(1882, 1, 31);
+			var feb1 = new DateTime(1882, 2, 1);
+			ProvincePopulationGrowthSystem.Update(world, jan31, feb1, 0.075);
+
+			double grownValue = GetPopulationValue(world, "prov_a");
+			Assert.Equal(1000.75, grownValue, 3);
+
+			var snapshot = Snapshot(world);
+			var restored = new World();
+			Restore(snapshot, restored);
+
+			double restoredValue = GetPopulationValue(restored, "prov_a");
+			Assert.Equal(grownValue, restoredValue);
+
+			var mar1 = new DateTime(1882, 3, 1);
+			var apr1 = new DateTime(1882, 4, 1);
+			ProvincePopulationGrowthSystem.Update(restored, mar1, apr1, 0.075);
+
+			double compoundedValue = GetPopulationValue(restored, "prov_a");
+			Assert.Equal(grownValue * 1.00075, compoundedValue, 6);
+		}
+
+		static double GetPopulationValue(World world, string provinceId) {
+			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			double? value = null;
+			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerType == OwnerType.Province && owners[i].OwnerId == provinceId && resources[i].ResourceId == "population") {
+						value = resources[i].Value;
+					}
+				}
+			}
+
+			Assert.NotNull(value);
+			return value!.Value;
 		}
 	}
 }

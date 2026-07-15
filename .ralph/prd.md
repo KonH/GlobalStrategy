@@ -128,7 +128,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"Assert the grown (not seed) value survives and a subsequent month-boundary Update continues compounding from the persisted value"
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "test",
