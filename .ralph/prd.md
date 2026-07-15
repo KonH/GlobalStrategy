@@ -75,7 +75,7 @@ Add a per-province `population` `Resource` (seeded from a new pipeline-generated
 			"Re-serialize INTERMEDIATE_PATH so the on-disk file's population values are computed from the same final geometry that Stage 2/provinces_1880.json will ship"
 		],
 		"gate": ".venv\\Scripts\\python.exe -m py_compile scripts\\generate_provinces.py",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "src-configs",

@@ -78,3 +78,20 @@ Gate: `.venv\Scripts\python.exe -m py_compile scripts\generate_provinces.py` →
 Flipped this task's `"passes"` to `true` in `.ralph/prd.md`.
 
 Notes for next iteration: the next task ("Compute final population from simplified geometry after mapshaper") runs after the `npx mapshaper` subprocess call succeeds — it must reload `INTERMEDIATE_PATH` from disk, recompute each feature's area in `EQUAL_AREA_CRS` from the simplified geometry, multiply by the matching province's `_density` (matched by `provinceId` — note `_density` is stashed on the in-memory `prov` dicts inside the per-country loop, not on `all_features`, so the reload step needs to build a `provinceId -> _density` lookup across all countries before doing the area x density multiply), write the result into `population`, and re-serialize `INTERMEDIATE_PATH`.
+
+---
+
+## 2026-07-15 — Compute final population from simplified geometry after mapshaper
+
+Task: `pipeline-python` / "Compute final population from simplified geometry after mapshaper" (sixth task in `.ralph/prd.md`).
+
+Changes:
+- `scripts/generate_provinces.py`: added a `density_by_province_id` dict built alongside the existing per-province `_density` stashing in the main per-country loop (`density_by_province_id[prov["provinceId"]] = prov["_density"]`), so the density value survives past the loop where `prov` dicts go out of scope. After the `npx mapshaper` simplify subprocess call succeeds, reload `INTERMEDIATE_PATH` from disk via `json.load`, and for each feature compute its area in `EQUAL_AREA_CRS` from the simplified geometry (`shape(feature["geometry"])` → `gpd.GeoSeries(..., crs=WGS84_CRS).to_crs(EQUAL_AREA_CRS).area`), multiply by `density_by_province_id[province_id]`, and write the result into `feature["properties"]["population"]`. Re-serialize `INTERMEDIATE_PATH` with the updated population values, then rebind `all_features = simplified_collection["features"]` so the subsequent `update_province_locales(all_features)` call (which only reads `properties`, not geometry) operates on the same reloaded feature list.
+
+Gate: `.venv\Scripts\python.exe -m py_compile scripts\generate_provinces.py` → exited cleanly, no output (compiles OK).
+
+Flipped this task's `"passes"` to `true` in `.ralph/prd.md`.
+
+Note: the `Edit` tool failed to match the `"passes": false` → `true` replacement for this task despite visually-identical text (likely an invisible whitespace/encoding quirk in that region of the file) — worked around it with a direct Python line-index replacement instead, verified by re-reading the file afterward.
+
+Notes for next iteration: the next task ("Add GameSettings.PopulationGrowthPercentPerMonth global constant") is independent C# config work — add the property to `src/Game.Configs/GameSettings.cs` and a matching key to `Assets/Configs/game_settings.json`.
