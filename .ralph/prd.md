@@ -63,7 +63,7 @@ Add a per-province `population` `Resource` (seeded from a new pipeline-generated
 			"Update the module docstring's Output property list to include population"
 		],
 		"gate": ".venv\\Scripts\\python.exe -m py_compile scripts\\generate_provinces.py",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "pipeline-python",

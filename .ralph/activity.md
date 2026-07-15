@@ -63,3 +63,18 @@ Gate: `.venv\Scripts\python.exe -m py_compile scripts\generate_provinces.py` →
 Flipped this task's `"passes"` to `true` in `.ralph/prd.md`.
 
 Notes for next iteration: the next task ("Sample per-province density using the deterministic per-country RNG") needs to move `try_option_c`'s internal `rng = random.Random(deterministic_seed(country_id))` out to the per-country loop in `run()` and thread it in as a parameter, then use `COUNTRY_REGION`/`REGION_DENSITY_RANGES` (just added) to sample a `_density` per province after `assign_province_ids` runs. Also add a `"population": None` placeholder to each feature's properties dict and update the module docstring's Output property list.
+
+---
+
+## 2026-07-15 — Sample per-province density using the deterministic per-country RNG
+
+Task: `pipeline-python` / "Sample per-province density using the deterministic per-country RNG" (fifth task in `.ralph/prd.md`).
+
+Changes:
+- `scripts/generate_provinces.py`: promoted `import random` to a top-level module import (was previously a local import inside `try_option_c`). `try_option_c` now takes `rng` as a parameter instead of constructing its own `random.Random(deterministic_seed(country_id))` internally — the seed placement and call sequence into `seed_points_in_polygon` is unchanged, so existing Voronoi output is unaffected. In `run()`'s per-country loop, one `rng = random.Random(deterministic_seed(country_id))` is now created up front (before the Micro/OptionA/OptionC branch) and passed into `try_option_c`. After `provinces = assign_province_ids(country_id, provinces)`, look up `REGION_DENSITY_RANGES[COUNTRY_REGION.get(country_id, "Default")]` and, for each province in list order, draw `prov["_density"] = rng.uniform(*density_range)`. Added a `"population": None` placeholder to each emitted feature's properties dict (alongside provinceId/countryId/displayName/generationMethod/compassKey). Updated the module docstring's Output property list to mention `population`.
+
+Gate: `.venv\Scripts\python.exe -m py_compile scripts\generate_provinces.py` → exited cleanly, no output (compiles OK).
+
+Flipped this task's `"passes"` to `true` in `.ralph/prd.md`.
+
+Notes for next iteration: the next task ("Compute final population from simplified geometry after mapshaper") runs after the `npx mapshaper` subprocess call succeeds — it must reload `INTERMEDIATE_PATH` from disk, recompute each feature's area in `EQUAL_AREA_CRS` from the simplified geometry, multiply by the matching province's `_density` (matched by `provinceId` — note `_density` is stashed on the in-memory `prov` dicts inside the per-country loop, not on `all_features`, so the reload step needs to build a `provinceId -> _density` lookup across all countries before doing the area x density multiply), write the result into `population`, and re-serialize `INTERMEDIATE_PATH`.
