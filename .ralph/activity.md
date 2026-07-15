@@ -427,3 +427,32 @@ per the loop rules this task must be journaled as blocked (leave `passes: false`
 marked passed on a build-only check. The `dotnet build` from this iteration already updated
 `Assets/Plugins/Core/` DLLs, so once Unity MCP is available the next iteration just needs to call
 `refresh_unity` and check the console.
+
+---
+
+## 2026-07-15 -- Rebuild Core DLLs and confirm clean Unity console (BLOCKED)
+
+Task: "Rebuild Core DLLs and confirm clean Unity console" (src).
+
+Change: Ran `dotnet build src/GlobalStrategy.Core.sln -c Release` -> `Build succeeded, 0 Warning(s), 0
+Error(s)`, updating `Assets/Plugins/Core/*.dll` (Core.Configs, Core.Map, ECS.Core, ECS.Core.Extensions,
+ECS.Viewer, Game.Commands, Game.Components, Game.Configs, Game.Main, Game.Systems) with the
+OwnerType.Province / ProvincePopulationGrowthSystem / ProvinceConfig / GameSettings / InitSystem /
+GameLogic changes from prior iterations.
+
+Blocker: The gate requires `mcp__UnityMCP__refresh_unity` + `read_console(types=["error"])` with a live
+Unity Editor session. `refresh_unity` timed out after 60s waiting for editor readiness, and
+`read_console` returned `"Unity session not available; please retry"` / `no_unity_session`. Confirmed via
+the `mcpforunity://instances` resource: `{"instance_count": 0, "instances": []}` -- no Unity Editor is
+currently open/connected to the MCP bridge. Per the loop rules ("If Unity MCP is unreachable, treat the
+task as blocked ... never skip verification and mark the task passed anyway"), leaving `passes: false`.
+
+Notes for next iteration: This task cannot proceed until a Unity Editor instance with the MCP bridge
+running is open. Once available: call `refresh_unity(compile="request", mode="force")`, wait for
+readiness, then `read_console(types=["error"])` and confirm it's empty before flipping `passes` to
+`true`. The DLLs are already up to date in `Assets/Plugins/Core/` from this iteration's `dotnet build`,
+so no further C# changes should be needed -- this is purely a "start Unity and check for errors" step.
+If Unity remains unavailable in the next iteration too, re-check `mcpforunity://instances` first before
+attempting `refresh_unity` (avoids the 60s timeout) and re-journal as blocked again rather than skipping
+ahead to the pipeline tasks (task 15 depends on this one being confirmed clean per the PRD's stated
+task order, since Unity-side wiring correctness should be confirmed before further pipeline work).
