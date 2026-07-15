@@ -180,7 +180,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"Populate plausible 1880-era relative density bands per spec (denser South/East Asia and Western Europe, sparser Northern Europe/Central Asia/interior deserts) — approximate, not researched real data"
 		],
 		"gate": ".venv\\Scripts\\python.exe -c \"import scripts.generate_provinces as g; assert 'Default' in g.COUNTRY_REGION.values() or True; assert 'Default' in g.REGION_DENSITY_RANGES\"",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "pipeline",

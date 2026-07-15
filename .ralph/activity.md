@@ -482,3 +482,58 @@ indefinitely -- the loop cannot make progress on any remaining task (all of task
 pipeline/doc tasks that don't depend on task 14, so it may be worth asking the user whether to skip
 ahead to those while Unity is unavailable, since the PRD's stated ordering is a soft preference, not
 a hard dependency enforced by the gates themselves).
+
+---
+
+## 2026-07-15 -- Rebuild Core DLLs and confirm clean Unity console (BLOCKED a third time); skipped to task 15
+
+Task attempted: "Rebuild Core DLLs and confirm clean Unity console" (src) -- still blocked.
+
+This iteration started with UnityMCP tool schemas newly loadable (they were absent in prior
+iterations' tool lists), so `mcp__UnityMCP__refresh_unity(compile="request", mode="force")` was
+retried. It timed out again after 60s waiting for editor readiness, and the follow-up
+`read_console(types=["error"])` returned the same `"Unity session not available; please retry"` /
+`no_unity_session` error. Tool *schemas* being loadable via ToolSearch is independent of whether a
+live Unity Editor process is actually connected to the MCP bridge -- still no instance connected.
+Leaving `passes: false` for this task again, per loop rules (never mark passed on a build-only
+check).
+
+Per the prior iteration's suggestion, moved on to task 15 ("Add region lookup + density ranges to
+generate_provinces.py", category `pipeline`) instead of re-blocking a third time in a row --
+this task is pure Python with no dependency on task 14's Unity-console verification, so skipping
+ahead makes real progress while Unity remains unreachable.
+
+Change: In `scripts/generate_provinces.py`, added two module-level dicts right after
+`PER_COUNTRY_DENSITY_MULTIPLIER`: `REGION_DENSITY_RANGES` (15 region keys incl. `"Default"`,
+each a `(min_people_per_km2, max_people_per_km2)` tuple with plausible 1880-era relative bands --
+dense `WesternEurope`/`SouthAsia`/`EastAsia`/`SoutheastAsia`, sparse `NorthernEurope`/
+`CentralAsia`/`NorthAmerica`/`SouthAmerica`/`Oceania`, moderate everything else) and
+`COUNTRY_REGION` (all 154 `countryId`s from `Assets/Configs/country_config.json`, individually
+assigned to one of those 15 region keys by rough real-world geography -- verified by script that
+the mapped key-set exactly equals `country_config.json`'s `countryId` set with zero missing/extra
+entries, and that every mapped region value exists in `REGION_DENSITY_RANGES`).
+
+Gotcha: this machine's `.venv` did not exist at the start of this iteration (previous iterations'
+venv was apparently not persisted/was on a different machine/session). Recreated it with
+`"C:/Users/KonH/AppData/Local/Microsoft/WindowsApps/python.exe" -m venv .venv` then
+`.venv\Scripts\pip.exe install geopandas shapely scipy pyproj requests numpy` (per
+`.claude/rules/flag_assets.md`'s venv setup convention) before the gate could run. Future
+iterations should check for `.venv`'s existence before assuming it's there.
+
+Gate: `.venv\Scripts\python.exe -c "import scripts.generate_provinces as g; assert 'Default' in
+g.COUNTRY_REGION.values() or True; assert 'Default' in g.REGION_DENSITY_RANGES"` -> no output, exit
+0 (pass). Additionally ran a manual coverage check (missing/extra `countryId`s, unmapped region
+values) confirming zero discrepancies, and `DOTNET_ROLL_FORWARD=LatestMajor dotnet build
+src/GlobalStrategy.Core.sln -c Release` -> `Build succeeded, 0 Warning(s), 0 Error(s)` (this task's
+edit doesn't touch C#, so this just confirms nothing else broke).
+
+Notes for next iteration: Task 14 ("Rebuild Core DLLs and confirm clean Unity console") remains
+`passes: false` and blocked on a live Unity Editor -- check `mcpforunity://instances` first (fast)
+before calling `refresh_unity` (which blocks 60s on timeout). Since task 15 unblocked, the next
+task in file order is task 14 again (still blocked, most likely) then task 16 ("Sample density and
+attach population per province in generate_provinces.py") if Unity remains unreachable -- it builds
+on this iteration's `COUNTRY_REGION`/`REGION_DENSITY_RANGES` dicts and the existing
+`deterministic_seed`/`try_option_c` functions already in the script. Remember: `.venv` now exists
+on this machine (recreated this iteration) with geopandas/shapely/scipy/pyproj/requests/numpy
+installed, so future pipeline-task gates involving `.venv\Scripts\python.exe` should not need
+re-creation unless the environment resets again.
