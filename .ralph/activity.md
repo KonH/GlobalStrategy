@@ -150,3 +150,49 @@ multiple month boundaries, only `OwnerType.Province` + `population` resource id 
 province population resources diverging independently. Gate is `dotnet test
 src/GlobalStrategy.Core.sln`. No blockers encountered; this is the first task in the loop whose
 gate is `dotnet test` rather than a build-only gate.
+---
+
+## 2026-07-15 -- Add ProvincePopulationGrowthSystemTests
+
+Task: "Add ProvincePopulationGrowthSystemTests" (test).
+
+Change: Created `src/Game.Tests/ProvincePopulationGrowthSystemTests.cs` mirroring
+`ResourceSystemTests.cs`'s Jan31/Feb1/Jan1/Jan2 constants and world-building helper pattern
+(`CreateWorldWithResource` takes an explicit `OwnerType` since this system keys off
+`OwnerType.Province` rather than a fixed owner type). Five facts: `population_unaffected_within_same_month`
+(Jan1->Jan2, value unchanged), `population_grows_by_percent_at_month_boundary` (Jan31->Feb1,
+1000 -> 1000.75 at 0.075%), `growth_compounds_across_multiple_months` (two successive
+month-boundary Update calls compound: 1000.75 -> 1000.75*1.00075), `only_province_owner_type_and_matching_resource_id_affected`
+(a Country-owned population resource and a Province-owned gold resource both stay untouched),
+and `two_provinces_of_same_owner_diverge_independently` (two Province-owned population resources
+with different seed values grow to different absolute values from the same percentage).
+
+Gate: `dotnet test src/GlobalStrategy.Core.sln` -> initially failed with a testhost launch error
+("You must install or update .NET to run this application" -- `Microsoft.NETCore.App 8.0.0` was
+requested but only `10.0.9` is installed on this machine). Setting `DOTNET_ROLL_FORWARD=LatestMajor`
+before invoking `dotnet test` resolves this (rolls the net8.0-targeted test projects forward to the
+installed net10 runtime) without any project file changes. Full run:
+`Passed! - Failed: 0, Passed: 131, Skipped: 0, Total: 131` across ECS.Tests, ECS.Viewer.Tests, and
+Game.Tests (the new file's 5 facts included, filtered run also confirmed 5/5 passed standalone).
+
+Gotcha for next iteration: **this repo's `dotnet test` gate requires `DOTNET_ROLL_FORWARD=LatestMajor`
+in the environment on this machine** (only .NET 10 SDK/runtime installed, projects target net8.0).
+Export it before running any `dotnet test` gate: `export DOTNET_ROLL_FORWARD=LatestMajor` (bash) or
+`$env:DOTNET_ROLL_FORWARD = "LatestMajor"` (PowerShell). `dotnet build` gates were unaffected (build
+does not launch a testhost), which is why this didn't surface until the first test-gated task.
+
+Also note: `.ralph/prd.md` is CRLF-line-ended -- the Edit tool's string matching (which uses 
+)
+silently fails to find otherwise-correct-looking multi-line `old_string` blocks copied from Read
+output against this file. Worked around by patching the JSON byte-for-byte with a small Python
+script (matching 
+ explicitly) instead of Edit. Future iterations touching prd.md across
+multiple lines should do the same, or restrict Edit to single-line old_strings.
+
+Notes for next iteration: Next task is "Extend InitSystemTests with province population seeding
+case" -- in `src/Game.Tests/InitSystemTests.cs`, add `Population` values to `BuildLogic`'s
+`provinceConfig` `ProvinceEntry`s, and add `province_population_seeded_from_config": after the
+first `GameLogic.Update`, one `Resource{ResourceId=population}` + `ResourceOwner(_, OwnerType.Province)`
+entity should exist per `ProvinceEntry`, with `Value == entry.Population` and `OwnerId ==
+entry.ProvinceId` (not `entry.CountryId`). Remember to export `DOTNET_ROLL_FORWARD=LatestMajor`
+before running the gate.

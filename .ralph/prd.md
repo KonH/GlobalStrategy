@@ -97,7 +97,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"two_provinces_of_same_owner_diverge_independently: two independent population resources with different starting values grow to different absolute values at the same relative percentage"
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "test",
