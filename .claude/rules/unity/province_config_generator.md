@@ -63,11 +63,16 @@ re-run this script.
    `.tmp/provinces_intermediate.geojson` (properties: `provinceId`, `countryId`,
    `displayName`, `generationMethod`, `compassKey` — the latter is `null` except
    for the rare compass-direction fallback case above, and only used by the
-   locale step below).
+   locale step below — plus `population`, computed after simplification below).
 7. Runs `npx mapshaper -i <file> -simplify keep-shapes <pct>% -o <file>` to reduce
    vertex count for WebGL viability (`keep-shapes` guarantees no polygon degenerates
    to zero area). The simplify percentage is a tunable constant
-   (`MAPSHAPER_SIMPLIFY_PCT`) in the script, currently `10`.
+   (`MAPSHAPER_SIMPLIFY_PCT`) in the script, currently `10`. Afterward, the script
+   reloads the simplified geometry, computes each province's final area in
+   `EPSG:6933`, and multiplies by a per-country region density (`COUNTRY_REGION` /
+   `REGION_DENSITY_RANGES`, sampled once per province) to fill in `population` —
+   ensuring the persisted value matches the shipped (post-simplify) geometry rather
+   than the pre-simplify polygon.
 8. Writes `province_name.{provinceId}` locale entries into
    `Assets/Localization/en.asset` (the generated name verbatim) and
    `Assets/Localization/ru.asset` — settlement/admin-1 proper nouns are run through
@@ -95,9 +100,9 @@ in-memory `CountryConfig` already built in the same `Program.cs` run, cross-vali
 every province's `countryId` against `CountryConfig` (per
 `.claude/rules/config_validation.md` — a mismatch throws rather than silently
 proceeding), and writes `Assets/Configs/province_config.json` (lightweight metadata:
-`provinceId`, `countryId`, `generationMethod` — no `displayName`; province names are
-localization-only, see `province_name.*` keys above) and `Assets/Configs/provinces_1880.json`
-(passthrough geometry `FeatureCollection`).
+`provinceId`, `countryId`, `generationMethod`, `population` — no `displayName`; province
+names are localization-only, see `province_name.*` keys above) and
+`Assets/Configs/provinces_1880.json` (passthrough geometry `FeatureCollection`).
 
 Re-run order: Stage 1 (Python) must be run before Stage 2 (C# loader), since Stage 2
 consumes Stage 1's intermediate file via `loaderConfig.ProvinceGeoJsonSourcePath`.

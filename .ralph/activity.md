@@ -392,3 +392,38 @@ src/GlobalStrategy.Core.sln -c Release` (doc edits don't affect the build, so th
 nothing else broke). No code/test changes expected for this task. As with prior CRLF files in this repo,
 verify indentation via a raw-byte dump before any multi-line edit, though this particular file may be
 plain Markdown (LF) -- check before assuming CRLF.
+
+---
+
+## 2026-07-15 -- Update province_config_generator.md rule doc for new population field
+
+Task: "Update province_config_generator.md rule doc for new population field" (unity-manual, doc-only).
+
+Change: In `.claude/rules/unity/province_config_generator.md`: (1) Stage 1 step 6's intermediate-geojson
+properties list now mentions `population` ("plus `population`, computed after simplification below");
+(2) Stage 1 step 7's description of the `npx mapshaper` simplify call now explains that afterward the
+script reloads the simplified geometry, computes each province's final `EPSG:6933` area, and multiplies by
+a per-country region density (`COUNTRY_REGION`/`REGION_DENSITY_RANGES`) to fill in `population`, ensuring
+the persisted value matches the shipped post-simplify geometry rather than the pre-simplify polygon; (3)
+Stage 2's `province_config.json` output description now lists `population` alongside `provinceId`/
+`countryId`/`generationMethod`. This file turned out to be plain LF Markdown (confirmed via raw-byte dump
+of the target region before editing, per the prior iteration's caution) so the `Edit` tool worked directly
+with no CRLF workaround needed.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` -> Build succeeded, 0 Warning(s), 0 Error(s)
+(doc-only change, confirms nothing else broke).
+
+Flipping `.ralph/prd.md`'s `"passes"` flag for this task required the same raw-byte-replace workaround as
+usual, but note a correction to prior entries: this file's task objects are actually indented at **1 tab**
+per field (`\t"gate": ...`), not 2 tabs as previously logged -- verified via a fresh raw-byte dump before
+this edit. Future iterations should re-verify indentation depth via dump rather than trusting the
+prior-iteration note, since it was wrong here.
+
+Notes for next iteration: Next task is "Rebuild Core DLLs and confirm clean Unity console" (category
+`src`, gate is Unity MCP: `refresh_unity` then `read_console(types=["error"])` must report no errors --
+NOT a plain `dotnet build`). This is the first task in the loop requiring live Unity Editor/MCP
+connectivity rather than a CLI-only gate. If Unity MCP is unreachable at the start of the next iteration,
+per the loop rules this task must be journaled as blocked (leave `passes: false`) rather than skipped or
+marked passed on a build-only check. The `dotnet build` from this iteration already updated
+`Assets/Plugins/Core/` DLLs, so once Unity MCP is available the next iteration just needs to call
+`refresh_unity` and check the console.

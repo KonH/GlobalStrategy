@@ -160,7 +160,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"needs manual visual check"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "src",
