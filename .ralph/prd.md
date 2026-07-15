@@ -120,7 +120,7 @@ Give each province its own population value, modeled with the existing `Resource
 			"In Update, immediately after OpinionSystem.Update(_world, _previousTime, currentTime);, add ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "tests",

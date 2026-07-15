@@ -137,3 +137,17 @@ Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded,
 Flag flip: `Edit` against `.ralph/prd.md` was not attempted this time — used the established inline-Python byte-level fallback directly (find task description marker, flip the next `"passes": false` after it), confirmed via `grep` that only this task's flag flipped to `true`.
 
 Notes for next iteration: Next task is "Wire population growth into GameLogic.Update" — in `src/Game.Main/GameLogic.cs`, add a `readonly double _populationGrowthPercent;` field set from `settings.PopulationGrowthPercentPerMonth` in the constructor (same place `_speedMultipliers` is captured from settings), then in `Update`, immediately after the `OpinionSystem.Update(_world, _previousTime, currentTime);` call, add `ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);`. Gate is `dotnet build src/GlobalStrategy.Core.sln -c Release`. No blockers on this task.
+
+---
+
+## 2026-07-15 — Wire population growth into GameLogic.Update
+
+Task: `systems` — Wire population growth into GameLogic.Update.
+
+Change: In `src/Game.Main/GameLogic.cs`, added `readonly double _populationGrowthPercent;` field (declared next to `_speedMultipliers`), set from `settings.PopulationGrowthPercentPerMonth` in the constructor right after `_speedMultipliers = settings.SpeedMultipliers;`. In `Update`, added `ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);` immediately after the existing `OpinionSystem.Update(_world, _previousTime, currentTime);` call. `GS.Game.Systems` was already `using`'d in this file so no new using was needed.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded, 0 Warning(s), 0 Error(s).
+
+Flag flip: `Edit` against `.ralph/prd.md` again failed with "String to replace not found" (CRLF/tabs, as previously journaled). Used the established inline-Python byte-level fallback (find task description marker, flip the next `"passes": false` after it) — confirmed via `grep`/`sed` that only this task's flag flipped to `true`.
+
+Notes for next iteration: Next task is "Add ProvincePopulationGrowthSystemTests" — create `src/Game.Tests/ProvincePopulationGrowthSystemTests.cs` mirroring `ResourceSystemTests.cs`'s constants/helpers, covering: no-op within same month, +0.075% growth at month boundary (1000 -> 1000.75), compounding across multiple month boundaries, only `OwnerType.Province` + `ResourceId == "population"` rows affected (country-owned population and province-owned non-population resources untouched), two provinces diverging independently to different absolute values at the same relative percentage, and a first-tick-via-`GameLogic` ordering case confirming seeded `Resource.Value` still equals `entry.Population` after one `Update` with no elapsed time. Gate is `dotnet test src/GlobalStrategy.Core.sln` — remember the `DOTNET_ROLL_FORWARD=LatestMajor` env var prefix workaround journaled earlier (this machine only has the .NET 10 runtime; test projects target net8.0). No blockers on this task.
