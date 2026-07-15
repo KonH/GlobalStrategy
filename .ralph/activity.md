@@ -196,3 +196,46 @@ first `GameLogic.Update`, one `Resource{ResourceId=population}` + `ResourceOwner
 entity should exist per `ProvinceEntry`, with `Value == entry.Population` and `OwnerId ==
 entry.ProvinceId` (not `entry.CountryId`). Remember to export `DOTNET_ROLL_FORWARD=LatestMajor`
 before running the gate.
+
+---
+
+## 2026-07-15 -- Extend InitSystemTests with province population seeding case
+
+Task: "Extend InitSystemTests with province population seeding case" (test).
+
+Change: In `src/Game.Tests/InitSystemTests.cs`, `BuildLogic`'s `provinceConfig` now seeds
+`Population = 1234.0` for `prov_a` (Great_Britain) and `Population = 5678.0` for `prov_b`
+(France). Added a new fact `province_population_seeded_from_config`: builds the logic, calls
+`Update(0f)` once, then iterates `logic.World.GetMatchingArchetypes` for archetypes with both
+`ResourceOwner` and `Resource` columns, collecting entries where `OwnerType == OwnerType.Province`
+and `ResourceId == "population"` into a `Dictionary<string, double>` keyed by `OwnerId`. Asserts
+exactly 2 such entities exist and that `byOwnerId["prov_a"] == 1234.0` /
+`byOwnerId["prov_b"] == 5678.0` (i.e. keyed by `ProvinceId`, not `CountryId`).
+
+Gotcha hit again: `InitSystemTests.cs` (like `.ralph/prd.md`) is CRLF-line-ended, and the `Edit`
+tool's multi-line `old_string` matching failed silently (`String to replace not found`) against
+correct-looking text copied from `Read` output, even after single-line edits worked fine on the
+same file. Root cause this time wasn't CRLF vs LF alone -- my first attempt at the multi-line
+`old_string`/`new_string` pair also had the wrong tab count for the closing braces (guessed 3/2/1
+tabs instead of the file's actual 2/1/0 tabs for method-close/class-close/namespace-close), so even
+a byte-exact CRLF Python replace failed on the first try with "expected exactly one match". Fixed
+by re-reading the exact trailing bytes via `python3 -c "open(...,'rb').read()[-260:]"` before
+constructing the replacement. Takeaway for future multi-line edits on this repo's CRLF files: do a
+raw byte dump of the target region first to get indentation exactly right, rather than trusting
+`Read`'s line-numbered/tab-expanded output for indentation depth.
+
+Gate: `DOTNET_ROLL_FORWARD=LatestMajor` + `dotnet test src/GlobalStrategy.Core.sln` -> filtered run
+(`--filter FullyQualifiedName~InitSystemTests`) passed 6/6 in Game.Tests.dll; full solution run
+passed `ECS.Tests.dll` 34/34, `ECS.Viewer.Tests.dll` 16/16, `Game.Tests.dll` 132/132 (up from 131),
+0 failures overall.
+
+Notes for next iteration: Next task is "Extend ProvinceOwnershipTests with
+ownership-change-preserves-population case" -- in `src/Game.Tests/ProvinceOwnershipTests.cs`, add
+`change_owner_does_not_affect_population`: seed via `BuildLogic`, call
+`ProvinceOwnershipSystem.ChangeOwner`, then assert the province's population `Resource` entity
+(keyed by `provinceId` via `ResourceOwner.OwnerId`) is untouched in value and still present under
+the same `provinceId`. Check `ProvinceOwnershipTests.cs`'s existing `BuildLogic` helper first --
+it's a separate copy from `InitSystemTests.cs`'s, so it will need its own `Population` values
+added to its `ProvinceEntry`s if not already present. Remember to export
+`DOTNET_ROLL_FORWARD=LatestMajor` before running the gate, and dump raw bytes before multi-line
+Edit attempts on this CRLF file.
