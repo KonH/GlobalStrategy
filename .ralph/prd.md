@@ -205,7 +205,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"Re-serialize INTERMEDIATE_PATH so the on-disk file's population values are computed from the same final geometry that Stage 2/provinces_1880.json will ship"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "pipeline",

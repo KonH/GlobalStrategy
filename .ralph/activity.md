@@ -606,3 +606,48 @@ Remember `DOTNET_ROLL_FORWARD=LatestMajor` for any `dotnet test`/`dotnet build` 
 machine.
 
 ---
+
+## 2026-07-15 -- Compute final population from simplified geometry after mapshaper step
+
+Task attempted first: "Rebuild Core DLLs and confirm clean Unity console" (src) -- still blocked.
+Checked `mcpforunity://instances` directly (fast path): `{"success": true, "transport": "http",
+"instance_count": 0, "instances": []}` -- still no Unity Editor connected to the MCP bridge.
+Leaving `passes: false` again per loop rules. This is the 5th consecutive blocked attempt on this
+task; moved on to the next unblocked task in file order (task 17, `pipeline`, no Unity dependency).
+
+Task: "Compute final population from simplified geometry after mapshaper step" (pipeline).
+
+Change: In `scripts/generate_provinces.py`: (1) added a `density_by_province_id = {}` dict built
+during the per-country loop, populated alongside the existing `prov["_density"] = rng.uniform(...)`
+line (`density_by_province_id[prov["provinceId"]] = prov["_density"]`) so the density value survives
+past the per-country loop scope (previously it only lived on the in-memory `prov` dicts, as flagged
+by the prior iteration's note); (2) after the `npx mapshaper -simplify keep-shapes` subprocess call
+succeeds, added a block that reloads `INTERMEDIATE_PATH` from disk (the simplified geometry),
+iterates its features, computes each one's area via `gpd.GeoSeries([shape(feature["geometry"])],
+crs=WGS84_CRS).to_crs(EQUAL_AREA_CRS).area.iloc[0] / 1_000_000.0` (matching the exact technique used
+elsewhere in the file for country-polygon area, e.g. `load_country_polygons`), looks up the matching
+province's density via `density_by_province_id[province_id]` (matched by `provinceId`), sets
+`feature["properties"]["population"] = area_km2 * density`, then re-serializes `INTERMEDIATE_PATH`
+so the on-disk file's population values match the shipped post-simplify geometry; (3) `all_features`
+is reassigned to the reloaded/updated `simplified_features` list before `update_province_locales`
+runs, so downstream locale-key generation sees the same feature set as what's on disk (previously
+`all_features` still held the original set of Shapely-geometry dicts built before mapshaper ran).
+
+Gate: `.venv\Scripts\python.exe -c "import ast; ast.parse(open('scripts/generate_provinces.py',
+encoding='utf-8').read())"` -> no output, exit 0 (syntax check). Then the PRD-specified gate:
+`DOTNET_ROLL_FORWARD=LatestMajor dotnet build src/GlobalStrategy.Core.sln -c Release` -> `Build
+succeeded, 0 Warning(s), 0 Error(s)` (this task's edit doesn't touch C#, so this confirms nothing
+else broke; a full pipeline re-run with real geometry data producing an actual populated
+`.tmp/provinces_intermediate.geojson` is deferred to task 18, the next task in file order, which
+runs the script end-to-end).
+
+Notes for next iteration: Task 14 ("Rebuild Core DLLs and confirm clean Unity console") remains
+`passes: false`, blocked on a live Unity Editor (5 consecutive blocked attempts now) -- check
+`mcpforunity://instances` first (fast) before calling `refresh_unity` (60s timeout otherwise). Next
+task in file order is task 14 again (retry once, then re-skip if still blocked), followed by task 18
+("Re-run the province generation pipeline with real geometry and regenerate province_config.json")
+if Unity remains unreachable. Task 18 will need Node.js/`npx` available on this machine (script
+docstring says it auto-installs `mapshaper` on first run if absent) -- confirm `npx` is on PATH
+before attempting the full run, since this hasn't been exercised yet in this loop. `.venv` remains
+set up from three iterations ago (geopandas/shapely/scipy/pyproj/requests/numpy installed). Remember
+`DOTNET_ROLL_FORWARD=LatestMajor` for any `dotnet test`/`dotnet build` gate on this machine.
