@@ -95,3 +95,21 @@ Flipped this task's `"passes"` to `true` in `.ralph/prd.md`.
 Note: the `Edit` tool failed to match the `"passes": false` → `true` replacement for this task despite visually-identical text (likely an invisible whitespace/encoding quirk in that region of the file) — worked around it with a direct Python line-index replacement instead, verified by re-reading the file afterward.
 
 Notes for next iteration: the next task ("Add GameSettings.PopulationGrowthPercentPerMonth global constant") is independent C# config work — add the property to `src/Game.Configs/GameSettings.cs` and a matching key to `Assets/Configs/game_settings.json`.
+
+---
+
+## 2026-07-15 — Add GameSettings.PopulationGrowthPercentPerMonth global constant
+
+Task: `src-configs` / "Add GameSettings.PopulationGrowthPercentPerMonth global constant" (seventh task in `.ralph/prd.md`).
+
+Changes:
+- `src/Game.Configs/GameSettings.cs`: added `public double PopulationGrowthPercentPerMonth { get; set; } = 0.075;` alongside `StartYear`/`SpeedMultipliers`/`DefaultLocale`/`AutoSaveInterval`.
+- `Assets/Configs/game_settings.json`: added `"populationGrowthPercentPerMonth": 0.075`.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` → Build succeeded, 0 Warning(s), 0 Error(s).
+
+Flipped this task's `"passes"` to `true` in `.ralph/prd.md`.
+
+Note: the `Edit` tool again failed to match the `"passes": false` → `true` replacement for this task's block (same whitespace/encoding quirk noted in the previous entry) — worked around it with a direct Python line-index replacement (line 88), verified afterward via grep.
+
+Notes for next iteration: the next task ("Add ProvincePopulationGrowthSystem") creates `src/Game.Systems/ProvincePopulationGrowthSystem.cs` — check `ResourceSystem`/`ControlSystem` for the existing month-boundary detection pattern and `ecs_patterns.md`'s ref/lambda gotcha (use `AsSpan()`/direct array-index mutation, not a lambda, when mutating matched archetype rows).

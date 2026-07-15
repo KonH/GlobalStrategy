@@ -85,7 +85,7 @@ Add a per-province `population` `Resource` (seeded from a new pipeline-generated
 			"Add \"populationGrowthPercentPerMonth\": 0.075 to Assets/Configs/game_settings.json"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "src-systems",
