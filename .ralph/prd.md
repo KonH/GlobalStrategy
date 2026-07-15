@@ -28,7 +28,7 @@ Add a per-province `population` `Resource` (seeded from a new pipeline-generated
 			"In src/Game.Configs/ProvinceConfig.cs, add public double Population { get; set; } to ProvinceEntry"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "src-configs-loader",
