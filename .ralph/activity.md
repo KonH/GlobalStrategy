@@ -311,3 +311,21 @@ Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 194; used `sed
 Notes for next iteration: the last task ("Re-run the province generation pipeline with real geometry and regenerate configs") re-runs `scripts\generate_provinces.py` (Stage 1) and the Stage 2 C# loader (`Game.Configs.Loader`) to regenerate `Assets/Configs/province_config.json`/`provinces_1880.json` with real `population` values. This is a longer-running data pipeline step (Natural Earth downloads may be cached from earlier runs; `npx mapshaper` runs; then the loader). Verify per the gate: same per-method country counts as before, no new warnings, every `province_config.json` entry has `countryId` present in `country_config.json` and `population > 0`. This is the final task in the PRD — once it passes, the loop should output `<promise>COMPLETE</promise>` on the next iteration.
 
 ---
+
+## 2026-07-15 — Re-run the province generation pipeline with real geometry and regenerate configs
+
+Task: `pipeline-python` / "Re-run the province generation pipeline with real geometry and regenerate configs" (eighteenth and final task in `.ralph/prd.md`).
+
+Changes:
+- Ran `.venv\Scripts\python.exe scripts\generate_provinces.py` (Stage 1). Natural Earth datasets were already cached in `.tmp/naturalearth/`. Summary: 154 countries processed, 16 Micro / 47 Option A / 91 Option C, 5492 total provinces. The 91 warnings are all the normal Option A→C fit-quality fallbacks (sliver fraction or piece-count rejections) — expected pipeline behavior, unrelated to the population addition, since density sampling happens after province geometry/method selection.
+- Ran the Stage 2 C# loader from its own directory (`cd src/Game.Configs.Loader && dotnet run -c Release`) — **note:** `Program.cs` reads `loader_config.json` via a bare relative path (`File.ReadAllText("loader_config.json")`), so it must be invoked with CWD = `src/Game.Configs.Loader`, not the repo root (running `dotnet run --project src/Game.Configs.Loader` from the repo root throws `FileNotFoundException` looking for `loader_config.json` at the repo root). Output: "Wrote 173 features, 154 countries" and "Wrote 5492 provinces to ../../Assets/Configs".
+- `git status --short Assets/Configs/` confirms only `province_config.json` and `provinces_1880.json` changed — `country_config.json`/`map_entry_config.json`/`geojson_world.json` are byte-identical (no incidental drift from re-running Stage 1's non-province logic).
+- Verification script (`.tmp/run.py`, written then deleted per `.claude/rules/temp_scripts.md`): loaded `country_config.json`'s `countryId` set and `province_config.json`'s 5492 entries, checked every province's `countryId` is in that set and every `population` is `> 0`. Result: **0 invalid countryIds, 0 zero/negative populations** out of 5492 provinces.
+
+Gate: `.venv\Scripts\python.exe scripts\generate_provinces.py` → summary above (154/16/47/91, 5492 provinces, no unexpected warnings) — then Stage 2 loader re-run and cross-checks both passed (0 invalid countryId, 0 population <= 0).
+
+Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 206) — the plain `Edit` tool succeeded this time against this JSON block, unlike most prior iterations.
+
+**This was the last remaining task in the PRD.** Every task in `.ralph/prd.md` now has `"passes": true`. The next loop iteration should find no `"passes": false` entries and output `<promise>COMPLETE</promise>`.
+
+---

@@ -203,7 +203,7 @@ Add a per-province `population` `Resource` (seeded from a new pipeline-generated
 			"Cross-check every province's countryId still exists in country_config.json per .claude/rules/config_validation.md, and that every province_config.json entry has a nonzero population value"
 		],
 		"gate": ".venv\\Scripts\\python.exe scripts\\generate_provinces.py -- then re-run the Stage 2 loader and verify province_config.json entries all have countryId present in country_config.json and population > 0",
-		"passes": false
+		"passes": true
 	}
 ]
 ```
