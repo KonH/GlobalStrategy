@@ -296,3 +296,18 @@ Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 184; the plain
 Notes for next iteration: the next task ("Rebuild Core DLLs and confirm clean Unity console") requires Unity MCP — run `dotnet build` (already green from this task, but the task's gate explicitly re-checks), then `refresh_unity` and `read_console(types=["error"])` must report no errors. If Unity MCP is unreachable in that iteration, treat as blocked per the loop rules (journal it, leave `passes: false`) rather than skip verification.
 
 ---
+
+## 2026-07-15 — Rebuild Core DLLs and confirm clean Unity console
+
+Task: `unity-manual` / "Rebuild Core DLLs and confirm clean Unity console" (seventeenth task in `.ralph/prd.md`).
+
+Changes:
+- No source changes — this task rebuilds the already-committed Core DLLs and verifies Unity picks them up cleanly. Ran `"$USERPROFILE/.dotnet/dotnet.exe" build src/GlobalStrategy.Core.sln -c Release`, which updated `Assets/Plugins/Core/*.dll` (already showing as modified in git status from prior iterations' builds).
+
+Gate: build succeeded (0 Warning(s), 0 Error(s)). Called `refresh_unity(compile="request", mode="force", scope="all")` — first attempt timed out waiting for editor readiness while Unity was mid-compile (`editor_state` showed `phase: compiling`). Waited, then called `refresh_unity` again (`wait_for_ready: true`) which reported `"Refresh recovered after Unity disconnect/retry; editor is ready."`. `read_console(types=["error"])` returned 0 log entries — clean console.
+
+Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 194; used `sed -i` since the `Edit` tool's exact-string match against this JSON block continues to fail, consistent with prior iterations' notes).
+
+Notes for next iteration: the last task ("Re-run the province generation pipeline with real geometry and regenerate configs") re-runs `scripts\generate_provinces.py` (Stage 1) and the Stage 2 C# loader (`Game.Configs.Loader`) to regenerate `Assets/Configs/province_config.json`/`provinces_1880.json` with real `population` values. This is a longer-running data pipeline step (Natural Earth downloads may be cached from earlier runs; `npx mapshaper` runs; then the loader). Verify per the gate: same per-method country counts as before, no new warnings, every `province_config.json` entry has `countryId` present in `country_config.json` and `population > 0`. This is the final task in the PRD — once it passes, the loop should output `<promise>COMPLETE</promise>` on the next iteration.
+
+---

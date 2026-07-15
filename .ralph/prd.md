@@ -191,7 +191,7 @@ Add a per-province `population` `Resource` (seeded from a new pipeline-generated
 			"Let Unity finish its domain reload (refresh_unity) and confirm read_console(types=[\"error\"]) is clean"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release -- then refresh_unity and read_console(types=[\"error\"]) must report no errors",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "pipeline-python",
