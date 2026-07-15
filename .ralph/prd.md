@@ -193,7 +193,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"Update the module docstring's Output property list to include population"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "pipeline",

@@ -31,7 +31,8 @@ Pipeline summary:
 
 Output:
     .tmp/provinces_intermediate.geojson — FeatureCollection with properties:
-        provinceId, countryId, displayName, generationMethod ("Micro" | "OptionA" | "OptionC")
+        provinceId, countryId, displayName, generationMethod ("Micro" | "OptionA" | "OptionC"),
+        population (post-simplify area x per-country region density, see REGION_DENSITY_RANGES)
 
 See Docs/Specs/43_province-division/plan.md for the full design and
 .claude/rules/unity/province_config_generator.md for the rule-doc summary.
@@ -41,6 +42,7 @@ import hashlib
 import json
 import math
 import os
+import random
 import re
 import subprocess
 import sys
@@ -608,14 +610,11 @@ def compass_direction_name(centroid, country_polygon, display_name):
     return f"{compass_key} {display_name}", compass_key
 
 
-def try_option_c(country_id, display_name, country_polygon, area_km2, places_gdf, warnings):
+def try_option_c(country_id, display_name, country_polygon, area_km2, places_gdf, warnings, rng):
     multiplier = PER_COUNTRY_DENSITY_MULTIPLIER.get(country_id, 1.0)
     n_seeds = int(round(area_km2 / OPTION_C_AREA_PER_SEED_KM2 * multiplier))
     effective_max_seeds = int(round(OPTION_C_MAX_SEEDS * multiplier))
     n_seeds = max(OPTION_C_MIN_SEEDS, min(effective_max_seeds, n_seeds))
-
-    import random
-    rng = random.Random(deterministic_seed(country_id))
 
     seeds = seed_points_in_polygon(country_polygon, n_seeds, rng)
     if len(seeds) < 2:
@@ -877,6 +876,7 @@ def run(force_download=False):
 
         provinces = None
         method = None
+        rng = random.Random(deterministic_seed(country_id))
 
         if area_km2 < MICRO_STATE_AREA_KM2:
             provinces = [{"geometry": polygon, "name": display_name}]
@@ -888,7 +888,7 @@ def run(force_download=False):
                 method = "OptionA"
             else:
                 warnings.append(f"{country_id}: Option A rejected ({reject_reason}); trying Option C")
-                option_c_provinces = try_option_c(country_id, display_name, polygon, area_km2, places_gdf, warnings)
+                option_c_provinces = try_option_c(country_id, display_name, polygon, area_km2, places_gdf, warnings, rng)
                 if option_c_provinces is not None:
                     provinces = option_c_provinces
                     method = "OptionC"
@@ -899,6 +899,10 @@ def run(force_download=False):
         provinces = assign_province_ids(country_id, provinces)
         counts[method + "_countries"] = counts.get(method + "_countries", 0) + 1
 
+        density_range = REGION_DENSITY_RANGES.get(COUNTRY_REGION.get(country_id, "Default"), REGION_DENSITY_RANGES["Default"])
+        for prov in provinces:
+            prov["_density"] = rng.uniform(*density_range)
+
         for prov in provinces:
             all_features.append({
                 "type": "Feature",
@@ -908,6 +912,7 @@ def run(force_download=False):
                     "displayName": prov["name"],
                     "generationMethod": method,
                     "compassKey": prov.get("compassKey"),
+                    "population": None,
                 },
                 "geometry": mapping(prov["geometry"]),
             })
