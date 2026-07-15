@@ -64,7 +64,7 @@ Give each province its own population value, modeled with the existing `Resource
 			"Update the module docstring's Output property list to include population"
 		],
 		"gate": ".venv\\Scripts\\python.exe -m py_compile scripts\\generate_provinces.py",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "pipeline",

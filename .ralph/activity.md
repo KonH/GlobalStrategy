@@ -57,3 +57,21 @@ Gate: `.venv/Scripts/python.exe -m py_compile scripts/generate_provinces.py` —
 Gotcha for next iteration: the `Edit` tool failed to match multi-line replacement blocks in `.ralph/prd.md` itself despite visually-identical `Read` output — this file uses tabs for indentation and Edit's exact-string matching over multiple lines was finicky. Wrote a small inline Python script (find the task's unique description marker, then flip the next `"passes": false` after it to `true`) instead of `Edit`/`Write` for this flag-flip; worked reliably and is a good fallback pattern for future prd.md edits.
 
 Notes for next iteration: Next task is "Sample density and attach population per province in generate_provinces.py" — create one seeded `random.Random` per country in `run()`'s loop (reusing `deterministic_seed`), thread it into `try_option_c` (removing its internal `rng = random.Random(...)` line), then after `assign_province_ids` look up `COUNTRY_REGION`/`REGION_DENSITY_RANGES`, draw `density = rng.uniform(*density_range)` per province and stash as `prov['_density']`, and add a `'population': None` placeholder to each feature's properties dict (final population values come from the geometry-based task after this one). Gate is the same py_compile command. No blockers.
+
+---
+
+## 2026-07-15 — Sample density and attach population per province in generate_provinces.py
+
+Task: `pipeline` — Sample density and attach population per province in generate_provinces.py.
+
+Change: In `scripts/generate_provinces.py`:
+- Added top-level `import random` (was previously imported locally inside `try_option_c`).
+- `run()`'s per-country loop now creates `rng = random.Random(deterministic_seed(country_id))` up front, before the Micro/OptionA/OptionC branch.
+- `try_option_c` signature now takes `rng` as a parameter instead of constructing its own; removed its internal `import random` / `rng = random.Random(...)` lines. Call site in `run()` updated to pass `rng`.
+- After `assign_province_ids` runs and the per-country `provinces` list is finalized, look up `region = COUNTRY_REGION.get(country_id, "Default")` and `density_range = REGION_DENSITY_RANGES.get(region, REGION_DENSITY_RANGES["Default"])`, then for each `prov` in list order set `prov["_density"] = rng.uniform(*density_range)`.
+- Each emitted feature's `properties` dict now includes `"population": None` alongside `provinceId`/`countryId`/`displayName`/`generationMethod`/`compassKey`.
+- Updated the module docstring's Output property list to mention `population`.
+
+Gate: `.venv/Scripts/python.exe -m py_compile scripts/generate_provinces.py` — compiled cleanly.
+
+Notes for next iteration: Next task is "Compute final population from simplified geometry after mapshaper pass" — after the `npx mapshaper -simplify keep-shapes <pct>%` subprocess call succeeds, reload `INTERMEDIATE_PATH` from disk, recompute each feature's area in `EQUAL_AREA_CRS` from the simplified geometry, multiply by the matching province's stashed `_density` (matched by `provinceId` — note `_density` currently lives only on the in-memory `prov` dicts from `run()`, not on the serialized feature, so the reload step will need to build a `provinceId -> density` lookup from the in-memory `all_features`/`provinces` data before reloading, or otherwise carry `_density` through to match against reloaded features), and write the result into that feature's `population` property, then re-serialize `INTERMEDIATE_PATH`. Gate is the same py_compile command. No blockers on this task.
