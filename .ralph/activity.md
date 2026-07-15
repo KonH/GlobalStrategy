@@ -767,3 +767,67 @@ autonomous progress until a human:
 
 Recommend pausing this Ralph loop until at least one of those is resolved, rather than continuing
 to spend iterations re-checking the same two blockers.
+
+---
+
+## 2026-07-15 -- Rebuild Core DLLs (BLOCKED, 9th time); Re-run pipeline (still BLOCKED -- Node.js missing); loop remains stalled
+
+Task attempted: "Rebuild Core DLLs and confirm clean Unity console" (src) -- still blocked.
+
+Checked `mcpforunity://instances` first (fast path): `{"success": true, "transport": "http",
+"instance_count": 0, "instances": []}` -- no Unity Editor connected. Did not additionally call
+`refresh_unity` this time since the instances resource is authoritative and avoids the 60s
+timeout; the resource-only check is sufficient to confirm the blocker is unchanged. Leaving
+`passes: false` per loop rules. This is the 9th consecutive blocked attempt.
+
+Task attempted: "Re-run the province generation pipeline with real geometry and regenerate
+province_config.json" (pipeline) -- re-checked environment.
+
+Blocker: `node --version` / `npx --version` still both fail with "command not found" (checked via
+Bash). Node.js remains not installed on this machine -- a hard requirement for
+`scripts/generate_provinces.py`'s `npx mapshaper` simplify step (no fallback path in the script).
+Not attempting a system-level Node.js install from within this loop (out of scope for an
+autonomous code-only iteration). Leaving `passes: false`.
+
+Change: None -- both blockers unchanged from the prior 8 iterations. No other task in
+`.ralph/prd.md` has `passes: false` left to attempt; tasks 1-13, 15, 16, 17 are `passes: true`;
+14 and 18 are the only remaining tasks and both are blocked purely on environment/tooling outside
+this loop's control (`git status` confirms the working tree is unchanged from the previous
+iteration's state -- same 10 modified `Assets/Plugins/Core/*.dll` files pending task 14's
+confirmation, plus the two untracked `scripts/ralph.py`/`scripts/ralph.sh` files present since
+before this loop started).
+
+Gate: not applicable -- no code change made, nothing to commit.
+
+Reiterating the escalation from the prior iteration: this loop is now fully stalled with 9
+consecutive blocked iterations on the same two environment prerequisites. It cannot make further
+autonomous progress until a human:
+1. Opens a Unity Editor instance with the MCP bridge connected to this project (for task 14), and/or
+2. Installs Node.js (so `npx` is on PATH) on this machine (for task 18).
+
+No further re-checks of these two blockers should be attempted by subsequent iterations without a
+human first confirming one of the two prerequisites has changed -- repeating the same check
+provides no new information and only burns budget.
+
+---
+
+## 2026-07-15 -- Rebuild Core DLLs (BLOCKED, 10th time); Re-run pipeline (still BLOCKED -- Node.js missing); loop remains stalled
+
+Per the prior iteration's own guidance not to re-check these blockers without a human first
+confirming a change, this iteration did a single fast re-check anyway (since a new iteration start
+is the only trigger available and no human confirmation channel exists in this loop) rather than
+skipping verification outright: `mcpforunity://instances` (resource read, no `refresh_unity` timeout
+incurred) -> `{"success": true, "transport": "http", "instance_count": 0, "instances": []}` -- still
+no Unity Editor connected. `node --version` / `npx --version` via Bash -> still
+`command not found` for both -- Node.js still not installed. Both environment prerequisites remain
+unmet; no other task has `passes: false` left to attempt (1-13, 15, 16, 17 done; 14 and 18 are the
+only remainder, both blocked on the same two external dependencies as the last several iterations).
+
+Change: None. Gate: not applicable -- no code change made.
+
+Notes for next iteration: Nothing has changed. Do not re-attempt task 14 or task 18 unless you can
+positively confirm (via `mcpforunity://instances` showing `instance_count > 0`, or `node --version`
+succeeding) that one of the two prerequisites has actually changed since this entry. If both are
+still unmet, journal a short "still stalled, no change" entry (like this one) and stop -- do not
+re-run the full diagnostic narrative every time, and do not spend additional tool calls beyond the
+one confirmation check for each blocker.
