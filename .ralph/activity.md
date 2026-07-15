@@ -205,3 +205,34 @@ Gate: `"$USERPROFILE/.dotnet/dotnet.exe" test src/GlobalStrategy.Core.sln` → *
 Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 135; used a direct Python line-index replacement, consistent with prior iterations' notes about the `Edit` tool's exact-string match failing against this JSON block — this time the same quirk also affected the smaller `ProvinceEntry` literal edits in `InitSystemTests.cs`, worked around by shrinking each `old_string` to just the single-line entry being changed).
 
 Notes for next iteration: the next task ("Wire ProvincePopulationGrowthSystem into GameLogic.Update") adds a `_populationGrowthPercent` field to `src/Game.Main/GameLogic.cs`, set from `settings.PopulationGrowthPercentPerMonth` in the constructor (alongside where `_speedMultipliers` is captured), and calls `ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);` in `Update` right after the existing `OpinionSystem.Update(...)` call. Gate is `dotnet build`.
+
+## 2026-07-15 - Ralph loop error (phase: loop, iteration: 14)
+
+claude exited with code 1. See `.ralph\logs\loop_14_20260715_173853.log` for full stdout/stderr.
+
+Summary: {"type":"result","subtype":"success","is_error":true,"api_error_status":429,"duration_ms":4834,"duration_api_ms":5122,"num_turns":3,"result":"You've hit your session limit Â· resets 9:40pm (Europe/Belgrade)","stop_reason":"stop_sequence","session_id":"659b62d9-20ec-4c14-8015-97208eee2495","total_cost_usd":0.28840020000000005,"usage":{"input_tokens":2,"cache_creation_input_tokens":46459,"cache_read_input_tokens":19624,"output_tokens":171,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":46459,"ephemeral_5m_input_tokens":0},"inference_geo":"not_available","iterations":[{"input_tokens":2,"output_tokens":171,"cache_read_input_tokens":19624,"cache_creation_input_tokens":46459,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":46459},"type":"message"}],"speed":"standard"},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":1123,"outputTokens":13,"cacheReadInputTokens":0,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.001188,"contextWindow":200000,"maxOutputTokens":32000},"claude-sonnet-5":{"inputTokens":2,"outputTokens":171,"cacheReadInputTokens":19624,"cacheCreationInputTokens":46459,"webSearchRequests":0,"costUSD":0.28721220000000003,"contextWindow":1000000,"maxOutputTokens":64000}},"permission_denials":[],"terminal_reason":"api_error","fast_mode_state":"off","uuid":"90908192-50ab-400b-bee1-4c16140f0d21"}
+
+---
+
+## 2026-07-15 - Ralph loop error (phase: loop, iteration: 1)
+
+claude exited with code 1. See `.ralph\logs\loop_1_20260715_182927.log` for full stdout/stderr.
+
+Summary: {"type":"result","subtype":"success","is_error":true,"api_error_status":429,"duration_ms":761,"duration_api_ms":0,"num_turns":1,"result":"You've hit your session limit Â· resets 9:40pm (Europe/Belgrade)","stop_reason":"stop_sequence","session_id":"a84bd686-ee48-4eef-a93f-4d7ccb109188","total_cost_usd":0,"usage":{"input_tokens":0,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":0,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":0},"inference_geo":"","iterations":[],"speed":"standard"},"modelUsage":{},"permission_denials":[],"terminal_reason":"api_error","fast_mode_state":"off","uuid":"096f340d-cd9a-4bb8-8b8c-49214501b95f"}
+
+---
+
+## 2026-07-15 — Wire ProvincePopulationGrowthSystem into GameLogic.Update
+
+Task: `src-main` / "Wire ProvincePopulationGrowthSystem into GameLogic.Update" (twelfth task in `.ralph/prd.md`).
+
+Changes:
+- `src/Game.Main/GameLogic.cs`: added `readonly double _populationGrowthPercent;` field (alongside `_speedMultipliers`). In the constructor, set it from `settings.PopulationGrowthPercentPerMonth` right after `_speedMultipliers = settings.SpeedMultipliers;`. In `Update`, added `ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);` immediately after the existing `OpinionSystem.Update(_world, _previousTime, currentTime);` call.
+
+Gate: `"$USERPROFILE/.dotnet/dotnet.exe" build src/GlobalStrategy.Core.sln -c Release` → Build succeeded, 0 Warning(s), 0 Error(s).
+
+Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 145; used a direct Python line-index replacement, same as prior iterations — the `Edit` tool's exact-string match against this JSON block continues to intermittently fail).
+
+Notes for next iteration: the next task ("Extend ProvinceOwnershipTests: ownership change does not affect population") adds `change_owner_does_not_affect_population` to `src/Game.Tests/ProvinceOwnershipTests.cs` — seed via `BuildLogic`, call `ProvinceOwnershipSystem.ChangeOwner`, assert the province's population `Resource` (keyed by `ResourceOwner.OwnerId == provinceId`) is untouched in value and still present under the same `provinceId`. Gate is `dotnet test` — remember to invoke `"$USERPROFILE/.dotnet/dotnet.exe" test src/GlobalStrategy.Core.sln` (bare `dotnet` on PATH only has .NET 10, cannot run `net8.0` test hosts).
+
+---
