@@ -268,7 +268,7 @@ public static class BotProfileLoader {
 }
 ```
 
-**`HeadlessRunner.cs` (extend)** — all bot setup happens after options parsing and **before** `GameLogic` construction / any tick (fail-fast per spec):
+**`HeadlessRunner.cs` (extend)** — profile loading and validation (steps 1–2) happen after options parsing and before `GameLogic` construction; bot construction (step 3) requires the constructed `logic` (its `Commands` accessor) and runs after construction but before the first tick. Either way every failure surfaces before any simulation tick (fail-fast per spec):
 1. Load every profile via `BotProfileLoader.Load` (file/JSON errors → caught in `Program.Main` → stderr, exit 1, matching 48's posture).
 2. Validate: each `profile.OrgId` ∈ the resolved participating-org list; no two profiles share an org; every `featureId` is `IsRegistered` in `BotFeatureRegistry.CreateDefault()` (enabled or not, per §5). Any failure → descriptive exception → stderr, exit non-zero, before any simulation tick.
 3. Build bots **in participating-org order** (order profiles by their org's index in the participating list — pins decision-phase order and results ordering regardless of CLI argument order): per profile, `features` = enabled settings → `registry.Create(featureId, parameters)`; `rng = BotRng.Create(options.Seed, orgId)`; `sink = new BotCommandSink(orgId, logic.Commands, logger)`; `new Bot(...)`. Orgs without a profile get no bot — passive, exactly part 1.
@@ -372,6 +372,9 @@ Test project: `src/Game.Tests/` (xunit, snake_case `[Fact]` names, `StaticConfig
   - `distinct_plays_in_same_phase_are_all_emitted` — two different cards in one phase both reach the buffer; pipeline re-validates each.
   - `begin_decision_phase_resets_duplicate_guard` — the same play in two consecutive phases emits twice.
   - `sink_interface_exposes_only_whitelisted_members` — reflection over `typeof(IBotCommandSink)`: exactly `PlayOrgCard(string)` and `PlayCountryCard(string, string)`, no generic methods (structural-enforcement regression against future widening by accident).
+
+- **New `src/Game.Tests/BotOrchestratorTests.cs`** (spec's bot-exception abort criterion):
+  - `throwing_feature_surfaces_bot_feature_exception_naming_org_and_feature` — a stub `IBotFeature` whose `Tick` throws: `Bot.ExecuteDecisionTick` throws `BotFeatureException` carrying the bot's `OrgId` and the feature's `FeatureId` (both also present in the message), with the original exception as `InnerException` — the testable seam behind the runner's non-zero-exit/stderr path in Approach §7.5, which no other test or smoke step exercises.
 
 - **New `src/Game.Tests/BotDeterminismTests.cs`** (paired-run gate):
   - `same_seed_and_profiles_produce_identical_end_state_and_timeline` — two `GameLogic` instances, same seed/configs/orgs, each with a `baselineCardPlay` bot on org A driven through the exact runner tick contract (decision phase then `Update`) for ≥13 simulated months: identical per-org `OrgMetrics.GetTotalControl`/`GetGold`/`GetControlByCountry`, game date, hand contents, and element-wise identical monthly samples.
