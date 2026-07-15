@@ -651,3 +651,83 @@ docstring says it auto-installs `mapshaper` on first run if absent) -- confirm `
 before attempting the full run, since this hasn't been exercised yet in this loop. `.venv` remains
 set up from three iterations ago (geopandas/shapely/scipy/pyproj/requests/numpy installed). Remember
 `DOTNET_ROLL_FORWARD=LatestMajor` for any `dotnet test`/`dotnet build` gate on this machine.
+
+---
+
+## 2026-07-15 -- Rebuild Core DLLs (BLOCKED, 6th time); Re-run pipeline (BLOCKED -- Node.js missing)
+
+Task attempted first: "Rebuild Core DLLs and confirm clean Unity console" (src) -- still blocked.
+Checked `mcpforunity://instances` directly (fast path): `{"success": true, "transport": "http",
+"instance_count": 0, "instances": []}` -- still no Unity Editor connected to the MCP bridge. This is
+the 6th consecutive blocked attempt. Leaving `passes: false` per loop rules. Moved on to task 18
+("Re-run the province generation pipeline with real geometry and regenerate province_config.json"),
+the next unblocked task in file order (tasks 15-17 are already `passes: true`).
+
+Task attempted: "Re-run the province generation pipeline with real geometry and regenerate
+province_config.json" (pipeline) -- also blocked, on a different dependency.
+
+Blocker: Stage 1 (`scripts/generate_provinces.py`) shells out to `npx mapshaper` for the final
+simplify step, per `.claude/rules/unity/province_config_generator.md`'s documented Node.js/`npx`
+toolchain dependency. Checked both `node --version`/`npx --version` via Bash and via PowerShell --
+neither `node` nor `npx` is on PATH on this machine (`CommandNotFoundException` /
+"command not found" from both shells). `.venv` (Python/geopandas/shapely/scipy/pyproj/requests/numpy)
+is present and correct from prior iterations, but that's Stage 1's Python half only -- the mapshaper
+subprocess call is a hard requirement for the script to complete (no fallback path in the script).
+Did not attempt to install Node.js myself (out of scope for a code-only Ralph iteration and a
+system-level change outside the repo); leaving `passes: false` for task 18 rather than skipping the
+simplify step or faking output.
+
+Gate: not run -- blocked before the gate-relevant script execution could complete.
+
+Notes for next iteration: Both remaining tasks (14: Unity Editor unreachable; 18: Node.js/npx not
+installed) are now blocked on environment/tooling outside this loop's control, and no other task in
+`.ralph/prd.md` has `passes: false` left to attempt (15/16/17 already pass; 18 depends on the same
+script but fails at the mapshaper subprocess step regardless of task order). This loop cannot make
+further autonomous progress until either (a) a Unity Editor with the MCP bridge is opened on this
+machine, or (b) Node.js is installed and `npx` is on PATH so `npx mapshaper` can run (first run will
+auto-install the `mapshaper` npm package per the rule doc -- no `package.json` is checked in).
+Surfacing this to the user directly is warranted now rather than re-blocking silently again, per a
+prior iteration's suggestion once multiple consecutive blocks accumulate with no other task to fall
+back to. Uncommitted `Assets/Plugins/Core/*.dll` changes from earlier `dotnet build` runs remain
+staged-but-uncommitted in the working tree (intentional -- they're meant to be committed together
+with task 14's Unity-console confirmation, not before).
+
+---
+
+## 2026-07-15 -- Rebuild Core DLLs (BLOCKED, 7th time); Re-run pipeline (still BLOCKED -- Node.js missing)
+
+Task attempted: "Rebuild Core DLLs and confirm clean Unity console" (src) -- still blocked.
+
+Checked `mcpforunity://instances` first (fast path): `{"success": true, "transport": "http",
+"instance_count": 0, "instances": []}` -- no Unity Editor connected. Also called
+`refresh_unity(compile="request", mode="force")` directly to double check: timed out after 60s
+waiting for editor readiness, consistent with the resource check. Leaving `passes: false` per loop
+rules (never mark passed on a build-only check). This is the 7th consecutive blocked attempt.
+
+Task attempted: "Re-run the province generation pipeline with real geometry and regenerate
+province_config.json" (pipeline) -- re-checked whether the environment blocker from two
+iterations ago had changed.
+
+Blocker: `node --version` / `npx --version` still both fail with "command not found" in both Bash
+and (implicitly, same PATH) PowerShell -- Node.js remains not installed on this machine. This is a
+hard requirement for `scripts/generate_provinces.py`'s final `npx mapshaper` simplify step (no
+fallback path). Not attempting a system-level Node.js install from within this loop (out of scope
+for an autonomous code-only iteration). Leaving `passes: false`.
+
+Change: None -- both blockers are unchanged from the prior iteration's environment state. No other
+task in `.ralph/prd.md` has `passes: false` left to attempt; tasks 1-13, 15, 16, 17 are already
+`passes: true`, and 14/18 are both blocked purely on environment/tooling outside this loop's
+control (no Unity Editor process connected to the MCP bridge; no Node.js/npx on PATH).
+
+Gate: not applicable -- no code change made, both attempted tasks blocked before their gate could
+run.
+
+Notes for next iteration: This loop cannot make further autonomous progress until either (a) a
+Unity Editor with the MCP bridge is opened on this machine (check `mcpforunity://instances` first,
+it's instant, vs. the 60s timeout on `refresh_unity` when nothing is connected), or (b) Node.js is
+installed and `npx` is on PATH (first `npx mapshaper` invocation will auto-install the package
+per `.claude/rules/unity/province_config_generator.md` -- no `package.json` checked in). Consider
+recommending to the user directly that this loop be paused until one of those two environment
+prerequisites is met, since repeating the same blocked check every iteration burns budget with no
+progress. Uncommitted `Assets/Plugins/Core/*.dll` changes remain from earlier `dotnet build` runs
+in the working tree, intentionally uncommitted pending task 14's clean-console confirmation.
