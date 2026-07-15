@@ -151,7 +151,7 @@ Add a per-province `population` `Resource` (seeded from a new pipeline-generated
 			"In src/Game.Tests/ProvinceOwnershipTests.cs, add change_owner_does_not_affect_population: seed via BuildLogic, call ProvinceOwnershipSystem.ChangeOwner, then assert the province's population Resource entity (keyed by provinceId via ResourceOwner.OwnerId) is untouched in value and still present under the same provinceId"
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "src-tests",

@@ -236,3 +236,18 @@ Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 145; used a di
 Notes for next iteration: the next task ("Extend ProvinceOwnershipTests: ownership change does not affect population") adds `change_owner_does_not_affect_population` to `src/Game.Tests/ProvinceOwnershipTests.cs` — seed via `BuildLogic`, call `ProvinceOwnershipSystem.ChangeOwner`, assert the province's population `Resource` (keyed by `ResourceOwner.OwnerId == provinceId`) is untouched in value and still present under the same `provinceId`. Gate is `dotnet test` — remember to invoke `"$USERPROFILE/.dotnet/dotnet.exe" test src/GlobalStrategy.Core.sln` (bare `dotnet` on PATH only has .NET 10, cannot run `net8.0` test hosts).
 
 ---
+
+## 2026-07-15 — Extend ProvinceOwnershipTests: ownership change does not affect population
+
+Task: `src-tests` / "Extend ProvinceOwnershipTests: ownership change does not affect population" (thirteenth task in `.ralph/prd.md`).
+
+Changes:
+- `src/Game.Tests/ProvinceOwnershipTests.cs`: `BuildLogic`'s `provinceConfig` now sets `Population = 1000.0` on `prov_a` and `Population = 2000.0` on `prov_b`. Added `change_owner_does_not_affect_population`: seeds via `BuildLogic`, reads the province's population `Resource` (via a local `FindPopulation` helper scanning `ResourceOwner`+`Resource` archetype rows keyed by `OwnerId == provinceId` and `ResourceId == "population"`) before and after calling `ProvinceOwnershipSystem.ChangeOwner(logic.World, "prov_b", "Great_Britain")`, asserting the value is unchanged and the population entity is still found under the same `provinceId` after the owner change.
+
+Gate: `"$USERPROFILE/.dotnet/dotnet.exe" test src/GlobalStrategy.Core.sln` → **Passed! Failed: 0, Passed: 34, Total: 34 (ECS.Tests)**; **Passed! Failed: 0, Passed: 16, Total: 16 (ECS.Viewer.Tests)**; **Passed! Failed: 0, Passed: 133, Total: 133 (Game.Tests)** — up from 132, confirming the new test ran and passed.
+
+Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 154; used a Python script for the replacement, consistent with prior iterations' notes about the `Edit` tool's exact-string match intermittently failing against this JSON block — this time the plain `Edit` tool did succeed for the two single-line `ProvinceEntry` edits in the test file itself, only the JSON flip needed the workaround).
+
+Notes for next iteration: the next task ("Extend SaveLoadRoundTripTests for grown population persistence") adds a case to `src/Game.Tests/SaveLoadRoundTripTests.cs` that advances at least one month boundary, saves via `SaveSystem.BuildSnapshot`, reloads via `LoadSystem.Apply`, and asserts the grown value survives and continues compounding after reload. Check that test file's existing `BuildLogic`/harness shape first — it likely needs `Population` values added to its `ProvinceEntry`s the same way `InitSystemTests.cs` and `ProvinceOwnershipTests.cs` did. Gate is `dotnet test` via `"$USERPROFILE/.dotnet/dotnet.exe" test src/GlobalStrategy.Core.sln`.
+
+---
