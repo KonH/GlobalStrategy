@@ -95,3 +95,17 @@ Gate: `.venv/Scripts/python.exe -m py_compile scripts/generate_provinces.py` —
 Gotcha reconfirmed: `Edit` against `.ralph/prd.md` failed again with "String to replace not found" despite the text visually matching in `Read` output (tabs/CRLF). Used the same inline-Python fallback pattern as the prior iteration (locate the task's description marker, then flip the next `"passes": false` occurrence after it to `true`) — reliable, keep using it for prd.md flag flips.
 
 Notes for next iteration: Next task is "Add GameSettings.PopulationGrowthPercentPerMonth global constant" — add `public double PopulationGrowthPercentPerMonth { get; set; } = 0.075;` to `src/Game.Configs/GameSettings.cs` alongside `StartYear`/`SpeedMultipliers`/`DefaultLocale`/`AutoSaveInterval`, and add `"populationGrowthPercentPerMonth": 0.075` to `Assets/Configs/game_settings.json`. Gate is `dotnet build src/GlobalStrategy.Core.sln -c Release`. No blockers on this task. Note: this script change was not actually re-run against real geometry yet (that happens in the later "Re-run the province generation pipeline with real geometry" task) — only compiled for syntax.
+
+---
+
+## 2026-07-15 — Add GameSettings.PopulationGrowthPercentPerMonth global constant
+
+Task: `config` — Add GameSettings.PopulationGrowthPercentPerMonth global constant.
+
+Change: Added `public double PopulationGrowthPercentPerMonth { get; set; } = 0.075;` to `GameSettings` in `src/Game.Configs/GameSettings.cs` (alongside `StartYear`/`SpeedMultipliers`/`DefaultLocale`/`AutoSaveInterval`). Added `"populationGrowthPercentPerMonth": 0.075` to `Assets/Configs/game_settings.json`.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded, 0 Warning(s), 0 Error(s).
+
+Gotcha reconfirmed: `Edit` against `.ralph/prd.md` again failed with "String to replace not found" (CRLF/tabs). Used the same inline-Python byte-level fallback (find task description marker, flip the next `"passes": false` after it) — kept using it, worked reliably.
+
+Notes for next iteration: Next task is "Add ProvincePopulationGrowthSystem" — create `src/Game.Systems/ProvincePopulationGrowthSystem.cs` with `public const string PopulationResourceId = "population";` and `public static void Update(World world, DateTime previousTime, DateTime currentTime, double monthlyGrowthPercent)`. Follow `ResourceSystem`/`ControlSystem`'s month-boundary check pattern, iterate matching archetypes for `ResourceOwner`+`Resource`, and mutate `resources[i].Value` directly (no lambda) for rows where `OwnerType == OwnerType.Province && ResourceId == PopulationResourceId`. Gate is `dotnet build src/GlobalStrategy.Core.sln -c Release`. No blockers on this task.

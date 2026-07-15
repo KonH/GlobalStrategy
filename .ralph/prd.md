@@ -86,7 +86,7 @@ Give each province its own population value, modeled with the existing `Resource
 			"Add \"populationGrowthPercentPerMonth\": 0.075 to Assets/Configs/game_settings.json"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "systems",
