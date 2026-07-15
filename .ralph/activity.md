@@ -842,3 +842,14 @@ one confirmation check for each blocker.
 commit. Per prior guidance, not repeating the full diagnostic narrative -- see the 8th-iteration
 entry above for the full escalation-to-user writeup. Loop remains stalled pending a human opening
 Unity Editor (MCP bridge) and/or installing Node.js on this machine.
+
+---
+
+## 2026-07-15 -- Still stalled, no change (12th check)
+
+`mcpforunity://instances` -> `instance_count: 0` (no Unity Editor connected, confirmed via
+`ReadMcpResourceTool` even though UnityMCP tool schemas loaded successfully this iteration --
+schema availability is independent of a live editor session, as noted before). `node --version` /
+`npx --version` -> `command not found` (Node.js still not installed). Both prerequisites for tasks
+14 and 18 remain unmet; no other task has `passes: false`. No change, no code edits, nothing to
+commit. See the 8th-iteration entry above for the full escalation-to-user writeup.
