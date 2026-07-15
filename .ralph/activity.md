@@ -175,3 +175,18 @@ Gate: `"$USERPROFILE/.dotnet/dotnet.exe" test src/GlobalStrategy.Core.sln` → *
 Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 115; used a direct Python line-index replacement since the `Edit` tool's exact-string match against this JSON block continues to fail for reasons not yet diagnosed, consistent with prior iterations' notes).
 
 Notes for next iteration: the `dotnet test`/`dotnet build` blocker that stalled the last two iterations is now resolved for this machine — remember to invoke `"$USERPROFILE/.dotnet/dotnet.exe"` (not bare `dotnet`) for any gate involving `net8.0` test projects, since default `PATH` still points at the .NET-10-only `Program Files` install. The next task ("Seed province population entities at init") changes `src/Game.Main/InitSystem.Run` to call a new `CreateProvincePopulationEntities(world, provinceConfig)` helper right after `ProvinceOwnershipSystem.Seed` — mirror `CreateResourceEntities`'s per-country seeding shape but keyed by `ProvinceEntry.ProvinceId`/`OwnerType.Province`, single `population` resource, no `ResourceEffect`/`ResourceLink`.
+
+---
+
+## 2026-07-15 — Seed province population entities at init
+
+Task: `src-main` / "Seed province population entities at init" (tenth task in `.ralph/prd.md`).
+
+Changes:
+- `src/Game.Main/InitSystem.cs`: in `Run`, replaced `ProvinceOwnershipSystem.Seed(world, context.Province.Load());` with `var provinceConfig = context.Province.Load(); ProvinceOwnershipSystem.Seed(world, provinceConfig); CreateProvincePopulationEntities(world, provinceConfig);`. Added `static void CreateProvincePopulationEntities(World world, ProvinceConfig provinceConfig)`: for each `ProvinceEntry` in `provinceConfig.Provinces`, creates one entity with `ResourceOwner(entry.ProvinceId, OwnerType.Province)` and `Resource { ResourceId = ProvincePopulationGrowthSystem.PopulationResourceId, Value = entry.Population }` — mirrors `CreateResourceEntities`'s per-country seeding shape, single resource per province, no `ResourceEffect`/`ResourceLink`.
+
+Gate: `"$USERPROFILE/.dotnet/dotnet.exe" build src/GlobalStrategy.Core.sln -c Release` → Build succeeded, 0 Warning(s), 0 Error(s).
+
+Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 125; used a direct Python line-index replacement, consistent with prior iterations' notes about the `Edit` tool's exact-string match failing against this JSON block).
+
+Notes for next iteration: the next task ("Extend InitSystemTests for province population seeding") adds `Population` values to `BuildLogic`'s `provinceConfig` `ProvinceEntry`s in `src/Game.Tests/InitSystemTests.cs` and a new `province_population_seeded_from_config` test asserting one `Resource{ResourceId=population}` + `ResourceOwner(_, OwnerType.Province)` entity per `ProvinceEntry`, keyed by `ProvinceId` (not `CountryId`), with `Value == entry.Population`. Gate is `dotnet test` — use `"$USERPROFILE/.dotnet/dotnet.exe" test src/GlobalStrategy.Core.sln`.

@@ -122,7 +122,7 @@ Add a per-province `population` `Resource` (seeded from a new pipeline-generated
 			"Implement static void CreateProvincePopulationEntities(World world, ProvinceConfig config): for each ProvinceEntry, world.Create() an entity with ResourceOwner(entry.ProvinceId, OwnerType.Province) and Resource { ResourceId = ProvincePopulationGrowthSystem.PopulationResourceId, Value = entry.Population } (mirrors CreateResourceEntities's per-country seeding shape, single resource per province, no ResourceEffect/ResourceLink)"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "src-tests",

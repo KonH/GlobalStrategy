@@ -34,7 +34,9 @@ namespace GS.Main {
 				CreateResourceEntities(world, entry, resourceConfig);
 			}
 
-			ProvinceOwnershipSystem.Seed(world, context.Province.Load());
+			var provinceConfig = context.Province.Load();
+			ProvinceOwnershipSystem.Seed(world, provinceConfig);
+			CreateProvincePopulationEntities(world, provinceConfig);
 
 			var settings = context.GameSettings.Load();
 			var startTime = new DateTime(settings.StartYear, 1, 1);
@@ -161,6 +163,17 @@ namespace GS.Main {
 						PayType = Enum.Parse<PayType>(effectDef.PayType, ignoreCase: true)
 					});
 				}
+			}
+		}
+
+		static void CreateProvincePopulationEntities(World world, ProvinceConfig provinceConfig) {
+			foreach (var entry in provinceConfig.Provinces) {
+				int populationEntity = world.Create();
+				world.Add(populationEntity, new ResourceOwner(entry.ProvinceId, OwnerType.Province));
+				world.Add(populationEntity, new Resource {
+					ResourceId = ProvincePopulationGrowthSystem.PopulationResourceId,
+					Value = entry.Population
+				});
 			}
 		}
 
