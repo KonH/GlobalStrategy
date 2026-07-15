@@ -103,7 +103,7 @@ public static void Update(World world, int proximityEntity, Random rng,
 
 `GameLogic.Update` call site passes `viewOrgId` resolved from the current `_orgEntity` (`_orgEntity >= 0 ? _world.Get<Organization>(_orgEntity).OrganizationId : ""` — world truth, correct after load too) and `_hqCountryByOrgId`.
 
-**Initial discovery** — `InitSystem.DiscoverInitialCountries` becomes per-org and writes `DiscoveredCountry` entities: each participating org discovers its own `HqCountryId`; the view org (`context.InitialOrganizationId`, when it is among the participants) additionally discovers `context.InitialPlayerCountryId`. Single-org result is exactly today's set {player country, HQ} — just stored per-org. (The unsupported "no org at all" flow simply creates no discovery entities; it also has no gold/cards today.)
+**Initial discovery** — `InitSystem.DiscoverInitialCountries` becomes per-org and writes `DiscoveredCountry` entities: each participating org discovers its own `HqCountryId`; the view org (`context.InitialOrganizationId`, when it is among the participants) additionally discovers `context.InitialPlayerCountryId`. For the real Unity configs (org has an action pool and hand size > 0) the single-org result is exactly today's set {player country, HQ} — just stored per-org. Note one deliberate delta: today the call sits behind `CreateActionEntities`' early returns, so a configured org with no cards gets *no* initial discovery; after the hoist it gets {player country, HQ}. This only affects card-less configs (e.g. the `GameLogicOrgTests` harness), not Unity. (The unsupported "no org at all" flow simply creates no discovery entities; it also has no gold/cards today.)
 
 **Debug cheat** — `GameLogic.ApplyDebugDiscoverAllCountries` creates `DiscoveredCountry` entities for the **view org** for every country not already in its set (behaviour-equivalent for Unity's single-org use).
 
@@ -214,7 +214,7 @@ Dates are `yyyy-MM-dd` strings; `orgs` arrays are always in participating-list o
 
 - [ ] **Per-org initial discovery and debug cheat** — `InitSystem.DiscoverInitialCountries` creates `DiscoveredCountry` entities per participant (own HQ; view org additionally the initial player country); `GameLogic.ApplyDebugDiscoverAllCountries` fills the view org's set with all countries.
 
-- [ ] **View-org-sourced `VisualState` discovery** — `src/Game.Main/VisualStateConverter.cs` `UpdateDiscoveredCountries`: resolve view org id from the `orgEntity` parameter, collect that org's `DiscoveredCountry` country ids; `Set(ids, recently)` shape and diff logic unchanged.
+- [ ] **View-org-sourced `VisualState` discovery** — `src/Game.Main/VisualStateConverter.cs` `UpdateDiscoveredCountries`: resolve view org id from the `orgEntity` parameter, collect that org's `DiscoveredCountry` country ids; `Set(ids, recently)` shape and diff logic unchanged. While in the file, also fix `UpdateCharacters`' org resolution: it currently derives `playerOrgId` from the first `Organization` archetype found (lines ~77–85) instead of `orgEntity`, so in a multi-org world selected-country character opinions could read the wrong org's `opinion_{orgId}` resource. Pass the same `orgEntity`-resolved view org id in; single-org behaviour is identical and no `VisualState` shape changes.
 
 - [ ] **Add `OrgMetrics`** — new `src/Game.Systems/OrgMetrics.cs` with `GetTotalControl`, `GetGold`, `GetControlByCountry` (raw sums, no score).
 
@@ -226,7 +226,7 @@ Dates are `yyyy-MM-dd` strings; `orgs` arrays are always in participating-list o
 
 - [ ] **Remove the drifted `data/` snapshot** — delete `src/Game.ConsoleRunner/data/` (all three files are canonical in `Assets/Configs/`) and drop the `<Content Include="data/**">` group from `Game.ConsoleRunner.csproj`.
 
-- [ ] **Tests** — implement the Tests section below, including adding the `Game.ConsoleRunner` project reference to `src/Game.Tests/Game.Tests.csproj` and updating `SavableDiscoveryTests.ExpectedSavable` with `DiscoveredCountry`.
+- [ ] **Tests** — implement the Tests section below, including adding the `Game.ConsoleRunner` project reference to `src/Game.Tests/Game.Tests.csproj` and adding `typeof(DiscoveredCountry)` to `SavableDiscoveryTests.ExpectedSavable` (note: `IsDiscovered` was never listed there, so nothing is removed).
 
 - [ ] **Run the test suite** — `dotnet test src/GlobalStrategy.Core.sln`; the paired-run determinism tests are the acceptance gate — if they fail, fix the specific nondeterminism source they expose (ordinal key sort in the offending system) and re-run.
 
@@ -259,7 +259,7 @@ Test project: `src/Game.Tests/` (xunit, snake_case `[Fact]` names, `StaticConfig
 - **New `src/Game.Tests/MultiOrgInitTests.cs`:**
   - `each_participating_org_gets_org_entity_gold_base_control_slots_deck_and_hand` — two participating orgs; assert per org: `Organization` entity, gold `Resource` = `InitialGold`, `base_{orgId}` `ControlEffect` in its HQ, `master` + `InitialAgentSlots` `CharacterSlot`s, org `CardDeck`/`CardHand` with a drawn hand, per-country `CardDeck`s keyed to it.
   - `unknown_participating_org_id_fails_fast` — explicit list containing a bogus id → first `Update` throws `InvalidOperationException` and the logger captured an error (spec's fail-fast criterion).
-  - `default_context_initializes_single_org_exactly_as_today` — no participating list, `initialOrganizationId` set → entity set matches current behaviour (regression for the Unity path; reuse/extend existing `GameLogicOrgTests` asserts).
+  - `default_context_initializes_single_org_exactly_as_today` — no participating list, `initialOrganizationId` set → entity set matches current behaviour (regression for the Unity path; reuse/extend existing `GameLogicOrgTests` asserts). Use a config with an org action pool, or assert discovery via the new hoisted rule — the card-less harness intentionally gains initial `DiscoveredCountry` entities relative to today (see Initial discovery note in §4).
   - `non_view_org_slots_are_initialized_with_is_available` — second org's unfilled agent slots have `IsAvailable == true` (resolved decision).
 
 - **New `src/Game.Tests/MultiOrgGameplayTests.cs`:**
@@ -279,7 +279,7 @@ Test project: `src/Game.Tests/` (xunit, snake_case `[Fact]` names, `StaticConfig
 - **Extend `src/Game.Tests/SaveLoadRoundTripTests.cs`:**
   - `round_trip_preserves_per_org_discovery` — build a world with `DiscoveredCountry` entities for two orgs → `SaveSystem.BuildSnapshot` → `LoadSystem.Apply` into a fresh world → both org sets intact and separate (the new-shape round-trip that stays in scope; no pre-change-save tests exist, per the resolved decision).
 
-- **Extend `src/Game.Tests/SavableDiscoveryTests.cs`:** add `typeof(DiscoveredCountry)` to `ExpectedSavable` and remove `typeof(IsDiscovered)` (the type is deleted).
+- **Extend `src/Game.Tests/SavableDiscoveryTests.cs`:** add `typeof(DiscoveredCountry)` to `ExpectedSavable`. (`IsDiscovered` is not currently in either list, so its deletion requires no test-list removal.)
 
 - **New `src/Game.Tests/DeterminismTests.cs`** (the acceptance gate):
   - `same_seed_and_commands_produce_identical_end_state` — two `GameLogic` instances, same seed/configs (2 orgs, cards, monthly income, proximity map), identical `Update(deltaTime)` sequence (~13+ game months at one day per call) with an identical scripted command sequence (each org plays a card on fixed ticks); assert equality of: per-org `OrgMetrics.GetTotalControl`, per-org `GetGold`, per-org `GetControlByCountry` (per-country breakdown), game date, and both org hand contents (sorted `(ActionId, SlotIndex)` lists).
