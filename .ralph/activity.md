@@ -123,3 +123,17 @@ Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded,
 Flag flip: used the same inline-Python byte-level fallback pattern (find task description marker, flip the next `"passes": false` after it) to edit `.ralph/prd.md` — `Edit` continues to be unreliable against this CRLF/tab file, keep using the Python fallback.
 
 Notes for next iteration: Next task is "Seed province population entities at init" — in `src/Game.Main/InitSystem.Run`, change the existing `ProvinceOwnershipSystem.Seed(world, context.Province.Load());` line to first assign `var provinceConfig = context.Province.Load();`, then call `ProvinceOwnershipSystem.Seed(world, provinceConfig);`, then add `CreateProvincePopulationEntities(world, provinceConfig);` right after. Implement `static void CreateProvincePopulationEntities(World world, ProvinceConfig config)` mirroring `CreateResourceEntities`'s per-country seeding shape: for each `ProvinceEntry`, `world.Create()` an entity with `ResourceOwner(entry.ProvinceId, OwnerType.Province)` and `Resource { ResourceId = ProvincePopulationGrowthSystem.PopulationResourceId, Value = entry.Population }`. Gate is `dotnet build src/GlobalStrategy.Core.sln -c Release`. Should look at `InitSystem.cs`'s existing `CreateResourceEntities` method for the exact seeding pattern to mirror. No blockers on this task.
+
+---
+
+## 2026-07-15 — Seed province population entities at init
+
+Task: `systems` — Seed province population entities at init.
+
+Change: In `src/Game.Main/InitSystem.cs`'s `Run`, replaced the inline `ProvinceOwnershipSystem.Seed(world, context.Province.Load());` call with `var provinceConfig = context.Province.Load(); ProvinceOwnershipSystem.Seed(world, provinceConfig); CreateProvincePopulationEntities(world, provinceConfig);`. Added `static void CreateProvincePopulationEntities(World world, ProvinceConfig config)`, which for each `ProvinceEntry` in `config.Provinces` creates one entity with `ResourceOwner(entry.ProvinceId, OwnerType.Province)` and `Resource { ResourceId = ProvincePopulationGrowthSystem.PopulationResourceId, Value = entry.Population }` — mirrors `CreateResourceEntities`'s per-country seeding shape (single resource per province, no `ResourceEffect`/`ResourceLink`).
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded, 0 Warning(s), 0 Error(s).
+
+Flag flip: `Edit` against `.ralph/prd.md` was not attempted this time — used the established inline-Python byte-level fallback directly (find task description marker, flip the next `"passes": false` after it), confirmed via `grep` that only this task's flag flipped to `true`.
+
+Notes for next iteration: Next task is "Wire population growth into GameLogic.Update" — in `src/Game.Main/GameLogic.cs`, add a `readonly double _populationGrowthPercent;` field set from `settings.PopulationGrowthPercentPerMonth` in the constructor (same place `_speedMultipliers` is captured from settings), then in `Update`, immediately after the `OpinionSystem.Update(_world, _previousTime, currentTime);` call, add `ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);`. Gate is `dotnet build src/GlobalStrategy.Core.sln -c Release`. No blockers on this task.
