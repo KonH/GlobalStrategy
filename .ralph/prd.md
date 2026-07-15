@@ -147,7 +147,7 @@ Give each province its own population value, modeled with the existing `Resource
 			"In ProvinceProcessorTests.cs: add process_extracts_population_field — a feature with a population property round-trips into ProvinceEntry.Population; a feature missing the property defaults to 0.0 (no crash)"
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "docs",
