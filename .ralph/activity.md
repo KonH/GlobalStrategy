@@ -190,3 +190,18 @@ Gate: `"$USERPROFILE/.dotnet/dotnet.exe" build src/GlobalStrategy.Core.sln -c Re
 Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 125; used a direct Python line-index replacement, consistent with prior iterations' notes about the `Edit` tool's exact-string match failing against this JSON block).
 
 Notes for next iteration: the next task ("Extend InitSystemTests for province population seeding") adds `Population` values to `BuildLogic`'s `provinceConfig` `ProvinceEntry`s in `src/Game.Tests/InitSystemTests.cs` and a new `province_population_seeded_from_config` test asserting one `Resource{ResourceId=population}` + `ResourceOwner(_, OwnerType.Province)` entity per `ProvinceEntry`, keyed by `ProvinceId` (not `CountryId`), with `Value == entry.Population`. Gate is `dotnet test` — use `"$USERPROFILE/.dotnet/dotnet.exe" test src/GlobalStrategy.Core.sln`.
+
+---
+
+## 2026-07-15 — Extend InitSystemTests for province population seeding
+
+Task: `src-tests` / "Extend InitSystemTests for province population seeding" (eleventh task in `.ralph/prd.md`).
+
+Changes:
+- `src/Game.Tests/InitSystemTests.cs`: `BuildLogic`'s `provinceConfig` now sets `Population = 1234.0` on `prov_a` (Great_Britain) and `Population = 5678.0` on `prov_b` (France). Added `province_population_seeded_from_config`: after `logic.Update(0f)`, iterates all `ResourceOwner`+`Resource` archetype rows, collects those with `OwnerType.Province` and `ResourceId == "population"`, and asserts exactly 2 such entities exist with `Value` matching the expected per-`ProvinceId` population and `OwnerId == ProvinceId` (not `CountryId`).
+
+Gate: `"$USERPROFILE/.dotnet/dotnet.exe" test src/GlobalStrategy.Core.sln` → **Passed! Failed: 0, Passed: 34, Total: 34 (ECS.Tests)**; **Passed! Failed: 0, Passed: 16, Total: 16 (ECS.Viewer.Tests)**; **Passed! Failed: 0, Passed: 132, Total: 132 (Game.Tests)** — up from 131, confirming the new test ran and passed (also filtered individually: 6/6 `InitSystemTests` cases passed).
+
+Flipped this task's `"passes"` to `true` in `.ralph/prd.md` (line 135; used a direct Python line-index replacement, consistent with prior iterations' notes about the `Edit` tool's exact-string match failing against this JSON block — this time the same quirk also affected the smaller `ProvinceEntry` literal edits in `InitSystemTests.cs`, worked around by shrinking each `old_string` to just the single-line entry being changed).
+
+Notes for next iteration: the next task ("Wire ProvincePopulationGrowthSystem into GameLogic.Update") adds a `_populationGrowthPercent` field to `src/Game.Main/GameLogic.cs`, set from `settings.PopulationGrowthPercentPerMonth` in the constructor (alongside where `_speedMultipliers` is captured), and calls `ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);` in `Update` right after the existing `OpinionSystem.Update(...)` call. Gate is `dotnet build`.

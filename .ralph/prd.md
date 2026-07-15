@@ -132,7 +132,7 @@ Add a per-province `population` `Resource` (seeded from a new pipeline-generated
 			"Add province_population_seeded_from_config: after the first GameLogic.Update, one Resource{ResourceId=population} + ResourceOwner(_, OwnerType.Province) entity exists per ProvinceEntry, Value == entry.Population, OwnerId == entry.ProvinceId (not entry.CountryId)"
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "src-main",

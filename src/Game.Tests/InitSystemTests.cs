@@ -74,8 +74,8 @@ namespace GS.Game.Tests {
 			var mapEntry = new MapEntryConfig();
 			var provinceConfig = new ProvinceConfig {
 				Provinces = new List<ProvinceEntry> {
-					new ProvinceEntry { ProvinceId = "prov_a", CountryId = "Great_Britain" },
-					new ProvinceEntry { ProvinceId = "prov_b", CountryId = "France" }
+					new ProvinceEntry { ProvinceId = "prov_a", CountryId = "Great_Britain", Population = 1234.0 },
+					new ProvinceEntry { ProvinceId = "prov_b", CountryId = "France", Population = 5678.0 }
 				}
 			};
 
@@ -153,6 +153,33 @@ namespace GS.Game.Tests {
 
 			logic.Update(0f);
 			Assert.Equal(countAfterInit, CountEntities<ProvinceOwnership>(logic.World));
+		}
+
+		[Fact]
+		void province_population_seeded_from_config() {
+			var logic = BuildLogic();
+			logic.Update(0f);
+
+			var expected = new Dictionary<string, double> {
+				{ "prov_a", 1234.0 },
+				{ "prov_b", 5678.0 }
+			};
+
+			int found = 0;
+			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(req, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerType != OwnerType.Province || resources[i].ResourceId != "population") {
+						continue;
+					}
+					Assert.True(expected.TryGetValue(owners[i].OwnerId, out double expectedValue));
+					Assert.Equal(expectedValue, resources[i].Value);
+					found++;
+				}
+			}
+			Assert.Equal(expected.Count, found);
 		}
 	}
 }
