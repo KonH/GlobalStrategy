@@ -117,7 +117,7 @@ Add a per-province `population` `Resource` (owned via a new `OwnerType.Province`
 			"Seed via BuildLogic, call ProvinceOwnershipSystem.ChangeOwner, then assert the province's population Resource entity (keyed by provinceId via ResourceOwner.OwnerId) is untouched in value and still present under the same provinceId"
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "test",

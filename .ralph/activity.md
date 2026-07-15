@@ -239,3 +239,42 @@ it's a separate copy from `InitSystemTests.cs`'s, so it will need its own `Popul
 added to its `ProvinceEntry`s if not already present. Remember to export
 `DOTNET_ROLL_FORWARD=LatestMajor` before running the gate, and dump raw bytes before multi-line
 Edit attempts on this CRLF file.
+
+---
+
+## 2026-07-15 -- Extend ProvinceOwnershipTests with ownership-change-preserves-population case
+
+Task: "Extend ProvinceOwnershipTests with ownership-change-preserves-population case" (test).
+
+Change: In `src/Game.Tests/ProvinceOwnershipTests.cs`, `BuildLogic`'s `provinceConfig` now seeds
+`Population = 1234.0` for `prov_a` (Great_Britain) and `Population = 5678.0` for `prov_b`
+(France) -- this file has its own separate `BuildLogic` copy from `InitSystemTests.cs`, confirming
+the prior iteration's note. Added a new fact `change_owner_does_not_affect_population`: builds the
+logic, calls `Update(0f)`, calls `ProvinceOwnershipSystem.ChangeOwner(logic.World, "prov_b",
+"Great_Britain")`, then iterates `logic.World.GetMatchingArchetypes` for archetypes with both
+`ResourceOwner` and `Resource` columns (same pattern as `InitSystemTests.province_population_seeded_from_config`),
+collecting `OwnerType.Province` + `ResourceId == "population"` rows into a
+`Dictionary<string, double>` keyed by `OwnerId`. Asserts exactly 2 such entities still exist and
+`byOwnerId["prov_b"] == 5678.0` unchanged -- i.e. the population `Resource` entity is keyed by
+`provinceId` and is untouched by a `ChangeOwner` call.
+
+Applied the multi-line-edit workaround from prior notes proactively this time: used single-line
+`Edit` calls for each `ProvinceEntry` line individually (avoiding the CRLF/whitespace multi-line
+match failure) rather than attempting a combined multi-line replace.
+
+Gate: `DOTNET_ROLL_FORWARD=LatestMajor` + `dotnet test src/GlobalStrategy.Core.sln --filter
+FullyQualifiedName~ProvinceOwnershipTests` -> `Passed! - Failed: 0, Passed: 8, Skipped: 0, Total: 8`
+in Game.Tests.dll (up from 7). Full solution run: `ECS.Tests.dll` 34/34, `Game.Tests.dll` 133/133
+(up from 132), `ECS.Viewer.Tests.dll` 16/16, 0 failures overall.
+
+Notes for next iteration: Next task is "Extend SaveLoadRoundTripTests with population persistence
+case" -- in `src/Game.Tests/SaveLoadRoundTripTests.cs`, add a case that advances at least one month
+boundary (growing population), saves via `SaveSystem.BuildSnapshot`, reloads via `LoadSystem.Apply`,
+and asserts the grown (not seed) value survives and a subsequent month-boundary `Update` continues
+compounding from the persisted value. Check whether `SaveLoadRoundTripTests.cs` has its own
+`BuildLogic`/province config copy (each test file so far has had its own) and whether `Resource`
+components with `OwnerType.Province` are already covered by the existing `[Savable]`
+save/load pipeline (per `Resource`'s existing `[Savable]` attribute, this should "just work" via
+the generic save/load system, but confirm rather than assume). Remember
+`DOTNET_ROLL_FORWARD=LatestMajor` before `dotnet test`, and prefer single-line `Edit` calls over
+multi-line ones on this repo's CRLF C# test files.
