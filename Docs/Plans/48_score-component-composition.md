@@ -197,7 +197,7 @@ Checked against `Docs/Constitution.md`.
 - *URP only.* Not applicable — no rendering change.
 - *One `.asmdef` per feature folder.* Not applicable — scoped to `src/` (`.csproj`-based).
 - *Planning/Specification discipline.* This is a purely technical refactor of already-shipped code with no new user-facing behavior or acceptance criteria — Constitution explicitly permits skipping `/specify` for such tasks ("purely technical tasks (migrations, refactors, infra) may skip the spec and go straight to `/plan`").
-- *File organisation.* Plan lives at `Docs/Plans/50_score-component-composition.md` — correct index (next after `Docs/Specs/49_org-scoring/`, shared index space), correct directory for a spec-less technical plan.
+- *File organisation.* Plan lives at `Docs/Plans/48_score-component-composition.md` — correct index (shared index space with `Docs/Specs/`; deliberately placed before `Docs/Specs/49_org-scoring/` since org-scoring depends on this refactor landing first), correct directory for a spec-less technical plan.
 - *C# style.* Tabs, braces always, `_`-prefixed private members, no redundant access modifiers — matching the surrounding files this plan edits.
 
 Use /implement to start working on the plan or request changes.
