@@ -51,14 +51,14 @@ namespace GS.Game.Systems {
 		}
 
 		static void DrawOrgCards(World world, Random rng, string orgId, int toDraw) {
-			int[] deckReq = { TypeId<ActionCard>.Value };
-			int[] excludeInHandOrCountry = { TypeId<InHand>.Value, TypeId<CountryContext>.Value };
+			int[] deckReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value };
+			int[] excludeInHandOrCountry = { TypeId<CardInHand>.Value, TypeId<CountryContext>.Value };
 			var eligible = new List<int>();
 			foreach (var arch in world.GetMatchingArchetypes(deckReq, excludeInHandOrCountry)) {
-				ActionCard[] cards = arch.GetColumn<ActionCard>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (cards[i].OwnerId == orgId) { eligible.Add(arch.Entities[i]); }
+					if (orgs[i].OrgId == orgId) { eligible.Add(arch.Entities[i]); }
 				}
 			}
 
@@ -70,19 +70,19 @@ namespace GS.Game.Systems {
 			int currentHand = CountOrgHand(world, orgId);
 			int slot = currentHand;
 			for (int k = 0; k < toDraw && k < eligible.Count; k++) {
-				world.Add(eligible[k], new InHand { SlotIndex = slot++ });
+				world.Add(eligible[k], new CardInHand { SlotIndex = slot++ });
 			}
 		}
 
 		static int CountOrgHand(World world, string orgId) {
 			int count = 0;
-			int[] req = { TypeId<ActionCard>.Value, TypeId<InHand>.Value };
+			int[] req = { TypeId<OrgContext>.Value, TypeId<CardInHand>.Value };
 			int[] excludeCountry = { TypeId<CountryContext>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, excludeCountry)) {
-				ActionCard[] cards = arch.GetColumn<ActionCard>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				int c = arch.Count;
 				for (int i = 0; i < c; i++) {
-					if (cards[i].OwnerId == orgId) { count++; }
+					if (orgs[i].OrgId == orgId) { count++; }
 				}
 			}
 			return count;
@@ -92,17 +92,17 @@ namespace GS.Game.Systems {
 			int orgControl = GetOrgControlInCountry(world, orgId, countryId);
 			var ctx = new ExpressionContext { Control = orgControl };
 
-			int[] deckReq = { TypeId<ActionCard>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
-			int[] excludeInHand = { TypeId<InHand>.Value };
+			int[] deckReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
+			int[] excludeInHand = { TypeId<CardInHand>.Value };
 			var eligible = new List<int>();
 			foreach (var arch in world.GetMatchingArchetypes(deckReq, excludeInHand)) {
-				ActionCard[] cards = arch.GetColumn<ActionCard>();
+				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				CountryContext[] countries = arch.GetColumn<CountryContext>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId) { continue; }
-					var def = config.Find(cards[i].ActionId);
+					var def = config.Find(actions[i].ActionId);
 					if (def == null) { continue; }
 					bool ok = true;
 					foreach (var cond in def.Conditions) {
@@ -119,11 +119,11 @@ namespace GS.Game.Systems {
 
 			const int maxHandSize = 3;
 			var occupiedSlots = new HashSet<int>();
-			int[] handReq = { TypeId<ActionCard>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<InHand>.Value };
+			int[] handReq = { TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<CardInHand>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(handReq, null)) {
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				CountryContext[] countries = arch.GetColumn<CountryContext>();
-				InHand[] hands = arch.GetColumn<InHand>();
+				CardInHand[] hands = arch.GetColumn<CardInHand>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId == orgId && countries[i].CountryId == countryId) {
@@ -135,7 +135,7 @@ namespace GS.Game.Systems {
 			int drawIdx = 0;
 			for (int slot = 0; slot < maxHandSize && drawIdx < toDraw && drawIdx < eligible.Count; slot++) {
 				if (!occupiedSlots.Contains(slot)) {
-					world.Add(eligible[drawIdx], new InHand { SlotIndex = slot });
+					world.Add(eligible[drawIdx], new CardInHand { SlotIndex = slot });
 					drawIdx++;
 				}
 			}
