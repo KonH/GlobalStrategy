@@ -12,7 +12,7 @@ Source: `Docs/Specs/49_org-scoring/spec.md`.
 
 **Dependencies.**
 1. `Docs/Specs/47_country-scoring/spec.md`/`CountryScoreSystem` — **already merged** (PR #16, on `main`). This plan reads `CountryScore`'s already-computed values; no changes needed there.
-2. `Docs/Plans/48_score-component-composition.md` — the `Country + Score` composition refactor. Recommended to land first (it's small, self-contained, no external dependency) so this plan's single-pass country-score read is written against the final, post-refactor storage shape (`Country + Score`) rather than the pre-refactor `CountryScore { CountryId, Value }` shape and needing a follow-up edit. Not a hard compile-time blocker — the query's implementation is a one-line difference either way — but implementing plan 48 first avoids the rework.
+2. `Docs/Specs/48_score-component-composition/plan.md` — the `Country + Score` composition refactor. Recommended to land first (it's small, self-contained, no external dependency) so this plan's single-pass country-score read is written against the final, post-refactor storage shape (`Country + Score`) rather than the pre-refactor `CountryScore { CountryId, Value }` shape and needing a follow-up edit. Not a hard compile-time blocker — the query's implementation is a one-line difference either way — but implementing plan 48 first avoids the rework.
 
 **This plan has NO dependency on multi-org support, a headless runner, or any bot-org infrastructure.** `OrgScore.GetScore` takes an explicit `orgId` and reads world state fresh on every call — it works identically whether there is one `Organization` entity in the world (today) or many (once a future multi-org feature lands).
 
@@ -102,7 +102,7 @@ Add `src/Game.Systems/OrgScore.cs`, a static class with one method — `GetScore
 
 ### Agent Steps
 
-- [ ] **Confirm the score-component prerequisite's current shape** — check whether `Docs/Plans/48_score-component-composition.md` has landed (i.e. whether `src/Game.Components/Score.cs` exists and `CountryScoreSystem` composes it onto `Country` entities) or whether `CountryScore { CountryId, Value }` is still the live shape. Use whichever query shape matches — see the Approach section's fallback note. This is the only preflight check this plan needs; there is no multi-org or bot-infrastructure dependency to verify.
+- [ ] **Confirm the score-component prerequisite's current shape** — check whether `Docs/Specs/48_score-component-composition/plan.md` has landed (i.e. whether `src/Game.Components/Score.cs` exists and `CountryScoreSystem` composes it onto `Country` entities) or whether `CountryScore { CountryId, Value }` is still the live shape. Use whichever query shape matches — see the Approach section's fallback note. This is the only preflight check this plan needs; there is no multi-org or bot-infrastructure dependency to verify.
 
 - [ ] **Add `OrgScore`** — Create `src/Game.Systems/OrgScore.cs` per the Approach section: a single-pass `countryId -> CountryScore.Value` dictionary, a single-pass `countryId -> summed ControlEffect.Value` dictionary for the given `orgId`, then `(control / 100.0) * countryScore` summed across countries, with `0.0` fallbacks for missing entries (never throws).
 

@@ -4,7 +4,7 @@
 
 Refactor the already-merged, already-shipped `CountryScore`/`CountryScoreSystem` (PR #16, on `main`) to use **component composition** instead of a parallel id-keyed entity: replace the standalone `CountryScore { CountryId, Value }` component/entity with a shared, generic `Score { Value }` component attached directly onto the existing `Country` entity. This is the pattern just recorded in `.claude/rules/unity/ecs_patterns.md` under "Composition over parallel lookup entities for derived per-entity state," decided after reviewing the merged code.
 
-This plan is purely technical (no behavior change, no new acceptance criteria) — per `Docs/Constitution.md`'s Specification Discipline principle, it skips `/specify` and goes straight to `Docs/Plans/`.
+This plan is purely technical (no behavior change, no new acceptance criteria) — per `Docs/Constitution.md`'s Specification Discipline principle, it skips `/specify` and goes straight to a plan. Filed under `Docs/Specs/48_score-component-composition/plan.md` (the spec+plan subdirectory format) rather than `Docs/Plans/`, per project preference to use that layout consistently even when there is no accompanying `spec.md`.
 
 This plan is a **prerequisite** for `Docs/Specs/49_org-scoring/plan.md`, which reads country scores via this same shared `Score` component (composed onto `Country` entities) in its `OrgScore.GetScore` query. Note: unlike this refactor, plan 49 does not define an `OrgScoreSystem` or compose `Score` (or any component) onto `Organization` entities — per its spec's explicit scope, it is a pure derived query with zero new ECS components. Landing this refactor first means org-scoring's *read* of country scores depends on one shared `Score` component instead of being written against the pre-refactor `CountryScore { CountryId, Value }` shape and needing a follow-up edit.
 
@@ -204,7 +204,7 @@ Checked against `Docs/Constitution.md`.
 - *URP only.* Not applicable — no rendering change.
 - *One `.asmdef` per feature folder.* Not applicable — scoped to `src/` (`.csproj`-based).
 - *Planning/Specification discipline.* This is a purely technical refactor of already-shipped code with no new user-facing behavior or acceptance criteria — Constitution explicitly permits skipping `/specify` for such tasks ("purely technical tasks (migrations, refactors, infra) may skip the spec and go straight to `/plan`").
-- *File organisation.* Plan lives at `Docs/Plans/48_score-component-composition.md` — correct index (shared index space with `Docs/Specs/`; deliberately placed before `Docs/Specs/49_org-scoring/` since org-scoring depends on this refactor landing first), correct directory for a spec-less technical plan.
+- *File organisation.* Plan lives at `Docs/Specs/48_score-component-composition/plan.md` — correct index (shared index space with `Docs/Plans/`; deliberately placed before `Docs/Specs/49_org-scoring/` since org-scoring depends on this refactor landing first). Uses the `Docs/Specs/<index>_<name>/` subdirectory layout rather than a flat `Docs/Plans/<index>_<name>.md` file, per project preference for that format even for a spec-less technical plan — there is no `spec.md` in this folder, only `plan.md`.
 - *C# style.* Tabs, braces always, `_`-prefixed private members, no redundant access modifiers — matching the surrounding files this plan edits.
 
 Use /implement to start working on the plan or request changes.
