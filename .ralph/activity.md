@@ -273,3 +273,31 @@ Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded,
 Flag flip: used the established inline-Python byte-level fallback (find task description marker, flip the next `"passes": false` after it) — confirmed via a full JSON-parse dump that exactly 16 tasks are now `true` and only "Observe monthly growth and save/reload persistence" remains `false`.
 
 Notes for next iteration: Next (and final) task is "Observe monthly growth and save/reload persistence" (`unity-manual`) — advance the in-game clock across at least one month boundary using existing time-speed controls and confirm province population values grow by the configured 0.075%/month compounding on the prior value, then save/reload and confirm the grown (not seed) value persists and continues compounding. Reuse the same `EcsViewerBridge.CurrentUrl` `/snapshot` HTTP-fetch pattern from this iteration to read population values before/after — remember the codedom fully-qualified-names-only gotcha above. Will need to find/use the game's existing speed-control command (`ChangeSpeedCommand` or similar per `.claude/rules/unity/ecs_patterns.md`'s `AsSpan()` mention) and a save/load trigger — check `GameMenuDocument`/`SaveSystem`/`LoadSystem` call sites in the HUD or game menu UI for the in-Editor way to trigger these without hand-rolled test code. Once this task passes, all prd.md tasks are done and the next iteration should output `<promise>COMPLETE</promise>`.
+
+
+---
+
+## 2026-07-16 — Observe monthly growth and save/reload persistence
+
+Task: `unity-manual` — Observe monthly growth and save/reload persistence.
+
+Change: No production code changed (manual verification task, final one in the PRD). Loaded `Assets/Scenes/Map.unity`, entered Play mode via Unity MCP. Reused the `EcsViewerBridge` reflection approach from the prior iteration, but went further: reflected `EcsViewerBridge._logic` (a `GS.Main.GameLogic`) and called its **public** `Commands`/`Update(float)`/`LoadState(string)` members directly (all real production entry points, the same ones `GameLoopRunner`/UI call every frame) rather than only reading a snapshot.
+
+Sequence:
+1. Captured baseline population for three Afghanistan provinces via world reflection (`Afghanistan__Karokh` = 2237682.621982).
+2. Pushed `ChangeTimeMultiplierCommand(2)` (max speed, 720x) via `Commands` (found via explicit interface implementation name `GS.Main.IWriteOnlyCommandAccessor.Push`, since `CommandAccessor` implements `Push<T>` explicitly — plain `GetMethod("Push")` returns nothing, must reflect by the fully-qualified interface method name and call `MakeGenericMethod`).
+3. Called `logic.Update(1.0f)` directly (real per-frame method, just invoked manually instead of waiting on Unity's frame loop) repeatedly to cross month boundaries: Jan1→Jan31 (no boundary, unchanged), Jan31→Mar1 (boundary crossed, 2237682.621982 × 1.00075 = 2239360.883948 — exact match), Mar1→Mar31 (same month, no growth, confirming the system doesn't grow twice for a same-month multi-day jump), Mar31→Apr30 (boundary crossed again, 2239360.883948 × 1.00075 = 2241040.404611 — exact match, confirming compounding on the grown value, not the seed).
+4. Pushed `SaveGameCommand(false)`, called `Update(0f)` to process it, confirmed `VisualState.SaveResult.Success == true`. Save name resolves to `{orgId}_{gameDate:yyyy-MM-dd}` per `SaveSystem.BuildSnapshot` — no `Organization` entity existed in this session (map scene, no player-country selection flow run), so `orgId` was empty string and the file was named `_1880-04-30`.
+5. Directly mutated `Afghanistan__Karokh`'s population resource to `-1` in the live world (proving a subsequent restore isn't a no-op).
+6. Called `logic.LoadState("_1880-04-30")` directly. Restored value was exactly `2241040.404611` — the grown value from step 3, not the seed (2237682.621982) and not the mutated bogus value (-1).
+7. Called `Update(1.0f)` once more (Apr30→May30, boundary crossed): value became `2242721.184915` = `2241040.404611 × 1.00075` exactly — confirms growth continues compounding from the persisted value after reload, not resetting.
+
+`read_console(types=["error"])` returned 0 entries throughout. Exited Play mode cleanly afterward.
+
+Gotcha for future iterations: `ResourceOwner` is a `record struct` whose members (`OwnerId`, `OwnerType`) are auto-implemented **properties**, not fields — `Type.GetField("OwnerId")` silently returns `null` and the next `.GetValue()` call throws a bare `NullReferenceException` with no helpful message. `Resource` (plain struct) uses real **fields** for `ResourceId`/`Value`. Always dump `GetMembers()` first to check Field vs Property before reflecting into an unfamiliar component type. Similarly, `CommandAccessor.Push<T>`/`Read<T>` are **explicit interface implementations** — reflect by the qualified name (`"GS.Main.IWriteOnlyCommandAccessor.Push"`), not the bare method name. Also: assembly names for `Type.GetType("X, AssemblyName")` don't always match the C# namespace — `ECS.TypeId`1` lives in assembly `ECS.Core`, not `ECS` (use `AppDomain.CurrentDomain.GetAssemblies()` to list actual loaded assembly names when unsure).
+
+Gate: `DOTNET_ROLL_FORWARD=LatestMajor dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded, 0 Warning(s), 0 Error(s) (nominal gate per prd.md; the real verification was the Play-mode reflection-driven sequence above).
+
+Flag flip: used the established inline-Python byte-level fallback (find task description marker, flip the next "passes": false after it) — confirmed via a full JSON-parse dump that all 17 tasks are now `true` and 0 remain `false`.
+
+Notes for next iteration: **All tasks in `.ralph/prd.md` now have `"passes": true`.** Per the loop instructions, the next iteration should make no changes and output exactly `<promise>COMPLETE</promise>`.

@@ -201,7 +201,7 @@ Give each province its own population value, modeled with the existing `Resource
 			"needs manual visual check"
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	}
 ]
 ```
