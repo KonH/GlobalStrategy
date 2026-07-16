@@ -38,6 +38,7 @@ namespace GS.Main {
 			UpdateCountryActions(world, gameTimeEntity);
 			UpdateProvinceOwnership(world);
 			UpdateSelectedProvince(world);
+			UpdateCountryScore(world);
 
 			// Tick all animatables
 			foreach (var animatable in _characterOpinionAnimatables.Values) {
@@ -460,34 +461,37 @@ namespace GS.Main {
 			string orgId = _state.PlayerOrganization.OrgId;
 
 			int handSize = 1;
-			int[] ownerReq = { TypeId<ActionOwner>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(ownerReq, null)) {
-				ActionOwner[] owners = arch.GetColumn<ActionOwner>();
+			int[] deckHandReq = { TypeId<CardDeck>.Value, TypeId<CardHand>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(deckHandReq, null)) {
+				CardDeck[] decks = arch.GetColumn<CardDeck>();
+				CardHand[] hands = arch.GetColumn<CardHand>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (owners[i].OwnerId == orgId) { handSize = owners[i].HandSize; break; }
+					if (decks[i].OrgId == orgId && decks[i].CountryId == "") { handSize = hands[i].HandSize; break; }
 				}
 			}
 
 			var hand = new System.Collections.Generic.List<ActionCardEntry>();
 			var deck = new System.Collections.Generic.List<ActionCardEntry>();
 
-			int[] handReq = { TypeId<ActionCard>.Value, TypeId<InHand>.Value };
+			int[] handReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardInHand>.Value };
 			int[] excludeCountry = { TypeId<CountryContext>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(handReq, excludeCountry)) {
-				ActionCard[] cards = arch.GetColumn<ActionCard>();
-				InHand[] hands = arch.GetColumn<InHand>();
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				CardInHand[] hands = arch.GetColumn<CardInHand>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (cards[i].OwnerId != orgId) { continue; }
-					hand.Add(new ActionCardEntry(cards[i].ActionId, hands[i].SlotIndex, true));
+					if (orgs[i].OrgId != orgId) { continue; }
+					hand.Add(new ActionCardEntry(actions[i].ActionId, hands[i].SlotIndex, true));
 				}
 			}
-			int[] deckReq = { TypeId<ActionCard>.Value };
-			int[] excludeInHandOrCountry = { TypeId<InHand>.Value, TypeId<CountryContext>.Value };
+			int[] deckReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value };
+			int[] excludeInHandOrCountry = { TypeId<CardInHand>.Value, TypeId<CountryContext>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(deckReq, excludeInHandOrCountry)) {
-				ActionCard[] cards = arch.GetColumn<ActionCard>();
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (cards[i].OwnerId != orgId) { continue; }
-					deck.Add(new ActionCardEntry(cards[i].ActionId, -1, false));
+					if (orgs[i].OrgId != orgId) { continue; }
+					deck.Add(new ActionCardEntry(actions[i].ActionId, -1, false));
 				}
 			}
 			hand.Sort((a, b) => a.SlotIndex.CompareTo(b.SlotIndex));
@@ -529,34 +533,34 @@ namespace GS.Main {
 			var hand = new List<ActionCardEntry>();
 			var deck = new List<ActionCardEntry>();
 
-			// Collect all country card entities with OrgContext + CountryContext + ActionCard
-			int[] baseReq = { TypeId<ActionCard>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
-			int[] handReq = { TypeId<ActionCard>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<InHand>.Value };
-			int[] excludeHand = { TypeId<InHand>.Value };
+			// Collect all country card entities with OrgContext + CountryContext + GameAction
+			int[] baseReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
+			int[] handReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<CardInHand>.Value };
+			int[] excludeHand = { TypeId<CardInHand>.Value };
 
 			// Hand cards
 			foreach (var arch in world.GetMatchingArchetypes(handReq, null)) {
-				ActionCard[] cards = arch.GetColumn<ActionCard>();
+				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				CountryContext[] countries = arch.GetColumn<CountryContext>();
-				InHand[] hands = arch.GetColumn<InHand>();
+				CardInHand[] hands = arch.GetColumn<CardInHand>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId) { continue; }
-					var entry = BuildEntry(cards[i].ActionId, hands[i].SlotIndex, true, orgControl, usedTotal);
+					var entry = BuildEntry(actions[i].ActionId, hands[i].SlotIndex, true, orgControl, usedTotal);
 					if (entry != null) { hand.Add(entry); }
 				}
 			}
 
 			// Deck cards
 			foreach (var arch in world.GetMatchingArchetypes(baseReq, excludeHand)) {
-				ActionCard[] cards = arch.GetColumn<ActionCard>();
+				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				CountryContext[] countries = arch.GetColumn<CountryContext>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId) { continue; }
-					var entry = BuildEntry(cards[i].ActionId, -1, false, orgControl, usedTotal);
+					var entry = BuildEntry(actions[i].ActionId, -1, false, orgControl, usedTotal);
 					if (entry != null) { deck.Add(entry); }
 				}
 			}
@@ -620,6 +624,20 @@ namespace GS.Main {
 				return;
 			}
 			_state.SelectedProvince.Set(false, "");
+		}
+
+		void UpdateCountryScore(IReadOnlyWorld world) {
+			var scoreByCountryId = new Dictionary<string, double>();
+			int[] required = { TypeId<Country>.Value, TypeId<Score>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				Country[] countries = arch.GetColumn<Country>();
+				Score[] scores = arch.GetColumn<Score>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					scoreByCountryId[countries[i].CountryId] = scores[i].Value;
+				}
+			}
+			_state.CountryScore.Set(scoreByCountryId);
 		}
 
 		List<EffectStateEntry> BuildEffects(IReadOnlyWorld world, string countryId, string resourceId) {

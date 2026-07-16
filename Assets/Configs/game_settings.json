@@ -2,5 +2,7 @@
   "startYear": 1880,
   "speedMultipliers": [1, 24, 720],
   "defaultLocale": "en",
-  "autoSaveInterval": "monthly"
+  "autoSaveInterval": "monthly",
+  "populationGrowthPercentPerMonth": 0.075,
+  "countryScoreCoefficient": 0.0001
 }

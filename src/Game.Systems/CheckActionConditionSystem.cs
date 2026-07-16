@@ -6,7 +6,7 @@ using GS.Game.Configs;
 namespace GS.Game.Systems {
 	public static class CheckActionConditionSystem {
 		public static void Update(World world, ActionConfig config) {
-			int[] required = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value };
+			int[] required = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
 			var toValidate = new List<(int entity, string actionId, string orgId)>();
 
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {

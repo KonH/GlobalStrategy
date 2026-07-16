@@ -34,7 +34,9 @@ namespace GS.Main {
 				CreateResourceEntities(world, entry, resourceConfig);
 			}
 
-			ProvinceOwnershipSystem.Seed(world, context.Province.Load());
+			var provinceConfig = context.Province.Load();
+			ProvinceOwnershipSystem.Seed(world, provinceConfig);
+			CreateProvincePopulationEntities(world, provinceConfig);
 
 			var settings = context.GameSettings.Load();
 			var startTime = new DateTime(settings.StartYear, 1, 1);
@@ -87,6 +89,8 @@ namespace GS.Main {
 			CreateCharacterEntities(world, context, rng);
 			CreateCountryActionEntities(world, context, rng);
 
+			CountryScoreSystem.Recompute(world, settings.CountryScoreCoefficient);
+
 			int initEntity = world.Create();
 			world.Add(initEntity, new IsInitialized());
 		}
@@ -134,6 +138,17 @@ namespace GS.Main {
 						world.Add(skillEntity, new Resource { ResourceId = skillDef.SkillId, Value = skillValue });
 					}
 				}
+			}
+		}
+
+		static void CreateProvincePopulationEntities(World world, ProvinceConfig config) {
+			foreach (var entry in config.Provinces) {
+				int entity = world.Create();
+				world.Add(entity, new ResourceOwner(entry.ProvinceId, OwnerType.Province));
+				world.Add(entity, new Resource {
+					ResourceId = ProvincePopulationGrowthSystem.PopulationResourceId,
+					Value = entry.Population
+				});
 			}
 		}
 
@@ -346,40 +361,24 @@ namespace GS.Main {
 			var pool = actionConfig.GetOrgPool(orgId);
 			if (pool == null || pool.Count == 0) { return; }
 
-			int ownerEntity = world.Create();
-			world.Add(ownerEntity, new ActionOwner {
-				OwnerId   = orgId,
-				OwnerType = "org",
-				HandSize  = handSize
-			});
-
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = orgId, CountryId = "" });
 			world.Add(deckEntity, new CardHand { HandSize = handSize });
 
+			var deckEntities = new System.Collections.Generic.List<int>();
 			for (int i = 0; i < pool.Count; i++) {
 				int cardEntity = world.Create();
-				world.Add(cardEntity, new ActionCard {
-					ActionId = pool[i],
-					OwnerId  = orgId
-				});
+				world.Add(cardEntity, new GameAction { ActionId = pool[i] });
+				world.Add(cardEntity, new OrgContext { OrgId = orgId });
+				deckEntities.Add(cardEntity);
 			}
 
-			var deckEntities = new System.Collections.Generic.List<int>();
-			int[] cardReq = { TypeId<ActionCard>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(cardReq, null)) {
-				ActionCard[] cards = arch.GetColumn<ActionCard>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (cards[i].OwnerId == orgId) { deckEntities.Add(arch.Entities[i]); }
-				}
-			}
 			for (int i = deckEntities.Count - 1; i > 0; i--) {
 				int j = rng.Next(i + 1);
 				var tmp = deckEntities[i]; deckEntities[i] = deckEntities[j]; deckEntities[j] = tmp;
 			}
 			for (int slot = 0; slot < handSize && slot < deckEntities.Count; slot++) {
-				world.Add(deckEntities[slot], new InHand { SlotIndex = slot });
+				world.Add(deckEntities[slot], new CardInHand { SlotIndex = slot });
 			}
 
 			DiscoverInitialCountries(world, context);
@@ -442,7 +441,7 @@ namespace GS.Main {
 					for (int copyIndex = 0; copyIndex < def.DeckCopies; copyIndex++) {
 						foreach (string targetCharId in targets) {
 							int e = world.Create();
-							world.Add(e, new ActionCard { ActionId = def.ActionId, OwnerId = orgId });
+							world.Add(e, new GameAction { ActionId = def.ActionId });
 							world.Add(e, new OrgContext { OrgId = orgId });
 							world.Add(e, new CountryContext { CountryId = entry.CountryId });
 							createdEntities.Add((e, def.ActionId));
@@ -479,7 +478,7 @@ namespace GS.Main {
 					}
 
 					for (int slot = 0; slot < handSize && slot < eligibleEntities.Count; slot++) {
-						world.Add(eligibleEntities[slot], new InHand { SlotIndex = slot });
+						world.Add(eligibleEntities[slot], new CardInHand { SlotIndex = slot });
 					}
 				}
 			}

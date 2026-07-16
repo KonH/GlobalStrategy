@@ -28,7 +28,7 @@ Non-negotiable architectural principles. The `/plan` command checks these before
 
 ## File Organisation
 
-- **`Docs/Specs/<index>_<name>/` for spec+plan pairs; `Docs/Plans/<index>_<name>.md` for technical-only plans.** The numeric index is shared across both directories and always increments; no two plans or specs share a prefix.
+- **`Docs/Specs/<index>_<name>/` for all new plans, spec-backed or not.** A technical-only plan (migration, refactor, infra) still gets a `Docs/Specs/<index>_<name>/plan.md`, simply with no `spec.md` alongside it. `Docs/Plans/<index>_<name>.md` is a legacy flat-file location retained for existing entries only — do not add new files there. The numeric index is shared across both directories and always increments; no two plans or specs share a prefix.
 
 ## Assembly Structure
 

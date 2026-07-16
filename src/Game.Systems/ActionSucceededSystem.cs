@@ -6,7 +6,7 @@ using GS.Game.Configs;
 namespace GS.Game.Systems {
 	public static class ActionSucceededSystem {
 		public static void Update(World world, ActionConfig config) {
-			int[] validRequired = { TypeId<GameAction>.Value, TypeId<ActionValid>.Value };
+			int[] validRequired = { TypeId<GameAction>.Value, TypeId<ActionValid>.Value, TypeId<CardUse>.Value };
 			var succeeded = new List<int>();
 			foreach (var arch in world.GetMatchingArchetypes(validRequired, null)) {
 				int count = arch.Count;
@@ -18,7 +18,7 @@ namespace GS.Game.Systems {
 				world.Add(e, new ActionSucceeded());
 			}
 
-			int[] invalidRequired = { TypeId<GameAction>.Value };
+			int[] invalidRequired = { TypeId<GameAction>.Value, TypeId<CardUse>.Value };
 			int[] excludeValid = { TypeId<ActionValid>.Value };
 			var failed = new List<int>();
 			foreach (var arch in world.GetMatchingArchetypes(invalidRequired, excludeValid)) {

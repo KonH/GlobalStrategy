@@ -12,6 +12,8 @@ namespace GS.Main {
 		readonly VisualStateConverter _visualStateConverter;
 		readonly GameLogicContext _context;
 		readonly int[] _speedMultipliers;
+		readonly double _populationGrowthPercent;
+		readonly double _countryScoreCoefficient;
 		readonly Random _rng;
 		int _gameTimeEntity = -1;
 		int _localeEntity = -1;
@@ -48,6 +50,8 @@ namespace GS.Main {
 			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig);
 			var settings = context.GameSettings.Load();
 			_speedMultipliers = settings.SpeedMultipliers;
+			_populationGrowthPercent = settings.PopulationGrowthPercentPerMonth;
+			_countryScoreCoefficient = settings.CountryScoreCoefficient;
 			_previousTime = new DateTime(settings.StartYear, 1, 1);
 		}
 
@@ -71,7 +75,8 @@ namespace GS.Main {
 			DateTime currentTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
 			ResourceSystem.Update(_world, _previousTime, currentTime);
 			ControlSystem.Update(_world, _previousTime, currentTime);
-			OpinionSystem.Update(_world, _previousTime, currentTime);
+			ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);
+			CountryScoreSystem.Update(_world, _previousTime, currentTime, _countryScoreCoefficient);
 
 			foreach (var cmd in _commandAccessor.ReadChangeControlCommand().AsSpan()) {
 				ApplyChangeControl(cmd.OrgId, cmd.CountryId, cmd.Delta);
@@ -154,6 +159,7 @@ namespace GS.Main {
 				_sessionId = snapshot.Header.SessionId;
 			}
 			RefreshSingletonEntities();
+			CountryScoreSystem.Recompute(_world, _countryScoreCoefficient);
 		}
 
 		void SaveGame(bool isAutoSave) {
