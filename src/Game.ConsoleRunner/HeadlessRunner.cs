@@ -9,7 +9,7 @@ using GS.Game.Configs;
 using GS.Main;
 
 namespace GS.Game.ConsoleRunner {
-	static class HeadlessRunner {
+	public static class HeadlessRunner {
 		static readonly JsonSerializerOptions s_jsonOptions = new JsonSerializerOptions {
 			PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
 			WriteIndented = true
@@ -58,6 +58,8 @@ namespace GS.Game.ConsoleRunner {
 
 			var bots = new List<Bot>();
 			List<BotProfileResult>? botsResult = null;
+			var emissionLogByOrgId = new Dictionary<string, List<BotEmission>>();
+			int emissionTick = 0;
 			if (profiles.Count > 0) {
 				botsResult = new List<BotProfileResult>();
 				foreach (string orgId in orgIds) {
@@ -80,9 +82,22 @@ namespace GS.Game.ConsoleRunner {
 						});
 					}
 
-					var sink = new BotCommandSink(orgId, logic.Commands, logger);
+					var emissions = new List<BotEmission>();
+					emissionLogByOrgId[orgId] = emissions;
 					var rng = BotRng.Create(options.Seed, orgId);
-					bots.Add(new Bot(orgId, features, rng, sink));
+					Bot bot = null!;
+					BotEmissionCallback emissionCallback = (actionId, countryId) => {
+						emissions.Add(new BotEmission {
+							FeatureId = bot.CurrentFeatureId,
+							ActionId = actionId,
+							CountryId = countryId,
+							Date = logic.VisualState.Time.CurrentTime.ToString("yyyy-MM-dd"),
+							Tick = emissionTick
+						});
+					};
+					var sink = new BotCommandSink(orgId, logic.Commands, logger, emissionCallback);
+					bot = new Bot(orgId, features, rng, sink);
+					bots.Add(bot);
 					botsResult.Add(new BotProfileResult { OrgId = orgId, Features = featureResults });
 				}
 			}
@@ -115,6 +130,7 @@ namespace GS.Game.ConsoleRunner {
 			AppendTimelineSampleIfNewMonth(logic, orgIds, result.Timeline, ref lastSampledMonth, force: true);
 
 			while (true) {
+				emissionTick = tickCount + 1;
 				foreach (var bot in bots) { bot.ExecuteDecisionTick(logic.World, logic.ActionConfig); }
 				logic.Update(deltaTime);
 				tickCount++;
@@ -141,6 +157,12 @@ namespace GS.Game.ConsoleRunner {
 			result.FinalDate = logic.VisualState.Time.CurrentTime.ToString("yyyy-MM-dd");
 			foreach (string orgId in orgIds) {
 				result.Orgs.Add(BuildOrgMetrics(logic, orgId));
+			}
+
+			foreach (string orgId in orgIds) {
+				if (emissionLogByOrgId.TryGetValue(orgId, out var emissions)) {
+					result.BotEmissions.Add(new OrgEmissionLog { OrgId = orgId, Emissions = emissions });
+				}
 			}
 
 			string json = JsonSerializer.Serialize(result, s_jsonOptions);
@@ -171,7 +193,8 @@ namespace GS.Game.ConsoleRunner {
 			return new OrgMetricsResult {
 				OrgId = orgId,
 				TotalControl = GS.Game.Systems.OrgMetrics.GetTotalControl(logic.World, orgId),
-				Gold = GS.Game.Systems.OrgMetrics.GetGold(logic.World, orgId)
+				Gold = GS.Game.Systems.OrgMetrics.GetGold(logic.World, orgId),
+				Score = GS.Game.Systems.OrgScore.GetScore(logic.World, orgId)
 			};
 		}
 	}

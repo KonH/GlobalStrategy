@@ -10,6 +10,7 @@ namespace GS.Game.Bots {
 		readonly BotCommandSink _sink;
 
 		public string OrgId { get; }
+		public string CurrentFeatureId { get; private set; } = "";
 
 		public Bot(string orgId, IReadOnlyList<IBotFeature> features, Random rng, BotCommandSink sink) {
 			OrgId = orgId;
@@ -22,10 +23,13 @@ namespace GS.Game.Bots {
 			_sink.BeginDecisionPhase();
 			var observation = BotObservation.Build(world, actionConfig, OrgId);
 			foreach (var feature in _features) {
+				CurrentFeatureId = feature.FeatureId;
 				try {
 					feature.Tick(observation, _sink, _rng);
 				} catch (Exception ex) {
 					throw new BotFeatureException(OrgId, feature.FeatureId, ex);
+				} finally {
+					CurrentFeatureId = "";
 				}
 			}
 		}
