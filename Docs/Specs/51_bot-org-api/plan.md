@@ -2,11 +2,11 @@
 
 ## Spec
 
-Source: `Docs/Specs/49_bot-org-api/spec.md`.
+Source: `Docs/Specs/51_bot-org-api/spec.md`.
 
 **Intent.** Part 2 of 3 of the bot-org initiative: a minimal, extensible bot API — a read-only per-org observation facade, a whitelisted org-scoped command sink, a feature-flagged `BotProfile` configuration, and headless-runner attachment — so bots observe exactly what a player in their seat would see and act through exactly the pipeline the player uses, with every behaviour gated behind a feature flag that part 3's eval harness can flip and tune.
 
-**Hard dependency.** This plan builds directly on `Docs/Specs/48_multi-org-headless-simulation/` (spec + plan). Spec 48 is approved but **not yet implemented** — **this plan cannot start until 48's implementation lands.** It consumes 48's concrete artifacts as designed there: `GameLogicContext.RngSeed`/`ParticipatingOrganizationIds`, per-org `DiscoveredCountry { OrgId, CountryId }` entities, the `OrgMetrics` static query helper (`GetTotalControl`/`GetGold`/`GetControlByCountry` over `IReadOnlyWorld`), `HeadlessOptions`/`HeadlessRunner`/`SimulationResult` in `src/Game.ConsoleRunner/`, the camelCase results JSON schema (with its `parameters` object), the tick contract (`deltaTime = hoursPerTick / multipliers[0]`, one game day per tick by default, month-skip guard), the view-org convention (`initialOrganizationId` = first participating org in headless), and the `Game.Tests` → `Game.ConsoleRunner` project reference plan 48 adds.
+**Hard dependency.** This plan builds directly on `Docs/Specs/50_multi-org-headless-simulation/` (spec + plan). Spec 50 is approved but **not yet implemented** — **this plan cannot start until 50's implementation lands.** It consumes 50's concrete artifacts as designed there: `GameLogicContext.RngSeed`/`ParticipatingOrganizationIds`, per-org `DiscoveredCountry { OrgId, CountryId }` entities, the `OrgMetrics` static query helper (`GetTotalControl`/`GetGold`/`GetControlByCountry` over `IReadOnlyWorld`), `HeadlessOptions`/`HeadlessRunner`/`SimulationResult` in `src/Game.ConsoleRunner/`, the camelCase results JSON schema (with its `parameters` object), the tick contract (`deltaTime = hoursPerTick / multipliers[0]`, one game day per tick by default, month-skip guard), the view-org convention (`initialOrganizationId` = first participating org in headless), and the `Game.Tests` → `Game.ConsoleRunner` project reference plan 50 adds.
 
 **Key acceptance criteria (design targets):**
 - **Observation facade.** Bots never touch `World`, `GameLogic`, or `VisualState`. Each bot gets a read-only per-org observation (`IBotObservation`) built over `IReadOnlyWorld` + configs, exposing only seat-visible state: game date, own gold, own org hand (with `ActionId`, `SlotIndex`, cost, playability), own `ActionOwner.HandSize`, own discovered countries, own control per country + total (consistent with `OrgMetrics`), own org character slots. Per discovered country: own country-card hand with playability, the full per-org control breakdown + total used control (public information), resident characters with their opinion of the observing org only. Undiscovered countries are entirely absent — including other orgs' control there. Nothing leaks: other orgs' hands/decks, own deck contents/order, other orgs' gold/resources/discovered sets/slots, or any mutable `World`/entity handles. All collections come back in a deterministic, documented order (hands by `SlotIndex`; countries/breakdowns ordinally by id).
@@ -20,7 +20,7 @@ Source: `Docs/Specs/49_bot-org-api/spec.md`.
 
 ## Goal
 
-Create a new netstandard2.1 `src/Game.Bots` project containing the bot-facing contracts (`IBotObservation`, `IBotCommandSink`, `IBotFeature`), their implementations (`BotObservation` snapshot builder, `BotCommandSink` with sink-stamped `OrgId` and per-tick duplicate guard, `Bot` orchestrator, `BotFeatureRegistry`, `BaselineCardPlayFeature`, `BotRng` seed derivation) and the JSON-free `BotProfile`/`BotFeatureSetting` DTOs; extract the condition + affordability logic of `CheckActionConditionSystem`/`DeductActionCostSystem` into a single behaviour-identical `ActionPlayability` helper in `src/Game.Systems` that both the pipeline and the facade call; and wire bot attachment into the part-48 headless runner — repeatable `--bot <path>` parsing/validation in `HeadlessOptions`, `System.Text.Json` profile loading in ConsoleRunner only, a decision phase before each `logic.Update` in participating-org order, and a compatible `parameters.bots` extension of the results JSON — with determinism, information-hiding, sink-enforcement, and baseline-behaviour xunit tests in `src/Game.Tests` as the acceptance gate.
+Create a new netstandard2.1 `src/Game.Bots` project containing the bot-facing contracts (`IBotObservation`, `IBotCommandSink`, `IBotFeature`), their implementations (`BotObservation` snapshot builder, `BotCommandSink` with sink-stamped `OrgId` and per-tick duplicate guard, `Bot` orchestrator, `BotFeatureRegistry`, `BaselineCardPlayFeature`, `BotRng` seed derivation) and the JSON-free `BotProfile`/`BotFeatureSetting` DTOs; extract the condition + affordability logic of `CheckActionConditionSystem`/`DeductActionCostSystem` into a single behaviour-identical `ActionPlayability` helper in `src/Game.Systems` that both the pipeline and the facade call; and wire bot attachment into the part-50 headless runner — repeatable `--bot <path>` parsing/validation in `HeadlessOptions`, `System.Text.Json` profile loading in ConsoleRunner only, a decision phase before each `logic.Update` in participating-org order, and a compatible `parameters.bots` extension of the results JSON — with determinism, information-hiding, sink-enforcement, and baseline-behaviour xunit tests in `src/Game.Tests` as the acceptance gate.
 
 ## Approach
 
@@ -52,7 +52,7 @@ namespace GS.Game.Systems {
 - `DeductActionCostSystem.DeductResource` — replaced by `int entity = ActionPlayability.FindResourceEntity(world, ownerId, resourceId); if (entity >= 0) { ref Resource r = ref world.Get<Resource>(entity); r.Value -= amount; }` so the resource-locating logic exists once. The cost-loop and `ResourceChange` emission stay in the system (they are writes, not evaluation).
 - `BotObservation` (§3) — calls `Evaluate` per card when building views.
 
-**Behaviour-identity protection:** (a) the moved code is verbatim (no reordering of the three checks, same short-circuits, same first-match resource lookup); (b) new equivalence tests assert `Evaluate`'s verdict matches the pipeline's `ActionValid`/`ActionFailed` outcome across a scenario matrix (see Tests); (c) plan 48's `MultiOrgGameplayTests` (full card pipeline: cost deduction, hand removal, redraw, failure path) run unchanged over the refactored systems.
+**Behaviour-identity protection:** (a) the moved code is verbatim (no reordering of the three checks, same short-circuits, same first-match resource lookup); (b) new equivalence tests assert `Evaluate`'s verdict matches the pipeline's `ActionValid`/`ActionFailed` outcome across a scenario matrix (see Tests); (c) plan 50's `MultiOrgGameplayTests` (full card pipeline: cost deduction, hand removal, redraw, failure path) run unchanged over the refactored systems.
 
 ### 2. New project `src/Game.Bots` (netstandard2.1)
 
@@ -131,10 +131,10 @@ public static BotObservation Build(IReadOnlyWorld world, ActionConfig actionConf
 Built **fresh at each decision tick** as an immutable snapshot (spec permits per-tick rebuild; no caching in this part). Build passes, all via `GetMatchingArchetypes` scans in the established system style:
 
 1. **Date** — scan for the `GameTime` archetype (single entity), read `CurrentTime`.
-2. **Gold / total control / per-country own control** — delegate to `OrgMetrics.GetGold`, `GetTotalControl`, `GetControlByCountry` (part 48), keeping facade numbers definitionally consistent with the results JSON.
+2. **Gold / total control / per-country own control** — delegate to `OrgMetrics.GetGold`, `GetTotalControl`, `GetControlByCountry` (part 50), keeping facade numbers definitionally consistent with the results JSON.
 3. **Discovered set** — `DiscoveredCountry` entities with `OrgId == orgId` → `SortedSet<string>(StringComparer.Ordinal)` of `CountryId`s.
 4. **Control breakdown** — one pass over `ControlEffect` archetypes accumulating `country → (org → sum)`; only countries in the discovered set are materialized into `BotCountryView.ControlByOrg` (ordinal by `OrgId`) + `TotalControl`; everything about undiscovered countries is dropped on the floor — they are absent from `Countries`, `GetCountry` returns null.
-5. **Hands** — `ActionCard` entities with `OwnerId == orgId` + `InHand`: no `CountryContext` ⇒ org hand; with `CountryContext` (and `OrgContext.OrgId == orgId`) ⇒ that country's hand, **only if the country is discovered** (per-country decks exist for all countries since part 48's init, but a player cannot open an undiscovered country's panel, so those hands are hidden). Each card resolves `ActionDefinition` via `actionConfig.Find` for `Cost`/`GoldCost` and `IsPlayable = ActionPlayability.Evaluate(world, actionConfig, actionId, orgId, countryIdOrNull)`. Hands sorted by `SlotIndex`.
+5. **Hands** — `ActionCard` entities with `OwnerId == orgId` + `InHand`: no `CountryContext` ⇒ org hand; with `CountryContext` (and `OrgContext.OrgId == orgId`) ⇒ that country's hand, **only if the country is discovered** (per-country decks exist for all countries since part 50's init, but a player cannot open an undiscovered country's panel, so those hands are hidden). Each card resolves `ActionDefinition` via `actionConfig.Find` for `Cost`/`GoldCost` and `IsPlayable = ActionPlayability.Evaluate(world, actionConfig, actionId, orgId, countryIdOrNull)`. Hands sorted by `SlotIndex`.
 6. **Org character slots** — `CharacterSlot` entities with `OwnerId == orgId`, sorted `(RoleId ordinal, SlotIndex)`.
 7. **Resident characters** — `Character` entities with `CountryId == C` for each discovered `C` (`CharacterId`, `RoleId`), sorted ordinally by `CharacterId`; opinion = the `Resource { ResourceId = $"opinion_{orgId}" }` owned by that `CharacterId` (`ResourceOwner`, `OwnerType.Character`), `0` when the resource entity does not exist. Only the observing org's opinion resource is read — other orgs' opinions never enter the snapshot.
 
@@ -255,7 +255,7 @@ public sealed class BaselineCardPlayFeature : IBotFeature {
 
 All net8.0-only code (CLI + JSON) stays here; `Game.ConsoleRunner.csproj` gains `<ProjectReference Include="../Game.Bots/Game.Bots.csproj" />`.
 
-**`HeadlessOptions.cs` (extend part 48's parser)** — repeatable `--bot <path>` collected into `public IReadOnlyList<string> BotProfilePaths` (empty by default). Validation additions: `--bot` is only valid together with `--headless` (bots are headless-only per the spec) — otherwise `ArgumentException` like the rest of 48's validation.
+**`HeadlessOptions.cs` (extend part 50's parser)** — repeatable `--bot <path>` collected into `public IReadOnlyList<string> BotProfilePaths` (empty by default). Validation additions: `--bot` is only valid together with `--headless` (bots are headless-only per the spec) — otherwise `ArgumentException` like the rest of 50's validation.
 
 **`BotProfileLoader.cs` (new)** — ConsoleRunner-only JSON boundary:
 
@@ -269,7 +269,7 @@ public static class BotProfileLoader {
 ```
 
 **`HeadlessRunner.cs` (extend)** — profile loading and validation (steps 1–2) happen after options parsing and before `GameLogic` construction; bot construction (step 3) requires the constructed `logic` (its `Commands` accessor) and runs after construction but before the first tick. Either way every failure surfaces before any simulation tick (fail-fast per spec):
-1. Load every profile via `BotProfileLoader.Load` (file/JSON errors → caught in `Program.Main` → stderr, exit 1, matching 48's posture).
+1. Load every profile via `BotProfileLoader.Load` (file/JSON errors → caught in `Program.Main` → stderr, exit 1, matching 50's posture).
 2. Validate: each `profile.OrgId` ∈ the resolved participating-org list; no two profiles share an org; every `featureId` is `IsRegistered` in `BotFeatureRegistry.CreateDefault()` (enabled or not, per §5). Any failure → descriptive exception → stderr, exit non-zero, before any simulation tick.
 3. Build bots **in participating-org order** (order profiles by their org's index in the participating list — pins decision-phase order and results ordering regardless of CLI argument order): per profile, `features` = enabled settings → `registry.Create(featureId, parameters)`; `rng = BotRng.Create(options.Seed, orgId)`; `sink = new BotCommandSink(orgId, logic.Commands, logger)`; `new Bot(...)`. Orgs without a profile get no bot — passive, exactly part 1.
 4. Loop body becomes the spec's fixed tick contract:
@@ -284,7 +284,7 @@ public static class BotProfileLoader {
 
 ```json
 "parameters": {
-	"...": "part-48 fields unchanged",
+	"...": "part-50 fields unchanged",
 	"bots": [
 		{
 			"orgId": "Illuminati",
@@ -298,7 +298,7 @@ Content is the **effective** configuration echoed from the parsed profiles (all 
 
 ### 8. Test project wiring
 
-`src/Game.Tests/Game.Tests.csproj` gains `<ProjectReference Include="../Game.Bots/Game.Bots.csproj" />` (the `Game.ConsoleRunner` reference already arrives with plan 48). New bot tests reuse/extend the multi-org `BuildLogic`-style harness plan 48 introduces (two orgs, countries, an `ActionConfig` with org + country pools, discover/control effects, monthly income) — extended here with per-card costs/conditions rich enough to drive playability on and off.
+`src/Game.Tests/Game.Tests.csproj` gains `<ProjectReference Include="../Game.Bots/Game.Bots.csproj" />` (the `Game.ConsoleRunner` reference already arrives with plan 50). New bot tests reuse/extend the multi-org `BuildLogic`-style harness plan 50 introduces (two orgs, countries, an `ActionConfig` with org + country pools, discover/control effects, monthly income) — extended here with per-card costs/conditions rich enough to drive playability on and off.
 
 ### 9. What deliberately does NOT change
 
@@ -306,14 +306,14 @@ Content is the **effective** configuration echoed from the parsed profiles (all 
 - `GameLogic` / `GameLogicContext` / `VisualState` / `VisualStateConverter` — untouched; the decision phase lives entirely in the runner and `Game.Bots`.
 - `Game.Commands` — no new command types; the whitelist ships with card play only.
 - Save system — nothing bot-related is `[Savable]`; `SavableDiscoveryTests.ExpectedSavable` needs no change.
-- Anything under `Assets/` — zero changes; `Game.Bots` has no Plugins `OutputPath`, so even `dotnet build -c Release` leaves `Assets/Plugins/Core/` with only the part-48 refresh of existing DLLs (`Game.Systems.dll` changes because `ActionPlayability` lives there).
+- Anything under `Assets/` — zero changes; `Game.Bots` has no Plugins `OutputPath`, so even `dotnet build -c Release` leaves `Assets/Plugins/Core/` with only the part-50 refresh of existing DLLs (`Game.Systems.dll` changes because `ActionPlayability` lives there).
 - Interactive ConsoleRunner mode — unchanged; `--bot` is rejected outside `--headless`.
 
 ## Steps
 
 ### Agent Steps
 
-- [ ] **Verify spec 48 is implemented** — confirm `Docs/Specs/48_multi-org-headless-simulation/plan.md`'s artifacts exist on the branch (`GameLogicContext.RngSeed`/`ParticipatingOrganizationIds`, `DiscoveredCountry`, `OrgMetrics`, `HeadlessOptions`/`HeadlessRunner`/`SimulationResult`, multi-org tests). **If they do not, stop — this plan cannot start before 48 lands.**
+- [ ] **Verify spec 50 is implemented** — confirm `Docs/Specs/50_multi-org-headless-simulation/plan.md`'s artifacts exist on the branch (`GameLogicContext.RngSeed`/`ParticipatingOrganizationIds`, `DiscoveredCountry`, `OrgMetrics`, `HeadlessOptions`/`HeadlessRunner`/`SimulationResult`, multi-org tests). **If they do not, stop — this plan cannot start before 50 lands.**
 
 - [ ] **Extract `ActionPlayability`** — new `src/Game.Systems/ActionPlayability.cs` with `Evaluate`/`GetOrgControl`/`CanAfford`/`FindResourceEntity` per Approach §1 (verbatim moves, `IReadOnlyWorld` parameters); rewrite `CheckActionConditionSystem.Update`'s per-entity check to call `Evaluate` and delete its private helpers; rewrite `DeductActionCostSystem.DeductResource` over `FindResourceEntity` + `ref` mutation. No behavioural change.
 
@@ -348,13 +348,13 @@ Content is the **effective** configuration echoed from the parsed profiles (all 
 
 ## Tests
 
-Test project: `src/Game.Tests/` (xunit, snake_case `[Fact]` names, `StaticConfig<T>`/`BuildLogic` harness style per `GameLogicOrgTests.cs`, extended multi-org builder from plan 48 with cost/condition-bearing `ActionConfig`).
+Test project: `src/Game.Tests/` (xunit, snake_case `[Fact]` names, `StaticConfig<T>`/`BuildLogic` harness style per `GameLogicOrgTests.cs`, extended multi-org builder from plan 50 with cost/condition-bearing `ActionConfig`).
 
 - **New `src/Game.Tests/ActionPlayabilityTests.cs`** (shared-evaluation behaviour-identity regression):
   - `evaluate_verdict_matches_pipeline_action_valid_outcome` — matrix of scenarios (conditions met/unmet via a control-threshold condition, affordable/unaffordable cost, org card with no country, country card, unknown `actionId`): for each, assert `ActionPlayability.Evaluate` equals whether the pipeline marks the played card `ActionSucceeded` (vs `ActionFailed`) — the two can never drift because both call the same method, and this test proves the extraction preserved the pipeline's judgement.
   - `unaffordable_play_still_discards_card_and_deducts_nothing` — the honest-contract corollary: a play `Evaluate` calls unplayable goes through the pipeline, fails, is discarded, and costs nothing (refactored `DeductActionCostSystem` untouched behaviour).
   - `deduct_uses_same_resource_entity_lookup_as_affordability` — with two resource entities for different owners, cost is deducted from exactly the org's entity found by `FindResourceEntity`.
-  - Plus: plan 48's `MultiOrgGameplayTests` run unchanged over the refactored systems (no edits to those tests — their passing is part of the identity guarantee).
+  - Plus: plan 50's `MultiOrgGameplayTests` run unchanged over the refactored systems (no edits to those tests — their passing is part of the identity guarantee).
 
 - **New `src/Game.Tests/BotObservationTests.cs`:**
   - `observation_hides_other_orgs_private_state` — two-org world where org B holds org+country cards, has gold, and has discovered an extra country: org A's observation contains none of B's cards, no B gold anywhere, no B slot views, and B's extra country is absent from A's `Countries`/`DiscoveredCountryIds`/`GetCountry` (spec's information-hiding test).
@@ -388,7 +388,7 @@ Test project: `src/Game.Tests/` (xunit, snake_case `[Fact]` names, `StaticConfig
   - `min_gold_reserve_above_available_gold_prevents_all_plays` — reserve higher than gold ever reaches: zero commands over the whole run (tunability contract).
   - `disabled_feature_yields_run_identical_to_passive` — profile with `enabled: false`: end state and timeline identical to the same-seed no-bot run (flag-off regression); likewise a zero-feature profile.
 
-- **New `src/Game.Tests/BotProfileTests.cs`** (uses the `Game.ConsoleRunner` reference from plan 48):
+- **New `src/Game.Tests/BotProfileTests.cs`** (uses the `Game.ConsoleRunner` reference from plan 50):
   - `profile_json_deserializes_camel_case_into_dtos` — the spec's sample JSON → `BotProfile` with `OrgId`, feature flags, and numeric parameters intact.
   - `missing_file_and_malformed_json_fail_with_descriptive_error` — `BotProfileLoader.Load` throws for both.
   - `unknown_feature_id_fails_fast_even_when_disabled` — registry validation rejects a bogus `featureId` regardless of `enabled` (documented decision in §5).
@@ -406,8 +406,8 @@ Checked against `Docs/Constitution.md`. **No conflicts found — plan aligns wit
 - *ECS for all game logic, living in `src/`.* Everything lands in `src/` (`Game.Systems`, new `Game.Bots`, `Game.ConsoleRunner`, `Game.Tests`); the one game-logic touch (`ActionPlayability` extraction) is a behaviour-identical refactor inside the existing ECS pipeline; bots read via `IReadOnlyWorld` and mutate only through the command pipeline. No MonoBehaviour or `Assets/Scripts` change.
 - *VContainer is the sole DI mechanism.* No Unity-side registrations touched. Within `src/`, no static mutable singletons are introduced — `BotFeatureRegistry` is an instance the runner composes, `ActionPlayability`/`BotRng` are pure static functions, and the ConsoleRunner composes plain objects in `Main` as it already does (outside the Unity composition root by design).
 - *UI Toolkit only.* No UI added or modified; `VisualState` untouched.
-- *Plan before implement / Spec before plan.* This plan implements the approved `Docs/Specs/49_bot-org-api/spec.md`; no code precedes it, and implementation is additionally gated on plan 48's landed implementation (first agent step).
-- *File organisation.* Plan lives at `Docs/Specs/49_bot-org-api/plan.md`, paired with its spec under shared index 49 (between 48 and 50).
+- *Plan before implement / Spec before plan.* This plan implements the approved `Docs/Specs/51_bot-org-api/spec.md`; no code precedes it, and implementation is additionally gated on plan 50's landed implementation (first agent step).
+- *File organisation.* Plan lives at `Docs/Specs/51_bot-org-api/plan.md`, paired with its spec under shared index 51 (between 50 and 52). Originally indexed 49 (between 48 and 50); reindexed to make room for `Docs/Specs/48_score-component-composition.md`/`Docs/Specs/49_org-scoring/` on `main`.
 - *One `.asmdef` per feature folder under `Assets/Scripts/`.* No `Assets/Scripts` folders or asmdefs created or modified. The new `src/Game.Bots` csproj follows the existing `src/` project conventions, deliberately **without** the Plugins `OutputPath` (spec requirement), so `Assets/Plugins/Core/` gains no new DLL.
 - *C# code style.* All new/edited code uses tabs, braces always, `_`-prefixed privates, no redundant access modifiers — matching the surrounding files quoted throughout this plan.
 

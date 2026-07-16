@@ -2,12 +2,12 @@
 
 ## Spec
 
-Source: `Docs/Specs/50_bot-feature-eval-harness/spec.md`.
+Source: `Docs/Specs/52_bot-feature-eval-harness/spec.md`.
 
 **Intent.** Part 3 of 3 of the bot-org initiative: an evaluation harness that measures whether a new bot feature helps (or at least does not hurt) an org's score under paired-seed headless competition, plus an `/implement-bot-feature` skill that autonomously implements a described bot feature, runs the evals, iterates on failure within a bounded Ralph loop, and ends with a human-reviewable PR — objective, reproducible evidence instead of per-feature hand-written specs and plans.
 
 **Resolved decisions (2026-07-15, binding):**
-- **Org scoring is population-weighted from day one.** Org score = Σ over countries of (org control fraction × `CountryScore`), where the control fraction is the org's `ControlEffect` total in that country ÷ 100 (the per-country control cap enforced by `ControlSystem`), and `CountryScore` is spec 47's `coefficient × sum(population of owned provinces)`. Raw-control-sum scoring was rejected. The formula lives in exactly one derived, non-`[Savable]` query — `OrgScore.GetScore(IReadOnlyWorld, string orgId)` in `src/Game.Systems`, beside `OrgMetrics` — and is surfaced additively as a `score` field on every per-org entry in the results JSON (end metrics and every monthly timeline sample). All gate/statistics code treats scores as opaque comparable numbers.
+- **Org scoring is population-weighted from day one, and is delivered entirely by `Docs/Specs/49_org-scoring/` (`main`), not by this plan.** Org score = Σ over countries of (org control fraction × `CountryScore`), where the control fraction is the org's `ControlEffect` total in that country ÷ 100 (the per-country control cap enforced by `ControlSystem`), and `CountryScore` is spec 47's `coefficient × sum(population of owned provinces)`. Raw-control-sum scoring was rejected. The formula lives in exactly one derived, non-`[Savable]` query — `OrgScore.GetScore(IReadOnlyWorld, string orgId)` in `src/Game.Systems` — **already implemented by spec 49**, extracted there as a standalone, multi-org-independent prerequisite once it became clear scoring needs to exist before bot efficiency can be evaluated, not after. This plan consumes `OrgScore.GetScore` and surfaces it additively as a `score` field on every per-org entry in the results JSON (end metrics and every monthly timeline sample); it does not implement the query itself. All gate/statistics code treats scores as opaque comparable numbers.
 - **Constitution carve-out.** `Docs/Constitution.md`'s Planning Discipline section is amended as part of this feature with an explicit exception for `/implement-bot-feature`-driven bot features (PRD + eval history as the planning artifact under this standing spec). The exact wording is proposed in §13 of this plan.
 
 **Key acceptance criteria (design targets):**
@@ -25,10 +25,9 @@ Source: `Docs/Specs/50_bot-feature-eval-harness/spec.md`.
 
 ## Hard dependencies — the plan cannot start before ALL of these land
 
-1. `Docs/Specs/48_multi-org-headless-simulation/` (spec + plan) — multi-org init, seeded RNG, headless ConsoleRunner (`HeadlessOptions`/`HeadlessRunner`), deterministic camelCase results JSON (`SimulationResult` DTOs), and `src/Game.Systems/OrgMetrics.cs` (`GetTotalControl`/`GetGold`/`GetControlByCountry` over `IReadOnlyWorld`).
-2. `Docs/Specs/49_bot-org-api/` — `IBotObservation`, `IBotCommandSink` (whitelisted card play, sink-stamped `OrgId`, duplicate suppression), `BotProfile`/`BotFeatureSetting` DTOs in netstandard2.1 `src/Game.Bots`, `--bot` runner attachment with per-tick decision phases in participating-org order, the `featureId` registry with fail-fast on unknown ids, per-org results-JSON bot config, and the `baselineCardPlay` built-in feature. (Plan 49 is being authored in parallel; this plan relies on spec 49 only and defines its own additions — §4 — as minimal additive hooks that do not constrain plan 49's internals.)
-3. Branch `feature/province-population-spec` (spec 46, province population: `OwnerType.Province`, per-province `population` resources) — transitively required by 47.
-4. Branch `claude/country-scoring-spec-tpf83x` (spec 47, country scoring) — `src/Game.Components/CountryScore.cs` (non-`[Savable]` `{ CountryId, Value }`), `src/Game.Systems/CountryScoreSystem.cs` (`Update` month-boundary-gated, forced `Recompute` at init/load, `GetScore(IReadOnlyWorld, string countryId)` linear scan returning `0` when absent), coefficient `countryScoreCoefficient` in `game_settings.json`. This plan's `OrgScore` consumes `CountryScore`/`CountryScoreSystem.GetScore` exactly as that plan defines them and must not re-derive population aggregation.
+1. `Docs/Specs/50_multi-org-headless-simulation/` (spec + plan) — multi-org init, seeded RNG, headless ConsoleRunner (`HeadlessOptions`/`HeadlessRunner`), deterministic camelCase results JSON (`SimulationResult` DTOs), and `src/Game.Systems/OrgMetrics.cs` (`GetTotalControl`/`GetGold`/`GetControlByCountry` over `IReadOnlyWorld`).
+2. `Docs/Specs/51_bot-org-api/` — `IBotObservation`, `IBotCommandSink` (whitelisted card play, sink-stamped `OrgId`, duplicate suppression), `BotProfile`/`BotFeatureSetting` DTOs in netstandard2.1 `src/Game.Bots`, `--bot` runner attachment with per-tick decision phases in participating-org order, the `featureId` registry with fail-fast on unknown ids, per-org results-JSON bot config, and the `baselineCardPlay` built-in feature. (Plan 51 was authored in parallel; this plan relies on spec 51 only and defines its own additions — §4 — as minimal additive hooks that do not constrain plan 51's internals.)
+3. `Docs/Specs/49_org-scoring/` (`main`, merged independently of this initiative) — `src/Game.Systems/OrgScore.cs`, `public static double GetScore(IReadOnlyWorld world, string orgId)`, the population-weighted formula described in the Resolved Decisions above. Transitively built on the already-merged `Docs/Specs/47_country-scoring/` (`CountryScoreSystem`, `countryScoreCoefficient`) and `Docs/Specs/46_province-population/` — this plan does not depend on 46/47 directly, only on spec 49's already-delivered `OrgScore.GetScore`, and must not re-derive or duplicate that aggregation.
 
 ## Goal
 
@@ -38,46 +37,38 @@ Add the single population-weighted org-score query (`OrgScore.GetScore`) to `src
 
 ### 1. Dependency ordering and merge preflight
 
-Implementation starts only after 46 → 47 → 48 → 49 have merged (in that order; 47 needs 46, 49 needs 48). The first implementation step verifies the concrete symbols this plan builds on: `CountryScoreSystem.GetScore`, `CountryScore`, `OrgMetrics.GetControlByCountry`, `HeadlessRunner`/`HeadlessOptions`/`SimulationResult`, `src/Game.Bots` with the sink/profile/registry types, and the `baselineCardPlay` feature. If any is missing or shaped differently, stop and reconcile before writing code — do not code around a drifted dependency.
+Implementation starts only after two independent chains have merged: (a) `main`'s `46 → 47 → 49` (province population → country scoring → org scoring — org scoring depends only on 47, not on multi-org) and (b) this branch's `50 → 51` (multi-org → bot org API). The two chains have no ordering constraint relative to each other; both must simply be complete before this plan starts. The first implementation step verifies the concrete symbols this plan builds on: `OrgScore.GetScore` (49 — **not** `CountryScoreSystem.GetScore`/`CountryScore` directly, see §2), `OrgMetrics.GetControlByCountry`, `HeadlessRunner`/`HeadlessOptions`/`SimulationResult` (50), `src/Game.Bots` with the sink/profile/registry types (51), and the `baselineCardPlay` feature. If any is missing or shaped differently, stop and reconcile before writing code — do not code around a drifted dependency.
 
-### 2. `OrgScore` query (`src/Game.Systems/OrgScore.cs`)
+### 2. `OrgScore` query — already delivered by spec 49, not built here
 
-New static class beside `OrgMetrics`, netstandard2.1, ships in the Core DLLs:
+An earlier draft of this plan built `src/Game.Systems/OrgScore.cs` itself. **That is no longer this plan's job.** `Docs/Specs/49_org-scoring/` (`main`) already delivers exactly this:
 
 ```csharp
-using ECS;
-using GS.Game.Components;
-
 namespace GS.Game.Systems {
-	// Derived query only — no ECS component, nothing [Savable], no VisualState exposure.
-	// Follows spec 47's CountryScoreSystem pattern (Docs/Specs/47_country-scoring/):
-	// reads already-computed CountryScore values plus the org's ControlEffects and is
-	// the ONLY place that knows the org-score formula. Harness code treats the result
-	// as an opaque comparable number.
 	public static class OrgScore {
 		public static double GetScore(IReadOnlyWorld world, string orgId);
 	}
 }
 ```
 
-Implementation: one archetype pass over `CountryScore` entities building a local `Dictionary<string, double>` of `countryId → Value` (avoids calling the linear-scan `CountryScoreSystem.GetScore` per country, which would be O(countries²)); then `OrgMetrics.GetControlByCountry(world, orgId)` and `sum += (control / 100.0) * scoreByCountry[countryId]` (missing key → contributes `0`). `100` is the per-country control cap `ControlSystem` enforces (`Math.Min(existing + delta, 100 - otherOrgsTotal)`) and matches its income fraction `orgControl / 100.0`. Zero control anywhere, or control only in zero-score countries → returns `0.0`, never throws. Deterministic: pure function of world state.
+— a derived query with no ECS component, nothing `[Savable]`, no `VisualState` exposure, reading already-computed `CountryScore` values plus the org's `ControlEffect`s in a single pass (avoiding the O(countries²) trap of calling a per-country linear scan once per country), returning `0.0` for zero control or control-only-in-zero-score-countries, never throwing. This plan's dependency preflight (§1) confirms this exact symbol exists with this exact signature; if spec 49 shaped it differently by the time this plan is implemented (e.g. a different namespace or an extra parameter), stop and reconcile rather than silently adapting around a drift. This plan must **not** duplicate spec 49's `ControlEffect`/`CountryScore` aggregation logic — it only calls `OrgScore.GetScore`.
 
 ### 3. Results JSON `score` field (`src/Game.ConsoleRunner`)
 
-Plan 48's per-org DTO (`SimulationResult`'s org entry, used by both end metrics and timeline samples) gains `public double Score { get; set; }` → serialized `score` (camelCase policy already in place). `HeadlessRunner` computes it via `OrgScore.GetScore(logic.World, orgId)` at exactly the existing sampling moments: the t0 baseline sample, each month-boundary sample taken after `logic.Update` (valid: `CountryScoreSystem.Update` recomputes inside that same `Update`, after population growth), plus the end-metrics block. Note on t0: plan 48's t0 sample is taken before the first `logic.Update`, i.e. before `InitSystem` (and spec 47's init-time `Recompute`) has run — at that moment `OrgScore.GetScore` legitimately returns `0.0` for every org (no `CountryScore` entities, no control), matching the t0 control/gold zeros. This is accepted, not fixed: gates read end metrics only, and the t0 sampling moment is part 1's contract. Verify the actual sampling moment at dependency preflight; if 48 landed t0 *after* the first `Update`, the init-time `Recompute` makes t0 scores non-zero — either way, no change to part 1. Additive only — part 1/2-shaped consumers ignore the extra field; determinism is preserved (score derives only from world state). If `HeadlessRunner` does not already expose the world read-only, add an `IReadOnlyWorld` accessor on `GameLogic` usage it already has (plan 48's runner reads world state for `OrgMetrics`; reuse the same access path).
+Plan 50's per-org DTO (`SimulationResult`'s org entry, used by both end metrics and timeline samples) gains `public double Score { get; set; }` → serialized `score` (camelCase policy already in place). `HeadlessRunner` computes it via `OrgScore.GetScore(logic.World, orgId)` (spec 49's query, per §2) at exactly the existing sampling moments: the t0 baseline sample, each month-boundary sample taken after `logic.Update` (valid: `CountryScoreSystem.Update` recomputes inside that same `Update`, after population growth), plus the end-metrics block. Note on t0: plan 50's t0 sample is taken before the first `logic.Update`, i.e. before `InitSystem` (and spec 47's init-time `Recompute`) has run — at that moment `OrgScore.GetScore` legitimately returns `0.0` for every org (no `CountryScore` entities, no control), matching the t0 control/gold zeros. This is accepted, not fixed: gates read end metrics only, and the t0 sampling moment is part 1's contract. Verify the actual sampling moment at dependency preflight; if 50 landed t0 *after* the first `Update`, the init-time `Recompute` makes t0 scores non-zero — either way, no change to part 1. Additive only — part 1/2-shaped consumers ignore the extra field; determinism is preserved (score derives only from world state). If `HeadlessRunner` does not already expose the world read-only, add an `IReadOnlyWorld` accessor on `GameLogic` usage it already has (plan 50's runner reads world state for `OrgMetrics`; reuse the same access path).
 
 ### 4. Bot emission log — hook contract and schema
 
-**Hook (additive to spec 49's surface, not a change to it).** The bot-facing `IBotCommandSink` interface is untouched. The sink *implementation* gains one optional constructor parameter:
+**Hook (additive to spec 51's surface, not a change to it).** The bot-facing `IBotCommandSink` interface is untouched. The sink *implementation* gains one optional constructor parameter:
 
 ```csharp
 // src/Game.Bots — netstandard2.1, no JSON dependency:
 public delegate void BotEmissionCallback(string actionId, string countryId);
 ```
 
-The sink invokes the callback synchronously for every **accepted** play — i.e. after duplicate suppression, at the moment the `PlayCardActionCommand` is actually pushed (`countryId` = `""` for org cards). Suppressed duplicates are not logged: the log records commands actually emitted. `null` callback (Unity host, no-log runs) = no-op — spec 49's contract is unchanged for every existing caller.
+The sink invokes the callback synchronously for every **accepted** play — i.e. after duplicate suppression, at the moment the `PlayCardActionCommand` is actually pushed (`countryId` = `""` for org cards). Suppressed duplicates are not logged: the log records commands actually emitted. `null` callback (Unity host, no-log runs) = no-op — spec 51's contract is unchanged for every existing caller.
 
-**Attribution.** Spec 49 fixes that features are ticked one at a time — but per plan 49 that loop lives in `Bot.ExecuteDecisionTick` (`src/Game.Bots`), not in the ConsoleRunner. `Bot` therefore gains one additive member: `public string CurrentFeatureId { get; private set; }`, set to `feature.FeatureId` immediately before each `feature.Tick(...)` and reset to `""` after the loop. The ConsoleRunner's emission-callback closure captures the `Bot` instance and stamps each emission with `{ orgId, bot.CurrentFeatureId, actionId, countryId, gameDate, tick }` (`gameDate` = `yyyy-MM-dd` from `GameTime.CurrentTime`; `tick` = the runner's tick counter). No wall-clock anywhere. The callback fires synchronously inside `Tick`, so `CurrentFeatureId` can never mis-attribute across features.
+**Attribution.** Spec 51 fixes that features are ticked one at a time — but per plan 51 that loop lives in `Bot.ExecuteDecisionTick` (`src/Game.Bots`), not in the ConsoleRunner. `Bot` therefore gains one additive member: `public string CurrentFeatureId { get; private set; }`, set to `feature.FeatureId` immediately before each `feature.Tick(...)` and reset to `""` after the loop. The ConsoleRunner's emission-callback closure captures the `Bot` instance and stamps each emission with `{ orgId, bot.CurrentFeatureId, actionId, countryId, gameDate, tick }` (`gameDate` = `yyyy-MM-dd` from `GameTime.CurrentTime`; `tick` = the runner's tick counter). No wall-clock anywhere. The callback fires synchronously inside `Tick`, so `CurrentFeatureId` can never mis-attribute across features.
 
 **Schema (additive).** `SimulationResult` gains a top-level `botEmissions` array, per-org in participating-list order, entries in chronological emission order:
 
@@ -92,7 +83,7 @@ The sink invokes the callback synchronously for every **accepted** play — i.e.
 ]
 ```
 
-Runs without bots omit the property (or emit `[]`) — part 1/2-shaped output remains valid. Collection lives in a small `BotEmissionLog` class in `Game.ConsoleRunner` (net8.0). Determinism: same seed/config/profiles ⇒ element-wise identical logs (bot decisions are deterministic per spec 49's gate; date/tick derive from the sim).
+Runs without bots omit the property (or emit `[]`) — part 1/2-shaped output remains valid. Collection lives in a small `BotEmissionLog` class in `Game.ConsoleRunner` (net8.0). Determinism: same seed/config/profiles ⇒ element-wise identical logs (bot decisions are deterministic per spec 51's gate; date/tick derive from the sim).
 
 ### 5. `src/Game.Evals` project
 
@@ -112,7 +103,7 @@ New net8.0 project (console CLI + library), added to `GlobalStrategy.Core.sln`, 
 </Project>
 ```
 
-(`Game.Bots`, `Game.Systems`, `Game.Main` arrive transitively through `Game.ConsoleRunner`, which `Game.Tests` already references per plan 48 — referencing a net8.0 exe from net8.0 projects is supported. `System.Text.Json` is fine here, as in ConsoleRunner.)
+(`Game.Bots`, `Game.Systems`, `Game.Main` arrive transitively through `Game.ConsoleRunner`, which `Game.Tests` already references per plan 50 — referencing a net8.0 exe from net8.0 projects is supported. `System.Text.Json` is fine here, as in ConsoleRunner.)
 
 **CLI surface:**
 
@@ -120,11 +111,11 @@ New net8.0 project (console CLI + library), added to `GlobalStrategy.Core.sln`, 
 dotnet run --project src/Game.Evals -- --feature <featureId> [--eval-config <path>] [--out-dir <path>]
 ```
 
-- `--feature` (required): the `featureId` under evaluation. Validated against the `src/Game.Bots` registry **before any run**; unknown → exit 2 with a stderr diagnostic (matching spec 49's fail-fast posture).
+- `--feature` (required): the `featureId` under evaluation. Validated against the `src/Game.Bots` registry **before any run**; unknown → exit 2 with a stderr diagnostic (matching spec 51's fail-fast posture).
 - `--eval-config` (optional): path to the eval config JSON. Default: `Docs/BotFeatures/<featureId>/eval_config.json`. An explicitly-passed path that does not exist → exit 2. The default path missing → proceed with all defaults and a stderr note (a new feature can be evaluated with no config at all).
 - `--out-dir` (optional): raw-results root for this attempt. Default: `.tmp/evals/<featureId>/attempt_<n>` where `n` = (max attempt in `eval_history.json`) + 1, or `1`.
 
-**In-process invocation.** `Game.Evals` builds one `HeadlessOptions` request per run (seed, orgs, config dir, end date, hours per tick, timeout, bot profile paths) and calls the same `HeadlessRunner` entry `Program.Main` uses — in-process, no per-run process spawn. Plans 48/49 as written have the runner consume profile *file paths* and write the results JSON itself, so the expected shape is: `Game.Evals` writes the effective profile JSONs into `<attempt>/profiles/` (needed anyway, for auditability), passes their paths, points `--output`-equivalent at the per-run file in the attempt dir, and reads the written `SimulationResult` back. If landing 48/49 exposed (or trivially permits adding) an additive `HeadlessOptions → SimulationResult` in-memory entry, prefer it — but that refactor is this plan's to make, additively, not a precondition on parts 1–2.
+**In-process invocation.** `Game.Evals` builds one `HeadlessOptions` request per run (seed, orgs, config dir, end date, hours per tick, timeout, bot profile paths) and calls the same `HeadlessRunner` entry `Program.Main` uses — in-process, no per-run process spawn. Plans 50/51 as written have the runner consume profile *file paths* and write the results JSON itself, so the expected shape is: `Game.Evals` writes the effective profile JSONs into `<attempt>/profiles/` (needed anyway, for auditability), passes their paths, points `--output`-equivalent at the per-run file in the attempt dir, and reads the written `SimulationResult` back. If landing 50/51 exposed (or trivially permits adding) an additive `HeadlessOptions → SimulationResult` in-memory entry, prefer it — but that refactor is this plan's to make, additively, not a precondition on parts 1–2.
 
 **Files:**
 
@@ -210,7 +201,7 @@ Per parameter set `p`, with per-seed final scores from the candidate arm `c_i` a
 - `d_i = c_i − b_i`; `ε = Math.Max(epsilonRelative × mean(b), epsilonAbsolute)` — the `max` makes `epsilonAbsolute` an explicit floor and covers `mean(b) == 0` exactly as the spec requires (scores are non-negative by construction: control ≥ 0, `CountryScore` ≥ 0).
 - **Must-have score gate:** `mean(d) ≥ −ε`. Boundary is inclusive.
 - **Must-have command-on (per candidate arm/parameter set):** ≥1 emission with `featureId == F` across the set's runs; when `targetActions` is non-empty, ≥1 such emission with `actionId ∈ targetActions`. Violation = "feature never acted" failure even if the score gate passed.
-- **Must-have command-off (batch-level, baseline arm):** zero emissions with `featureId == F` in any baseline run. Violation = feature-flag gating bug (spec 49 forbids instantiating a disabled feature); fails the batch.
+- **Must-have command-off (batch-level, baseline arm):** zero emissions with `featureId == F` in any baseline run. Violation = feature-flag gating bug (spec 51 forbids instantiating a disabled feature); fails the batch.
 - **Reported, never gated:** median, min, max, sample standard deviation, per-seed delta table, counts of improved (`d_i > 0`) / worsened (`d_i < 0`) / unchanged (`d_i == 0`).
 - **Nice-to-have:** `improved = mean(d) > 0`, recorded in the attempt summary and PR body.
 - **Winner:** among passing sets, highest `mean(d)`; tie → first in generation order. Batch passes iff ≥1 set passes.
@@ -251,8 +242,8 @@ Per parameter set `p`, with per-seed final scores from the candidate arm `c_i` a
 
 New command file; `$ARGUMENTS` = natural-language feature description. The workflow it encodes:
 
-1. **Authority statement (top of file):** this skill is the sanctioned autonomous path for **bot features only** — `IBotFeature` implementations in `src/Game.Bots`, their registrations, their `Docs/BotFeatures/<featureId>/` eval configs/history, and the `.ralph` PRD — with `Docs/Specs/50_bot-feature-eval-harness/` (spec + this plan) as the standing spec/plan and the per-feature PRD as the planning artifact (per the Constitution's Planning Discipline carve-out, §13). Any change outside that surface — game systems, observation facade, sink whitelist, runner, `Game.Evals` itself, Unity assets — is out of authority: **stop and direct the user to `/specify` + `/plan`.**
-2. **Derive `featureId`:** camelCase per spec 49's naming (e.g. "target countries where our opinion is highest" → `opinionTargeting`). If already registered in `src/Game.Bots`, stop and report — no silent overwrite.
+1. **Authority statement (top of file):** this skill is the sanctioned autonomous path for **bot features only** — `IBotFeature` implementations in `src/Game.Bots`, their registrations, their `Docs/BotFeatures/<featureId>/` eval configs/history, and the `.ralph` PRD — with `Docs/Specs/52_bot-feature-eval-harness/` (spec + this plan) as the standing spec/plan and the per-feature PRD as the planning artifact (per the Constitution's Planning Discipline carve-out, §13). Any change outside that surface — game systems, observation facade, sink whitelist, runner, `Game.Evals` itself, Unity assets — is out of authority: **stop and direct the user to `/specify` + `/plan`.**
+2. **Derive `featureId`:** camelCase per spec 51's naming (e.g. "target countries where our opinion is highest" → `opinionTargeting`). If already registered in `src/Game.Bots`, stop and report — no silent overwrite.
 3. **Branch:** clean tree required; create/switch to `ralph/bot_<featureId>` (the same name the driver resolves, §11).
 4. **Write `Docs/BotFeatures/<featureId>/eval_config.json`** (§6 schema): infer `targetActions` (action ids from `Assets/Configs/action_config.json` the description implies) and `parameterSearch` ranges from any tunables the description names; keep everything else at defaults unless the description says otherwise.
 5. **Write `.ralph/prd.md` directly** (no `/specify`, no `/plan`, no `/create-prd`), using the existing task shape `{category, description, steps, gate, passes}`, and reset `.ralph/activity.md` to its header. Tasks, in order:
@@ -281,7 +272,7 @@ A **mode on the existing script** (not a sibling script — the loop/metrics/per
 
 `$ARGUMENTS` accepts either a spec index (existing behaviour, unchanged) **or** `bot:<featureId>`. In the bot form:
 
-- The "spec folder" for the report is the standing `Docs/Specs/50_bot-feature-eval-harness/`.
+- The "spec folder" for the report is the standing `Docs/Specs/52_bot-feature-eval-harness/`.
 - The PR body's Ralph section is followed by an `## Eval verdict` section sourced from `Docs/BotFeatures/<featureId>/eval_history.json` + `eval_summary.md`: gate outcomes (score / command-on / command-off), mean and median per-seed delta vs the ε used, whether the nice-to-have improvement (`mean > 0`) was achieved, winning parameters (or "no search"), attempt count, and a link to `Docs/BotFeatures/<featureId>/`.
 - All existing rules stay: `/commit` skill for leftovers, no `passes` flips, blockers quoted verbatim.
 
@@ -289,7 +280,7 @@ A **mode on the existing script** (not a sibling script — the loop/metrics/per
 
 Append one bullet under **Planning Discipline**, immediately after the existing "Plan before implement" bullet — exact proposed wording:
 
-> - **Bot-feature carve-out.** Bot features implemented via `/implement-bot-feature` — `IBotFeature` implementations in `src/Game.Bots`, their registrations, and their `Docs/BotFeatures/` eval configs and history — use the skill's directly-written PRD plus the committed eval history as their planning artifact, under the standing spec/plan pair `Docs/Specs/50_bot-feature-eval-harness/`. Everything outside that surface still requires its own approved plan.
+> - **Bot-feature carve-out.** Bot features implemented via `/implement-bot-feature` — `IBotFeature` implementations in `src/Game.Bots`, their registrations, and their `Docs/BotFeatures/` eval configs and history — use the skill's directly-written PRD plus the committed eval history as their planning artifact, under the standing spec/plan pair `Docs/Specs/52_bot-feature-eval-harness/`. Everything outside that surface still requires its own approved plan.
 
 This keeps "Plan before implement" literally true (the standing plan is this document; the per-feature planning artifact is the PRD + eval history) and was explicitly user-approved on 2026-07-15 per the spec's Resolved Decisions.
 
@@ -305,9 +296,9 @@ This keeps "Plan before implement" literally true (the standing plan is this doc
 
 ### Agent Steps
 
-- [ ] **Dependency preflight** — Verify all four dependencies have merged and the exact symbols exist: `CountryScore`/`CountryScoreSystem.GetScore` (47), province population seeding (46), `OrgMetrics`/`HeadlessRunner`/`HeadlessOptions`/`SimulationResult` (48), `src/Game.Bots` sink/profile/registry + `baselineCardPlay` (49). Any mismatch → stop and reconcile with the user before coding.
+- [ ] **Dependency preflight** — Verify all three hard dependencies have merged and the exact symbols exist: `OrgScore.GetScore` (49 — org scoring, delivered independently of multi-org), `OrgMetrics`/`HeadlessRunner`/`HeadlessOptions`/`SimulationResult` (50 — multi-org), `src/Game.Bots` sink/profile/registry + `baselineCardPlay` (51 — bot org API). Any mismatch → stop and reconcile with the user before coding.
 
-- [ ] **Add `OrgScore`** — New `src/Game.Systems/OrgScore.cs` per §2: single-pass `CountryScore` dictionary + `OrgMetrics.GetControlByCountry`, `(control / 100.0) × CountryScore` summation, `0.0` fallbacks, code doc naming spec 47's pattern and the single-formula-owner rule.
+- [ ] **Confirm `OrgScore.GetScore` already exists** — per §2, this is delivered by `Docs/Specs/49_org-scoring/` on `main`, not built by this plan. Verify `src/Game.Systems/OrgScore.cs`'s `GetScore(IReadOnlyWorld, string orgId)` signature matches what §2/§3 assume before wiring the results-JSON `score` field to it; do not create a second implementation.
 
 - [ ] **Surface `score` in results JSON** — Extend the per-org DTO in `src/Game.ConsoleRunner/SimulationResult.cs` with `Score`; compute via `OrgScore.GetScore` in `HeadlessRunner` at the t0 sample, every month-boundary sample, and the end-metrics block (§3).
 
@@ -353,11 +344,7 @@ Run `/implement-bot-feature` with a simple description (e.g. a variant card-usag
 
 Test project: `src/Game.Tests/` (xunit, snake_case `[Fact]` names). All harness tests run on synthetic data via `BatchRunner`'s injected run delegate and plain DTOs — **no full simulations in unit tests**; the smoke batch in Steps is the only real-sim check.
 
-- **New `src/Game.Tests/OrgScoreTests.cs`** (world-harness style per `ControlSystemTests.cs`; `CountryScore` entities created directly or via `CountryScoreSystem.Recompute`):
-  - `org_score_is_control_fraction_times_country_score_summed` — org with 30 control in a country of score 200 and 50 in a country of score 10 → `30/100×200 + 50/100×10 = 65.0`.
-  - `org_with_no_control_anywhere_scores_zero` — no `ControlEffect`s for the org → `0.0`, no throw.
-  - `control_in_zero_score_countries_scores_zero` — control only in countries whose `CountryScore.Value == 0` (or with no `CountryScore` entity) → `0.0`.
-  - `multiple_control_effects_in_one_country_sum_before_weighting` — two `ControlEffect`s (10 + 20) for the org in one country of score 100 → `30.0`, matching `OrgMetrics.GetControlByCountry` aggregation.
+- **`src/Game.Tests/OrgScoreTests.cs`** — already exists, added by `Docs/Specs/49_org-scoring/plan.md` (`org_score_is_control_fraction_times_country_score_summed`, `org_with_no_control_anywhere_scores_zero`, `control_in_zero_score_countries_scores_zero`, `multiple_control_effects_in_one_country_sum_before_weighting`, plus a composition-invariant check). This plan does not duplicate that coverage — its own tests below assume `OrgScore.GetScore`'s correctness is already established and focus on this plan's own additions (the results-JSON `score` field, the gates, the harness, the skill).
 
 - **New `src/Game.Tests/EvalGateTests.cs`:**
   - `mean_delta_exactly_at_negative_epsilon_passes` and `mean_delta_below_negative_epsilon_fails` — the inclusive ε boundary.
@@ -397,12 +384,12 @@ Run: `dotnet test src/GlobalStrategy.Core.sln`.
 
 Checked against `Docs/Constitution.md`. **No conflicts — with the note that this plan itself introduces one amendment, by explicit user approval.**
 
-- *ECS for all game logic in `src/`.* `OrgScore` is a derived query in `src/Game.Systems`; the emission hook lives in `src/Game.Bots`/`src/Game.ConsoleRunner`; the harness is net8.0 tooling in `src/Game.Evals`. No MonoBehaviour, no Unity-side logic, no ECS component added (org score is deliberately query-only per the spec's out-of-scope list).
+- *ECS for all game logic in `src/`.* `OrgScore` (spec 49's derived query in `src/Game.Systems`, consumed but not redefined here); the emission hook lives in `src/Game.Bots`/`src/Game.ConsoleRunner`; the harness is net8.0 tooling in `src/Game.Evals`. No MonoBehaviour, no Unity-side logic, no ECS component added (org score is deliberately query-only per spec 49/this spec's out-of-scope list).
 - *VContainer sole DI.* No Unity-side registrations touched; nothing new is resolved in Unity at all.
 - *UI Toolkit only / URP only.* No UI, rendering, or `Assets/` change of any kind (Core DLL refresh excepted).
-- *Planning Discipline — plan before implement.* This plan implements the approved spec 50. **Amendment introduced by this plan:** the §13 carve-out bullet, resolved with the user on 2026-07-15 and required by the spec itself, is added so `/implement-bot-feature`-driven bot features (PRD + eval history under this standing spec/plan) keep the written principle literally true. Until that amendment lands (it lands as part of this very feature), no bot feature is implemented via the skill.
-- *Specification Discipline.* Spec 50 preceded this plan; per-feature bot work is covered by the standing spec + the new carve-out rather than per-feature specs — exactly the arrangement the spec's Resolved Decisions mandate.
-- *File Organisation.* This plan lives at `Docs/Specs/50_bot-feature-eval-harness/plan.md`, paired with its spec under the shared index. `Docs/BotFeatures/<featureId>/` is a new, distinct documentation home for per-feature eval artifacts — it does not collide with the `Docs/Specs`/`Docs/Plans` index rule, which governs spec/plan pairs only.
+- *Planning Discipline — plan before implement.* This plan implements the approved spec 52. **Amendment introduced by this plan:** the §13 carve-out bullet, resolved with the user on 2026-07-15 and required by the spec itself, is added so `/implement-bot-feature`-driven bot features (PRD + eval history under this standing spec/plan) keep the written principle literally true. Until that amendment lands (it lands as part of this very feature), no bot feature is implemented via the skill.
+- *Specification Discipline.* Spec 52 preceded this plan; per-feature bot work is covered by the standing spec + the new carve-out rather than per-feature specs — exactly the arrangement the spec's Resolved Decisions mandate.
+- *File Organisation.* This plan lives at `Docs/Specs/52_bot-feature-eval-harness/plan.md`, paired with its spec under the shared index. `Docs/BotFeatures/<featureId>/` is a new, distinct documentation home for per-feature eval artifacts — it does not collide with the `Docs/Specs`/`Docs/Plans` index rule, which governs spec/plan pairs only.
 - *One `.asmdef` per feature folder under `Assets/Scripts/`.* No `Assets/Scripts` folder or asmdef is created or modified; new `src/` code lands in existing projects plus the new `Game.Evals` csproj (net8.0, sln-only, never in Plugins — same posture as `Game.ConsoleRunner`/`Game.Configs.Loader`).
 - *C# code style.* Tabs, braces always, `_`-prefixed privates, no redundant access modifiers throughout the new code, matching the surrounding `Game.Systems`/`Game.Tests` files.
 

@@ -2,7 +2,7 @@
 
 ## Spec
 
-Source: `Docs/Specs/48_multi-org-headless-simulation/spec.md`.
+Source: `Docs/Specs/50_multi-org-headless-simulation/spec.md`.
 
 **Intent.** Part 1 of 3 of the bot-org initiative: make the game logic support multiple simultaneously active organizations, a seedable deterministic RNG, and a fast non-interactive console simulation runner that emits structured JSON results — so later parts (bot API in part 2, eval harness in part 3) can run reproducible headless competitions between orgs. No bot decision logic, no scoring formula, no eval statistics in this part.
 
@@ -300,8 +300,8 @@ Checked against `Docs/Constitution.md`. **No conflicts found — plan aligns wit
 - *VContainer is the sole DI mechanism.* No Unity-side registration changes; `GameLifetimeScope` is untouched (the new context params are optional). The ConsoleRunner composes plain objects in `Main` as it already does today — it is outside the Unity composition root by design and predates this plan.
 - *UI Toolkit only.* No UI is added or modified; `VisualState` shape is unchanged.
 - *Unity 6 + URP only.* No rendering, shader, or camera change.
-- *Plan before implement / Spec before plan.* This plan implements the approved `Docs/Specs/48_multi-org-headless-simulation/spec.md`, including its user-resolved decisions; no code changes precede it.
-- *File organisation.* Plan lives at `Docs/Specs/48_multi-org-headless-simulation/plan.md`, paired with its spec under the shared incrementing index (48 follows 47).
+- *Plan before implement / Spec before plan.* This plan implements the approved `Docs/Specs/50_multi-org-headless-simulation/spec.md`, including its user-resolved decisions; no code changes precede it.
+- *File organisation.* Plan lives at `Docs/Specs/50_multi-org-headless-simulation/plan.md`, paired with its spec under the shared incrementing index. Originally indexed 48 (following 47); reindexed to 50 to make room for `Docs/Specs/48_score-component-composition.md`/`Docs/Specs/49_org-scoring/` on `main` — an org-scoring prerequisite this initiative's later parts consume, extracted and merged independently of multi-org.
 - *One `.asmdef` per feature folder under `Assets/Scripts/`.* No `Assets/Scripts` folders or asmdefs are created or modified; new `src/` files land in existing csproj projects (`Game.Components`, `Game.Systems`, `Game.Main`, `Game.ConsoleRunner`), and the only csproj edits are the ConsoleRunner `data/` content removal, an optional `Core.Map` reference, and the test project's ConsoleRunner reference.
 - *C# code style.* All new/edited code uses tabs, braces always, `_`-prefixed privates, no redundant access modifiers — matching the surrounding files quoted throughout this plan.
 
