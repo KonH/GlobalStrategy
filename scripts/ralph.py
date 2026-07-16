@@ -1,0 +1,369 @@
+#!/usr/bin/env python3
+"""Ralph loop - runs `claude -p` with a fresh context per iteration until the spec's PRD is done.
+
+Flow:
+  1. Resolves Docs/Specs/<SpecIndex>_<name>/ and switches to branch ralph/<index>_<name> (creates it if needed)
+  2. Pre-run:  claude "/create-prd <SpecIndex>"  - builds .ralph/prd.md from the spec's plan.md
+  3. Loop:     claude .ralph/PROMPT.md           - one task per fresh-context iteration
+  4. Post-run: claude "/complete-prd <SpecIndex>" - commits leftovers and opens a PR (only if all tasks passed)
+
+The Unity Editor should be running (Unity MCP is used to verify Unity-side tasks).
+
+Usage (from project root):
+  python scripts/ralph.py --spec-index 45 --max-iterations 10
+  python scripts/ralph.py --spec-index 45 --skip-create-prd          # reuse the existing .ralph/prd.md
+  python scripts/ralph.py --spec-index 45 --skip-pull-request        # stop after the loop, no commit/PR phase
+  python scripts/ralph.py --spec-index 45 --dangerously-skip-permissions
+  python scripts/ralph.py --spec-index 45 --stall-limit 5
+
+The loop stops early (before -MaxIterations) if --stall-limit consecutive iterations commit
+nothing but .ralph/activity.md - a sign the loop is blocked on an unavailable prerequisite
+(e.g. Unity Editor MCP bridge not connected, a missing tool like Node.js) rather than making
+real progress.
+
+Metrics per phase/iteration are appended to .ralph/metrics_<SpecIndex>.csv (gitignored).
+"""
+
+import argparse
+import csv
+import json
+import math
+import re
+import shutil
+import subprocess
+import sys
+from datetime import datetime
+from pathlib import Path
+
+
+def find_claude_executable():
+    exe = shutil.which("claude")
+    if exe:
+        return exe
+    return "claude"
+
+
+def run_git(args, check=True):
+    result = subprocess.run(["git", *args], capture_output=True, text=True)
+    if check and result.returncode != 0:
+        raise RuntimeError(f"git {' '.join(args)} failed: {result.stderr.strip()}")
+    return result.stdout.strip(), result.returncode
+
+
+JOURNAL_ONLY_FILES = {".ralph/activity.md"}
+
+
+def get_head():
+    head, code = run_git(["rev-parse", "HEAD"], check=False)
+    return head if code == 0 else None
+
+
+def changed_files_since(prev_head, new_head):
+    if prev_head is None or new_head is None or prev_head == new_head:
+        return []
+    diff, code = run_git(["diff", "--name-only", prev_head, new_head], check=False)
+    if code != 0 or not diff:
+        return []
+    return diff.splitlines()
+
+
+def resolve_spec_dir(spec_index):
+    specs_root = Path("Docs/Specs")
+    pattern = re.compile(rf"^{spec_index}_")
+    matches = [p for p in specs_root.iterdir() if p.is_dir() and pattern.match(p.name)]
+    if len(matches) == 0:
+        raise RuntimeError(f"No spec folder matches index {spec_index} under Docs/Specs.")
+    if len(matches) > 1:
+        names = ", ".join(m.name for m in matches)
+        raise RuntimeError(f"Multiple spec folders match index {spec_index}: {names}")
+    spec_dir = matches[0]
+    if not (spec_dir / "plan.md").exists():
+        raise RuntimeError(f"Spec folder {spec_dir.name} has no plan.md - run /plan first.")
+    return spec_dir
+
+
+def resolve_branch(spec_dir):
+    ralph_branch = f"ralph/{spec_dir.name}"
+    branch, _ = run_git(["rev-parse", "--abbrev-ref", "HEAD"])
+    if branch in ("main", "master"):
+        dirty, _ = run_git(["status", "--porcelain"])
+        if dirty:
+            raise RuntimeError("Working tree is not clean - commit or stash before starting a Ralph run.")
+        _, exists_code = run_git(["rev-parse", "--verify", "--quiet", f"refs/heads/{ralph_branch}"], check=False)
+        if exists_code == 0:
+            _, code = run_git(["checkout", ralph_branch], check=False)
+        else:
+            _, code = run_git(["checkout", "-b", ralph_branch], check=False)
+        if code != 0:
+            raise RuntimeError(f"Failed to switch to branch {ralph_branch}.")
+        branch = ralph_branch
+    elif branch != ralph_branch:
+        print(f"Already on non-main branch '{branch}' - staying here instead of switching to {ralph_branch}.")
+    return branch, ralph_branch
+
+
+LOOP_TOOLS = [
+    "mcp__UnityMCP",
+    "Bash(dotnet build:*)", "Bash(dotnet test:*)",
+    "Bash(git add:*)", "Bash(git commit:*)", "Bash(git status:*)", "Bash(git diff:*)", "Bash(git log:*)",
+    "Bash(.venv/Scripts/python.exe:*)",
+    "PowerShell(dotnet build *)", "PowerShell(dotnet test *)",
+    "PowerShell(git add *)", "PowerShell(git commit *)", "PowerShell(git status *)", "PowerShell(git diff *)", "PowerShell(git log *)",
+    "PowerShell(.venv\\Scripts\\python.exe *)",
+]
+
+PR_EXTRA_TOOLS = [
+    "Bash(git push:*)", "Bash(gh pr create:*)", "Bash(gh pr view:*)",
+    "PowerShell(git push *)", "PowerShell(gh pr create *)", "PowerShell(gh pr view *)",
+]
+
+
+def task_progress(prd_text):
+    total = len(re.findall(r'"passes":\s*(?:true|false)', prd_text))
+    passed = len(re.findall(r'"passes":\s*true', prd_text))
+    percent = (passed / total * 100) if total else 0.0
+    return passed, total, percent
+
+
+def invoke_claude_step(claude_exe, phase, iteration, prompt, allowed_tools, dangerously_skip_permissions,
+                        csv_file, log_dir, activity_file):
+    claude_args = [claude_exe, "-p", prompt, "--output-format", "json"]
+    if dangerously_skip_permissions:
+        claude_args.append("--dangerously-skip-permissions")
+    else:
+        claude_args += ["--permission-mode", "acceptEdits", "--allowedTools", ",".join(allowed_tools)]
+
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    err_file = log_dir / f"{phase}_{iteration}_{stamp}.stderr.log"
+
+    proc = subprocess.run(claude_args, capture_output=True, text=True)
+    exit_code = proc.returncode
+    stdout_text = proc.stdout
+    stderr_text = proc.stderr
+
+    if exit_code != 0:
+        err_file.write_text(stderr_text, encoding="utf-8")
+
+        log_file = log_dir / f"{phase}_{iteration}_{stamp}.log"
+        log_content = "\n".join([
+            f"phase: {phase}",
+            f"iteration: {iteration}",
+            f"exit_code: {exit_code}",
+            f"prompt: {prompt}",
+            "",
+            "--- stdout ---",
+            stdout_text,
+            "",
+            "--- stderr ---",
+            stderr_text,
+        ])
+        log_file.write_text(log_content, encoding="utf-8")
+
+        print(f"claude exited with code {exit_code} in phase '{phase}'. Details: {log_file}")
+        if stderr_text:
+            print(stderr_text)
+        if stdout_text:
+            print(stdout_text[:2000])
+
+        with csv_file.open("a", encoding="utf-8", newline="") as f:
+            f.write(f"{phase},{iteration},,,,,,,,claude_error\n")
+
+        summary_source = stderr_text if stderr_text else stdout_text
+        summary = " ".join(summary_source.splitlines()[:5])
+        activity_content = "\n".join([
+            "",
+            f"## {datetime.now().strftime('%Y-%m-%d')} - Ralph loop error (phase: {phase}, iteration: {iteration})",
+            "",
+            f"claude exited with code {exit_code}. See `{log_file}` for full stdout/stderr.",
+            "",
+            f"Summary: {summary}",
+            "",
+            "---",
+        ])
+        with activity_file.open("a", encoding="utf-8") as f:
+            f.write(activity_content + "\n")
+
+        return None
+
+    if err_file.exists():
+        err_file.unlink()
+
+    result = json.loads(stdout_text)
+    usage = result.get("usage", {})
+    with csv_file.open("a", encoding="utf-8", newline="") as f:
+        f.write(
+            f"{phase},{iteration},{result.get('total_cost_usd', '')},{result.get('num_turns', '')},"
+            f"{usage.get('input_tokens', '')},{usage.get('output_tokens', '')},"
+            f"{usage.get('cache_read_input_tokens', '')},{usage.get('cache_creation_input_tokens', '')},"
+            f"{result.get('duration_ms', '')},\n"
+        )
+    duration_s = (result.get("duration_ms") or 0) / 1000
+    print(f"{phase}: cost ${result.get('total_cost_usd')}  turns {result.get('num_turns')}  duration {duration_s:.0f}s")
+    return result
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Ralph loop runner")
+    parser.add_argument("--spec-index", type=int, required=True)
+    parser.add_argument("--max-iterations", type=int, default=10)
+    parser.add_argument(
+        "--stall-limit", type=int, default=3,
+        help="Stop the loop after this many consecutive iterations that commit nothing but "
+             "%s (e.g. blocked on Unity MCP / other unavailable prerequisites)." % ", ".join(sorted(JOURNAL_ONLY_FILES)),
+    )
+    parser.add_argument("--skip-create-prd", action="store_true")
+    parser.add_argument("--skip-pull-request", action="store_true")
+    parser.add_argument("--dangerously-skip-permissions", action="store_true")
+    args = parser.parse_args()
+
+    prompt_file = Path(".ralph/PROMPT.md")
+    if not prompt_file.exists():
+        raise RuntimeError(f"Missing {prompt_file} - run from the project root.")
+    prd_file = Path(".ralph/prd.md")
+    csv_file = Path(f".ralph/metrics_{args.spec_index}.csv")
+    activity_file = Path(".ralph/activity.md")
+    log_dir = Path(".ralph/logs")
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    claude_exe = find_claude_executable()
+
+    spec_dir = resolve_spec_dir(args.spec_index)
+    print(f"Spec: Docs/Specs/{spec_dir.name}")
+
+    branch, ralph_branch = resolve_branch(spec_dir)
+    print(f"Branch: {branch}")
+
+    if not csv_file.exists():
+        csv_file.write_text(
+            "phase,iteration,cost_usd,num_turns,input_tokens,output_tokens,cache_read,cache_create,duration_ms,stop_reason\n",
+            encoding="utf-8",
+        )
+
+    loop_tools = LOOP_TOOLS
+    pr_tools = LOOP_TOOLS + PR_EXTRA_TOOLS
+
+    # --- Phase 1: create PRD from the spec's plan ---
+    if args.skip_create_prd:
+        if not prd_file.exists():
+            raise RuntimeError(f"--skip-create-prd was passed but {prd_file} does not exist.")
+        print(f"Skipping /create-prd, reusing existing {prd_file}")
+    else:
+        print()
+        print(f"=== Phase: /create-prd {args.spec_index} ===")
+        r = invoke_claude_step(
+            claude_exe, "create-prd", "", f"/create-prd {args.spec_index}", loop_tools,
+            args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
+        )
+        if r is None or r.get("is_error"):
+            raise RuntimeError("/create-prd failed - aborting before the loop.")
+        prd_text = prd_file.read_text(encoding="utf-8")
+        if not re.search(r'"passes":\s*false', prd_text):
+            raise RuntimeError(f"/create-prd produced no open tasks in {prd_file} - check its output before looping.")
+
+    # --- Guard: MaxIterations should cover at least 1.5x the task count ---
+    prd_text = prd_file.read_text(encoding="utf-8")
+    task_count = len(re.findall(r'"passes":\s*(?:true|false)', prd_text))
+    min_recommended = math.ceil(task_count * 1.5)
+    if args.max_iterations < min_recommended:
+        raise RuntimeError(
+            f"MaxIterations ({args.max_iterations}) is below the recommended minimum "
+            f"({min_recommended} = {task_count} tasks x 1.5) for {prd_file}. "
+            "Increase --max-iterations, or split the PRD, before looping."
+        )
+    print(f"PRD has {task_count} tasks; MaxIterations={args.max_iterations} (recommended >= {min_recommended}).")
+
+    # --- Phase 2: the loop ---
+    stop_reason = "max_iterations"
+    stall_count = 0
+    for i in range(1, args.max_iterations + 1):
+        print()
+        print(f"=== Ralph iteration {i} / {args.max_iterations} ({ralph_branch}) ===")
+
+        prev_head = get_head()
+        prompt = prompt_file.read_text(encoding="utf-8")
+        r = invoke_claude_step(
+            claude_exe, "loop", str(i), prompt, loop_tools,
+            args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
+        )
+        if r is None:
+            stop_reason = "claude_error"
+            break
+
+        new_head = get_head()
+        changed = changed_files_since(prev_head, new_head)
+        meaningful_change = new_head != prev_head and any(f not in JOURNAL_ONLY_FILES for f in changed)
+        if meaningful_change:
+            stall_count = 0
+        else:
+            stall_count += 1
+            reason = "no commit made" if new_head == prev_head else f"only {', '.join(changed)} changed"
+            print(f"No meaningful progress this iteration ({reason}) - stall {stall_count}/{args.stall_limit}.")
+
+        prd_text = prd_file.read_text(encoding="utf-8")
+        passed, total, percent = task_progress(prd_text)
+        print(f"Progress: {passed}/{total} tasks passed ({percent:.0f}%)")
+
+        if r.get("is_error"):
+            stop_reason = "result_error"
+        elif "<promise>COMPLETE</promise>" in (r.get("result") or ""):
+            stop_reason = "complete_promise"
+        elif not re.search(r'"passes":\s*false', prd_text):
+            stop_reason = "all_tasks_passed"
+        elif stall_count >= args.stall_limit:
+            stop_reason = "stalled_no_progress"
+            print(
+                f"Stopping: {stall_count} consecutive iterations made no change beyond "
+                f"{', '.join(sorted(JOURNAL_ONLY_FILES))}. This usually means a required "
+                "prerequisite is unavailable (e.g. Unity Editor MCP bridge not connected, or a "
+                "missing tool like Node.js) - check the latest .ralph/activity.md entries before "
+                "resuming."
+            )
+        if stop_reason != "max_iterations":
+            break
+
+    print()
+    print(f"=== Loop finished: {stop_reason} ===")
+
+    # --- Phase 3: commit + pull request ---
+    loop_succeeded = stop_reason in ("complete_promise", "all_tasks_passed")
+    if args.skip_pull_request:
+        print("Skipping /complete-prd (--skip-pull-request).")
+    elif not loop_succeeded:
+        print("Loop did not finish all tasks - skipping PR. To create one anyway, run:")
+        print(f'  claude -p "/complete-prd {args.spec_index}"')
+    else:
+        print()
+        print(f"=== Phase: /complete-prd {args.spec_index} ===")
+        r = invoke_claude_step(
+            claude_exe, "complete-prd", "", f"/complete-prd {args.spec_index}", pr_tools,
+            args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
+        )
+        if r is None or r.get("is_error"):
+            print("/complete-prd failed - commit/PR may need manual attention.")
+        elif r.get("result"):
+            print(r["result"])
+
+    # --- Totals ---
+    with csv_file.open("r", encoding="utf-8", newline="") as f:
+        rows = [row for row in csv.DictReader(f) if row.get("cost_usd")]
+    if rows:
+        def total(field):
+            return sum(float(row[field]) for row in rows if row.get(field))
+
+        total_cost = total("cost_usd")
+        total_turns = total("num_turns")
+        total_input = total("input_tokens")
+        total_output = total("output_tokens")
+        total_cache_r = total("cache_read")
+        total_cache_c = total("cache_create")
+        print()
+        print(f"TOTAL (all rows in {csv_file}): cost ${total_cost}  turns {total_turns:.0f}")
+        print(f"tokens: input {total_input:.0f}  output {total_output:.0f}  cache_read {total_cache_r:.0f}  cache_create {total_cache_c:.0f}")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except RuntimeError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)

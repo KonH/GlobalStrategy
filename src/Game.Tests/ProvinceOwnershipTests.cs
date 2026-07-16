@@ -44,8 +44,8 @@ namespace GS.Game.Tests {
 			var mapEntry = new MapEntryConfig();
 			var provinceConfig = new ProvinceConfig {
 				Provinces = new List<ProvinceEntry> {
-					new ProvinceEntry { ProvinceId = "prov_a", CountryId = "Great_Britain" },
-					new ProvinceEntry { ProvinceId = "prov_b", CountryId = "France" }
+					new ProvinceEntry { ProvinceId = "prov_a", CountryId = "Great_Britain", Population = 1234.0 },
+					new ProvinceEntry { ProvinceId = "prov_b", CountryId = "France", Population = 5678.0 }
 				}
 			};
 
@@ -149,6 +149,33 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			Assert.Equal("Great_Britain", ProvinceOwnershipSystem.GetOwner(logic.World, "prov_b"));
+		}
+
+		static double FindProvincePopulation(World world, string provinceId) {
+			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerId == provinceId && resources[i].ResourceId == "population") {
+						return resources[i].Value;
+					}
+				}
+			}
+			throw new System.Exception($"population resource not found for {provinceId}");
+		}
+
+		[Fact]
+		void change_owner_does_not_affect_population() {
+			var logic = BuildLogic();
+			logic.Update(0f);
+
+			double before = FindProvincePopulation(logic.World, "prov_b");
+			ProvinceOwnershipSystem.ChangeOwner(logic.World, "prov_b", "Great_Britain");
+			double after = FindProvincePopulation(logic.World, "prov_b");
+
+			Assert.Equal(before, after);
+			Assert.Equal(5678.0, after);
 		}
 	}
 }
