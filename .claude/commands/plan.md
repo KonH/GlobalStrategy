@@ -1,4 +1,4 @@
-Create a plan for the requested task and save it to `Docs/Specs/<index>_<name>/plan.md` (if a spec exists) or `Docs/Plans/<index>_<short-name>.md` (otherwise).
+Create a plan for the requested task and save it to `Docs/Specs/<index>_<name>/plan.md`. This subdirectory format is preferred for all new plans, including purely technical ones with no accompanying `spec.md` — `Docs/Plans/<index>_<name>.md` is a legacy flat-file location kept for existing entries only; do not add new files there.
 
 ## Orchestration
 
@@ -23,7 +23,7 @@ If `$ARGUMENTS` contains a spec folder name or index, or if a `Docs/Specs/` fold
 - Include a **Spec** section at the top of the plan (verbatim summary of intent and acceptance criteria from the spec)
 - Output the plan to `Docs/Specs/<index>_<name>/plan.md`
 
-If no spec folder is found, write to `Docs/Plans/` as usual — this path is for migrations, refactors, and other purely technical tasks.
+If no spec folder is found (a purely technical task — migration, refactor, infra), still write to `Docs/Specs/<index>_<name>/plan.md`, just without a `spec.md` in that folder — do not fall back to `Docs/Plans/`.
 
 ## Constitution-Check Gate
 
