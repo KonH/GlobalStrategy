@@ -177,6 +177,24 @@ namespace GS.Game.Tests {
 			Assert.False(world.IsAlive(permanentEntity));
 		}
 
+		// Test 9: two orgs in the same country split monthly income proportionally (multi-org regression)
+		[Fact]
+		void two_orgs_in_same_country_split_monthly_income_proportionally() {
+			var world = new World();
+			int countryGold = AddResource(world, "Russia", "gold", 500.0);
+			int orgAGold    = AddResource(world, "OrgA", "gold", 0.0);
+			int orgBGold    = AddResource(world, "OrgB", "gold", 0.0);
+			AddMonthlyEffect(world, "Russia", "gold", 1000.0);
+			AddControl(world, "OrgA", "Russia", 30, "base_OrgA");
+			AddControl(world, "OrgB", "Russia", 20, "base_OrgB");
+
+			ControlSystem.Update(world, Jan31, Feb1);
+
+			Assert.Equal(300.0, world.Get<Resource>(orgAGold).Value, 2);
+			Assert.Equal(200.0, world.Get<Resource>(orgBGold).Value, 2);
+			Assert.Equal(0.0, world.Get<Resource>(countryGold).Value, 2);
+		}
+
 		// Test 8: base effect entity remains untouched after command
 		[Fact]
 		void base_entity_untouched_after_change_control_command() {

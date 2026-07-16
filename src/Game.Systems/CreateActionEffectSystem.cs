@@ -38,7 +38,7 @@ namespace GS.Game.Systems {
 					var effectDef = effectConfig.Find(effectId);
 					if (effectDef is DiscoverCountryEffectParams) {
 						int e = world.Create();
-						world.Add(e, new DiscoverCountryEffect { EffectId = effectId });
+						world.Add(e, new DiscoverCountryEffect { EffectId = effectId, OrgId = orgId });
 					} else if (effectDef is ControlChangeEffectParams controlParams && controlParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
 						int usedTotal = GetTotalControlInCountry(world, countryId);
 						if (usedTotal < 100) {

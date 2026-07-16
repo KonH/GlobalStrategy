@@ -8,5 +8,6 @@ namespace GS.Game.Components {
 
 	public struct DiscoverCountryEffect {
 		public string EffectId;
+		public string OrgId;
 	}
 }

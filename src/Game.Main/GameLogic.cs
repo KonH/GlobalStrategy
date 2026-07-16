@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ECS;
 using GS.Game.Commands;
 using GS.Game.Components;
@@ -15,6 +16,7 @@ namespace GS.Main {
 		readonly double _populationGrowthPercent;
 		readonly double _countryScoreCoefficient;
 		readonly Random _rng;
+		readonly Dictionary<string, string> _hqCountryByOrgId;
 		int _gameTimeEntity = -1;
 		int _localeEntity = -1;
 		int _settingsEntity = -1;
@@ -38,7 +40,12 @@ namespace GS.Main {
 		public GameLogic(GameLogicContext context) {
 			_context = context;
 			Commands = (IWriteOnlyCommandAccessor)_commandAccessor;
-			_rng = new Random();
+			_rng = context.RngSeed.HasValue ? new Random(context.RngSeed.Value) : new Random();
+
+			_hqCountryByOrgId = new Dictionary<string, string>();
+			foreach (var orgEntry in context.Organization.Load().Organizations) {
+				_hqCountryByOrgId[orgEntry.OrganizationId] = orgEntry.HqCountryId;
+			}
 
 			ResourceConfig = context.Resource.Load();
 			CharacterConfig = context.Character.Load();
@@ -138,7 +145,8 @@ namespace GS.Main {
 			DeductActionCostSystem.Update(_world, _actionConfig);
 			ActionSucceededSystem.Update(_world, _actionConfig);
 			CreateActionEffectSystem.Update(_world, _actionConfig, _effectConfig, currentTime);
-			DiscoverCountrySystem.Update(_world, _proximityEntity, _rng);
+			string viewOrgId = _orgEntity >= 0 ? _world.Get<Organization>(_orgEntity).OrganizationId : "";
+			DiscoverCountrySystem.Update(_world, _proximityEntity, _rng, viewOrgId, _hqCountryByOrgId);
 			RemoveCardFromHandSystem.Update(_world);
 			CheckHandSizeSystem.Update(_world);
 			DrawCardSystem.Update(_world, _actionConfig, _rng);
@@ -189,9 +197,27 @@ namespace GS.Main {
 			_gameTimeEntity = FindEntityWith<GameTime>();
 			_localeEntity = FindEntityWith<Locale>();
 			_settingsEntity = FindEntityWith<AppSettings>();
-			_orgEntity = FindEntityWith<Organization>();
+			_orgEntity = FindViewOrgEntity();
 			_proximityEntity = FindEntityWith<ProximityMapData>();
 			_provinceSelectionEntity = FindEntityWith<ProvinceSelection>();
+		}
+
+		int FindViewOrgEntity() {
+			int fallback = -1;
+			if (!string.IsNullOrEmpty(_context.InitialOrganizationId)) {
+				int[] req = { TypeId<Organization>.Value };
+				foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
+					Organization[] orgs = arch.GetColumn<Organization>();
+					for (int i = 0; i < arch.Count; i++) {
+						if (fallback < 0) { fallback = arch.Entities[i]; }
+						if (orgs[i].OrganizationId == _context.InitialOrganizationId) {
+							return arch.Entities[i];
+						}
+					}
+				}
+				return fallback;
+			}
+			return FindEntityWith<Organization>();
 		}
 
 		public void RebuildProximityMap() {
@@ -376,18 +402,32 @@ namespace GS.Main {
 		}
 
 		void ApplyDebugDiscoverAllCountries() {
-			var toDiscover = new System.Collections.Generic.List<int>();
+			string viewOrgId = _orgEntity >= 0 ? _world.Get<Organization>(_orgEntity).OrganizationId : "";
+			if (string.IsNullOrEmpty(viewOrgId)) { return; }
+
+			var discovered = new HashSet<string>();
+			int[] discReq = { TypeId<DiscoveredCountry>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(discReq, null)) {
+				DiscoveredCountry[] dcs = arch.GetColumn<DiscoveredCountry>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (dcs[i].OrgId == viewOrgId) { discovered.Add(dcs[i].CountryId); }
+				}
+			}
+
+			var toDiscover = new List<string>();
 			int[] req = { TypeId<Country>.Value };
 			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
+				Country[] countries = arch.GetColumn<Country>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (!_world.Has<IsDiscovered>(arch.Entities[i])) {
-						toDiscover.Add(arch.Entities[i]);
+					if (!discovered.Contains(countries[i].CountryId)) {
+						toDiscover.Add(countries[i].CountryId);
 					}
 				}
 			}
-			foreach (int entity in toDiscover) {
-				_world.Add(entity, new IsDiscovered());
+			foreach (string countryId in toDiscover) {
+				int entity = _world.Create();
+				_world.Add(entity, new DiscoveredCountry { OrgId = viewOrgId, CountryId = countryId });
 			}
 		}
 
