@@ -17,18 +17,18 @@ namespace GS.Game.Systems {
 		}
 
 		static void InitOrgCard(World world, string orgId, string actionId) {
-			int[] required = { TypeId<ActionCard>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				ActionCard[] cards = arch.GetColumn<ActionCard>();
+			int[] required = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardInHand>.Value };
+			int[] exclude = { TypeId<CountryContext>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(required, exclude)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (cards[i].OwnerId != orgId || cards[i].ActionId != actionId) { continue; }
+					if (orgs[i].OrgId != orgId || actions[i].ActionId != actionId) { continue; }
 					int entity = arch.Entities[i];
-					if (world.Has<GameAction>(entity)) {
+					if (world.Has<CardUse>(entity)) {
 						throw new InvalidOperationException($"Duplicate PlayCardActionCommand for org={orgId} action={actionId}");
 					}
-					world.Add(entity, new GameAction { ActionId = actionId });
-					world.Add(entity, new OrgContext { OrgId = orgId });
 					world.Add(entity, new CardUse());
 					return;
 				}
@@ -36,25 +36,21 @@ namespace GS.Game.Systems {
 		}
 
 		static void InitCountryCard(World world, string orgId, string countryId, string actionId) {
-			int[] required = { TypeId<ActionCard>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<InHand>.Value };
-			var candidates = new System.Collections.Generic.List<int>();
+			int[] required = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<CardInHand>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				ActionCard[] cards = arch.GetColumn<ActionCard>();
+				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				CountryContext[] countries = arch.GetColumn<CountryContext>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId || cards[i].ActionId != actionId) { continue; }
-					candidates.Add(arch.Entities[i]);
+					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId || actions[i].ActionId != actionId) { continue; }
+					int entity = arch.Entities[i];
+					if (world.Has<CardUse>(entity)) {
+						throw new InvalidOperationException($"Duplicate PlayCardActionCommand for org={orgId} country={countryId} action={actionId}");
+					}
+					world.Add(entity, new CardUse());
+					return;
 				}
-			}
-			foreach (int entity in candidates) {
-				if (world.Has<GameAction>(entity)) {
-					throw new InvalidOperationException($"Duplicate PlayCardActionCommand for org={orgId} country={countryId} action={actionId}");
-				}
-				world.Add(entity, new GameAction { ActionId = actionId });
-				world.Add(entity, new CardUse());
-				return;
 			}
 		}
 	}

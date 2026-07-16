@@ -6,7 +6,7 @@ using GS.Game.Configs;
 namespace GS.Game.Systems {
 	public static class DeductActionCostSystem {
 		public static void Update(World world, ActionConfig config) {
-			int[] required = { TypeId<GameAction>.Value, TypeId<ActionValid>.Value, TypeId<OrgContext>.Value };
+			int[] required = { TypeId<GameAction>.Value, TypeId<ActionValid>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
 			var toProcess = new List<(string actionId, string orgId)>();
 
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
