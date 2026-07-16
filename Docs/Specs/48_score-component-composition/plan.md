@@ -170,19 +170,19 @@ void UpdateCountryScore(IReadOnlyWorld world) {
 
 ### Agent Steps
 
-- [ ] **Add the shared `Score` component** — `src/Game.Components/Score.cs` as shown above.
-- [ ] **Delete `CountryScore.cs`** — `src/Game.Components/CountryScore.cs`.
-- [ ] **Rewrite `CountryScoreSystem.Recompute`/`GetScore`** — `src/Game.Systems/CountryScoreSystem.cs`, using the two-pass (collect-then-mutate) form described in the correctness note above, not the naive inline form.
-- [ ] **Rewrite `UpdateCountryScore`** — `src/Game.Main/VisualStateConverter.cs`.
-- [ ] **Grep-confirm no other `CountryScore` references remain** — `grep -rn "CountryScore" src/` should return zero hits after this refactor (the `CountryScoreSystem`/`CountryScoreState`/`CountryScoreCoefficient` names are expected and correct to keep — only the `CountryScore` *component* type name should disappear; re-run the grep and sanity-check every remaining hit is one of those three, not the deleted struct).
-- [ ] **Run the test suite** — `dotnet test src/GlobalStrategy.Core.sln` (`dangerouslyDisableSandbox: true`) — expect `CountryScoreSystemTests.cs` and the `InitSystemTests.cs` score-related facts to pass with no assertion changes.
-- [ ] **Rebuild the Core DLLs** — `dotnet build src/GlobalStrategy.Core.sln -c Release`.
+- [x] **Add the shared `Score` component** — `src/Game.Components/Score.cs` as shown above.
+- [x] **Delete `CountryScore.cs`** — `src/Game.Components/CountryScore.cs`.
+- [x] **Rewrite `CountryScoreSystem.Recompute`/`GetScore`** — `src/Game.Systems/CountryScoreSystem.cs`, using the two-pass (collect-then-mutate) form described in the correctness note above, not the naive inline form.
+- [x] **Rewrite `UpdateCountryScore`** — `src/Game.Main/VisualStateConverter.cs`.
+- [x] **Grep-confirm no other `CountryScore` references remain** — `grep -rn "CountryScore" src/` should return zero hits after this refactor (the `CountryScoreSystem`/`CountryScoreState`/`CountryScoreCoefficient` names are expected and correct to keep — only the `CountryScore` *component* type name should disappear; re-run the grep and sanity-check every remaining hit is one of those three, not the deleted struct).
+- [x] **Run the test suite** — `dotnet test src/GlobalStrategy.Core.sln` (`dangerouslyDisableSandbox: true`) — expect `CountryScoreSystemTests.cs` and the `InitSystemTests.cs` score-related facts to pass with no assertion changes.
+- [x] **Rebuild the Core DLLs** — `dotnet build src/GlobalStrategy.Core.sln -c Release`.
 
 ### User Steps
 
-1. **Confirm a clean Unity import** — check `read_console(types=["error"])` after the DLL rebuild.
-2. **Sanity-check scores still populate in Play mode** — via `VisualState.CountryScore.ScoreByCountryId` (no consumer UI exists yet, per spec 47's scope — confirm through a debugger/log or a temporary breakpoint) that country scores are still non-zero and correct after this refactor, matching pre-refactor behavior.
-3. **Verify save/load still recomputes correctly** — save, reload, confirm scores are immediately correct (this exercises `GameLogic.LoadState`'s forced `Recompute` call against the new composed-entity storage).
+1. [x] **Confirm a clean Unity import** — check `read_console(types=["error"])` after the DLL rebuild. Verified: 0 error entries.
+2. [x] **Sanity-check scores still populate in Play mode** — via `VisualState.CountryScore.ScoreByCountryId` (no consumer UI exists yet, per spec 47's scope — confirm through a debugger/log or a temporary breakpoint) that country scores are still non-zero and correct after this refactor, matching pre-refactor behavior. Verified via `execute_code` in Play mode on `Map.unity`: 20 countries with non-zero scores (e.g. `Argentina=2250.15`, `Manchu_Empire=113466.95`).
+3. [x] **Verify save/load still recomputes correctly** — save, reload, confirm scores are immediately correct (this exercises `GameLogic.LoadState`'s forced `Recompute` call against the new composed-entity storage). Verified: pushed `SaveGameCommand`, saved successfully, called `LoadState`, post-load scores matched pre-save values exactly.
 
 ## Tests
 

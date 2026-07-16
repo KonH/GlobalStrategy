@@ -35,30 +35,23 @@ namespace GS.Game.Systems {
 				}
 			}
 
-			var scoreEntityByCountryId = new Dictionary<string, int>();
-			int[] scoreRequired = { TypeId<CountryScore>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(scoreRequired, null)) {
-				CountryScore[] scores = arch.GetColumn<CountryScore>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					scoreEntityByCountryId[scores[i].CountryId] = arch.Entities[i];
-				}
-			}
-
-			// Collect country ids first — calling world.Create/Add inside GetMatchingArchetypes
-			// would create new archetypes and mutate the dictionary mid-iteration, throwing
-			// InvalidOperationException (same trap as InitSystem.DiscoverInitialCountries).
-			var countryIds = new List<string>();
+			// Collect (entity, countryId) pairs first — calling world.Add inside
+			// GetMatchingArchetypes would create new archetypes and mutate the
+			// dictionary mid-iteration, throwing InvalidOperationException (same
+			// trap as InitSystem.DiscoverInitialCountries).
+			var countryEntities = new List<(int Entity, string CountryId)>();
 			int[] countryRequired = { TypeId<Country>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(countryRequired, null)) {
 				Country[] countries = arch.GetColumn<Country>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					countryIds.Add(countries[i].CountryId);
+					countryEntities.Add((arch.Entities[i], countries[i].CountryId));
 				}
 			}
 
-			foreach (string countryId in countryIds) {
+			// Second pass — compute + attach/update Score directly on the Country
+			// entity, no separate CountryId -> scoreEntity lookup needed (see ecs_patterns.md).
+			foreach (var (entity, countryId) in countryEntities) {
 				double totalPopulation = 0;
 				if (provincesByOwner.TryGetValue(countryId, out var provinceIds)) {
 					foreach (var provinceId in provinceIds) {
@@ -69,22 +62,22 @@ namespace GS.Game.Systems {
 				}
 
 				double value = coefficient * totalPopulation;
-				if (scoreEntityByCountryId.TryGetValue(countryId, out int existingEntity)) {
-					world.Get<CountryScore>(existingEntity).Value = value;
+				if (world.Has<Score>(entity)) {
+					world.Get<Score>(entity).Value = value;
 				} else {
-					int scoreEntity = world.Create();
-					world.Add(scoreEntity, new CountryScore { CountryId = countryId, Value = value });
+					world.Add(entity, new Score { Value = value });
 				}
 			}
 		}
 
 		public static double GetScore(IReadOnlyWorld world, string countryId) {
-			int[] required = { TypeId<CountryScore>.Value };
+			int[] required = { TypeId<Country>.Value, TypeId<Score>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
-				CountryScore[] scores = arch.GetColumn<CountryScore>();
+				Country[] countries = arch.GetColumn<Country>();
+				Score[] scores = arch.GetColumn<Score>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (scores[i].CountryId == countryId) {
+					if (countries[i].CountryId == countryId) {
 						return scores[i].Value;
 					}
 				}

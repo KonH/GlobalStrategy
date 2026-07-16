@@ -128,5 +128,41 @@ namespace GS.Game.Tests {
 
 			Assert.Equal(0.0, CountryScoreSystem.GetScore(world, "Unknown"));
 		}
+
+		[Fact]
+		void score_is_composed_onto_the_country_entity_not_a_separate_entity() {
+			var world = new World();
+			int countryEntity = SeedCountry(world, "A");
+			SeedProvince(world, "prov_1", "A", 1000);
+
+			CountryScoreSystem.Recompute(world, 0.01);
+
+			int[] countryRequired = { TypeId<Country>.Value };
+			int[] countryAndScoreRequired = { TypeId<Country>.Value, TypeId<Score>.Value };
+			bool foundScoredEntity = false;
+			foreach (Archetype arch in world.GetMatchingArchetypes(countryAndScoreRequired, null)) {
+				Country[] countries = arch.GetColumn<Country>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (countries[i].CountryId == "A") {
+						Assert.Equal(countryEntity, arch.Entities[i]);
+						foundScoredEntity = true;
+					}
+				}
+			}
+			Assert.True(foundScoredEntity);
+
+			int countryOnlyEntityCount = 0;
+			foreach (Archetype arch in world.GetMatchingArchetypes(countryRequired, null)) {
+				Country[] countries = arch.GetColumn<Country>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (countries[i].CountryId == "A") {
+						countryOnlyEntityCount++;
+					}
+				}
+			}
+			Assert.Equal(1, countryOnlyEntityCount);
+		}
 	}
 }
