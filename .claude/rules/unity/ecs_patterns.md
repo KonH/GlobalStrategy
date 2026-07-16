@@ -47,6 +47,44 @@ public struct ProximityMapData {
 
 The criterion: if `InitSystem` (or an equivalent startup step) always recreates the component from scratch regardless of load state, it does not need saving.
 
+## Composition over parallel lookup entities for derived per-entity state
+
+When a derived value belongs conceptually to an entity that already exists (e.g. a score belonging to a `Country` or an `Organization`), attach a shared, generically-named component directly onto that entity rather than creating a second entity that merely references the first by id.
+
+```csharp
+// Not [Savable] — see the [Savable] omission pattern above.
+public struct Score {
+    public double Value;
+}
+```
+
+```csharp
+// Wrong — a parallel entity keyed by a duplicated id, requiring a second lookup:
+public struct CountryScore {
+    public string CountryId; // duplicates Country.CountryId
+    public double Value;
+}
+
+// Right — composed directly onto the existing Country entity:
+int[] required = { TypeId<Country>.Value };
+foreach (var arch in world.GetMatchingArchetypes(required, null)) {
+    Country[] countries = arch.GetColumn<Country>();
+    for (int i = 0; i < arch.Count; i++) {
+        int entity = arch.Entities[i];
+        double value = ComputeScore(countries[i].CountryId);
+        if (world.Has<Score>(entity)) {
+            world.Get<Score>(entity).Value = value;
+        } else {
+            world.Add(entity, new Score { Value = value });
+        }
+    }
+}
+```
+
+The same `Score` component composes onto an `Organization` entity for org scoring — `Country + Score` and `Organization + Score` are two distinct query shapes over one shared component type, not two parallel components. Adding a new component type to an already-existing entity (an archetype move) is an established, working operation in this ECS — see `InitSystem.DiscoverInitialCountries`, which adds `IsDiscovered` onto pre-existing `Country` entities the same way.
+
+This removes an entire id-keyed lookup dictionary that a parallel-entity design otherwise needs (build a `CountryId -> scoreEntity` map, then look it up per recompute) — the "score entity" and the "subject entity" are the same entity, so there is nothing to keep in sync.
+
 ## `ref` locals and lambdas
 
 C# does not allow `ref` locals inside anonymous methods or lambdas. When iterating over commands that need to mutate a `ref` component, use `AsSpan()` and index directly:
