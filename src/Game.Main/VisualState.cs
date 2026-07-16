@@ -304,6 +304,17 @@ namespace GS.Main {
 		}
 	}
 
+	public class CountryScoreState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyDictionary<string, double> ScoreByCountryId { get; private set; } = new Dictionary<string, double>();
+
+		public void Set(IReadOnlyDictionary<string, double> scoreByCountryId) {
+			ScoreByCountryId = scoreByCountryId;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class SelectedProvinceState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -330,5 +341,6 @@ namespace GS.Main {
 		public SaveResultState SaveResult { get; } = new SaveResultState();
 		public ProvinceOwnershipState ProvinceOwnership { get; } = new ProvinceOwnershipState();
 		public SelectedProvinceState SelectedProvince { get; } = new SelectedProvinceState();
+		public CountryScoreState CountryScore { get; } = new CountryScoreState();
 	}
 }

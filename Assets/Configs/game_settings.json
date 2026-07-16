@@ -3,5 +3,6 @@
   "speedMultipliers": [1, 24, 720],
   "defaultLocale": "en",
   "autoSaveInterval": "monthly",
-  "populationGrowthPercentPerMonth": 0.075
+  "populationGrowthPercentPerMonth": 0.075,
+  "countryScoreCoefficient": 0.0001
 }

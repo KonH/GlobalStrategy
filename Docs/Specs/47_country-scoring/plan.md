@@ -47,9 +47,9 @@ Add a `CountryScore` runtime component and a `CountryScoreSystem` that aggregate
 
 ### Agent Steps
 
-- [ ] **Confirm spec 46 has landed** — Before starting, verify `OwnerType.Province` exists in `src/Game.Components/OwnerType.cs` and that province-population `Resource{ResourceId="population"}` entities (owned via `ResourceOwner(provinceId, OwnerType.Province)`) are seeded by `InitSystem.Run` and grown monthly. If not yet merged, stop — this plan's aggregation code cannot compile or be tested without it.
+- [x] **Confirm spec 46 has landed** — Before starting, verify `OwnerType.Province` exists in `src/Game.Components/OwnerType.cs` and that province-population `Resource{ResourceId="population"}` entities (owned via `ResourceOwner(provinceId, OwnerType.Province)`) are seeded by `InitSystem.Run` and grown monthly. If not yet merged, stop — this plan's aggregation code cannot compile or be tested without it.
 
-- [ ] **Add the `CountryScore` component** — Create `src/Game.Components/CountryScore.cs`:
+- [x] **Add the `CountryScore` component** — Create `src/Game.Components/CountryScore.cs`:
   ```csharp
   namespace GS.Game.Components {
   	// Not [Savable] — fully derivable from province population + current ownership +
@@ -62,23 +62,23 @@ Add a `CountryScore` runtime component and a `CountryScoreSystem` that aggregate
   }
   ```
 
-- [ ] **Add the `CountryScoreSystem`** — Create `src/Game.Systems/CountryScoreSystem.cs` with `Update(World, DateTime previousTime, DateTime currentTime, double coefficient)` (month-boundary gate, delegates to `Recompute`), `Recompute(World, double coefficient)` (forced aggregation per the Approach section above — reads `ProvinceOwnershipSystem.GetProvincesByOwner`, sums population per owner, destroys and recreates `CountryScore` entities for every `Country`), and `GetScore(IReadOnlyWorld, string countryId)` (linear scan, `0` if absent).
+- [x] **Add the `CountryScoreSystem`** — Create `src/Game.Systems/CountryScoreSystem.cs` with `Update(World, DateTime previousTime, DateTime currentTime, double coefficient)` (month-boundary gate, delegates to `Recompute`), `Recompute(World, double coefficient)` (forced aggregation per the Approach section above — reads `ProvinceOwnershipSystem.GetProvincesByOwner`, sums population per owner, destroys and recreates `CountryScore` entities for every `Country`), and `GetScore(IReadOnlyWorld, string countryId)` (linear scan, `0` if absent).
 
-- [ ] **Add the config coefficient** — In `src/Game.Configs/GameSettings.cs`, add `public double CountryScoreCoefficient { get; set; } = 1.0;`. In `Assets/Configs/game_settings.json`, add `"countryScoreCoefficient": 1.0` alongside the existing `startYear`/`speedMultipliers`/`defaultLocale`/`autoSaveInterval` keys (camelCase per `plugins.md`'s JSON convention).
+- [x] **Add the config coefficient** — In `src/Game.Configs/GameSettings.cs`, add `public double CountryScoreCoefficient { get; set; } = 1.0;`. In `Assets/Configs/game_settings.json`, add `"countryScoreCoefficient": 1.0` alongside the existing `startYear`/`speedMultipliers`/`defaultLocale`/`autoSaveInterval` keys (camelCase per `plugins.md`'s JSON convention).
 
-- [ ] **Seed initial score at init** — In `src/Game.Main/InitSystem.cs`'s `Run`, add `CountryScoreSystem.Recompute(world, settings.CountryScoreCoefficient);` near the end of `Run` (after province population has been seeded and after `var settings = context.GameSettings.Load();`, before the final `world.Add(initEntity, new IsInitialized());`), so scores are non-zero from tick one.
+- [x] **Seed initial score at init** — In `src/Game.Main/InitSystem.cs`'s `Run`, add `CountryScoreSystem.Recompute(world, settings.CountryScoreCoefficient);` near the end of `Run` (after province population has been seeded and after `var settings = context.GameSettings.Load();`, before the final `world.Add(initEntity, new IsInitialized());`), so scores are non-zero from tick one.
 
-- [ ] **Wire the monthly recompute into `GameLogic.Update`** — In `src/Game.Main/GameLogic.cs`, add `readonly double _countryScoreCoefficient;` set from `settings.CountryScoreCoefficient` in the constructor (alongside `_speedMultipliers`). In `Update(float deltaTime)`, add `CountryScoreSystem.Update(_world, _previousTime, currentTime, _countryScoreCoefficient);` immediately after the `OpinionSystem.Update(_world, _previousTime, currentTime);` line (current call order at time of writing — no `ProvincePopulationGrowthSystem` call exists in `GameLogic.cs` yet). If spec 46's `ProvincePopulationGrowthSystem.Update(...)` call has already been wired into `GameLogic.Update` by the time this step is implemented, place the `CountryScoreSystem.Update` call immediately after that call instead, so population growth is guaranteed to run first within the same tick.
+- [x] **Wire the monthly recompute into `GameLogic.Update`** — In `src/Game.Main/GameLogic.cs`, add `readonly double _countryScoreCoefficient;` set from `settings.CountryScoreCoefficient` in the constructor (alongside `_speedMultipliers`). In `Update(float deltaTime)`, add `CountryScoreSystem.Update(_world, _previousTime, currentTime, _countryScoreCoefficient);` immediately after the `OpinionSystem.Update(_world, _previousTime, currentTime);` line (current call order at time of writing — no `ProvincePopulationGrowthSystem` call exists in `GameLogic.cs` yet). If spec 46's `ProvincePopulationGrowthSystem.Update(...)` call has already been wired into `GameLogic.Update` by the time this step is implemented, place the `CountryScoreSystem.Update` call immediately after that call instead, so population growth is guaranteed to run first within the same tick.
 
-- [ ] **Force a recompute on load** — In `src/Game.Main/GameLogic.cs`'s `LoadState(string saveName)`, add `CountryScoreSystem.Recompute(_world, _countryScoreCoefficient);` directly after the existing `RefreshSingletonEntities();` call, so a freshly loaded save has correct, non-stale scores immediately (the same fix `RebuildProximityMap()` should have received but never did, per the dead-code finding above — do not leave this plan's recompute as an unused method).
+- [x] **Force a recompute on load** — In `src/Game.Main/GameLogic.cs`'s `LoadState(string saveName)`, add `CountryScoreSystem.Recompute(_world, _countryScoreCoefficient);` directly after the existing `RefreshSingletonEntities();` call, so a freshly loaded save has correct, non-stale scores immediately (the same fix `RebuildProximityMap()` should have received but never did, per the dead-code finding above — do not leave this plan's recompute as an unused method).
 
-- [ ] **Expose score via `VisualState`** — In `src/Game.Main/VisualState.cs`, add `CountryScoreState : INotifyPropertyChanged` with `IReadOnlyDictionary<string, double> ScoreByCountryId` and `Set(...)`, and add `public CountryScoreState CountryScore { get; } = new CountryScoreState();` to the `VisualState` class.
+- [x] **Expose score via `VisualState`** — In `src/Game.Main/VisualState.cs`, add `CountryScoreState : INotifyPropertyChanged` with `IReadOnlyDictionary<string, double> ScoreByCountryId` and `Set(...)`, and add `public CountryScoreState CountryScore { get; } = new CountryScoreState();` to the `VisualState` class.
 
-- [ ] **Populate score state every tick** — In `src/Game.Main/VisualStateConverter.cs`, add `UpdateCountryScore(IReadOnlyWorld world)` (iterate `CountryScore` components into a `Dictionary<string, double>`, call `_state.CountryScore.Set(...)`), and call it from `Update(...)`'s existing sequence next to `UpdateProvinceOwnership(world)`. No version-counter/dirty-check — rebuild unconditionally every call, matching `UpdateOrgMap`'s existing style, per the Approach section's reasoning.
+- [x] **Populate score state every tick** — In `src/Game.Main/VisualStateConverter.cs`, add `UpdateCountryScore(IReadOnlyWorld world)` (iterate `CountryScore` components into a `Dictionary<string, double>`, call `_state.CountryScore.Set(...)`), and call it from `Update(...)`'s existing sequence next to `UpdateProvinceOwnership(world)`. No version-counter/dirty-check — rebuild unconditionally every call, matching `UpdateOrgMap`'s existing style, per the Approach section's reasoning.
 
-- [ ] **Add/extend tests** — Implement the Tests section below.
+- [x] **Add/extend tests** — Implement the Tests section below.
 
-- [ ] **Rebuild the Core DLLs** — Run `dotnet build src/GlobalStrategy.Core.sln -c Release` so `Assets/Plugins/Core/` picks up `CountryScore`, `CountryScoreSystem`, the updated `GameSettings`, `GameLogicContext`-adjacent `GameLogic`/`InitSystem`/`VisualState`/`VisualStateConverter` changes.
+- [x] **Rebuild the Core DLLs** — Run `dotnet build src/GlobalStrategy.Core.sln -c Release` so `Assets/Plugins/Core/` picks up `CountryScore`, `CountryScoreSystem`, the updated `GameSettings`, `GameLogicContext`-adjacent `GameLogic`/`InitSystem`/`VisualState`/`VisualStateConverter` changes.
 
 ### User Steps
 

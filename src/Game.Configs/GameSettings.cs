@@ -5,5 +5,6 @@ namespace GS.Game.Configs {
 		public string DefaultLocale { get; set; } = "en";
 		public string AutoSaveInterval { get; set; } = "monthly";
 		public double PopulationGrowthPercentPerMonth { get; set; } = 0.075;
+		public double CountryScoreCoefficient { get; set; } = 1.0;
 	}
 }

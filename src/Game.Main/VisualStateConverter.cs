@@ -38,6 +38,7 @@ namespace GS.Main {
 			UpdateCountryActions(world, gameTimeEntity);
 			UpdateProvinceOwnership(world);
 			UpdateSelectedProvince(world);
+			UpdateCountryScore(world);
 
 			// Tick all animatables
 			foreach (var animatable in _characterOpinionAnimatables.Values) {
@@ -620,6 +621,19 @@ namespace GS.Main {
 				return;
 			}
 			_state.SelectedProvince.Set(false, "");
+		}
+
+		void UpdateCountryScore(IReadOnlyWorld world) {
+			var scoreByCountryId = new Dictionary<string, double>();
+			int[] required = { TypeId<CountryScore>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				CountryScore[] scores = arch.GetColumn<CountryScore>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					scoreByCountryId[scores[i].CountryId] = scores[i].Value;
+				}
+			}
+			_state.CountryScore.Set(scoreByCountryId);
 		}
 
 		List<EffectStateEntry> BuildEffects(IReadOnlyWorld world, string countryId, string resourceId) {
