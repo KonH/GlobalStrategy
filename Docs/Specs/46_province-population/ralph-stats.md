@@ -13,7 +13,7 @@ To test different approaches for implementation - interactive session and autono
 | [Manual Sample 2](https://github.com/KonH/GlobalStrategy/tree/feature/province-population-manual-sample-2) | 7.25 | PASS |
 | [Manual Sample 3](https://github.com/KonH/GlobalStrategy/tree/feature/province-population-manual-sample-3) | 5.97 | PASS |
 | **Manual Avg** | **7.46** | **PASS** |
-| [Ralph Sample 1](https://github.com/KonH/GlobalStrategy/tree/feature/province-population-ralph-sample-1) | 33.33 | |
-| [Ralph Sample 2](https://github.com/KonH/GlobalStrategy/tree/feature/province-population-ralph-sample-2) | 54.14 | |
-| [Ralph Sample 3](https://github.com/KonH/GlobalStrategy/tree/feature/province-population-ralph-sample-3) | 76.31 | |
-| **Ralph Avg** | | |
+| [Ralph Sample 1](https://github.com/KonH/GlobalStrategy/tree/feature/province-population-ralph-sample-1) | 33.33 | PASS |
+| [Ralph Sample 2](https://github.com/KonH/GlobalStrategy/tree/feature/province-population-ralph-sample-2) | 54.14 | PASS |
+| [Ralph Sample 3](https://github.com/KonH/GlobalStrategy/tree/feature/province-population-ralph-sample-3) | 76.31 | PASS |
+| **Ralph Avg** | **54.59** | **PASS** |
