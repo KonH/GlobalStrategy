@@ -129,6 +129,8 @@ Test project: `src/Game.Tests/` (xUnit, snake_case `[Fact]` names; harness patte
   - `org_with_no_control_anywhere_scores_zero` — no `ControlEffect` entities for the org anywhere → `0.0`, no throw.
   - `control_in_zero_score_countries_scores_zero` — control only in countries whose score is `0` (or with no country-score entity/entry at all) → `0.0`.
   - `multiple_control_effects_in_one_country_sum_before_weighting` — two separate `ControlEffect` entities (10 + 20) for the org in one country of score 100 → `(10+20)/100*100 == 30.0`, not `10/100*100 + 20/100*100` computed as two separate weighted terms (same numeric result here, but the test should seed the two effects as genuinely separate entities and assert the sum-then-weight order matters conceptually per the spec's explicit criterion).
+  - `control_effects_belonging_to_other_orgs_are_excluded` — seed two orgs' `ControlEffect` entities in the same country (e.g. `Org1` with 30 control, `Org2` with 40 control, country score 100), mirroring `ControlSystemTests.multiple_orgs_receive_correct_amounts` (which already proves two orgs' `ControlEffect` entities coexist in a hand-built `World` today with no multi-org feature needed) → `OrgScore.GetScore(world, "Org1") == 30.0`, not `70.0` — asserts the `OrgId` filter, which the formula depends on but no other fact exercises.
+  - `get_score_is_pure_and_repeatable` — call `OrgScore.GetScore(world, orgId)` twice in a row on the same unmutated world and assert the two results are equal, then assert no new `ControlEffect`/`Country`/`Score` entities exist afterward — covers the spec's explicit "deterministic... no hidden mutable state" acceptance criterion.
 
 Run: `dotnet test src/GlobalStrategy.Core.sln` (`dangerouslyDisableSandbox: true`).
 

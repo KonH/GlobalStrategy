@@ -6,7 +6,7 @@ Refactor the already-merged, already-shipped `CountryScore`/`CountryScoreSystem`
 
 This plan is purely technical (no behavior change, no new acceptance criteria) — per `Docs/Constitution.md`'s Specification Discipline principle, it skips `/specify` and goes straight to `Docs/Plans/`.
 
-This plan is a **prerequisite** for `Docs/Specs/49_org-scoring/plan.md`, which is being rewritten in parallel to define `OrgScoreSystem` using the same shared `Score` component (composed onto `Organization` entities). Landing this refactor first means org-scoring depends on one shared `Score` component instead of each score system inventing its own copy of the same struct.
+This plan is a **prerequisite** for `Docs/Specs/49_org-scoring/plan.md`, which reads country scores via this same shared `Score` component (composed onto `Country` entities) in its `OrgScore.GetScore` query. Note: unlike this refactor, plan 49 does not define an `OrgScoreSystem` or compose `Score` (or any component) onto `Organization` entities — per its spec's explicit scope, it is a pure derived query with zero new ECS components. Landing this refactor first means org-scoring's *read* of country scores depends on one shared `Score` component instead of being written against the pre-refactor `CountryScore { CountryId, Value }` shape and needing a follow-up edit.
 
 ## Approach
 
@@ -71,30 +71,37 @@ public static class CountryScoreSystem {
 			}
 		}
 
-		// Single pass over Country entities — compute + attach/update Score directly,
-		// no separate CountryId -> scoreEntity lookup needed (see ecs_patterns.md).
+		// Collect (entity, countryId) pairs first — calling world.Add inside
+		// GetMatchingArchetypes would create new archetypes and mutate the
+		// dictionary mid-iteration, throwing InvalidOperationException (same
+		// trap as InitSystem.DiscoverInitialCountries).
+		var countryEntities = new List<(int Entity, string CountryId)>();
 		int[] countryRequired = { TypeId<Country>.Value };
 		foreach (Archetype arch in world.GetMatchingArchetypes(countryRequired, null)) {
 			Country[] countries = arch.GetColumn<Country>();
 			int count = arch.Count;
 			for (int i = 0; i < count; i++) {
-				string countryId = countries[i].CountryId;
-				double totalPopulation = 0;
-				if (provincesByOwner.TryGetValue(countryId, out var provinceIds)) {
-					foreach (var provinceId in provinceIds) {
-						if (populationByProvinceId.TryGetValue(provinceId, out double population)) {
-							totalPopulation += population;
-						}
+				countryEntities.Add((arch.Entities[i], countries[i].CountryId));
+			}
+		}
+
+		// Second pass — compute + attach/update Score directly on the Country
+		// entity, no separate CountryId -> scoreEntity lookup needed (see ecs_patterns.md).
+		foreach (var (entity, countryId) in countryEntities) {
+			double totalPopulation = 0;
+			if (provincesByOwner.TryGetValue(countryId, out var provinceIds)) {
+				foreach (var provinceId in provinceIds) {
+					if (populationByProvinceId.TryGetValue(provinceId, out double population)) {
+						totalPopulation += population;
 					}
 				}
+			}
 
-				double value = coefficient * totalPopulation;
-				int entity = arch.Entities[i];
-				if (world.Has<Score>(entity)) {
-					world.Get<Score>(entity).Value = value;
-				} else {
-					world.Add(entity, new Score { Value = value });
-				}
+			double value = coefficient * totalPopulation;
+			if (world.Has<Score>(entity)) {
+				world.Get<Score>(entity).Value = value;
+			} else {
+				world.Add(entity, new Score { Value = value });
 			}
 		}
 	}
@@ -116,7 +123,7 @@ public static class CountryScoreSystem {
 }
 ```
 
-Note on the `foreach` + in-loop `world.Add`/`world.Get` pattern: adding a *new* component type to an entity already being iterated via `GetMatchingArchetypes` is the same operation `InitSystem.DiscoverInitialCountries` performs, but that code collects entity IDs into a list first and adds components in a second loop, with a comment explaining why: "calling `world.Add` inside `GetMatchingArchetypes` would create new archetypes and mutate the dictionary mid-iteration, throwing `InvalidOperationException`." **This same hazard applies here on an entity's *first* `Recompute` call** (when it doesn't have `Score` yet — `world.Add` triggers an archetype move for that entity). The implementer must collect `(entity, countryId)` pairs into a `List<(int, string)>` during the archetype scan, then do the has/mutate/add branch in a second loop over that list — not inline inside the `foreach (Archetype arch in ...)` loop as drafted above for readability. **Update the code above accordingly before implementing** — this is a correctness-critical deviation from the snippet, called out explicitly so it isn't missed.
+Note on the two-pass form above: adding a *new* component type to an entity already being iterated via `GetMatchingArchetypes` would create new archetypes and mutate the dictionary mid-iteration, throwing `InvalidOperationException` — the same trap `InitSystem.DiscoverInitialCountries` avoids by collecting entity IDs into a list first and adding components in a second loop. This hazard applies here on an entity's *first* `Recompute` call (when it doesn't have `Score` yet — `world.Add` triggers an archetype move for that entity, and the swap-remove that move performs on the old archetype would also corrupt the *inner* `for` loop's cached `count`/`countries` array if the add happened inline during the same scan). The code above already collects `(entity, countryId)` pairs during the archetype scan and performs the has/mutate/add branch in a separate second loop, so neither hazard applies.
 
 ### 4. Rewrite `UpdateCountryScore` in `src/Game.Main/VisualStateConverter.cs`
 
