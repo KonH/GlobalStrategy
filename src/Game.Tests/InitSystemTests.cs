@@ -74,8 +74,8 @@ namespace GS.Game.Tests {
 			var mapEntry = new MapEntryConfig();
 			var provinceConfig = new ProvinceConfig {
 				Provinces = new List<ProvinceEntry> {
-					new ProvinceEntry { ProvinceId = "prov_a", CountryId = "Great_Britain" },
-					new ProvinceEntry { ProvinceId = "prov_b", CountryId = "France" }
+					new ProvinceEntry { ProvinceId = "prov_a", CountryId = "Great_Britain", Population = 1234.0 },
+					new ProvinceEntry { ProvinceId = "prov_b", CountryId = "France", Population = 5678.0 }
 				}
 			};
 
@@ -153,6 +153,48 @@ namespace GS.Game.Tests {
 
 			logic.Update(0f);
 			Assert.Equal(countAfterInit, CountEntities<ProvinceOwnership>(logic.World));
+		}
+
+		[Fact]
+		void province_population_seeded_from_config() {
+			var logic = BuildLogic();
+			logic.Update(0f);
+
+			var populationByProvinceId = new Dictionary<string, (double Value, OwnerType OwnerType)>();
+			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(req, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (resources[i].ResourceId == "population") {
+						populationByProvinceId[owners[i].OwnerId] = (resources[i].Value, owners[i].OwnerType);
+					}
+				}
+			}
+
+			Assert.Equal(2, populationByProvinceId.Count);
+			Assert.Equal((1234.0, OwnerType.Province), populationByProvinceId["prov_a"]);
+			Assert.Equal((5678.0, OwnerType.Province), populationByProvinceId["prov_b"]);
+		}
+
+		[Fact]
+		void province_population_unaffected_on_first_tick() {
+			var logic = BuildLogic();
+			logic.Update(0f);
+
+			double? populationA = null;
+			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(req, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerId == "prov_a" && resources[i].ResourceId == "population") {
+						populationA = resources[i].Value;
+					}
+				}
+			}
+
+			Assert.Equal(1234.0, populationA);
 		}
 	}
 }

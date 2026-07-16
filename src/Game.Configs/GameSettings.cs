@@ -4,5 +4,6 @@ namespace GS.Game.Configs {
 		public int[] SpeedMultipliers { get; set; } = { 1, 24, 720 };
 		public string DefaultLocale { get; set; } = "en";
 		public string AutoSaveInterval { get; set; } = "monthly";
+		public double PopulationGrowthPercentPerMonth { get; set; } = 0.075;
 	}
 }
