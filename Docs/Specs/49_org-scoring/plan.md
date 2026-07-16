@@ -102,13 +102,13 @@ Add `src/Game.Systems/OrgScore.cs`, a static class with one method — `GetScore
 
 ### Agent Steps
 
-- [ ] **Confirm the score-component prerequisite's current shape** — check whether `Docs/Specs/48_score-component-composition/plan.md` has landed (i.e. whether `src/Game.Components/Score.cs` exists and `CountryScoreSystem` composes it onto `Country` entities) or whether `CountryScore { CountryId, Value }` is still the live shape. Use whichever query shape matches — see the Approach section's fallback note. This is the only preflight check this plan needs; there is no multi-org or bot-infrastructure dependency to verify.
+- [x] **Confirm the score-component prerequisite's current shape** — check whether `Docs/Specs/48_score-component-composition/plan.md` has landed (i.e. whether `src/Game.Components/Score.cs` exists and `CountryScoreSystem` composes it onto `Country` entities) or whether `CountryScore { CountryId, Value }` is still the live shape. Use whichever query shape matches — see the Approach section's fallback note. This is the only preflight check this plan needs; there is no multi-org or bot-infrastructure dependency to verify.
 
-- [ ] **Add `OrgScore`** — Create `src/Game.Systems/OrgScore.cs` per the Approach section: a single-pass `countryId -> CountryScore.Value` dictionary, a single-pass `countryId -> summed ControlEffect.Value` dictionary for the given `orgId`, then `(control / 100.0) * countryScore` summed across countries, with `0.0` fallbacks for missing entries (never throws).
+- [x] **Add `OrgScore`** — Create `src/Game.Systems/OrgScore.cs` per the Approach section: a single-pass `countryId -> CountryScore.Value` dictionary, a single-pass `countryId -> summed ControlEffect.Value` dictionary for the given `orgId`, then `(control / 100.0) * countryScore` summed across countries, with `0.0` fallbacks for missing entries (never throws).
 
-- [ ] **Add tests** — Implement the Tests section below.
+- [x] **Add tests** — Implement the Tests section below.
 
-- [ ] **Rebuild the Core DLLs** — Run `dotnet build src/GlobalStrategy.Core.sln -c Release` so `Assets/Plugins/Core/` picks up `OrgScore`.
+- [x] **Rebuild the Core DLLs** — Run `dotnet build src/GlobalStrategy.Core.sln -c Release` so `Assets/Plugins/Core/` picks up `OrgScore`.
 
 ### User Steps
 
