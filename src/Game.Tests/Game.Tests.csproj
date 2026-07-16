@@ -23,6 +23,7 @@
     <ProjectReference Include="../Game.Configs/Game.Configs.csproj" />
     <ProjectReference Include="../Game.Configs.Loader/Game.Configs.Loader.csproj" />
     <ProjectReference Include="../Game.ConsoleRunner/Game.ConsoleRunner.csproj" />
+    <ProjectReference Include="../Game.Bots/Game.Bots.csproj" />
   </ItemGroup>
 
 </Project>

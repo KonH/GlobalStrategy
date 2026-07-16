@@ -31,64 +31,14 @@ namespace GS.Game.Systems {
 			var toAdd = new List<int>();
 			foreach (var (entity, actionId, orgId) in toValidate) {
 				entityCountry.TryGetValue(entity, out string countryId);
-				var def = config.Find(actionId);
-				if (def == null) { continue; }
-
-				int orgControl = GetOrgControl(world, orgId, countryId);
-				var ctx = new ExpressionContext { Control = orgControl };
-
-				bool conditionsMet = true;
-				foreach (var cond in def.Conditions) {
-					if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { conditionsMet = false; break; }
+				if (ActionPlayability.Evaluate(world, config, actionId, orgId, countryId)) {
+					toAdd.Add(entity);
 				}
-				if (!conditionsMet) { continue; }
-
-				if (!CanAfford(world, orgId, def.Cost)) { continue; }
-
-				toAdd.Add(entity);
 			}
 
 			foreach (int e in toAdd) {
 				world.Add(e, new ActionValid());
 			}
-		}
-
-		static int GetOrgControl(World world, string orgId, string countryId) {
-			if (string.IsNullOrEmpty(countryId)) { return 0; }
-			int total = 0;
-			int[] req = { TypeId<ControlEffect>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (effects[i].OrgId == orgId && effects[i].CountryId == countryId) {
-						total += effects[i].Value;
-					}
-				}
-			}
-			return total;
-		}
-
-		static bool CanAfford(World world, string orgId, List<ActionCost> costs) {
-			foreach (var cost in costs) {
-				if (!HasResource(world, orgId, cost.ResourceId, cost.Amount)) { return false; }
-			}
-			return true;
-		}
-
-		static bool HasResource(World world, string ownerId, string resourceId, double amount) {
-			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
-				Resource[] resources = arch.GetColumn<Resource>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId == ownerId && resources[i].ResourceId == resourceId) {
-						return resources[i].Value >= amount;
-					}
-				}
-			}
-			return false;
 		}
 	}
 }

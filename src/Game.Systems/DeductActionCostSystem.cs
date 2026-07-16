@@ -36,17 +36,10 @@ namespace GS.Game.Systems {
 		}
 
 		static void DeductResource(World world, string ownerId, string resourceId, double amount) {
-			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
-				Resource[] resources = arch.GetColumn<Resource>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId == ownerId && resources[i].ResourceId == resourceId) {
-						resources[i].Value -= amount;
-						return;
-					}
-				}
+			int entity = ActionPlayability.FindResourceEntity(world, ownerId, resourceId);
+			if (entity >= 0) {
+				ref Resource r = ref world.Get<Resource>(entity);
+				r.Value -= amount;
 			}
 		}
 	}

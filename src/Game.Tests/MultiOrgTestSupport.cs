@@ -13,6 +13,8 @@ namespace GS.Game.Tests {
 		public const string ExtraCountry2 = "Austria";
 		public const string DiscoverActionId = "spread_rumors";
 		public const string SpendGoldActionId = "spend_gold";
+		public const string CountryCardActionId = "influence_country";
+		public const double CountryCardGoldCost = 20.0;
 
 		public sealed class StaticConfig<T> : IConfigSource<T> {
 			readonly T _value;
@@ -28,7 +30,8 @@ namespace GS.Game.Tests {
 			IPersistentStorage? storage = null,
 			ISnapshotSerializer? serializer = null,
 			IGameLogger? logger = null,
-			CharacterConfig? characterConfig = null) {
+			CharacterConfig? characterConfig = null,
+			bool includeCountryCard = false) {
 
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
@@ -70,7 +73,7 @@ namespace GS.Game.Tests {
 			var actionConfig = new ActionConfig {
 				Defaults = new List<ActionOwnerDefaults> {
 					new ActionOwnerDefaults { OwnerType = "org", HandSize = 2 },
-					new ActionOwnerDefaults { OwnerType = "country", HandSize = 0 }
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = includeCountryCard ? 2 : 0 }
 				},
 				OrgPools = new List<OrgActionPool> {
 					new OrgActionPool { OrgId = OrgA, ActionIds = new List<string> { DiscoverActionId, SpendGoldActionId } },
@@ -89,6 +92,24 @@ namespace GS.Game.Tests {
 					}
 				}
 			};
+			if (includeCountryCard) {
+				// Condition is trivially true (control >= 0) so the card is eligible in any discovered
+				// country from init; playability toggling for tests is driven via cost/gold instead.
+				actionConfig.Actions.Add(new ActionDefinition {
+					ActionId = CountryCardActionId,
+					OwnerType = "country",
+					Conditions = new List<ExpressionNode> {
+						new ExpressionNode {
+							Type = "gte",
+							Members = new List<ExpressionNode> {
+								new ExpressionNode { Type = "control" },
+								new ExpressionNode { Type = "value", Value = 0 }
+							}
+						}
+					},
+					Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = CountryCardGoldCost } }
+				});
+			}
 			var effectConfig = new EffectConfig {
 				Effects = new List<ActionEffectDefinition> {
 					new DiscoverCountryEffectParams { EffectId = "discover", EffectType = "DiscoverCountry" }

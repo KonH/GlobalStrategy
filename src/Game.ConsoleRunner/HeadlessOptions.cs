@@ -13,11 +13,13 @@ namespace GS.Game.ConsoleRunner {
 		public int? MaxTicks { get; private set; }
 		public int TimeoutSeconds { get; private set; } = 300;
 		public int HoursPerTick { get; private set; } = 24;
+		public IReadOnlyList<string> BotProfilePaths { get; private set; } = new List<string>();
 
 		public static HeadlessOptions Parse(string[] args) {
 			var options = new HeadlessOptions();
 			int? seed = null;
 			string? output = null;
+			var botPaths = new List<string>();
 
 			for (int i = 0; i < args.Length; i++) {
 				switch (args[i]) {
@@ -53,9 +55,18 @@ namespace GS.Game.ConsoleRunner {
 					case "--hours-per-tick":
 						options.HoursPerTick = ParseIntArg(args, ref i, "--hours-per-tick");
 						break;
+					case "--bot":
+						botPaths.Add(NextArg(args, ref i, "--bot"));
+						break;
 					default:
 						throw new ArgumentException($"Unknown argument '{args[i]}'.");
 				}
+			}
+
+			options.BotProfilePaths = botPaths;
+
+			if (botPaths.Count > 0 && !options.IsHeadless) {
+				throw new ArgumentException("--bot requires --headless.");
 			}
 
 			if (!options.IsHeadless) {

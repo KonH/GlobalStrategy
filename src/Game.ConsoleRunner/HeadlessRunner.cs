@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using GS.Configs.IO;
+using GS.Game.Bots;
 using GS.Game.Configs;
 using GS.Main;
 
@@ -24,6 +25,27 @@ namespace GS.Game.ConsoleRunner {
 				foreach (var entry in orgConfig.Organizations) { orgIds.Add(entry.OrganizationId); }
 			}
 
+			var profiles = new List<BotProfile>();
+			foreach (string path in options.BotProfilePaths) {
+				profiles.Add(BotProfileLoader.Load(path));
+			}
+
+			var registry = BotFeatureRegistry.CreateDefault();
+			var seenProfileOrgs = new HashSet<string>();
+			foreach (var profile in profiles) {
+				if (!orgIds.Contains(profile.OrgId)) {
+					throw new InvalidOperationException($"Bot profile org '{profile.OrgId}' is not in the participating org set.");
+				}
+				if (!seenProfileOrgs.Add(profile.OrgId)) {
+					throw new InvalidOperationException($"Duplicate bot profile for org '{profile.OrgId}'.");
+				}
+				foreach (var featureSetting in profile.Features) {
+					if (!registry.IsRegistered(featureSetting.FeatureId)) {
+						throw new InvalidOperationException($"Unknown bot feature id '{featureSetting.FeatureId}' for org '{profile.OrgId}'.");
+					}
+				}
+			}
+
 			var logger = new ConsoleLogger();
 			string initialOrganizationId = orgIds.Count > 0 ? orgIds[0] : "";
 			var ctx = Program.BuildContext(
@@ -33,6 +55,37 @@ namespace GS.Game.ConsoleRunner {
 				initialOrganizationId: initialOrganizationId,
 				logger: logger);
 			var logic = new GameLogic(ctx);
+
+			var bots = new List<Bot>();
+			List<BotProfileResult>? botsResult = null;
+			if (profiles.Count > 0) {
+				botsResult = new List<BotProfileResult>();
+				foreach (string orgId in orgIds) {
+					BotProfile? profile = null;
+					foreach (var p in profiles) {
+						if (p.OrgId == orgId) { profile = p; break; }
+					}
+					if (profile == null) { continue; }
+
+					var features = new List<IBotFeature>();
+					var featureResults = new List<BotFeatureResult>();
+					foreach (var featureSetting in profile.Features) {
+						if (featureSetting.Enabled) {
+							features.Add(registry.Create(featureSetting.FeatureId, featureSetting.Parameters));
+						}
+						featureResults.Add(new BotFeatureResult {
+							FeatureId = featureSetting.FeatureId,
+							Enabled = featureSetting.Enabled,
+							Parameters = new Dictionary<string, double>(featureSetting.Parameters)
+						});
+					}
+
+					var sink = new BotCommandSink(orgId, logic.Commands, logger);
+					var rng = BotRng.Create(options.Seed, orgId);
+					bots.Add(new Bot(orgId, features, rng, sink));
+					botsResult.Add(new BotProfileResult { OrgId = orgId, Features = featureResults });
+				}
+			}
 
 			var settings = new FileConfig<GameSettings>(Path.Combine(options.ConfigDir, "game_settings.json")).Load();
 			float deltaTime = options.HoursPerTick / (float)settings.SpeedMultipliers[0];
@@ -46,7 +99,8 @@ namespace GS.Game.ConsoleRunner {
 					DeltaTime = deltaTime,
 					EndDate = options.EndDate?.ToString("yyyy-MM-dd"),
 					MaxTicks = options.MaxTicks,
-					TimeoutSeconds = options.TimeoutSeconds
+					TimeoutSeconds = options.TimeoutSeconds,
+					Bots = botsResult
 				}
 			};
 
@@ -56,10 +110,12 @@ namespace GS.Game.ConsoleRunner {
 			(int month, int year)? lastSampledMonth = null;
 
 			// t0 baseline sample, before any Update() advances time.
+			foreach (var bot in bots) { bot.ExecuteDecisionTick(logic.World, logic.ActionConfig); }
 			logic.Update(0f);
 			AppendTimelineSampleIfNewMonth(logic, orgIds, result.Timeline, ref lastSampledMonth, force: true);
 
 			while (true) {
+				foreach (var bot in bots) { bot.ExecuteDecisionTick(logic.World, logic.ActionConfig); }
 				logic.Update(deltaTime);
 				tickCount++;
 

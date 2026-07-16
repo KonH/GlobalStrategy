@@ -12,6 +12,7 @@
     <ProjectReference Include="../Core.Configs.IO/Core.Configs.IO.csproj" />
     <ProjectReference Include="../Core.Map/Core.Map.csproj" />
     <ProjectReference Include="../ECS.Viewer.Server/ECS.Viewer.Server.csproj" />
+    <ProjectReference Include="../Game.Bots/Game.Bots.csproj" />
   </ItemGroup>
 
   <ItemGroup>

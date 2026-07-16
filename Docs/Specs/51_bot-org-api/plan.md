@@ -313,31 +313,31 @@ Content is the **effective** configuration echoed from the parsed profiles (all 
 
 ### Agent Steps
 
-- [ ] **Verify spec 50 is implemented** — confirm `Docs/Specs/50_multi-org-headless-simulation/plan.md`'s artifacts exist on the branch (`GameLogicContext.RngSeed`/`ParticipatingOrganizationIds`, `DiscoveredCountry`, `OrgMetrics`, `HeadlessOptions`/`HeadlessRunner`/`SimulationResult`, multi-org tests). **If they do not, stop — this plan cannot start before 50 lands.**
+- [x] **Verify spec 50 is implemented** — confirm `Docs/Specs/50_multi-org-headless-simulation/plan.md`'s artifacts exist on the branch (`GameLogicContext.RngSeed`/`ParticipatingOrganizationIds`, `DiscoveredCountry`, `OrgMetrics`, `HeadlessOptions`/`HeadlessRunner`/`SimulationResult`, multi-org tests). **If they do not, stop — this plan cannot start before 50 lands.**
 
-- [ ] **Extract `ActionPlayability`** — new `src/Game.Systems/ActionPlayability.cs` with `Evaluate`/`GetOrgControl`/`CanAfford`/`FindResourceEntity` per Approach §1 (verbatim moves, `IReadOnlyWorld` parameters); rewrite `CheckActionConditionSystem.Update`'s per-entity check to call `Evaluate` and delete its private helpers; rewrite `DeductActionCostSystem.DeductResource` over `FindResourceEntity` + `ref` mutation. No behavioural change.
+- [x] **Extract `ActionPlayability`** — new `src/Game.Systems/ActionPlayability.cs` with `Evaluate`/`GetOrgControl`/`CanAfford`/`FindResourceEntity` per Approach §1 (verbatim moves, `IReadOnlyWorld` parameters); rewrite `CheckActionConditionSystem.Update`'s per-entity check to call `Evaluate` and delete its private helpers; rewrite `DeductActionCostSystem.DeductResource` over `FindResourceEntity` + `ref` mutation. No behavioural change.
 
-- [ ] **Create `src/Game.Bots` project** — `Game.Bots.csproj` (netstandard2.1, **no Release OutputPath**, references per Approach §2), add to `GlobalStrategy.Core.sln`.
+- [x] **Create `src/Game.Bots` project** — `Game.Bots.csproj` (netstandard2.1, **no Release OutputPath**, references per Approach §2), add to `GlobalStrategy.Core.sln`.
 
-- [ ] **Bot contracts and views** — `IBotObservation.cs`, `IBotCommandSink.cs`, `IBotFeature.cs` (with the extension-contract code docs), `BotViews.cs` (all view DTO classes) per Approach §2.
+- [x] **Bot contracts and views** — `IBotObservation.cs`, `IBotCommandSink.cs`, `IBotFeature.cs` (with the extension-contract code docs), `BotViews.cs` (all view DTO classes) per Approach §2.
 
-- [ ] **Observation implementation** — `BotObservation.cs` static `Build` snapshot per Approach §3: `OrgMetrics`-backed numbers, discovered-set filtering, hidden undiscovered countries, `ActionPlayability.Evaluate` per card, explicit ordinal/`SlotIndex` sorts, no retained world reference.
+- [x] **Observation implementation** — `BotObservation.cs` static `Build` snapshot per Approach §3: `OrgMetrics`-backed numbers, discovered-set filtering, hidden undiscovered countries, `ActionPlayability.Evaluate` per card, explicit ordinal/`SlotIndex` sorts, no retained world reference.
 
-- [ ] **Command sink** — `BotCommandSink.cs` per Approach §4: two whitelisted methods, sink-stamped `OrgId`, `BeginDecisionPhase` duplicate-guard reset, single `TryEmit` funnel (part-3 hook seam), `LogInfo` warning on duplicates.
+- [x] **Command sink** — `BotCommandSink.cs` per Approach §4: two whitelisted methods, sink-stamped `OrgId`, `BeginDecisionPhase` duplicate-guard reset, single `TryEmit` funnel (part-3 hook seam), `LogInfo` warning on duplicates.
 
-- [ ] **Profiles, registry, orchestrator, RNG, baseline** — `BotProfile.cs`, `BotFeatureRegistry.cs` (+`CreateDefault`), `Bot.cs` + `BotFeatureException`, `BotRng.cs` (documented FNV-1a derivation), `BaselineCardPlayFeature.cs` per Approach §5–6.
+- [x] **Profiles, registry, orchestrator, RNG, baseline** — `BotProfile.cs`, `BotFeatureRegistry.cs` (+`CreateDefault`), `Bot.cs` + `BotFeatureException`, `BotRng.cs` (documented FNV-1a derivation), `BaselineCardPlayFeature.cs` per Approach §5–6.
 
-- [ ] **Runner: options + profile loading** — extend `src/Game.ConsoleRunner/HeadlessOptions.cs` with repeatable `--bot <path>` (headless-only validation); new `BotProfileLoader.cs` (`System.Text.Json`, case-insensitive, descriptive failures); add the `Game.Bots` project reference to `Game.ConsoleRunner.csproj`.
+- [x] **Runner: options + profile loading** — extend `src/Game.ConsoleRunner/HeadlessOptions.cs` with repeatable `--bot <path>` (headless-only validation); new `BotProfileLoader.cs` (`System.Text.Json`, case-insensitive, descriptive failures); add the `Game.Bots` project reference to `Game.ConsoleRunner.csproj`.
 
-- [ ] **Runner: attachment + tick contract + results** — extend `HeadlessRunner.cs` per Approach §7: pre-tick load/validate (participating-org membership, duplicate-org, registry check on all featureIds), bots built in participating-org order with derived RNG seeds, decision phase before each `logic.Update`, exceptions surfaced to stderr with org+feature and non-zero exit; extend `SimulationResult.cs` with the `WhenWritingNull` `parameters.bots` echo of effective profiles.
+- [x] **Runner: attachment + tick contract + results** — extend `HeadlessRunner.cs` per Approach §7: pre-tick load/validate (participating-org membership, duplicate-org, registry check on all featureIds), bots built in participating-org order with derived RNG seeds, decision phase before each `logic.Update`, exceptions surfaced to stderr with org+feature and non-zero exit; extend `SimulationResult.cs` with the `WhenWritingNull` `parameters.bots` echo of effective profiles.
 
-- [ ] **Tests** — implement the Tests section below, including the `Game.Bots` reference in `Game.Tests.csproj` and extending the shared multi-org test builder with cost/condition-bearing action configs.
+- [x] **Tests** — implement the Tests section below, including the `Game.Bots` reference in `Game.Tests.csproj` and extending the shared multi-org test builder with cost/condition-bearing action configs.
 
-- [ ] **Run the test suite** — `dotnet test src/GlobalStrategy.Core.sln`; the playability-equivalence, information-hiding, sink, determinism, and baseline tests are the acceptance gate.
+- [x] **Run the test suite** — `dotnet test src/GlobalStrategy.Core.sln`; the playability-equivalence, information-hiding, sink, determinism, and baseline tests are the acceptance gate.
 
-- [ ] **Release build** — `dotnet build src/GlobalStrategy.Core.sln -c Release`; verify `Assets/Plugins/Core/` contains **no** `Game.Bots.dll` (only the existing DLLs refreshed) — the not-yet-in-Plugins criterion.
+- [x] **Release build** — `dotnet build src/GlobalStrategy.Core.sln -c Release`; verify `Assets/Plugins/Core/` contains **no** `Game.Bots.dll` (only the existing DLLs refreshed) — the not-yet-in-Plugins criterion.
 
-- [ ] **Headless smoke run with a bot** — write `.tmp/bot_illuminati.json` (`orgId: "Illuminati"`, `baselineCardPlay` enabled, `minGoldReserve: 0`); from the repo root run twice:
+- [x] **Headless smoke run with a bot** — write `.tmp/bot_illuminati.json` (`orgId: "Illuminati"`, `baselineCardPlay` enabled, `minGoldReserve: 0`); from the repo root run twice:
   `dotnet run --project src/Game.ConsoleRunner -c Release -- --headless --seed 42 --output .tmp/bot_run_a.json --end-date 1881-01-01 --bot .tmp/bot_illuminati.json` (and `..._b.json`) — verify exit 0, `parameters.bots` present, and the two files diff byte-identical on metrics; run the same seed **without** `--bot` and verify Illuminati's metrics diverge from the bot run (the bot demonstrably acts) while the file keeps part-1 shape (no `bots` key); run once with a profile naming `orgId: "DoesNotExist"` and once with `featureId: "nope"` — both must exit non-zero with clear stderr before simulating.
 
 ### User Steps

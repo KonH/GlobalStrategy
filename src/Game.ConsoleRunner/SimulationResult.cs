@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace GS.Game.ConsoleRunner {
 	public class SimulationParameters {
@@ -9,6 +10,19 @@ namespace GS.Game.ConsoleRunner {
 		public string? EndDate { get; set; }
 		public int? MaxTicks { get; set; }
 		public int TimeoutSeconds { get; set; }
+		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+		public List<BotProfileResult>? Bots { get; set; }
+	}
+
+	public class BotProfileResult {
+		public string OrgId { get; set; } = "";
+		public List<BotFeatureResult> Features { get; set; } = new();
+	}
+
+	public class BotFeatureResult {
+		public string FeatureId { get; set; } = "";
+		public bool Enabled { get; set; }
+		public Dictionary<string, double> Parameters { get; set; } = new();
 	}
 
 	public class OrgMetricsResult {
