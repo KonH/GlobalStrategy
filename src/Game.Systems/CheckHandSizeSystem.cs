@@ -7,16 +7,17 @@ namespace GS.Game.Systems {
 		public static void Update(World world) {
 			var discards = new List<(string orgId, string countryId)>();
 
-			int[] discardActionReq = { TypeId<CardDiscard>.Value, TypeId<ActionCard>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(discardActionReq, null)) {
-				ActionCard[] cards = arch.GetColumn<ActionCard>();
+			int[] discardOrgReq = { TypeId<CardDiscard>.Value, TypeId<OrgContext>.Value };
+			int[] excludeCountry = { TypeId<CountryContext>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(discardOrgReq, excludeCountry)) {
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					discards.Add((cards[i].OwnerId, ""));
+					discards.Add((orgs[i].OrgId, ""));
 				}
 			}
 
-			int[] discardCountryReq = { TypeId<CardDiscard>.Value, TypeId<ActionCard>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
+			int[] discardCountryReq = { TypeId<CardDiscard>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(discardCountryReq, null)) {
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				CountryContext[] countries = arch.GetColumn<CountryContext>();
@@ -53,31 +54,23 @@ namespace GS.Game.Systems {
 					}
 				}
 			}
-			int[] ownerReq = { TypeId<ActionOwner>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(ownerReq, null)) {
-				ActionOwner[] owners = arch.GetColumn<ActionOwner>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId == orgId) { return owners[i].HandSize; }
-				}
-			}
 			return string.IsNullOrEmpty(countryId) ? 1 : 3;
 		}
 
 		static int CountCardsInHand(World world, string orgId, string countryId) {
 			int total = 0;
 			if (string.IsNullOrEmpty(countryId)) {
-				int[] req = { TypeId<ActionCard>.Value, TypeId<InHand>.Value };
+				int[] req = { TypeId<OrgContext>.Value, TypeId<CardInHand>.Value };
 				int[] excludeCountry = { TypeId<CountryContext>.Value };
 				foreach (var arch in world.GetMatchingArchetypes(req, excludeCountry)) {
-					ActionCard[] cards = arch.GetColumn<ActionCard>();
+					OrgContext[] orgs = arch.GetColumn<OrgContext>();
 					int count = arch.Count;
 					for (int i = 0; i < count; i++) {
-						if (cards[i].OwnerId == orgId) { total++; }
+						if (orgs[i].OrgId == orgId) { total++; }
 					}
 				}
 			} else {
-				int[] req = { TypeId<ActionCard>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<InHand>.Value };
+				int[] req = { TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<CardInHand>.Value };
 				foreach (var arch in world.GetMatchingArchetypes(req, null)) {
 					OrgContext[] orgs = arch.GetColumn<OrgContext>();
 					CountryContext[] countries = arch.GetColumn<CountryContext>();

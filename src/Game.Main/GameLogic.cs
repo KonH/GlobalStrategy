@@ -75,7 +75,6 @@ namespace GS.Main {
 			DateTime currentTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
 			ResourceSystem.Update(_world, _previousTime, currentTime);
 			ControlSystem.Update(_world, _previousTime, currentTime);
-			OpinionSystem.Update(_world, _previousTime, currentTime);
 			ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);
 			CountryScoreSystem.Update(_world, _previousTime, currentTime, _countryScoreCoefficient);
 

@@ -7,7 +7,7 @@ using GS.Game.Configs;
 namespace GS.Game.Systems {
 	public static class CreateActionEffectSystem {
 		public static void Update(World world, ActionConfig actionConfig, EffectConfig effectConfig, DateTime currentTime) {
-			int[] required = { TypeId<GameAction>.Value, TypeId<ActionSucceeded>.Value, TypeId<OrgContext>.Value };
+			int[] required = { TypeId<GameAction>.Value, TypeId<ActionSucceeded>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
 			var toProcess = new List<(int entity, string actionId, string orgId)>();
 
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {

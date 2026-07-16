@@ -5,7 +5,7 @@ using GS.Game.Components;
 namespace GS.Game.Systems {
 	public static class CleanupActionEffectsSystem {
 		public static void Update(World world) {
-			RemoveComponent<GameAction>(world);
+			// GameAction is persistent card identity (Savable) — not cleaned here.
 			RemoveComponent<ActionValid>(world);
 			RemoveComponent<ActionSucceeded>(world);
 			RemoveComponent<ActionFailed>(world);
