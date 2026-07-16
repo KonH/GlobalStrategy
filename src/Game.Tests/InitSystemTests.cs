@@ -4,6 +4,7 @@ using GS.Configs;
 using GS.Game.Commands;
 using GS.Game.Components;
 using GS.Game.Configs;
+using GS.Game.Systems;
 using GS.Main;
 using Xunit;
 
@@ -175,6 +176,36 @@ namespace GS.Game.Tests {
 			Assert.Equal(2, populationByProvinceId.Count);
 			Assert.Equal((1234.0, OwnerType.Province), populationByProvinceId["prov_a"]);
 			Assert.Equal((5678.0, OwnerType.Province), populationByProvinceId["prov_b"]);
+		}
+
+		[Fact]
+		void country_score_seeded_at_init_from_province_population() {
+			var logic = BuildLogic();
+			logic.Update(0f);
+
+			Assert.Equal(1234.0, CountryScoreSystem.GetScore(logic.World, "Great_Britain"));
+			Assert.Equal(5678.0, CountryScoreSystem.GetScore(logic.World, "France"));
+		}
+
+		[Fact]
+		void country_score_recomputed_immediately_after_load() {
+			var storage = new MemoryStorage();
+			var serializer = new CapturingSerializer();
+			var logic = BuildLogic(storage, serializer);
+
+			logic.Update(0f);
+			var (changed, _) = ProvinceOwnershipSystem.ChangeOwner(logic.World, "prov_b", "Great_Britain");
+			Assert.True(changed);
+
+			logic.Commands.Push(new SaveGameCommand());
+			logic.Update(0f);
+			string saveName = serializer.LastSaveName;
+
+			var loadedLogic = BuildLogic(storage, serializer);
+			loadedLogic.LoadState(saveName);
+
+			Assert.Equal(1234.0 + 5678.0, CountryScoreSystem.GetScore(loadedLogic.World, "Great_Britain"));
+			Assert.Equal(0.0, CountryScoreSystem.GetScore(loadedLogic.World, "France"));
 		}
 
 		[Fact]

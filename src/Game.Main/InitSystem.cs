@@ -89,6 +89,8 @@ namespace GS.Main {
 			CreateCharacterEntities(world, context, rng);
 			CreateCountryActionEntities(world, context, rng);
 
+			CountryScoreSystem.Recompute(world, settings.CountryScoreCoefficient);
+
 			int initEntity = world.Create();
 			world.Add(initEntity, new IsInitialized());
 		}
