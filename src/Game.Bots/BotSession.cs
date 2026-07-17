@@ -26,7 +26,7 @@ namespace GS.Game.Bots {
 				IGameLogger? logger = null,
 				BotActionObserver? onAction = null,
 				bool discoverFromWorld = true) {
-			var session = new BotSession(logic, rngSeed, registry ?? BotFeatureRegistry.CreateDefault(), logger, onAction, discoverFromWorld);
+			var session = new BotSession(logic, rngSeed, registry ?? BotFeatureRegistry.CreateDefault(logic.MaxControlPool), logger, onAction, discoverFromWorld);
 			if (explicitProfiles != null) {
 				foreach (var profile in explicitProfiles) {
 					session.AttachBot(profile.OrgId, profile);

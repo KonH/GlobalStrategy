@@ -9,6 +9,7 @@ namespace GS.Game.Configs {
 		public double PopulationGrowthPercentPerMonth { get; set; } = 0.075;
 		public double CountryScoreCoefficient { get; set; } = 1.0;
 		public int BotActionLogRetentionCap { get; set; } = 500;
+		public int MaxControlPool { get; set; } = 100;
 
 		// discoveredCountriesAvailableControl: 0 is the eval-validated threshold (see
 		// Docs/BotFeatures/discoverAndControl/eval_summary.md) - it beats the feature's

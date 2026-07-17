@@ -39,7 +39,8 @@ namespace GS.Game.Evals {
 				return 2;
 			}
 
-			var registry = BotFeatureRegistry.CreateDefault();
+			var gameSettings = new FileConfig<GameSettings>(Path.Combine(ConfigDir, "game_settings.json")).Load();
+			var registry = BotFeatureRegistry.CreateDefault(gameSettings.MaxControlPool);
 			if (!registry.IsRegistered(featureId)) {
 				Console.Error.WriteLine($"Unknown bot feature id '{featureId}'.");
 				return 2;
