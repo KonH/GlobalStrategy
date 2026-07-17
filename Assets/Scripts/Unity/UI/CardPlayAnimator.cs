@@ -71,6 +71,13 @@ namespace GS.Unity.UI {
 		void HandleLastFrameEffectsChanged(object sender, PropertyChangedEventArgs e) {
 			if (_state == null || _state.LastFrameEffects.Effects.Count == 0) { return; }
 
+			// Only the player's own card-play sequence (PlaySequence/PlayCountrySequence) ever
+			// releases or cancels these barriers. Effects from bot-driven plays reach this handler
+			// too (LastFrameEffects is global, not player-scoped), but with no matching Animate/CancelAll
+			// call to follow, a barrier created here would sit on the currently selected country's
+			// UsedControl forever, permanently offsetting its Display value.
+			if (!_isPlaying) { return; }
+
 			_barrierHolder = new CardPlayBarriersHolder();
 			_lastActionSuccess = true;
 
