@@ -2,7 +2,22 @@
   "permissions": {
     "allow": [
       "mcp__UnityMCP__read_console",
-      "PowerShell(Get-ChildItem *)"
+      "mcp__UnityMCP__refresh_unity",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(git status*)",
+      "PowerShell(git branch --show-current)",
+      "PowerShell(git log *)",
+      "PowerShell(git diff *)",
+      "PowerShell(Test-Path *)",
+      "PowerShell(gh --version)",
+      "PowerShell(Get-Command * -ErrorAction *)",
+      "Bash(git status*)",
+      "Bash(git branch --show-current)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git fetch origin)",
+      "Bash(git rev-parse --abbrev-ref *)",
+      "Bash(gh pr view*)"
     ],
     "deny": []
   },
