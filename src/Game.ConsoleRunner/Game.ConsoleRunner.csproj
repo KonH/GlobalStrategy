@@ -10,11 +10,15 @@
   <ItemGroup>
     <ProjectReference Include="../Game.Main/Game.Main.csproj" />
     <ProjectReference Include="../Core.Configs.IO/Core.Configs.IO.csproj" />
+    <ProjectReference Include="../Core.Map/Core.Map.csproj" />
     <ProjectReference Include="../ECS.Viewer.Server/ECS.Viewer.Server.csproj" />
+    <ProjectReference Include="../Game.Bots/Game.Bots.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="data/**" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Game.Configs excludes the runtime asset (Unity supplies its own Newtonsoft.Json package);
+         this plain .NET exe needs the actual DLL copied to its output directory. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
 </Project>

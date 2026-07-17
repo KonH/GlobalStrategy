@@ -5,46 +5,71 @@ using GS.Game.Components;
 
 namespace GS.Game.Systems {
 	public static class DiscoverCountrySystem {
-		public static void Update(World world, int proximityEntity, Random rng) {
+		public static void Update(World world, int proximityEntity, Random rng,
+			string viewOrgId, IReadOnlyDictionary<string, string> hqCountryByOrgId) {
+
 			int[] required = { TypeId<DiscoverCountryEffect>.Value };
-			bool hasEffect = false;
+			var orgIds = new List<string>();
+			var seenOrgIds = new HashSet<string>();
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				if (arch.Count > 0) { hasEffect = true; break; }
-			}
-			if (!hasEffect) { return; }
-
-			string playerCountryId = FindPlayerCountryId(world);
-
-			var discoveredSet = new HashSet<string>();
-			int[] discReq = { TypeId<Country>.Value, TypeId<IsDiscovered>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(discReq, null)) {
-				Country[] cs = arch.GetColumn<Country>();
-				for (int i = 0; i < arch.Count; i++) { discoveredSet.Add(cs[i].CountryId); }
-			}
-
-			var allCountries = new List<(int entity, string countryId)>();
-			int[] countryReq = { TypeId<Country>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(countryReq, null)) {
-				Country[] cs = arch.GetColumn<Country>();
+				DiscoverCountryEffect[] effects = arch.GetColumn<DiscoverCountryEffect>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (!discoveredSet.Contains(cs[i].CountryId)) {
-						allCountries.Add((arch.Entities[i], cs[i].CountryId));
-					}
+					string orgId = effects[i].OrgId;
+					if (seenOrgIds.Add(orgId)) { orgIds.Add(orgId); }
 				}
 			}
-			if (allCountries.Count == 0) { return; }
+			if (orgIds.Count == 0) { return; }
+
+			string playerCountryId = FindPlayerCountryId(world);
 
 			ProximityMapData pm = default;
 			bool hasPm = proximityEntity >= 0;
 			if (hasPm) { pm = world.Get<ProximityMapData>(proximityEntity); }
 
+			foreach (string orgId in orgIds) {
+				ResolveDiscoveryForOrg(world, rng, orgId, viewOrgId, playerCountryId, hqCountryByOrgId, hasPm, pm);
+			}
+		}
+
+		static void ResolveDiscoveryForOrg(
+			World world, Random rng, string orgId, string viewOrgId, string playerCountryId,
+			IReadOnlyDictionary<string, string> hqCountryByOrgId, bool hasPm, ProximityMapData pm) {
+
+			var discoveredSet = new HashSet<string>();
+			int[] discReq = { TypeId<DiscoveredCountry>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(discReq, null)) {
+				DiscoveredCountry[] dcs = arch.GetColumn<DiscoveredCountry>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (dcs[i].OrgId == orgId) { discoveredSet.Add(dcs[i].CountryId); }
+				}
+			}
+
+			var candidates = new List<string>();
+			int[] countryReq = { TypeId<Country>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(countryReq, null)) {
+				Country[] cs = arch.GetColumn<Country>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (!discoveredSet.Contains(cs[i].CountryId)) {
+						candidates.Add(cs[i].CountryId);
+					}
+				}
+			}
+			if (candidates.Count == 0) { return; }
+
+			string anchorCountryId = "";
+			if (orgId == viewOrgId && !string.IsNullOrEmpty(playerCountryId)) {
+				anchorCountryId = playerCountryId;
+			} else if (hqCountryByOrgId.TryGetValue(orgId, out var hq) && !string.IsNullOrEmpty(hq)) {
+				anchorCountryId = hq;
+			}
+
 			float totalWeight = 0f;
-			var weights = new float[allCountries.Count];
-			for (int i = 0; i < allCountries.Count; i++) {
-				string b = allCountries[i].countryId;
+			var weights = new float[candidates.Count];
+			for (int i = 0; i < candidates.Count; i++) {
+				string b = candidates[i];
 				float w = 1f;
-				if (hasPm && pm.Distances != null && !string.IsNullOrEmpty(playerCountryId)) {
-					string a = playerCountryId;
+				if (hasPm && pm.Distances != null && !string.IsNullOrEmpty(anchorCountryId)) {
+					string a = anchorCountryId;
 					string ka = string.CompareOrdinal(a, b) <= 0 ? a : b;
 					string kb = string.CompareOrdinal(a, b) <= 0 ? b : a;
 					if (pm.Distances.TryGetValue((ka, kb), out float d)) {
@@ -71,7 +96,8 @@ namespace GS.Game.Systems {
 				if (pick <= acc) { chosen = i; break; }
 			}
 
-			world.Add(allCountries[chosen].entity, new IsDiscovered());
+			int newEntity = world.Create();
+			world.Add(newEntity, new DiscoveredCountry { OrgId = orgId, CountryId = candidates[chosen] });
 		}
 
 		static string FindPlayerCountryId(World world) {

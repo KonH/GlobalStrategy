@@ -20,6 +20,8 @@ namespace GS.Main {
 		public IGameLogger? Logger { get; }
 		public string InitialPlayerCountryId { get; }
 		public string InitialOrganizationId { get; }
+		public int? RngSeed { get; }
+		public IReadOnlyList<string>? ParticipatingOrganizationIds { get; }
 
 		public GameLogicContext(
 			IConfigSource<GeoJsonConfig> geoJson,
@@ -37,7 +39,9 @@ namespace GS.Main {
 			IConfigSource<ActionConfig>? action = null,
 			IConfigSource<EffectConfig>? effect = null,
 			IConfigSource<List<GS.Core.Map.MapFeature>>? mapGeometry = null,
-			IConfigSource<ProvinceConfig>? province = null) {
+			IConfigSource<ProvinceConfig>? province = null,
+			int? rngSeed = null,
+			IReadOnlyList<string>? participatingOrganizationIds = null) {
 			GeoJson = geoJson;
 			MapEntry = mapEntry;
 			Country = country;
@@ -54,6 +58,8 @@ namespace GS.Main {
 			Logger = logger;
 			InitialPlayerCountryId = initialPlayerCountryId;
 			InitialOrganizationId = initialOrganizationId;
+			RngSeed = rngSeed;
+			ParticipatingOrganizationIds = participatingOrganizationIds;
 		}
 
 		sealed class EmptyCharacterConfig : IConfigSource<CharacterConfig> {

@@ -21,6 +21,7 @@ Non-negotiable architectural principles. The `/plan` command checks these before
 ## Planning Discipline
 
 - **Plan before implement.** No code or asset changes without an approved plan file; this prevents scope drift and keeps the git history reviewable.
+- **Bot-feature carve-out.** Bot features implemented via `/implement-bot-feature` — `IBotFeature` implementations in `src/Game.Bots`, their registrations, and their `Docs/BotFeatures/` eval configs and history — use the skill's directly-written PRD plus the committed eval history as their planning artifact, under the standing spec/plan pair `Docs/Specs/52_bot-feature-eval-harness/`. Everything outside that surface still requires its own approved plan.
 
 ## Specification Discipline
 

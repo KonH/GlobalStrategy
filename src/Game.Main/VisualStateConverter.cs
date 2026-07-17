@@ -30,10 +30,10 @@ namespace GS.Main {
 			UpdatePlayerOrganization(world, orgEntity);
 			UpdateResources(world);
 			UpdateSelectedControl(world);
-			UpdateCharacters(world);
+			UpdateCharacters(world, orgEntity);
 			UpdateOrgCharacters(world);
 			UpdateOrgMap(world, orgEntity);
-			UpdateDiscoveredCountries(world);
+			UpdateDiscoveredCountries(world, orgEntity);
 			UpdateOrgActions(world);
 			UpdateCountryActions(world, gameTimeEntity);
 			UpdateProvinceOwnership(world);
@@ -67,7 +67,7 @@ namespace GS.Main {
 			_state.LastFrameEffects.Set(effects);
 		}
 
-		void UpdateCharacters(IReadOnlyWorld world) {
+		void UpdateCharacters(IReadOnlyWorld world, int orgEntity) {
 			if (!_state.SelectedCountry.IsValid) {
 				_characterOpinionAnimatables.Clear();
 				_state.SelectedCountry.Characters.Set(new List<CharacterStateEntry>());
@@ -75,15 +75,7 @@ namespace GS.Main {
 			}
 			string selectedCountryId = _state.SelectedCountry.CountryId;
 
-			string playerOrgId = "";
-			int[] orgRequired = { TypeId<Organization>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(orgRequired, null)) {
-				Organization[] orgs = arch.GetColumn<Organization>();
-				if (arch.Count > 0) {
-					playerOrgId = orgs[0].OrganizationId;
-					break;
-				}
-			}
+			string playerOrgId = orgEntity >= 0 ? world.Get<Organization>(orgEntity).OrganizationId : "";
 
 			var charData = new Dictionary<string, (string roleId, string[] namePartKeys)>();
 			var charSkills = new Dictionary<string, List<SkillEntry>>();
@@ -428,13 +420,14 @@ namespace GS.Main {
 			_state.OrgMap.Set(entries);
 		}
 
-		void UpdateDiscoveredCountries(IReadOnlyWorld world) {
+		void UpdateDiscoveredCountries(IReadOnlyWorld world, int orgEntity) {
+			string viewOrgId = orgEntity >= 0 ? world.Get<Organization>(orgEntity).OrganizationId : "";
 			var ids = new System.Collections.Generic.HashSet<string>();
-			int[] req = { TypeId<Country>.Value, TypeId<IsDiscovered>.Value };
+			int[] req = { TypeId<DiscoveredCountry>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				Country[] cs = arch.GetColumn<Country>();
+				DiscoveredCountry[] dcs = arch.GetColumn<DiscoveredCountry>();
 				for (int i = 0; i < arch.Count; i++) {
-					ids.Add(cs[i].CountryId);
+					if (dcs[i].OrgId == viewOrgId) { ids.Add(dcs[i].CountryId); }
 				}
 			}
 

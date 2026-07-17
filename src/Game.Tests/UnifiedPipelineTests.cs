@@ -169,16 +169,15 @@ namespace GS.Game.Tests {
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, ActionId = "spread_rumors" });
 			logic.Update(0f);
 
-			int countryEntity = -1;
-			int[] req = { TypeId<Country>.Value };
-			foreach (var arch in logic.World.GetMatchingArchetypes(req, null)) {
-				Country[] countries = arch.GetColumn<Country>();
+			bool discovered = false;
+			int[] discReq = { TypeId<DiscoveredCountry>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(discReq, null)) {
+				DiscoveredCountry[] dcs = arch.GetColumn<DiscoveredCountry>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (countries[i].CountryId == OtherCountryId) { countryEntity = arch.Entities[i]; }
+					if (dcs[i].OrgId == OrgId && dcs[i].CountryId == OtherCountryId) { discovered = true; }
 				}
 			}
-			Assert.NotEqual(-1, countryEntity);
-			Assert.True(logic.World.Has<IsDiscovered>(countryEntity));
+			Assert.True(discovered);
 		}
 
 		[Fact]

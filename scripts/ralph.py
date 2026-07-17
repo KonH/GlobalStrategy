@@ -82,8 +82,7 @@ def resolve_spec_dir(spec_index):
     return spec_dir
 
 
-def resolve_branch(spec_dir):
-    ralph_branch = f"ralph/{spec_dir.name}"
+def resolve_branch(ralph_branch):
     branch, _ = run_git(["rev-parse", "--abbrev-ref", "HEAD"])
     if branch in ("main", "master"):
         dirty, _ = run_git(["status", "--porcelain"])
@@ -104,10 +103,10 @@ def resolve_branch(spec_dir):
 
 LOOP_TOOLS = [
     "mcp__UnityMCP",
-    "Bash(dotnet build:*)", "Bash(dotnet test:*)",
+    "Bash(dotnet build:*)", "Bash(dotnet test:*)", "Bash(dotnet run:*)",
     "Bash(git add:*)", "Bash(git commit:*)", "Bash(git status:*)", "Bash(git diff:*)", "Bash(git log:*)",
     "Bash(.venv/Scripts/python.exe:*)",
-    "PowerShell(dotnet build *)", "PowerShell(dotnet test *)",
+    "PowerShell(dotnet build *)", "PowerShell(dotnet test *)", "PowerShell(dotnet run *)",
     "PowerShell(git add *)", "PowerShell(git commit *)", "PowerShell(git status *)", "PowerShell(git diff *)", "PowerShell(git log *)",
     "PowerShell(.venv\\Scripts\\python.exe *)",
 ]
@@ -204,7 +203,8 @@ def invoke_claude_step(claude_exe, phase, iteration, prompt, allowed_tools, dang
 
 def main():
     parser = argparse.ArgumentParser(description="Ralph loop runner")
-    parser.add_argument("--spec-index", type=int, required=True)
+    parser.add_argument("--spec-index", type=int, default=None)
+    parser.add_argument("--bot-feature", type=str, default=None)
     parser.add_argument("--max-iterations", type=int, default=10)
     parser.add_argument(
         "--stall-limit", type=int, default=3,
@@ -216,21 +216,34 @@ def main():
     parser.add_argument("--dangerously-skip-permissions", action="store_true")
     args = parser.parse_args()
 
+    if (args.spec_index is None) == (args.bot_feature is None):
+        raise RuntimeError("Exactly one of --spec-index or --bot-feature must be given.")
+    bot_mode = args.bot_feature is not None
+
     prompt_file = Path(".ralph/PROMPT.md")
     if not prompt_file.exists():
         raise RuntimeError(f"Missing {prompt_file} - run from the project root.")
     prd_file = Path(".ralph/prd.md")
-    csv_file = Path(f".ralph/metrics_{args.spec_index}.csv")
     activity_file = Path(".ralph/activity.md")
     log_dir = Path(".ralph/logs")
     log_dir.mkdir(parents=True, exist_ok=True)
 
     claude_exe = find_claude_executable()
 
-    spec_dir = resolve_spec_dir(args.spec_index)
-    print(f"Spec: Docs/Specs/{spec_dir.name}")
+    if bot_mode:
+        feature_id = args.bot_feature
+        ralph_branch = f"ralph/bot_{feature_id}"
+        csv_file = Path(f".ralph/metrics_bot_{feature_id}.csv")
+        complete_prd_arg = f"bot:{feature_id}"
+        print(f"Bot feature: {feature_id}")
+    else:
+        spec_dir = resolve_spec_dir(args.spec_index)
+        print(f"Spec: Docs/Specs/{spec_dir.name}")
+        ralph_branch = f"ralph/{spec_dir.name}"
+        csv_file = Path(f".ralph/metrics_{args.spec_index}.csv")
+        complete_prd_arg = str(args.spec_index)
 
-    branch, ralph_branch = resolve_branch(spec_dir)
+    branch, ralph_branch = resolve_branch(ralph_branch)
     print(f"Branch: {branch}")
 
     if not csv_file.exists():
@@ -243,7 +256,16 @@ def main():
     pr_tools = LOOP_TOOLS + PR_EXTRA_TOOLS
 
     # --- Phase 1: create PRD from the spec's plan ---
-    if args.skip_create_prd:
+    if bot_mode:
+        # Bot-feature PRDs are written directly by /implement-bot-feature - no spec-folder
+        # resolution and no /create-prd phase.
+        if not prd_file.exists():
+            raise RuntimeError(f"{prd_file} does not exist - run /implement-bot-feature first.")
+        prd_text = prd_file.read_text(encoding="utf-8")
+        if not re.search(r'"passes":\s*false', prd_text):
+            raise RuntimeError(f"{prd_file} has no open tasks - nothing to loop.")
+        print(f"Skipping /create-prd (bot-feature mode), reusing existing {prd_file}")
+    elif args.skip_create_prd:
         if not prd_file.exists():
             raise RuntimeError(f"--skip-create-prd was passed but {prd_file} does not exist.")
         print(f"Skipping /create-prd, reusing existing {prd_file}")
@@ -330,12 +352,17 @@ def main():
         print("Skipping /complete-prd (--skip-pull-request).")
     elif not loop_succeeded:
         print("Loop did not finish all tasks - skipping PR. To create one anyway, run:")
-        print(f'  claude -p "/complete-prd {args.spec_index}"')
+        print(f'  claude -p "/complete-prd {complete_prd_arg}"')
+        if bot_mode:
+            print(
+                f"Failure report: Docs/BotFeatures/{feature_id}/eval_summary.md, "
+                f"Docs/BotFeatures/{feature_id}/eval_history.json, and .ralph/activity.md."
+            )
     else:
         print()
-        print(f"=== Phase: /complete-prd {args.spec_index} ===")
+        print(f"=== Phase: /complete-prd {complete_prd_arg} ===")
         r = invoke_claude_step(
-            claude_exe, "complete-prd", "", f"/complete-prd {args.spec_index}", pr_tools,
+            claude_exe, "complete-prd", "", f"/complete-prd {complete_prd_arg}", pr_tools,
             args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
         )
         if r is None or r.get("is_error"):

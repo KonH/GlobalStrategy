@@ -58,12 +58,9 @@ namespace GS.Main {
 			});
 
 			var orgConfig = context.Organization.Load();
-			var orgEntry = orgConfig.FindById(context.InitialOrganizationId);
-			if (!string.IsNullOrEmpty(context.InitialOrganizationId) && orgEntry == null) {
-				context.Logger?.LogError(
-					$"[InitSystem] Organization '{context.InitialOrganizationId}' not found in config.");
-			}
-			if (orgEntry != null) {
+			var participating = ResolveParticipatingOrgs(context, orgConfig);
+
+			foreach (var orgEntry in participating) {
 				int orgEntity = world.Create();
 				world.Add(orgEntity, new Organization {
 					OrganizationId = orgEntry.OrganizationId,
@@ -84,15 +81,42 @@ namespace GS.Main {
 			}
 
 			BuildProximityMap(world, context);
-			CreateActionEntities(world, context, rng);
-			CreateOrgCharacterEntities(world, context, rng);
+			CreateActionEntities(world, context, rng, participating);
+			CreateOrgCharacterEntities(world, context, rng, participating);
 			CreateCharacterEntities(world, context, rng);
-			CreateCountryActionEntities(world, context, rng);
+			CreateCountryActionEntities(world, context, rng, participating);
+			DiscoverInitialCountries(world, context, participating);
 
 			CountryScoreSystem.Recompute(world, settings.CountryScoreCoefficient);
 
 			int initEntity = world.Create();
 			world.Add(initEntity, new IsInitialized());
+		}
+
+		static List<OrganizationEntry> ResolveParticipatingOrgs(GameLogicContext context, OrganizationConfig orgConfig) {
+			var result = new List<OrganizationEntry>();
+			if (context.ParticipatingOrganizationIds != null && context.ParticipatingOrganizationIds.Count > 0) {
+				foreach (var orgId in context.ParticipatingOrganizationIds) {
+					var entry = orgConfig.FindById(orgId);
+					if (entry == null) {
+						context.Logger?.LogError($"[InitSystem] Organization '{orgId}' not found in organizations config.");
+						throw new InvalidOperationException($"Organization '{orgId}' not found in organizations config.");
+					}
+					result.Add(entry);
+				}
+				return result;
+			}
+
+			if (!string.IsNullOrEmpty(context.InitialOrganizationId)) {
+				var entry = orgConfig.FindById(context.InitialOrganizationId);
+				if (entry == null) {
+					context.Logger?.LogError(
+						$"[InitSystem] Organization '{context.InitialOrganizationId}' not found in config.");
+				} else {
+					result.Add(entry);
+				}
+			}
+			return result;
 		}
 
 		static void CreateCharacterEntities(World world, GameLogicContext context, Random rng) {
@@ -179,23 +203,20 @@ namespace GS.Main {
 			}
 		}
 
-		static void CreateOrgCharacterEntities(World world, GameLogicContext context, Random rng) {
+		static void CreateOrgCharacterEntities(World world, GameLogicContext context, Random rng, List<OrganizationEntry> participating) {
 			var characterConfig = context.Character.Load();
-			var orgConfig = context.Organization.Load();
 
-			string orgId = context.InitialOrganizationId;
-			if (string.IsNullOrEmpty(orgId)) { return; }
-			var orgEntry = orgConfig.FindById(orgId);
-			if (orgEntry == null) { return; }
+			foreach (var orgEntry in participating) {
+				string orgId = orgEntry.OrganizationId;
+				bool isPlayerOrg = true;
+				var pool = characterConfig.FindOrgPool(orgId);
 
-			bool isPlayerOrg = true;
-			var pool = characterConfig.FindOrgPool(orgId);
+				CreateOrgSlots(world, characterConfig, rng, orgId, "master", 1, pool, isPlayerOrg);
 
-			CreateOrgSlots(world, characterConfig, rng, orgId, "master", 1, pool, isPlayerOrg);
-
-			int agentSlots = orgEntry.InitialAgentSlots;
-			if (agentSlots > 0) {
-				CreateOrgSlots(world, characterConfig, rng, orgId, "agent", agentSlots, pool, isPlayerOrg);
+				int agentSlots = orgEntry.InitialAgentSlots;
+				if (agentSlots > 0) {
+					CreateOrgSlots(world, characterConfig, rng, orgId, "agent", agentSlots, pool, isPlayerOrg);
+				}
 			}
 		}
 
@@ -350,51 +371,47 @@ namespace GS.Main {
 			return minDist == float.MaxValue ? 1e9f : (float)System.Math.Sqrt(minDist);
 		}
 
-		static void CreateActionEntities(World world, GameLogicContext context, Random rng) {
+		static void CreateActionEntities(World world, GameLogicContext context, Random rng, List<OrganizationEntry> participating) {
 			var actionConfig = context.Action.Load();
-			string orgId = context.InitialOrganizationId;
-			if (string.IsNullOrEmpty(orgId)) { return; }
-
 			int handSize = actionConfig.GetHandSize("org");
 			if (handSize <= 0) { return; }
 
-			var pool = actionConfig.GetOrgPool(orgId);
-			if (pool == null || pool.Count == 0) { return; }
+			foreach (var orgEntry in participating) {
+				string orgId = orgEntry.OrganizationId;
+				var pool = actionConfig.GetOrgPool(orgId);
+				if (pool == null || pool.Count == 0) { continue; }
 
-			int deckEntity = world.Create();
-			world.Add(deckEntity, new CardDeck { OrgId = orgId, CountryId = "" });
-			world.Add(deckEntity, new CardHand { HandSize = handSize });
+				int deckEntity = world.Create();
+				world.Add(deckEntity, new CardDeck { OrgId = orgId, CountryId = "" });
+				world.Add(deckEntity, new CardHand { HandSize = handSize });
 
-			var deckEntities = new System.Collections.Generic.List<int>();
-			for (int i = 0; i < pool.Count; i++) {
-				int cardEntity = world.Create();
-				world.Add(cardEntity, new GameAction { ActionId = pool[i] });
-				world.Add(cardEntity, new OrgContext { OrgId = orgId });
-				deckEntities.Add(cardEntity);
+				var deckEntities = new List<int>();
+				for (int i = 0; i < pool.Count; i++) {
+					int cardEntity = world.Create();
+					world.Add(cardEntity, new GameAction { ActionId = pool[i] });
+					world.Add(cardEntity, new OrgContext { OrgId = orgId });
+					deckEntities.Add(cardEntity);
+				}
+
+				for (int i = deckEntities.Count - 1; i > 0; i--) {
+					int j = rng.Next(i + 1);
+					var tmp = deckEntities[i]; deckEntities[i] = deckEntities[j]; deckEntities[j] = tmp;
+				}
+				for (int slot = 0; slot < handSize && slot < deckEntities.Count; slot++) {
+					world.Add(deckEntities[slot], new CardInHand { SlotIndex = slot });
+				}
 			}
-
-			for (int i = deckEntities.Count - 1; i > 0; i--) {
-				int j = rng.Next(i + 1);
-				var tmp = deckEntities[i]; deckEntities[i] = deckEntities[j]; deckEntities[j] = tmp;
-			}
-			for (int slot = 0; slot < handSize && slot < deckEntities.Count; slot++) {
-				world.Add(deckEntities[slot], new CardInHand { SlotIndex = slot });
-			}
-
-			DiscoverInitialCountries(world, context);
 		}
 
-		static void CreateCountryActionEntities(World world, GameLogicContext context, Random rng) {
+		static void CreateCountryActionEntities(World world, GameLogicContext context, Random rng, List<OrganizationEntry> participating) {
 			var actionConfig = context.Action.Load();
 			var countryActions = new List<ActionDefinition>();
 			foreach (var a in actionConfig.Actions) {
 				if (a.OwnerType == "country") { countryActions.Add(a); }
 			}
 			if (countryActions.Count == 0) { return; }
+			if (participating.Count == 0) { return; }
 			var countryConfig = context.Country.Load();
-
-			string orgId = context.InitialOrganizationId;
-			if (string.IsNullOrEmpty(orgId)) { return; }
 
 			// Build char lookup: countryId -> roleId -> list of charIds
 			var charsByCountryAndRole = new Dictionary<string, Dictionary<string, List<string>>>();
@@ -424,61 +441,64 @@ namespace GS.Main {
 			foreach (var entry in countryConfig.Countries) {
 				if (!entry.IsAvailable) { continue; }
 
-				var createdEntities = new List<(int entity, string actionId)>();
+				foreach (var orgEntry in participating) {
+					string orgId = orgEntry.OrganizationId;
+					var createdEntities = new List<(int entity, string actionId)>();
 
-				foreach (var def in countryActions) {
-					// Determine targets
-					var targets = new List<string>();
-					if (def.TargetRole == "") {
-						targets.Add("");
-					} else {
-						charsByCountryAndRole.TryGetValue(entry.CountryId, out var byRole);
-						if (byRole != null && byRole.TryGetValue(def.TargetRole, out var charIds)) {
-							targets.AddRange(charIds);
-						}
-					}
-
-					for (int copyIndex = 0; copyIndex < def.DeckCopies; copyIndex++) {
-						foreach (string targetCharId in targets) {
-							int e = world.Create();
-							world.Add(e, new GameAction { ActionId = def.ActionId });
-							world.Add(e, new OrgContext { OrgId = orgId });
-							world.Add(e, new CountryContext { CountryId = entry.CountryId });
-							createdEntities.Add((e, def.ActionId));
-						}
-					}
-				}
-
-				int countryDeckEntity = world.Create();
-				world.Add(countryDeckEntity, new CardDeck { OrgId = orgId, CountryId = entry.CountryId });
-				world.Add(countryDeckEntity, new CardHand { HandSize = handSize });
-
-				// Populate initial hand
-				if (handSize > 0 && createdEntities.Count > 0) {
-					int orgControl = GetOrgControlInCountry(world, orgId, entry.CountryId);
-					var eligibleEntities = new List<int>();
-					foreach (var (e, actionId) in createdEntities) {
-						var d = actionConfig.Find(actionId);
-						if (d == null) { continue; }
-						bool eligible = true;
-						var ctx = new ExpressionContext { Control = orgControl };
-						foreach (var cond in d.Conditions) {
-							if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
-								eligible = false;
-								break;
+					foreach (var def in countryActions) {
+						// Determine targets
+						var targets = new List<string>();
+						if (def.TargetRole == "") {
+							targets.Add("");
+						} else {
+							charsByCountryAndRole.TryGetValue(entry.CountryId, out var byRole);
+							if (byRole != null && byRole.TryGetValue(def.TargetRole, out var charIds)) {
+								targets.AddRange(charIds);
 							}
 						}
-						if (eligible) { eligibleEntities.Add(e); }
+
+						for (int copyIndex = 0; copyIndex < def.DeckCopies; copyIndex++) {
+							foreach (string targetCharId in targets) {
+								int e = world.Create();
+								world.Add(e, new GameAction { ActionId = def.ActionId });
+								world.Add(e, new OrgContext { OrgId = orgId });
+								world.Add(e, new CountryContext { CountryId = entry.CountryId });
+								createdEntities.Add((e, def.ActionId));
+							}
+						}
 					}
 
-					// Fisher-Yates shuffle
-					for (int i = eligibleEntities.Count - 1; i > 0; i--) {
-						int j = rng.Next(i + 1);
-						(eligibleEntities[i], eligibleEntities[j]) = (eligibleEntities[j], eligibleEntities[i]);
-					}
+					int countryDeckEntity = world.Create();
+					world.Add(countryDeckEntity, new CardDeck { OrgId = orgId, CountryId = entry.CountryId });
+					world.Add(countryDeckEntity, new CardHand { HandSize = handSize });
 
-					for (int slot = 0; slot < handSize && slot < eligibleEntities.Count; slot++) {
-						world.Add(eligibleEntities[slot], new CardInHand { SlotIndex = slot });
+					// Populate initial hand
+					if (handSize > 0 && createdEntities.Count > 0) {
+						int orgControl = GetOrgControlInCountry(world, orgId, entry.CountryId);
+						var eligibleEntities = new List<int>();
+						foreach (var (e, actionId) in createdEntities) {
+							var d = actionConfig.Find(actionId);
+							if (d == null) { continue; }
+							bool eligible = true;
+							var ctx = new ExpressionContext { Control = orgControl };
+							foreach (var cond in d.Conditions) {
+								if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
+									eligible = false;
+									break;
+								}
+							}
+							if (eligible) { eligibleEntities.Add(e); }
+						}
+
+						// Fisher-Yates shuffle
+						for (int i = eligibleEntities.Count - 1; i > 0; i--) {
+							int j = rng.Next(i + 1);
+							(eligibleEntities[i], eligibleEntities[j]) = (eligibleEntities[j], eligibleEntities[i]);
+						}
+
+						for (int slot = 0; slot < handSize && slot < eligibleEntities.Count; slot++) {
+							world.Add(eligibleEntities[slot], new CardInHand { SlotIndex = slot });
+						}
 					}
 				}
 			}
@@ -499,36 +519,33 @@ namespace GS.Main {
 			return total;
 		}
 
-		static void DiscoverInitialCountries(World world, GameLogicContext context) {
-			var toDiscover = new System.Collections.Generic.HashSet<string>();
+		static void DiscoverInitialCountries(World world, GameLogicContext context, List<OrganizationEntry> participating) {
+			if (participating.Count == 0) { return; }
 
-			if (!string.IsNullOrEmpty(context.InitialPlayerCountryId)) {
-				toDiscover.Add(context.InitialPlayerCountryId);
-			}
-
-			if (!string.IsNullOrEmpty(context.InitialOrganizationId)) {
-				var orgConfig = context.Organization.Load();
-				var orgEntry = orgConfig.FindById(context.InitialOrganizationId);
-				if (orgEntry != null && !string.IsNullOrEmpty(orgEntry.HqCountryId)) {
-					toDiscover.Add(orgEntry.HqCountryId);
-				}
-			}
-
-			// Collect entity IDs first — calling world.Add inside GetMatchingArchetypes would
-			// create new archetypes and mutate the dictionary mid-iteration, throwing InvalidOperationException.
-			var entitiesToDiscover = new System.Collections.Generic.List<int>();
+			var availableCountryIds = new HashSet<string>();
 			int[] countryReq = { TypeId<Country>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(countryReq, null)) {
 				Country[] countries = arch.GetColumn<Country>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (toDiscover.Contains(countries[i].CountryId)) {
-						entitiesToDiscover.Add(arch.Entities[i]);
-					}
+					availableCountryIds.Add(countries[i].CountryId);
 				}
 			}
-			foreach (int entity in entitiesToDiscover) {
-				world.Add(entity, new IsDiscovered());
+
+			foreach (var orgEntry in participating) {
+				var toDiscover = new HashSet<string>();
+				if (!string.IsNullOrEmpty(orgEntry.HqCountryId) && availableCountryIds.Contains(orgEntry.HqCountryId)) {
+					toDiscover.Add(orgEntry.HqCountryId);
+				}
+				if (orgEntry.OrganizationId == context.InitialOrganizationId
+					&& !string.IsNullOrEmpty(context.InitialPlayerCountryId)
+					&& availableCountryIds.Contains(context.InitialPlayerCountryId)) {
+					toDiscover.Add(context.InitialPlayerCountryId);
+				}
+				foreach (string countryId in toDiscover) {
+					int entity = world.Create();
+					world.Add(entity, new DiscoveredCountry { OrgId = orgEntry.OrganizationId, CountryId = countryId });
+				}
 			}
 		}
 	}
