@@ -1,7 +1,10 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 using GS.Main;
+using GS.Game.Bots;
 using GS.Game.Configs;
 using GS.Unity.Map;
 using GS.Unity.Save;
@@ -34,6 +37,17 @@ namespace GS.Unity.DI {
 			string initialPlayer = SceneTransitionArgs.InitialPlayerCountry ?? "Russian_Empire";
 			string initialOrgId = SceneTransitionArgs.OrganizationId ?? "";
 
+			var organizationConfig = new TextAssetConfig<OrganizationConfig>(_organizationsConfigAsset).Load();
+			List<string> participatingOrgIds = null;
+			if (!string.IsNullOrEmpty(initialOrgId) && organizationConfig.Organizations.Count >= 2) {
+				participatingOrgIds = new List<string> { initialOrgId };
+				foreach (var orgEntry in organizationConfig.Organizations) {
+					if (orgEntry.OrganizationId != initialOrgId) {
+						participatingOrgIds.Add(orgEntry.OrganizationId);
+					}
+				}
+			}
+
 			var ctx = new GameLogicContext(
 				new TextAssetConfig<GeoJsonConfig>(_geoJsonConfig),
 				new TextAssetConfig<MapEntryConfig>(_mapEntryConfig),
@@ -50,7 +64,8 @@ namespace GS.Unity.DI {
 				action: _actionConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.ActionConfig>(_actionConfigAsset) : null,
 				effect: _effectConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.EffectConfig>(_effectConfigAsset) : null,
 				mapGeometry: new MapGeometryConfig(_geoJsonConfig),
-				province: new TextAssetConfig<GS.Game.Configs.ProvinceConfig>(_provinceConfigAsset)
+				province: new TextAssetConfig<GS.Game.Configs.ProvinceConfig>(_provinceConfigAsset),
+				participatingOrganizationIds: participatingOrgIds
 			);
 
 			var domainCountryConfig = new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset).Load();
@@ -58,6 +73,7 @@ namespace GS.Unity.DI {
 
 			builder.RegisterInstance(ctx);
 			builder.Register<GameLogic>(Lifetime.Singleton);
+			builder.Register(c => BotSession.Create(c.Resolve<GameLogic>(), rngSeed: unchecked((int)DateTime.UtcNow.Ticks), logger: new UnityGameLogger()), Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().VisualState, Lifetime.Singleton);
 			builder.Register<IWriteOnlyCommandAccessor>(c => c.Resolve<GameLogic>().Commands, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().ResourceConfig, Lifetime.Singleton);

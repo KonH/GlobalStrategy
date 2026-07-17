@@ -57,6 +57,9 @@ namespace GS.Main {
 				AutoSaveInterval = ParseAutoSaveInterval(settings.AutoSaveInterval)
 			});
 
+			int botActionLogEntity = world.Create();
+			world.Add(botActionLogEntity, new BotActionLog { Entries = Array.Empty<string>() });
+
 			var orgConfig = context.Organization.Load();
 			var participating = ResolveParticipatingOrgs(context, orgConfig);
 
@@ -66,6 +69,9 @@ namespace GS.Main {
 					OrganizationId = orgEntry.OrganizationId,
 					DisplayName = orgEntry.DisplayName
 				});
+				if (orgEntry.OrganizationId != context.InitialOrganizationId) {
+					world.Add(orgEntity, new BotControlled());
+				}
 
 				int orgGoldEntity = world.Create();
 				world.Add(orgGoldEntity, new ResourceOwner(orgEntry.OrganizationId));

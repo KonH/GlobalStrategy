@@ -7,8 +7,10 @@ namespace GS.Game.Tests {
 	static class MultiOrgTestSupport {
 		public const string OrgA = "Illuminati";
 		public const string OrgB = "Masons";
+		public const string OrgC = "Templars";
 		public const string HqA = "Great_Britain";
 		public const string HqB = "France";
+		public const string HqC = "Prussia";
 		public const string ExtraCountry1 = "Prussia";
 		public const string ExtraCountry2 = "Austria";
 		public const string DiscoverActionId = "spread_rumors";
@@ -50,6 +52,10 @@ namespace GS.Game.Tests {
 					new OrganizationEntry {
 						OrganizationId = OrgB, DisplayName = "Masons", HqCountryId = HqB,
 						InitialGold = 500.0, BaseControl = 10, InitialAgentSlots = 1
+					},
+					new OrganizationEntry {
+						OrganizationId = OrgC, DisplayName = "Templars", HqCountryId = HqC,
+						InitialGold = 300.0, BaseControl = 10, InitialAgentSlots = 1
 					}
 				}
 			};
@@ -77,7 +83,8 @@ namespace GS.Game.Tests {
 				},
 				OrgPools = new List<OrgActionPool> {
 					new OrgActionPool { OrgId = OrgA, ActionIds = new List<string> { DiscoverActionId, SpendGoldActionId } },
-					new OrgActionPool { OrgId = OrgB, ActionIds = new List<string> { DiscoverActionId, SpendGoldActionId } }
+					new OrgActionPool { OrgId = OrgB, ActionIds = new List<string> { DiscoverActionId, SpendGoldActionId } },
+					new OrgActionPool { OrgId = OrgC, ActionIds = new List<string> { DiscoverActionId, SpendGoldActionId } }
 				},
 				Actions = new List<ActionDefinition> {
 					new ActionDefinition {

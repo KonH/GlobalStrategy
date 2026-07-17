@@ -365,5 +365,32 @@ namespace GS.Game.Tests {
 			ProvincePopulationGrowthSystem.Update(restored, feb28, mar1, 0.075);
 			Assert.Equal(grownValue * 1.00075, restored.Get<Resource>(restoredEntity).Value, 6);
 		}
+
+		[Fact]
+		void round_trip_preserves_bot_action_log_entries_and_order() {
+			var world = new World();
+			int botActionLogEntity = world.Create();
+			var entries = new[] {
+				"1882-06-15T00:00:00.0000000\x1EIlluminati\x1EDiscoverAndControl\x1Espread_rumors\x1EFrance",
+				"1882-06-16T00:00:00.0000000\x1EIlluminati\x1EDiscoverAndControl\x1Espend_gold\x1E",
+				"1882-06-17T00:00:00.0000000\x1EMasons\x1EDiscoverAndControl\x1Espread_rumors\x1EPrussia"
+			};
+			world.Add(botActionLogEntity, new BotActionLog { Entries = entries });
+
+			var snapshot = Snapshot(world);
+			var restored = new World();
+			Restore(snapshot, restored);
+
+			int[] req = { TypeId<BotActionLog>.Value };
+			string[]? restoredEntries = null;
+			foreach (var arch in restored.GetMatchingArchetypes(req, null)) {
+				if (arch.Count > 0) {
+					restoredEntries = arch.GetColumn<BotActionLog>()[0].Entries;
+					break;
+				}
+			}
+
+			Assert.Equal(entries, restoredEntries);
+		}
 	}
 }

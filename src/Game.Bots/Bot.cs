@@ -8,20 +8,29 @@ namespace GS.Game.Bots {
 		readonly IReadOnlyList<IBotFeature> _features;
 		readonly Random _rng;
 		readonly BotCommandSink _sink;
+		readonly EffectConfig _effectConfig;
+		DateTime? _lastActedDate;
 
 		public string OrgId { get; }
 		public string CurrentFeatureId { get; private set; } = "";
 
-		public Bot(string orgId, IReadOnlyList<IBotFeature> features, Random rng, BotCommandSink sink) {
+		public Bot(string orgId, IReadOnlyList<IBotFeature> features, Random rng, BotCommandSink sink, EffectConfig? effectConfig = null) {
 			OrgId = orgId;
 			_features = features;
 			_rng = rng;
 			_sink = sink;
+			_effectConfig = effectConfig ?? new EffectConfig();
 		}
 
 		public void ExecuteDecisionTick(IReadOnlyWorld world, ActionConfig actionConfig) {
+			DateTime currentDate = BotObservation.ReadCurrentDate(world);
+			if (_lastActedDate.HasValue && currentDate.Date == _lastActedDate.Value.Date) {
+				return;
+			}
+			_lastActedDate = currentDate;
+
 			_sink.BeginDecisionPhase();
-			var observation = BotObservation.Build(world, actionConfig, OrgId);
+			var observation = BotObservation.Build(world, actionConfig, OrgId, _effectConfig);
 			foreach (var feature in _features) {
 				CurrentFeatureId = feature.FeatureId;
 				try {

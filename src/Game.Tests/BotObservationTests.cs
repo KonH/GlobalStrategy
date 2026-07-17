@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GS.Configs;
 using GS.Game.Bots;
 using GS.Game.Commands;
 using GS.Game.Components;
+using GS.Game.Configs;
 using GS.Game.Systems;
 using GS.Main;
 using Xunit;
@@ -241,6 +243,117 @@ namespace GS.Game.Tests {
 			Assert.Equal(42, view1.OpinionOfMyOrg);
 			var view2 = country.Characters.First(c => c.CharacterId == "char2");
 			Assert.Equal(0, view2.OpinionOfMyOrg);
+		}
+
+		// Bespoke minimal config for effect-classification tests: a single org hand with
+		// four cards, each wired to an effect (or lack thereof) exercising one branch of
+		// BotObservation.ClassifyCard.
+		const string DiscoverCardId = "discover_card";
+		const string ControlPosCardId = "control_pos_card";
+		const string ControlNegCardId = "control_neg_card";
+		const string UnrelatedCardId = "unrelated_card";
+
+		static EffectConfig BuildClassificationEffectConfig() {
+			return new EffectConfig {
+				Effects = new List<ActionEffectDefinition> {
+					new DiscoverCountryEffectParams { EffectId = "discover", EffectType = "DiscoverCountry" },
+					new ControlChangeEffectParams { EffectId = "control_pos", EffectType = "ControlChange", Amount = 5 },
+					new ControlChangeEffectParams { EffectId = "control_neg", EffectType = "ControlChange", Amount = -3 }
+				}
+			};
+		}
+
+		static GameLogic BuildClassificationLogic() {
+			var countryConfig = new CountryConfig {
+				Countries = new List<CountryEntry> {
+					new CountryEntry { CountryId = "HQ", DisplayName = "HQ", IsAvailable = true }
+				}
+			};
+			var orgConfig = new OrganizationConfig {
+				Organizations = new List<OrganizationEntry> {
+					new OrganizationEntry { OrganizationId = "Illuminati", DisplayName = "Illuminati", HqCountryId = "HQ", InitialGold = 0, BaseControl = 10, InitialAgentSlots = 1 }
+				}
+			};
+			var gameSettings = new GameSettings { StartYear = 1880, DefaultLocale = "en", SpeedMultipliers = new[] { 1, 24, 720 }, AutoSaveInterval = "monthly" };
+			var resourceConfig = new ResourceConfig {
+				Resources = new List<ResourceDefinition> { new ResourceDefinition { ResourceId = "gold", DefaultInitialValue = 0.0 } }
+			};
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "org", HandSize = 4 },
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 0 }
+				},
+				OrgPools = new List<OrgActionPool> {
+					new OrgActionPool { OrgId = "Illuminati", ActionIds = new List<string> { DiscoverCardId, ControlPosCardId, ControlNegCardId, UnrelatedCardId } }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition { ActionId = DiscoverCardId, OwnerType = "org", EffectIds = new List<string> { "discover" } },
+					new ActionDefinition { ActionId = ControlPosCardId, OwnerType = "org", EffectIds = new List<string> { "control_pos" } },
+					new ActionDefinition { ActionId = ControlNegCardId, OwnerType = "org", EffectIds = new List<string> { "control_neg" } },
+					new ActionDefinition { ActionId = UnrelatedCardId, OwnerType = "org", EffectIds = new List<string>() }
+				}
+			};
+			var effectConfig = BuildClassificationEffectConfig();
+
+			var ctx = new GameLogicContext(
+				new MultiOrgTestSupport.StaticConfig<GeoJsonConfig>(new GeoJsonConfig()),
+				new MultiOrgTestSupport.StaticConfig<MapEntryConfig>(new MapEntryConfig()),
+				new MultiOrgTestSupport.StaticConfig<CountryConfig>(countryConfig),
+				new MultiOrgTestSupport.StaticConfig<GameSettings>(gameSettings),
+				new MultiOrgTestSupport.StaticConfig<ResourceConfig>(resourceConfig),
+				new MultiOrgTestSupport.StaticConfig<OrganizationConfig>(orgConfig),
+				initialPlayerCountryId: "HQ",
+				initialOrganizationId: "Illuminati",
+				action: new MultiOrgTestSupport.StaticConfig<ActionConfig>(actionConfig),
+				effect: new MultiOrgTestSupport.StaticConfig<EffectConfig>(effectConfig));
+
+			var logic = new GameLogic(ctx);
+			logic.Update(0f);
+			return logic;
+		}
+
+		[Fact]
+		void discover_country_effect_sets_discovers_country_flag_only() {
+			var logic = BuildClassificationLogic();
+			var effectConfig = BuildClassificationEffectConfig();
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", effectConfig);
+
+			var card = obs.OrgHand.First(c => c.ActionId == DiscoverCardId);
+			Assert.True(card.DiscoversCountry);
+			Assert.False(card.RaisesControl);
+		}
+
+		[Fact]
+		void positive_control_change_effect_sets_raises_control_flag_only() {
+			var logic = BuildClassificationLogic();
+			var effectConfig = BuildClassificationEffectConfig();
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", effectConfig);
+
+			var card = obs.OrgHand.First(c => c.ActionId == ControlPosCardId);
+			Assert.False(card.DiscoversCountry);
+			Assert.True(card.RaisesControl);
+		}
+
+		[Fact]
+		void negative_control_change_effect_does_not_set_raises_control_flag() {
+			var logic = BuildClassificationLogic();
+			var effectConfig = BuildClassificationEffectConfig();
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", effectConfig);
+
+			var card = obs.OrgHand.First(c => c.ActionId == ControlNegCardId);
+			Assert.False(card.DiscoversCountry);
+			Assert.False(card.RaisesControl);
+		}
+
+		[Fact]
+		void card_with_no_effects_leaves_both_classification_flags_false() {
+			var logic = BuildClassificationLogic();
+			var effectConfig = BuildClassificationEffectConfig();
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", effectConfig);
+
+			var card = obs.OrgHand.First(c => c.ActionId == UnrelatedCardId);
+			Assert.False(card.DiscoversCountry);
+			Assert.False(card.RaisesControl);
 		}
 	}
 }
