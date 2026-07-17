@@ -48,7 +48,7 @@ namespace GS.Game.Bots {
 			return _countryById.TryGetValue(countryId, out var view) ? view : null;
 		}
 
-		public static BotObservation Build(IReadOnlyWorld world, ActionConfig actionConfig, string orgId) {
+		internal static DateTime ReadCurrentDate(IReadOnlyWorld world) {
 			DateTime currentDate = default;
 			int[] timeReq = { TypeId<GameTime>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(timeReq, null)) {
@@ -57,6 +57,24 @@ namespace GS.Game.Bots {
 					break;
 				}
 			}
+			return currentDate;
+		}
+
+		static (bool discoversCountry, bool raisesControl) ClassifyCard(ActionDefinition? def, EffectConfig effectConfig) {
+			bool discovers = false, raises = false;
+			if (def != null) {
+				foreach (var effectId in def.EffectIds) {
+					var effect = effectConfig.Find(effectId);
+					if (effect is DiscoverCountryEffectParams) { discovers = true; }
+					if (effect is ControlChangeEffectParams ccp && ccp.Amount > 0) { raises = true; }
+				}
+			}
+			return (discovers, raises);
+		}
+
+		public static BotObservation Build(IReadOnlyWorld world, ActionConfig actionConfig, string orgId, EffectConfig? effectConfig = null) {
+			var effectConfigResolved = effectConfig ?? new EffectConfig();
+			DateTime currentDate = ReadCurrentDate(world);
 
 			double gold = OrgMetrics.GetGold(world, orgId);
 			int totalControl = OrgMetrics.GetTotalControl(world, orgId);
@@ -116,6 +134,7 @@ namespace GS.Game.Bots {
 					}
 
 					bool isPlayable = ActionPlayability.Evaluate(world, actionConfig, actionId, orgId, countryId);
+					var (discoversCountry, raisesControl) = ClassifyCard(def, effectConfigResolved);
 
 					if (countryId == null) {
 						orgHandCards.Add(new BotCardView {
@@ -124,7 +143,9 @@ namespace GS.Game.Bots {
 							CountryId = "",
 							Cost = costs,
 							GoldCost = goldCost,
-							IsPlayable = isPlayable
+							IsPlayable = isPlayable,
+							DiscoversCountry = discoversCountry,
+							RaisesControl = raisesControl
 						});
 					} else if (discovered.Contains(countryId)) {
 						if (!countryHandCards.TryGetValue(countryId, out var list)) {
@@ -137,7 +158,9 @@ namespace GS.Game.Bots {
 							CountryId = countryId,
 							Cost = costs,
 							GoldCost = goldCost,
-							IsPlayable = isPlayable
+							IsPlayable = isPlayable,
+							DiscoversCountry = discoversCountry,
+							RaisesControl = raisesControl
 						});
 					}
 				}

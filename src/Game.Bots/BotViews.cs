@@ -8,6 +8,8 @@ namespace GS.Game.Bots {
 		public IReadOnlyList<BotCostView> Cost = System.Array.Empty<BotCostView>();
 		public double GoldCost;
 		public bool IsPlayable;
+		public bool DiscoversCountry;
+		public bool RaisesControl;
 	}
 
 	public sealed class BotCostView {

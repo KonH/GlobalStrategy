@@ -8,6 +8,7 @@ namespace GS.Configs.IO {
 
 		static readonly JsonSerializerOptions _options = new JsonSerializerOptions {
 			PropertyNameCaseInsensitive = true,
+			Converters = { new ActionEffectDefinitionListConverter() },
 		};
 
 		public FileConfig(string filePath) {

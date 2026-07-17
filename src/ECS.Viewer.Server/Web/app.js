@@ -169,6 +169,9 @@ function renderDetail(entity) {
         link.textContent = `→ #${fval.__entityRef}`;
         link.addEventListener('click', () => selectEntity(fval.__entityRef));
         valEl.appendChild(link);
+      } else if (Array.isArray(fval)) {
+        row.classList.add('multiline');
+        valEl.appendChild(renderArrayValue(fval));
       } else if (isEditable(fval)) {
         const input = document.createElement('input');
         input.value = String(fval ?? '');
@@ -193,6 +196,22 @@ function renderDetail(entity) {
     }
     detail.appendChild(block);
   }
+}
+
+function renderArrayValue(arr) {
+  const container = document.createElement('div');
+  container.className = 'array-value';
+  if (arr.length === 0) {
+    container.textContent = '(empty)';
+    return container;
+  }
+  for (const item of arr) {
+    const line = document.createElement('div');
+    line.className = 'array-item';
+    line.textContent = String(item);
+    container.appendChild(line);
+  }
+  return container;
 }
 
 function isEditable(val) {

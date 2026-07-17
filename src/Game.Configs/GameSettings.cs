@@ -6,5 +6,6 @@ namespace GS.Game.Configs {
 		public string AutoSaveInterval { get; set; } = "monthly";
 		public double PopulationGrowthPercentPerMonth { get; set; } = 0.075;
 		public double CountryScoreCoefficient { get; set; } = 1.0;
+		public int BotActionLogRetentionCap { get; set; } = 500;
 	}
 }

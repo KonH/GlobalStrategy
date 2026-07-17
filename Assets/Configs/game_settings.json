@@ -4,5 +4,6 @@
   "defaultLocale": "en",
   "autoSaveInterval": "monthly",
   "populationGrowthPercentPerMonth": 0.075,
-  "countryScoreCoefficient": 0.0001
+  "countryScoreCoefficient": 0.0001,
+  "botActionLogRetentionCap": 500
 }
