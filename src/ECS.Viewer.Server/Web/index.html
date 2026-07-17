@@ -31,8 +31,11 @@ body { font-family: monospace; font-size: 13px; background: #1e1e1e; color: #d4d
 .comp-block { margin-bottom: 14px; }
 .comp-name { color: #4ec9b0; margin-bottom: 4px; font-weight: bold; }
 .field-row { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+.field-row.multiline { align-items: flex-start; }
 .field-name { color: #9cdcfe; min-width: 140px; }
 .field-value { color: #ce9178; }
+.array-value { display: flex; flex-direction: column; }
+.array-item { padding: 1px 0; white-space: pre; }
 .field-value input { background: #3c3c3c; color: #ce9178; border: 1px solid #555; padding: 1px 4px; font-family: monospace; font-size: 12px; width: 160px; }
 .field-value input:focus { outline: 1px solid #0e639c; border-color: #0e639c; }
 .entity-link { color: #569cd6; text-decoration: underline; cursor: pointer; }

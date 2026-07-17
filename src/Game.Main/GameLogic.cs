@@ -232,9 +232,9 @@ namespace GS.Main {
 		public void RecordBotAction(string orgId, string featureId, string actionId, string countryId) {
 			if (_botActionLogEntity < 0) { return; }
 			DateTime date = _gameTimeEntity >= 0 ? _world.Get<GameTime>(_gameTimeEntity).CurrentTime : default;
-			string record = string.Join("\x1E", new[] {
-				date.ToString("O", System.Globalization.CultureInfo.InvariantCulture), orgId, featureId, actionId, countryId
-			});
+			string dateStr = date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+			string target = string.IsNullOrEmpty(countryId) ? "" : $" -> {countryId}";
+			string record = $"{dateStr} | {orgId} | {featureId}/{actionId}{target}";
 			ref BotActionLog log = ref _world.Get<BotActionLog>(_botActionLogEntity);
 			var existing = log.Entries ?? Array.Empty<string>();
 			var appended = new string[existing.Length + 1];

@@ -19,12 +19,12 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void bot_action_log_entries_without_delimiter_round_trip_byte_for_byte() {
+		void bot_action_log_entries_round_trip_byte_for_byte() {
 			var world = new World();
 			int entity = world.Create();
 			var entries = new[] {
-				"2026-07-17T00:00:00.0000000Z\x1EIlluminati\x1EDiscoverAndControl\x1Espread_rumors\x1EFrance",
-				"2026-07-18T00:00:00.0000000Z\x1EIlluminati\x1EDiscoverAndControl\x1Espend_gold\x1E"
+				"2026-07-17 | Illuminati | DiscoverAndControl/spread_rumors -> France",
+				"2026-07-18 | Illuminati | DiscoverAndControl/spend_gold"
 			};
 			world.Add(entity, new BotActionLog { Entries = entries });
 
@@ -49,21 +49,21 @@ namespace GS.Game.Tests {
 		void organization_ids_never_contain_the_bot_action_log_delimiter() {
 			string root = FindRepoRoot();
 			string json = File.ReadAllText(Path.Combine(root, "Assets", "Configs", "organizations.json"));
-			Assert.DoesNotContain('\x1E', json);
+			Assert.DoesNotContain(" | ", json);
 		}
 
 		[Fact]
 		void action_ids_never_contain_the_bot_action_log_delimiter() {
 			string root = FindRepoRoot();
 			string json = File.ReadAllText(Path.Combine(root, "Assets", "Configs", "action_config.json"));
-			Assert.DoesNotContain('\x1E', json);
+			Assert.DoesNotContain(" | ", json);
 		}
 
 		[Fact]
 		void country_ids_never_contain_the_bot_action_log_delimiter() {
 			string root = FindRepoRoot();
 			string json = File.ReadAllText(Path.Combine(root, "Assets", "Configs", "country_config.json"));
-			Assert.DoesNotContain('\x1E', json);
+			Assert.DoesNotContain(" | ", json);
 		}
 	}
 }

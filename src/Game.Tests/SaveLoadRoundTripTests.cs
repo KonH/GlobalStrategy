@@ -371,9 +371,9 @@ namespace GS.Game.Tests {
 			var world = new World();
 			int botActionLogEntity = world.Create();
 			var entries = new[] {
-				"1882-06-15T00:00:00.0000000\x1EIlluminati\x1EDiscoverAndControl\x1Espread_rumors\x1EFrance",
-				"1882-06-16T00:00:00.0000000\x1EIlluminati\x1EDiscoverAndControl\x1Espend_gold\x1E",
-				"1882-06-17T00:00:00.0000000\x1EMasons\x1EDiscoverAndControl\x1Espread_rumors\x1EPrussia"
+				"1882-06-15 | Illuminati | DiscoverAndControl/spread_rumors -> France",
+				"1882-06-16 | Illuminati | DiscoverAndControl/spend_gold",
+				"1882-06-17 | Masons | DiscoverAndControl/spread_rumors -> Prussia"
 			};
 			world.Add(botActionLogEntity, new BotActionLog { Entries = entries });
 

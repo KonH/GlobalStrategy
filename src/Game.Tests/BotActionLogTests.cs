@@ -113,7 +113,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void record_bot_action_appends_one_correctly_delimited_entry() {
+		void record_bot_action_appends_one_human_readable_entry() {
 			var logic = BuildLogic();
 			logic.Update(0f);
 
@@ -122,12 +122,10 @@ namespace GS.Game.Tests {
 			var entries = ReadBotActionLogEntries(logic.World);
 			Assert.Single(entries);
 
-			var parts = entries[0].Split('\x1E');
-			Assert.Equal(5, parts.Length);
+			var parts = entries[0].Split(" | ");
+			Assert.Equal(3, parts.Length);
 			Assert.Equal("Illuminati", parts[1]);
-			Assert.Equal("DiscoverAndControl", parts[2]);
-			Assert.Equal("spread_rumors", parts[3]);
-			Assert.Equal("France", parts[4]);
+			Assert.Equal("DiscoverAndControl/spread_rumors -> France", parts[2]);
 		}
 
 		[Fact]
@@ -159,7 +157,8 @@ namespace GS.Game.Tests {
 
 			var actionIds = new List<string>();
 			foreach (var entry in entries) {
-				actionIds.Add(entry.Split('\x1E')[3]);
+				string actionPart = entry.Split(" | ")[2];
+				actionIds.Add(actionPart.Split('/')[1].Split(" -> ")[0]);
 			}
 			Assert.Equal(new[] { "action2", "action3", "action4" }, actionIds);
 		}
