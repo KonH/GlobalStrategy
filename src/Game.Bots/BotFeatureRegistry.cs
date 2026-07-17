@@ -21,7 +21,7 @@ namespace GS.Game.Bots {
 		public static BotFeatureRegistry CreateDefault() {
 			var registry = new BotFeatureRegistry();
 			registry.Register(BaselineCardPlayFeature.Id, parameters => new BaselineCardPlayFeature(parameters));
-			registry.Register(DiscoverAndControlFeature.Id, parameters => new DiscoverAndControlFeature());
+			registry.Register(DiscoverAndControlFeature.Id, parameters => new DiscoverAndControlFeature(parameters));
 			return registry;
 		}
 	}

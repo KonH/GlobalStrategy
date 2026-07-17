@@ -198,6 +198,37 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void plays_discover_card_over_control_card_when_below_threshold() {
+			// Both a playable discover card and a playable control card are available;
+			// default parameters (no threshold) must preserve discover-first ordering.
+			var logic = BuildPriorityLogic(orgGold: 1000.0, discoverAustria: true);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
+			var sink = new RecordingSink();
+			var feature = new DiscoverAndControlFeature(new Dictionary<string, double>());
+
+			feature.Tick(obs, sink, new Random(1));
+
+			Assert.Single(sink.Plays);
+			Assert.Equal((DiscoverCardId, ""), sink.Plays[0]);
+		}
+
+		[Fact]
+		void plays_control_card_over_discover_card_once_threshold_is_met() {
+			// Same setup as above, but with discoveredCountriesAvailableControl=0 the
+			// single already-discovered country (Austria) meets the threshold, so the
+			// bot should prefer raising control over discovering further.
+			var logic = BuildPriorityLogic(orgGold: 1000.0, discoverAustria: true);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
+			var sink = new RecordingSink();
+			var feature = new DiscoverAndControlFeature(new Dictionary<string, double> { ["discoveredCountriesAvailableControl"] = 0 });
+
+			feature.Tick(obs, sink, new Random(1));
+
+			Assert.Single(sink.Plays);
+			Assert.Equal((ControlCardId, "Austria"), sink.Plays[0]);
+		}
+
+		[Fact]
 		void plays_at_most_one_card_per_tick() {
 			var logic = BuildPriorityLogic(orgGold: 1000.0, discoverAustria: true);
 			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
