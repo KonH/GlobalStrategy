@@ -86,11 +86,16 @@ namespace GS.Game.Bots {
 			_botsByOrgId[orgId] = bot;
 		}
 
-		static BotProfile DefaultProfile(string orgId) => new BotProfile {
-			OrgId = orgId,
-			Features = new List<BotFeatureSetting> {
-				new BotFeatureSetting { FeatureId = DiscoverAndControlFeature.Id, Enabled = true, Parameters = new Dictionary<string, double>() }
+		// Feature set for auto-attached (world-discovered) bots comes from
+		// GameSettings.BotFeatures (Assets/Configs/game_settings.json), not a
+		// hardcoded literal here - the eval-validated discoverAndControl threshold lives
+		// in config so it can be tuned without a code change.
+		BotProfile DefaultProfile(string orgId) {
+			var features = new List<BotFeatureSetting>();
+			foreach (var entry in _logic.BotFeatures) {
+				features.Add(new BotFeatureSetting { FeatureId = entry.FeatureId, Enabled = entry.Enabled, Parameters = entry.Parameters });
 			}
-		};
+			return new BotProfile { OrgId = orgId, Features = features };
+		}
 	}
 }

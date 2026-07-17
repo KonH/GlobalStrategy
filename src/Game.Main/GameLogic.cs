@@ -38,6 +38,7 @@ namespace GS.Main {
 		public ActionConfig ActionConfig { get; private set; } = null!;
 		public EffectConfig EffectConfig { get; private set; } = null!;
 		public ProvinceConfig ProvinceConfig { get; private set; } = null!;
+		public IReadOnlyList<BotFeatureConfigEntry> BotFeatures { get; private set; } = null!;
 
 		public GameLogic(GameLogicContext context) {
 			_context = context;
@@ -62,6 +63,7 @@ namespace GS.Main {
 			_populationGrowthPercent = settings.PopulationGrowthPercentPerMonth;
 			_countryScoreCoefficient = settings.CountryScoreCoefficient;
 			_botActionLogRetentionCap = settings.BotActionLogRetentionCap;
+			BotFeatures = settings.BotFeatures;
 			_previousTime = new DateTime(settings.StartYear, 1, 1);
 		}
 
