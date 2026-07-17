@@ -48,7 +48,7 @@ feature-disabled baseline.
 			"If it fails: read Docs/BotFeatures/discoverAndControl/eval_history.json (latest entry) and .ralph/activity.md. Pick one concrete improvement - a logic change, different targeting, or an adjusted threshold grid in eval_config.json - journal the change and why in .ralph/activity.md, then re-run the gate.",
 			"If Docs/BotFeatures/discoverAndControl/eval_history.json has reached attempt 5 or more and the gate still fails: journal budget exhaustion in .ralph/activity.md, leave passes: false, and end the iteration - do not keep retrying past the budget."
 		],
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "bot-feature",

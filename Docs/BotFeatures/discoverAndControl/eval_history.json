@@ -1,0 +1,1705 @@
+[
+  {
+    "attempt": 1,
+    "date": "2026-07-17",
+    "verdict": {
+      "pass": false,
+      "scoreGate": true,
+      "commandOn": false,
+      "commandOff": true
+    },
+    "improved": false,
+    "epsilon": 75.50121702449212,
+    "effectiveConfig": {
+      "candidateOrgId": null,
+      "opponentFeatures": [
+        {
+          "featureId": "baselineCardPlay",
+          "enabled": true,
+          "parameters": {}
+        }
+      ],
+      "candidateFeatures": null,
+      "seedCount": 10,
+      "baseSeed": 1880,
+      "endDate": null,
+      "hoursPerTick": 24,
+      "timeoutSeconds": 300,
+      "epsilonRelative": 0.02,
+      "epsilonAbsolute": 0,
+      "maxTotalRuns": 200,
+      "targetActions": [],
+      "parameterSearch": {
+        "mode": "grid",
+        "parameters": {
+          "discoveredCountriesAvailableControl": {
+            "values": [
+              0,
+              1,
+              2,
+              3,
+              5,
+              8
+            ],
+            "min": null,
+            "max": null,
+            "step": null
+          }
+        },
+        "maxCandidates": 20,
+        "searchSeed": 7
+      }
+    },
+    "parameterSets": [
+      {
+        "index": 0,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 0
+        },
+        "scoreGatePass": true,
+        "commandOnPass": false,
+        "stats": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stdDev": 0,
+          "improved": 0,
+          "worsened": 0,
+          "unchanged": 10
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 1
+        },
+        "scoreGatePass": true,
+        "commandOnPass": false,
+        "stats": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stdDev": 0,
+          "improved": 0,
+          "worsened": 0,
+          "unchanged": 10
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 2
+        },
+        "scoreGatePass": true,
+        "commandOnPass": false,
+        "stats": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stdDev": 0,
+          "improved": 0,
+          "worsened": 0,
+          "unchanged": 10
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          }
+        ]
+      },
+      {
+        "index": 3,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 3
+        },
+        "scoreGatePass": true,
+        "commandOnPass": false,
+        "stats": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stdDev": 0,
+          "improved": 0,
+          "worsened": 0,
+          "unchanged": 10
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          }
+        ]
+      },
+      {
+        "index": 4,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 5
+        },
+        "scoreGatePass": true,
+        "commandOnPass": false,
+        "stats": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stdDev": 0,
+          "improved": 0,
+          "worsened": 0,
+          "unchanged": 10
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          }
+        ]
+      },
+      {
+        "index": 5,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 8
+        },
+        "scoreGatePass": true,
+        "commandOnPass": false,
+        "stats": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stdDev": 0,
+          "improved": 0,
+          "worsened": 0,
+          "unchanged": 10
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          }
+        ]
+      }
+    ],
+    "winner": null,
+    "rawRunDir": ".tmp\\evals\\discoverAndControl\\attempt_1"
+  },
+  {
+    "attempt": 2,
+    "date": "2026-07-17",
+    "verdict": {
+      "pass": false,
+      "scoreGate": true,
+      "commandOn": false,
+      "commandOff": true
+    },
+    "improved": false,
+    "epsilon": 75.50121702449212,
+    "effectiveConfig": {
+      "candidateOrgId": null,
+      "opponentFeatures": [
+        {
+          "featureId": "baselineCardPlay",
+          "enabled": true,
+          "parameters": {}
+        }
+      ],
+      "candidateFeatures": [
+        {
+          "featureId": "discoverAndControl",
+          "enabled": true,
+          "parameters": {}
+        }
+      ],
+      "seedCount": 10,
+      "baseSeed": 1880,
+      "endDate": null,
+      "hoursPerTick": 24,
+      "timeoutSeconds": 300,
+      "epsilonRelative": 0.02,
+      "epsilonAbsolute": 0,
+      "maxTotalRuns": 200,
+      "targetActions": [],
+      "parameterSearch": {
+        "mode": "grid",
+        "parameters": {
+          "discoveredCountriesAvailableControl": {
+            "values": [
+              0,
+              1,
+              2,
+              3,
+              5,
+              8
+            ],
+            "min": null,
+            "max": null,
+            "step": null
+          }
+        },
+        "maxCandidates": 20,
+        "searchSeed": 7
+      }
+    },
+    "parameterSets": [
+      {
+        "index": 0,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 0
+        },
+        "scoreGatePass": true,
+        "commandOnPass": false,
+        "stats": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stdDev": 0,
+          "improved": 0,
+          "worsened": 0,
+          "unchanged": 10
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 1
+        },
+        "scoreGatePass": true,
+        "commandOnPass": false,
+        "stats": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stdDev": 0,
+          "improved": 0,
+          "worsened": 0,
+          "unchanged": 10
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 2
+        },
+        "scoreGatePass": true,
+        "commandOnPass": false,
+        "stats": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stdDev": 0,
+          "improved": 0,
+          "worsened": 0,
+          "unchanged": 10
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          }
+        ]
+      },
+      {
+        "index": 3,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 3
+        },
+        "scoreGatePass": true,
+        "commandOnPass": false,
+        "stats": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stdDev": 0,
+          "improved": 0,
+          "worsened": 0,
+          "unchanged": 10
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          }
+        ]
+      },
+      {
+        "index": 4,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 5
+        },
+        "scoreGatePass": true,
+        "commandOnPass": false,
+        "stats": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stdDev": 0,
+          "improved": 0,
+          "worsened": 0,
+          "unchanged": 10
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          }
+        ]
+      },
+      {
+        "index": 5,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 8
+        },
+        "scoreGatePass": true,
+        "commandOnPass": false,
+        "stats": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stdDev": 0,
+          "improved": 0,
+          "worsened": 0,
+          "unchanged": 10
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3775.0608512246067,
+            "delta": 0
+          }
+        ]
+      }
+    ],
+    "winner": null,
+    "rawRunDir": ".tmp\\evals\\discoverAndControl\\attempt_2"
+  },
+  {
+    "attempt": 3,
+    "date": "2026-07-17",
+    "verdict": {
+      "pass": false,
+      "scoreGate": true,
+      "commandOn": false,
+      "commandOff": true
+    },
+    "improved": false,
+    "epsilon": 72.18019077252313,
+    "effectiveConfig": {
+      "candidateOrgId": null,
+      "opponentFeatures": [
+        {
+          "featureId": "baselineCardPlay",
+          "enabled": true,
+          "parameters": {}
+        }
+      ],
+      "candidateFeatures": [
+        {
+          "featureId": "discoverAndControl",
+          "enabled": true,
+          "parameters": {}
+        }
+      ],
+      "seedCount": 1,
+      "baseSeed": 1880,
+      "endDate": "1880-01-05",
+      "hoursPerTick": 24,
+      "timeoutSeconds": 300,
+      "epsilonRelative": 0.02,
+      "epsilonAbsolute": 0,
+      "maxTotalRuns": 200,
+      "targetActions": [],
+      "parameterSearch": {
+        "mode": "grid",
+        "parameters": {
+          "discoveredCountriesAvailableControl": {
+            "values": [
+              0
+            ],
+            "min": null,
+            "max": null,
+            "step": null
+          }
+        },
+        "maxCandidates": 20,
+        "searchSeed": 7
+      }
+    },
+    "parameterSets": [
+      {
+        "index": 0,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 0
+        },
+        "scoreGatePass": true,
+        "commandOnPass": false,
+        "stats": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0,
+          "stdDev": 0,
+          "improved": 0,
+          "worsened": 0,
+          "unchanged": 1
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3609.0095386261564,
+            "candidateScore": 3609.0095386261564,
+            "delta": 0
+          }
+        ]
+      }
+    ],
+    "winner": null,
+    "rawRunDir": ".tmp/debug_run"
+  },
+  {
+    "attempt": 4,
+    "date": "2026-07-17",
+    "verdict": {
+      "pass": true,
+      "scoreGate": true,
+      "commandOn": true,
+      "commandOff": true
+    },
+    "improved": true,
+    "epsilon": 75.50121702449212,
+    "effectiveConfig": {
+      "candidateOrgId": null,
+      "opponentFeatures": [
+        {
+          "featureId": "baselineCardPlay",
+          "enabled": true,
+          "parameters": {}
+        }
+      ],
+      "candidateFeatures": [
+        {
+          "featureId": "discoverAndControl",
+          "enabled": true,
+          "parameters": {}
+        }
+      ],
+      "seedCount": 10,
+      "baseSeed": 1880,
+      "endDate": null,
+      "hoursPerTick": 24,
+      "timeoutSeconds": 300,
+      "epsilonRelative": 0.02,
+      "epsilonAbsolute": 0,
+      "maxTotalRuns": 200,
+      "targetActions": [],
+      "parameterSearch": {
+        "mode": "grid",
+        "parameters": {
+          "discoveredCountriesAvailableControl": {
+            "values": [
+              0,
+              1,
+              2,
+              3,
+              5,
+              8
+            ],
+            "min": null,
+            "max": null,
+            "step": null
+          }
+        },
+        "maxCandidates": 20,
+        "searchSeed": 7
+      }
+    },
+    "parameterSets": [
+      {
+        "index": 0,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 0
+        },
+        "scoreGatePass": true,
+        "commandOnPass": true,
+        "stats": {
+          "mean": 10947.676468551359,
+          "median": 10947.676468551357,
+          "min": 7550.1217024492125,
+          "max": 14345.231234653504,
+          "stdDev": 2446.5190497497524,
+          "improved": 10,
+          "worsened": 0,
+          "unchanged": 0
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 11325.18255367382,
+            "delta": 7550.1217024492125
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 15855.255575143347,
+            "delta": 12080.19472391874
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 11325.18255367382,
+            "delta": 7550.1217024492125
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 13590.219064408582,
+            "delta": 9815.158213183975
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 18120.29208587811,
+            "delta": 14345.231234653504
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 13590.219064408582,
+            "delta": 9815.158213183975
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 13590.219064408582,
+            "delta": 9815.158213183975
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 18120.29208587811,
+            "delta": 14345.231234653504
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 15855.255575143347,
+            "delta": 12080.19472391874
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 15855.255575143347,
+            "delta": 12080.19472391874
+          }
+        ]
+      },
+      {
+        "index": 1,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 1
+        },
+        "scoreGatePass": true,
+        "commandOnPass": true,
+        "stats": {
+          "mean": 10947.676468551359,
+          "median": 10947.676468551357,
+          "min": 7550.1217024492125,
+          "max": 14345.231234653504,
+          "stdDev": 2446.5190497497524,
+          "improved": 10,
+          "worsened": 0,
+          "unchanged": 0
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 11325.18255367382,
+            "delta": 7550.1217024492125
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 15855.255575143347,
+            "delta": 12080.19472391874
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 11325.18255367382,
+            "delta": 7550.1217024492125
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 13590.219064408582,
+            "delta": 9815.158213183975
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 18120.29208587811,
+            "delta": 14345.231234653504
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 13590.219064408582,
+            "delta": 9815.158213183975
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 13590.219064408582,
+            "delta": 9815.158213183975
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 18120.29208587811,
+            "delta": 14345.231234653504
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 15855.255575143347,
+            "delta": 12080.19472391874
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 15855.255575143347,
+            "delta": 12080.19472391874
+          }
+        ]
+      },
+      {
+        "index": 2,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 2
+        },
+        "scoreGatePass": true,
+        "commandOnPass": true,
+        "stats": {
+          "mean": 1473.4918183190155,
+          "median": 1049.0311064889734,
+          "min": 694.6810565860483,
+          "max": 2715.3661982757408,
+          "stdDev": 827.298810961124,
+          "improved": 10,
+          "worsened": 0,
+          "unchanged": 0
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4963.028169030789,
+            "delta": 1187.9673178061826
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4469.741907810655,
+            "delta": 694.6810565860483
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4685.155746396371,
+            "delta": 910.0948951717642
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4469.741907810655,
+            "delta": 694.6810565860483
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4608.678119127864,
+            "delta": 833.6172679032575
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4685.155746396371,
+            "delta": 910.0948951717642
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 6490.4270495003475,
+            "delta": 2715.3661982757408
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 6037.866016454391,
+            "delta": 2262.805165229784
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 5585.304983408434,
+            "delta": 1810.2441321838273
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 6490.4270495003475,
+            "delta": 2715.3661982757408
+          }
+        ]
+      },
+      {
+        "index": 3,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 3
+        },
+        "scoreGatePass": true,
+        "commandOnPass": true,
+        "stats": {
+          "mean": 1247.0417938408934,
+          "median": 1256.3552177416004,
+          "min": 99.85780238201187,
+          "max": 2461.8514600709154,
+          "stdDev": 841.6299279690461,
+          "improved": 10,
+          "worsened": 0,
+          "unchanged": 0
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 6236.912311295522,
+            "delta": 2461.8514600709154
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3880.7329884360147,
+            "delta": 105.67213721140797
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4473.133113291503,
+            "delta": 698.0722620668962
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3874.9186536066186,
+            "delta": 99.85780238201187
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 5506.588306623815,
+            "delta": 1731.527455399208
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 5054.113728816138,
+            "delta": 1279.0528775915313
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 5008.718409116276,
+            "delta": 1233.6575578916695
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4562.366048688795,
+            "delta": 787.305197464188
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 5434.4513057264485,
+            "delta": 1659.3904545018418
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 6189.091585053873,
+            "delta": 2414.0307338292664
+          }
+        ]
+      },
+      {
+        "index": 4,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 5
+        },
+        "scoreGatePass": true,
+        "commandOnPass": true,
+        "stats": {
+          "mean": 878.955068403175,
+          "median": 761.5333768002502,
+          "min": 55.944072641333605,
+          "max": 2004.5997628161535,
+          "stdDev": 600.371487155215,
+          "improved": 10,
+          "worsened": 0,
+          "unchanged": 0
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 5078.393977144503,
+            "delta": 1303.3331259198962
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3831.0049238659403,
+            "delta": 55.944072641333605
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4205.403004952771,
+            "delta": 430.34215372816425
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4196.821548547149,
+            "delta": 421.76069732254246
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 5191.765132914868,
+            "delta": 1416.7042816902617
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 5779.66061404076,
+            "delta": 2004.5997628161535
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4987.0999902149615,
+            "delta": 1212.0391389903548
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4196.821548547149,
+            "delta": 421.76069732254246
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4346.210883824794,
+            "delta": 571.1500326001874
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4726.97757222492,
+            "delta": 951.9167210003129
+          }
+        ]
+      },
+      {
+        "index": 5,
+        "parameters": {
+          "discoveredCountriesAvailableControl": 8
+        },
+        "scoreGatePass": true,
+        "commandOnPass": true,
+        "stats": {
+          "mean": 543.5102680813623,
+          "median": 458.2112658506319,
+          "min": 37.29604842755589,
+          "max": 1017.0325239182262,
+          "stdDev": 399.7063030098454,
+          "improved": 10,
+          "worsened": 0,
+          "unchanged": 0
+        },
+        "perSeed": [
+          {
+            "seed": 1880,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4643.94960183787,
+            "delta": 868.8887506132637
+          },
+          {
+            "seed": 1881,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4764.384519982051,
+            "delta": 989.323668757444
+          },
+          {
+            "seed": 1882,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4410.3095847108425,
+            "delta": 635.2487334862358
+          },
+          {
+            "seed": 1883,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4056.2346494396347,
+            "delta": 281.173798215028
+          },
+          {
+            "seed": 1884,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3829.528743432977,
+            "delta": 54.46789220837036
+          },
+          {
+            "seed": 1885,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4056.2346494396347,
+            "delta": 281.173798215028
+          },
+          {
+            "seed": 1886,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4792.093375142833,
+            "delta": 1017.0325239182262
+          },
+          {
+            "seed": 1887,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4764.384519982051,
+            "delta": 989.323668757444
+          },
+          {
+            "seed": 1888,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 4056.2346494396347,
+            "delta": 281.173798215028
+          },
+          {
+            "seed": 1889,
+            "baselineScore": 3775.0608512246067,
+            "candidateScore": 3812.3568996521626,
+            "delta": 37.29604842755589
+          }
+        ]
+      }
+    ],
+    "winner": 0,
+    "rawRunDir": ".tmp\\evals\\discoverAndControl\\attempt_4"
+  }
+]
