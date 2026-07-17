@@ -23,6 +23,8 @@ namespace GS.Main {
 		int _orgEntity = -1;
 		int _proximityEntity = -1;
 		int _provinceSelectionEntity = -1;
+		int _botActionLogEntity = -1;
+		int _botActionLogRetentionCap;
 		string _sessionId = Guid.NewGuid().ToString("N");
 		DateTime _previousTime;
 		ActionConfig _actionConfig = null!;
@@ -59,6 +61,7 @@ namespace GS.Main {
 			_speedMultipliers = settings.SpeedMultipliers;
 			_populationGrowthPercent = settings.PopulationGrowthPercentPerMonth;
 			_countryScoreCoefficient = settings.CountryScoreCoefficient;
+			_botActionLogRetentionCap = settings.BotActionLogRetentionCap;
 			_previousTime = new DateTime(settings.StartYear, 1, 1);
 		}
 
@@ -200,6 +203,7 @@ namespace GS.Main {
 			_orgEntity = FindViewOrgEntity();
 			_proximityEntity = FindEntityWith<ProximityMapData>();
 			_provinceSelectionEntity = FindEntityWith<ProvinceSelection>();
+			_botActionLogEntity = FindEntityWith<BotActionLog>();
 		}
 
 		int FindViewOrgEntity() {
@@ -223,6 +227,26 @@ namespace GS.Main {
 		public void RebuildProximityMap() {
 			InitSystem.BuildProximityMap(_world, _context);
 			_proximityEntity = FindEntityWith<ProximityMapData>();
+		}
+
+		public void RecordBotAction(string orgId, string featureId, string actionId, string countryId) {
+			if (_botActionLogEntity < 0) { return; }
+			DateTime date = _gameTimeEntity >= 0 ? _world.Get<GameTime>(_gameTimeEntity).CurrentTime : default;
+			string dateStr = date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+			string target = string.IsNullOrEmpty(countryId) ? "" : $" -> {countryId}";
+			string record = $"{dateStr} | {orgId} | {featureId}/{actionId}{target}";
+			ref BotActionLog log = ref _world.Get<BotActionLog>(_botActionLogEntity);
+			var existing = log.Entries ?? Array.Empty<string>();
+			var appended = new string[existing.Length + 1];
+			Array.Copy(existing, appended, existing.Length);
+			appended[existing.Length] = record;
+			if (_botActionLogRetentionCap > 0 && appended.Length > _botActionLogRetentionCap) {
+				int overflow = appended.Length - _botActionLogRetentionCap;
+				var trimmed = new string[_botActionLogRetentionCap];
+				Array.Copy(appended, overflow, trimmed, 0, _botActionLogRetentionCap);
+				appended = trimmed;
+			}
+			log.Entries = appended;
 		}
 
 		int FindEntityWith<T>() {

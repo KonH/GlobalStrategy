@@ -56,7 +56,6 @@ namespace GS.Game.ConsoleRunner {
 				logger: logger);
 			var logic = new GameLogic(ctx);
 
-			var bots = new List<Bot>();
 			List<BotProfileResult>? botsResult = null;
 			var emissionLogByOrgId = new Dictionary<string, List<BotEmission>>();
 			int emissionTick = 0;
@@ -69,12 +68,8 @@ namespace GS.Game.ConsoleRunner {
 					}
 					if (profile == null) { continue; }
 
-					var features = new List<IBotFeature>();
 					var featureResults = new List<BotFeatureResult>();
 					foreach (var featureSetting in profile.Features) {
-						if (featureSetting.Enabled) {
-							features.Add(registry.Create(featureSetting.FeatureId, featureSetting.Parameters));
-						}
 						featureResults.Add(new BotFeatureResult {
 							FeatureId = featureSetting.FeatureId,
 							Enabled = featureSetting.Enabled,
@@ -82,25 +77,32 @@ namespace GS.Game.ConsoleRunner {
 						});
 					}
 
-					var emissions = new List<BotEmission>();
-					emissionLogByOrgId[orgId] = emissions;
-					var rng = BotRng.Create(options.Seed, orgId);
-					Bot bot = null!;
-					BotEmissionCallback emissionCallback = (actionId, countryId) => {
-						emissions.Add(new BotEmission {
-							FeatureId = bot.CurrentFeatureId,
-							ActionId = actionId,
-							CountryId = countryId,
-							Date = logic.VisualState.Time.CurrentTime.ToString("yyyy-MM-dd"),
-							Tick = emissionTick
-						});
-					};
-					var sink = new BotCommandSink(orgId, logic.Commands, logger, emissionCallback);
-					bot = new Bot(orgId, features, rng, sink);
-					bots.Add(bot);
+					emissionLogByOrgId[orgId] = new List<BotEmission>();
 					botsResult.Add(new BotProfileResult { OrgId = orgId, Features = featureResults });
 				}
 			}
+
+			// `discoverFromWorld: false` — `HeadlessRunner` declares participating bot orgs explicitly
+			// via `--bot` profiles; it must not also auto-attach a default bot for every other
+			// `BotControlled`-marked org (every non-initial participating org gets that marker
+			// regardless of whether it has a profile), which would silently make "no --bot flags"
+			// stop being a passive baseline run.
+			var botSession = BotSession.Create(
+				logic,
+				options.Seed,
+				explicitProfiles: profiles,
+				registry: registry,
+				logger: logger,
+				discoverFromWorld: false,
+				onAction: (orgId, featureId, actionId, countryId) => {
+					emissionLogByOrgId[orgId].Add(new BotEmission {
+						FeatureId = featureId,
+						ActionId = actionId,
+						CountryId = countryId,
+						Date = logic.VisualState.Time.CurrentTime.ToString("yyyy-MM-dd"),
+						Tick = emissionTick
+					});
+				});
 
 			var settings = new FileConfig<GameSettings>(Path.Combine(options.ConfigDir, "game_settings.json")).Load();
 			float deltaTime = options.HoursPerTick / (float)settings.SpeedMultipliers[0];
@@ -125,14 +127,12 @@ namespace GS.Game.ConsoleRunner {
 			(int month, int year)? lastSampledMonth = null;
 
 			// t0 baseline sample, before any Update() advances time.
-			foreach (var bot in bots) { bot.ExecuteDecisionTick(logic.World, logic.ActionConfig); }
-			logic.Update(0f);
+			botSession.Update(0f);
 			AppendTimelineSampleIfNewMonth(logic, orgIds, result.Timeline, ref lastSampledMonth, force: true);
 
 			while (true) {
 				emissionTick = tickCount + 1;
-				foreach (var bot in bots) { bot.ExecuteDecisionTick(logic.World, logic.ActionConfig); }
-				logic.Update(deltaTime);
+				botSession.Update(deltaTime);
 				tickCount++;
 
 				AppendTimelineSampleIfNewMonth(logic, orgIds, result.Timeline, ref lastSampledMonth, force: false);

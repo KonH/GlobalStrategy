@@ -365,5 +365,32 @@ namespace GS.Game.Tests {
 			ProvincePopulationGrowthSystem.Update(restored, feb28, mar1, 0.075);
 			Assert.Equal(grownValue * 1.00075, restored.Get<Resource>(restoredEntity).Value, 6);
 		}
+
+		[Fact]
+		void round_trip_preserves_bot_action_log_entries_and_order() {
+			var world = new World();
+			int botActionLogEntity = world.Create();
+			var entries = new[] {
+				"1882-06-15 | Illuminati | DiscoverAndControl/spread_rumors -> France",
+				"1882-06-16 | Illuminati | DiscoverAndControl/spend_gold",
+				"1882-06-17 | Masons | DiscoverAndControl/spread_rumors -> Prussia"
+			};
+			world.Add(botActionLogEntity, new BotActionLog { Entries = entries });
+
+			var snapshot = Snapshot(world);
+			var restored = new World();
+			Restore(snapshot, restored);
+
+			int[] req = { TypeId<BotActionLog>.Value };
+			string[]? restoredEntries = null;
+			foreach (var arch in restored.GetMatchingArchetypes(req, null)) {
+				if (arch.Count > 0) {
+					restoredEntries = arch.GetColumn<BotActionLog>()[0].Entries;
+					break;
+				}
+			}
+
+			Assert.Equal(entries, restoredEntries);
+		}
 	}
 }
