@@ -24,6 +24,7 @@ When spawning a developer sub-agent, brief it with:
 - Relevant project rules (`CLAUDE.md`, `.claude/rules/`) — especially Unity MCP usage, code style, asmdef format
 - Current file state / context it needs (read key files first and include excerpts)
 - Whether Unity Editor MCP is available (check `mcpforunity://instances` if the plan touches Unity assets/scenes)
+- For steps touching `src/`: write the test for the new behavior first so it fails against the current code, then implement until it passes — never disable or weaken an existing test to force a pass, fix the underlying code instead
 
 After each sub-agent phase:
 1. Relay its results and any compilation errors to the user
@@ -40,5 +41,5 @@ After each sub-agent phase:
 ## Completion
 
 After all steps are done:
-- If any changes touch `src/`: write or update tests for the affected logic
+- If any changes touch `src/`: confirm tests were written test-first (red before green) for the affected logic and all pass
 - Run `/code-review` on the changed files — present any concerns one by one and ask the user to approve each fix before applying it

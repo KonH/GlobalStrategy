@@ -37,6 +37,13 @@ Still confirm before: deleting files or branches, force-pushing, creating PRs, s
 
 "No approval" means: do not prompt during implementation for reading/writing/editing files, using tools, refreshing Unity, or running searches. Those are internal work steps, not decisions that need user input.
 
+## When stuck — cap retries at 3
+
+After 3 failed attempts fixing the same issue, stop instead of trying a 4th variation on the same approach:
+- State what was tried and the specific error each attempt produced
+- Check 2-3 similar implementations already in the codebase for a different pattern
+- Reconsider whether the abstraction level is wrong or the problem should be split, rather than repeating the same fix with small tweaks
+
 ## Edit indentation tip
 
 When `Edit` fails due to tab/space mismatch, `Read` the exact line range to copy the raw indentation from the output, then retry.

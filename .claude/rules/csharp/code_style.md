@@ -18,3 +18,5 @@
       Process(item);
   }
   ```
+- Fail fast with descriptive, contextual error messages rather than continuing on bad state
+- Never silently swallow an exception — at minimum log it at error level
