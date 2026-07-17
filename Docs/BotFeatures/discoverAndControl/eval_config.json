@@ -1,7 +1,7 @@
 {
 	"candidateOrgId": null,
 	"opponentFeatures": [ { "featureId": "baselineCardPlay", "enabled": true, "parameters": {} } ],
-	"candidateFeatures": [ { "featureId": "discoverAndControl", "enabled": true, "parameters": {} } ],
+	"candidateFeatures": [ { "featureId": "discoverAndControl", "enabled": true, "parameters": { "discoveredCountriesAvailableControl": 0 } } ],
 	"seedCount": 10,
 	"baseSeed": 1880,
 	"endDate": null,

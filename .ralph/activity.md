@@ -68,3 +68,33 @@ the task's own instructions — do **not** change the C# default (stays
 `double.MaxValue` / discover-first), this task only pins the eval config's default so
 future eval runs start from the validated threshold instead of the empty-`{}` grid
 placeholder.
+
+---
+
+## 2026-07-17 — Adopt the winning discoveredCountriesAvailableControl value as the eval config's candidate default
+
+Task: "Adopt the winning discoveredCountriesAvailableControl value as the feature's
+effective default" (task 4, final task in this PRD).
+
+**What I did:** read the latest passing entry (`attempt 4`) in
+`Docs/BotFeatures/discoverAndControl/eval_history.json` — `"winner": 0`, i.e. parameter
+set index 0 with `discoveredCountriesAvailableControl: 0` (mean delta +10947.676, tied
+with index 1 for best). Updated
+`Docs/BotFeatures/discoverAndControl/eval_config.json`'s `candidateFeatures` entry for
+`discoverAndControl` from `"parameters": {}` to
+`"parameters": { "discoveredCountriesAvailableControl": 0 }`, so future eval runs
+(without an explicit grid override) evaluate the validated threshold by default instead
+of the feature's raw discover-first behavior.
+
+Left `src/Game.Bots/DiscoverAndControlFeature.cs`'s C# default untouched
+(`double.MaxValue`, i.e. always-discover-first when no parameters are supplied) — per
+the task's explicit instruction, this task only pins the eval config's own candidate
+default; callers that want the validated threshold opt in via profile parameters.
+
+**Gate:** `dotnet test src/GlobalStrategy.Core.sln -c Debug` →
+`ECS.Tests.dll: Passed 34/34`, `ECS.Viewer.Tests.dll: Passed 16/16`,
+`Game.Tests.dll: Passed 277/277`. All green, 0 failures.
+
+Marked task 4's `"passes": true`. **All tasks in `.ralph/prd.md` now have
+`"passes": true` — this PRD is complete.** The next loop iteration should find no
+`"passes": false` task and emit `<promise>COMPLETE</promise>`.

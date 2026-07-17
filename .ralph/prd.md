@@ -59,7 +59,7 @@ feature-disabled baseline.
 			"Leave the C# default (double.MaxValue, i.e. discover-first) unchanged - callers that want the validated threshold opt in via profile parameters; this task only pins the eval config's own candidate default."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	}
 ]
 ```
