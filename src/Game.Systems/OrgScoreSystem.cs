@@ -8,11 +8,15 @@ namespace GS.Game.Systems {
 	// CountryScoreSystem (see ecs_patterns.md's Score composition pattern). Must run
 	// after CountryScoreSystem.Update/Recompute in the same tick, since it reads the
 	// already-computed Country + Score values.
+	//
+	// Recomputed daily rather than monthly (unlike CountryScoreSystem): control can
+	// change from card plays at any time, and reacting to every individual trigger
+	// (ChangeControlCommand, action effects, etc.) that could move it is unnecessary
+	// complexity for a value that's otherwise cheap to recompute wholesale.
 	public static class OrgScoreSystem {
 		public static void Update(World world, DateTime previousTime, DateTime currentTime) {
-			bool isMonthBoundary = previousTime.Month != currentTime.Month
-				|| previousTime.Year != currentTime.Year;
-			if (!isMonthBoundary) {
+			bool isDayBoundary = previousTime.Date != currentTime.Date;
+			if (!isDayBoundary) {
 				return;
 			}
 			Recompute(world);

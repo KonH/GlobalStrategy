@@ -1,3 +1,4 @@
+using System;
 using ECS;
 using GS.Game.Components;
 using GS.Game.Systems;
@@ -5,6 +6,9 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class OrgScoreSystemTests {
+		static readonly DateTime Jan1 = new DateTime(1880, 1, 1);
+		static readonly DateTime Jan1Noon = new DateTime(1880, 1, 1, 12, 0, 0);
+		static readonly DateTime Jan2 = new DateTime(1880, 1, 2);
 		static int SeedCountry(World world, string countryId, double score) {
 			int entity = world.Create();
 			world.Add(entity, new Country(countryId));
@@ -167,6 +171,38 @@ namespace GS.Game.Tests {
 			OrgScoreSystem.Recompute(world);
 
 			Assert.Equal(100.0, OrgScoreSystem.GetScore(world, "Org1"));
+		}
+
+		[Fact]
+		void update_recomputes_on_day_boundary_not_just_month_boundary() {
+			var world = new World();
+			int countryEntity = SeedCountry(world, "A", 100);
+			SeedOrg(world, "Org1");
+			AddControl(world, "Org1", "A", 50);
+
+			OrgScoreSystem.Update(world, Jan1, Jan1Noon);
+			Assert.Equal(0.0, OrgScoreSystem.GetScore(world, "Org1"));
+
+			world.Get<Score>(countryEntity).Value = 200;
+			OrgScoreSystem.Update(world, Jan1Noon, Jan2);
+
+			Assert.Equal(100.0, OrgScoreSystem.GetScore(world, "Org1"));
+		}
+
+		[Fact]
+		void update_is_unchanged_within_same_day() {
+			var world = new World();
+			int countryEntity = SeedCountry(world, "A", 100);
+			SeedOrg(world, "Org1");
+			AddControl(world, "Org1", "A", 50);
+
+			OrgScoreSystem.Recompute(world);
+			double before = OrgScoreSystem.GetScore(world, "Org1");
+
+			world.Get<Score>(countryEntity).Value = 999;
+			OrgScoreSystem.Update(world, Jan1, Jan1Noon);
+
+			Assert.Equal(before, OrgScoreSystem.GetScore(world, "Org1"));
 		}
 	}
 }
