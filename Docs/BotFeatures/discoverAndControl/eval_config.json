@@ -1,0 +1,22 @@
+{
+	"candidateOrgId": null,
+	"opponentFeatures": [ { "featureId": "baselineCardPlay", "enabled": true, "parameters": {} } ],
+	"candidateFeatures": [ { "featureId": "discoverAndControl", "enabled": true, "parameters": { "discoveredCountriesAvailableControl": 0 } } ],
+	"seedCount": 10,
+	"baseSeed": 1880,
+	"endDate": null,
+	"hoursPerTick": 24,
+	"timeoutSeconds": 300,
+	"epsilonRelative": 0.02,
+	"epsilonAbsolute": 0,
+	"maxTotalRuns": 200,
+	"targetActions": [],
+	"parameterSearch": {
+		"mode": "grid",
+		"parameters": {
+			"discoveredCountriesAvailableControl": { "values": [0, 1, 2, 3, 5, 8] }
+		},
+		"maxCandidates": 20,
+		"searchSeed": 7
+	}
+}
