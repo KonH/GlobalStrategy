@@ -1,26 +1,9 @@
-Review the latest plan in `Docs/Specs/` or `Docs/Plans/` (or the plan file specified in `$ARGUMENTS`) for potential problems before implementation begins.
+Review the latest plan, using the shared `k:plan-review` skill. The only project-specific addition is which rule categories to check.
 
-## Plan Discovery
+## Rule categories override
 
-**With `$ARGUMENTS`:**
-1. Resolve against `Docs/Specs/` first — look for `Docs/Specs/<arg>/plan.md` or a folder whose name starts with `<arg>`
-2. If not found, fall back to `Docs/Plans/<arg>`
+When the skill's sub-agent reads "relevant project rules for the plan's scope," that means Unity, ECS, UI, and C# rules under `.claude/rules/` for this project specifically.
 
-**Without `$ARGUMENTS`:**
-1. List all `*/plan.md` files under `Docs/Specs/` and all `.md` files under `Docs/Plans/`
-2. Extract the leading numeric prefix from each
-3. Use the file with the highest numeric prefix across both directories
+## Delegate
 
-## Rules
-
-- Read the plan file first, then read relevant project rules from `.claude/rules/` that apply to the plan's scope
-- Spawn a sub-agent to perform the review independently (it should re-read the plan and rules itself)
-- The sub-agent must NOT modify any files — review only
-- Present all concerns at once, then ask the user to approve all or indicate which to skip
-- Keep each point short: state the problem, why it matters, and a concise fix — no nitpicking on style or naming
-- Format proposed fixes as `diff` blocks (lines removed prefixed with `-`, lines added prefixed with `+`) alongside the plain-text explanation
-- Focus on: missing steps, wrong assumptions, inconsistency with project guidelines, architectural mismatches, and anything likely to cause rework during implementation
-- If no real concerns are found, say so briefly and stop
-
-Sub-agent prompt template:
-> Review the plan at `[plan path]`. Read it in full, then read the relevant `.claude/rules/` files for the plan's scope (Unity, ECS, UI, C#, etc.). Identify concerns — missing steps, wrong assumptions, guideline violations, architectural mismatches — that would cause problems during implementation. Return a numbered list of concerns, each with: problem, why it matters, proposed fix. For each fix, include a `diff` block showing the before/after lines (lines removed prefixed with `-`, lines added with `+`). Skip style/naming nitpicks. If there are no real concerns, say so.
+Invoke the `k:plan-review` skill (from the `k` plugin) with the rule categories above. It handles plan discovery, spawning the review sub-agent, and presenting concerns.

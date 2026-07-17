@@ -1,45 +1,12 @@
-Implement the plan at `Docs/Specs/<index>_<name>/plan.md` or `Docs/Plans/<index>_<name>.md` (whichever is found).
+Implement the plan, using the shared `k:implement` skill. The project-specific addition is that any plan touching Unity assets/scenes needs a live Unity Editor MCP connection.
 
-## Plan Discovery
+## Unity MCP pre-flight override
 
-**With `$ARGUMENTS`:**
-1. Resolve against `Docs/Specs/` first — look for `Docs/Specs/<arg>/plan.md` or a folder whose name starts with `<arg>`
-2. If not found, fall back to `Docs/Plans/<arg>`
-
-**Without `$ARGUMENTS`:**
-1. List all `*/plan.md` files under `Docs/Specs/` and all `.md` files under `Docs/Plans/`
-2. Extract the leading numeric prefix from each
-3. Use the file with the highest numeric prefix across both directories
-
-## Orchestration
-
-Read the plan file first. Then decide based on plan size:
-
-- **1–2 steps or trivial changes:** implement inline (no sub-agent needed)
-- **3+ steps or Unity scene/asset work:** spawn a **developer sub-agent** per major phase
-
-When spawning a developer sub-agent, brief it with:
-- The full plan text
-- Which step(s) it is responsible for
-- Relevant project rules (`CLAUDE.md`, `.claude/rules/`) — especially Unity MCP usage, code style, asmdef format
-- Current file state / context it needs (read key files first and include excerpts)
-- Whether Unity Editor MCP is available (check `mcpforunity://instances` if the plan touches Unity assets/scenes)
-- For steps touching `src/`: write the test for the new behavior first so it fails against the current code, then implement until it passes — never disable or weaken an existing test to force a pass, fix the underlying code instead
-
-After each sub-agent phase:
-1. Relay its results and any compilation errors to the user
-2. Verify the work (check console errors, read changed files) before moving to the next phase
-3. If a phase fails, diagnose and re-brief the sub-agent with the fix context — do not skip ahead
-4. Mark each completed agent step in the plan file by changing `- [ ]` to `- [x]`
-
-## Pre-flight Checks
-
-- Follow all project standards in `CLAUDE.md` and `.claude/rules/`
-- If the plan touches Unity assets or scenes: verify Unity Editor is connected via MCP (`mcpforunity://instances`). If not available, stop and ask the user to open Unity Editor and reconnect MCP.
+- If the plan touches Unity assets or scenes: verify Unity Editor is connected via MCP (`mcpforunity://instances`) before starting. If not available, stop and ask the user to open Unity Editor and reconnect MCP.
 - If the plan only touches `src/` (plain C# project): skip the MCP check entirely.
+- Brief each developer sub-agent on Unity MCP usage and `asmdef` format alongside the general code-style rules the skill already asks for.
+- For steps touching `src/`: write the test for the new behavior first so it fails against the current code, then implement until it passes — never disable or weaken an existing test to force a pass, fix the underlying code instead.
 
-## Completion
+## Delegate
 
-After all steps are done:
-- If any changes touch `src/`: confirm tests were written test-first (red before green) for the affected logic and all pass
-- Run `/code-review` on the changed files — present any concerns one by one and ask the user to approve each fix before applying it
+Invoke the `k:implement` skill (from the `k` plugin) with the overrides above. It handles plan discovery within `Docs/Specs/`, phase sizing, sub-agent orchestration, and the final `/code-review` pass.

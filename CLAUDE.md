@@ -13,7 +13,7 @@
 - **Workflow & tool usage:** `.claude/rules/workflow.md`
 - **Commit rules:** `.claude/commands/commit.md`
 - **Specify command:** `.claude/commands/specify.md` — creates `Docs/Specs/<index>_<name>/spec.md` before planning; feature work starts here
-- **Plan command:** `.claude/commands/plan.md` — saves plans to `Docs/Specs/<index>_<name>/plan.md`, whether or not a `spec.md` accompanies them (technical-only plans use the same subdirectory format, just without a spec); `Docs/Plans/<index>_<name>.md` is legacy, kept only for existing entries
+- **Plan command:** `.claude/commands/plan.md` — saves plans to `Docs/Specs/<index>_<name>/plan.md`, whether or not a `spec.md` accompanies them (technical-only plans use the same subdirectory format, just without a spec)
 - **Constitution:** `Docs/Constitution.md` — non-negotiable architectural principles; checked by the plan command before finalising any plan
 - **Specs directory:** `Docs/Specs/` — home for spec+plan pairs produced by `/specify` + `/plan`
 - **C# code style:** `.claude/rules/csharp/code_style.md`
