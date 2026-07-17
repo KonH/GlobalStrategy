@@ -104,9 +104,8 @@ namespace GS.Unity.UI {
 
 		void OnStartGame() {
 			var orgState = _logic.VisualState.SelectedOrganization;
-			var countryState = _logic.VisualState.SelectedCountry;
 			if (orgState.IsValid) {
-				_sceneLoader.LoadGame(playerCountryId: countryState.CountryId, organizationId: orgState.OrgId);
+				_sceneLoader.LoadGame(organizationId: orgState.OrgId);
 			}
 		}
 	}

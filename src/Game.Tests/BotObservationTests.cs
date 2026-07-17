@@ -302,7 +302,6 @@ namespace GS.Game.Tests {
 				new MultiOrgTestSupport.StaticConfig<GameSettings>(gameSettings),
 				new MultiOrgTestSupport.StaticConfig<ResourceConfig>(resourceConfig),
 				new MultiOrgTestSupport.StaticConfig<OrganizationConfig>(orgConfig),
-				initialPlayerCountryId: "HQ",
 				initialOrganizationId: "Illuminati",
 				action: new MultiOrgTestSupport.StaticConfig<ActionConfig>(actionConfig),
 				effect: new MultiOrgTestSupport.StaticConfig<EffectConfig>(effectConfig));

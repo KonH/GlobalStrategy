@@ -30,7 +30,17 @@ namespace GS.Game.ConsoleRunner {
 				profiles.Add(BotProfileLoader.Load(path));
 			}
 
-			var registry = BotFeatureRegistry.CreateDefault();
+			var logger = new ConsoleLogger();
+			string initialOrganizationId = orgIds.Count > 0 ? orgIds[0] : "";
+			var ctx = Program.BuildContext(
+				options.ConfigDir,
+				rngSeed: options.Seed,
+				participatingOrganizationIds: orgIds,
+				initialOrganizationId: initialOrganizationId,
+				logger: logger);
+			var logic = new GameLogic(ctx);
+
+			var registry = BotFeatureRegistry.CreateDefault(logic.MaxControlPool);
 			var seenProfileOrgs = new HashSet<string>();
 			foreach (var profile in profiles) {
 				if (!orgIds.Contains(profile.OrgId)) {
@@ -45,16 +55,6 @@ namespace GS.Game.ConsoleRunner {
 					}
 				}
 			}
-
-			var logger = new ConsoleLogger();
-			string initialOrganizationId = orgIds.Count > 0 ? orgIds[0] : "";
-			var ctx = Program.BuildContext(
-				options.ConfigDir,
-				rngSeed: options.Seed,
-				participatingOrganizationIds: orgIds,
-				initialOrganizationId: initialOrganizationId,
-				logger: logger);
-			var logic = new GameLogic(ctx);
 
 			List<BotProfileResult>? botsResult = null;
 			var emissionLogByOrgId = new Dictionary<string, List<BotEmission>>();
@@ -194,7 +194,7 @@ namespace GS.Game.ConsoleRunner {
 				OrgId = orgId,
 				TotalControl = GS.Game.Systems.OrgMetrics.GetTotalControl(logic.World, orgId),
 				Gold = GS.Game.Systems.OrgMetrics.GetGold(logic.World, orgId),
-				Score = GS.Game.Systems.OrgScore.GetScore(logic.World, orgId)
+				Score = GS.Game.Systems.OrgScoreSystem.GetScore(logic.World, orgId)
 			};
 		}
 	}

@@ -28,9 +28,6 @@ namespace GS.Main {
 				}
 				int entity = world.Create();
 				world.Add(entity, new Country(entry.CountryId));
-				if (entry.CountryId == context.InitialPlayerCountryId) {
-					world.Add(entity, new Player());
-				}
 				CreateResourceEntities(world, entry, resourceConfig);
 			}
 
@@ -71,6 +68,8 @@ namespace GS.Main {
 				});
 				if (orgEntry.OrganizationId != context.InitialOrganizationId) {
 					world.Add(orgEntity, new BotControlled());
+				} else {
+					world.Add(orgEntity, new Player());
 				}
 
 				int orgGoldEntity = world.Create();
@@ -91,9 +90,10 @@ namespace GS.Main {
 			CreateOrgCharacterEntities(world, context, rng, participating);
 			CreateCharacterEntities(world, context, rng);
 			CreateCountryActionEntities(world, context, rng, participating);
-			DiscoverInitialCountries(world, context, participating);
+			DiscoverInitialCountries(world, participating);
 
 			CountryScoreSystem.Recompute(world, settings.CountryScoreCoefficient);
+			OrgScoreSystem.Recompute(world);
 
 			int initEntity = world.Create();
 			world.Add(initEntity, new IsInitialized());
@@ -525,7 +525,7 @@ namespace GS.Main {
 			return total;
 		}
 
-		static void DiscoverInitialCountries(World world, GameLogicContext context, List<OrganizationEntry> participating) {
+		static void DiscoverInitialCountries(World world, List<OrganizationEntry> participating) {
 			if (participating.Count == 0) { return; }
 
 			var availableCountryIds = new HashSet<string>();
@@ -542,11 +542,6 @@ namespace GS.Main {
 				var toDiscover = new HashSet<string>();
 				if (!string.IsNullOrEmpty(orgEntry.HqCountryId) && availableCountryIds.Contains(orgEntry.HqCountryId)) {
 					toDiscover.Add(orgEntry.HqCountryId);
-				}
-				if (orgEntry.OrganizationId == context.InitialOrganizationId
-					&& !string.IsNullOrEmpty(context.InitialPlayerCountryId)
-					&& availableCountryIds.Contains(context.InitialPlayerCountryId)) {
-					toDiscover.Add(context.InitialPlayerCountryId);
 				}
 				foreach (string countryId in toDiscover) {
 					int entity = world.Create();

@@ -34,7 +34,6 @@ namespace GS.Unity.DI {
 			var storage = new PersistentStorage();
 			var serializer = new NewtonsoftSnapshotSerializer();
 
-			string initialPlayer = SceneTransitionArgs.InitialPlayerCountry ?? "Russian_Empire";
 			string initialOrgId = SceneTransitionArgs.OrganizationId ?? "";
 
 			var organizationConfig = new TextAssetConfig<OrganizationConfig>(_organizationsConfigAsset).Load();
@@ -58,7 +57,6 @@ namespace GS.Unity.DI {
 				storage,
 				serializer,
 				new UnityGameLogger(),
-				initialPlayer,
 				initialOrgId,
 				character: _characterConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.CharacterConfig>(_characterConfigAsset) : null,
 				action: _actionConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.ActionConfig>(_actionConfigAsset) : null,
