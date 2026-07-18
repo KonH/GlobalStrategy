@@ -5,6 +5,7 @@
   "autoSaveInterval": "monthly",
   "populationGrowthPercentPerMonth": 0.075,
   "countryScoreCoefficient": 0.0001,
+  "resourceIdUpdateOrder": ["population", "country_population", "country_score"],
   "botActionLogRetentionCap": 500,
   "maxControlPool": 100,
   "botFeatures": [

@@ -81,9 +81,9 @@ foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 }
 ```
 
-The same `Score` component composes onto an `Organization` entity for org scoring — `Country + Score` and `Organization + Score` are two distinct query shapes over one shared component type, not two parallel components. Adding a new component type to an already-existing entity (an archetype move) is an established, working operation in this ECS — see `InitSystem.DiscoverInitialCountries`, which adds `IsDiscovered` onto pre-existing `Country` entities the same way.
-
 This removes an entire id-keyed lookup dictionary that a parallel-entity design otherwise needs (build a `CountryId -> scoreEntity` map, then look it up per recompute) — the "score entity" and the "subject entity" are the same entity, so there is nothing to keep in sync.
+
+**Update (`26_07_18_17_resource-collector-pipeline`): `country_score` no longer uses this `Country + Score` shape.** It moved to the generic `Resource`/`ResourceOwner` shape (`Resource{ResourceId="country_score"}` owned by the country), fed by a collector-driven `ResourceEffect` through the `ResourceSystem` pipeline, for uniformity with `population`/`gold`/`recruits` — see `CountryScoreCollector` and `CountryScoreSystem.GetScore`. `Organization + Score` above is still current and unchanged: it remains a valid example of this composition pattern, just no longer paired with `Country + Score` as a second instance of it.
 
 ## `ref` locals and lambdas
 

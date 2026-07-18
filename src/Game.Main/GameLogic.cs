@@ -13,8 +13,8 @@ namespace GS.Main {
 		readonly VisualStateConverter _visualStateConverter;
 		readonly GameLogicContext _context;
 		readonly int[] _speedMultipliers;
-		readonly double _populationGrowthPercent;
-		readonly double _countryScoreCoefficient;
+		readonly ResourceCollectorRegistry _resourceCollectorRegistry;
+		readonly string[] _resourceIdUpdateOrder;
 		readonly Random _rng;
 		readonly Dictionary<string, string> _hqCountryByOrgId;
 		int _gameTimeEntity = -1;
@@ -62,8 +62,9 @@ namespace GS.Main {
 			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId,
 				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries);
 			_speedMultipliers = settings.SpeedMultipliers;
-			_populationGrowthPercent = settings.PopulationGrowthPercentPerMonth;
-			_countryScoreCoefficient = settings.CountryScoreCoefficient;
+			_resourceCollectorRegistry = ResourceCollectorRegistry.CreateDefault(
+				settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient);
+			_resourceIdUpdateOrder = settings.ResourceIdUpdateOrder;
 			_botActionLogRetentionCap = settings.BotActionLogRetentionCap;
 			BotFeatures = settings.BotFeatures;
 			MaxControlPool = settings.MaxControlPool;
@@ -89,10 +90,8 @@ namespace GS.Main {
 				_commandAccessor.ReadChangeTimeMultiplierCommand());
 
 			DateTime currentTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
-			ResourceSystem.Update(_world, _previousTime, currentTime);
+			ResourceSystem.Update(_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder);
 			ControlSystem.Update(_world, _previousTime, currentTime);
-			ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);
-			CountryScoreSystem.Update(_world, _previousTime, currentTime, _countryScoreCoefficient);
 
 			foreach (var cmd in _commandAccessor.ReadChangeControlCommand().AsSpan()) {
 				ApplyChangeControl(cmd.OrgId, cmd.CountryId, cmd.Delta);
@@ -183,7 +182,6 @@ namespace GS.Main {
 				_sessionId = snapshot.Header.SessionId;
 			}
 			RefreshSingletonEntities();
-			CountryScoreSystem.Recompute(_world, _countryScoreCoefficient);
 			OrgScoreSystem.Recompute(_world);
 		}
 

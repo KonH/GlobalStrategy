@@ -331,13 +331,26 @@ namespace GS.Game.Tests {
 			int provinceEntity = world.Create();
 			world.Add(provinceEntity, new ResourceOwner("prov_a", OwnerType.Province));
 			world.Add(provinceEntity, new Resource {
-				ResourceId = ProvincePopulationGrowthSystem.PopulationResourceId,
+				ResourceId = CountryPopulationCollector.ResourceId,
 				Value = 1000.0
 			});
 
+			int effectEntity = world.Create();
+			world.Add(effectEntity, new ResourceOwner("prov_a", OwnerType.Province));
+			world.Add(effectEntity, new ResourceLink(CountryPopulationCollector.ResourceId));
+			world.Add(effectEntity, new ResourceEffect {
+				EffectId = "population_growth_prov_a",
+				PayType = PayType.Monthly
+			});
+			world.Add(effectEntity, new ResourceCollector { CollectorId = PopulationGrowthCollector.Id });
+
+			var registry = new ResourceCollectorRegistry();
+			registry.Register(PopulationGrowthCollector.Id, new PopulationGrowthCollector(0.075));
+			var order = new[] { CountryPopulationCollector.ResourceId };
+
 			DateTime jan31 = new DateTime(1880, 1, 31, 23, 0, 0);
 			DateTime feb1 = new DateTime(1880, 2, 1, 0, 0, 0);
-			ProvincePopulationGrowthSystem.Update(world, jan31, feb1, 0.075);
+			ResourceSystem.Update(world, jan31, feb1, registry, order);
 			double grownValue = world.Get<Resource>(provinceEntity).Value;
 			Assert.Equal(1000.75, grownValue, 6);
 
@@ -351,7 +364,7 @@ namespace GS.Game.Tests {
 				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
 				Resource[] resources = arch.GetColumn<Resource>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (owners[i].OwnerId == "prov_a" && resources[i].ResourceId == ProvincePopulationGrowthSystem.PopulationResourceId) {
+					if (owners[i].OwnerId == "prov_a" && resources[i].ResourceId == CountryPopulationCollector.ResourceId) {
 						restoredEntity = arch.Entities[i];
 					}
 				}
@@ -362,7 +375,7 @@ namespace GS.Game.Tests {
 
 			DateTime feb28 = new DateTime(1880, 2, 28, 23, 0, 0);
 			DateTime mar1 = new DateTime(1880, 3, 1, 0, 0, 0);
-			ProvincePopulationGrowthSystem.Update(restored, feb28, mar1, 0.075);
+			ResourceSystem.Update(restored, feb28, mar1, registry, order);
 			Assert.Equal(grownValue * 1.00075, restored.Get<Resource>(restoredEntity).Value, 6);
 		}
 

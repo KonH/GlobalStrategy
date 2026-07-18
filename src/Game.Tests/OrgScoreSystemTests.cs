@@ -9,11 +9,17 @@ namespace GS.Game.Tests {
 		static readonly DateTime Jan1 = new DateTime(1880, 1, 1);
 		static readonly DateTime Jan1Noon = new DateTime(1880, 1, 1, 12, 0, 0);
 		static readonly DateTime Jan2 = new DateTime(1880, 1, 2);
+		// Returns the country_score Resource entity (not the Country entity) — country_score
+		// now lives on a separate Resource entity fed by the collector pipeline, not composed
+		// directly onto Country. See Docs/Specs/26_07_18_17_resource-collector-pipeline/plan.md.
 		static int SeedCountry(World world, string countryId, double score) {
 			int entity = world.Create();
 			world.Add(entity, new Country(countryId));
-			world.Add(entity, new Score { Value = score });
-			return entity;
+
+			int resourceEntity = world.Create();
+			world.Add(resourceEntity, new ResourceOwner(countryId, OwnerType.Country));
+			world.Add(resourceEntity, new Resource { ResourceId = "country_score", Value = score });
+			return resourceEntity;
 		}
 
 		static int SeedOrg(World world, string orgId) {
@@ -167,7 +173,7 @@ namespace GS.Game.Tests {
 			OrgScoreSystem.Recompute(world);
 			Assert.Equal(50.0, OrgScoreSystem.GetScore(world, "Org1"));
 
-			world.Get<Score>(countryEntity).Value = 200;
+			world.Get<Resource>(countryEntity).Value = 200;
 			OrgScoreSystem.Recompute(world);
 
 			Assert.Equal(100.0, OrgScoreSystem.GetScore(world, "Org1"));
@@ -183,7 +189,7 @@ namespace GS.Game.Tests {
 			OrgScoreSystem.Update(world, Jan1, Jan1Noon);
 			Assert.Equal(0.0, OrgScoreSystem.GetScore(world, "Org1"));
 
-			world.Get<Score>(countryEntity).Value = 200;
+			world.Get<Resource>(countryEntity).Value = 200;
 			OrgScoreSystem.Update(world, Jan1Noon, Jan2);
 
 			Assert.Equal(100.0, OrgScoreSystem.GetScore(world, "Org1"));
@@ -199,7 +205,7 @@ namespace GS.Game.Tests {
 			OrgScoreSystem.Recompute(world);
 			double before = OrgScoreSystem.GetScore(world, "Org1");
 
-			world.Get<Score>(countryEntity).Value = 999;
+			world.Get<Resource>(countryEntity).Value = 999;
 			OrgScoreSystem.Update(world, Jan1, Jan1Noon);
 
 			Assert.Equal(before, OrgScoreSystem.GetScore(world, "Org1"));

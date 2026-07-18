@@ -5,10 +5,74 @@ using GS.Game.Components;
 
 namespace GS.Game.Systems {
 	public static class ResourceSystem {
-		public static void Update(World world, DateTime previousTime, DateTime currentTime) {
+		public static void Update(
+			World world, DateTime previousTime, DateTime currentTime,
+			ResourceCollectorRegistry? collectorRegistry = null,
+			IReadOnlyList<string>? resourceIdUpdateOrder = null) {
+
 			bool isMonthBoundary = previousTime.Month != currentTime.Month
 				|| previousTime.Year != currentTime.Year;
 
+			if (collectorRegistry != null && resourceIdUpdateOrder != null && resourceIdUpdateOrder.Count > 0) {
+				var ordered = new HashSet<string>(resourceIdUpdateOrder);
+				foreach (string resourceId in resourceIdUpdateOrder) {
+					ResolveCollectors(world, resourceId, isMonthBoundary, collectorRegistry);
+					GatherAndApply(world, isMonthBoundary, linkedResourceId => linkedResourceId == resourceId);
+				}
+				GatherAndApply(world, isMonthBoundary, linkedResourceId => !ordered.Contains(linkedResourceId));
+			} else {
+				GatherAndApply(world, isMonthBoundary, null);
+			}
+		}
+
+		static void ResolveCollectors(World world, string resourceId, bool isMonthBoundary, ResourceCollectorRegistry registry) {
+			int[] required = {
+				TypeId<ResourceOwner>.Value,
+				TypeId<ResourceLink>.Value,
+				TypeId<ResourceEffect>.Value,
+				TypeId<ResourceCollector>.Value
+			};
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				ResourceLink[] links = arch.GetColumn<ResourceLink>();
+				ResourceEffect[] effects = arch.GetColumn<ResourceEffect>();
+				ResourceCollector[] collectors = arch.GetColumn<ResourceCollector>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (links[i].ResourceId != resourceId) {
+						continue;
+					}
+					var effect = effects[i];
+					bool shouldApply = effect.PayType == PayType.Instant
+						|| (effect.PayType == PayType.Monthly && isMonthBoundary);
+					if (!shouldApply) {
+						continue;
+					}
+
+					double currentValue = GetResourceValue(world, owners[i].OwnerId, resourceId);
+					var collector = registry.Resolve(collectors[i].CollectorId);
+					effect.Value = collector.Compute(owners[i].OwnerId, currentValue, world);
+					effects[i] = effect;
+				}
+			}
+		}
+
+		static double GetResourceValue(IReadOnlyWorld world, string ownerId, string resourceId) {
+			int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (owners[i].OwnerId == ownerId && resources[i].ResourceId == resourceId) {
+						return resources[i].Value;
+					}
+				}
+			}
+			return 0;
+		}
+
+		static void GatherAndApply(World world, bool isMonthBoundary, Func<string, bool>? resourceIdFilter) {
 			int[] effectRequired = {
 				TypeId<ResourceOwner>.Value,
 				TypeId<ResourceLink>.Value,
@@ -25,6 +89,10 @@ namespace GS.Game.Systems {
 				int count = arch.Count;
 				int[] entities = arch.Entities;
 				for (int i = 0; i < count; i++) {
+					if (resourceIdFilter != null && !resourceIdFilter(links[i].ResourceId)) {
+						continue;
+					}
+
 					var effect = effects[i];
 					bool shouldApply = effect.PayType == PayType.Instant
 						|| (effect.PayType == PayType.Monthly && isMonthBoundary);

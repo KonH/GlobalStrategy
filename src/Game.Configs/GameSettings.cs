@@ -8,6 +8,7 @@ namespace GS.Game.Configs {
 		public string AutoSaveInterval { get; set; } = "monthly";
 		public double PopulationGrowthPercentPerMonth { get; set; } = 0.075;
 		public double CountryScoreCoefficient { get; set; } = 1.0;
+		public string[] ResourceIdUpdateOrder { get; set; } = { "population", "country_population", "country_score" };
 		public int BotActionLogRetentionCap { get; set; } = 500;
 		public int MaxControlPool { get; set; } = 100;
 		public GameLogSettings GameLog { get; set; } = new GameLogSettings();

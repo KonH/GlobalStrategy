@@ -4,12 +4,13 @@ using ECS;
 using GS.Game.Components;
 
 namespace GS.Game.Systems {
-	// Composes the shared Score component onto Organization entities, mirroring
-	// CountryScoreSystem (see ecs_patterns.md's Score composition pattern). Must run
-	// after CountryScoreSystem.Update/Recompute in the same tick, since it reads the
-	// already-computed Country + Score values.
+	// Composes the shared Score component onto Organization entities (see
+	// ecs_patterns.md's Score composition pattern). Reads each country's score via
+	// CountryScoreSystem.GetScore, which is itself backed by the collector-driven
+	// Resource pipeline (ResourceSystem) rather than a forced recompute — see
+	// Docs/Specs/26_07_18_17_resource-collector-pipeline/plan.md.
 	//
-	// Recomputed daily rather than monthly (unlike CountryScoreSystem): control can
+	// Recomputed daily rather than monthly (unlike country_score's monthly cadence): control can
 	// change from card plays at any time, and reacting to every individual trigger
 	// (ChangeControlCommand, action effects, etc.) that could move it is unnecessary
 	// complexity for a value that's otherwise cheap to recompute wholesale.
@@ -24,13 +25,12 @@ namespace GS.Game.Systems {
 
 		public static void Recompute(World world) {
 			var scoreByCountryId = new Dictionary<string, double>();
-			int[] countryScoreRequired = { TypeId<Country>.Value, TypeId<Score>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(countryScoreRequired, null)) {
+			int[] countryRequired = { TypeId<Country>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(countryRequired, null)) {
 				Country[] countries = arch.GetColumn<Country>();
-				Score[] scores = arch.GetColumn<Score>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					scoreByCountryId[countries[i].CountryId] = scores[i].Value;
+					scoreByCountryId[countries[i].CountryId] = CountryScoreSystem.GetScore(world, countries[i].CountryId);
 				}
 			}
 
@@ -49,8 +49,9 @@ namespace GS.Game.Systems {
 				}
 			}
 
-			// Collect (entity, orgId) pairs first — see CountryScoreSystem.Recompute's
-			// comment for why world.Add cannot happen inline during archetype iteration.
+			// Collect (entity, orgId) pairs first — calling world.Add inline during
+			// archetype iteration would create new archetypes and mutate the world mid-iteration,
+			// throwing InvalidOperationException (same trap as InitSystem.DiscoverInitialCountries).
 			var orgEntities = new List<(int Entity, string OrgId)>();
 			int[] orgRequired = { TypeId<Organization>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(orgRequired, null)) {

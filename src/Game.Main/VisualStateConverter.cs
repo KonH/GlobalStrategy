@@ -629,13 +629,12 @@ namespace GS.Main {
 
 		void UpdateCountryScore(IReadOnlyWorld world) {
 			var scoreByCountryId = new Dictionary<string, double>();
-			int[] required = { TypeId<Country>.Value, TypeId<Score>.Value };
+			int[] required = { TypeId<Country>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
 				Country[] countries = arch.GetColumn<Country>();
-				Score[] scores = arch.GetColumn<Score>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					scoreByCountryId[countries[i].CountryId] = scores[i].Value;
+					scoreByCountryId[countries[i].CountryId] = CountryScoreSystem.GetScore(world, countries[i].CountryId);
 				}
 			}
 			_state.CountryScore.Set(scoreByCountryId);

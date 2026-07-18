@@ -31,6 +31,8 @@ namespace GS.Main {
 				CreateResourceEntities(world, entry, resourceConfig);
 			}
 
+			CreateCountryPopulationEntities(world, countryConfig);
+
 			var provinceConfig = context.Province.Load();
 			ProvinceOwnershipSystem.Seed(world, provinceConfig);
 			CreateProvincePopulationEntities(world, provinceConfig);
@@ -92,7 +94,16 @@ namespace GS.Main {
 			CreateCountryActionEntities(world, context, rng, participating);
 			DiscoverInitialCountries(world, participating);
 
-			CountryScoreSystem.Recompute(world, settings.CountryScoreCoefficient);
+			// Bootstrap pass: previousTime == currentTime so no Monthly effect fires (province
+			// population growth stays untouched at its seed value), but the Instant
+			// country_population/country_score effects created above always fire regardless of
+			// the month-boundary gate — giving both resources a correct non-zero value before
+			// OrgScoreSystem.Recompute reads country_score below. See
+			// Docs/Specs/26_07_18_17_resource-collector-pipeline/plan.md.
+			var resourceCollectorRegistry = ResourceCollectorRegistry.CreateDefault(
+				settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient);
+			ResourceSystem.Update(world, startTime, startTime, resourceCollectorRegistry, settings.ResourceIdUpdateOrder);
+
 			OrgScoreSystem.Recompute(world);
 
 			int initEntity = world.Create();
@@ -171,14 +182,57 @@ namespace GS.Main {
 			}
 		}
 
+		static void CreateCountryPopulationEntities(World world, CountryConfig config) {
+			foreach (var entry in config.Countries) {
+				if (!entry.IsAvailable) {
+					continue;
+				}
+				CreateCollectorDrivenCountryResource(world, entry.CountryId, CountryScoreCollector.CountryPopulationResourceId, CountryPopulationCollector.Id);
+				CreateCollectorDrivenCountryResource(world, entry.CountryId, "country_score", CountryScoreCollector.Id);
+			}
+		}
+
+		static void CreateCollectorDrivenCountryResource(World world, string countryId, string resourceId, string collectorId) {
+			int resourceEntity = world.Create();
+			world.Add(resourceEntity, new ResourceOwner(countryId, OwnerType.Country));
+			world.Add(resourceEntity, new Resource { ResourceId = resourceId, Value = 0 });
+
+			int instantEffectEntity = world.Create();
+			world.Add(instantEffectEntity, new ResourceOwner(countryId, OwnerType.Country));
+			world.Add(instantEffectEntity, new ResourceLink(resourceId));
+			world.Add(instantEffectEntity, new ResourceEffect {
+				EffectId = $"{resourceId}_seed_{countryId}",
+				PayType = PayType.Instant
+			});
+			world.Add(instantEffectEntity, new ResourceCollector { CollectorId = collectorId });
+
+			int monthlyEffectEntity = world.Create();
+			world.Add(monthlyEffectEntity, new ResourceOwner(countryId, OwnerType.Country));
+			world.Add(monthlyEffectEntity, new ResourceLink(resourceId));
+			world.Add(monthlyEffectEntity, new ResourceEffect {
+				EffectId = $"{resourceId}_monthly_{countryId}",
+				PayType = PayType.Monthly
+			});
+			world.Add(monthlyEffectEntity, new ResourceCollector { CollectorId = collectorId });
+		}
+
 		static void CreateProvincePopulationEntities(World world, ProvinceConfig config) {
 			foreach (var entry in config.Provinces) {
 				int entity = world.Create();
 				world.Add(entity, new ResourceOwner(entry.ProvinceId, OwnerType.Province));
 				world.Add(entity, new Resource {
-					ResourceId = ProvincePopulationGrowthSystem.PopulationResourceId,
+					ResourceId = CountryPopulationCollector.ResourceId,
 					Value = entry.Population
 				});
+
+				int growthEffectEntity = world.Create();
+				world.Add(growthEffectEntity, new ResourceOwner(entry.ProvinceId, OwnerType.Province));
+				world.Add(growthEffectEntity, new ResourceLink(CountryPopulationCollector.ResourceId));
+				world.Add(growthEffectEntity, new ResourceEffect {
+					EffectId = $"population_growth_{entry.ProvinceId}",
+					PayType = PayType.Monthly
+				});
+				world.Add(growthEffectEntity, new ResourceCollector { CollectorId = PopulationGrowthCollector.Id });
 			}
 		}
 

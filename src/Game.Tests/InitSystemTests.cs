@@ -103,6 +103,20 @@ namespace GS.Game.Tests {
 			return count;
 		}
 
+		static double? GetResourceValue(World world, string ownerId, string resourceId) {
+			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerId == ownerId && resources[i].ResourceId == resourceId) {
+						return resources[i].Value;
+					}
+				}
+			}
+			return null;
+		}
+
 		[Fact]
 		void world_is_empty_before_first_update() {
 			var logic = BuildLogic();
@@ -178,23 +192,27 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void country_score_seeded_at_init_from_province_population() {
+		void country_population_and_score_seeded_at_init_from_province_population() {
 			var logic = BuildLogic();
 			logic.Update(0f);
 
+			Assert.Equal(1234.0, GetResourceValue(logic.World, "Great_Britain", "country_population"));
+			Assert.Equal(5678.0, GetResourceValue(logic.World, "France", "country_population"));
 			Assert.Equal(1234.0, CountryScoreSystem.GetScore(logic.World, "Great_Britain"));
 			Assert.Equal(5678.0, CountryScoreSystem.GetScore(logic.World, "France"));
 		}
 
 		[Fact]
-		void country_score_recomputed_immediately_after_load() {
+		void country_score_correct_immediately_after_load_with_no_forced_recompute() {
 			var storage = new MemoryStorage();
 			var serializer = new CapturingSerializer();
 			var logic = BuildLogic(storage, serializer);
 
 			logic.Update(0f);
-			var (changed, _) = ProvinceOwnershipSystem.ChangeOwner(logic.World, "prov_b", "Great_Britain");
-			Assert.True(changed);
+			double scoreGBBeforeSave = CountryScoreSystem.GetScore(logic.World, "Great_Britain");
+			double scoreFRBeforeSave = CountryScoreSystem.GetScore(logic.World, "France");
+			Assert.Equal(1234.0, scoreGBBeforeSave);
+			Assert.Equal(5678.0, scoreFRBeforeSave);
 
 			logic.Commands.Push(new SaveGameCommand());
 			logic.Update(0f);
@@ -203,8 +221,8 @@ namespace GS.Game.Tests {
 			var loadedLogic = BuildLogic(storage, serializer);
 			loadedLogic.LoadState(saveName);
 
-			Assert.Equal(1234.0 + 5678.0, CountryScoreSystem.GetScore(loadedLogic.World, "Great_Britain"));
-			Assert.Equal(0.0, CountryScoreSystem.GetScore(loadedLogic.World, "France"));
+			Assert.Equal(scoreGBBeforeSave, CountryScoreSystem.GetScore(loadedLogic.World, "Great_Britain"));
+			Assert.Equal(scoreFRBeforeSave, CountryScoreSystem.GetScore(loadedLogic.World, "France"));
 		}
 
 		[Fact]
@@ -225,6 +243,20 @@ namespace GS.Game.Tests {
 			}
 
 			Assert.Equal(1234.0, populationA);
+		}
+
+		[Fact]
+		void province_population_growth_still_compounds_monthly() {
+			var logic = BuildLogic();
+			logic.Update(0f);
+
+			logic.Update(744f); // Jan1 -> Feb1 (31 days), crosses one month boundary
+			double afterFirstMonth = GetResourceValue(logic.World, "prov_a", "population")!.Value;
+			Assert.Equal(1234.0 * 1.00075, afterFirstMonth, 6);
+
+			logic.Update(696f); // Feb1 -> Mar1 (1880 is a leap year: 29 days), crosses a second boundary
+			double afterSecondMonth = GetResourceValue(logic.World, "prov_a", "population")!.Value;
+			Assert.Equal(afterFirstMonth * 1.00075, afterSecondMonth, 6);
 		}
 	}
 }
