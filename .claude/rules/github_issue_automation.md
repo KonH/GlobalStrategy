@@ -1,6 +1,6 @@
 # GitHub Issue → Spec Automation
 
-An hourly scheduled Routine fires `/handle-feature-issue` (`.claude/commands/handle-feature-issue.md`) into a fresh Claude Code Remote session. It looks for open GitHub issues from the repo owner that follow a fixed convention and turns them into a spec PR.
+`.github/workflows/handle-feature-issue.yml` runs `claude-code-action` on two events — a new issue (`issues: opened`) or a new comment on one of this automation's PRs (`issue_comment: created`) — filtered to the repo owner (`KonH`) via the workflow's `if:` condition. Each event fires `/handle-feature-issue` (`.claude/commands/handle-feature-issue.md`), which turns a correctly-formatted issue into a spec PR.
 
 ## Issue convention
 
@@ -11,34 +11,24 @@ topic: <feature name>
 description: /specify <feature description>
 ```
 
-Issues that don't match this shape are ignored by the automation — safe to use GitHub issues normally alongside it.
+Issues that don't match this shape are ignored — safe to use GitHub issues normally alongside it.
 
 ## Scope: spec stage only
 
-The automation only takes a feature from issue → `Docs/Specs/.../spec.md` → PR with the spec and any clarifying questions as a PR comment. It never runs `/plan` or `/implement` automatically — those stay manual, user-triggered steps, same as normal interactive use. This mirrors the `workflow.md` approval-checkpoint rule ("after `/specify` writes a spec — present it to the user and stop") — the only change is that "present" means a PR comment instead of a chat message, since nobody is watching a Routine's chat transcript.
+The automation only takes a feature from issue → `Docs/Specs/.../spec.md` → PR with the spec and any clarifying questions as a PR comment. It never runs `/plan` or `/implement` automatically — those stay manual, user-triggered steps. This mirrors the `workflow.md` approval-checkpoint rule ("after `/specify` writes a spec — present it to the user and stop") — "present" here means a PR comment instead of a chat message, since nobody is watching an Actions run's own transcript.
 
-## State tracking without labels
+## Why this is event-driven, not polling
 
-No GitHub labels are used for state. Instead:
+Each of the two workflow triggers corresponds to exactly one unambiguous action — a brand-new issue always means "start a new spec," a new PR comment from the owner always means "incorporate this reply." There's no need to scan for "is this issue already handled" the way a polling design would, since `issues: opened` only ever fires once per issue and `issue_comment: created` only fires on the actual new comment.
 
-- **New vs. already handled**: an issue is "new" if no open (or merged/closed) PR exists with head branch `claude/issue-<issue-number>-*`. Once such a PR exists, the issue is never reprocessed from scratch.
-- **Waiting vs. answered**: on an existing PR, the automation looks at the *most recent* comment's **body content**, not its author — see below for why author alone doesn't work here.
+## Why comment/commit author works here (unlike the earlier design)
 
-This avoids needing a label-creation step or any separate state store — GitHub's own PR/comment history is the source of truth, so this is naturally reviewable by anyone reading the PR.
+An earlier version of this automation ran via a Claude Code Remote scheduled Routine instead of Actions, authenticating to the GitHub REST API with a token that turned out to belong to the human user's own account — making "Claude's automated comment" and "a real reply" indistinguishable by author, and requiring a hidden marker-comment workaround. That approach was abandoned after also hitting two more blockers: Routine-fired sessions get no MCP connector tools, and don't start inside a git checkout of the repo at all (no way to reach the custom command file).
 
-## Why comment author can't be used to detect "new reply"
+Actions doesn't have any of these problems: `actions/checkout` gives a real checkout on every run, and the default `GITHUB_TOKEN` posts commits/comments as `github-actions[bot]` — a genuinely different identity from the human — so plain author-based checks are reliable without a marker convention.
 
-Fresh Routine-fired sessions have no MCP tools available (connector grants don't propagate to triggered sessions — confirmed when creating the trigger). The command instead authenticates straight to the GitHub REST API using the `$GITHUB_TOKEN` already injected into the environment. That token belongs to `KonH`'s own account (verified via `GET /user`), so **every comment/PR the automation creates is authored as `KonH`** — indistinguishable from a real reply by author alone.
+## Required one-time setup (repo admin)
 
-Fix: every comment the automation posts starts with a fixed marker line, `<!-- claude-automation -->` (invisible HTML comment). "Is there a new human reply?" becomes "does the most recent PR comment's body lack that marker?" — not "who posted it."
-
-## Routine configuration
-
-- Trigger: cron, hourly (the minimum interval Routines support — this is not a real-time webhook, expect up to ~1h latency between an issue/reply and a response).
-- Mode: fresh session per firing (`create_new_session_on_fire`), same environment as this repo's session, so each run starts clean with the repo already checked out.
-- Prompt: literally `/handle-feature-issue` — all actual logic lives in the versioned command file, not in the Routine config, so it's reviewable/editable via normal commits.
-- **No MCP connectors on triggered sessions**: when this trigger was created, the platform warned that connector grants (the `mcp__github__*` tools this session has) do not propagate to sessions a Routine fires — only tools available to *any* session by default (Bash, git, etc.) are present. This is why the command uses `curl`/`$GITHUB_TOKEN` instead of the GitHub MCP tools despite this session having them.
-
-## Why GitHub Actions wasn't used
-
-This project has repo-admin-independent iteration as a priority during early setup — Actions would need `ANTHROPIC_API_KEY` as a repo secret, the Claude GitHub App installed, and workflow YAML permissions tuned, all requiring repo-admin access. The Routine approach reuses the already-authenticated Claude Code Remote environment and its GitHub MCP connection instead. Trade-off: hourly polling latency instead of instant webhook delivery. Revisit Actions if latency becomes a problem.
+- Add `ANTHROPIC_API_KEY` as a repository secret (Settings → Secrets and variables → Actions).
+- No separate GitHub App install should be required for this workflow specifically — it only needs the standard `GITHUB_TOKEN` with the `permissions:` block already declared in the workflow file (`contents: write`, `issues: write`, `pull-requests: write`).
+- If the default branch has protection rules requiring PR review before merge, that's fine — this automation only ever pushes to its own `claude/issue-*` branches and opens PRs, it never pushes directly to `main`.
