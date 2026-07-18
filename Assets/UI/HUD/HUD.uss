@@ -86,6 +86,14 @@
     border-radius: 4px;
     padding: 8px 16px;
     flex-direction: column;
+    min-width: 260px;
+    align-items: stretch;
+    margin-top: 8px;
+}
+
+.debug-panel-menu-title {
+    margin-bottom: 4px;
+    align-self: center;
 }
 
 .debug-panel-button {

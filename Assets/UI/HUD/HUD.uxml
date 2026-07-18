@@ -28,8 +28,14 @@
                 <ui:Button name="btn-gold-plus" text="+1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
                 <ui:Button name="btn-gold-minus" text="-1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
             </ui:VisualElement>
-            <ui:VisualElement name="character-debug-container" style="flex-direction: column;" />
-            <ui:VisualElement name="org-char-debug-container" style="flex-direction: column;" />
+            <ui:VisualElement name="selected-country-debug-menu" class="debug-panel-inner">
+                <ui:Label text="Selected country" class="gs-label debug-panel-menu-title" />
+                <ui:VisualElement name="character-debug-container" style="flex-direction: column;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="my-organization-debug-menu" class="debug-panel-inner">
+                <ui:Label text="My organization" class="gs-label debug-panel-menu-title" />
+                <ui:VisualElement name="org-char-debug-container" style="flex-direction: column;" />
+            </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="card-test-overlay" class="gs-modal-root" style="display: none;">
             <ui:VisualElement name="card-test-inner" style="flex-direction: row; align-items: center; justify-content: center;">

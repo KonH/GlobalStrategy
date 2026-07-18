@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -44,6 +45,7 @@ namespace GS.Unity.UI {
 		ActionVisualConfig _actionVisualConfig;
 		CardPlayAnimator _cardPlayAnimator;
 		Button _btnReassignProvince;
+		readonly List<Button> _selectedCountryCharacterDebugButtons = new();
 
 		[Inject]
 		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator) {
@@ -140,19 +142,21 @@ namespace GS.Unity.UI {
 					}
 					if (!usedInCountryPool) { continue; }
 					string capturedRoleId = role.RoleId;
-					var nextBtn = new Button(() => PushCycleCharacter(_state?.PlayerOrganization?.HqCountryId ?? "", capturedRoleId, 0));
+					var nextBtn = new Button(() => PushCycleCharacter(_state?.SelectedCountry?.CountryId ?? "", capturedRoleId, 0));
 					nextBtn.text = $"Next: {role.RoleId}";
 					nextBtn.AddToClassList("gs-btn");
 					nextBtn.AddToClassList("gs-btn--small");
 					nextBtn.AddToClassList("debug-panel-button");
 					characterDebugContainer.Add(nextBtn);
+					_selectedCountryCharacterDebugButtons.Add(nextBtn);
 
-					var dropBtn = new Button(() => PushDropCharacter(_state?.PlayerOrganization?.HqCountryId ?? "", capturedRoleId, 0));
+					var dropBtn = new Button(() => PushDropCharacter(_state?.SelectedCountry?.CountryId ?? "", capturedRoleId, 0));
 					dropBtn.text = $"Drop: {role.RoleId}";
 					dropBtn.AddToClassList("gs-btn");
 					dropBtn.AddToClassList("gs-btn--small");
 					dropBtn.AddToClassList("debug-panel-button");
 					characterDebugContainer.Add(dropBtn);
+					_selectedCountryCharacterDebugButtons.Add(dropBtn);
 				}
 
 				var improveOpinionBtn = new Button(() => PushImproveOpinionCommand(_state?.SelectedCountry?.CountryId ?? ""));
@@ -180,6 +184,7 @@ namespace GS.Unity.UI {
 			}
 
 			RebuildOrgCharDebugButtons();
+			RefreshSelectedCountryCharacterDebugButtons();
 		}
 
 		void ToggleDebugPanel() {
@@ -218,6 +223,7 @@ namespace GS.Unity.UI {
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			RefreshCountryViews();
 			RefreshControlDebugRow();
+			RefreshSelectedCountryCharacterDebugButtons();
 			RefreshProvinceCheatButton();
 			_timeView.Refresh(_state.Time);
 		}
@@ -339,6 +345,14 @@ namespace GS.Unity.UI {
 		void HandleCountryChanged(object sender, PropertyChangedEventArgs e) {
 			RefreshCountryViews();
 			RefreshControlDebugRow();
+			RefreshSelectedCountryCharacterDebugButtons();
+		}
+
+		void RefreshSelectedCountryCharacterDebugButtons() {
+			bool countrySelected = _state != null && _state.SelectedCountry.IsValid;
+			foreach (var button in _selectedCountryCharacterDebugButtons) {
+				button.SetEnabled(countrySelected);
+			}
 		}
 
 		void HandlePlayerOrgChanged(object sender, PropertyChangedEventArgs e) {
