@@ -59,7 +59,6 @@ New net8.0 exe, added to `src/GlobalStrategy.Core.sln` (new project GUID, mirror
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="../ECS.Core/ECS.Core.csproj" />
@@ -72,7 +71,7 @@ New net8.0 exe, added to `src/GlobalStrategy.Core.sln` (new project GUID, mirror
 </Project>
 ```
 
-`Newtonsoft.Json` is used for the harness's own `baseline.json`/`history.json` persistence (project convention — never `System.Text.Json` in anything that could plausibly move toward Unity, and consistent with the sibling exe projects). Never emitted to `Assets/Plugins/Core/` — same posture as `Game.Evals`/`Game.ConsoleRunner`.
+**Correction (found in plan review): `System.Text.Json`, not Newtonsoft, for this project's own persistence.** The original draft of this plan reached for Newtonsoft.Json here on the assumption that was "consistent with the sibling exe projects" — that assumption was wrong. `Game.Evals`, the actual sibling this feature is modeled on for this exact kind of persistence (`eval_history.json`/`eval_summary.md`), uses `System.Text.Json` throughout (`Program.cs`, `EvalConfig.cs`, `EvalPersistence.cs`) with no Newtonsoft package reference at all. `Game.Benchmarks`'s own `baseline.json`/`history.json` persistence (§5) uses `System.Text.Json` the same way — `JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true }`, matching `HeadlessRunner.cs`'s existing convention verbatim. This is safe here specifically because, like `Game.Evals`/`Game.ConsoleRunner`, `Game.Benchmarks` never ships to `Assets/Plugins/Core/` — the `.claude/rules/unity/plugins.md` prohibition on `System.Text.Json` is about assemblies Unity loads, not about every net8.0 tool in `src/`. No package reference is needed for `System.Text.Json` itself (built into the net8.0 SDK); the csproj above has no JSON package at all.
 
 **Release-only guard.** `Program.Main` reads `#if DEBUG` (compile-time, reliable) and, if defined, prints `"Game.Benchmarks must be run with -c Release (BenchmarkDotNet requires a Release build for valid measurements)."` to stderr and exits `2` before touching BenchmarkDotNet at all.
 
@@ -113,15 +112,35 @@ namespace GS.Game.Benchmarks {
 				throw new InvalidOperationException("GameWorldFixture: no GameTime entity found after init tick.");
 			}
 
+			// ctx.Province is the same IConfigSource<ProvinceConfig> GameLogic's own constructor
+			// already loads; Provinces[0].CountryId is a real, seed-time province-owning country
+			// id (ProvinceOwnershipSystem.Seed initializes runtime ownership from this exact field
+			// — see .claude/rules/unity/map_system.md), not a placeholder — this is what
+			// CountryPopulationCollectorBenchmarks needs to measure a non-empty aggregation.
+			var provinceConfig = ctx.Province.Load();
+			string firstCountryId = provinceConfig.Provinces.Count > 0 ? provinceConfig.Provinces[0].CountryId : "";
+
 			// Independently loads the same committed game_settings.json GameLogic's own
 			// constructor already read, so the standalone registry below matches production
 			// values exactly without needing any new GameLogic API.
 			var settings = new FileConfig<GameSettings>(Path.Combine(ConfigDir, "game_settings.json")).Load();
-			var registry = ResourceCollectorRegistry.CreateDefault(/* settings fields per whichever
-				CreateDefault overload is live — see Approach §4's preflight note */);
+
+			// ResourceCollectorRegistry.CreateDefault's parameter list depends on whether
+			// 26_07_18_15_recruits-resource has also landed by implementation time (it EXTENDS
+			// the same method from 2 params to 5 — not a second overload, per that plan's §3),
+			// so only ONE of the two calls below actually exists in the real source — this is
+			// not a runtime branch (the 5-arg overload simply won't compile if recruits hasn't
+			// landed). The implementer picks the branch matching the same landing check the
+			// Dependency Preflight step already performs, the same way §4 gates the two recruits
+			// benchmark files on it — never left as a guess or a dangling placeholder comment:
+			//   landed:     CreateDefault(settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient,
+			//                 settings.RecruitsInitialPercent, settings.RecruitsCapPercent, settings.RecruitsMonthlyIncreasePercent)
+			//   not landed: CreateDefault(settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient)
+			var registry = ResourceCollectorRegistry.CreateDefault(
+				settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient /*, + 3 recruits args if landed */);
 
 			return new Fixture(logic, gameTimeEntity, registry, settings.ResourceIdUpdateOrder,
-				orgIds.Count > 0 ? orgIds[0] : "", /* first available countryId from CountryConfig */ "");
+				orgIds.Count > 0 ? orgIds[0] : "", firstCountryId);
 		}
 	}
 }
@@ -181,7 +200,7 @@ class BenchmarkRunRecord {
 }
 ```
 
-- `Program.cs` builds a `BenchmarkDotNet.Configs.ManualConfig` with `MemoryDiagnoser.Default` and (when `--benchmark <name>` is given) a name filter passed to `BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, config)`; the returned `Summary[]` (one per benchmark class actually run) is flattened into `BenchmarkEntry` records via each `Summary.Reports[i].BenchmarkCase`/`.ResultStatistics.Mean`/`.StandardDeviation` and `.GcStats.GetBytesAllocatedPerOperation(report.BenchmarkCase)`.
+- **Correction (found in plan review): the harness's own CLI args must never be forwarded to BenchmarkDotNet's parser.** `Program.Main`'s `args` are this project's *own* flags (`--compare`, `--update-baseline`, `--benchmark <name>`, `--epsilon <value>`) — BenchmarkDotNet's console parser does not recognize any of them. `Program.cs` parses these itself first (plain manual parsing, same style `HeadlessOptions.cs` already uses for `--config-dir` etc.), and only *then* invokes BenchmarkDotNet, passing it nothing from the original `args`: build a `BenchmarkDotNet.Configs.ManualConfig` with `MemoryDiagnoser.Default`, and call `BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(Array.Empty<string>(), config)` when no `--benchmark` filter was given, or `.Run(new[] { "--filter", $"*{name}*" }, config)` when one was — i.e. the *only* strings ever passed into BenchmarkDotNet's own `Run` call are ones this harness constructs itself, never the raw process `args`. The returned `Summary[]` (one per benchmark class actually run) is flattened into `BenchmarkEntry` records via each `Summary.Reports[i].BenchmarkCase`/`.ResultStatistics.Mean`/`.StandardDeviation` and `.GcStats.GetBytesAllocatedPerOperation(report.BenchmarkCase)`.
 - `SnapshotStore.cs`: `LoadBaseline()`/`SaveBaseline(entries, filteredNamesOnly)` (merge-by-name when a `--benchmark` filter was active — untouched baseline entries for other benchmarks are preserved), `AppendHistory(record)` (append-only, `Docs/Benchmarks/history.json` deserialized as a list, one record appended, rewritten whole — same pattern `eval_history.json` already establishes), `RewriteSummary(record, baseline)` (`Docs/Benchmarks/summary.md`, table format mirroring `Docs/BotFeatures/<featureId>/eval_summary.md`: benchmark name, baseline mean, current mean, % change, pass/fail, allocated bytes — plus a fixed header paragraph stating the cross-machine-comparability caveat verbatim from the spec).
 - Gate: `entry.MeanNanoseconds <= baselineEntry.MeanNanoseconds * (1 + epsilonRelative)`, default `epsilonRelative = 0.05`, overridable via `--epsilon <value>`. A benchmark name absent from `baseline.json` is recorded as `Verdicts[name] = true` with a `"new — no baseline"` note in the summary table, never as a failure.
 
