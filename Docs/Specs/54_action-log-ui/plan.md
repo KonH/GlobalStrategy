@@ -11,7 +11,7 @@ Four line formats, all driven by reading one-shot ECS event components created a
 4. `New <CharacterRoleDisplayName> in <CountryDisplayName> - <CharacterDisplayName>` (country-government role) **or** `New <CharacterRoleDisplayName> in <OrganizationDisplayName> - <CharacterDisplayName>` (org role) — exactly one variant renders, chosen by whether the character's `CountryId` or `OrgId` is set.
 
 Acceptance criteria highlights:
-- Numbers (`DELTA` and `TOTAL`) always render with exactly one decimal digit (`:F1`-style, e.g. `+3.5`, `10.0`, never `+3`/`10` or `+3.50`/`10.00`).
+- Numbers (`DELTA` and `TOTAL`) render with **at most** one decimal digit, and drop the decimal point entirely when the value is a whole number: `+3.5` stays `+3.5`, but `+5.0`/`10.0` render as `+5`/`10` — never `+3.50`/`10.00` (more than one decimal digit). This supersedes the earlier "always exactly one decimal digit" rule, per user feedback on the plan.
 - Country/org display names in a line are bold and colored with that entity's existing per-entity color; role names are bold default-white; everything else (connector words, character names) is default white-with-shadow, unstyled.
 - Panel shares `HUDPanelSettings.asset`, `sortingOrder < 1000` (below fly-text), not modal, doesn't block clicks.
 - Panel top edge tracks the live rendered bottom of `.top-right-panel` (+ small gap); panel bottom edge is anchored at a **fixed** reserved offset representative of the bottom-bar panel's typical height — this offset never moves when the bottom-bar panel opens/closes.
@@ -34,7 +34,7 @@ Add a persistent, non-modal HUD panel that surfaces the four event types above a
 
 - **This codebase already has an established "one-shot transient event component" pattern**, used to carry "something just happened this tick" information from game-logic systems to `VisualStateConverter` without persisting it: `CreateActionEffectSystem.cs` creates a transient `ResourceChange{EffectId,ResourceId,OwnerId,Amount}` (control **and** opinion effects both go through this) and a transient `DiscoverCountryEffect{EffectId,OrgId}` — neither is `[Savable]` (confirmed: `src/Game.Components/ResourceChangeEffect.cs` has no `[Savable]` attribute on either struct, unlike the persistent `[Savable] ControlEffect` in `ControlEffect.cs`). Both are destroyed every tick by `CleanupActionEffectsSystem.Update(world)` (`src/Game.Systems/CleanupActionEffectsSystem.cs`), which — per `src/Game.Main/GameLogic.cs`'s `Update()` — runs at line 145, **before** `CreateActionEffectSystem.Update(...)` creates the new batch at line 150, and `_visualStateConverter.Update(...)` runs last, at line 159, after every game-logic system for the tick (`CreateActionEffectSystem` at 150, `DiscoverCountrySystem` at 152, plus the character-cycling command handlers at lines 116–121, all earlier in the same method). `VisualStateConverter.UpdateLastFrameEffects` (`src/Game.Main/VisualStateConverter.cs`, lines 53–68) already scans the `ResourceChange` archetype this exact way every tick to build `_state.LastFrameEffects` — this is the direct precedent the new `UpdateGameLog` scans are modeled on.
 - This log needs **four** new one-shot components — the existing `ResourceChange`/`DiscoverCountryEffect` don't carry enough (no resulting total, no character/role identity, no "new appointment" signal) — created at the exact point each underlying effect is actually applied, each self-contained (delta + total, or full identity) so `UpdateGameLog` never needs to re-look-up or recompute a running sum:
-  - `ControlEffectApplied{OrgId,CountryId,Delta,Total}` — created in `CreateActionEffectSystem.cs`'s `ControlChangeEffectParams` branch, only inside the existing `if (usedTotal < 100)` guard (i.e. only when a `ControlEffect` was actually created). `Delta = toAdd`, `Total = usedTotal + toAdd` — both values the branch already computes for the `ControlEffect`/`ResourceChange` it creates, no new computation needed.
+  - `ControlEffectApplied{OrgId,CountryId,Delta,Total}` — created in `CreateActionEffectSystem.cs`'s `ControlChangeEffectParams` branch, only inside the existing `if (usedTotal < 100)` guard (i.e. only when a `ControlEffect` was actually created). `Delta = toAdd`. **`Total` requires a new, separate computation — this was a bug in the previous revision of this plan, caught in review.** The branch's existing `usedTotal` (from `GetTotalControlInCountry`) sums `ControlEffect.Value` across **all** orgs in that country — it is the shared 100-point pool's used amount (the cap check), not any single org's own total. Confirmed by cross-checking `VisualStateConverter.UpdateSelectedControl` (`src/Game.Main/VisualStateConverter.cs`, lines ~312–337), which computes the acting org's own per-country total by filtering `ControlEffect` by **both** `CountryId` and `OrgId` — that is the correct semantics for "the organization's new resulting control total in that country," and it's also literally the same number already shown in the selected-country control panel today, so the log stays consistent with existing UI. The plan adds a new helper `GetOrgControlInCountry(world, orgId, countryId)` mirroring `GetTotalControlInCountry` but with the extra `OrgId` filter, called *after* the new `ControlEffect` entity is created (so its own contribution is already included — no separate `+ toAdd`).
   - `OpinionEffectApplied{OrgId,CharacterId,Delta,Total}` — created in the same file's `OpinionModifierEffectParams` branch. `Delta = opinionParams.InitialValue`. `Total` requires a **code change**: `EnsureOpinionResource` (currently `void`) must return the resulting `double` value so the branch can populate `Total` without a second lookup.
   - `DiscoveryApplied{OrgId,CountryId}` — created in `DiscoverCountrySystem.cs`'s `ResolveDiscoveryForOrg`, as a **separate sibling entity** immediately next to the existing `DiscoveredCountry` creation (not attached to the same entity — the persistent `DiscoveredCountry` record's lifecycle must stay untouched by the transient one's cleanup).
   - `RoleChangeApplied{CountryId,OrgId,RoleId,CharacterId}` — created in `src/Game.Main/GameLogic.cs`, once in `CycleOrgCharacterSlot` (`OrgId` set, `CountryId=""`) and once in `CycleCountryCharacter` (`CountryId` set, `OrgId=""`), matching `Character.OrgId`/`Character.CountryId`'s own xor convention (`Character.cs`: `OrgId` comment reads `// empty string = country character`). **Not** created in `ApplyDebugDropCharacter` — dropping a character is out of scope for logging (spec only covers "new" appointments).
@@ -86,14 +86,30 @@ namespace GS.Game.Components {
 
 ### Creation sites
 
-**Control** — `src/Game.Systems/CreateActionEffectSystem.cs`, `ControlChangeEffectParams` branch, inside `if (usedTotal < 100)`, alongside the existing `ControlEffect`/`ResourceChange` creation:
+**Control** — `src/Game.Systems/CreateActionEffectSystem.cs`, `ControlChangeEffectParams` branch, inside `if (usedTotal < 100)`, alongside the existing `ControlEffect`/`ResourceChange` creation. **`usedTotal` is the all-orgs pool total — do not use it for `Total` below** (see the corrected research-findings note above for why). A new helper computes the acting org's own total instead:
 ```csharp
+static int GetOrgControlInCountry(World world, string orgId, string countryId) {
+	int total = 0;
+	int[] req = { TypeId<ControlEffect>.Value };
+	foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+		ControlEffect[] effects = arch.GetColumn<ControlEffect>();
+		int count = arch.Count;
+		for (int i = 0; i < count; i++) {
+			if (effects[i].CountryId == countryId && effects[i].OrgId == orgId) { total += effects[i].Value; }
+		}
+	}
+	return total;
+}
+```
+Call site — computed *after* the `ControlEffect`/`ResourceChange` entities above are created, so the sum already includes this action's own contribution (no separate `+ toAdd`):
+```csharp
+int orgTotal = GetOrgControlInCountry(world, orgId, countryId);
 int ge = world.Create();
 world.Add(ge, new ControlEffectApplied {
 	OrgId = orgId,
 	CountryId = countryId,
 	Delta = toAdd,
-	Total = usedTotal + toAdd
+	Total = orgTotal
 }); // Game Log event — see Docs/Specs/54_action-log-ui/plan.md ordering note
 ```
 
@@ -301,7 +317,7 @@ The two `NewCharacter` variants (country-role vs org-role) share **one** templat
 | `game_log.opinion_increased_format` | `{0} increased {1} {2} opinion in {3} by {4} ({5})` |
 | `game_log.new_character_format` | `New {0} in {1} - {2}` |
 
-Placeholder order for the two changed templates: control = `{0}`=org, `{1}`=country, `{2}`=delta (`+F1`), `{3}`=total (`F1`); opinion = `{0}`=org, `{1}`=role, `{2}`=character, `{3}`=country, `{4}`=delta (`+F1`), `{5}`=total (`F1`).
+Placeholder order for the two changed templates: control = `{0}`=org, `{1}`=country, `{2}`=delta (`+`-prefixed, `FormatNumber`), `{3}`=total (`FormatNumber`); opinion = `{0}`=org, `{1}`=role, `{2}`=character, `{3}`=country, `{4}`=delta (`+`-prefixed, `FormatNumber`), `{5}`=total (`FormatNumber`).
 
 Russian equivalents (added to `ru.asset` alongside `en.asset`, following existing localization workflow — connector words only, `{n}` placeholders unchanged). `увеличил ... до {n}` ("increased ... to N") no longer fits since there are now two numbers; using `на {delta} ({total})` ("by delta (total)") as a reasonably natural literal rendering — **flagging this for a native-speaker sanity check**, consistent with how the previous design already treated Russian strings as best-effort, not verified translation:
 - `game_log.discovered_format` → `{0} обнаружил {1}`
@@ -313,12 +329,16 @@ Existing keys reused, not newly added: `country_name.{countryId}`, `organization
 
 ### Line composition (Unity side)
 
+Numbers use a shared helper that formats with at most one decimal digit and drops the decimal point entirely for whole numbers (`"0.#"`, not `"F1"` — `"F1"` always shows a trailing `.0`, which is no longer wanted per the Number formatting rule above):
+```csharp
+static string FormatNumber(double value) => value.ToString("0.#", CultureInfo.InvariantCulture);
+```
 For each `GameLogEntry`, the view builds the rich-text string, e.g. for `Control`:
 ```csharp
 string orgName = WrapColored(_loc.Get($"organization_name.{entry.OrgId}"), _orgVisualConfig.Find(entry.OrgId)?.color);
 string countryName = WrapColored(_loc.Get($"country_name.{entry.CountryId}"), _countryVisualConfig.Find(entry.CountryId)?.color);
-string deltaText = "+" + entry.Delta.ToString("F1", CultureInfo.InvariantCulture);
-string totalText = entry.Total.ToString("F1", CultureInfo.InvariantCulture);
+string deltaText = "+" + FormatNumber(entry.Delta);
+string totalText = FormatNumber(entry.Total);
 string line = string.Format(_loc.Get("game_log.control_increased_format"), orgName, countryName, deltaText, totalText);
 
 static string WrapColored(string text, Color? color) {
@@ -521,7 +541,7 @@ If `$ARGUMENTS` is empty, ask the user what game-logic event should get a log li
 - [ ] **Add `GameLog` property to `GameSettings`** — `src/Game.Configs/GameSettings.cs`; `public GameLogSettings GameLog { get; set; } = new GameLogSettings();`.
 - [ ] **Update `Assets/Configs/game_settings.json`** — add the `gameLog` block per the Approach section.
 - [ ] **Add the four one-shot event components** — new file `src/Game.Components/GameLogEffects.cs`; `ControlEffectApplied`, `OpinionEffectApplied`, `DiscoveryApplied`, `RoleChangeApplied` (none `[Savable]`), per the Event components section above.
-- [ ] **Wire `ControlEffectApplied`/`OpinionEffectApplied` creation** — `src/Game.Systems/CreateActionEffectSystem.cs`; add creation inside the `if (usedTotal < 100)` control branch and the opinion branch; change `EnsureOpinionResource` from `void` to `double` (returns the resulting `Resource.Value`) and use its return value for `Total`.
+- [ ] **Wire `ControlEffectApplied`/`OpinionEffectApplied` creation** — `src/Game.Systems/CreateActionEffectSystem.cs`; add a new `GetOrgControlInCountry(world, orgId, countryId)` helper (org+country-filtered, distinct from the existing all-orgs `GetTotalControlInCountry`) and use it — called after the `ControlEffect` entity is created — for `ControlEffectApplied.Total`; add creation inside the `if (usedTotal < 100)` control branch and the opinion branch; change `EnsureOpinionResource` from `void` to `double` (returns the resulting `Resource.Value`) and use its return value for `Total`.
 - [ ] **Wire `DiscoveryApplied` creation** — `src/Game.Systems/DiscoverCountrySystem.cs`; add as a separate sibling entity immediately after the existing `DiscoveredCountry` creation in `ResolveDiscoveryForOrg`.
 - [ ] **Wire `RoleChangeApplied` creation** — `src/Game.Main/GameLogic.cs`; add in both `CycleOrgCharacterSlot` (after `slot.IsAvailable = false;`) and `CycleCountryCharacter` (after the skills-seeding loop); confirm `ApplyDebugDropCharacter` is left untouched (no entry on drop).
 - [ ] **Add ordering-invariant comments** — one-line comment at each of the four creation sites above and at `CleanupActionEffectsSystem`'s registration, referencing this plan's ordering constraint.
@@ -542,7 +562,7 @@ If `$ARGUMENTS` is empty, ask the user what game-logic event should get a log li
 ### User Steps
 
 ### 1. Visually verify panel placement and behavior
-Enter Play mode in the `Map` scene. Confirm: the panel sits immediately below the time/speed controls, right-aligned with them, roughly `1.5×` their width; toggling country/org selection (which shows/hides the bottom bar) does not move the log panel at all; triggering a discovery, a control-raising card, an opinion-raising card, and the `Next: <role>` debug buttons each produce a correctly worded, correctly styled (bold/colored names, bold-white role, plain rest) new line at the bottom that fades in — control/opinion lines show both a `+delta` and a `(total)` number, both to one decimal digit; once more than `maxLogEntries` (12) lines have appeared, the oldest visibly fades out before disappearing rather than vanishing instantly; a line longer than the panel width wraps rather than truncating or scrolling. Also confirm two sequential control raises on the same org+country produce two distinct lines with increasing totals (e.g. `+5.0 (5.0)` then `+5.0 (10.0)`), not a single line that jumps.
+Enter Play mode in the `Map` scene. Confirm: the panel sits immediately below the time/speed controls, right-aligned with them, roughly `1.5×` their width; toggling country/org selection (which shows/hides the bottom bar) does not move the log panel at all; triggering a discovery, a control-raising card, an opinion-raising card, and the `Next: <role>` debug buttons each produce a correctly worded, correctly styled (bold/colored names, bold-white role, plain rest) new line at the bottom that fades in — control/opinion lines show both a `+delta` and a `(total)` number, rendered as a bare integer when whole (e.g. `+5 (5)`) and with one decimal digit only when fractional (e.g. opinion after some decay, `+3 (47.3)`); once more than `maxLogEntries` (12) lines have appeared, the oldest visibly fades out before disappearing rather than vanishing instantly; a line longer than the panel width wraps rather than truncating or scrolling. Also confirm two sequential control raises on the same org+country produce two distinct lines with increasing totals (e.g. `+5 (5)` then `+5 (10)`), not a single line that jumps — and, with a second org also raising control in the same country, confirm the first org's line still shows only *its own* total, not the combined total across both orgs.
 
 ### 2. Verify `includePlayerActions: false` suppression
 Temporarily set `gameLog.includePlayerActions` to `false` in `Assets/Configs/game_settings.json`, enter Play mode, trigger a player-org action (e.g. the discover-all debug button) and confirm no line appears for it, while confirming (via a multi-org test save or the bot-driven AI orgs, if observable in the build under test) that AI-org lines still appear. Revert the config change afterward.
@@ -553,6 +573,7 @@ Touches `src/Game.Components/GameLogEffects.cs`, `src/Game.Systems/CreateActionE
 
 - **Discovery**: adding a `DiscoverCountryEffect` (or pushing whatever command routes to `DiscoverCountrySystem`) between two `Update()` calls produces exactly one `GameLogEntryKind.Discovery` entry with the right `OrgId`/`CountryId`; a second `Update()` with no new discovery produces no additional entry. Implicitly also verifies `DiscoveryApplied` and `DiscoveredCountry` are created as independent sibling entities, not conflated — a bug that would surface as either a duplicate/missing persistent record or a duplicate/missing log entry.
 - **Control — delta and total, both correct, not just total**: two sequential control-raising actions for the same org+country produce two `Control` entries: first `Delta=5,Total=5` (example values), second `Delta=5,Total=10` — reading `Delta` straight off `ControlEffectApplied` rather than inferring it from a before/after comparison is the core behavior change from the previous design; this test asserts both fields independently.
+- **Control — `Total` is per-org, not the shared pool total** (regression test for the bug caught in plan review): in a multi-org test setup (`MultiOrgTestSupport`), have a second org raise control in the same country *before* the first org's action. The first org's resulting `ControlEffectApplied.Total` must equal only its own contribution, not the combined pool total across both orgs — this directly guards against reintroducing `GetTotalControlInCountry` (the all-orgs cap-check sum) as the `Total` source instead of the new org-filtered `GetOrgControlInCountry`.
 - **Opinion — delta, total, and decay produces zero entries**: raise opinion once (entry emitted with correct `Delta`/`Total`), advance time across a month boundary so the monthly decay effect fires (decay does not go through `CreateActionEffectSystem`, so no `OpinionEffectApplied` is ever created for it — assert zero additional entries after the decay-only tick), then raise opinion again — the second entry's `Total` reflects the decayed-then-raised value while `Delta` is just the raise amount (not total-so-far). This is a materially stronger assertion than the previous diff-based design since `Delta` is read directly off the component instead of inferred from two snapshots.
 - **New character — org role and country role**: push `DebugCycleCharacterCommand` for both an org role (e.g. `master`) and a country role (e.g. `ruler`); confirm each produces exactly one `NewCharacter` entry with `IsOrgRole` set correctly and `OrgId`/`CountryId` populated per the country-vs-org rule; confirm `DebugDropCharacterCommand` (clearing a slot) produces **no** entry (no `RoleChangeApplied` is ever created by `ApplyDebugDropCharacter`).
 - **No-flood-on-init**: after the first `Update(0f)` call alone (which seeds initial characters/discoveries/control via `InitSystem`), `GameLog.Entries` is empty. Unlike the previous design, this is not testing a special-cased guard — it is testing the *absence* of a bug class: `InitSystem` never creates any of the four new event components (it seeds `Character`/`CharacterSlot`/`DiscoveredCountry`/`ControlEffect` directly), so there is structurally nothing for `UpdateGameLog` to collect.

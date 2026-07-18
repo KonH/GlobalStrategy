@@ -32,7 +32,7 @@ The fourth format's `<Country> / <Org>` notation is contextual, not a literal tw
 
 ### Number formatting
 
-- **Given** a log line contains a numeric value (a delta or a resulting total; a Control/Opinion line contains both) **When** it is rendered **Then** the value is formatted with exactly one digit after the decimal point (e.g. `+3.5`, `35.0`), never as a bare integer (`+3`) and never with more than one decimal digit (`+3.50`), matching the project's existing `:F1`-style convention for fractional game values.
+- **Given** a log line contains a numeric value (a delta or a resulting total; a Control/Opinion line contains both) **When** it is rendered **Then** the value is formatted with at most one digit after the decimal point, and the decimal point is dropped entirely when the value is a whole number: a fractional value renders as e.g. `+3.5`, a whole-number value renders as a bare integer (e.g. `+5`, `35`, not `+5.0`/`35.0`); never more than one decimal digit (`+3.50`) in either case.
 
 ### Name/role styling within a line
 
