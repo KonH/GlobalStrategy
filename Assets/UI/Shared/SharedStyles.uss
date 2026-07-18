@@ -82,6 +82,12 @@
     background-color: rgb(46, 64, 112);
 }
 
+.gs-btn:disabled {
+    background-color: rgb(72, 78, 92);
+    border-color: rgb(108, 112, 124);
+    color: rgb(172, 172, 180);
+}
+
 .gs-btn--primary {
     height: 60px;
     margin-bottom: 14px;
