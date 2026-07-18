@@ -40,6 +40,13 @@ No GitHub labels are used for state:
 ## Setup checklist
 
 - `gh auth login` on the machine that will run this, authenticated as `KonH`.
-- `claude` logged into a Pro/Max subscription on that same machine (no `ANTHROPIC_API_KEY` env var set, or the CLI will bill the API instead of the subscription).
+- Subscription-based `claude` auth on that same machine, via a **long-lived token** rather than interactive login — the cron job runs unattended, so there's nobody there to complete a browser OAuth redirect or paste a fallback code each time:
+  1. On any machine with normal browser access (doesn't have to be the automation host), run `claude setup-token`. It opens the browser OAuth flow and prints a token to the terminal after approval — it does not save the token anywhere itself.
+  2. On the automation host, `export CLAUDE_CODE_OAUTH_TOKEN=<that token>` (in the cron job's environment, e.g. the crontab's own env or a sourced profile — cron doesn't inherit an interactive shell's exports).
+  3. Do **not** also set `ANTHROPIC_API_KEY` — its presence makes the CLI bill the API instead of the subscription.
 - A **dedicated clone** of this repo for the automation to run against — `scripts/handle_feature_issues.py` does `git reset --hard origin/main` on every run, which would blow away uncommitted work in a normal dev checkout.
 - A cron entry (Linux/macOS/WSL) or Scheduled Task (Windows) calling `scripts/handle_feature_issues.sh` / `.ps1` from that dedicated clone's root, on whatever interval the user wants (this is real polling, not a webhook — interval directly trades off cost of polling vs. latency until a new issue/reply is noticed).
+
+### Interactive testing (not the cron path)
+
+Running `claude` by hand in a remote container (Codespaces, SSH, WSL2) to sanity-check things: the OAuth browser redirect can't reach the CLI's local callback server there, so instead of redirecting, the browser shows a short code — paste it into the terminal at the `Paste code here if prompted` prompt. This is automatic CLI behavior, not something to configure. It's a one-off login for manual testing; the cron job itself should still use `CLAUDE_CODE_OAUTH_TOKEN` as above.
