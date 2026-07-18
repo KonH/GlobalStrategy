@@ -10,7 +10,7 @@ namespace GS.Game.Systems {
 				Resource[] resources = arch.GetColumn<Resource>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId == countryId && resources[i].ResourceId == "country_score") {
+					if (owners[i].OwnerId == countryId && resources[i].ResourceId == CountryScoreCollector.ResourceId) {
 						return resources[i].Value;
 					}
 				}

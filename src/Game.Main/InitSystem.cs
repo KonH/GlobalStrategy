@@ -188,7 +188,7 @@ namespace GS.Main {
 					continue;
 				}
 				CreateCollectorDrivenCountryResource(world, entry.CountryId, CountryScoreCollector.CountryPopulationResourceId, CountryPopulationCollector.Id);
-				CreateCollectorDrivenCountryResource(world, entry.CountryId, "country_score", CountryScoreCollector.Id);
+				CreateCollectorDrivenCountryResource(world, entry.CountryId, CountryScoreCollector.ResourceId, CountryScoreCollector.Id);
 			}
 		}
 

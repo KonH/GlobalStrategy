@@ -18,7 +18,7 @@ namespace GS.Game.Tests {
 
 			int resourceEntity = world.Create();
 			world.Add(resourceEntity, new ResourceOwner(countryId, OwnerType.Country));
-			world.Add(resourceEntity, new Resource { ResourceId = "country_score", Value = score });
+			world.Add(resourceEntity, new Resource { ResourceId = CountryScoreCollector.ResourceId, Value = score });
 			return resourceEntity;
 		}
 

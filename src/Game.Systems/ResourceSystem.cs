@@ -72,6 +72,9 @@ namespace GS.Game.Systems {
 			return 0;
 		}
 
+		// NOTE: a ResourceCollector-tagged effect whose ResourceLink.ResourceId is not in
+		// resourceIdUpdateOrder is never resolved — it applies its static (usually zero) Value
+		// forever. Any new collector-driven resourceId must be added to resourceIdUpdateOrder.
 		static void GatherAndApply(World world, bool isMonthBoundary, Func<string, bool>? resourceIdFilter) {
 			int[] effectRequired = {
 				TypeId<ResourceOwner>.Value,
