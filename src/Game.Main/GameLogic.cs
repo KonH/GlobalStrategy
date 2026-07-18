@@ -38,6 +38,8 @@ namespace GS.Main {
 		public ActionConfig ActionConfig { get; private set; } = null!;
 		public EffectConfig EffectConfig { get; private set; } = null!;
 		public ProvinceConfig ProvinceConfig { get; private set; } = null!;
+		public IReadOnlyList<BotFeatureConfigEntry> BotFeatures { get; private set; } = null!;
+		public int MaxControlPool { get; private set; }
 
 		public GameLogic(GameLogicContext context) {
 			_context = context;
@@ -56,12 +58,15 @@ namespace GS.Main {
 			_effectConfig = context.Effect.Load();
 			EffectConfig = _effectConfig;
 			ProvinceConfig = context.Province.Load();
-			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig);
+			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId);
 			var settings = context.GameSettings.Load();
 			_speedMultipliers = settings.SpeedMultipliers;
 			_populationGrowthPercent = settings.PopulationGrowthPercentPerMonth;
 			_countryScoreCoefficient = settings.CountryScoreCoefficient;
 			_botActionLogRetentionCap = settings.BotActionLogRetentionCap;
+			BotFeatures = settings.BotFeatures;
+			MaxControlPool = settings.MaxControlPool;
+			VisualState.SelectedCountry.Control.PoolSize = MaxControlPool;
 			_previousTime = new DateTime(settings.StartYear, 1, 1);
 		}
 
@@ -93,7 +98,6 @@ namespace GS.Main {
 			}
 
 			SelectCountrySystem.Update(_world, _commandAccessor.ReadSelectCountryCommand());
-			SelectPlayerCountrySystem.Update(_world, _commandAccessor.ReadSelectPlayerCountryCommand());
 			LocaleSystem.Update(_world, _localeEntity, _commandAccessor.ReadChangeLocaleCommand());
 			foreach (var cmd in _commandAccessor.ReadChangeLensCommand().AsSpan()) {
 				VisualState.MapLens.Set(cmd.Lens);
@@ -148,8 +152,8 @@ namespace GS.Main {
 			DeductActionCostSystem.Update(_world, _actionConfig);
 			ActionSucceededSystem.Update(_world, _actionConfig);
 			CreateActionEffectSystem.Update(_world, _actionConfig, _effectConfig, currentTime);
-			string viewOrgId = _orgEntity >= 0 ? _world.Get<Organization>(_orgEntity).OrganizationId : "";
-			DiscoverCountrySystem.Update(_world, _proximityEntity, _rng, viewOrgId, _hqCountryByOrgId);
+			OrgScoreSystem.Update(_world, _previousTime, currentTime);
+			DiscoverCountrySystem.Update(_world, _proximityEntity, _rng, _hqCountryByOrgId);
 			RemoveCardFromHandSystem.Update(_world);
 			CheckHandSizeSystem.Update(_world);
 			DrawCardSystem.Update(_world, _actionConfig, _rng);
@@ -171,6 +175,7 @@ namespace GS.Main {
 			}
 			RefreshSingletonEntities();
 			CountryScoreSystem.Recompute(_world, _countryScoreCoefficient);
+			OrgScoreSystem.Recompute(_world);
 		}
 
 		void SaveGame(bool isAutoSave) {
@@ -260,7 +265,7 @@ namespace GS.Main {
 		}
 
 		void ApplyChangeControl(string orgId, string countryId, int delta) {
-			ControlSystem.ApplyChangeControl(_world, orgId, countryId, delta);
+			ControlSystem.ApplyChangeControl(_world, orgId, countryId, delta, MaxControlPool);
 		}
 
 		void ApplyDebugCycleCharacter(string ownerId, string roleId, int slotIndex) {

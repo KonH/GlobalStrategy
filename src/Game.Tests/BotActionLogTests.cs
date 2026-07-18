@@ -87,7 +87,6 @@ namespace GS.Game.Tests {
 				new StaticConfig<OrganizationConfig>(orgConfig),
 				storage: storage,
 				serializer: serializer,
-				initialPlayerCountryId: "Great_Britain",
 				initialOrganizationId: "Illuminati");
 			return new GameLogic(ctx);
 		}

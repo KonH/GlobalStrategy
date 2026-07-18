@@ -89,7 +89,6 @@ namespace GS.Game.Tests {
 				new StaticConfig<OrganizationConfig>(orgConfig),
 				storage: storage,
 				serializer: serializer,
-				initialPlayerCountryId: "Great_Britain",
 				initialOrganizationId: "Illuminati",
 				province: new StaticConfig<ProvinceConfig>(provinceConfig));
 			return new GameLogic(ctx);

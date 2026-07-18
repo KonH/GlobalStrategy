@@ -30,6 +30,8 @@ namespace GS.Game.Bots {
 				return;
 			}
 			_commands.Push(new PlayCardActionCommand { ActionId = actionId, OrgId = _orgId, CountryId = countryId });
+			string target = string.IsNullOrEmpty(countryId) ? "" : $" -> {countryId}";
+			_logger?.LogInfo($"[BotCommandSink] play org={_orgId} action={actionId}{target}");
 			_emissionCallback?.Invoke(actionId, countryId);
 		}
 	}

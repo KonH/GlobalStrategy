@@ -99,7 +99,6 @@ namespace GS.Game.Tests {
 				new StaticConfig<GameSettings>(gameSettings),
 				new StaticConfig<ResourceConfig>(resourceConfig),
 				new StaticConfig<OrganizationConfig>(orgConfig),
-				initialPlayerCountryId: "HQ",
 				initialOrganizationId: "Illuminati",
 				action: new StaticConfig<ActionConfig>(actionConfig),
 				effect: new StaticConfig<EffectConfig>(new EffectConfig()));

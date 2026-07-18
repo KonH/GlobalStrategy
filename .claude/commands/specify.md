@@ -1,54 +1,5 @@
-Capture feature intent and acceptance criteria before planning begins. Writes `Docs/Specs/<index>_<name>/spec.md` and stops — the user must approve the spec before running `/plan`.
+Capture feature intent and acceptance criteria before planning begins, using the shared `k:specify` skill.
 
-## Index Derivation
+## Delegate
 
-The spec index is shared with `Docs/Plans/`. To find the next index:
-1. Use `Glob` with pattern `Docs/Plans/*.md` to list plan files
-2. Use `Glob` with pattern `Docs/Specs/*/*.md` to list spec folders — do NOT use a trailing-slash pattern (`Docs/Specs/*/`) or a bare `Docs/Specs/*`, both silently return nothing on Windows; the nested `*/*.md` form matches files one level down and works
-3. Extract the leading numeric prefix from each folder segment in the returned paths
-4. Take the highest number found across both directories and add 1
-5. Zero-pad to two digits (e.g. `35`)
-
-## Orchestration
-
-Spawn an **architect sub-agent** (general-purpose) briefed with:
-- The user's feature description
-- Relevant project rules from `CLAUDE.md` and `.claude/rules/`
-- The output path: `Docs/Specs/<index>_<name>/spec.md`
-- The spec format below
-
-The architect writes the spec file directly. You (orchestrator) then:
-1. Present the spec contents to the user
-2. Collect feedback and re-brief the architect if changes are needed (iterate until the user approves)
-3. **Stop.** Do not run `/plan` or write any code. The user must explicitly request the next step.
-
-## Spec Format
-
-```markdown
-# Spec: <Feature Name>
-
-## Feature Intent
-
-As a <role>, I want <capability>, so that <benefit>.
-
-## Acceptance Criteria
-
-- **Given** <precondition> **When** <action> **Then** <outcome>
-- (one bullet per observable behaviour; cover the happy path and the most important edge cases)
-
-## Out of Scope
-
-- (explicit exclusions — things the feature deliberately will not do)
-
-## Ambiguities
-
-- [NEEDS CLARIFICATION: <question the architect cannot resolve from context alone>]
-- (omit this section entirely if there are no ambiguities)
-```
-
-## Rules
-
-- Do NOT write any plan, code, or assets — only the spec document.
-- Use `[NEEDS CLARIFICATION: …]` markers freely — surfacing unknowns early is the point.
-- The spec folder name uses kebab-case: `Docs/Specs/32_my-feature/spec.md`.
-- Do not create `plan.md` in the spec folder — that is `/plan`'s job.
+Invoke the `k:specify` skill (from the `k` plugin). It handles index derivation, the architect sub-agent, spec format, and approval gate.

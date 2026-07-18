@@ -33,7 +33,7 @@ namespace GS.Game.ConsoleRunner {
 
 		internal static GameLogicContext BuildContext(
 			string configDir, int? rngSeed = null, System.Collections.Generic.IReadOnlyList<string>? participatingOrganizationIds = null,
-			string initialOrganizationId = "", string initialPlayerCountryId = "", IGameLogger? logger = null) {
+			string initialOrganizationId = "", IGameLogger? logger = null) {
 			return new GameLogicContext(
 				new FileConfig<GeoJsonConfig>(Path.Combine(configDir, "geojson_world.json")),
 				new FileConfig<MapEntryConfig>(Path.Combine(configDir, "map_entry_config.json")),
@@ -43,7 +43,6 @@ namespace GS.Game.ConsoleRunner {
 				new FileConfig<OrganizationConfig>(Path.Combine(configDir, "organizations.json")),
 				logger: logger,
 				initialOrganizationId: initialOrganizationId,
-				initialPlayerCountryId: initialPlayerCountryId,
 				character: new FileConfig<CharacterConfig>(Path.Combine(configDir, "character_config.json")),
 				action: new FileConfig<ActionConfig>(Path.Combine(configDir, "action_config.json")),
 				effect: new FileConfig<EffectConfig>(Path.Combine(configDir, "effect_config.json")),
@@ -54,7 +53,7 @@ namespace GS.Game.ConsoleRunner {
 		}
 
 		static void RunInteractive(string configDir) {
-			var ctx = BuildContext(configDir, initialPlayerCountryId: "Russian_Empire", logger: new ConsoleLogger());
+			var ctx = BuildContext(configDir, logger: new ConsoleLogger());
 			var logic = new GameLogic(ctx);
 
 			var pauseToken = new PauseToken();

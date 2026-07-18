@@ -94,7 +94,7 @@ namespace GS.Main {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
 		public AnimatableInt UsedControl { get; } = new AnimatableInt();
-		public int PoolSize => 100;
+		public int PoolSize { get; set; } = 100;
 		public IReadOnlyList<OrgControlEntry> OrgEntries { get; private set; } = Array.Empty<OrgControlEntry>();
 
 		public void Set(int used, List<OrgControlEntry> entries) {

@@ -6,7 +6,7 @@ using GS.Game.Components;
 namespace GS.Game.Systems {
 	public static class DiscoverCountrySystem {
 		public static void Update(World world, int proximityEntity, Random rng,
-			string viewOrgId, IReadOnlyDictionary<string, string> hqCountryByOrgId) {
+			IReadOnlyDictionary<string, string> hqCountryByOrgId) {
 
 			int[] required = { TypeId<DiscoverCountryEffect>.Value };
 			var orgIds = new List<string>();
@@ -20,19 +20,17 @@ namespace GS.Game.Systems {
 			}
 			if (orgIds.Count == 0) { return; }
 
-			string playerCountryId = FindPlayerCountryId(world);
-
 			ProximityMapData pm = default;
 			bool hasPm = proximityEntity >= 0;
 			if (hasPm) { pm = world.Get<ProximityMapData>(proximityEntity); }
 
 			foreach (string orgId in orgIds) {
-				ResolveDiscoveryForOrg(world, rng, orgId, viewOrgId, playerCountryId, hqCountryByOrgId, hasPm, pm);
+				ResolveDiscoveryForOrg(world, rng, orgId, hqCountryByOrgId, hasPm, pm);
 			}
 		}
 
 		static void ResolveDiscoveryForOrg(
-			World world, Random rng, string orgId, string viewOrgId, string playerCountryId,
+			World world, Random rng, string orgId,
 			IReadOnlyDictionary<string, string> hqCountryByOrgId, bool hasPm, ProximityMapData pm) {
 
 			var discoveredSet = new HashSet<string>();
@@ -57,9 +55,7 @@ namespace GS.Game.Systems {
 			if (candidates.Count == 0) { return; }
 
 			string anchorCountryId = "";
-			if (orgId == viewOrgId && !string.IsNullOrEmpty(playerCountryId)) {
-				anchorCountryId = playerCountryId;
-			} else if (hqCountryByOrgId.TryGetValue(orgId, out var hq) && !string.IsNullOrEmpty(hq)) {
+			if (hqCountryByOrgId.TryGetValue(orgId, out var hq) && !string.IsNullOrEmpty(hq)) {
 				anchorCountryId = hq;
 			}
 
@@ -98,14 +94,6 @@ namespace GS.Game.Systems {
 
 			int newEntity = world.Create();
 			world.Add(newEntity, new DiscoveredCountry { OrgId = orgId, CountryId = candidates[chosen] });
-		}
-
-		static string FindPlayerCountryId(World world) {
-			int[] req = { TypeId<Country>.Value, TypeId<Player>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				if (arch.Count > 0) { return arch.GetColumn<Country>()[0].CountryId; }
-			}
-			return "";
 		}
 	}
 }

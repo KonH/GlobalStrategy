@@ -18,10 +18,10 @@ namespace GS.Game.Bots {
 
 		public bool IsRegistered(string featureId) => _factories.ContainsKey(featureId);
 
-		public static BotFeatureRegistry CreateDefault() {
+		public static BotFeatureRegistry CreateDefault(int maxControlPool) {
 			var registry = new BotFeatureRegistry();
 			registry.Register(BaselineCardPlayFeature.Id, parameters => new BaselineCardPlayFeature(parameters));
-			registry.Register(DiscoverAndControlFeature.Id, parameters => new DiscoverAndControlFeature(parameters));
+			registry.Register(DiscoverAndControlFeature.Id, parameters => new DiscoverAndControlFeature(parameters, maxControlPool));
 			return registry;
 		}
 	}

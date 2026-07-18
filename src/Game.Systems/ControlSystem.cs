@@ -107,7 +107,7 @@ namespace GS.Game.Systems {
 			return total;
 		}
 
-		public static void ApplyChangeControl(World world, string orgId, string countryId, int delta) {
+		public static void ApplyChangeControl(World world, string orgId, string countryId, int delta, int maxControlPool) {
 			int otherOrgsTotal = 0;
 			int existingEntity = -1;
 			int existingValue = 0;
@@ -130,7 +130,7 @@ namespace GS.Game.Systems {
 				}
 			}
 
-			int newVal = Math.Max(0, Math.Min(existingValue + delta, 100 - otherOrgsTotal));
+			int newVal = Math.Max(0, Math.Min(existingValue + delta, maxControlPool - otherOrgsTotal));
 
 			if (existingEntity >= 0) {
 				if (newVal == 0) {

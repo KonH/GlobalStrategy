@@ -18,7 +18,6 @@ namespace GS.Main {
 		public IPersistentStorage? Storage { get; }
 		public ISnapshotSerializer? Serializer { get; }
 		public IGameLogger? Logger { get; }
-		public string InitialPlayerCountryId { get; }
 		public string InitialOrganizationId { get; }
 		public int? RngSeed { get; }
 		public IReadOnlyList<string>? ParticipatingOrganizationIds { get; }
@@ -33,7 +32,6 @@ namespace GS.Main {
 			IPersistentStorage? storage = null,
 			ISnapshotSerializer? serializer = null,
 			IGameLogger? logger = null,
-			string initialPlayerCountryId = "Russian_Empire",
 			string initialOrganizationId = "",
 			IConfigSource<CharacterConfig>? character = null,
 			IConfigSource<ActionConfig>? action = null,
@@ -56,7 +54,6 @@ namespace GS.Main {
 			Storage = storage;
 			Serializer = serializer;
 			Logger = logger;
-			InitialPlayerCountryId = initialPlayerCountryId;
 			InitialOrganizationId = initialOrganizationId;
 			RngSeed = rngSeed;
 			ParticipatingOrganizationIds = participatingOrganizationIds;
