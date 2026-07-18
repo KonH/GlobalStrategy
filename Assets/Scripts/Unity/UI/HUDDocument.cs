@@ -185,12 +185,6 @@ namespace GS.Unity.UI {
 				_btnReassignProvince = reassignProvinceBtn;
 				RefreshProvinceCheatButton();
 
-				var discoverAllBtn = new Button(() => PushDiscoverAllCountriesCommand());
-				discoverAllBtn.text = "Discover All Countries";
-				discoverAllBtn.AddToClassList("gs-btn");
-				discoverAllBtn.AddToClassList("gs-btn--small");
-				discoverAllBtn.AddToClassList("debug-panel-button");
-				characterDebugContainer.Add(discoverAllBtn);
 			}
 
 			RebuildOrgCharDebugButtons();
@@ -210,7 +204,7 @@ namespace GS.Unity.UI {
 			menu.style.display = DisplayStyle.None;
 			button.text = $"▶ {label}";
 			button.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button != 0 || !button.ContainsPoint(e.localPosition)) {
+				if (!button.enabledSelf || e.button != 0 || !button.ContainsPoint(e.localPosition)) {
 					return;
 				}
 
@@ -378,6 +372,15 @@ namespace GS.Unity.UI {
 
 		void RefreshSelectedCountryCharacterDebugButtons() {
 			bool countrySelected = _state != null && _state.SelectedCountry.IsValid;
+			if (_btnSelectedCountryDebugMenu != null) {
+				_btnSelectedCountryDebugMenu.SetEnabled(countrySelected);
+				if (!countrySelected) {
+					if (_selectedCountryDebugMenu != null) {
+						_selectedCountryDebugMenu.style.display = DisplayStyle.None;
+					}
+					_btnSelectedCountryDebugMenu.text = "▶ Selected country";
+				}
+			}
 			foreach (var button in _selectedCountryCharacterDebugButtons) {
 				button.SetEnabled(countrySelected);
 			}
@@ -503,6 +506,13 @@ namespace GS.Unity.UI {
 			masterDropBtn.AddToClassList("gs-btn--small");
 			masterDropBtn.AddToClassList("debug-panel-button");
 			orgCharDebugContainer.Add(masterDropBtn);
+
+			var discoverAllBtn = new Button(() => PushDiscoverAllCountriesCommand());
+			discoverAllBtn.text = "Discover All Countries";
+			discoverAllBtn.AddToClassList("gs-btn");
+			discoverAllBtn.AddToClassList("gs-btn--small");
+			discoverAllBtn.AddToClassList("debug-panel-button");
+			orgCharDebugContainer.Add(discoverAllBtn);
 
 			int agentCount = 0;
 			if (_state?.PlayerOrganization?.Characters?.Slots != null) {
