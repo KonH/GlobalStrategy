@@ -4,14 +4,14 @@
 
 As a player, I want a persistent, scrolling log of important game-logic events (discoveries, control gains, opinion gains, new character appointments) visible on the HUD at all times, so I can follow the consequences of my own and rival organizations' actions.
 
-Four line formats, all driven by observing existing state increases (not by hooking specific commands):
+Four line formats, all driven by reading one-shot ECS event components created at the exact point each effect is applied — the same transient-component pattern already used in this codebase for `ResourceChange`/`DiscoverCountryEffect` — **not** by diffing observed state over time:
 1. `<OrganizationDisplayName> discovered <CountryDisplayName>`
-2. `<OrganizationDisplayName> increased control in <CountryDisplayName> to +<N>` (`N` = new resulting total, not delta)
-3. `<OrganizationDisplayName> increased <CharacterRoleDisplayName> <CharacterDisplayName> opinion in <CountryDisplayName> to +<N>` (`N` = new resulting total, not delta)
+2. `<OrganizationDisplayName> increased control in <CountryDisplayName> by +<DELTA> (<TOTAL>)` (`DELTA` = amount just added, `TOTAL` = new resulting total)
+3. `<OrganizationDisplayName> increased <CharacterRoleDisplayName> <CharacterDisplayName> opinion in <CountryDisplayName> by +<DELTA> (<TOTAL>)` (`DELTA` = amount just added, `TOTAL` = new resulting total)
 4. `New <CharacterRoleDisplayName> in <CountryDisplayName> - <CharacterDisplayName>` (country-government role) **or** `New <CharacterRoleDisplayName> in <OrganizationDisplayName> - <CharacterDisplayName>` (org role) — exactly one variant renders, chosen by whether the character's `CountryId` or `OrgId` is set.
 
 Acceptance criteria highlights:
-- Numbers always render with exactly one decimal digit (`:F1`-style, e.g. `+3.5`, never `+3` or `+3.50`).
+- Numbers (`DELTA` and `TOTAL`) always render with exactly one decimal digit (`:F1`-style, e.g. `+3.5`, `10.0`, never `+3`/`10` or `+3.50`/`10.00`).
 - Country/org display names in a line are bold and colored with that entity's existing per-entity color; role names are bold default-white; everything else (connector words, character names) is default white-with-shadow, unstyled.
 - Panel shares `HUDPanelSettings.asset`, `sortingOrder < 1000` (below fly-text), not modal, doesn't block clicks.
 - Panel top edge tracks the live rendered bottom of `.top-right-panel` (+ small gap); panel bottom edge is anchored at a **fixed** reserved offset representative of the bottom-bar panel's typical height — this offset never moves when the bottom-bar panel opens/closes.
@@ -19,29 +19,161 @@ Acceptance criteria highlights:
 - Content is bottom-aligned and grows upward; overflow entries scroll off the top (clipped, not truncated); long lines wrap, never truncate/scroll horizontally.
 - New entries fade in (short); entries evicted past `gameLog.maxLogEntries` fade out (longer) before removal.
 - New `gameLog` config block on `GameSettings`: `includePlayerActions` (bool, default `true`), `maxLogEntries` (int, default `12`). When `includePlayerActions` is `false`, entries whose acting org matches the player's org are suppressed (never queued); AI-org entries and country-role character entries (no acting org) are always unaffected.
-- No save persistence — the log and its diff baselines start empty/fresh every session; baselines are established from the freshly-loaded state on the first tick, without emitting a flood of "discovery" catch-up lines.
+- No save persistence — the log starts empty every session. Since entries are only ever produced by reading a freshly-created one-shot event component for something that *just happened this tick*, never by inferring "the loaded/seeded state differs from a remembered baseline," there is no flood risk on init or load — this holds by construction, not via a special-cased guard.
 - A new `.claude/commands/*.md` skill walks a contributor through proposing a new log line type (format, locale keys, wiring point) without implementing it.
 
 Out of scope: resource/gold/score log lines, province-ownership log lines, log entry click-to-navigate, sound effects, fly-text reuse, log filtering/search, additional `gameLog` settings beyond the two listed, save persistence.
 
 ## Goal
 
-Add a persistent, non-modal HUD panel that surfaces the four event types above as a bottom-aligned, upward-growing, fading scroll log, backed by a new diff-detecting `GameLogState` in `src/Game.Main` that observes existing ECS state (no new game-logic systems, no new commands) and a new `gameLog` settings block.
+Add a persistent, non-modal HUD panel that surfaces the four event types above as a bottom-aligned, upward-growing, fading scroll log, backed by a new `GameLogState` in `src/Game.Main` that collects freshly-created one-shot ECS event components each tick (no diffing, no baselines) and a new `gameLog` settings block.
 
 ## Approach
 
 ### Research findings that shape this design
 
-- **Control**'s running total is never stored as a single aggregate component — it is always the sum of `ControlEffect.Value` for a given `(OrgId, CountryId)` pair (see `CreateActionEffectSystem.GetTotalControlInCountry`, `ControlSystem`, `VisualStateConverter.UpdateOrgMap`/`BuildControlIncomesForOrg`, all of which independently re-sum `ControlEffect` archetypes). The log's diff logic does its own single-pass sum per tick into a `Dictionary<(orgId,countryId), int>` — this matches the existing pattern exactly, no new aggregate component is introduced.
-- **Opinion** has no `CharacterOpinion` component. It is a generic `Resource{ResourceId="opinion_{orgId}", OwnerId=charId, OwnerType=Character}` (`CreateActionEffectSystem.EnsureOpinionResource`), with monthly decay applied via a `ResourceEffect`. `VisualStateConverter.UpdateCharacters` only tracks opinion for the **selected country's characters** and only for the **player's own org** (`playerOrgId` param) — insufficient for the log, which must observe opinion changes from **any** org toward **any** character. The log's diff logic does its own full scan of `Resource` entities whose `ResourceId` starts with `"opinion_"` and `OwnerType == Character`, keyed by `(orgId, charId)`.
+- **This codebase already has an established "one-shot transient event component" pattern**, used to carry "something just happened this tick" information from game-logic systems to `VisualStateConverter` without persisting it: `CreateActionEffectSystem.cs` creates a transient `ResourceChange{EffectId,ResourceId,OwnerId,Amount}` (control **and** opinion effects both go through this) and a transient `DiscoverCountryEffect{EffectId,OrgId}` — neither is `[Savable]` (confirmed: `src/Game.Components/ResourceChangeEffect.cs` has no `[Savable]` attribute on either struct, unlike the persistent `[Savable] ControlEffect` in `ControlEffect.cs`). Both are destroyed every tick by `CleanupActionEffectsSystem.Update(world)` (`src/Game.Systems/CleanupActionEffectsSystem.cs`), which — per `src/Game.Main/GameLogic.cs`'s `Update()` — runs at line 145, **before** `CreateActionEffectSystem.Update(...)` creates the new batch at line 150, and `_visualStateConverter.Update(...)` runs last, at line 159, after every game-logic system for the tick (`CreateActionEffectSystem` at 150, `DiscoverCountrySystem` at 152, plus the character-cycling command handlers at lines 116–121, all earlier in the same method). `VisualStateConverter.UpdateLastFrameEffects` (`src/Game.Main/VisualStateConverter.cs`, lines 53–68) already scans the `ResourceChange` archetype this exact way every tick to build `_state.LastFrameEffects` — this is the direct precedent the new `UpdateGameLog` scans are modeled on.
+- This log needs **four** new one-shot components — the existing `ResourceChange`/`DiscoverCountryEffect` don't carry enough (no resulting total, no character/role identity, no "new appointment" signal) — created at the exact point each underlying effect is actually applied, each self-contained (delta + total, or full identity) so `UpdateGameLog` never needs to re-look-up or recompute a running sum:
+  - `ControlEffectApplied{OrgId,CountryId,Delta,Total}` — created in `CreateActionEffectSystem.cs`'s `ControlChangeEffectParams` branch, only inside the existing `if (usedTotal < 100)` guard (i.e. only when a `ControlEffect` was actually created). `Delta = toAdd`, `Total = usedTotal + toAdd` — both values the branch already computes for the `ControlEffect`/`ResourceChange` it creates, no new computation needed.
+  - `OpinionEffectApplied{OrgId,CharacterId,Delta,Total}` — created in the same file's `OpinionModifierEffectParams` branch. `Delta = opinionParams.InitialValue`. `Total` requires a **code change**: `EnsureOpinionResource` (currently `void`) must return the resulting `double` value so the branch can populate `Total` without a second lookup.
+  - `DiscoveryApplied{OrgId,CountryId}` — created in `DiscoverCountrySystem.cs`'s `ResolveDiscoveryForOrg`, as a **separate sibling entity** immediately next to the existing `DiscoveredCountry` creation (not attached to the same entity — the persistent `DiscoveredCountry` record's lifecycle must stay untouched by the transient one's cleanup).
+  - `RoleChangeApplied{CountryId,OrgId,RoleId,CharacterId}` — created in `src/Game.Main/GameLogic.cs`, once in `CycleOrgCharacterSlot` (`OrgId` set, `CountryId=""`) and once in `CycleCountryCharacter` (`CountryId` set, `OrgId=""`), matching `Character.OrgId`/`Character.CountryId`'s own xor convention (`Character.cs`: `OrgId` comment reads `// empty string = country character`). **Not** created in `ApplyDebugDropCharacter` — dropping a character is out of scope for logging (spec only covers "new" appointments).
+  - None of the four are `[Savable]` — same rationale as `ResourceChange`/`DiscoverCountryEffect`: they exist for exactly one tick and are swept before the next.
+- **Cleanup wiring**: all four new types are added to `CleanupActionEffectsSystem.Update`'s existing `RemoveComponent<T>(world)` call list, alongside `DiscoverCountryEffect`/`ResourceChange`. This makes their lifecycle byte-for-byte identical to the existing transient pattern: created this tick by a game-logic system/command handler, read this tick by `VisualStateConverter` (which only has `IReadOnlyWorld` access and never destroys anything itself), swept at the very start of the *next* tick before that tick's new batch is created.
+- **Ordering constraint** (already satisfied by current code, but worth calling out since nothing enforces it at compile time): `UpdateGameLog` must run after all four creation sites in the same `GameLogic.Update()` tick, and before the *next* tick's `CleanupActionEffectsSystem.Update` call. Confirmed satisfied: `_visualStateConverter.Update(...)` is the literal last call in `GameLogic.Update()` (line 159), after `CreateActionEffectSystem`/`DiscoverCountrySystem`/the character-cycling command handlers. A one-line comment is added at each of the four creation sites and at `CleanupActionEffectsSystem`'s registration, referencing this plan, so a future reordering of `GameLogic.Update()` doesn't silently break it. The **Tests** section adds a regression test that would fail loudly if this ordering were ever violated (see below).
+- **No flood on init/load, and no special-cased guard needed to prevent it** — verified against `src/Game.Main/InitSystem.cs`: initial seeding (`CreateCharacterEntities`, `CreateOrgCharacterEntities`, initial `DiscoveredCountry` creation at line ~552–553, initial `ControlEffect` seeding at line ~80–89) creates every persistent component **directly** via `world.Add(...)` — it never calls `CreateActionEffectSystem.Update`, `DiscoverCountrySystem.ResolveDiscoveryForOrg`, `CycleOrgCharacterSlot`, or `CycleCountryCharacter`. Since the four new one-shot components are created *only* inside those four call paths, it is structurally impossible for `InitSystem`'s seeding (a fresh game or a freshly-loaded save) to produce any of them. This replaces the old design's `_gameLogBaselineInitialized` guard entirely — there is no baseline to initialize.
+- **Opinion display clamp**: `VisualStateConverter.UpdateCharacters` (lines ~106) already clamps opinion for display: `Math.Clamp((int)resources[i].Value, -100, 100)`. Decision: `OpinionEffectApplied.Total` carries the **raw, unclamped** value returned by `EnsureOpinionResource` (the component describes what game logic actually did, unopinionated about display); `VisualStateConverter.UpdateGameLog` applies the **same** `Math.Clamp(..., -100, 100)` when building the `GameLogEntry.Total` for an Opinion entry, mirroring `UpdateCharacters`' existing clamp — so what the log says always agrees with what the character panel shows. `Delta` is never clamped (it's a per-event increment, e.g. `opinionParams.InitialValue`, not a running value).
 - `CreateActionEffectSystem.GetTargetCharacterByCountryAndRole` proves opinion effects only ever target a character with `CountryId` set (country-government role characters) — org-role characters (Master/Agent) never receive `opinion_*` resources today. So opinion log lines always have a valid `<CountryDisplayName>` via `Character.CountryId`.
-- **Discovery**: `VisualStateConverter.UpdateDiscoveredCountries` already diffs one org's (`viewOrgId` = player org) discoveries frame-to-frame into `DiscoveredCountriesState.RecentlyDiscovered` (a single string). This is scoped to one org and holds only the latest one — not reusable as-is. The log needs a diff **per org**, so it maintains its own `Dictionary<orgId, HashSet<countryId>>` baseline, independent of `_previousDiscoveredIds`.
-- **New character in role**: confirmed via `GameLogic.CycleOrgCharacterSlot`/`CycleCountryCharacter`/`ApplyDebugDropCharacter` — cycling always destroys the old `Character` entity and creates a new one with a **different** `CharacterId`; dropping clears to `""` and never itself counts as "new". This means a simple "current occupant differs from baseline and is non-empty" diff, keyed by `(orgId, roleId, slotIndex)` for org roles (from `CharacterSlot.CharacterId`) and `(countryId, roleId)` for country roles (from `Character.CharacterId` where `CountryId == countryId && RoleId == roleId`; country roles have exactly one occupant, no slot index), correctly captures "new occupant" regardless of whether the trigger was `ApplyDebugCycleCharacter` or a future real system — satisfying the spec's "debug command still logs" criterion for free.
-- `InitSystem.CreateCharacterEntities`/`CreateOrgCharacterEntities` seed all initial characters (and `InitSystem.Update`'s other seeding) **before** `VisualStateConverter.Update(...)` is first called within the same `GameLogic.Update()` tick (`InitSystem.Update` runs first, `_visualStateConverter.Update(...)` runs later in the same method). So establishing the log's baselines on the very first `UpdateGameLog` call (without emitting) — mirroring the save/load "start fresh" requirement — also naturally absorbs the initial seed with zero flood, for both a brand-new game and a freshly loaded save.
-- Character display names are resolved elsewhere (`CharactersView.cs`) as `string.Join(" ", entry.NamePartKeys.Select(_loc.Get))`. The log DTO carries `NamePartKeys` verbatim (copied at diff time) rather than a character id to re-look-up later — the underlying `Character` entity may already have been replaced (re-cycled) by the time the UI renders/re-renders the entry, so the DTO must be a self-contained snapshot.
+- **New character in role**: confirmed via `GameLogic.CycleOrgCharacterSlot`/`CycleCountryCharacter`/`ApplyDebugDropCharacter` — cycling always destroys the old `Character` entity and creates a new one with a **different** `CharacterId`; dropping clears to `""` and never itself counts as "new." Since `RoleChangeApplied` is created unconditionally at the point of a successful cycle (both the org-slot and country-role code paths), this correctly captures "new occupant" regardless of whether the trigger was a debug command or a future real system — satisfying the spec's "debug command still logs" criterion for free, exactly as the old diff-based design did, just via direct event creation instead of inference.
+- Character display names are resolved elsewhere (`CharactersView.cs`) as `string.Join(" ", entry.NamePartKeys.Select(_loc.Get))`. `RoleChangeApplied`/`OpinionEffectApplied` only carry `CharacterId` (an id, not a name snapshot) — `UpdateGameLog` resolves `NamePartKeys`/`RoleId` (for Opinion; `RoleId` is already on `RoleChangeApplied` directly) via a single-pass `Character` archetype scan (`charLookup[charId] = (RoleId, CountryId, OrgId, NamePartKeys)`) built once per tick, **only when needed** (i.e. only if the `OpinionEffectApplied` or `RoleChangeApplied` archetypes are non-empty this tick — cheap early-exit on the common no-op tick). The resulting `GameLogEntry.NamePartKeys` is still a snapshot copy, not a re-lookup key — the underlying `Character` entity may already have been replaced (re-cycled) by the time the UI renders/re-renders the entry.
 - `CountryVisualEntry.color` / `OrgVisualEntry.color` (`Assets/Scripts/Unity/Map/Config/`) are the only existing "per-entity name color" properties in the project (currently used only for map fill) — reused here for bold name coloring, per the spec's explicit invitation to pick an existing color source. `CharacterVisualEntry` has no color field (portrait only), confirming role/character names stay uncolored by design, not by omission.
 - Org display name locale key prefix is `organization_name.{orgId}` (confirmed in `Assets/Localization/en.asset`), not `org_name.*`.
 - `HUDDocument` is the existing binding MonoBehaviour for `hud-root`, already composing `CountryInfoView`/`PlayerOrgView`/`TimeView`/`LensSwitcherView`/`OrgLensCountryView` as plain view classes queried from its own `UIDocument.rootVisualElement`, and subscribing per-substate `PropertyChanged` handlers in `OnEnable`/`OnDisable`. The action log follows this exact composition (a new `ActionLogView` instantiated in `HUDDocument.Start()`) rather than a second standalone `UIDocument` GameObject (like `FlyTextUI`) — because the panel's positioning formulas need to query `.top-right-panel`'s live geometry, which only exists inside `HUDDocument`'s own document tree; a separate `UIDocument` would have no direct reference to that element.
+
+### Event components (`src/Game.Components/GameLogEffects.cs`)
+
+New file, grouping four plain (non-`[Savable]`) structs — same one-file-multiple-related-transient-structs convention already used by `ResourceChangeEffect.cs`:
+
+```csharp
+namespace GS.Game.Components {
+	public struct ControlEffectApplied {
+		public string OrgId;
+		public string CountryId;
+		public double Delta;
+		public double Total;
+	}
+
+	public struct OpinionEffectApplied {
+		public string OrgId;
+		public string CharacterId;
+		public double Delta;
+		public double Total; // raw, unclamped — VisualStateConverter applies the display clamp
+	}
+
+	public struct DiscoveryApplied {
+		public string OrgId;
+		public string CountryId;
+	}
+
+	public struct RoleChangeApplied {
+		public string CountryId; // set for country-government roles, "" for org roles
+		public string OrgId;     // set for org roles, "" for country-government roles
+		public string RoleId;
+		public string CharacterId;
+	}
+}
+```
+
+### Creation sites
+
+**Control** — `src/Game.Systems/CreateActionEffectSystem.cs`, `ControlChangeEffectParams` branch, inside `if (usedTotal < 100)`, alongside the existing `ControlEffect`/`ResourceChange` creation:
+```csharp
+int ge = world.Create();
+world.Add(ge, new ControlEffectApplied {
+	OrgId = orgId,
+	CountryId = countryId,
+	Delta = toAdd,
+	Total = usedTotal + toAdd
+}); // Game Log event — see Docs/Specs/54_action-log-ui/plan.md ordering note
+```
+
+**Opinion** — same file, `OpinionModifierEffectParams` branch. `EnsureOpinionResource` changes from `void` to `double` (returns the resulting `Resource.Value`, from either the `+=` branch or the newly-created entity's `initialValue`):
+```csharp
+static double EnsureOpinionResource(World world, string charId, string resourceId, int initialValue) {
+	int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+	foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+		ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+		Resource[] resources = arch.GetColumn<Resource>();
+		int count = arch.Count;
+		for (int i = 0; i < count; i++) {
+			if (owners[i].OwnerId == charId && resources[i].ResourceId == resourceId) {
+				resources[i].Value += initialValue;
+				return resources[i].Value;
+			}
+		}
+	}
+	int re = world.Create();
+	world.Add(re, new ResourceOwner(charId, OwnerType.Character));
+	world.Add(re, new Resource { ResourceId = resourceId, Value = initialValue });
+	return initialValue;
+}
+```
+Call site:
+```csharp
+double opinionTotal = EnsureOpinionResource(world, targetCharId, opinionResourceId, opinionParams.InitialValue);
+int ge = world.Create();
+world.Add(ge, new OpinionEffectApplied {
+	OrgId = orgId,
+	CharacterId = targetCharId,
+	Delta = opinionParams.InitialValue,
+	Total = opinionTotal
+}); // Game Log event — see Docs/Specs/54_action-log-ui/plan.md ordering note
+```
+
+**Discovery** — `src/Game.Systems/DiscoverCountrySystem.cs`, `ResolveDiscoveryForOrg`, immediately after the existing `DiscoveredCountry` creation:
+```csharp
+int newEntity = world.Create();
+world.Add(newEntity, new DiscoveredCountry { OrgId = orgId, CountryId = candidates[chosen] });
+// Game Log event — separate sibling entity, not attached to DiscoveredCountry above.
+// See Docs/Specs/54_action-log-ui/plan.md ordering note.
+int ge = world.Create();
+world.Add(ge, new DiscoveryApplied { OrgId = orgId, CountryId = candidates[chosen] });
+```
+
+**Role change** — `src/Game.Main/GameLogic.cs`. In `CycleOrgCharacterSlot`, after `slot.IsAvailable = false;`:
+```csharp
+slot.CharacterId = nextEntry.CharacterId;
+slot.IsAvailable = false;
+// Game Log event — see Docs/Specs/54_action-log-ui/plan.md ordering note.
+_world.Add(_world.Create(), new RoleChangeApplied { OrgId = orgId, CountryId = "", RoleId = roleId, CharacterId = nextEntry.CharacterId });
+```
+In `CycleCountryCharacter`, after the skills-seeding loop at the end of the method:
+```csharp
+// Game Log event — see Docs/Specs/54_action-log-ui/plan.md ordering note.
+_world.Add(_world.Create(), new RoleChangeApplied { OrgId = "", CountryId = countryId, RoleId = roleId, CharacterId = nextEntry.CharacterId });
+```
+`ApplyDebugDropCharacter` is **not** touched — no `RoleChangeApplied` on drop.
+
+### Cleanup wiring (`src/Game.Systems/CleanupActionEffectsSystem.cs`)
+
+```csharp
+public static void Update(World world) {
+	// GameAction is persistent card identity (Savable) — not cleaned here.
+	RemoveComponent<ActionValid>(world);
+	RemoveComponent<ActionSucceeded>(world);
+	RemoveComponent<ActionFailed>(world);
+	RemoveComponent<CardUse>(world);
+	RemoveComponent<DiscoverCountryEffect>(world);
+	RemoveComponent<ResourceChange>(world);
+	// Game Log events — created this tick by CreateActionEffectSystem/DiscoverCountrySystem/
+	// GameLogic's character-cycling handlers, read this tick by VisualStateConverter.UpdateGameLog,
+	// swept here at the start of next tick. See Docs/Specs/54_action-log-ui/plan.md ordering note.
+	RemoveComponent<ControlEffectApplied>(world);
+	RemoveComponent<OpinionEffectApplied>(world);
+	RemoveComponent<DiscoveryApplied>(world);
+	RemoveComponent<RoleChangeApplied>(world);
+}
+```
 
 ### Data model (`src/Game.Main/VisualState.cs`)
 
@@ -61,11 +193,12 @@ public class GameLogEntry {
 	public string CharacterId { get; }
 	public string RoleId { get; }
 	public string[] NamePartKeys { get; }    // snapshot, not a re-lookup key
-	public double Value { get; }             // new resulting total (Control/Opinion only)
+	public double Delta { get; }             // Control/Opinion only; amount just applied
+	public double Total { get; }             // Control/Opinion only; new resulting total (Opinion: clamped to [-100,100])
 	public bool IsOrgRole { get; }           // NewCharacter only: true = OrgId set/CountryId empty
 
 	public GameLogEntry(long sequenceId, GameLogEntryKind kind, string orgId, string countryId,
-		string characterId, string roleId, string[] namePartKeys, double value, bool isOrgRole) { ... }
+		string characterId, string roleId, string[] namePartKeys, double delta, double total, bool isOrgRole) { ... }
 }
 
 public class GameLogState : INotifyPropertyChanged {
@@ -79,18 +212,14 @@ public class GameLogState : INotifyPropertyChanged {
 ```
 Add `public GameLogState GameLog { get; } = new GameLogState();` to `VisualState`.
 
-### Diff logic (`src/Game.Main/VisualStateConverter.cs`)
+(This supersedes the previous single-`Value`-field design — Control and Opinion lines now need both the delta just applied and the resulting total, not one derived number.)
 
-New fields:
+### Collection logic (`src/Game.Main/VisualStateConverter.cs`)
+
+New fields — no baseline dictionaries, no init-guard:
 ```csharp
 readonly List<GameLogEntry> _gameLogEntries = new();
-readonly Dictionary<(string orgId, string countryId), int> _controlBaseline = new();
-readonly Dictionary<(string orgId, string charId), int> _opinionBaseline = new();
-readonly Dictionary<string, HashSet<string>> _discoveryBaselineByOrg = new();
-readonly Dictionary<(string ownerId, string roleId, int slotIndex), string> _slotBaseline = new(); // org roles
-readonly Dictionary<(string countryId, string roleId), string> _countryRoleBaseline = new();
 long _nextGameLogSequenceId = 1;
-bool _gameLogBaselineInitialized;
 readonly bool _gameLogIncludePlayerActions;
 readonly int _gameLogMaxEntries;
 ```
@@ -100,29 +229,25 @@ internal VisualStateConverter(VisualState state, ActionConfig? actionConfig = nu
 	bool gameLogIncludePlayerActions = true, int gameLogMaxEntries = 12) { ... }
 ```
 
-`Update(...)` gains a call `UpdateGameLog(world, orgEntity);` placed **after** `UpdatePlayerOrganization` (so `_state.PlayerOrganization.OrgId` is already current for the `includePlayerActions` comparison) and after `UpdateCharacters`/`UpdateOrgCharacters` is unnecessary — `UpdateGameLog` does its own independent scans, it does not depend on those methods' output.
+`Update(...)` gains a call `UpdateGameLog(world, orgEntity);`. Placed as the **last** call inside `Update(...)`, after `UpdateCountryScore(world)` and before the animatable-ticking block — this guarantees it runs after every game-logic system for the tick has already created its event components (matches the file's existing bottom-of-method placement pattern for state that depends on the full tick having completed) and after `UpdatePlayerOrganization` has already run (so `_state.PlayerOrganization.OrgId` is current for the `includePlayerActions` comparison).
 
-`UpdateGameLog` outline:
-1. Build this-tick snapshots in four single-pass scans (mirroring existing archetype-iteration style elsewhere in this file):
-   - `currentControl`: sum `ControlEffect.Value` grouped by `(OrgId, CountryId)`.
-   - `currentOpinion` + `charLookup`: scan `Character` archetype once into `charLookup[charId] = (RoleId, CountryId, OrgId, NamePartKeys)`; scan `Resource`+`ResourceOwner` (`OwnerType.Character`) for `ResourceId` starting `"opinion_"`, extract `orgId = resourceId.Substring("opinion_".Length)`, clamp value to `[-100,100]` (matching `UpdateCharacters`' existing clamp) into `currentOpinion[(orgId, charId)]`.
-   - `currentDiscovery`: scan `DiscoveredCountry`, group into `Dictionary<orgId, HashSet<countryId>>`.
-   - `currentSlots` (org roles): scan `CharacterSlot` into `(OwnerId, RoleId, SlotIndex) -> CharacterId`.
-   - `currentCountryRoles`: from the same `charLookup` pass, for entries with non-empty `CountryId`, key `(CountryId, RoleId) -> CharacterId`.
-2. If `!_gameLogBaselineInitialized`: copy all four "current" snapshots directly into the baseline dictionaries, set the flag, **emit nothing**, return.
-3. Otherwise, diff each snapshot against its baseline; for every key where the new value is "greater"/"newly non-empty and different" (see per-kind rule below), construct a `GameLogEntry`, **unless** it is suppressed by `includePlayerActions` (below); always overwrite the baseline entry to the new current value regardless of suppression or direction (so decay/decrease is tracked silently and the next real increase compares against the true last-known value, correctly yielding the new resulting total — verified against `ResourceEffect`'s monthly opinion decay, which only ever decreases, so no spurious emits during pure decay).
-   - Control: emit when `current > baseline` (baseline missing = `0`). `Value = current`.
-   - Opinion: emit when `current > baseline` (baseline missing = `0`). `Value = current`. Resolve `RoleId`/`CountryId`/`NamePartKeys` from `charLookup[charId]`; skip (no entry, but still update baseline) if the character is no longer present.
-   - Discovery: emit when a `countryId` is present in `currentDiscovery[orgId]` but absent from `_discoveryBaselineByOrg[orgId]` (missing org key = empty set).
-   - NewCharacter (org roles): emit when `current != baseline` (baseline missing = `""`) **and** `current != ""`.
-   - NewCharacter (country roles): same rule, keyed by `(countryId, roleId)`, `IsOrgRole = false`, `OrgId = ""`.
-4. `includePlayerActions` suppression: for entries with `OrgId` set (Discovery/Control/Opinion/NewCharacter-org-role), suppress (do not construct/append) when `!_gameLogIncludePlayerActions && orgId == _state.PlayerOrganization.OrgId`. NewCharacter country-role entries (`OrgId == ""`) are never suppressed, per spec.
-5. Append all newly-constructed entries (each assigned `_nextGameLogSequenceId++`) to `_gameLogEntries`; while `_gameLogEntries.Count > _gameLogMaxEntries`, remove at index `0` (oldest-first eviction).
-6. If any entries were appended or evicted this tick, call `_state.GameLog.Set(new List<GameLogEntry>(_gameLogEntries))` (defensive copy, matching the `List<>` pass-by-reference pattern already used by other `Set(...)` calls in this file, e.g. `OrgMap.Set`).
+`UpdateGameLog` outline — a **collection** pass, not a diff pass, modeled directly on the existing `UpdateLastFrameEffects` (lines 53–68), which already scans a transient one-shot component archetype (`ResourceChange`) every tick the same way:
+
+1. Resolve `playerOrgId = _state.PlayerOrganization.OrgId` (already current per the call-site placement above).
+2. `newEntries = new List<GameLogEntry>()`.
+3. Scan the `ControlEffectApplied` archetype. For each entity: if `!_gameLogIncludePlayerActions && OrgId == playerOrgId`, skip; else construct `GameLogEntry(Kind=Control, OrgId, CountryId, characterId:"", roleId:"", namePartKeys:Array.Empty<string>(), Delta, Total, isOrgRole:false)` and add to `newEntries`.
+4. If the `OpinionEffectApplied` archetype is non-empty this tick, build `charLookup` (single-pass `Character` scan: `charLookup[charId] = (RoleId, CountryId, OrgId, NamePartKeys)`). For each `OpinionEffectApplied` entity: look up `charLookup[CharacterId]`; if missing, skip (character no longer present — shouldn't happen same-tick, but fail soft, not throw, matching the file's existing defensive style elsewhere); else apply the display clamp (`double clampedTotal = Math.Clamp(Total, -100, 100);` — matches `UpdateCharacters`' existing `Math.Clamp(..., -100, 100)`), and if not suppressed by `includePlayerActions`, construct `GameLogEntry(Kind=Opinion, OrgId, CountryId:charLookup[...].CountryId, CharacterId, RoleId:charLookup[...].RoleId, NamePartKeys:charLookup[...].NamePartKeys, Delta, Total:clampedTotal, isOrgRole:false)`.
+5. Scan the `DiscoveryApplied` archetype. For each entity: suppression check as in step 3; else construct `GameLogEntry(Kind=Discovery, OrgId, CountryId, ..., Delta:0, Total:0, isOrgRole:false)`.
+6. If the `RoleChangeApplied` archetype is non-empty this tick and `charLookup` wasn't already built in step 4, build it now. For each `RoleChangeApplied` entity: `isOrgRole = !string.IsNullOrEmpty(OrgId)`; suppress only when `isOrgRole && !_gameLogIncludePlayerActions && OrgId == playerOrgId` (country-role entries, `OrgId == ""`, are never suppressed, per spec); else resolve `NamePartKeys` from `charLookup[CharacterId]` (empty array if missing) and construct `GameLogEntry(Kind=NewCharacter, OrgId, CountryId, CharacterId, RoleId, NamePartKeys, Delta:0, Total:0, isOrgRole)`.
+7. If `newEntries.Count == 0`, return without touching `_gameLogEntries`/calling `Set` (matches the "almost always a no-op tick" expectation — cheap early return, no redundant `PropertyChanged` notifications on ticks where nothing loggable happened).
+8. Otherwise, assign each new entry `SequenceId = _nextGameLogSequenceId++` (in the scan order above — Control, Opinion, Discovery, NewCharacter — stable and deterministic within a tick), append to `_gameLogEntries`; while `_gameLogEntries.Count > _gameLogMaxEntries`, remove at index `0` (oldest-first eviction).
+9. Call `_state.GameLog.Set(new List<GameLogEntry>(_gameLogEntries))` (defensive copy, matching the `List<>` pass-by-reference pattern already used by other `Set(...)` calls in this file, e.g. `OrgMap.Set`).
+
+No baseline-initialization step exists, and none is needed — see the "no flood on init/load" research finding above.
 
 ### `GameLogic` wiring (`src/Game.Main/GameLogic.cs`)
 
-In the constructor, after `var settings = context.GameSettings.Load();`:
+Unchanged from the previous design (the constructor-ordering concern is about config loading, not the collection mechanism): in the constructor, after `var settings = context.GameSettings.Load();`:
 ```csharp
 _visualStateConverter = new VisualStateConverter(VisualState, _actionConfig,
 	settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries);
@@ -131,7 +256,7 @@ _visualStateConverter = new VisualStateConverter(VisualState, _actionConfig,
 
 ### `gameLog` config block (`src/Game.Configs/`)
 
-New file `src/Game.Configs/GameLogSettings.cs` (one type per file, matching every other config class in this folder):
+Unchanged. New file `src/Game.Configs/GameLogSettings.cs` (one type per file, matching every other config class in this folder):
 ```csharp
 namespace GS.Game.Configs {
 	public class GameLogSettings {
@@ -167,19 +292,21 @@ Update `Assets/Configs/game_settings.json`:
 
 Four format templates (reusing `{0}`/`{1}`/... `string.Format` placeholders, matching the `ILocalization.Get(key)` + `string.Format` convention from `FlyTextNotifierDocument`). Connector words live in the locale string (translatable); the Unity-side view wraps only the *name*/*role* segments in Unity rich-text tags (`<b>`, `<color=#RRGGBB>`) before substitution — a single `Label` with `enableRichText = true` renders the whole line, which is what allows per-segment bold/color without splitting the line into multiple elements (and keeps wrapping/no-truncation trivial, since it's still one text blob).
 
-The two `NewCharacter` variants (country-role vs org-role) share **one** template — the only difference between them is which id/color feeds `{1}`, a C#-side concern, not a translation concern:
+The two `NewCharacter` variants (country-role vs org-role) share **one** template — the only difference between them is which id/color feeds `{1}`, a C#-side concern, not a translation concern. Control and Opinion templates each gain one extra placeholder (delta *and* total, instead of a single resulting value) compared to the previous design:
 
 | Key | English value |
 |---|---|
 | `game_log.discovered_format` | `{0} discovered {1}` |
-| `game_log.control_increased_format` | `{0} increased control in {1} to {2}` |
-| `game_log.opinion_increased_format` | `{0} increased {1} {2} opinion in {3} to {4}` |
+| `game_log.control_increased_format` | `{0} increased control in {1} by {2} ({3})` |
+| `game_log.opinion_increased_format` | `{0} increased {1} {2} opinion in {3} by {4} ({5})` |
 | `game_log.new_character_format` | `New {0} in {1} - {2}` |
 
-Russian equivalents (added to `ru.asset` alongside `en.asset`, following existing localization workflow — connector words only, `{n}` placeholders unchanged):
+Placeholder order for the two changed templates: control = `{0}`=org, `{1}`=country, `{2}`=delta (`+F1`), `{3}`=total (`F1`); opinion = `{0}`=org, `{1}`=role, `{2}`=character, `{3}`=country, `{4}`=delta (`+F1`), `{5}`=total (`F1`).
+
+Russian equivalents (added to `ru.asset` alongside `en.asset`, following existing localization workflow — connector words only, `{n}` placeholders unchanged). `увеличил ... до {n}` ("increased ... to N") no longer fits since there are now two numbers; using `на {delta} ({total})` ("by delta (total)") as a reasonably natural literal rendering — **flagging this for a native-speaker sanity check**, consistent with how the previous design already treated Russian strings as best-effort, not verified translation:
 - `game_log.discovered_format` → `{0} обнаружил {1}`
-- `game_log.control_increased_format` → `{0} увеличил контроль в {1} до {2}`
-- `game_log.opinion_increased_format` → `{0} повысил мнение {1} {2} в {3} до {4}`
+- `game_log.control_increased_format` → `{0} увеличил контроль в {1} на {2} ({3})`
+- `game_log.opinion_increased_format` → `{0} повысил мнение {1} {2} в {3} на {4} ({5})`
 - `game_log.new_character_format` → `Новый {0} в {1} - {2}`
 
 Existing keys reused, not newly added: `country_name.{countryId}`, `organization_name.{orgId}`, `character.role.{roleId}.name`.
@@ -190,19 +317,26 @@ For each `GameLogEntry`, the view builds the rich-text string, e.g. for `Control
 ```csharp
 string orgName = WrapColored(_loc.Get($"organization_name.{entry.OrgId}"), _orgVisualConfig.Find(entry.OrgId)?.color);
 string countryName = WrapColored(_loc.Get($"country_name.{entry.CountryId}"), _countryVisualConfig.Find(entry.CountryId)?.color);
-string valueText = "+" + entry.Value.ToString("F1", CultureInfo.InvariantCulture);
-string line = string.Format(_loc.Get("game_log.control_increased_format"), orgName, countryName, valueText);
+string deltaText = "+" + entry.Delta.ToString("F1", CultureInfo.InvariantCulture);
+string totalText = entry.Total.ToString("F1", CultureInfo.InvariantCulture);
+string line = string.Format(_loc.Get("game_log.control_increased_format"), orgName, countryName, deltaText, totalText);
 
 static string WrapColored(string text, Color? color) {
 	string hex = ColorUtility.ToHtmlStringRGB(color ?? Color.white);
 	return $"<b><color=#{hex}>{text}</color></b>";
 }
 ```
-Role names use `$"<b>{_loc.Get($\"character.role.{entry.RoleId}.name\")}</b>"` (bold, no color tag → inherits the label's default white). Character display names use the existing `string.Join(" ", entry.NamePartKeys.Select(_loc.Get))` pattern verbatim, unwrapped.
+`Opinion` is the same shape with the extra role/character segments:
+```csharp
+string roleName = $"<b>{_loc.Get($"character.role.{entry.RoleId}.name")}</b>";
+string characterName = string.Join(" ", entry.NamePartKeys.Select(_loc.Get));
+string line = string.Format(_loc.Get("game_log.opinion_increased_format"), orgName, roleName, characterName, countryName, deltaText, totalText);
+```
+Role names use `$"<b>{_loc.Get($\"character.role.{entry.RoleId}.name\")}</b>"` (bold, no color tag → inherits the label's default white). Character display names use the existing `string.Join(" ", entry.NamePartKeys.Select(_loc.Get))` pattern verbatim, unwrapped. `Discovery`/`NewCharacter` lines are unchanged from the previous design (no delta/total involved).
 
 ### UI: new template (`Assets/UI/HUD/ActionLog/`)
 
-`ActionLog.uxml` — a template, following the `CountryInfo`/`Time`/`LensSwitcher` convention:
+Unchanged. `ActionLog.uxml` — a template, following the `CountryInfo`/`Time`/`LensSwitcher` convention:
 ```xml
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
     <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
@@ -244,7 +378,7 @@ Add to `HUD.uxml` (alongside the other `<ui:Template>`/`<ui:Instance>` pairs):
 
 ### `ActionLogView` (`Assets/Scripts/Unity/UI/ActionLogView.cs`)
 
-Plain C# view class (not a MonoBehaviour), instantiated in `HUDDocument.Start()`. Diverges from the project's usual "full-rebuild `Refresh()`" view pattern (documented in `.claude/rules/unity/uitoolkit.md`) because entries must independently fade in (arriving) and fade out (evicted) rather than being cleared/rebuilt wholesale — this is a new, intentionally different pattern for accumulating/animating lists, worth calling out since it is likely to recur for future log-like UI.
+Unchanged in mechanism from the previous design — plain C# view class (not a MonoBehaviour), instantiated in `HUDDocument.Start()`, using the identity-keyed diff/fade `Refresh` pattern (not the project's usual full-rebuild `Refresh()`) because entries must independently fade in (arriving) and fade out (evicted) rather than being cleared/rebuilt wholesale. Only the line-builder bodies change, to read `entry.Delta`/`entry.Total` instead of the old single `entry.Value`:
 
 ```csharp
 class ActionLogView {
@@ -326,14 +460,15 @@ class ActionLogView {
 		label.AddToClassList("action-log-entry");
 		return label;
 	}
-	// BuildDiscoveryLine / BuildControlLine / BuildOpinionLine / BuildNewCharacterLine — per Line composition section above.
+	// BuildDiscoveryLine / BuildNewCharacterLine unchanged.
+	// BuildControlLine / BuildOpinionLine now format entry.Delta AND entry.Total — per Line composition section above.
 }
 ```
 `RepositionAndResize` computes `top` as the top-right-panel's world-space bottom edge minus the HUD root's world-space top edge (both from `worldBound`, converting screen-space into hud-root-relative coordinates), following the exact `worldBound`-conversion technique already documented for tooltip positioning in `.claude/rules/unity/uitoolkit.md` — `bottom` stays a fixed constant per style assignment in the constructor and is never touched again, guaranteeing it never shifts when the bottom-bar panel toggles visibility (that panel is a sibling, not a layout ancestor, so its `display: none` never affects the action log panel's geometry regardless).
 
 ### `HUDDocument` wiring
 
-In `Awake()` or `Start()` (following the existing convention that `rootVisualElement` access is deferred to `Start()`):
+Unchanged. In `Awake()` or `Start()` (following the existing convention that `rootVisualElement` access is deferred to `Start()`):
 ```csharp
 _actionLog = new ActionLogView(_root, _root.Q("action-log"), _root.Q("top-right-panel"), _loc, _countryVisualConfig, _orgVisualConfig);
 ```
@@ -351,11 +486,11 @@ No `GameLifetimeScope` changes are needed beyond what already exists — `HUDDoc
 
 ### Menu scenes
 
-Confirmed out of scope: the spec frames this entirely as a "HUD"/in-game feature (all four event types only ever occur mid-game), and `MainMenu.unity`/`CountrySelection.unity` have no `GameLogic`/`VisualState.GameLog` to observe (`StaticGameLogic` per `.claude/rules/unity/localization.md` has no equivalent state). No wiring is added to `MainMenuLifetimeScope`/`SelectCountryLifetimeScope`.
+Unchanged. Confirmed out of scope: the spec frames this entirely as a "HUD"/in-game feature (all four event types only ever occur mid-game), and `MainMenu.unity`/`CountrySelection.unity` have no `GameLogic`/`VisualState.GameLog` to observe (`StaticGameLogic` per `.claude/rules/unity/localization.md` has no equivalent state). No wiring is added to `MainMenuLifetimeScope`/`SelectCountryLifetimeScope`.
 
 ### Log-type-proposal skill
 
-New file `.claude/commands/propose-log-type.md`, following the `add-character.md` convention (free-form `$ARGUMENTS`, numbered `## Steps`, produces a written definition only — no code changes):
+New file `.claude/commands/propose-log-type.md`, following the `add-character.md` convention (free-form `$ARGUMENTS`, numbered `## Steps`, produces a written definition only — no code changes). Step 5 is updated from the previous "diff observed state" framing to the now-established event-component convention:
 
 ```markdown
 Define a new Action Log line type for `Docs/Specs/54_action-log-ui/` (or its successor spec) to implement later.
@@ -370,11 +505,11 @@ If `$ARGUMENTS` is empty, ask the user what game-logic event should get a log li
 
 ## Steps
 
-1. **Identify the underlying state** the line should observe — an existing ECS component/resource that already changes when this event happens (per this feature's "observe state, don't hook commands" convention — see `Docs/Specs/54_action-log-ui/plan.md`). If no such state exists yet, say so explicitly; this skill does not design new game-logic systems.
-2. **Define the trigger direction** — what specific change (e.g. "value increases", "a new non-empty occupant appears") counts as loggable, matching the increase-only/appearance-only convention already established (no removal/decrease lines).
+1. **Identify the exact point in game logic where this event happens** — the system/method that applies the underlying effect (e.g. a `CreateActionEffectSystem` branch, a `GameLogic` command handler). This feature's established convention (see `Docs/Specs/54_action-log-ui/plan.md`) is a **one-shot, non-`[Savable]` ECS event component created at that exact site** (mirroring `ControlEffectApplied`/`OpinionEffectApplied`/`DiscoveryApplied`/`RoleChangeApplied`), cleaned up the following tick by `CleanupActionEffectsSystem`, and read by `VisualStateConverter.UpdateGameLog` the same tick it's created. Prefer this over diffing observed state over time. If no clear application site exists yet, say so explicitly; this skill does not design new game-logic systems.
+2. **Define the trigger condition** — exactly when the new event component should be created (e.g. "only when an effect was actually applied, not attempted"), matching the "appearance of a fresh event, not inferred from a value comparison" convention already established.
 3. **Write the line format** — the exact `string.Format` template with `{n}` placeholders, plus which segments (if any) are bold+colored (name-class entities only, via an existing per-entity color source) vs bold-white (role-class labels) vs default (everything else).
 4. **List the locale keys needed** — the new `game_log.*_format` key (English + Russian text) plus any already-existing keys it reuses (`country_name.*`, `organization_name.*`, `character.role.*.name`, etc.).
-5. **Note the data DTO fields** the new `GameLogEntry`-equivalent needs (or confirm the existing `GameLogEntry` shape already covers it).
+5. **Note the data DTO fields** the new `GameLogEntry`-equivalent needs, and the new event component's fields (should carry any delta/total/identity data directly — no downstream recomputation) — or confirm the existing `GameLogEntry` shape already covers it.
 6. **Write the definition** to a short section the user can hand to `/plan` — do not edit `src/` or `Assets/` code.
 ```
 
@@ -385,13 +520,19 @@ If `$ARGUMENTS` is empty, ask the user what game-logic event should get a log li
 - [ ] **Add `GameLogSettings` config class** — new file `src/Game.Configs/GameLogSettings.cs`; `IncludePlayerActions` (bool, default `true`), `MaxLogEntries` (int, default `12`).
 - [ ] **Add `GameLog` property to `GameSettings`** — `src/Game.Configs/GameSettings.cs`; `public GameLogSettings GameLog { get; set; } = new GameLogSettings();`.
 - [ ] **Update `Assets/Configs/game_settings.json`** — add the `gameLog` block per the Approach section.
-- [ ] **Add `GameLogEntryKind`/`GameLogEntry`/`GameLogState`** — `src/Game.Main/VisualState.cs`; plus `GameLog` property on `VisualState`.
-- [ ] **Implement `UpdateGameLog` diff logic in `VisualStateConverter`** — `src/Game.Main/VisualStateConverter.cs`; new baseline dictionaries, constructor params (`gameLogIncludePlayerActions`, `gameLogMaxEntries`), the four per-kind scan+diff+suppress+cap+evict steps, baseline-init-without-emit guard, call site wired into `Update(...)` after `UpdatePlayerOrganization`.
+- [ ] **Add the four one-shot event components** — new file `src/Game.Components/GameLogEffects.cs`; `ControlEffectApplied`, `OpinionEffectApplied`, `DiscoveryApplied`, `RoleChangeApplied` (none `[Savable]`), per the Event components section above.
+- [ ] **Wire `ControlEffectApplied`/`OpinionEffectApplied` creation** — `src/Game.Systems/CreateActionEffectSystem.cs`; add creation inside the `if (usedTotal < 100)` control branch and the opinion branch; change `EnsureOpinionResource` from `void` to `double` (returns the resulting `Resource.Value`) and use its return value for `Total`.
+- [ ] **Wire `DiscoveryApplied` creation** — `src/Game.Systems/DiscoverCountrySystem.cs`; add as a separate sibling entity immediately after the existing `DiscoveredCountry` creation in `ResolveDiscoveryForOrg`.
+- [ ] **Wire `RoleChangeApplied` creation** — `src/Game.Main/GameLogic.cs`; add in both `CycleOrgCharacterSlot` (after `slot.IsAvailable = false;`) and `CycleCountryCharacter` (after the skills-seeding loop); confirm `ApplyDebugDropCharacter` is left untouched (no entry on drop).
+- [ ] **Add ordering-invariant comments** — one-line comment at each of the four creation sites above and at `CleanupActionEffectsSystem`'s registration, referencing this plan's ordering constraint.
+- [ ] **Register cleanup for the four new components** — `src/Game.Systems/CleanupActionEffectsSystem.cs`; add `RemoveComponent<T>(world)` calls for `ControlEffectApplied`, `OpinionEffectApplied`, `DiscoveryApplied`, `RoleChangeApplied`.
+- [ ] **Add `GameLogEntryKind`/`GameLogEntry`/`GameLogState`** — `src/Game.Main/VisualState.cs`; `GameLogEntry` now carries `Delta`+`Total` (replacing the previous single `Value` field) plus `GameLog` property on `VisualState`.
+- [ ] **Implement `UpdateGameLog` collection logic in `VisualStateConverter`** — `src/Game.Main/VisualStateConverter.cs`; remove all diff-baseline fields/guard from the previous design; add `_gameLogEntries`/`_nextGameLogSequenceId`/`_gameLogIncludePlayerActions`/`_gameLogMaxEntries`; scan the four new archetypes each tick (modeled on the existing `UpdateLastFrameEffects`), build `charLookup` on demand for Opinion/NewCharacter, apply `includePlayerActions` suppression and the opinion display clamp, cap/evict, call site wired in as the last step of `Update(...)`.
 - [ ] **Wire `GameLogic` constructor** — `src/Game.Main/GameLogic.cs`; move `_visualStateConverter = new VisualStateConverter(...)` to after `settings` is loaded, pass `settings.GameLog.IncludePlayerActions`/`settings.GameLog.MaxLogEntries`.
-- [ ] **Add locale keys** — `Assets/Localization/en.asset` and `ru.asset`; the four `game_log.*_format` keys per the Locale keys table/list above.
+- [ ] **Add locale keys** — `Assets/Localization/en.asset` and `ru.asset`; the four `game_log.*_format` keys, with `control_increased_format`/`opinion_increased_format` carrying one extra `{n}` placeholder each per the Locale keys table above.
 - [ ] **Create `ActionLog.uxml` + `ActionLog.uss`** — `Assets/UI/HUD/ActionLog/`; per the UI section above.
 - [ ] **Wire `ActionLog` template into `HUD.uxml`** — add `<ui:Template>`/`<ui:Instance name="action-log" class="action-log-panel">`.
-- [ ] **Create `ActionLogView`** — `Assets/Scripts/Unity/UI/ActionLogView.cs`; diff-based `Refresh`, rich-text line builders (one per `GameLogEntryKind`), `RepositionAndResize` geometry tracking, fade-in/fade-out via `IStyle.transitionDuration` + `VisualElement.schedule`.
+- [ ] **Create `ActionLogView`** — `Assets/Scripts/Unity/UI/ActionLogView.cs`; diff-based `Refresh`, rich-text line builders (one per `GameLogEntryKind`; `BuildControlLine`/`BuildOpinionLine` format both `Delta` and `Total`), `RepositionAndResize` geometry tracking, fade-in/fade-out via `IStyle.transitionDuration` + `VisualElement.schedule`.
 - [ ] **Wire `ActionLogView` into `HUDDocument`** — `Assets/Scripts/Unity/UI/HUDDocument.cs`; instantiate in `Start()`, subscribe/unsubscribe `_state.GameLog.PropertyChanged` in `OnEnable`/`OnDisable`, initial `Refresh` call in `OnEnable`.
 - [ ] **Compile check** — after all script/UXML/USS changes, `refresh_unity` then `read_console(types=["error"])`.
 - [ ] **Verify `action-log` UXML instance resolves in the `Map.unity` scene** — since `HUDDocument`'s `UIDocument` already points at the existing `HUD.uxml` source asset, no scene-file edit should be required; confirm via `read_console` after `refresh_unity` that `root.Q("action-log")`/`root.Q("top-right-panel")` are non-null at runtime (no silent null-ref).
@@ -401,34 +542,36 @@ If `$ARGUMENTS` is empty, ask the user what game-logic event should get a log li
 ### User Steps
 
 ### 1. Visually verify panel placement and behavior
-Enter Play mode in the `Map` scene. Confirm: the panel sits immediately below the time/speed controls, right-aligned with them, roughly `1.5×` their width; toggling country/org selection (which shows/hides the bottom bar) does not move the log panel at all; triggering a discovery, a control-raising card, an opinion-raising card, and the `Next: <role>` debug buttons each produce a correctly worded, correctly styled (bold/colored names, bold-white role, plain rest) new line at the bottom that fades in; once more than `maxLogEntries` (12) lines have appeared, the oldest visibly fades out before disappearing rather than vanishing instantly; a line longer than the panel width wraps rather than truncating or scrolling.
+Enter Play mode in the `Map` scene. Confirm: the panel sits immediately below the time/speed controls, right-aligned with them, roughly `1.5×` their width; toggling country/org selection (which shows/hides the bottom bar) does not move the log panel at all; triggering a discovery, a control-raising card, an opinion-raising card, and the `Next: <role>` debug buttons each produce a correctly worded, correctly styled (bold/colored names, bold-white role, plain rest) new line at the bottom that fades in — control/opinion lines show both a `+delta` and a `(total)` number, both to one decimal digit; once more than `maxLogEntries` (12) lines have appeared, the oldest visibly fades out before disappearing rather than vanishing instantly; a line longer than the panel width wraps rather than truncating or scrolling. Also confirm two sequential control raises on the same org+country produce two distinct lines with increasing totals (e.g. `+5.0 (5.0)` then `+5.0 (10.0)`), not a single line that jumps.
 
 ### 2. Verify `includePlayerActions: false` suppression
 Temporarily set `gameLog.includePlayerActions` to `false` in `Assets/Configs/game_settings.json`, enter Play mode, trigger a player-org action (e.g. the discover-all debug button) and confirm no line appears for it, while confirming (via a multi-org test save or the bot-driven AI orgs, if observable in the build under test) that AI-org lines still appear. Revert the config change afterward.
 
 ## Tests
 
-Touches `src/Game.Main/VisualState.cs`, `src/Game.Main/VisualStateConverter.cs`, `src/Game.Main/GameLogic.cs`, `src/Game.Configs/GameSettings.cs` — all testable from `src/Game.Tests/` without any Unity dependency. New file `src/Game.Tests/GameLogStateTests.cs`, following the `DiscoverAndControlFeatureTests.cs`/`CharacterVisualStateTests.cs` convention (build a minimal `GameLogicContext` with bespoke `CountryConfig`/`OrganizationConfig`/`ActionConfig`/`EffectConfig`/`CharacterConfig`/`GameSettings` via `MultiOrgTestSupport.StaticConfig<T>`, construct `GameLogic`, call `Update(0f)` to seed, mutate world state or push commands, call `Update(0f)` again, assert on `logic.VisualState.GameLog.Entries`):
+Touches `src/Game.Components/GameLogEffects.cs`, `src/Game.Systems/CreateActionEffectSystem.cs`, `src/Game.Systems/DiscoverCountrySystem.cs`, `src/Game.Systems/CleanupActionEffectsSystem.cs`, `src/Game.Main/VisualState.cs`, `src/Game.Main/VisualStateConverter.cs`, `src/Game.Main/GameLogic.cs`, `src/Game.Configs/GameSettings.cs` — all testable from `src/Game.Tests/` without any Unity dependency. New file `src/Game.Tests/GameLogStateTests.cs`, following the `DiscoverAndControlFeatureTests.cs`/`CharacterVisualStateTests.cs` convention (build a minimal `GameLogicContext` with bespoke `CountryConfig`/`OrganizationConfig`/`ActionConfig`/`EffectConfig`/`CharacterConfig`/`GameSettings` via `MultiOrgTestSupport.StaticConfig<T>`, construct `GameLogic`, call `Update(0f)` to seed, mutate world state or push commands, call `Update(0f)` again, assert on `logic.VisualState.GameLog.Entries`):
 
-- **Discovery diff**: adding a `DiscoveredCountry{OrgId,CountryId}` entity between two `Update()` calls produces exactly one `GameLogEntryKind.Discovery` entry with the right `OrgId`/`CountryId`; a second `Update()` with no new discovery produces no additional entry.
-- **Control diff — new resulting total, not delta**: two sequential control-raising actions for the same org+country produce two `Control` entries whose `Value` is the running total after each raise (e.g. `5`, then `10`), not the per-action delta.
-- **Opinion diff — new resulting total, not delta, and decay does not spuriously re-trigger**: raise opinion once (entry emitted with the new total), advance time across a month boundary so the monthly decay effect fires (no entry emitted, value decreases), then raise opinion again — confirms the second entry's `Value` reflects the correct new (decayed-then-raised) total and that the decay tick alone produced zero entries.
-- **New character — org role and country role**: push `DebugCycleCharacterCommand` for both an org role (e.g. `master`) and a country role (e.g. `ruler`); confirm each produces exactly one `NewCharacter` entry with `IsOrgRole` set correctly and `OrgId`/`CountryId` populated per the country-vs-org rule; confirm `DebugDropCharacterCommand` (clearing a slot) produces **no** entry.
-- **Baseline-on-load produces zero entries**: after the first `Update(0f)` call alone (which seeds initial characters via `InitSystem`), `GameLog.Entries` is empty — confirms no flood from initial seeding.
+- **Discovery**: adding a `DiscoverCountryEffect` (or pushing whatever command routes to `DiscoverCountrySystem`) between two `Update()` calls produces exactly one `GameLogEntryKind.Discovery` entry with the right `OrgId`/`CountryId`; a second `Update()` with no new discovery produces no additional entry. Implicitly also verifies `DiscoveryApplied` and `DiscoveredCountry` are created as independent sibling entities, not conflated — a bug that would surface as either a duplicate/missing persistent record or a duplicate/missing log entry.
+- **Control — delta and total, both correct, not just total**: two sequential control-raising actions for the same org+country produce two `Control` entries: first `Delta=5,Total=5` (example values), second `Delta=5,Total=10` — reading `Delta` straight off `ControlEffectApplied` rather than inferring it from a before/after comparison is the core behavior change from the previous design; this test asserts both fields independently.
+- **Opinion — delta, total, and decay produces zero entries**: raise opinion once (entry emitted with correct `Delta`/`Total`), advance time across a month boundary so the monthly decay effect fires (decay does not go through `CreateActionEffectSystem`, so no `OpinionEffectApplied` is ever created for it — assert zero additional entries after the decay-only tick), then raise opinion again — the second entry's `Total` reflects the decayed-then-raised value while `Delta` is just the raise amount (not total-so-far). This is a materially stronger assertion than the previous diff-based design since `Delta` is read directly off the component instead of inferred from two snapshots.
+- **New character — org role and country role**: push `DebugCycleCharacterCommand` for both an org role (e.g. `master`) and a country role (e.g. `ruler`); confirm each produces exactly one `NewCharacter` entry with `IsOrgRole` set correctly and `OrgId`/`CountryId` populated per the country-vs-org rule; confirm `DebugDropCharacterCommand` (clearing a slot) produces **no** entry (no `RoleChangeApplied` is ever created by `ApplyDebugDropCharacter`).
+- **No-flood-on-init**: after the first `Update(0f)` call alone (which seeds initial characters/discoveries/control via `InitSystem`), `GameLog.Entries` is empty. Unlike the previous design, this is not testing a special-cased guard — it is testing the *absence* of a bug class: `InitSystem` never creates any of the four new event components (it seeds `Character`/`CharacterSlot`/`DiscoveredCountry`/`ControlEffect` directly), so there is structurally nothing for `UpdateGameLog` to collect.
+- **Ordering-invariant regression coverage**: no dedicated test targets system ordering directly (ordering isn't independently observable from outside `GameLogic.Update()`); the Control test above (two `Update()` calls, one triggering mutation between them, asserting exactly the expected entries appear each time) already fails if `UpdateGameLog` ever ran before `CreateActionEffectSystem`/`DiscoverCountrySystem` in the same tick, or if `CleanupActionEffectsSystem` ever ran after them instead of before — call this out in a doc comment on the test rather than adding a redundant dedicated test.
+- **`EnsureOpinionResource` return-value change**: not given a separate unit test — it's fully exercised by the Opinion test above (the `Total` assertions only pass if the new `double` return value is correct on both the create-new-resource path and the increment-existing-resource path, since the test raises opinion twice).
 - **`includePlayerActions: false` suppresses only player-org entries**: with the flag off, a player-org discovery produces no entry, an AI-org discovery (in a multi-org test setup, per `MultiOrgTestSupport`) still produces one, and a country-role `NewCharacter` entry (no acting org) still produces one.
 - **`maxLogEntries` cap and eviction order**: with `maxLogEntries` set to a small test value (e.g. `2`), triggering three distinct loggable events leaves exactly the two newest in `GameLog.Entries`, in original (oldest-first) order, with the first (oldest) evicted.
 - **`GameLogSettings` JSON round-trip and defaults**: a small config-loading test (colocated with existing `GameSettings`-adjacent tests, or a new `GameLogSettingsTests.cs`) deserializes a JSON snippet with an explicit `gameLog` block and confirms both fields; a snippet omitting `gameLog` entirely confirms `IncludePlayerActions == true` and `MaxLogEntries == 12` (the C# property defaults apply when the JSON key is absent).
 
 ## Constitution Check
 
-No conflicts found — plan aligns with all principles:
+Re-checked against `Docs/Constitution.md`. No conflicts found — plan aligns with all principles, and the revised mechanism arguably tightens the separation further than the previous design:
 
-- **ECS for all game logic, living in `src/`:** All new state (diff baselines, entry construction, suppression, cap/eviction) lives in `src/Game.Main/VisualStateConverter.cs` and `src/Game.Main/VisualState.cs`, observing existing ECS components/resources — no new commands, no new systems, no simulation rules. `ActionLogView`/`HUDDocument` are presentation-only: they format already-resolved DTOs into text and animate opacity, mirroring exactly how `CountryInfoView`/`PlayerOrgView`/`FlyTextNotifierDocument` already consume `VisualState` without containing game logic.
+- **ECS for all game logic, living in `src/`:** All new state — the four event components, their creation at the exact effect-application site, and their cleanup — lives entirely in `src/Game.Components/`, `src/Game.Systems/`, and `src/Game.Main/GameLogic.cs`. `VisualStateConverter.UpdateGameLog` (also `src/Game.Main/`) only *reads* (`IReadOnlyWorld`) already-created components and formats a DTO — it introduces no new game-logic rule, no new command, no new simulation behavior; it strictly narrates what game logic already decided. This is a cleaner separation than the previous diff-based design, which required `VisualStateConverter` to independently re-derive "did this increase" by maintaining its own baseline state — now that inference lives nowhere; the event component *is* the record of "this happened." `ActionLogView`/`HUDDocument` remain presentation-only: they format already-resolved DTOs into text and animate opacity, mirroring exactly how `CountryInfoView`/`PlayerOrgView`/`FlyTextNotifierDocument` already consume `VisualState` without containing game logic.
 - **VContainer is the sole DI mechanism:** No new registrations are required — `ActionLogView` is a plain C# object constructed by `HUDDocument` (itself already resolved via the container, same as `CountryInfoView` et al. are already constructed the same way today), reusing `HUDDocument`'s existing injected `ILocalization`/`CountryVisualConfig`/`OrgVisualConfig`. No `new` for a singleton, no `FindObjectOfType`, no static mutable state.
 - **UI Toolkit only:** New UXML/USS template (`ActionLog.uxml`/`.uss`) sharing the existing `HUDPanelSettings.asset`; no Canvas/uGUI.
-- **Plan before implement / Spec before plan:** This plan follows the already-approved `Docs/Specs/54_action-log-ui/spec.md`.
+- **Plan before implement / Spec before plan:** This plan follows the already-approved `Docs/Specs/54_action-log-ui/spec.md`; this revision changes only the internal mechanism and line formats, not the feature's scope or acceptance criteria beyond the two explicitly-updated line formats.
 - **`Docs/Specs/<index>_<name>/plan.md` only:** This file is written to `Docs/Specs/54_action-log-ui/plan.md`, alongside the existing `spec.md`, sharing the already-assigned index `54`.
-- **One `.asmdef` per feature folder:** `ActionLogView.cs` is added to the existing `Assets/Scripts/Unity/UI/` folder (assembly `GS.Unity.UI`), which already references everything needed (`VContainer`, `GS.Unity.Common`, `GS.Unity.Map`) — no new folder, no new asmdef. `GameLogSettings.cs` is added to the existing `src/Game.Configs` project, no new project.
+- **One `.asmdef` per feature folder:** `ActionLogView.cs` is added to the existing `Assets/Scripts/Unity/UI/` folder (assembly `GS.Unity.UI`), which already references everything needed (`VContainer`, `GS.Unity.Common`, `GS.Unity.Map`) — no new folder, no new asmdef. `GameLogSettings.cs` is added to the existing `src/Game.Configs` project and `GameLogEffects.cs` to the existing `src/Game.Components` project — no new projects.
 - **C# code style:** All sketched code uses tabs, `_`-prefixed private fields, same-line opening braces, and omits redundant access modifiers, consistent with `.claude/rules/csharp/code_style.md`.
 
 Use /implement to start working on the plan or request changes.
