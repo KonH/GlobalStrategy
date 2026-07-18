@@ -31,6 +31,10 @@ namespace GS.Unity.UI {
 		Button _btnMenu;
 		Button _btnDebugToggle;
 		VisualElement _debugPanel;
+		Button _btnSelectedCountryDebugMenu;
+		VisualElement _selectedCountryDebugMenu;
+		Button _btnMyOrganizationDebugMenu;
+		VisualElement _myOrganizationDebugMenu;
 		Button _btnEcsViewer;
 		VisualElement _controlDebugRow;
 		bool _debugPanelOpen;
@@ -104,10 +108,16 @@ namespace GS.Unity.UI {
 
 			_btnDebugToggle = root.Q<Button>("btn-debug-toggle");
 			_debugPanel = root.Q("debug-panel");
+			_btnSelectedCountryDebugMenu = root.Q<Button>("btn-selected-country-debug-menu");
+			_selectedCountryDebugMenu = root.Q("selected-country-debug-menu");
+			_btnMyOrganizationDebugMenu = root.Q<Button>("btn-my-organization-debug-menu");
+			_myOrganizationDebugMenu = root.Q("my-organization-debug-menu");
 			_btnEcsViewer = root.Q<Button>("btn-ecs-viewer");
 
 			_btnDebugToggle.clicked += ToggleDebugPanel;
 			_btnEcsViewer.clicked += OpenEcsViewer;
+			RegisterDebugMenuToggle(_btnSelectedCountryDebugMenu, _selectedCountryDebugMenu, "Selected country");
+			RegisterDebugMenuToggle(_btnMyOrganizationDebugMenu, _myOrganizationDebugMenu, "My organization");
 #if UNITY_WEBGL && !UNITY_EDITOR
 			_btnEcsViewer.style.display = DisplayStyle.None;
 #endif
@@ -190,6 +200,24 @@ namespace GS.Unity.UI {
 		void ToggleDebugPanel() {
 			_debugPanelOpen = !_debugPanelOpen;
 			_debugPanel.style.display = _debugPanelOpen ? DisplayStyle.Flex : DisplayStyle.None;
+		}
+
+		void RegisterDebugMenuToggle(Button button, VisualElement menu, string label) {
+			if (button == null || menu == null) {
+				return;
+			}
+
+			menu.style.display = DisplayStyle.None;
+			button.text = $"▶ {label}";
+			button.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button != 0 || !button.ContainsPoint(e.localPosition)) {
+					return;
+				}
+
+				bool isOpen = menu.style.display != DisplayStyle.None;
+				menu.style.display = isOpen ? DisplayStyle.None : DisplayStyle.Flex;
+				button.text = $"{(isOpen ? "▶" : "▼")} {label}";
+			});
 		}
 
 		void OpenEcsViewer() {

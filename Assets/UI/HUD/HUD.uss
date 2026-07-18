@@ -96,6 +96,11 @@
     align-self: center;
 }
 
+.debug-panel-menu-toggle {
+    min-width: 260px;
+    margin-top: 8px;
+}
+
 .debug-panel-button {
     padding: 4px 16px;
     font-size: 16px;
