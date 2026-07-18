@@ -21,7 +21,7 @@ Non-negotiable architectural principles. The `/plan` command checks these before
 ## Planning Discipline
 
 - **Plan before implement.** No code or asset changes without an approved plan file; this prevents scope drift and keeps the git history reviewable.
-- **Bot-feature carve-out.** Bot features implemented via `/implement-bot-feature` — `IBotFeature` implementations in `src/Game.Bots`, their registrations, and their `Docs/BotFeatures/` eval configs and history — use the skill's directly-written PRD plus the committed eval history as their planning artifact, under the standing spec/plan pair `Docs/Specs/52_bot-feature-eval-harness/`. Everything outside that surface still requires its own approved plan.
+- **Bot-feature carve-out.** Bot features implemented via `/implement-bot-feature` — `IBotFeature` implementations in `src/Game.Bots`, their registrations, and their `Docs/BotFeatures/` eval configs and history — use the skill's directly-written PRD plus the committed eval history as their planning artifact, under the standing spec/plan pair `Docs/Specs/26_07_16_14_bot-feature-eval-harness/`. Everything outside that surface still requires its own approved plan.
 
 ## Specification Discipline
 
@@ -29,7 +29,7 @@ Non-negotiable architectural principles. The `/plan` command checks these before
 
 ## File Organisation
 
-- **`Docs/Specs/<index>_<name>/` for all new plans, spec-backed or not.** A technical-only plan (migration, refactor, infra) still gets a `Docs/Specs/<index>_<name>/plan.md`, simply with no `spec.md` alongside it. `Docs/Plans/<index>_<name>.md` is a legacy flat-file location retained for existing entries only — do not add new files there. The numeric index is shared across both directories and always increments; no two plans or specs share a prefix.
+- **`Docs/Specs/<YY_MM_DD_HH>_<name>/` for all new plans, spec-backed or not.** A technical-only plan (migration, refactor, infra) still gets a `Docs/Specs/<YY_MM_DD_HH>_<name>/plan.md`, simply with no `spec.md` alongside it. `Docs/Plans/<index>_<name>.md` is a legacy flat-file location retained for existing entries only — do not add new files there. Each spec folder carries its creation timestamp; its name is not a sequential number.
 
 ## Assembly Structure
 

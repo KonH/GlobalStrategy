@@ -48,7 +48,7 @@ Feature work follows a strict pipeline of custom Claude Code commands ([`.claude
 /commit  /pr                (version bump, commit conventions, PR creation)
 ```
 
-- Specs and plans are **numbered, permanent artifacts**: [`Docs/Specs/`](Docs/Specs/) and [`Docs/Plans/`](Docs/Plans/) hold 45+ of them, so every feature in the game traces back to a written spec, its acceptance criteria, and the plan that shipped it.
+- Specs and plans are **timestamped, permanent artifacts**: [`Docs/Specs/`](Docs/Specs/) and [`Docs/Plans/`](Docs/Plans/) hold 45+ of them, so every feature in the game traces back to a written spec, its acceptance criteria, and the plan that shipped it.
 - `/specify` and `/implement` **orchestrate sub-agents**: an architect sub-agent writes specs; developer sub-agents are spawned per implementation phase, each briefed with the plan, the relevant rules, and current file context — with the orchestrator verifying results between phases.
 - The [Constitution](Docs/Constitution.md) defines non-negotiable architecture principles that `/plan` must validate before any plan is finalized — preventing the classic AI failure mode of quietly drifting from the intended architecture.
 

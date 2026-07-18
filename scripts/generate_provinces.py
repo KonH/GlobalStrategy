@@ -35,7 +35,7 @@ Output:
         population (density sampled from a per-country deterministic RNG x region density
         range, multiplied by the province's post-simplify polygon area)
 
-See Docs/Specs/43_province-division/plan.md for the full design and
+See Docs/Specs/26_07_10_18_province-division/plan.md for the full design and
 .claude/rules/unity/province_config_generator.md for the rule-doc summary.
 """
 
