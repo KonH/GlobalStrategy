@@ -58,8 +58,9 @@ namespace GS.Main {
 			_effectConfig = context.Effect.Load();
 			EffectConfig = _effectConfig;
 			ProvinceConfig = context.Province.Load();
-			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId);
 			var settings = context.GameSettings.Load();
+			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId,
+				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries);
 			_speedMultipliers = settings.SpeedMultipliers;
 			_populationGrowthPercent = settings.PopulationGrowthPercentPerMonth;
 			_countryScoreCoefficient = settings.CountryScoreCoefficient;
@@ -117,6 +118,10 @@ namespace GS.Main {
 				SaveGame(isAutoSave);
 			}
 
+			// Game Log: sweep last tick's RoleChangeApplied before today's character-cycling
+			// handlers might create a new one. See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
+			CleanupEffectNotificationsSystem.UpdateRoleChange(_world);
+
 			foreach (var cmd in _commandAccessor.ReadDebugCycleCharacterCommand().AsSpan()) {
 				ApplyDebugCycleCharacter(cmd.OwnerId, cmd.RoleId, cmd.SlotIndex);
 			}
@@ -147,6 +152,10 @@ namespace GS.Main {
 			}
 
 			CleanupActionEffectsSystem.Update(_world);
+			// Game Log: sweep last tick's Control/Opinion/Discovery events before
+			// CreateActionEffectSystem/DiscoverCountrySystem create this tick's batch below.
+			// See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
+			CleanupEffectNotificationsSystem.UpdateActionEffects(_world);
 			InitActionFromPlayCardSystem.Update(_world, _commandAccessor.ReadPlayCardActionCommand());
 			CheckActionConditionSystem.Update(_world, _actionConfig);
 			DeductActionCostSystem.Update(_world, _actionConfig);
@@ -303,6 +312,8 @@ namespace GS.Main {
 
 			slot.CharacterId = nextEntry.CharacterId;
 			slot.IsAvailable = false;
+			// Game Log event — see Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
+			_world.Add(_world.Create(), new RoleChangeApplied { OrgId = orgId, CountryId = "", RoleId = roleId, CharacterId = nextEntry.CharacterId });
 		}
 
 		void CycleCountryCharacter(string countryId, string roleId) {
@@ -347,6 +358,8 @@ namespace GS.Main {
 				_world.Add(se, new ResourceOwner(nextEntry.CharacterId, OwnerType.Character));
 				_world.Add(se, new Resource { ResourceId = skillDef.SkillId, Value = sv });
 			}
+			// Game Log event — see Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
+			_world.Add(_world.Create(), new RoleChangeApplied { OrgId = "", CountryId = countryId, RoleId = roleId, CharacterId = nextEntry.CharacterId });
 		}
 
 		void ApplyDebugDropCharacter(string ownerId, string roleId, int slotIndex) {

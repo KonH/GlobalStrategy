@@ -1635,6 +1635,14 @@ MonoBehaviour:
     Value: Requires {0} control
   - Key: hud.actions
     Value: "Действия"
+  - Key: game_log.discovered_format
+    Value: "{0} обнаружил {1}"
+  - Key: game_log.control_increased_format
+    Value: "{0} увеличил контроль в {1} на {2} ({3})"
+  - Key: game_log.opinion_increased_format
+    Value: "{0} повысил мнение {1} {2} в {3} на {4} ({5})"
+  - Key: game_log.new_character_format
+    Value: "Новый {0} в {1} - {2}"
   - Key: province_name.Afghanistan__Andkhvoy
     Value: "\u0410\u043d\u0434\u0445\u0432\u043e\u0438"
   - Key: province_name.Afghanistan__Asadabad

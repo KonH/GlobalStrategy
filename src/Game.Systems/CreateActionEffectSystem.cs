@@ -57,6 +57,17 @@ namespace GS.Game.Systems {
 								OwnerId = orgId,
 								Amount = toAdd
 							});
+							// Game Log event — computed after ControlEffect above so the sum already
+							// includes this action's own contribution. See
+							// Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
+							int orgTotal = GetOrgControlInCountry(world, orgId, countryId);
+							int ge = world.Create();
+							world.Add(ge, new ControlEffectApplied {
+								OrgId = orgId,
+								CountryId = countryId,
+								Delta = toAdd,
+								Total = orgTotal
+							});
 						}
 					} else if (effectDef is OpinionModifierEffectParams opinionParams && !string.IsNullOrEmpty(countryId)) {
 						string targetCharId = GetTargetCharacterByCountryAndRole(world, countryId, def.TargetRole);
@@ -70,7 +81,15 @@ namespace GS.Game.Systems {
 							OwnerId = targetCharId,
 							Amount = opinionParams.InitialValue
 						});
-						EnsureOpinionResource(world, targetCharId, opinionResourceId, opinionParams.InitialValue);
+						double opinionTotal = EnsureOpinionResource(world, targetCharId, opinionResourceId, opinionParams.InitialValue);
+						// Game Log event — see Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
+						int opinionGe = world.Create();
+						world.Add(opinionGe, new OpinionEffectApplied {
+							OrgId = orgId,
+							CharacterId = targetCharId,
+							Delta = opinionParams.InitialValue,
+							Total = opinionTotal
+						});
 						int decayEffectEntity = world.Create();
 						world.Add(decayEffectEntity, new ResourceOwner(targetCharId));
 						world.Add(decayEffectEntity, new ResourceLink(opinionResourceId));
@@ -99,6 +118,19 @@ namespace GS.Game.Systems {
 			return total;
 		}
 
+		static int GetOrgControlInCountry(World world, string orgId, string countryId) {
+			int total = 0;
+			int[] req = { TypeId<ControlEffect>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (effects[i].CountryId == countryId && effects[i].OrgId == orgId) { total += effects[i].Value; }
+				}
+			}
+			return total;
+		}
+
 		static string GetTargetCharacterByCountryAndRole(World world, string countryId, string targetRole) {
 			if (string.IsNullOrEmpty(targetRole)) { return ""; }
 			int[] req = { TypeId<Character>.Value };
@@ -114,7 +146,7 @@ namespace GS.Game.Systems {
 			return "";
 		}
 
-		static void EnsureOpinionResource(World world, string charId, string resourceId, int initialValue) {
+		static double EnsureOpinionResource(World world, string charId, string resourceId, int initialValue) {
 			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
 				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
@@ -123,13 +155,14 @@ namespace GS.Game.Systems {
 				for (int i = 0; i < count; i++) {
 					if (owners[i].OwnerId == charId && resources[i].ResourceId == resourceId) {
 						resources[i].Value += initialValue;
-						return;
+						return resources[i].Value;
 					}
 				}
 			}
 			int re = world.Create();
 			world.Add(re, new ResourceOwner(charId, OwnerType.Character));
 			world.Add(re, new Resource { ResourceId = resourceId, Value = initialValue });
+			return initialValue;
 		}
 	}
 }

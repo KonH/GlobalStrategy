@@ -13,5 +13,9 @@
       "enabled": true,
       "parameters": { "discoveredCountriesAvailableControl": 0 }
     }
-  ]
+  ],
+  "gameLog": {
+    "includePlayerActions": true,
+    "maxLogEntries": 12
+  }
 }

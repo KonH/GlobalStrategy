@@ -94,6 +94,10 @@ namespace GS.Game.Systems {
 
 			int newEntity = world.Create();
 			world.Add(newEntity, new DiscoveredCountry { OrgId = orgId, CountryId = candidates[chosen] });
+			// Game Log event — separate sibling entity, not attached to DiscoveredCountry above.
+			// See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
+			int ge = world.Create();
+			world.Add(ge, new DiscoveryApplied { OrgId = orgId, CountryId = candidates[chosen] });
 		}
 	}
 }
