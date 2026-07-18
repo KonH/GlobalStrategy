@@ -15,10 +15,6 @@ namespace GS.Game.Tests {
 			return e;
 		}
 
-		static void AddPlayer(World world, int countryEntity) {
-			world.Add(countryEntity, new Player());
-		}
-
 		static int AddDiscoverEffect(World world, string orgId) {
 			int e = world.Create();
 			world.Add(e, new DiscoverCountryEffect { EffectId = "discover", OrgId = orgId });
@@ -78,7 +74,7 @@ namespace GS.Game.Tests {
 			AddDiscoverEffect(world, "OrgA");
 
 			var rng = new Random(1);
-			DiscoverCountrySystem.Update(world, -1, rng, viewOrgId: "OrgA", hqCountryByOrgId: new Dictionary<string, string>());
+			DiscoverCountrySystem.Update(world, -1, rng, hqCountryByOrgId: new Dictionary<string, string>());
 
 			var discoveredA = GetDiscoveredCountries(world, "OrgA");
 			var discoveredB = GetDiscoveredCountries(world, "OrgB");
@@ -87,37 +83,36 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void view_org_anchors_to_player_country_and_other_orgs_anchor_to_hq() {
+		void each_org_anchors_to_its_own_hq_country() {
 			var world = new World();
-			int playerCountryEntity = AddCountry(world, "PlayerHome");
-			AddPlayer(world, playerCountryEntity);
-			AddCountry(world, "NearPlayer");
+			AddCountry(world, "OrgAHq");
+			AddCountry(world, "NearOrgAHq");
 			AddCountry(world, "NearOrgBHq");
 			AddCountry(world, "OrgBHq");
 
 			var pmEntity = world.Create();
 			var distances = new Dictionary<(string, string), float> {
-				[Order("PlayerHome", "NearPlayer")] = 0.001f,
-				[Order("PlayerHome", "NearOrgBHq")] = 1000f,
-				[Order("PlayerHome", "OrgBHq")] = 1000f,
+				[Order("OrgAHq", "NearOrgAHq")] = 0.001f,
+				[Order("OrgAHq", "NearOrgBHq")] = 1000f,
+				[Order("OrgAHq", "OrgBHq")] = 1000f,
 				[Order("OrgBHq", "NearOrgBHq")] = 0.001f,
-				[Order("OrgBHq", "NearPlayer")] = 1000f,
-				[Order("NearPlayer", "NearOrgBHq")] = 1000f
+				[Order("OrgBHq", "NearOrgAHq")] = 1000f,
+				[Order("NearOrgAHq", "NearOrgBHq")] = 1000f
 			};
 			world.Add(pmEntity, new ProximityMapData { Distances = distances });
 
 			AddDiscoverEffect(world, "OrgA");
 			AddDiscoverEffect(world, "OrgB");
 
-			var hqByOrg = new Dictionary<string, string> { ["OrgA"] = "", ["OrgB"] = "OrgBHq" };
+			var hqByOrg = new Dictionary<string, string> { ["OrgA"] = "OrgAHq", ["OrgB"] = "OrgBHq" };
 			var rng = new Random(42);
-			DiscoverCountrySystem.Update(world, pmEntity, rng, viewOrgId: "OrgA", hqCountryByOrgId: hqByOrg);
+			DiscoverCountrySystem.Update(world, pmEntity, rng, hqCountryByOrgId: hqByOrg);
 
 			var discoveredA = GetDiscoveredCountries(world, "OrgA");
 			var discoveredB = GetDiscoveredCountries(world, "OrgB");
 
 			Assert.Single(discoveredA);
-			Assert.Contains("NearPlayer", discoveredA);
+			Assert.Contains("NearOrgAHq", discoveredA);
 			Assert.Single(discoveredB);
 			Assert.Contains("NearOrgBHq", discoveredB);
 		}
@@ -127,12 +122,11 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void initial_discovery_is_per_org_hq_plus_player_country_for_view_org() {
+		void initial_discovery_is_per_org_hq_country() {
 			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
 			var ctx = MultiOrgTestSupport.BuildContext(
 				participatingOrganizationIds: participants,
-				initialOrganizationId: MultiOrgTestSupport.OrgA,
-				initialPlayerCountryId: MultiOrgTestSupport.ExtraCountry1);
+				initialOrganizationId: MultiOrgTestSupport.OrgA);
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
 			var world = logic.World;
@@ -140,7 +134,7 @@ namespace GS.Game.Tests {
 			var discoveredA = GetDiscoveredCountries(world, MultiOrgTestSupport.OrgA);
 			var discoveredB = GetDiscoveredCountries(world, MultiOrgTestSupport.OrgB);
 
-			Assert.Equal(new HashSet<string> { MultiOrgTestSupport.HqA, MultiOrgTestSupport.ExtraCountry1 }, discoveredA);
+			Assert.Equal(new HashSet<string> { MultiOrgTestSupport.HqA }, discoveredA);
 			Assert.Equal(new HashSet<string> { MultiOrgTestSupport.HqB }, discoveredB);
 		}
 

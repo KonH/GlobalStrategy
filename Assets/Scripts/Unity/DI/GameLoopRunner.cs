@@ -22,7 +22,7 @@ namespace GS.Unity.DI {
 			string saveName = SceneTransitionArgs.SaveNameToLoad;
 			if (saveName != null) {
 				_botSession.Logic.LoadState(saveName);
-			} else if (SceneTransitionArgs.InitialPlayerCountry == null) {
+			} else if (SceneTransitionArgs.OrganizationId == null) {
 				var latest = _saveFileManager.GetLastSave();
 				if (latest != null) {
 					try {

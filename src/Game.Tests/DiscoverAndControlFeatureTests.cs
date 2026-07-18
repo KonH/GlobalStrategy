@@ -73,7 +73,6 @@ namespace GS.Game.Tests {
 				new MultiOrgTestSupport.StaticConfig<GameSettings>(gameSettings),
 				new MultiOrgTestSupport.StaticConfig<ResourceConfig>(resourceConfig),
 				new MultiOrgTestSupport.StaticConfig<OrganizationConfig>(orgConfig),
-				initialPlayerCountryId: "HQ",
 				initialOrganizationId: "Illuminati",
 				action: new MultiOrgTestSupport.StaticConfig<ActionConfig>(actionConfig),
 				effect: new MultiOrgTestSupport.StaticConfig<EffectConfig>(effectConfig));
@@ -150,7 +149,6 @@ namespace GS.Game.Tests {
 				new MultiOrgTestSupport.StaticConfig<GameSettings>(gameSettings),
 				new MultiOrgTestSupport.StaticConfig<ResourceConfig>(resourceConfig),
 				new MultiOrgTestSupport.StaticConfig<OrganizationConfig>(orgConfig),
-				initialPlayerCountryId: "HQ",
 				initialOrganizationId: "Illuminati",
 				action: new MultiOrgTestSupport.StaticConfig<ActionConfig>(actionConfig),
 				effect: new MultiOrgTestSupport.StaticConfig<EffectConfig>(effectConfig),
@@ -172,7 +170,7 @@ namespace GS.Game.Tests {
 			var logic = BuildPriorityLogic(orgGold: 1000.0, discoverAustria: false);
 			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
 			var sink = new RecordingSink();
-			var feature = new DiscoverAndControlFeature();
+			var feature = new DiscoverAndControlFeature(new Dictionary<string, double>(), 100);
 
 			feature.Tick(obs, sink, new Random(1));
 
@@ -189,7 +187,7 @@ namespace GS.Game.Tests {
 			var logic = BuildPriorityLogic(orgGold: 5.0, discoverAustria: true);
 			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
 			var sink = new RecordingSink();
-			var feature = new DiscoverAndControlFeature();
+			var feature = new DiscoverAndControlFeature(new Dictionary<string, double>(), 100);
 
 			feature.Tick(obs, sink, new Random(1));
 
@@ -204,7 +202,7 @@ namespace GS.Game.Tests {
 			var logic = BuildPriorityLogic(orgGold: 1000.0, discoverAustria: true);
 			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
 			var sink = new RecordingSink();
-			var feature = new DiscoverAndControlFeature(new Dictionary<string, double>());
+			var feature = new DiscoverAndControlFeature(new Dictionary<string, double>(), 100);
 
 			feature.Tick(obs, sink, new Random(1));
 
@@ -220,7 +218,7 @@ namespace GS.Game.Tests {
 			var logic = BuildPriorityLogic(orgGold: 1000.0, discoverAustria: true);
 			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
 			var sink = new RecordingSink();
-			var feature = new DiscoverAndControlFeature(new Dictionary<string, double> { ["discoveredCountriesAvailableControl"] = 0 });
+			var feature = new DiscoverAndControlFeature(new Dictionary<string, double> { ["discoveredCountriesAvailableControl"] = 0 }, 100);
 
 			feature.Tick(obs, sink, new Random(1));
 
@@ -233,7 +231,7 @@ namespace GS.Game.Tests {
 			var logic = BuildPriorityLogic(orgGold: 1000.0, discoverAustria: true);
 			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
 			var sink = new RecordingSink();
-			var feature = new DiscoverAndControlFeature();
+			var feature = new DiscoverAndControlFeature(new Dictionary<string, double>(), 100);
 
 			feature.Tick(obs, sink, new Random(1));
 
@@ -248,7 +246,7 @@ namespace GS.Game.Tests {
 
 			var withBot = BuildDivergenceLogic(seed);
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, withBot.Commands, null);
-			var feature = new DiscoverAndControlFeature();
+			var feature = new DiscoverAndControlFeature(new Dictionary<string, double>(), 100);
 			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, withBot.EffectConfig);
 			RunWithBot(withBot, bot, 60);
 
@@ -281,7 +279,7 @@ namespace GS.Game.Tests {
 			GameLogic BuildAndRun() {
 				var logic = BuildDivergenceLogic(seed);
 				var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, logic.Commands, null);
-				var feature = new DiscoverAndControlFeature();
+				var feature = new DiscoverAndControlFeature(new Dictionary<string, double>(), 100);
 				var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, logic.EffectConfig);
 				RunWithBot(logic, bot, 60);
 				return logic;

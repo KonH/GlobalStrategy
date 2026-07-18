@@ -49,7 +49,6 @@ namespace GS.Game.Tests {
 				new StaticConfig<GameSettings>(gameSettings),
 				new StaticConfig<ResourceConfig>(resourceConfig),
 				new StaticConfig<OrganizationConfig>(orgConfig),
-				initialPlayerCountryId: "Great_Britain",
 				initialOrganizationId: orgId
 			);
 			return new GameLogic(ctx);

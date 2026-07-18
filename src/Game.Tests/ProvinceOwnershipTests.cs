@@ -56,7 +56,6 @@ namespace GS.Game.Tests {
 				new StaticConfig<GameSettings>(gameSettings),
 				new StaticConfig<ResourceConfig>(resourceConfig),
 				new StaticConfig<OrganizationConfig>(orgConfig),
-				initialPlayerCountryId: "Great_Britain",
 				initialOrganizationId: "Illuminati",
 				province: new StaticConfig<ProvinceConfig>(provinceConfig));
 			return new GameLogic(ctx);

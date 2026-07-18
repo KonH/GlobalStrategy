@@ -75,7 +75,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void unknown_feature_id_fails_fast_even_when_disabled() {
-			var registry = BotFeatureRegistry.CreateDefault();
+			var registry = BotFeatureRegistry.CreateDefault(100);
 			var profiles = new List<BotProfile> {
 				new BotProfile {
 					OrgId = "Illuminati",
@@ -90,7 +90,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void profile_org_not_in_participating_set_fails_fast() {
-			var registry = BotFeatureRegistry.CreateDefault();
+			var registry = BotFeatureRegistry.CreateDefault(100);
 			var profiles = new List<BotProfile> { new BotProfile { OrgId = "DoesNotExist" } };
 			var ex = Assert.Throws<InvalidOperationException>(() => ValidateBotProfiles(profiles, new List<string> { "Illuminati" }, registry));
 			Assert.Contains("DoesNotExist", ex.Message);
@@ -98,7 +98,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void duplicate_profiles_for_same_org_fail_fast() {
-			var registry = BotFeatureRegistry.CreateDefault();
+			var registry = BotFeatureRegistry.CreateDefault(100);
 			var profiles = new List<BotProfile> {
 				new BotProfile { OrgId = "Illuminati" },
 				new BotProfile { OrgId = "Illuminati" }

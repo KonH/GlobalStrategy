@@ -26,7 +26,7 @@ namespace GS.Game.Bots {
 				IGameLogger? logger = null,
 				BotActionObserver? onAction = null,
 				bool discoverFromWorld = true) {
-			var session = new BotSession(logic, rngSeed, registry ?? BotFeatureRegistry.CreateDefault(), logger, onAction, discoverFromWorld);
+			var session = new BotSession(logic, rngSeed, registry ?? BotFeatureRegistry.CreateDefault(logic.MaxControlPool), logger, onAction, discoverFromWorld);
 			if (explicitProfiles != null) {
 				foreach (var profile in explicitProfiles) {
 					session.AttachBot(profile.OrgId, profile);
@@ -86,11 +86,16 @@ namespace GS.Game.Bots {
 			_botsByOrgId[orgId] = bot;
 		}
 
-		static BotProfile DefaultProfile(string orgId) => new BotProfile {
-			OrgId = orgId,
-			Features = new List<BotFeatureSetting> {
-				new BotFeatureSetting { FeatureId = DiscoverAndControlFeature.Id, Enabled = true, Parameters = new Dictionary<string, double>() }
+		// Feature set for auto-attached (world-discovered) bots comes from
+		// GameSettings.BotFeatures (Assets/Configs/game_settings.json), not a
+		// hardcoded literal here - the eval-validated discoverAndControl threshold lives
+		// in config so it can be tuned without a code change.
+		BotProfile DefaultProfile(string orgId) {
+			var features = new List<BotFeatureSetting>();
+			foreach (var entry in _logic.BotFeatures) {
+				features.Add(new BotFeatureSetting { FeatureId = entry.FeatureId, Enabled = entry.Enabled, Parameters = entry.Parameters });
 			}
-		};
+			return new BotProfile { OrgId = orgId, Features = features };
+		}
 	}
 }

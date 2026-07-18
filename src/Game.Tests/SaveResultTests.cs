@@ -73,7 +73,6 @@ namespace GS.Game.Tests {
 				new StaticConfig<OrganizationConfig>(orgConfig),
 				storage: storage,
 				serializer: new NoopSerializer(),
-				initialPlayerCountryId: "Great_Britain",
 				initialOrganizationId: "Illuminati"
 			);
 			return new GameLogic(ctx);

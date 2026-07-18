@@ -2,26 +2,26 @@
 """Ralph loop - runs `claude -p` with a fresh context per iteration until the spec's PRD is done.
 
 Flow:
-  1. Resolves Docs/Specs/<SpecIndex>_<name>/ and switches to branch ralph/<index>_<name> (creates it if needed)
-  2. Pre-run:  claude "/create-prd <SpecIndex>"  - builds .ralph/prd.md from the spec's plan.md
+  1. Resolves Docs/Specs/<YY_MM_DD_HH>_<name>/ and switches to branch ralph/<spec-id> (creates it if needed)
+  2. Pre-run:  claude "/create-prd <SpecId>"  - builds .ralph/prd.md from the spec's plan.md
   3. Loop:     claude .ralph/PROMPT.md           - one task per fresh-context iteration
-  4. Post-run: claude "/complete-prd <SpecIndex>" - commits leftovers and opens a PR (only if all tasks passed)
+  4. Post-run: claude "/complete-prd <SpecId>" - commits leftovers and opens a PR (only if all tasks passed)
 
 The Unity Editor should be running (Unity MCP is used to verify Unity-side tasks).
 
 Usage (from project root):
-  python scripts/ralph.py --spec-index 45 --max-iterations 10
-  python scripts/ralph.py --spec-index 45 --skip-create-prd          # reuse the existing .ralph/prd.md
-  python scripts/ralph.py --spec-index 45 --skip-pull-request        # stop after the loop, no commit/PR phase
-  python scripts/ralph.py --spec-index 45 --dangerously-skip-permissions
-  python scripts/ralph.py --spec-index 45 --stall-limit 5
+  python scripts/ralph.py --spec 26_07_11_10_province-ownership --max-iterations 10
+  python scripts/ralph.py --spec 26_07_11_10_province-ownership --skip-create-prd          # reuse the existing .ralph/prd.md
+  python scripts/ralph.py --spec 26_07_11_10_province-ownership --skip-pull-request        # stop after the loop, no commit/PR phase
+  python scripts/ralph.py --spec 26_07_11_10_province-ownership --dangerously-skip-permissions
+  python scripts/ralph.py --spec 26_07_11_10_province-ownership --stall-limit 5
 
 The loop stops early (before -MaxIterations) if --stall-limit consecutive iterations commit
 nothing but .ralph/activity.md - a sign the loop is blocked on an unavailable prerequisite
 (e.g. Unity Editor MCP bridge not connected, a missing tool like Node.js) rather than making
 real progress.
 
-Metrics per phase/iteration are appended to .ralph/metrics_<SpecIndex>.csv (gitignored).
+Metrics per phase/iteration are appended to .ralph/metrics_<SpecId>.csv (gitignored).
 """
 
 import argparse
@@ -67,16 +67,16 @@ def changed_files_since(prev_head, new_head):
     return diff.splitlines()
 
 
-def resolve_spec_dir(spec_index):
+def resolve_spec_dir(spec_id):
     specs_root = Path("Docs/Specs")
-    pattern = re.compile(rf"^{spec_index}_")
-    matches = [p for p in specs_root.iterdir() if p.is_dir() and pattern.match(p.name)]
-    if len(matches) == 0:
-        raise RuntimeError(f"No spec folder matches index {spec_index} under Docs/Specs.")
-    if len(matches) > 1:
-        names = ", ".join(m.name for m in matches)
-        raise RuntimeError(f"Multiple spec folders match index {spec_index}: {names}")
-    spec_dir = matches[0]
+    if not re.fullmatch(r"\d{2}_\d{2}_\d{2}_\d{2}_[a-z0-9]+(?:-[a-z0-9]+)*", spec_id):
+        raise RuntimeError(
+            "Spec id must use YY_MM_DD_HH_name format "
+            "(for example, 26_07_11_10_province-ownership)."
+        )
+    spec_dir = specs_root / spec_id
+    if not spec_dir.is_dir():
+        raise RuntimeError(f"No spec folder named {spec_id} exists under Docs/Specs.")
     if not (spec_dir / "plan.md").exists():
         raise RuntimeError(f"Spec folder {spec_dir.name} has no plan.md - run /plan first.")
     return spec_dir
@@ -203,7 +203,7 @@ def invoke_claude_step(claude_exe, phase, iteration, prompt, allowed_tools, dang
 
 def main():
     parser = argparse.ArgumentParser(description="Ralph loop runner")
-    parser.add_argument("--spec-index", type=int, default=None)
+    parser.add_argument("--spec", type=str, default=None, help="Dated spec folder id (YY_MM_DD_HH_name)")
     parser.add_argument("--bot-feature", type=str, default=None)
     parser.add_argument("--max-iterations", type=int, default=10)
     parser.add_argument(
@@ -216,8 +216,8 @@ def main():
     parser.add_argument("--dangerously-skip-permissions", action="store_true")
     args = parser.parse_args()
 
-    if (args.spec_index is None) == (args.bot_feature is None):
-        raise RuntimeError("Exactly one of --spec-index or --bot-feature must be given.")
+    if (args.spec is None) == (args.bot_feature is None):
+        raise RuntimeError("Exactly one of --spec or --bot-feature must be given.")
     bot_mode = args.bot_feature is not None
 
     prompt_file = Path(".ralph/PROMPT.md")
@@ -237,11 +237,11 @@ def main():
         complete_prd_arg = f"bot:{feature_id}"
         print(f"Bot feature: {feature_id}")
     else:
-        spec_dir = resolve_spec_dir(args.spec_index)
+        spec_dir = resolve_spec_dir(args.spec)
         print(f"Spec: Docs/Specs/{spec_dir.name}")
         ralph_branch = f"ralph/{spec_dir.name}"
-        csv_file = Path(f".ralph/metrics_{args.spec_index}.csv")
-        complete_prd_arg = str(args.spec_index)
+        csv_file = Path(f".ralph/metrics_{args.spec}.csv")
+        complete_prd_arg = args.spec
 
     branch, ralph_branch = resolve_branch(ralph_branch)
     print(f"Branch: {branch}")
@@ -271,9 +271,9 @@ def main():
         print(f"Skipping /create-prd, reusing existing {prd_file}")
     else:
         print()
-        print(f"=== Phase: /create-prd {args.spec_index} ===")
+        print(f"=== Phase: /create-prd {args.spec} ===")
         r = invoke_claude_step(
-            claude_exe, "create-prd", "", f"/create-prd {args.spec_index}", loop_tools,
+            claude_exe, "create-prd", "", f"/create-prd {args.spec}", loop_tools,
             args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
         )
         if r is None or r.get("is_error"):

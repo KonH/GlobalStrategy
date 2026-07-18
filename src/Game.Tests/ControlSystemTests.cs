@@ -124,7 +124,7 @@ namespace GS.Game.Tests {
 			var world = new World();
 			AddControl(world, "Org1", "Russia", 10, "base_Org1");
 
-			ControlSystem.ApplyChangeControl(world, "Org1", "Russia", 5);
+			ControlSystem.ApplyChangeControl(world, "Org1", "Russia", 5, 100);
 
 			int permanentCount = 0;
 			int permanentValue = 0;
@@ -148,7 +148,7 @@ namespace GS.Game.Tests {
 			var world = new World();
 			AddControl(world, "Org2", "Russia", 80, "base_Org2"); // other org holds 80
 
-			ControlSystem.ApplyChangeControl(world, "Org1", "Russia", 30); // can only get 20
+			ControlSystem.ApplyChangeControl(world, "Org1", "Russia", 30, 100); // can only get 20
 
 			int permanentValue = 0;
 			int[] required = { TypeId<ControlEffect>.Value };
@@ -172,7 +172,7 @@ namespace GS.Game.Tests {
 				OrgId = "Org1", CountryId = "Russia", Value = 5, EffectId = "permanent_Org1_Russia"
 			});
 
-			ControlSystem.ApplyChangeControl(world, "Org1", "Russia", -20);
+			ControlSystem.ApplyChangeControl(world, "Org1", "Russia", -20, 100);
 
 			Assert.False(world.IsAlive(permanentEntity));
 		}
@@ -201,7 +201,7 @@ namespace GS.Game.Tests {
 			var world = new World();
 			int baseEntity = AddControl(world, "Org1", "Russia", 10, "base_Org1");
 
-			ControlSystem.ApplyChangeControl(world, "Org1", "Russia", 5);
+			ControlSystem.ApplyChangeControl(world, "Org1", "Russia", 5, 100);
 
 			Assert.True(world.IsAlive(baseEntity));
 			Assert.Equal(10, world.Get<ControlEffect>(baseEntity).Value);

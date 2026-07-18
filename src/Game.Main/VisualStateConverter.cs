@@ -11,15 +11,17 @@ namespace GS.Main {
 		readonly System.Collections.Generic.HashSet<string> _previousDiscoveredIds = new();
 		readonly Dictionary<string, AnimatableInt> _characterOpinionAnimatables = new();
 		readonly Dictionary<(string, string), AnimatableDouble> _resourceAnimatables = new();
+		readonly IReadOnlyDictionary<string, string> _hqCountryByOrgId;
 		ActionConfig? _actionConfig;
 		int _lastSeenProvinceOwnershipVersion = -1;
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
 
-		internal VisualStateConverter(VisualState state, ActionConfig? actionConfig = null) {
+		internal VisualStateConverter(VisualState state, ActionConfig? actionConfig = null, IReadOnlyDictionary<string, string>? hqCountryByOrgId = null) {
 			_state = state;
 			_actionConfig = actionConfig;
+			_hqCountryByOrgId = hqCountryByOrgId ?? new Dictionary<string, string>();
 		}
 
 		internal void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
@@ -237,12 +239,8 @@ namespace GS.Main {
 				return;
 			}
 			ref Organization org = ref world.Get<Organization>(orgEntity);
-			string playerCountryId = "";
-			int[] playerReq = { TypeId<Country>.Value, TypeId<Player>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(playerReq, null)) {
-				if (arch.Count > 0) { playerCountryId = arch.GetColumn<Country>()[0].CountryId; break; }
-			}
-			_state.PlayerOrganization.Set(true, org.OrganizationId, org.DisplayName, playerCountryId);
+			_hqCountryByOrgId.TryGetValue(org.OrganizationId, out var hqCountryId);
+			_state.PlayerOrganization.Set(true, org.OrganizationId, org.DisplayName, hqCountryId ?? "");
 		}
 
 		void UpdateResources(IReadOnlyWorld world) {
