@@ -17,6 +17,7 @@
             <ui:Button name="btn-debug-toggle" text="DEBUG" class="gs-btn hud-debug-toggle"/>
         </ui:VisualElement>
         <ui:VisualElement name="top-right-panel" class="top-right-panel">
+            <ui:Button name="btn-leaderboard" text="Leaderboard" class="gs-btn leaderboard-hud-button"/>
             <ui:Instance template="Time" name="time-panel" class="time-panel"/>
         </ui:VisualElement>
         <ui:Instance template="ActionLog" name="action-log" class="action-log-panel"/>

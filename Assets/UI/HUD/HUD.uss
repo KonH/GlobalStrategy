@@ -15,6 +15,13 @@
 .time-panel {
 }
 
+.leaderboard-hud-button {
+    min-width: 180px;
+    height: 36px;
+    margin-bottom: 6px;
+    font-size: 18px;
+}
+
 .action-log-panel {
     position: absolute;
 }
