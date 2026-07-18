@@ -11,12 +11,13 @@ namespace GS.Unity.Map {
 		public static Mesh BuildFeatureMesh(MapFeature feature) {
 			var allVertices = new List<Vector3>();
 			var allTriangles = new List<int>();
+			var allUvs = new List<Vector2>();
 
 			foreach (var polygon in feature.Polygons) {
 				if (polygon.Rings.Count == 0) {
 					continue;
 				}
-				AppendRingMesh(polygon.Rings[0], allVertices, allTriangles);
+				AppendRingMesh(polygon.Rings[0], allVertices, allTriangles, allUvs);
 			}
 
 			if (allVertices.Count == 0) {
@@ -27,12 +28,13 @@ namespace GS.Unity.Map {
 			mesh.indexFormat = IndexFormat.UInt32;
 			mesh.SetVertices(allVertices);
 			mesh.SetTriangles(allTriangles, 0);
+			mesh.SetUVs(0, allUvs);
 			mesh.RecalculateNormals();
 			mesh.RecalculateBounds();
 			return mesh;
 		}
 
-		static void AppendRingMesh(Ring ring, List<Vector3> vertices, List<int> triangles) {
+		static void AppendRingMesh(Ring ring, List<Vector3> vertices, List<int> triangles, List<Vector2> uvs) {
 			var verts = UnwrapAndProjectRing(ring);
 			if (verts == null) {
 				return;
@@ -41,6 +43,7 @@ namespace GS.Unity.Map {
 			int baseIndex = vertices.Count;
 			foreach (var v in verts) {
 				vertices.Add(new Vector3(v.x, v.y, 0f));
+				uvs.Add(v);
 			}
 
 			var tris = Triangulate(verts);

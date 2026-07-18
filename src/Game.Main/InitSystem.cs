@@ -33,6 +33,7 @@ namespace GS.Main {
 
 			var provinceConfig = context.Province.Load();
 			ProvinceOwnershipSystem.Seed(world, provinceConfig);
+			ProvinceOccupationSystem.Seed(world, provinceConfig);
 			CreateProvincePopulationEntities(world, provinceConfig);
 
 			var settings = context.GameSettings.Load();

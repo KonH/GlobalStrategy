@@ -50,6 +50,7 @@ namespace GS.Unity.UI {
 		ActionVisualConfig _actionVisualConfig;
 		CardPlayAnimator _cardPlayAnimator;
 		Button _btnReassignProvince;
+		Button _btnToggleProvinceOccupation;
 		readonly List<Button> _selectedCountryCharacterDebugButtons = new();
 
 		[Inject]
@@ -185,6 +186,14 @@ namespace GS.Unity.UI {
 				reassignProvinceBtn.AddToClassList("debug-panel-button");
 				characterDebugContainer.Add(reassignProvinceBtn);
 				_btnReassignProvince = reassignProvinceBtn;
+
+				var toggleProvinceOccupationBtn = new Button(() => PushToggleProvinceOccupationCommand());
+				toggleProvinceOccupationBtn.text = "Toggle Occupation by My HQ";
+				toggleProvinceOccupationBtn.AddToClassList("gs-btn");
+				toggleProvinceOccupationBtn.AddToClassList("gs-btn--small");
+				toggleProvinceOccupationBtn.AddToClassList("debug-panel-button");
+				characterDebugContainer.Add(toggleProvinceOccupationBtn);
+				_btnToggleProvinceOccupation = toggleProvinceOccupationBtn;
 				RefreshProvinceCheatButton();
 
 			}
@@ -460,9 +469,14 @@ namespace GS.Unity.UI {
 		void HandleGameLogChanged(object sender, PropertyChangedEventArgs e) => _actionLog?.Refresh(_state.GameLog);
 
 		void RefreshProvinceCheatButton() {
-			if (_btnReassignProvince == null || _state == null) { return; }
+			if (_state == null) { return; }
 			bool show = _state.MapLens.Lens == MapLens.Province && _state.SelectedProvince.IsValid;
-			_btnReassignProvince.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+			if (_btnReassignProvince != null) {
+				_btnReassignProvince.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+			}
+			if (_btnToggleProvinceOccupation != null) {
+				_btnToggleProvinceOccupation.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+			}
 		}
 
 		void PushReassignProvinceCommand() {
@@ -471,6 +485,14 @@ namespace GS.Unity.UI {
 			string hqCountryId = _state.PlayerOrganization.HqCountryId;
 			if (string.IsNullOrEmpty(provinceId) || string.IsNullOrEmpty(hqCountryId)) { return; }
 			_commands.Push(new DebugChangeProvinceOwnerCommand { ProvinceId = provinceId, NewOwnerId = hqCountryId });
+		}
+
+		void PushToggleProvinceOccupationCommand() {
+			if (_state == null || _commands == null) { return; }
+			string provinceId = _state.SelectedProvince.ProvinceId;
+			string hqCountryId = _state.PlayerOrganization.HqCountryId;
+			if (string.IsNullOrEmpty(provinceId) || string.IsNullOrEmpty(hqCountryId)) { return; }
+			_commands.Push(new DebugToggleProvinceOccupationCommand { ProvinceId = provinceId, OccupierId = hqCountryId });
 		}
 
 		void PushDiscoverAllCountriesCommand() {

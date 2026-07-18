@@ -150,6 +150,16 @@ namespace GS.Main {
 						cmd.NewOwnerId);
 				}
 			}
+			foreach (var cmd in _commandAccessor.ReadDebugToggleProvinceOccupationCommand().AsSpan()) {
+				var (changed, oldOccupierId, newOccupierId) = ProvinceOccupationSystem.ToggleOccupier(_world, cmd.ProvinceId, cmd.OccupierId);
+				if (changed) {
+					VisualState.ProvinceOccupation.Set(
+						ProvinceOccupationSystem.GetOccupierByProvinceId(_world),
+						cmd.ProvinceId,
+						oldOccupierId,
+						newOccupierId);
+				}
+			}
 
 			CleanupActionEffectsSystem.Update(_world);
 			// Game Log: sweep last tick's Control/Opinion/Discovery events before

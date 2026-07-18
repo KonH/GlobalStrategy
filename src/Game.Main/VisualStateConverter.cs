@@ -14,6 +14,7 @@ namespace GS.Main {
 		readonly IReadOnlyDictionary<string, string> _hqCountryByOrgId;
 		ActionConfig? _actionConfig;
 		int _lastSeenProvinceOwnershipVersion = -1;
+		int _lastSeenProvinceOccupationVersion = -1;
 
 		readonly List<GameLogEntry> _gameLogEntries = new();
 		long _nextGameLogSequenceId = 1;
@@ -48,6 +49,7 @@ namespace GS.Main {
 			UpdateOrgActions(world);
 			UpdateCountryActions(world, gameTimeEntity);
 			UpdateProvinceOwnership(world);
+			UpdateProvinceOccupation(world);
 			UpdateSelectedProvince(world);
 			UpdateCountryScore(world);
 			UpdateGameLog(world, orgEntity);
@@ -612,6 +614,20 @@ namespace GS.Main {
 				_state.ProvinceOwnership.RecentProvinceId,
 				_state.ProvinceOwnership.RecentOldOwnerId,
 				_state.ProvinceOwnership.RecentNewOwnerId);
+		}
+
+		void UpdateProvinceOccupation(IReadOnlyWorld world) {
+			int currentVersion = ProvinceOccupationSystem.GetVersion(world);
+			if (currentVersion == _lastSeenProvinceOccupationVersion) {
+				return;
+			}
+			_lastSeenProvinceOccupationVersion = currentVersion;
+
+			_state.ProvinceOccupation.Set(
+				ProvinceOccupationSystem.GetOccupierByProvinceId(world),
+				_state.ProvinceOccupation.RecentProvinceId,
+				_state.ProvinceOccupation.RecentOldOccupierId,
+				_state.ProvinceOccupation.RecentNewOccupierId);
 		}
 
 		void UpdateSelectedProvince(IReadOnlyWorld world) {
