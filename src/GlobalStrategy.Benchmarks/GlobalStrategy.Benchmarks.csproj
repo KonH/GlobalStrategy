@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latestMajor</LangVersion>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../ECS.Core/ECS.Core.csproj" />
+    <ProjectReference Include="../Game.Main/Game.Main.csproj" />
+    <ProjectReference Include="../Game.Systems/Game.Systems.csproj" />
+  </ItemGroup>
+
+</Project>
