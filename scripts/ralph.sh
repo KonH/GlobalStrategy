@@ -2,10 +2,10 @@
 # Ralph loop - thin wrapper that passes execution to scripts/ralph.py.
 #
 # Usage (from project root):
-#   ./scripts/ralph.sh --spec-index 45 --max-iterations 10
-#   ./scripts/ralph.sh --spec-index 45 --skip-create-prd
-#   ./scripts/ralph.sh --spec-index 45 --skip-pull-request
-#   ./scripts/ralph.sh --spec-index 45 --dangerously-skip-permissions
+#   ./scripts/ralph.sh --spec 26_07_11_10_province-ownership --max-iterations 10
+#   ./scripts/ralph.sh --spec 26_07_11_10_province-ownership --skip-create-prd
+#   ./scripts/ralph.sh --spec 26_07_11_10_province-ownership --skip-pull-request
+#   ./scripts/ralph.sh --spec 26_07_11_10_province-ownership --dangerously-skip-permissions
 #
 # See scripts/ralph.py for the full flow description.
 
