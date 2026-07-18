@@ -14,11 +14,15 @@ namespace GS.Game.Systems {
 			return collector;
 		}
 
-		public static ResourceCollectorRegistry CreateDefault(double populationGrowthPercentPerMonth, double countryScoreCoefficient) {
+		public static ResourceCollectorRegistry CreateDefault(
+			double populationGrowthPercentPerMonth, double countryScoreCoefficient,
+			double recruitsInitialPercent, double recruitsCapPercent, double recruitsMonthlyIncreasePercent) {
 			var registry = new ResourceCollectorRegistry();
 			registry.Register(PopulationGrowthCollector.Id, new PopulationGrowthCollector(populationGrowthPercentPerMonth));
 			registry.Register(CountryPopulationCollector.Id, new CountryPopulationCollector());
 			registry.Register(CountryScoreCollector.Id, new CountryScoreCollector(countryScoreCoefficient));
+			registry.Register(RecruitsSeedCollector.Id, new RecruitsSeedCollector(recruitsInitialPercent));
+			registry.Register(RecruitsGrowthCollector.Id, new RecruitsGrowthCollector(recruitsMonthlyIncreasePercent, recruitsCapPercent));
 			return registry;
 		}
 	}

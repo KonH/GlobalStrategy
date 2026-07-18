@@ -63,7 +63,8 @@ namespace GS.Main {
 				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries);
 			_speedMultipliers = settings.SpeedMultipliers;
 			_resourceCollectorRegistry = ResourceCollectorRegistry.CreateDefault(
-				settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient);
+				settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient,
+				settings.RecruitsInitialPercent, settings.RecruitsCapPercent, settings.RecruitsMonthlyIncreasePercent);
 			_resourceIdUpdateOrder = settings.ResourceIdUpdateOrder;
 			_botActionLogRetentionCap = settings.BotActionLogRetentionCap;
 			BotFeatures = settings.BotFeatures;

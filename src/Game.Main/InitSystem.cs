@@ -96,12 +96,14 @@ namespace GS.Main {
 
 			// Bootstrap pass: previousTime == currentTime so no Monthly effect fires (province
 			// population growth stays untouched at its seed value), but the Instant
-			// country_population/country_score effects created above always fire regardless of
-			// the month-boundary gate — giving both resources a correct non-zero value before
-			// OrgScoreSystem.Recompute reads country_score below. See
-			// Docs/Specs/26_07_18_17_resource-collector-pipeline/plan.md.
+			// country_population/country_score/recruits effects created above always fire
+			// regardless of the month-boundary gate — giving all three resources a correct
+			// non-zero value before OrgScoreSystem.Recompute reads country_score below. See
+			// Docs/Specs/26_07_18_17_resource-collector-pipeline/plan.md and
+			// Docs/Specs/26_07_18_15_recruits-resource/plan.md.
 			var resourceCollectorRegistry = ResourceCollectorRegistry.CreateDefault(
-				settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient);
+				settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient,
+				settings.RecruitsInitialPercent, settings.RecruitsCapPercent, settings.RecruitsMonthlyIncreasePercent);
 			ResourceSystem.Update(world, startTime, startTime, resourceCollectorRegistry, settings.ResourceIdUpdateOrder);
 
 			OrgScoreSystem.Recompute(world);
@@ -189,7 +191,32 @@ namespace GS.Main {
 				}
 				CreateCollectorDrivenCountryResource(world, entry.CountryId, CountryScoreCollector.CountryPopulationResourceId, CountryPopulationCollector.Id);
 				CreateCollectorDrivenCountryResource(world, entry.CountryId, CountryScoreCollector.ResourceId, CountryScoreCollector.Id);
+				CreateRecruitsEntities(world, entry);
 			}
+		}
+
+		static void CreateRecruitsEntities(World world, CountryEntry entry) {
+			int resourceEntity = world.Create();
+			world.Add(resourceEntity, new ResourceOwner(entry.CountryId, OwnerType.Country));
+			world.Add(resourceEntity, new Resource { ResourceId = "recruits", Value = 0 });
+
+			int seedEffectEntity = world.Create();
+			world.Add(seedEffectEntity, new ResourceOwner(entry.CountryId, OwnerType.Country));
+			world.Add(seedEffectEntity, new ResourceLink("recruits"));
+			world.Add(seedEffectEntity, new ResourceEffect {
+				EffectId = $"recruits_seed_{entry.CountryId}",
+				PayType = PayType.Instant
+			});
+			world.Add(seedEffectEntity, new ResourceCollector { CollectorId = RecruitsSeedCollector.Id });
+
+			int growthEffectEntity = world.Create();
+			world.Add(growthEffectEntity, new ResourceOwner(entry.CountryId, OwnerType.Country));
+			world.Add(growthEffectEntity, new ResourceLink("recruits"));
+			world.Add(growthEffectEntity, new ResourceEffect {
+				EffectId = $"recruits_growth_{entry.CountryId}",
+				PayType = PayType.Monthly
+			});
+			world.Add(growthEffectEntity, new ResourceCollector { CollectorId = RecruitsGrowthCollector.Id });
 		}
 
 		static void CreateCollectorDrivenCountryResource(World world, string countryId, string resourceId, string collectorId) {

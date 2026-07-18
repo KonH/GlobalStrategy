@@ -49,27 +49,12 @@ namespace GS.Game.Systems {
 						continue;
 					}
 
-					double currentValue = GetResourceValue(world, owners[i].OwnerId, resourceId);
+					double currentValue = ResourceQuery.GetValue(world, owners[i].OwnerId, resourceId);
 					var collector = registry.Resolve(collectors[i].CollectorId);
 					effect.Value = collector.Compute(owners[i].OwnerId, currentValue, world);
 					effects[i] = effect;
 				}
 			}
-		}
-
-		static double GetResourceValue(IReadOnlyWorld world, string ownerId, string resourceId) {
-			int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
-				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
-				Resource[] resources = arch.GetColumn<Resource>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId == ownerId && resources[i].ResourceId == resourceId) {
-						return resources[i].Value;
-					}
-				}
-			}
-			return 0;
 		}
 
 		// NOTE: a ResourceCollector-tagged effect whose ResourceLink.ResourceId is not in

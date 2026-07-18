@@ -1,5 +1,4 @@
 using ECS;
-using GS.Game.Components;
 
 namespace GS.Game.Systems {
 	public sealed class CountryScoreCollector : IResourceCollector {
@@ -14,21 +13,8 @@ namespace GS.Game.Systems {
 		}
 
 		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) {
-			int[] required = {
-				TypeId<ResourceOwner>.Value,
-				TypeId<Resource>.Value
-			};
-			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
-				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
-				Resource[] resources = arch.GetColumn<Resource>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId == ownerId && resources[i].ResourceId == CountryPopulationResourceId) {
-						return resources[i].Value * _coefficient - currentValue;
-					}
-				}
-			}
-			return 0 - currentValue;
+			double population = ResourceQuery.GetValue(world, ownerId, CountryPopulationResourceId);
+			return population * _coefficient - currentValue;
 		}
 	}
 }
