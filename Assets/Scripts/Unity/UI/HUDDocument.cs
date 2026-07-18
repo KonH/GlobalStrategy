@@ -147,37 +147,39 @@ namespace GS.Unity.UI {
 
 			// Country character debug buttons
 			var characterDebugContainer = root.Q("character-debug-container");
-			if (characterDebugContainer != null && _characterConfig != null) {
-				foreach (var role in _characterConfig.Roles) {
-					bool usedInCountryPool = false;
-					foreach (var cp in _characterConfig.CountryPools) {
-						if (cp.Slots.ContainsKey(role.RoleId)) { usedInCountryPool = true; break; }
+			if (characterDebugContainer != null) {
+				if (_characterConfig != null) {
+					foreach (var role in _characterConfig.Roles) {
+						bool usedInCountryPool = false;
+						foreach (var cp in _characterConfig.CountryPools) {
+							if (cp.Slots.ContainsKey(role.RoleId)) { usedInCountryPool = true; break; }
+						}
+						if (!usedInCountryPool) { continue; }
+						string capturedRoleId = role.RoleId;
+						var nextBtn = new Button(() => PushCycleCharacter(_state?.SelectedCountry?.CountryId ?? "", capturedRoleId, 0));
+						nextBtn.text = $"Next: {role.RoleId}";
+						nextBtn.AddToClassList("gs-btn");
+						nextBtn.AddToClassList("gs-btn--small");
+						nextBtn.AddToClassList("debug-panel-button");
+						characterDebugContainer.Add(nextBtn);
+						_selectedCountryCharacterDebugButtons.Add(nextBtn);
+
+						var dropBtn = new Button(() => PushDropCharacter(_state?.SelectedCountry?.CountryId ?? "", capturedRoleId, 0));
+						dropBtn.text = $"Drop: {role.RoleId}";
+						dropBtn.AddToClassList("gs-btn");
+						dropBtn.AddToClassList("gs-btn--small");
+						dropBtn.AddToClassList("debug-panel-button");
+						characterDebugContainer.Add(dropBtn);
+						_selectedCountryCharacterDebugButtons.Add(dropBtn);
 					}
-					if (!usedInCountryPool) { continue; }
-					string capturedRoleId = role.RoleId;
-					var nextBtn = new Button(() => PushCycleCharacter(_state?.SelectedCountry?.CountryId ?? "", capturedRoleId, 0));
-					nextBtn.text = $"Next: {role.RoleId}";
-					nextBtn.AddToClassList("gs-btn");
-					nextBtn.AddToClassList("gs-btn--small");
-					nextBtn.AddToClassList("debug-panel-button");
-					characterDebugContainer.Add(nextBtn);
-					_selectedCountryCharacterDebugButtons.Add(nextBtn);
 
-					var dropBtn = new Button(() => PushDropCharacter(_state?.SelectedCountry?.CountryId ?? "", capturedRoleId, 0));
-					dropBtn.text = $"Drop: {role.RoleId}";
-					dropBtn.AddToClassList("gs-btn");
-					dropBtn.AddToClassList("gs-btn--small");
-					dropBtn.AddToClassList("debug-panel-button");
-					characterDebugContainer.Add(dropBtn);
-					_selectedCountryCharacterDebugButtons.Add(dropBtn);
+					var improveOpinionBtn = new Button(() => PushImproveOpinionCommand(_state?.SelectedCountry?.CountryId ?? ""));
+					improveOpinionBtn.text = "Improve Opinion";
+					improveOpinionBtn.AddToClassList("gs-btn");
+					improveOpinionBtn.AddToClassList("gs-btn--small");
+					improveOpinionBtn.AddToClassList("debug-panel-button");
+					characterDebugContainer.Add(improveOpinionBtn);
 				}
-
-				var improveOpinionBtn = new Button(() => PushImproveOpinionCommand(_state?.SelectedCountry?.CountryId ?? ""));
-				improveOpinionBtn.text = "Improve Opinion";
-				improveOpinionBtn.AddToClassList("gs-btn");
-				improveOpinionBtn.AddToClassList("gs-btn--small");
-				improveOpinionBtn.AddToClassList("debug-panel-button");
-				characterDebugContainer.Add(improveOpinionBtn);
 
 				var reassignProvinceBtn = new Button(() => PushReassignProvinceCommand());
 				reassignProvinceBtn.text = "Reassign Province to My HQ";
@@ -195,7 +197,6 @@ namespace GS.Unity.UI {
 				characterDebugContainer.Add(toggleProvinceOccupationBtn);
 				_btnToggleProvinceOccupation = toggleProvinceOccupationBtn;
 				RefreshProvinceCheatButton();
-
 			}
 
 			RebuildOrgCharDebugButtons();
