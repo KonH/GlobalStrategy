@@ -328,6 +328,49 @@ namespace GS.Main {
 		}
 	}
 
+	public enum GameLogEntryKind {
+		Discovery,
+		Control,
+		Opinion,
+		NewCharacter
+	}
+
+	public class GameLogEntry {
+		public long SequenceId { get; }          // monotonic, for UI-side identity/diffing
+		public GameLogEntryKind Kind { get; }
+		public string OrgId { get; }             // acting org; "" for the country-role NewCharacter variant
+		public string CountryId { get; }         // target/home country; "" when not applicable
+		public string CharacterId { get; }
+		public string RoleId { get; }
+		public string[] NamePartKeys { get; }    // snapshot, not a re-lookup key
+		public double Delta { get; }             // Control/Opinion only; amount just applied
+		public double Total { get; }             // Control/Opinion only; new resulting total (Opinion: clamped to [-100,100])
+		public bool IsOrgRole { get; }           // NewCharacter only: true = OrgId set/CountryId empty
+
+		public GameLogEntry(long sequenceId, GameLogEntryKind kind, string orgId, string countryId,
+			string characterId, string roleId, string[] namePartKeys, double delta, double total, bool isOrgRole) {
+			SequenceId = sequenceId;
+			Kind = kind;
+			OrgId = orgId;
+			CountryId = countryId;
+			CharacterId = characterId;
+			RoleId = roleId;
+			NamePartKeys = namePartKeys;
+			Delta = delta;
+			Total = total;
+			IsOrgRole = isOrgRole;
+		}
+	}
+
+	public class GameLogState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public IReadOnlyList<GameLogEntry> Entries { get; private set; } = Array.Empty<GameLogEntry>();
+		public void Set(List<GameLogEntry> entries) {
+			Entries = entries;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class VisualState {
 		public SelectedCountryState SelectedCountry { get; } = new SelectedCountryState();
 		public TimeState Time { get; } = new TimeState();
@@ -342,5 +385,6 @@ namespace GS.Main {
 		public ProvinceOwnershipState ProvinceOwnership { get; } = new ProvinceOwnershipState();
 		public SelectedProvinceState SelectedProvince { get; } = new SelectedProvinceState();
 		public CountryScoreState CountryScore { get; } = new CountryScoreState();
+		public GameLogState GameLog { get; } = new GameLogState();
 	}
 }

@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/HUD/ActionLog/ActionLog.uss"/>
+    <ui:VisualElement name="action-log-root" picking-mode="Ignore" class="action-log-root">
+        <ui:VisualElement name="action-log-content" picking-mode="Ignore" class="action-log-content"/>
+    </ui:VisualElement>
+</ui:UXML>

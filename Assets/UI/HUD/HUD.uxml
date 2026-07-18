@@ -4,6 +4,7 @@
     <ui:Template name="PlayerCountry" src="project://database/Assets/UI/HUD/PlayerCountry/PlayerCountry.uxml"/>
     <ui:Template name="LensSwitcher" src="project://database/Assets/UI/HUD/LensSwitcher/LensSwitcher.uxml"/>
     <ui:Template name="OrgLensCountryInfo" src="project://database/Assets/UI/HUD/OrgLensCountryInfo/OrgLensCountryInfo.uxml"/>
+    <ui:Template name="ActionLog" src="project://database/Assets/UI/HUD/ActionLog/ActionLog.uxml"/>
     <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
     <ui:Style src="project://database/Assets/UI/HUD/HUD.uss?fileID=7433441132597879392&amp;guid=960ca7226a908b347be612c19639c422&amp;type=3#HUD"/>
     <ui:Style src="project://database/Assets/UI/Overlay/OrgInfo/OrgActions.uss"/>
@@ -18,6 +19,7 @@
         <ui:VisualElement name="top-right-panel" class="top-right-panel">
             <ui:Instance template="Time" name="time-panel" class="time-panel"/>
         </ui:VisualElement>
+        <ui:Instance template="ActionLog" name="action-log" class="action-log-panel"/>
         <ui:VisualElement name="debug-panel" class="debug-panel">
             <ui:VisualElement class="debug-panel-inner">
                 <ui:Label text="Common options" class="gs-label debug-panel-menu-title" />

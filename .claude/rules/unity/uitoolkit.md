@@ -69,6 +69,10 @@ class CountryInfoView {
 }
 ```
 
+### Incremental diff Refresh — accumulating/animating lists
+
+The full-rebuild `Refresh()` above is wrong for a list where entries must independently animate in and out (e.g. a scrolling log). Instead, key each rendered element by a stable identity (e.g. a monotonic `SequenceId`) in a `Dictionary<long, VisualElement>`, diff the new state against that dictionary, and only touch what changed: new ids get a fresh element with a short fade-in, ids no longer present get a longer fade-out before removal, everything else is left alone. Fade transitions are driven per-element via `IStyle.transitionDuration` plus `element.schedule.Execute(...).ExecuteLater(...)` to remove the element only after its fade-out finishes. See `ActionLogView` (`Assets/Scripts/Unity/UI/ActionLogView.cs`) for a concrete example.
+
 ## Tabs and Windows
 
 Active tab / open window state lives in `VisualState`, driven by commands — not in the UI script:

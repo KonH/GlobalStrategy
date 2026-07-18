@@ -45,6 +45,7 @@ namespace GS.Unity.UI {
 		bool _orgPanelOpen;
 		LensSwitcherView _lensSwitcher;
 		OrgLensCountryView _orgLensCountryView;
+		ActionLogView _actionLog;
 		ActionConfig _actionConfig;
 		ActionVisualConfig _actionVisualConfig;
 		CardPlayAnimator _cardPlayAnimator;
@@ -98,6 +99,7 @@ namespace GS.Unity.UI {
 			_playerOrgView = new PlayerOrgView(_root.Q("player-country"), _loc, _resourceConfig, _tooltip, _orgVisualConfig);
 			_lensSwitcher = new LensSwitcherView(_root.Q("lens-switcher"), _tooltip, _loc);
 			_lensSwitcher.OnLensSelected = OnLensSelected;
+			_actionLog = new ActionLogView(_root, _root.Q("action-log"), _root.Q("top-right-panel"), _loc, _countryVisualConfig, _orgVisualConfig);
 			if (_orgInfoDocument != null) {
 				_orgInfoDocument.OnSubPanelOpened += HandleOrgSubPanelOpened;
 			}
@@ -242,12 +244,14 @@ namespace GS.Unity.UI {
 			_state.PlayerOrganization.Characters.PropertyChanged += HandleOrgCharactersChanged;
 			_state.SelectedCountry.Control.UsedControl.PropertyChanged += HandleControlTickChanged;
 			_state.SelectedProvince.PropertyChanged += HandleSelectedProvinceChanged;
+			_state.GameLog.PropertyChanged += HandleGameLogChanged;
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			RefreshCountryViews();
 			RefreshControlDebugRow();
 			RefreshSelectedCountryCharacterDebugButtons();
 			RefreshProvinceCheatButton();
 			_timeView.Refresh(_state.Time);
+			_actionLog?.Refresh(_state.GameLog);
 		}
 
 		void OnDisable() {
@@ -269,6 +273,7 @@ namespace GS.Unity.UI {
 			_state.PlayerOrganization.Characters.PropertyChanged -= HandleOrgCharactersChanged;
 			_state.SelectedCountry.Control.UsedControl.PropertyChanged -= HandleControlTickChanged;
 			_state.SelectedProvince.PropertyChanged -= HandleSelectedProvinceChanged;
+			_state.GameLog.PropertyChanged -= HandleGameLogChanged;
 			_lastOrgAgentSlotCount = -1;
 			if (_orgInfoDocument != null) {
 				_orgInfoDocument.OnSubPanelOpened -= HandleOrgSubPanelOpened;
@@ -451,6 +456,8 @@ namespace GS.Unity.UI {
 		void HandleSelectedProvinceChanged(object sender, PropertyChangedEventArgs e) {
 			RefreshProvinceCheatButton();
 		}
+
+		void HandleGameLogChanged(object sender, PropertyChangedEventArgs e) => _actionLog?.Refresh(_state.GameLog);
 
 		void RefreshProvinceCheatButton() {
 			if (_btnReassignProvince == null || _state == null) { return; }

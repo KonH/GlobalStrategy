@@ -1618,6 +1618,14 @@ MonoBehaviour:
     Value: Requires {0} control
   - Key: hud.actions
     Value: Actions
+  - Key: game_log.discovered_format
+    Value: "{0} discovered {1}"
+  - Key: game_log.control_increased_format
+    Value: "{0} increased control in {1} by {2} ({3})"
+  - Key: game_log.opinion_increased_format
+    Value: "{0} increased {1} {2} opinion in {3} by {4} ({5})"
+  - Key: game_log.new_character_format
+    Value: "New {0} in {1} - {2}"
   - Key: province_name.Afghanistan__Andkhvoy
     Value: Andkhvoy
   - Key: province_name.Afghanistan__Asadabad

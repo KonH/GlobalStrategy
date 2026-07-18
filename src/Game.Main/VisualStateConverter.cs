@@ -15,13 +15,22 @@ namespace GS.Main {
 		ActionConfig? _actionConfig;
 		int _lastSeenProvinceOwnershipVersion = -1;
 
+		readonly List<GameLogEntry> _gameLogEntries = new();
+		long _nextGameLogSequenceId = 1;
+		readonly bool _gameLogIncludePlayerActions;
+		readonly int _gameLogMaxEntries;
+
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
 
-		internal VisualStateConverter(VisualState state, ActionConfig? actionConfig = null, IReadOnlyDictionary<string, string>? hqCountryByOrgId = null) {
+		internal VisualStateConverter(VisualState state, ActionConfig? actionConfig = null,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
+			bool gameLogIncludePlayerActions = true, int gameLogMaxEntries = 12) {
 			_state = state;
 			_actionConfig = actionConfig;
 			_hqCountryByOrgId = hqCountryByOrgId ?? new Dictionary<string, string>();
+			_gameLogIncludePlayerActions = gameLogIncludePlayerActions;
+			_gameLogMaxEntries = gameLogMaxEntries;
 		}
 
 		internal void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
@@ -41,6 +50,7 @@ namespace GS.Main {
 			UpdateProvinceOwnership(world);
 			UpdateSelectedProvince(world);
 			UpdateCountryScore(world);
+			UpdateGameLog(world, orgEntity);
 
 			// Tick all animatables
 			foreach (var animatable in _characterOpinionAnimatables.Values) {
@@ -629,6 +639,106 @@ namespace GS.Main {
 				}
 			}
 			_state.CountryScore.Set(scoreByCountryId);
+		}
+
+		// Collection pass, not a diff pass — modeled on UpdateLastFrameEffects above, which already
+		// scans a transient one-shot component archetype (ResourceChange) every tick the same way.
+		// No baseline/init-guard needed: the four source components are only ever created at the
+		// exact point their underlying effect is applied, never during InitSystem seeding, so there
+		// is structurally nothing to collect on a fresh/loaded game. See
+		// Docs/Specs/26_07_18_07_action-log-ui/plan.md "Collection logic" section.
+		void UpdateGameLog(IReadOnlyWorld world, int orgEntity) {
+			string playerOrgId = _state.PlayerOrganization.IsValid ? _state.PlayerOrganization.OrgId : "";
+			var newEntries = new List<GameLogEntry>();
+
+			int[] controlReq = { TypeId<ControlEffectApplied>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(controlReq, null)) {
+				ControlEffectApplied[] applied = arch.GetColumn<ControlEffectApplied>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (!_gameLogIncludePlayerActions && applied[i].OrgId == playerOrgId) { continue; }
+					newEntries.Add(new GameLogEntry(0, GameLogEntryKind.Control, applied[i].OrgId, applied[i].CountryId,
+						"", "", Array.Empty<string>(), applied[i].Delta, applied[i].Total, false));
+				}
+			}
+
+			bool opinionArchetypeNonEmpty = false;
+			int[] opinionReq = { TypeId<OpinionEffectApplied>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(opinionReq, null)) {
+				if (arch.Count > 0) { opinionArchetypeNonEmpty = true; break; }
+			}
+			bool roleChangeArchetypeNonEmpty = false;
+			int[] roleChangeReq = { TypeId<RoleChangeApplied>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(roleChangeReq, null)) {
+				if (arch.Count > 0) { roleChangeArchetypeNonEmpty = true; break; }
+			}
+
+			Dictionary<string, (string RoleId, string CountryId, string OrgId, string[] NamePartKeys)>? charLookup = null;
+			if (opinionArchetypeNonEmpty || roleChangeArchetypeNonEmpty) {
+				charLookup = new Dictionary<string, (string, string, string, string[])>();
+				int[] charReq = { TypeId<Character>.Value };
+				foreach (Archetype arch in world.GetMatchingArchetypes(charReq, null)) {
+					Character[] chars = arch.GetColumn<Character>();
+					int count = arch.Count;
+					for (int i = 0; i < count; i++) {
+						charLookup[chars[i].CharacterId] = (chars[i].RoleId, chars[i].CountryId, chars[i].OrgId, chars[i].NamePartKeys);
+					}
+				}
+			}
+
+			if (opinionArchetypeNonEmpty) {
+				foreach (Archetype arch in world.GetMatchingArchetypes(opinionReq, null)) {
+					OpinionEffectApplied[] applied = arch.GetColumn<OpinionEffectApplied>();
+					int count = arch.Count;
+					for (int i = 0; i < count; i++) {
+						if (charLookup == null || !charLookup.TryGetValue(applied[i].CharacterId, out var charInfo)) { continue; }
+						if (!_gameLogIncludePlayerActions && applied[i].OrgId == playerOrgId) { continue; }
+						double clampedTotal = Math.Clamp((int)applied[i].Total, -100, 100);
+						newEntries.Add(new GameLogEntry(0, GameLogEntryKind.Opinion, applied[i].OrgId, charInfo.CountryId,
+							applied[i].CharacterId, charInfo.RoleId, charInfo.NamePartKeys, applied[i].Delta, clampedTotal, false));
+					}
+				}
+			}
+
+			int[] discoveryReq = { TypeId<DiscoveryApplied>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(discoveryReq, null)) {
+				DiscoveryApplied[] applied = arch.GetColumn<DiscoveryApplied>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (!_gameLogIncludePlayerActions && applied[i].OrgId == playerOrgId) { continue; }
+					newEntries.Add(new GameLogEntry(0, GameLogEntryKind.Discovery, applied[i].OrgId, applied[i].CountryId,
+						"", "", Array.Empty<string>(), 0, 0, false));
+				}
+			}
+
+			if (roleChangeArchetypeNonEmpty) {
+				foreach (Archetype arch in world.GetMatchingArchetypes(roleChangeReq, null)) {
+					RoleChangeApplied[] applied = arch.GetColumn<RoleChangeApplied>();
+					int count = arch.Count;
+					for (int i = 0; i < count; i++) {
+						bool isOrgRole = !string.IsNullOrEmpty(applied[i].OrgId);
+						if (isOrgRole && !_gameLogIncludePlayerActions && applied[i].OrgId == playerOrgId) { continue; }
+						string[] namePartKeys = Array.Empty<string>();
+						if (charLookup != null && charLookup.TryGetValue(applied[i].CharacterId, out var charInfo)) {
+							namePartKeys = charInfo.NamePartKeys;
+						}
+						newEntries.Add(new GameLogEntry(0, GameLogEntryKind.NewCharacter, applied[i].OrgId, applied[i].CountryId,
+							applied[i].CharacterId, applied[i].RoleId, namePartKeys, 0, 0, isOrgRole));
+					}
+				}
+			}
+
+			if (newEntries.Count == 0) { return; }
+
+			foreach (var entry in newEntries) {
+				_gameLogEntries.Add(new GameLogEntry(_nextGameLogSequenceId++, entry.Kind, entry.OrgId, entry.CountryId,
+					entry.CharacterId, entry.RoleId, entry.NamePartKeys, entry.Delta, entry.Total, entry.IsOrgRole));
+			}
+			while (_gameLogEntries.Count > _gameLogMaxEntries) {
+				_gameLogEntries.RemoveAt(0);
+			}
+
+			_state.GameLog.Set(new List<GameLogEntry>(_gameLogEntries));
 		}
 
 		List<EffectStateEntry> BuildEffects(IReadOnlyWorld world, string countryId, string resourceId) {
