@@ -4,7 +4,7 @@ using GS.Game.Components;
 
 namespace GS.Game.Systems {
 	// Derived query only — no ECS component, nothing [Savable], no VisualState exposure.
-	// Reads already-computed CountryScore values (see CountryScoreSystem, spec 47) plus
+	// Reads already-computed CountryScore values (see CountryScoreSystem, spec 26_07_14_09_country-scoring) plus
 	// the org's ControlEffects, and is the ONLY place in the codebase that knows the
 	// org-score formula. Consumers treat the result as an opaque comparable number.
 	public static class OrgScore {
