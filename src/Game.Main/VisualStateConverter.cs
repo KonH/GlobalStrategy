@@ -634,7 +634,7 @@ namespace GS.Main {
 		internal void UpdateCountryScore(IReadOnlyWorld world) {
 			var scoreByCountryId = new Dictionary<string, double>();
 			foreach (string countryId in GetCountryIds(world)) {
-				scoreByCountryId[countryId] = CountryScoreSystem.GetScore(world, countryId);
+				scoreByCountryId[countryId] = ResourceQuery.GetValue(world, countryId, ResourceDefinitions.CountryScore);
 			}
 			_state.CountryScore.Set(scoreByCountryId);
 		}
@@ -651,7 +651,7 @@ namespace GS.Main {
 						0,
 						orgId,
 						string.IsNullOrEmpty(orgs[i].DisplayName) ? orgId : orgs[i].DisplayName,
-						OrgScoreSystem.GetScore(world, orgId)));
+						ResourceQuery.GetValue(world, orgId, ResourceDefinitions.OrgScore)));
 				}
 			}
 
@@ -661,7 +661,7 @@ namespace GS.Main {
 					0,
 					countryId,
 					GetCountryDisplayName(countryId),
-					CountryScoreSystem.GetScore(world, countryId)));
+					ResourceQuery.GetValue(world, countryId, ResourceDefinitions.CountryScore)));
 			}
 
 			SortAndAssignPlaces(organizations);

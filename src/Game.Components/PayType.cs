@@ -1,3 +1,3 @@
 namespace GS.Game.Components {
-	public enum PayType { Instant, Monthly }
+	public enum PayType { Instant, Monthly, Daily }
 }

@@ -10,14 +10,16 @@ namespace GS.Game.Tests {
 		static int SeedCountry(World world, string countryId, double score) {
 			int entity = world.Create();
 			world.Add(entity, new Country(countryId));
-			world.Add(entity, new Score { Value = score });
+			world.Add(entity, new ResourceOwner(countryId, OwnerType.Country));
+			world.Add(entity, new Resource { ResourceId = ResourceDefinitions.CountryScore, Value = score });
 			return entity;
 		}
 
 		static int SeedOrganization(World world, string orgId, string displayName, double score) {
 			int entity = world.Create();
 			world.Add(entity, new Organization { OrganizationId = orgId, DisplayName = displayName });
-			world.Add(entity, new Score { Value = score });
+			world.Add(entity, new ResourceOwner(orgId, OwnerType.Org));
+			world.Add(entity, new Resource { ResourceId = ResourceDefinitions.OrgScore, Value = score });
 			return entity;
 		}
 

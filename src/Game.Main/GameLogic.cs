@@ -13,8 +13,8 @@ namespace GS.Main {
 		readonly VisualStateConverter _visualStateConverter;
 		readonly GameLogicContext _context;
 		readonly int[] _speedMultipliers;
-		readonly double _populationGrowthPercent;
-		readonly double _countryScoreCoefficient;
+		readonly ResourceCollectorRegistry _resourceCollectorRegistry;
+		readonly string[] _resourceIdUpdateOrder;
 		readonly Random _rng;
 		readonly Dictionary<string, string> _hqCountryByOrgId;
 		int _gameTimeEntity = -1;
@@ -64,8 +64,10 @@ namespace GS.Main {
 			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId,
 				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig);
 			_speedMultipliers = settings.SpeedMultipliers;
-			_populationGrowthPercent = settings.PopulationGrowthPercentPerMonth;
-			_countryScoreCoefficient = settings.CountryScoreCoefficient;
+			_resourceCollectorRegistry = ResourceCollectorRegistry.CreateDefault(
+				settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient,
+				settings.RecruitsInitialPercent, settings.RecruitsCapPercent, settings.RecruitsMonthlyIncreasePercent);
+			_resourceIdUpdateOrder = settings.ResourceIdUpdateOrder;
 			_botActionLogRetentionCap = settings.BotActionLogRetentionCap;
 			BotFeatures = settings.BotFeatures;
 			MaxControlPool = settings.MaxControlPool;
@@ -76,6 +78,7 @@ namespace GS.Main {
 		public void Update(float deltaTime) {
 			if (InitSystem.Update(_world, _context, _rng)) {
 				RefreshSingletonEntities();
+				ProvinceOwnershipSystem.Seed(_world, ProvinceConfig);
 			}
 
 			ref GameTime time = ref _world.Get<GameTime>(_gameTimeEntity);
@@ -91,10 +94,8 @@ namespace GS.Main {
 				_commandAccessor.ReadChangeTimeMultiplierCommand());
 
 			DateTime currentTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
-			ResourceSystem.Update(_world, _previousTime, currentTime);
+			ResourceSystem.Update(_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder);
 			ControlSystem.Update(_world, _previousTime, currentTime);
-			ProvincePopulationGrowthSystem.Update(_world, _previousTime, currentTime, _populationGrowthPercent);
-			CountryScoreSystem.Update(_world, _previousTime, currentTime, _countryScoreCoefficient);
 
 			foreach (var cmd in _commandAccessor.ReadChangeControlCommand().AsSpan()) {
 				ApplyChangeControl(cmd.OrgId, cmd.CountryId, cmd.Delta);
@@ -163,7 +164,6 @@ namespace GS.Main {
 			DeductActionCostSystem.Update(_world, _actionConfig);
 			ActionSucceededSystem.Update(_world, _actionConfig);
 			CreateActionEffectSystem.Update(_world, _actionConfig, _effectConfig, currentTime);
-			OrgScoreSystem.Update(_world, _previousTime, currentTime);
 			DiscoverCountrySystem.Update(_world, _proximityEntity, _rng, _hqCountryByOrgId);
 			RemoveCardFromHandSystem.Update(_world);
 			CheckHandSizeSystem.Update(_world);
@@ -185,8 +185,6 @@ namespace GS.Main {
 				_sessionId = snapshot.Header.SessionId;
 			}
 			RefreshSingletonEntities();
-			CountryScoreSystem.Recompute(_world, _countryScoreCoefficient);
-			OrgScoreSystem.Recompute(_world);
 		}
 
 		void SaveGame(bool isAutoSave) {
@@ -437,7 +435,7 @@ namespace GS.Main {
 				Resource[] resources = arch.GetColumn<Resource>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId == orgId && resources[i].ResourceId == "gold") {
+					if (owners[i].OwnerId == orgId && resources[i].ResourceId == ResourceDefinitions.Gold) {
 						resources[i].Value = System.Math.Max(0, resources[i].Value + amount);
 						return;
 					}
