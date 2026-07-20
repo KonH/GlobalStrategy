@@ -1,0 +1,132 @@
+.leaderboard-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.leaderboard-panel {
+    position: relative;
+    width: 78%;
+    height: 82%;
+    padding: 26px 32px;
+}
+
+.leaderboard-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+}
+
+.leaderboard-title {
+    font-size: 38px;
+}
+
+.leaderboard-close {
+    position: absolute;
+    top: 26px;
+    right: 32px;
+    width: 52px;
+    height: 46px;
+    font-size: 24px;
+}
+
+.leaderboard-tabs {
+    flex-direction: row;
+    margin-bottom: 12px;
+}
+
+.leaderboard-tab {
+    min-width: 220px;
+    height: 48px;
+    margin-right: 12px;
+    font-size: 24px;
+}
+
+.leaderboard-tab--active {
+    border-color: rgb(240, 200, 96);
+    border-width: 3px;
+}
+
+.leaderboard-table-header {
+    flex-direction: row;
+    align-items: center;
+    align-self: stretch;
+    padding: 6px 10px;
+    padding-right: 26px;
+    margin-bottom: 4px;
+    border-bottom-width: 1px;
+    border-color: rgb(200, 160, 64);
+}
+
+.leaderboard-header-place,
+.leaderboard-row-place {
+    width: 70px;
+    -unity-text-align: middle-center;
+}
+
+.leaderboard-header-flag,
+.leaderboard-row-flag {
+    width: 56px;
+    height: 36px;
+    margin-right: 14px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.leaderboard-header-name,
+.leaderboard-row-name {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.leaderboard-header-score,
+.leaderboard-row-score {
+    width: 180px;
+    -unity-text-align: middle-right;
+}
+
+.leaderboard-list {
+    flex-grow: 1;
+    align-self: stretch;
+}
+
+.leaderboard-row {
+    flex-direction: row;
+    align-items: center;
+    min-height: 54px;
+    padding: 8px 10px;
+    margin-bottom: 4px;
+    background-color: rgba(8, 14, 30, 0.45);
+    border-radius: 4px;
+}
+
+.leaderboard-row-place,
+.leaderboard-row-name,
+.leaderboard-row-score,
+.leaderboard-table-header Label {
+    color: rgb(240, 232, 208);
+    font-size: 22px;
+    -unity-font-style: bold;
+}
+
+.leaderboard-row-name {
+    -unity-text-align: middle-left;
+}
+
+.leaderboard-row-score {
+    color: rgb(255, 224, 128);
+}
+
+.leaderboard-empty {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    -unity-text-align: middle-center;
+    color: rgb(240, 232, 208);
+    font-size: 26px;
+}

@@ -14,6 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: GS.Unity.UI::LocaleConfig
   Locale: en
   Entries:
+  - Key: leaderboard.title
+    Value: Leaderboard
+  - Key: leaderboard.tab.organizations
+    Value: Organizations
+  - Key: leaderboard.tab.countries
+    Value: Countries
+  - Key: leaderboard.empty
+    Value: No leaderboard entries available
+  - Key: hud.leaderboard
+    Value: Leaderboard
   - Key: country_name.Afghanistan
     Value: Afghanistan
   - Key: country_name.Algeria

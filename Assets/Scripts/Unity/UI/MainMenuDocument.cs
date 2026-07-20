@@ -8,6 +8,8 @@ using VContainer;
 namespace GS.Unity.UI {
 	[RequireComponent(typeof(UIDocument))]
 	public class MainMenuDocument : MonoBehaviour {
+		[SerializeField] string _versionName;
+
 		SaveFileManager _saveFileManager;
 		SceneLoader _sceneLoader;
 		LoadWindowDocument _loadWindow;
@@ -21,7 +23,8 @@ namespace GS.Unity.UI {
 		Button _btnLoad;
 		Button _btnSettings;
 		Button _btnExit;
-		Label _versionLabel;
+		Label _versionNameLabel;
+		Label _versionNumberLabel;
 
 		[Inject]
 		void Construct(SaveFileManager saveFileManager, SceneLoader sceneLoader, LoadWindowDocument loadWindow, SettingsWindowDocument settingsWindow, VisualState state, ILocalization loc) {
@@ -58,9 +61,13 @@ namespace GS.Unity.UI {
 			_btnSettings = root.Q<Button>("btn-settings");
 			_btnExit = root.Q<Button>("btn-exit");
 			root.Q<Label>("title-label").text = "Global Strategy";
-			_versionLabel = root.Q<Label>("version-label");
-			if (_versionLabel != null) {
-				_versionLabel.text = $"v{Application.version}";
+			_versionNameLabel = root.Q<Label>("version-name");
+			if (_versionNameLabel != null) {
+				_versionNameLabel.text = _versionName;
+			}
+			_versionNumberLabel = root.Q<Label>("version-label");
+			if (_versionNumberLabel != null) {
+				_versionNumberLabel.text = $"v{Application.version}";
 			}
 
 			_btnPlay.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnPlay.ContainsPoint(e.localPosition)) _sceneLoader.LoadSelectCountry(); });

@@ -428,6 +428,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07f06a7f73e5f944d9338e9e074a9a21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GS.Unity.UI::GS.Unity.UI.MainMenuDocument
+  _versionName: World Domination
 --- !u!114 &50000002
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -726,6 +727,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c534506332318af41ada7250976f3fde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GS.Unity.UI::GS.Unity.UI.FlyTextNotifierDocument
+  _topMostSortingOrder: 1000
+  _entranceDuration: 0.2
+  _holdDuration: 1.5
+  _exitDuration: 0.5
+  _entranceStartScale: 0.5
+  _exitEndScale: 0.8
+  _exitMoveDownPx: 40
 --- !u!114 &1159727059
 MonoBehaviour:
   m_ObjectHideFlags: 0

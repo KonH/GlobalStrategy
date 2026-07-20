@@ -336,6 +336,33 @@ namespace GS.Main {
 		}
 	}
 
+	public class LeaderboardEntryState {
+		public int Place { get; }
+		public string EntityId { get; }
+		public string DisplayName { get; }
+		public double Score { get; }
+
+		public LeaderboardEntryState(int place, string entityId, string displayName, double score) {
+			Place = place;
+			EntityId = entityId;
+			DisplayName = displayName;
+			Score = score;
+		}
+	}
+
+	public class LeaderboardState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyList<LeaderboardEntryState> Organizations { get; private set; } = Array.Empty<LeaderboardEntryState>();
+		public IReadOnlyList<LeaderboardEntryState> Countries { get; private set; } = Array.Empty<LeaderboardEntryState>();
+
+		public void Set(List<LeaderboardEntryState> organizations, List<LeaderboardEntryState> countries) {
+			Organizations = organizations;
+			Countries = countries;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class SelectedProvinceState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -407,6 +434,7 @@ namespace GS.Main {
 		public ProvinceOccupationState ProvinceOccupation { get; } = new ProvinceOccupationState();
 		public SelectedProvinceState SelectedProvince { get; } = new SelectedProvinceState();
 		public CountryScoreState CountryScore { get; } = new CountryScoreState();
+		public LeaderboardState Leaderboard { get; } = new LeaderboardState();
 		public GameLogState GameLog { get; } = new GameLogState();
 	}
 }
