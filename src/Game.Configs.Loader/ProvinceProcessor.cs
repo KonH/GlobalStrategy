@@ -3,8 +3,8 @@ using System.Text.Json.Nodes;
 using GS.Game.Configs;
 
 namespace GS.Game.Loader {
-	static class ProvinceProcessor {
-		internal static (ProvinceConfig metadata, JsonNode geometry, List<string> validationErrors) Process(
+	public static class ProvinceProcessor {
+		public static (ProvinceConfig metadata, JsonNode geometry, List<string> validationErrors) Process(
 			JsonNode intermediate, CountryConfig countryConfig) {
 			var provinces = new List<ProvinceEntry>();
 			var validationErrors = new List<string>();

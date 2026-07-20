@@ -6,14 +6,16 @@ using GS.Game.Systems;
 using GS.Game.Configs;
 
 namespace GS.Main {
-	class VisualStateConverter {
+	public class VisualStateConverter {
 		readonly VisualState _state;
 		readonly System.Collections.Generic.HashSet<string> _previousDiscoveredIds = new();
 		readonly Dictionary<string, AnimatableInt> _characterOpinionAnimatables = new();
 		readonly Dictionary<(string, string), AnimatableDouble> _resourceAnimatables = new();
 		readonly IReadOnlyDictionary<string, string> _hqCountryByOrgId;
+		readonly CountryConfig? _countryConfig;
 		ActionConfig? _actionConfig;
 		int _lastSeenProvinceOwnershipVersion = -1;
+		int _lastSeenProvinceOccupationVersion = -1;
 
 		readonly List<GameLogEntry> _gameLogEntries = new();
 		long _nextGameLogSequenceId = 1;
@@ -23,17 +25,19 @@ namespace GS.Main {
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
 
-		internal VisualStateConverter(VisualState state, ActionConfig? actionConfig = null,
+		public VisualStateConverter(VisualState state, ActionConfig? actionConfig = null,
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
-			bool gameLogIncludePlayerActions = true, int gameLogMaxEntries = 12) {
+			bool gameLogIncludePlayerActions = true, int gameLogMaxEntries = 12,
+			CountryConfig? countryConfig = null) {
 			_state = state;
 			_actionConfig = actionConfig;
 			_hqCountryByOrgId = hqCountryByOrgId ?? new Dictionary<string, string>();
+			_countryConfig = countryConfig;
 			_gameLogIncludePlayerActions = gameLogIncludePlayerActions;
 			_gameLogMaxEntries = gameLogMaxEntries;
 		}
 
-		internal void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
+		public void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
 			UpdateLastFrameEffects(world);
 			UpdateSelectedCountry(world);
 			UpdateTime(world, gameTimeEntity);
@@ -48,8 +52,10 @@ namespace GS.Main {
 			UpdateOrgActions(world);
 			UpdateCountryActions(world, gameTimeEntity);
 			UpdateProvinceOwnership(world);
+			UpdateProvinceOccupation(world);
 			UpdateSelectedProvince(world);
 			UpdateCountryScore(world);
+			UpdateLeaderboards(world);
 			UpdateGameLog(world, orgEntity);
 
 			// Tick all animatables
@@ -614,6 +620,20 @@ namespace GS.Main {
 				_state.ProvinceOwnership.RecentNewOwnerId);
 		}
 
+		void UpdateProvinceOccupation(IReadOnlyWorld world) {
+			int currentVersion = ProvinceOccupationSystem.GetVersion(world);
+			if (currentVersion == _lastSeenProvinceOccupationVersion) {
+				return;
+			}
+			_lastSeenProvinceOccupationVersion = currentVersion;
+
+			_state.ProvinceOccupation.Set(
+				ProvinceOccupationSystem.GetOccupierByProvinceId(world),
+				_state.ProvinceOccupation.RecentProvinceId,
+				_state.ProvinceOccupation.RecentOldOccupierId,
+				_state.ProvinceOccupation.RecentNewOccupierId);
+		}
+
 		void UpdateSelectedProvince(IReadOnlyWorld world) {
 			int[] required = { TypeId<ProvinceSelection>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
@@ -627,18 +647,83 @@ namespace GS.Main {
 			_state.SelectedProvince.Set(false, "");
 		}
 
-		void UpdateCountryScore(IReadOnlyWorld world) {
+		public void UpdateCountryScore(IReadOnlyWorld world) {
 			var scoreByCountryId = new Dictionary<string, double>();
-			int[] required = { TypeId<Country>.Value, TypeId<Score>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
-				Country[] countries = arch.GetColumn<Country>();
-				Score[] scores = arch.GetColumn<Score>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					scoreByCountryId[countries[i].CountryId] = scores[i].Value;
-				}
+			foreach (string countryId in GetCountryIds(world)) {
+				scoreByCountryId[countryId] = ResourceQuery.GetValue(world, countryId, ResourceDefinitions.CountryScore);
 			}
 			_state.CountryScore.Set(scoreByCountryId);
+		}
+
+		public void UpdateLeaderboards(IReadOnlyWorld world) {
+			var organizations = new List<LeaderboardEntryState>();
+			int[] orgRequired = { TypeId<Organization>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(orgRequired, null)) {
+				Organization[] orgs = arch.GetColumn<Organization>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					string orgId = orgs[i].OrganizationId;
+					organizations.Add(new LeaderboardEntryState(
+						0,
+						orgId,
+						string.IsNullOrEmpty(orgs[i].DisplayName) ? orgId : orgs[i].DisplayName,
+						ResourceQuery.GetValue(world, orgId, ResourceDefinitions.OrgScore)));
+				}
+			}
+
+			var countries = new List<LeaderboardEntryState>();
+			foreach (string countryId in GetCountryIds(world)) {
+				countries.Add(new LeaderboardEntryState(
+					0,
+					countryId,
+					GetCountryDisplayName(countryId),
+					ResourceQuery.GetValue(world, countryId, ResourceDefinitions.CountryScore)));
+			}
+
+			SortAndAssignPlaces(organizations);
+			SortAndAssignPlaces(countries);
+			_state.Leaderboard.Set(organizations, countries);
+		}
+
+		IReadOnlyList<string> GetCountryIds(IReadOnlyWorld world) {
+			var ids = new List<string>();
+			int[] required = { TypeId<Country>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				Country[] countries = arch.GetColumn<Country>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					ids.Add(countries[i].CountryId);
+				}
+			}
+			ids.Sort(StringComparer.Ordinal);
+			return ids;
+		}
+
+		string GetCountryDisplayName(string countryId) {
+			var entry = _countryConfig?.FindByCountryId(countryId);
+			if (entry != null && !string.IsNullOrEmpty(entry.DisplayName)) {
+				return entry.DisplayName;
+			}
+			return countryId;
+		}
+
+		static void SortAndAssignPlaces(List<LeaderboardEntryState> entries) {
+			entries.Sort((a, b) => {
+				int scoreCompare = b.Score.CompareTo(a.Score);
+				if (scoreCompare != 0) {
+					return scoreCompare;
+				}
+				int nameCompare = StringComparer.Ordinal.Compare(a.DisplayName, b.DisplayName);
+				if (nameCompare != 0) {
+					return nameCompare;
+				}
+				return StringComparer.Ordinal.Compare(a.EntityId, b.EntityId);
+			});
+
+			for (int i = 0; i < entries.Count; i++) {
+				var entry = entries[i];
+				entries[i] = new LeaderboardEntryState(i + 1, entry.EntityId, entry.DisplayName, entry.Score);
+			}
 		}
 
 		// Collection pass, not a diff pass — modeled on UpdateLastFrameEffects above, which already

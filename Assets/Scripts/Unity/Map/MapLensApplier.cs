@@ -28,6 +28,7 @@ namespace GS.Unity.Map {
 			_state.OrgMap.PropertyChanged  += HandleOrgMapChanged;
 			_state.DiscoveredCountries.PropertyChanged += HandleDiscoveredChanged;
 			_state.ProvinceOwnership.PropertyChanged += HandleProvinceOwnershipChanged;
+			_state.ProvinceOccupation.PropertyChanged += HandleProvinceOccupationChanged;
 		}
 
 		void Start() {
@@ -42,6 +43,7 @@ namespace GS.Unity.Map {
 			_state.OrgMap.PropertyChanged  -= HandleOrgMapChanged;
 			_state.DiscoveredCountries.PropertyChanged -= HandleDiscoveredChanged;
 			_state.ProvinceOwnership.PropertyChanged -= HandleProvinceOwnershipChanged;
+			_state.ProvinceOccupation.PropertyChanged -= HandleProvinceOccupationChanged;
 		}
 
 		void HandleLensChanged(object sender, PropertyChangedEventArgs e) {
@@ -59,6 +61,10 @@ namespace GS.Unity.Map {
 		}
 
 		void HandleProvinceOwnershipChanged(object sender, PropertyChangedEventArgs e) {
+			ApplyLens(_state.MapLens.Lens);
+		}
+
+		void HandleProvinceOccupationChanged(object sender, PropertyChangedEventArgs e) {
 			ApplyLens(_state.MapLens.Lens);
 		}
 
@@ -81,10 +87,13 @@ namespace GS.Unity.Map {
 				}
 
 				string ownerId = ResolveOwner(identifier);
+				string occupierId = ResolveOccupier(identifier.ProvinceId);
 				bool discovered = IsCountryDiscovered(ownerId);
+				bool visiblyOccupied = discovered && occupierId != "" && occupierId != ownerId;
 
 				fillRenderer.enabled = discovered;
 				SetBorderRenderersEnabled(go, discovered && showBorders);
+				SetOccupationHatchEnabled(go, visiblyOccupied, GetOccupationColor(occupierId));
 
 				if (!discovered) {
 					continue;
@@ -101,11 +110,38 @@ namespace GS.Unity.Map {
 			return identifier.CountryId;
 		}
 
+		string ResolveOccupier(string provinceId) {
+			var occupiers = _state?.ProvinceOccupation?.OccupierByProvinceId;
+			if (occupiers != null && occupiers.TryGetValue(provinceId, out string occupierId)) {
+				return occupierId ?? "";
+			}
+			return "";
+		}
+
 		static void SetBorderRenderersEnabled(GameObject fillGo, bool enabled) {
 			foreach (Transform child in fillGo.transform) {
+				if (child.GetComponent<ProvinceBorderRendererMarker>() == null) {
+					continue;
+				}
 				var childRenderer = child.GetComponent<MeshRenderer>();
 				if (childRenderer != null) {
 					childRenderer.enabled = enabled;
+				}
+			}
+		}
+
+		static void SetOccupationHatchEnabled(GameObject fillGo, bool enabled, Color color) {
+			foreach (Transform child in fillGo.transform) {
+				if (child.GetComponent<ProvinceOccupationHatchMarker>() == null) {
+					continue;
+				}
+				var childRenderer = child.GetComponent<MeshRenderer>();
+				if (childRenderer == null) {
+					continue;
+				}
+				childRenderer.enabled = enabled;
+				if (enabled) {
+					childRenderer.material.color = color;
 				}
 			}
 		}
@@ -125,6 +161,12 @@ namespace GS.Unity.Map {
 				default:
 					return GetPoliticalColor(ownerId);
 			}
+		}
+
+		Color GetOccupationColor(string countryId) {
+			var c = GetPoliticalColor(countryId);
+			c.a = 0.8f;
+			return c;
 		}
 
 		Color GetPoliticalColor(string ownerId) {

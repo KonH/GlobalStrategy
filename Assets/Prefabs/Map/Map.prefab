@@ -221,4 +221,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: GS.Unity.Map::GS.Unity.Map.ProvinceRenderer
   _materialTemplate: {fileID: 2100000, guid: fe0925a90b731404ab778cdf7f98f1fa, type: 2}
   _borderMaterialTemplate: {fileID: 2100000, guid: 070ad9279d3c42940a216f4014e0e726, type: 2}
+  _occupationHatchMaterialTemplate: {fileID: 2100000, guid: f5dd2c3cfc9b89e44878062d133d26c7, type: 2}
+  _occupationHatchZOffset: -0.01
+  _occupationHatchTextureSize: 32
+  _occupationHatchLineWidth: 18
+  _occupationHatchTextureScale: 0.04
   _borderWidth: 0.2
