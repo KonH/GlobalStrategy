@@ -65,7 +65,7 @@ namespace GS.Main {
 			}
 
 			double hqBaseIncome = 0;
-			var goldDef = _resourceConfig.FindResource("gold");
+			var goldDef = _resourceConfig.FindResource(ResourceDefinitions.Gold);
 			if (goldDef != null) {
 				foreach (var effect in goldDef.DefaultEffects) {
 					if (effect.PayType.Equals("Monthly", StringComparison.OrdinalIgnoreCase) && effect.Value > 0) {
