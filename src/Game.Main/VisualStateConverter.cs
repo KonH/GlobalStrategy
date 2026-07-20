@@ -6,7 +6,7 @@ using GS.Game.Systems;
 using GS.Game.Configs;
 
 namespace GS.Main {
-	class VisualStateConverter {
+	public class VisualStateConverter {
 		readonly VisualState _state;
 		readonly System.Collections.Generic.HashSet<string> _previousDiscoveredIds = new();
 		readonly Dictionary<string, AnimatableInt> _characterOpinionAnimatables = new();
@@ -24,7 +24,7 @@ namespace GS.Main {
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
 
-		internal VisualStateConverter(VisualState state, ActionConfig? actionConfig = null,
+		public VisualStateConverter(VisualState state, ActionConfig? actionConfig = null,
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
 			bool gameLogIncludePlayerActions = true, int gameLogMaxEntries = 12,
 			CountryConfig? countryConfig = null) {
@@ -36,7 +36,7 @@ namespace GS.Main {
 			_gameLogMaxEntries = gameLogMaxEntries;
 		}
 
-		internal void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
+		public void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
 			UpdateLastFrameEffects(world);
 			UpdateSelectedCountry(world);
 			UpdateTime(world, gameTimeEntity);
@@ -631,7 +631,7 @@ namespace GS.Main {
 			_state.SelectedProvince.Set(false, "");
 		}
 
-		internal void UpdateCountryScore(IReadOnlyWorld world) {
+		public void UpdateCountryScore(IReadOnlyWorld world) {
 			var scoreByCountryId = new Dictionary<string, double>();
 			foreach (string countryId in GetCountryIds(world)) {
 				scoreByCountryId[countryId] = ResourceQuery.GetValue(world, countryId, ResourceDefinitions.CountryScore);
@@ -639,7 +639,7 @@ namespace GS.Main {
 			_state.CountryScore.Set(scoreByCountryId);
 		}
 
-		internal void UpdateLeaderboards(IReadOnlyWorld world) {
+		public void UpdateLeaderboards(IReadOnlyWorld world) {
 			var organizations = new List<LeaderboardEntryState>();
 			int[] orgRequired = { TypeId<Organization>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(orgRequired, null)) {
