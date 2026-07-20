@@ -304,6 +304,27 @@ namespace GS.Main {
 		}
 	}
 
+	public class ProvinceOccupationState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyDictionary<string, string> OccupierByProvinceId { get; private set; } = new Dictionary<string, string>();
+		public string RecentProvinceId { get; private set; } = "";
+		public string RecentOldOccupierId { get; private set; } = "";
+		public string RecentNewOccupierId { get; private set; } = "";
+
+		public void Set(
+			IReadOnlyDictionary<string, string> occupierByProvinceId,
+			string recentProvinceId = "",
+			string recentOldOccupierId = "",
+			string recentNewOccupierId = "") {
+			OccupierByProvinceId = occupierByProvinceId;
+			RecentProvinceId = recentProvinceId;
+			RecentOldOccupierId = recentOldOccupierId;
+			RecentNewOccupierId = recentNewOccupierId;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class CountryScoreState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -410,6 +431,7 @@ namespace GS.Main {
 		public VisualEffectCollection LastFrameEffects { get; } = new VisualEffectCollection();
 		public SaveResultState SaveResult { get; } = new SaveResultState();
 		public ProvinceOwnershipState ProvinceOwnership { get; } = new ProvinceOwnershipState();
+		public ProvinceOccupationState ProvinceOccupation { get; } = new ProvinceOccupationState();
 		public SelectedProvinceState SelectedProvince { get; } = new SelectedProvinceState();
 		public CountryScoreState CountryScore { get; } = new CountryScoreState();
 		public LeaderboardState Leaderboard { get; } = new LeaderboardState();

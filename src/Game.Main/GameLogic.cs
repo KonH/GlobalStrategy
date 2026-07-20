@@ -79,6 +79,7 @@ namespace GS.Main {
 			if (InitSystem.Update(_world, _context, _rng)) {
 				RefreshSingletonEntities();
 				ProvinceOwnershipSystem.Seed(_world, ProvinceConfig);
+				ProvinceOccupationSystem.Seed(_world, ProvinceConfig);
 			}
 
 			ref GameTime time = ref _world.Get<GameTime>(_gameTimeEntity);
@@ -151,6 +152,26 @@ namespace GS.Main {
 						cmd.ProvinceId,
 						oldOwnerId,
 						cmd.NewOwnerId);
+				}
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugSetProvinceOccupationCommand().AsSpan()) {
+				var (changed, oldOccupierId) = ProvinceOccupationSystem.SetOccupier(_world, cmd.ProvinceId, cmd.OccupierId);
+				if (changed) {
+					VisualState.ProvinceOccupation.Set(
+						ProvinceOccupationSystem.GetOccupierByProvinceId(_world),
+						cmd.ProvinceId,
+						oldOccupierId,
+						cmd.OccupierId);
+				}
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugClearProvinceOccupationCommand().AsSpan()) {
+				var (changed, oldOccupierId) = ProvinceOccupationSystem.ClearOccupier(_world, cmd.ProvinceId);
+				if (changed) {
+					VisualState.ProvinceOccupation.Set(
+						ProvinceOccupationSystem.GetOccupierByProvinceId(_world),
+						cmd.ProvinceId,
+						oldOccupierId,
+						"");
 				}
 			}
 
