@@ -179,7 +179,7 @@ namespace GS.Game.Tests {
 			logic.Commands.Push(new DebugToggleProvinceOccupationCommand { ProvinceId = "prov_b", OccupierId = "Great_Britain" });
 			logic.Update(0f);
 
-			Assert.True(logic.VisualState.ProvinceOccupation.OccupierByProvinceId.TryGetValue("prov_b", out string occupierId));
+			Assert.True(logic.VisualState.ProvinceOccupation.OccupierByProvinceId.TryGetValue("prov_b", out string? occupierId));
 			Assert.Equal("Great_Britain", occupierId);
 			Assert.Equal("prov_b", logic.VisualState.ProvinceOccupation.RecentProvinceId);
 			Assert.Equal("", logic.VisualState.ProvinceOccupation.RecentOldOccupierId);
