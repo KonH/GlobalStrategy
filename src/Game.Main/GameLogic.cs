@@ -34,6 +34,7 @@ namespace GS.Main {
 		public IWriteOnlyCommandAccessor Commands { get; }
 		public World World => _world;
 		public ResourceConfig ResourceConfig { get; private set; } = null!;
+		public CountryConfig CountryConfig { get; private set; } = null!;
 		public CharacterConfig CharacterConfig { get; private set; } = null!;
 		public ActionConfig ActionConfig { get; private set; } = null!;
 		public EffectConfig EffectConfig { get; private set; } = null!;
@@ -52,6 +53,7 @@ namespace GS.Main {
 			}
 
 			ResourceConfig = context.Resource.Load();
+			CountryConfig = context.Country.Load();
 			CharacterConfig = context.Character.Load();
 			ActionConfig = context.Action.Load();
 			_actionConfig = ActionConfig;
@@ -60,7 +62,7 @@ namespace GS.Main {
 			ProvinceConfig = context.Province.Load();
 			var settings = context.GameSettings.Load();
 			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId,
-				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries);
+				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig);
 			_speedMultipliers = settings.SpeedMultipliers;
 			_resourceCollectorRegistry = ResourceCollectorRegistry.CreateDefault(
 				settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient,

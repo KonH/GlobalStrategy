@@ -28,7 +28,9 @@ namespace GS.Unity.UI {
 		CountryVisualConfig _countryVisualConfig;
 		OrgVisualConfig _orgVisualConfig;
 		GameMenuDocument _gameMenu;
+		LeaderboardWindowDocument _leaderboardWindow;
 		Button _btnMenu;
+		Button _btnLeaderboard;
 		Button _btnDebugToggle;
 		VisualElement _debugPanel;
 		Button _btnSelectedCountryDebugMenu;
@@ -53,7 +55,7 @@ namespace GS.Unity.UI {
 		readonly List<Button> _selectedCountryCharacterDebugButtons = new();
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
@@ -63,6 +65,7 @@ namespace GS.Unity.UI {
 			_countryVisualConfig = countryVisualConfig;
 			_orgVisualConfig = orgVisualConfig;
 			_gameMenu = gameMenu;
+			_leaderboardWindow = leaderboardWindow;
 			_orgInfoDocument = orgInfoDocument;
 			_actionConfig = actionConfig;
 			_actionVisualConfig = actionVisualConfig;
@@ -106,7 +109,14 @@ namespace GS.Unity.UI {
 			_cardPlayAnimator?.SetCountryActionsView(_countryInfo.ActionsView);
 			var root = _document.rootVisualElement;
 			_btnMenu = root.Q<Button>("btn-menu");
-			_btnMenu.clicked += () => _gameMenu?.Show();
+			_btnLeaderboard = root.Q<Button>("btn-leaderboard");
+			if (_btnMenu != null) {
+				_btnMenu.clicked += () => _gameMenu?.Show();
+			}
+			if (_btnLeaderboard != null) {
+				_btnLeaderboard.clicked += () => _leaderboardWindow?.Show();
+				RefreshLeaderboardButtonText();
+			}
 
 			_btnDebugToggle = root.Q<Button>("btn-debug-toggle");
 			_debugPanel = root.Q("debug-panel");
@@ -322,6 +332,14 @@ namespace GS.Unity.UI {
 			_playerOrgView?.Refresh(_state.PlayerOrganization, _state.PlayerOrganization.Resources);
 		}
 
+		void RefreshLeaderboardButtonText() {
+			if (_btnLeaderboard == null || _loc == null) {
+				return;
+			}
+			string text = _loc.Get("hud.leaderboard");
+			_btnLeaderboard.text = string.IsNullOrEmpty(text) || text == "hud.leaderboard" ? "Leaderboard" : text;
+		}
+
 		void RefreshControlDebugRow() {
 			if (_controlDebugRow == null) {
 				return;
@@ -408,6 +426,7 @@ namespace GS.Unity.UI {
 
 		void HandleLocaleChanged(object sender, PropertyChangedEventArgs e) {
 			_loc.SetLocale(_state.Locale.Locale);
+			RefreshLeaderboardButtonText();
 			RefreshCountryViews();
 			_timeView.Refresh(_state.Time);
 		}
