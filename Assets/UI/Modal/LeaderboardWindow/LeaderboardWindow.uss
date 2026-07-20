@@ -18,7 +18,7 @@
 .leaderboard-header {
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     margin-bottom: 18px;
 }
 
@@ -27,6 +27,9 @@
 }
 
 .leaderboard-close {
+    position: absolute;
+    top: 26px;
+    right: 32px;
     width: 52px;
     height: 46px;
     font-size: 24px;

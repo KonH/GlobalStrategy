@@ -6,8 +6,8 @@
         <ui:VisualElement name="leaderboard-panel" class="gs-panel leaderboard-panel">
             <ui:VisualElement class="leaderboard-header">
                 <ui:Label name="leaderboard-title" text="Leaderboard" class="gs-title leaderboard-title"/>
-                <ui:Button name="btn-close" text="X" class="gs-btn leaderboard-close"/>
             </ui:VisualElement>
+            <ui:Button name="btn-close" text="X" class="gs-btn leaderboard-close"/>
             <ui:VisualElement class="leaderboard-tabs">
                 <ui:Button name="tab-organizations" text="Organizations" class="gs-btn leaderboard-tab leaderboard-tab--active"/>
                 <ui:Button name="tab-countries" text="Countries" class="gs-btn leaderboard-tab"/>
