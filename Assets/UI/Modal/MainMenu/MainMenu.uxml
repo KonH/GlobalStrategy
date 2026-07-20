@@ -11,6 +11,7 @@
             <ui:Button name="btn-settings" text="Settings" class="gs-btn gs-btn--primary menu-button"/>
             <ui:Button name="btn-exit" text="Exit" class="gs-btn gs-btn--primary menu-button"/>
         </ui:VisualElement>
-        <ui:Label name="version-label" class="gs-hint version-label"/>
+        <ui:Label name="version-name" class="gs-label version-name-label" text="Version Name"/>
+        <ui:Label name="version-label" class="gs-label version-number-label" text="v0.00"/>
     </ui:VisualElement>
 </ui:UXML>
