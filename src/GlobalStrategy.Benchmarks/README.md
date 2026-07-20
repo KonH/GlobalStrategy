@@ -7,6 +7,7 @@ BenchmarkDotNet harness for measuring performance-sensitive plain .NET systems t
 - `EcsWorldBenchmarks` measures raw ECS entity creation, component addition, query mutation, and direct component access.
 - `GameSystemsBenchmarks` measures monthly `ResourceSystem` and `ControlSystem` updates over synthetic country/org/resource data.
 - `GameLoopBenchmarks` measures repeated `GameLogic.Update` ticks against an in-memory playable configuration.
+- `VisualStateConverterBenchmarks` measures steady-state `VisualStateConverter.Update` work with a selected country.
 
 ## Run
 
