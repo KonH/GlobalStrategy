@@ -205,6 +205,7 @@ def main():
     parser = argparse.ArgumentParser(description="Ralph loop runner")
     parser.add_argument("--spec", type=str, default=None, help="Dated spec folder id (YY_MM_DD_HH_name)")
     parser.add_argument("--bot-feature", type=str, default=None)
+    parser.add_argument("--perf-target", type=str, default=None)
     parser.add_argument("--max-iterations", type=int, default=10)
     parser.add_argument(
         "--stall-limit", type=int, default=3,
@@ -216,9 +217,11 @@ def main():
     parser.add_argument("--dangerously-skip-permissions", action="store_true")
     args = parser.parse_args()
 
-    if (args.spec is None) == (args.bot_feature is None):
-        raise RuntimeError("Exactly one of --spec or --bot-feature must be given.")
+    mode_count = sum(1 for m in (args.spec, args.bot_feature, args.perf_target) if m is not None)
+    if mode_count != 1:
+        raise RuntimeError("Exactly one of --spec, --bot-feature, or --perf-target must be given.")
     bot_mode = args.bot_feature is not None
+    perf_mode = args.perf_target is not None
 
     prompt_file = Path(".ralph/PROMPT.md")
     if not prompt_file.exists():
@@ -236,6 +239,12 @@ def main():
         csv_file = Path(f".ralph/metrics_bot_{feature_id}.csv")
         complete_prd_arg = f"bot:{feature_id}"
         print(f"Bot feature: {feature_id}")
+    elif perf_mode:
+        perf_target = args.perf_target
+        ralph_branch = f"ralph/perf_{perf_target}"
+        csv_file = Path(f".ralph/metrics_perf_{perf_target}.csv")
+        complete_prd_arg = f"perf:{perf_target}"
+        print(f"Perf target: {perf_target}")
     else:
         spec_dir = resolve_spec_dir(args.spec)
         print(f"Spec: Docs/Specs/{spec_dir.name}")
@@ -265,6 +274,15 @@ def main():
         if not re.search(r'"passes":\s*false', prd_text):
             raise RuntimeError(f"{prd_file} has no open tasks - nothing to loop.")
         print(f"Skipping /create-prd (bot-feature mode), reusing existing {prd_file}")
+    elif perf_mode:
+        # Perf-optimization PRDs are written directly by /optimize-performance - no spec-folder
+        # resolution and no /create-prd phase, same as bot-feature mode.
+        if not prd_file.exists():
+            raise RuntimeError(f"{prd_file} does not exist - run /optimize-performance first.")
+        prd_text = prd_file.read_text(encoding="utf-8")
+        if not re.search(r'"passes":\s*false', prd_text):
+            raise RuntimeError(f"{prd_file} has no open tasks - nothing to loop.")
+        print(f"Skipping /create-prd (perf-target mode), reusing existing {prd_file}")
     elif args.skip_create_prd:
         if not prd_file.exists():
             raise RuntimeError(f"--skip-create-prd was passed but {prd_file} does not exist.")
@@ -357,6 +375,11 @@ def main():
             print(
                 f"Failure report: Docs/BotFeatures/{feature_id}/eval_summary.md, "
                 f"Docs/BotFeatures/{feature_id}/eval_history.json, and .ralph/activity.md."
+            )
+        elif perf_mode:
+            print(
+                "Failure report: Docs/Benchmarks/history.json, Docs/Benchmarks/summary.md, "
+                "and .ralph/activity.md."
             )
     else:
         print()

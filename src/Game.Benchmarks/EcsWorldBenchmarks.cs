@@ -1,7 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using ECS;
 
-namespace GlobalStrategy.Benchmarks;
+namespace GS.Game.Benchmarks;
 
 [MemoryDiagnoser]
 public class EcsWorldBenchmarks {

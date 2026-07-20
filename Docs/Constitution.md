@@ -22,6 +22,7 @@ Non-negotiable architectural principles. The `/plan` command checks these before
 
 - **Plan before implement.** No code or asset changes without an approved plan file; this prevents scope drift and keeps the git history reviewable.
 - **Bot-feature carve-out.** Bot features implemented via `/implement-bot-feature` — `IBotFeature` implementations in `src/Game.Bots`, their registrations, and their `Docs/BotFeatures/` eval configs and history — use the skill's directly-written PRD plus the committed eval history as their planning artifact, under the standing spec/plan pair `Docs/Specs/26_07_16_14_bot-feature-eval-harness/`. Everything outside that surface still requires its own approved plan.
+- **Performance-optimization carve-out.** Performance-optimization attempts made via `/optimize-performance` — algorithmic/allocation changes to an existing system's/collector's `Update`/`Compute`/query method and the pure-C# helpers it calls, gated by the BenchmarkDotNet harness plus the full test suite — use the skill's directly-written PRD plus the committed `Docs/Benchmarks/history.json` as their planning artifact, under the standing spec/plan pair `Docs/Specs/26_07_18_18_benchmarkdotnet-perf-harness/`. Everything outside that narrow surface — including the harness project itself and the two skills' own markdown files — still requires its own approved plan.
 
 ## Specification Discipline
 
