@@ -3,6 +3,7 @@ using System.Linq;
 using ECS;
 using ECS.Extensions;
 using GS.Game.Components;
+using GS.Game.Configs;
 using GS.Game.Systems;
 using GS.Main;
 using Xunit;
@@ -331,13 +332,13 @@ namespace GS.Game.Tests {
 			int provinceEntity = world.Create();
 			world.Add(provinceEntity, new ResourceOwner("prov_a", OwnerType.Province));
 			world.Add(provinceEntity, new Resource {
-				ResourceId = CountryPopulationCollector.ResourceId,
+				ResourceId = ResourceDefinitions.Population,
 				Value = 1000.0
 			});
 
 			int effectEntity = world.Create();
 			world.Add(effectEntity, new ResourceOwner("prov_a", OwnerType.Province));
-			world.Add(effectEntity, new ResourceLink(CountryPopulationCollector.ResourceId));
+			world.Add(effectEntity, new ResourceLink(ResourceDefinitions.Population));
 			world.Add(effectEntity, new ResourceEffect {
 				EffectId = "population_growth_prov_a",
 				PayType = PayType.Monthly
@@ -346,7 +347,7 @@ namespace GS.Game.Tests {
 
 			var registry = new ResourceCollectorRegistry();
 			registry.Register(PopulationGrowthCollector.Id, new PopulationGrowthCollector(0.075));
-			var order = new[] { CountryPopulationCollector.ResourceId };
+			var order = new[] { ResourceDefinitions.Population };
 
 			DateTime jan31 = new DateTime(1880, 1, 31, 23, 0, 0);
 			DateTime feb1 = new DateTime(1880, 2, 1, 0, 0, 0);
@@ -364,7 +365,7 @@ namespace GS.Game.Tests {
 				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
 				Resource[] resources = arch.GetColumn<Resource>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (owners[i].OwnerId == "prov_a" && resources[i].ResourceId == CountryPopulationCollector.ResourceId) {
+					if (owners[i].OwnerId == "prov_a" && resources[i].ResourceId == ResourceDefinitions.Population) {
 						restoredEntity = arch.Entities[i];
 					}
 				}

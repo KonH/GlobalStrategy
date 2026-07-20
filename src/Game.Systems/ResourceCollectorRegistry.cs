@@ -23,6 +23,7 @@ namespace GS.Game.Systems {
 			registry.Register(CountryScoreCollector.Id, new CountryScoreCollector(countryScoreCoefficient));
 			registry.Register(RecruitsSeedCollector.Id, new RecruitsSeedCollector(recruitsInitialPercent));
 			registry.Register(RecruitsGrowthCollector.Id, new RecruitsGrowthCollector(recruitsMonthlyIncreasePercent, recruitsCapPercent));
+			registry.Register(OrgScoreCollector.Id, new OrgScoreCollector());
 			return registry;
 		}
 	}

@@ -8,7 +8,7 @@
   "recruitsInitialPercent": 5,
   "recruitsCapPercent": 15,
   "recruitsMonthlyIncreasePercent": 1,
-  "resourceIdUpdateOrder": ["population", "country_population", "country_score", "recruits"],
+  "resourceIdUpdateOrder": ["population", "country_population", "country_score", "recruits", "org_score"],
   "botActionLogRetentionCap": 500,
   "maxControlPool": 100,
   "botFeatures": [

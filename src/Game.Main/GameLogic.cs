@@ -76,6 +76,7 @@ namespace GS.Main {
 		public void Update(float deltaTime) {
 			if (InitSystem.Update(_world, _context, _rng)) {
 				RefreshSingletonEntities();
+				ProvinceOwnershipSystem.Seed(_world, ProvinceConfig);
 			}
 
 			ref GameTime time = ref _world.Get<GameTime>(_gameTimeEntity);
@@ -161,7 +162,6 @@ namespace GS.Main {
 			DeductActionCostSystem.Update(_world, _actionConfig);
 			ActionSucceededSystem.Update(_world, _actionConfig);
 			CreateActionEffectSystem.Update(_world, _actionConfig, _effectConfig, currentTime);
-			OrgScoreSystem.Update(_world, _previousTime, currentTime);
 			DiscoverCountrySystem.Update(_world, _proximityEntity, _rng, _hqCountryByOrgId);
 			RemoveCardFromHandSystem.Update(_world);
 			CheckHandSizeSystem.Update(_world);
@@ -183,7 +183,6 @@ namespace GS.Main {
 				_sessionId = snapshot.Header.SessionId;
 			}
 			RefreshSingletonEntities();
-			OrgScoreSystem.Recompute(_world);
 		}
 
 		void SaveGame(bool isAutoSave) {
@@ -434,7 +433,7 @@ namespace GS.Main {
 				Resource[] resources = arch.GetColumn<Resource>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId == orgId && resources[i].ResourceId == "gold") {
+					if (owners[i].OwnerId == orgId && resources[i].ResourceId == ResourceDefinitions.Gold) {
 						resources[i].Value = System.Math.Max(0, resources[i].Value + amount);
 						return;
 					}

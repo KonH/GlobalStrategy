@@ -72,6 +72,35 @@ namespace GS.Game.Tests {
 			return effectEntity;
 		}
 
+		static int AddDailyEffect(World world, string countryId, string resourceId,
+			string effectId, double value) {
+			int effectEntity = world.Create();
+			world.Add(effectEntity, new ResourceOwner(countryId));
+			world.Add(effectEntity, new ResourceLink(resourceId));
+			world.Add(effectEntity, new ResourceEffect {
+				EffectId = effectId,
+				Value = value,
+				PayType = PayType.Daily
+			});
+			return effectEntity;
+		}
+
+		[Fact]
+		void daily_effect_not_applied_within_same_day() {
+			var world = CreateWorldWithResource("Russia", "gold", 100.0, out int re);
+			AddDailyEffect(world, "Russia", "gold", "income", 1.0);
+			ResourceSystem.Update(world, Jan1, new DateTime(1880, 1, 1, 12, 0, 0));
+			Assert.Equal(100.0, world.Get<Resource>(re).Value);
+		}
+
+		[Fact]
+		void daily_effect_applied_at_day_boundary() {
+			var world = CreateWorldWithResource("Russia", "gold", 100.0, out int re);
+			AddDailyEffect(world, "Russia", "gold", "income", 1.0);
+			ResourceSystem.Update(world, Jan1, Jan2);
+			Assert.Equal(101.0, world.Get<Resource>(re).Value);
+		}
+
 		[Fact]
 		void monthly_effect_not_applied_within_same_month() {
 			var world = CreateWorldWithResource("Russia", "gold", 100.0, out int re);

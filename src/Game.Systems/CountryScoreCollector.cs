@@ -1,10 +1,9 @@
 using ECS;
+using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public sealed class CountryScoreCollector : IResourceCollector {
 		public const string Id = "country_score_formula";
-		public const string ResourceId = "country_score";
-		public const string CountryPopulationResourceId = "country_population";
 
 		readonly double _coefficient;
 
@@ -13,7 +12,7 @@ namespace GS.Game.Systems {
 		}
 
 		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) {
-			double population = ResourceQuery.GetValue(world, ownerId, CountryPopulationResourceId);
+			double population = ResourceQuery.GetValue(world, ownerId, ResourceDefinitions.CountryPopulation);
 			return population * _coefficient - currentValue;
 		}
 	}

@@ -15,7 +15,7 @@ namespace GS.Game.Tests {
 			int resourceEntity = world.Create();
 			world.Add(resourceEntity, new ResourceOwner(provinceId, OwnerType.Province));
 			world.Add(resourceEntity, new Resource {
-				ResourceId = CountryPopulationCollector.ResourceId,
+				ResourceId = ResourceDefinitions.Population,
 				Value = population
 			});
 		}

@@ -1,4 +1,5 @@
 using ECS;
+using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public sealed class RecruitsSeedCollector : IResourceCollector {
@@ -11,7 +12,7 @@ namespace GS.Game.Systems {
 		}
 
 		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) {
-			double population = ResourceQuery.GetValue(world, ownerId, CountryScoreCollector.CountryPopulationResourceId);
+			double population = ResourceQuery.GetValue(world, ownerId, ResourceDefinitions.CountryPopulation);
 			return population * _initialPercent / 100.0 - currentValue;
 		}
 	}

@@ -634,7 +634,7 @@ namespace GS.Main {
 				Country[] countries = arch.GetColumn<Country>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					scoreByCountryId[countries[i].CountryId] = CountryScoreSystem.GetScore(world, countries[i].CountryId);
+					scoreByCountryId[countries[i].CountryId] = ResourceQuery.GetValue(world, countries[i].CountryId, ResourceDefinitions.CountryScore);
 				}
 			}
 			_state.CountryScore.Set(scoreByCountryId);

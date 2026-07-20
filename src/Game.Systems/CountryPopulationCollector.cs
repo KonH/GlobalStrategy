@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Components;
+using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public sealed class CountryPopulationCollector : IResourceCollector {
 		public const string Id = "country_population_aggregate";
-		public const string ResourceId = "population";
 
 		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) {
 			var provincesByOwner = ProvinceOwnershipSystem.GetProvincesByOwner(world);
@@ -20,7 +20,7 @@ namespace GS.Game.Systems {
 				Resource[] resources = arch.GetColumn<Resource>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerType != OwnerType.Province || resources[i].ResourceId != ResourceId) {
+					if (owners[i].OwnerType != OwnerType.Province || resources[i].ResourceId != ResourceDefinitions.Population) {
 						continue;
 					}
 					populationByProvinceId[owners[i].OwnerId] = resources[i].Value;

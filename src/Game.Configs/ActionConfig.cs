@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace GS.Game.Configs {
 	public class ActionCost {
-		public string ResourceId { get; set; } = "gold";
+		public string ResourceId { get; set; } = ResourceDefinitions.Gold;
 		public double Amount     { get; set; } = 0;
 	}
 

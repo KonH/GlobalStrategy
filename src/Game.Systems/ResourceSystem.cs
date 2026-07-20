@@ -12,20 +12,21 @@ namespace GS.Game.Systems {
 
 			bool isMonthBoundary = previousTime.Month != currentTime.Month
 				|| previousTime.Year != currentTime.Year;
+			bool isDayBoundary = previousTime.Date != currentTime.Date;
 
 			if (collectorRegistry != null && resourceIdUpdateOrder != null && resourceIdUpdateOrder.Count > 0) {
 				var ordered = new HashSet<string>(resourceIdUpdateOrder);
 				foreach (string resourceId in resourceIdUpdateOrder) {
-					ResolveCollectors(world, resourceId, isMonthBoundary, collectorRegistry);
-					GatherAndApply(world, isMonthBoundary, linkedResourceId => linkedResourceId == resourceId);
+					ResolveCollectors(world, resourceId, isMonthBoundary, isDayBoundary, collectorRegistry);
+					GatherAndApply(world, isMonthBoundary, isDayBoundary, linkedResourceId => linkedResourceId == resourceId);
 				}
-				GatherAndApply(world, isMonthBoundary, linkedResourceId => !ordered.Contains(linkedResourceId));
+				GatherAndApply(world, isMonthBoundary, isDayBoundary, linkedResourceId => !ordered.Contains(linkedResourceId));
 			} else {
-				GatherAndApply(world, isMonthBoundary, null);
+				GatherAndApply(world, isMonthBoundary, isDayBoundary, null);
 			}
 		}
 
-		static void ResolveCollectors(World world, string resourceId, bool isMonthBoundary, ResourceCollectorRegistry registry) {
+		static void ResolveCollectors(World world, string resourceId, bool isMonthBoundary, bool isDayBoundary, ResourceCollectorRegistry registry) {
 			int[] required = {
 				TypeId<ResourceOwner>.Value,
 				TypeId<ResourceLink>.Value,
@@ -44,7 +45,8 @@ namespace GS.Game.Systems {
 					}
 					var effect = effects[i];
 					bool shouldApply = effect.PayType == PayType.Instant
-						|| (effect.PayType == PayType.Monthly && isMonthBoundary);
+						|| (effect.PayType == PayType.Monthly && isMonthBoundary)
+						|| (effect.PayType == PayType.Daily && isDayBoundary);
 					if (!shouldApply) {
 						continue;
 					}
@@ -60,7 +62,7 @@ namespace GS.Game.Systems {
 		// NOTE: a ResourceCollector-tagged effect whose ResourceLink.ResourceId is not in
 		// resourceIdUpdateOrder is never resolved — it applies its static (usually zero) Value
 		// forever. Any new collector-driven resourceId must be added to resourceIdUpdateOrder.
-		static void GatherAndApply(World world, bool isMonthBoundary, Func<string, bool>? resourceIdFilter) {
+		static void GatherAndApply(World world, bool isMonthBoundary, bool isDayBoundary, Func<string, bool>? resourceIdFilter) {
 			int[] effectRequired = {
 				TypeId<ResourceOwner>.Value,
 				TypeId<ResourceLink>.Value,
@@ -83,7 +85,8 @@ namespace GS.Game.Systems {
 
 					var effect = effects[i];
 					bool shouldApply = effect.PayType == PayType.Instant
-						|| (effect.PayType == PayType.Monthly && isMonthBoundary);
+						|| (effect.PayType == PayType.Monthly && isMonthBoundary)
+						|| (effect.PayType == PayType.Daily && isDayBoundary);
 					if (!shouldApply) {
 						continue;
 					}

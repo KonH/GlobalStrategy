@@ -213,8 +213,17 @@ namespace GS.Game.Tests {
 
 			Assert.Equal(1234.0, GetResourceValue(logic.World, "Great_Britain", "country_population"));
 			Assert.Equal(5678.0, GetResourceValue(logic.World, "France", "country_population"));
-			Assert.Equal(1234.0, CountryScoreSystem.GetScore(logic.World, "Great_Britain"));
-			Assert.Equal(5678.0, CountryScoreSystem.GetScore(logic.World, "France"));
+			Assert.Equal(1234.0, GetResourceValue(logic.World, "Great_Britain", "country_score"));
+			Assert.Equal(5678.0, GetResourceValue(logic.World, "France", "country_score"));
+		}
+
+		[Fact]
+		void org_score_seeded_at_init_from_base_control_times_country_score() {
+			var logic = BuildLogic();
+			logic.Update(0f);
+
+			// Illuminati's default base control (10) in its HQ (Great_Britain, country_score 1234.0).
+			Assert.Equal(123.4, GetResourceValue(logic.World, "Illuminati", "org_score")!.Value, 6);
 		}
 
 		[Fact]
@@ -224,8 +233,8 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic(storage, serializer);
 
 			logic.Update(0f);
-			double scoreGBBeforeSave = CountryScoreSystem.GetScore(logic.World, "Great_Britain");
-			double scoreFRBeforeSave = CountryScoreSystem.GetScore(logic.World, "France");
+			double scoreGBBeforeSave = GetResourceValue(logic.World, "Great_Britain", "country_score")!.Value;
+			double scoreFRBeforeSave = GetResourceValue(logic.World, "France", "country_score")!.Value;
 			Assert.Equal(1234.0, scoreGBBeforeSave);
 			Assert.Equal(5678.0, scoreFRBeforeSave);
 
@@ -236,8 +245,8 @@ namespace GS.Game.Tests {
 			var loadedLogic = BuildLogic(storage, serializer);
 			loadedLogic.LoadState(saveName);
 
-			Assert.Equal(scoreGBBeforeSave, CountryScoreSystem.GetScore(loadedLogic.World, "Great_Britain"));
-			Assert.Equal(scoreFRBeforeSave, CountryScoreSystem.GetScore(loadedLogic.World, "France"));
+			Assert.Equal(scoreGBBeforeSave, GetResourceValue(loadedLogic.World, "Great_Britain", "country_score"));
+			Assert.Equal(scoreFRBeforeSave, GetResourceValue(loadedLogic.World, "France", "country_score"));
 		}
 
 		[Fact]
