@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>latestMajor</LangVersion>
@@ -8,24 +9,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="xunit" Version="2.6.2" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4" PrivateAssets="all" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../ECS.Core/ECS.Core.csproj" />
-    <ProjectReference Include="../ECS.Core.Extensions/ECS.Core.Extensions.csproj" />
     <ProjectReference Include="../Game.Commands/Game.Commands.csproj" />
     <ProjectReference Include="../Game.Components/Game.Components.csproj" />
+    <ProjectReference Include="../Game.Configs/Game.Configs.csproj" />
     <ProjectReference Include="../Game.Systems/Game.Systems.csproj" />
     <ProjectReference Include="../Game.Main/Game.Main.csproj" />
-    <ProjectReference Include="../Game.Configs/Game.Configs.csproj" />
-    <ProjectReference Include="../Game.Configs.Loader/Game.Configs.Loader.csproj" />
     <ProjectReference Include="../Game.ConsoleRunner/Game.ConsoleRunner.csproj" />
-    <ProjectReference Include="../Game.Bots/Game.Bots.csproj" />
-    <ProjectReference Include="../Game.Evals/Game.Evals.csproj" />
-    <ProjectReference Include="../Game.Benchmarks/Game.Benchmarks.csproj" />
   </ItemGroup>
 
 </Project>

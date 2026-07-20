@@ -48,6 +48,11 @@ Thumbs.db
 src/**/bin/
 src/**/obj/
 
+# BenchmarkDotNet's own raw per-run artifacts (generated exe copies, exported reports) —
+# Docs/Benchmarks/{baseline.json,history.json,summary.md} are the harness's own committed
+# snapshots and are tracked normally, not covered by this rule.
+BenchmarkDotNet.Artifacts/
+
 # Packages lock (optional: keep if you want reproducible builds)
 # Packages/packages-lock.json
 .claude/settings.local.json

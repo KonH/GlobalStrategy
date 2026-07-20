@@ -8,7 +8,7 @@ using ECS.Viewer;
 using ECS.Viewer.Server;
 
 namespace GS.Game.ConsoleRunner {
-	static class Program {
+	public static class Program {
 		static int Main(string[] args) {
 			HeadlessOptions options;
 			try {
@@ -31,7 +31,7 @@ namespace GS.Game.ConsoleRunner {
 			return 0;
 		}
 
-		internal static GameLogicContext BuildContext(
+		public static GameLogicContext BuildContext(
 			string configDir, int? rngSeed = null, System.Collections.Generic.IReadOnlyList<string>? participatingOrganizationIds = null,
 			string initialOrganizationId = "", IGameLogger? logger = null) {
 			return new GameLogicContext(

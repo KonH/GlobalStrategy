@@ -45,6 +45,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECS.Viewer.Tests", "ECS.Vie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.Evals", "Game.Evals\Game.Evals.csproj", "{9439B5BC-CEC5-4C93-AA68-403A0FC4C9FE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game.Benchmarks", "Game.Benchmarks\Game.Benchmarks.csproj", "{5D2271E7-0F74-4D58-8D47-8BFFAC1B6B40}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -138,5 +140,9 @@ Global
 		{9439B5BC-CEC5-4C93-AA68-403A0FC4C9FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9439B5BC-CEC5-4C93-AA68-403A0FC4C9FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9439B5BC-CEC5-4C93-AA68-403A0FC4C9FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D2271E7-0F74-4D58-8D47-8BFFAC1B6B40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D2271E7-0F74-4D58-8D47-8BFFAC1B6B40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D2271E7-0F74-4D58-8D47-8BFFAC1B6B40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D2271E7-0F74-4D58-8D47-8BFFAC1B6B40}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

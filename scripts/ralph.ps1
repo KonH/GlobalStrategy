@@ -8,15 +8,18 @@
 #   .\scripts\ralph.ps1 -Spec 26_07_11_10_province-ownership -SkipPullRequest        # stop after the loop, no commit/PR phase
 #   .\scripts\ralph.ps1 -Spec 26_07_11_10_province-ownership -DangerouslySkipPermissions
 #   .\scripts\ralph.ps1 -BotFeature opinionTargeting          # bot-feature mode: PRD written by /implement-bot-feature
+#   .\scripts\ralph.ps1 -PerfTarget CountryPopulationCollector # perf mode: PRD written by /optimize-performance
 #
-# Exactly one of -Spec / -BotFeature must be given.
+# Exactly one of -Spec / -BotFeature / -PerfTarget must be given.
 #
-# Metrics per phase/iteration are appended to .ralph\metrics_<SpecId>.csv (spec mode) or
-# .ralph\metrics_bot_<BotFeature>.csv (bot mode) — both gitignored.
+# Metrics per phase/iteration are appended to .ralph\metrics_<SpecId>.csv (spec mode),
+# .ralph\metrics_bot_<BotFeature>.csv (bot mode), or .ralph\metrics_perf_<PerfTarget>.csv
+# (perf mode) — all gitignored.
 
 param(
     [string]$Spec,
     [string]$BotFeature,
+    [string]$PerfTarget,
     [int]$MaxIterations = 10,
     [int]$StallLimit = 3,
     [switch]$SkipCreatePrd,
@@ -26,11 +29,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-if (-not $Spec -and -not $BotFeature) {
-    throw "Exactly one of -Spec or -BotFeature must be given."
-}
-if ($Spec -and $BotFeature) {
-    throw "Exactly one of -Spec or -BotFeature must be given."
+$modeCount = @($Spec, $BotFeature, $PerfTarget) | Where-Object { $_ } | Measure-Object | Select-Object -ExpandProperty Count
+if ($modeCount -ne 1) {
+    throw "Exactly one of -Spec, -BotFeature, or -PerfTarget must be given."
 }
 
 $pythonExe = if (Test-Path ".venv\Scripts\python.exe") { ".venv\Scripts\python.exe" } else { "python" }
@@ -43,6 +44,7 @@ $pyArgs = @(
 )
 if ($Spec) { $pyArgs += @("--spec", $Spec) }
 if ($BotFeature) { $pyArgs += @("--bot-feature", $BotFeature) }
+if ($PerfTarget) { $pyArgs += @("--perf-target", $PerfTarget) }
 if ($SkipCreatePrd) { $pyArgs += "--skip-create-prd" }
 if ($SkipPullRequest) { $pyArgs += "--skip-pull-request" }
 if ($DangerouslySkipPermissions) { $pyArgs += "--dangerously-skip-permissions" }
