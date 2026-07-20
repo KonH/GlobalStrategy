@@ -9,7 +9,10 @@
     <ui:Style src="project://database/Assets/UI/HUD/HUD.uss?fileID=7433441132597879392&amp;guid=960ca7226a908b347be612c19639c422&amp;type=3#HUD"/>
     <ui:Style src="project://database/Assets/UI/Overlay/OrgInfo/OrgActions.uss"/>
     <ui:VisualElement name="hud-root" data-source-type="GS.Main.VisualState, Game.Main" picking-mode="Ignore" style="aspect-ratio: auto;">
-        <ui:Instance template="PlayerCountry" name="player-country" class="player-country-panel"/>
+        <ui:VisualElement name="top-left-panel" class="top-left-panel" picking-mode="Ignore">
+            <ui:Instance template="PlayerCountry" name="player-country" class="player-country-panel"/>
+            <ui:Button name="btn-leaderboard" text="Leaderboard" class="gs-btn leaderboard-hud-button"/>
+        </ui:VisualElement>
         <ui:Instance template="CountryInfo" name="country-info" class="country-info-panel"/>
         <ui:Instance template="OrgLensCountryInfo" name="org-lens-country-info" class="org-lens-country-info-panel"/>
         <ui:Instance template="LensSwitcher" name="lens-switcher" class="lens-switcher-panel"/>
@@ -17,7 +20,6 @@
             <ui:Button name="btn-debug-toggle" text="DEBUG" class="gs-btn hud-debug-toggle"/>
         </ui:VisualElement>
         <ui:VisualElement name="top-right-panel" class="top-right-panel">
-            <ui:Button name="btn-leaderboard" text="Leaderboard" class="gs-btn leaderboard-hud-button"/>
             <ui:Instance template="Time" name="time-panel" class="time-panel"/>
         </ui:VisualElement>
         <ui:Instance template="ActionLog" name="action-log" class="action-log-panel"/>

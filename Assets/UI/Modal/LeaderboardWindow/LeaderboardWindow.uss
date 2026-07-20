@@ -52,7 +52,9 @@
 .leaderboard-table-header {
     flex-direction: row;
     align-items: center;
+    align-self: stretch;
     padding: 6px 10px;
+    padding-right: 26px;
     margin-bottom: 4px;
     border-bottom-width: 1px;
     border-color: rgb(200, 160, 64);
@@ -69,6 +71,7 @@
     width: 56px;
     height: 36px;
     margin-right: 14px;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .leaderboard-header-name,
@@ -85,6 +88,7 @@
 
 .leaderboard-list {
     flex-grow: 1;
+    align-self: stretch;
 }
 
 .leaderboard-row {

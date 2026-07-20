@@ -12,13 +12,13 @@
                 <ui:Button name="tab-organizations" text="Organizations" class="gs-btn leaderboard-tab leaderboard-tab--active"/>
                 <ui:Button name="tab-countries" text="Countries" class="gs-btn leaderboard-tab"/>
             </ui:VisualElement>
-            <ui:VisualElement class="leaderboard-table-header">
+            <ui:VisualElement name="leaderboard-table-header" class="leaderboard-table-header">
                 <ui:Label text="#" class="leaderboard-header-place"/>
                 <ui:Label text="" class="leaderboard-header-flag"/>
                 <ui:Label text="Name" class="leaderboard-header-name"/>
                 <ui:Label text="Score" class="leaderboard-header-score"/>
             </ui:VisualElement>
-            <ui:ScrollView name="leaderboard-list" class="leaderboard-list"/>
+            <ui:ScrollView name="leaderboard-list" class="leaderboard-list" mode="Vertical" vertical-scroller-visibility="AlwaysVisible"/>
             <ui:Label name="leaderboard-empty" text="No leaderboard entries available" class="leaderboard-empty"/>
         </ui:VisualElement>
     </ui:VisualElement>

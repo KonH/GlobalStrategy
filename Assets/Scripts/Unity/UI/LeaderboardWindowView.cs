@@ -128,11 +128,13 @@ namespace GS.Unity.UI {
 			return entry.DisplayName;
 		}
 
+		static readonly NumberFormatInfo s_scoreFormat = new NumberFormatInfo {
+			NumberGroupSeparator = " ",
+			NumberGroupSizes = new[] { 3 }
+		};
+
 		static string FormatScore(double value) {
-			if (Math.Abs(value % 1.0) < 0.0001) {
-				return value.ToString("0", CultureInfo.InvariantCulture);
-			}
-			return value.ToString("0.0", CultureInfo.InvariantCulture);
+			return Math.Round(value, MidpointRounding.AwayFromZero).ToString("#,0", s_scoreFormat);
 		}
 	}
 }

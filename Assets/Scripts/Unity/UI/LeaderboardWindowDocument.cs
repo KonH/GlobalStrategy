@@ -32,8 +32,14 @@ namespace GS.Unity.UI {
 			_orgVisualConfig = orgVisualConfig;
 		}
 
+		// Explicit sortingOrder, not scene-authoring order — see .claude/rules/unity/uitoolkit.md
+		// "Layer Model" (sortingOrder governs stacking among documents sharing HUDPanelSettings;
+		// below FlyTextNotifierDocument's 1000 so fly-text still renders above this modal).
+		const int SortingOrder = 500;
+
 		void Awake() {
 			_doc = GetComponent<UIDocument>();
+			_doc.sortingOrder = SortingOrder;
 			_root = _doc.rootVisualElement;
 			_title = _root.Q<Label>("leaderboard-title");
 			_closeButton = _root.Q<Button>("btn-close");

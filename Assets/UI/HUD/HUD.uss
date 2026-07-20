@@ -18,7 +18,6 @@
 .leaderboard-hud-button {
     min-width: 180px;
     height: 36px;
-    margin-bottom: 6px;
     font-size: 18px;
 }
 
@@ -26,10 +25,16 @@
     position: absolute;
 }
 
-.player-country-panel {
+.top-left-panel {
     position: absolute;
     top: 6px;
     left: 6px;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.player-country-panel {
     padding: 8px 12px;
     background-color: rgb(26, 42, 72);
     border-color: rgb(200, 160, 64);

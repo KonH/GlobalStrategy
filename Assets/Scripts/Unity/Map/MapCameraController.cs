@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 using GS.Game.Configs;
+using GS.Unity.Common;
 
 namespace GS.Unity.Map {
 	[RequireComponent(typeof(Camera))]
@@ -61,6 +62,7 @@ namespace GS.Unity.Map {
 		void HandleZoom() {
 			var mouse = Mouse.current;
 			if (mouse == null) return;
+			if (ModalState.IsModalOpen) return;
 			float scroll = mouse.scroll.ReadValue().y;
 			if (scroll == 0f) return;
 			_camera.orthographicSize = Mathf.Clamp(
