@@ -158,15 +158,15 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void debug_command_toggles_occupation_through_game_logic() {
+		void debug_commands_set_and_clear_occupation_through_game_logic() {
 			var logic = BuildLogic();
 			logic.Update(0f);
 
-			logic.Commands.Push(new DebugToggleProvinceOccupationCommand { ProvinceId = "prov_b", OccupierId = "Great_Britain" });
+			logic.Commands.Push(new DebugSetProvinceOccupationCommand { ProvinceId = "prov_b", OccupierId = "Great_Britain" });
 			logic.Update(0f);
 			Assert.Equal("Great_Britain", ProvinceOccupationSystem.GetOccupier(logic.World, "prov_b"));
 
-			logic.Commands.Push(new DebugToggleProvinceOccupationCommand { ProvinceId = "prov_b", OccupierId = "Great_Britain" });
+			logic.Commands.Push(new DebugClearProvinceOccupationCommand { ProvinceId = "prov_b" });
 			logic.Update(0f);
 			Assert.Equal("", ProvinceOccupationSystem.GetOccupier(logic.World, "prov_b"));
 		}
@@ -176,7 +176,7 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic();
 			logic.Update(0f);
 
-			logic.Commands.Push(new DebugToggleProvinceOccupationCommand { ProvinceId = "prov_b", OccupierId = "Great_Britain" });
+			logic.Commands.Push(new DebugSetProvinceOccupationCommand { ProvinceId = "prov_b", OccupierId = "Great_Britain" });
 			logic.Update(0f);
 
 			Assert.True(logic.VisualState.ProvinceOccupation.OccupierByProvinceId.TryGetValue("prov_b", out string? occupierId));

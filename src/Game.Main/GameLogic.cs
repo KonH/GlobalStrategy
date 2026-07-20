@@ -154,14 +154,24 @@ namespace GS.Main {
 						cmd.NewOwnerId);
 				}
 			}
-			foreach (var cmd in _commandAccessor.ReadDebugToggleProvinceOccupationCommand().AsSpan()) {
-				var (changed, oldOccupierId, newOccupierId) = ProvinceOccupationSystem.ToggleOccupier(_world, cmd.ProvinceId, cmd.OccupierId);
+			foreach (var cmd in _commandAccessor.ReadDebugSetProvinceOccupationCommand().AsSpan()) {
+				var (changed, oldOccupierId) = ProvinceOccupationSystem.SetOccupier(_world, cmd.ProvinceId, cmd.OccupierId);
 				if (changed) {
 					VisualState.ProvinceOccupation.Set(
 						ProvinceOccupationSystem.GetOccupierByProvinceId(_world),
 						cmd.ProvinceId,
 						oldOccupierId,
-						newOccupierId);
+						cmd.OccupierId);
+				}
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugClearProvinceOccupationCommand().AsSpan()) {
+				var (changed, oldOccupierId) = ProvinceOccupationSystem.ClearOccupier(_world, cmd.ProvinceId);
+				if (changed) {
+					VisualState.ProvinceOccupation.Set(
+						ProvinceOccupationSystem.GetOccupierByProvinceId(_world),
+						cmd.ProvinceId,
+						oldOccupierId,
+						"");
 				}
 			}
 

@@ -51,12 +51,20 @@ namespace GS.Unity.UI {
 		ActionConfig _actionConfig;
 		ActionVisualConfig _actionVisualConfig;
 		CardPlayAnimator _cardPlayAnimator;
-		Button _btnReassignProvince;
-		Button _btnToggleProvinceOccupation;
+		CountryConfig _countryConfig;
+		Button _btnSelectedProvinceDebugMenu;
+		VisualElement _selectedProvinceDebugMenu;
+		VisualElement _provinceDebugContainer;
+		DropdownField _provinceCountryDropdown;
+		Button _btnChangeProvinceOwner;
+		Button _btnChangeProvinceOccupation;
+		Button _btnResetProvinceOccupation;
+		readonly List<string> _provinceDropdownCountryIds = new();
+		string _lastProvinceIdForDropdown = "";
 		readonly List<Button> _selectedCountryCharacterDebugButtons = new();
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
@@ -71,6 +79,7 @@ namespace GS.Unity.UI {
 			_actionConfig = actionConfig;
 			_actionVisualConfig = actionVisualConfig;
 			_cardPlayAnimator = cardPlayAnimator;
+			_countryConfig = countryConfig;
 		}
 
 		void Awake() {
@@ -190,27 +199,44 @@ namespace GS.Unity.UI {
 					improveOpinionBtn.AddToClassList("debug-panel-button");
 					characterDebugContainer.Add(improveOpinionBtn);
 				}
-
-				var reassignProvinceBtn = new Button(() => PushReassignProvinceCommand());
-				reassignProvinceBtn.text = "Reassign Province to My HQ";
-				reassignProvinceBtn.AddToClassList("gs-btn");
-				reassignProvinceBtn.AddToClassList("gs-btn--small");
-				reassignProvinceBtn.AddToClassList("debug-panel-button");
-				characterDebugContainer.Add(reassignProvinceBtn);
-				_btnReassignProvince = reassignProvinceBtn;
-
-				var toggleProvinceOccupationBtn = new Button(() => PushToggleProvinceOccupationCommand());
-				toggleProvinceOccupationBtn.text = "Toggle Occupation by My HQ";
-				toggleProvinceOccupationBtn.AddToClassList("gs-btn");
-				toggleProvinceOccupationBtn.AddToClassList("gs-btn--small");
-				toggleProvinceOccupationBtn.AddToClassList("debug-panel-button");
-				characterDebugContainer.Add(toggleProvinceOccupationBtn);
-				_btnToggleProvinceOccupation = toggleProvinceOccupationBtn;
-				RefreshProvinceCheatButton();
 			}
+
+			_btnSelectedProvinceDebugMenu = root.Q<Button>("btn-selected-province-debug-menu");
+			_selectedProvinceDebugMenu = root.Q("selected-province-debug-menu");
+			RegisterDebugMenuToggle(_btnSelectedProvinceDebugMenu, _selectedProvinceDebugMenu, "Selected province");
+			BuildProvinceDebugUi();
 
 			RebuildOrgCharDebugButtons();
 			RefreshSelectedCountryCharacterDebugButtons();
+			RefreshSelectedProvinceDebugMenu();
+		}
+
+		void BuildProvinceDebugUi() {
+			_provinceDebugContainer = _root.Q("province-debug-container");
+			if (_provinceDebugContainer == null) { return; }
+
+			_provinceCountryDropdown = new DropdownField();
+			_provinceCountryDropdown.AddToClassList("debug-panel-button");
+			_provinceCountryDropdown.RegisterValueChangedCallback(_ => RefreshProvinceActionButtons());
+			_provinceDebugContainer.Add(_provinceCountryDropdown);
+
+			_btnChangeProvinceOwner = new Button(PushChangeProvinceOwnerCommand) { text = "Change owner" };
+			_btnChangeProvinceOwner.AddToClassList("gs-btn");
+			_btnChangeProvinceOwner.AddToClassList("gs-btn--small");
+			_btnChangeProvinceOwner.AddToClassList("debug-panel-button");
+			_provinceDebugContainer.Add(_btnChangeProvinceOwner);
+
+			_btnChangeProvinceOccupation = new Button(PushSetProvinceOccupationCommand) { text = "Change occupation" };
+			_btnChangeProvinceOccupation.AddToClassList("gs-btn");
+			_btnChangeProvinceOccupation.AddToClassList("gs-btn--small");
+			_btnChangeProvinceOccupation.AddToClassList("debug-panel-button");
+			_provinceDebugContainer.Add(_btnChangeProvinceOccupation);
+
+			_btnResetProvinceOccupation = new Button(PushClearProvinceOccupationCommand) { text = "Reset occupation" };
+			_btnResetProvinceOccupation.AddToClassList("gs-btn");
+			_btnResetProvinceOccupation.AddToClassList("gs-btn--small");
+			_btnResetProvinceOccupation.AddToClassList("debug-panel-button");
+			_provinceDebugContainer.Add(_btnResetProvinceOccupation);
 		}
 
 		void ToggleDebugPanel() {
@@ -264,12 +290,14 @@ namespace GS.Unity.UI {
 			_state.PlayerOrganization.Characters.PropertyChanged += HandleOrgCharactersChanged;
 			_state.SelectedCountry.Control.UsedControl.PropertyChanged += HandleControlTickChanged;
 			_state.SelectedProvince.PropertyChanged += HandleSelectedProvinceChanged;
+			_state.ProvinceOwnership.PropertyChanged += HandleProvinceOwnershipChanged;
+			_state.ProvinceOccupation.PropertyChanged += HandleProvinceOccupationChanged;
 			_state.GameLog.PropertyChanged += HandleGameLogChanged;
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			RefreshCountryViews();
 			RefreshControlDebugRow();
 			RefreshSelectedCountryCharacterDebugButtons();
-			RefreshProvinceCheatButton();
+			RefreshSelectedProvinceDebugMenu();
 			_timeView.Refresh(_state.Time);
 			_actionLog?.Refresh(_state.GameLog);
 		}
@@ -293,6 +321,8 @@ namespace GS.Unity.UI {
 			_state.PlayerOrganization.Characters.PropertyChanged -= HandleOrgCharactersChanged;
 			_state.SelectedCountry.Control.UsedControl.PropertyChanged -= HandleControlTickChanged;
 			_state.SelectedProvince.PropertyChanged -= HandleSelectedProvinceChanged;
+			_state.ProvinceOwnership.PropertyChanged -= HandleProvinceOwnershipChanged;
+			_state.ProvinceOccupation.PropertyChanged -= HandleProvinceOccupationChanged;
 			_state.GameLog.PropertyChanged -= HandleGameLogChanged;
 			_lastOrgAgentSlotCount = -1;
 			if (_orgInfoDocument != null) {
@@ -479,40 +509,122 @@ namespace GS.Unity.UI {
 		void HandleLensChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			RefreshCountryViews();
-			RefreshProvinceCheatButton();
+			RefreshSelectedProvinceDebugMenu();
 		}
 
 		void HandleSelectedProvinceChanged(object sender, PropertyChangedEventArgs e) {
-			RefreshProvinceCheatButton();
+			RefreshSelectedProvinceDebugMenu();
+		}
+
+		void HandleProvinceOwnershipChanged(object sender, PropertyChangedEventArgs e) {
+			_lastProvinceIdForDropdown = "";
+			RefreshSelectedProvinceDebugMenu();
+		}
+
+		void HandleProvinceOccupationChanged(object sender, PropertyChangedEventArgs e) {
+			RefreshProvinceActionButtons();
 		}
 
 		void HandleGameLogChanged(object sender, PropertyChangedEventArgs e) => _actionLog?.Refresh(_state.GameLog);
 
-		void RefreshProvinceCheatButton() {
+		void RefreshSelectedProvinceDebugMenu() {
 			if (_state == null) { return; }
-			bool show = _state.MapLens.Lens == MapLens.Province && _state.SelectedProvince.IsValid;
-			if (_btnReassignProvince != null) {
-				_btnReassignProvince.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+			bool valid = _state.MapLens.Lens == MapLens.Province && _state.SelectedProvince.IsValid;
+			if (_btnSelectedProvinceDebugMenu != null) {
+				_btnSelectedProvinceDebugMenu.SetEnabled(valid);
+				if (!valid) {
+					if (_selectedProvinceDebugMenu != null) {
+						_selectedProvinceDebugMenu.style.display = DisplayStyle.None;
+					}
+					_btnSelectedProvinceDebugMenu.text = "▶ Selected province";
+				}
 			}
-			if (_btnToggleProvinceOccupation != null) {
-				_btnToggleProvinceOccupation.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+			if (!valid) {
+				_lastProvinceIdForDropdown = "";
+				return;
 			}
+
+			string provinceId = _state.SelectedProvince.ProvinceId;
+			if (provinceId != _lastProvinceIdForDropdown) {
+				RebuildProvinceCountryDropdown(GetProvinceOwner(provinceId), _state.PlayerOrganization.HqCountryId);
+				_lastProvinceIdForDropdown = provinceId;
+			}
+			RefreshProvinceActionButtons();
 		}
 
-		void PushReassignProvinceCommand() {
-			if (_state == null || _commands == null) { return; }
-			string provinceId = _state.SelectedProvince.ProvinceId;
-			string hqCountryId = _state.PlayerOrganization.HqCountryId;
-			if (string.IsNullOrEmpty(provinceId) || string.IsNullOrEmpty(hqCountryId)) { return; }
-			_commands.Push(new DebugChangeProvinceOwnerCommand { ProvinceId = provinceId, NewOwnerId = hqCountryId });
+		void RebuildProvinceCountryDropdown(string ownerId, string hqCountryId) {
+			if (_provinceCountryDropdown == null || _countryConfig == null) { return; }
+			_provinceDropdownCountryIds.Clear();
+			var choices = new List<string>();
+			void AddCountry(string countryId) {
+				if (string.IsNullOrEmpty(countryId) || _provinceDropdownCountryIds.Contains(countryId)) { return; }
+				_provinceDropdownCountryIds.Add(countryId);
+				choices.Add(GetCountryDisplayName(countryId));
+			}
+			AddCountry(ownerId);
+			AddCountry(hqCountryId);
+			foreach (var entry in _countryConfig.Countries) {
+				if (entry.IsAvailable) { AddCountry(entry.CountryId); }
+			}
+			_provinceCountryDropdown.choices = choices;
+			_provinceCountryDropdown.index = choices.Count > 0 ? 0 : -1;
 		}
 
-		void PushToggleProvinceOccupationCommand() {
+		void RefreshProvinceActionButtons() {
+			if (_state == null || _provinceCountryDropdown == null) { return; }
+			string provinceId = _state.SelectedProvince.ProvinceId;
+			string ownerId = GetProvinceOwner(provinceId);
+			string selectedCountryId = GetSelectedProvinceDropdownCountryId();
+			bool differsFromOwner = !string.IsNullOrEmpty(selectedCountryId) && selectedCountryId != ownerId;
+			_btnChangeProvinceOwner?.SetEnabled(differsFromOwner);
+			_btnChangeProvinceOccupation?.SetEnabled(differsFromOwner);
+			bool occupied = !string.IsNullOrEmpty(GetProvinceOccupier(provinceId));
+			_btnResetProvinceOccupation?.SetEnabled(occupied);
+		}
+
+		string GetSelectedProvinceDropdownCountryId() {
+			if (_provinceCountryDropdown == null) { return ""; }
+			int index = _provinceCountryDropdown.index;
+			return index >= 0 && index < _provinceDropdownCountryIds.Count ? _provinceDropdownCountryIds[index] : "";
+		}
+
+		string GetProvinceOwner(string provinceId) {
+			if (_state == null || string.IsNullOrEmpty(provinceId)) { return ""; }
+			return _state.ProvinceOwnership.OwnerByProvinceId.TryGetValue(provinceId, out var ownerId) ? ownerId : "";
+		}
+
+		string GetProvinceOccupier(string provinceId) {
+			if (_state == null || string.IsNullOrEmpty(provinceId)) { return ""; }
+			return _state.ProvinceOccupation.OccupierByProvinceId.TryGetValue(provinceId, out var occupierId) ? occupierId : "";
+		}
+
+		string GetCountryDisplayName(string countryId) {
+			string key = $"country_name.{countryId}";
+			string name = _loc?.Get(key);
+			return string.IsNullOrEmpty(name) || name == key ? countryId : name;
+		}
+
+		void PushChangeProvinceOwnerCommand() {
 			if (_state == null || _commands == null) { return; }
 			string provinceId = _state.SelectedProvince.ProvinceId;
-			string hqCountryId = _state.PlayerOrganization.HqCountryId;
-			if (string.IsNullOrEmpty(provinceId) || string.IsNullOrEmpty(hqCountryId)) { return; }
-			_commands.Push(new DebugToggleProvinceOccupationCommand { ProvinceId = provinceId, OccupierId = hqCountryId });
+			string countryId = GetSelectedProvinceDropdownCountryId();
+			if (string.IsNullOrEmpty(provinceId) || string.IsNullOrEmpty(countryId)) { return; }
+			_commands.Push(new DebugChangeProvinceOwnerCommand { ProvinceId = provinceId, NewOwnerId = countryId });
+		}
+
+		void PushSetProvinceOccupationCommand() {
+			if (_state == null || _commands == null) { return; }
+			string provinceId = _state.SelectedProvince.ProvinceId;
+			string countryId = GetSelectedProvinceDropdownCountryId();
+			if (string.IsNullOrEmpty(provinceId) || string.IsNullOrEmpty(countryId)) { return; }
+			_commands.Push(new DebugSetProvinceOccupationCommand { ProvinceId = provinceId, OccupierId = countryId });
+		}
+
+		void PushClearProvinceOccupationCommand() {
+			if (_state == null || _commands == null) { return; }
+			string provinceId = _state.SelectedProvince.ProvinceId;
+			if (string.IsNullOrEmpty(provinceId)) { return; }
+			_commands.Push(new DebugClearProvinceOccupationCommand { ProvinceId = provinceId });
 		}
 
 		void PushDiscoverAllCountriesCommand() {

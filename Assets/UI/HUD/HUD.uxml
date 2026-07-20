@@ -44,6 +44,10 @@
             <ui:VisualElement name="my-organization-debug-menu" class="debug-panel-inner" style="display: none;">
                 <ui:VisualElement name="org-char-debug-container" style="flex-direction: column;" />
             </ui:VisualElement>
+            <ui:Button name="btn-selected-province-debug-menu" text="Selected province" class="gs-btn debug-panel-menu-toggle" />
+            <ui:VisualElement name="selected-province-debug-menu" class="debug-panel-inner" style="display: none;">
+                <ui:VisualElement name="province-debug-container" style="flex-direction: column;" />
+            </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="card-test-overlay" class="gs-modal-root" style="display: none;">
             <ui:VisualElement name="card-test-inner" style="flex-direction: row; align-items: center; justify-content: center;">

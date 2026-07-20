@@ -1,5 +1,5 @@
 namespace GS.Game.Commands {
-	public struct DebugToggleProvinceOccupationCommand : ICommand {
+	public struct DebugSetProvinceOccupationCommand : ICommand {
 		public string ProvinceId;
 		public string OccupierId;
 	}
