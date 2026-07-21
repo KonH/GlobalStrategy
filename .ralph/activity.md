@@ -82,3 +82,33 @@ that manual Unity Editor compilation is required; follow the Ralph blocker rules
 gate cannot be executed.
 
 ---
+
+## 2026-07-22 — Implement ordered resource presentation in ResourcesView (blocked)
+
+Task: "Implement config-whitelist filtering, ordering, icon selection, and localized descriptions in ResourcesView."
+
+**What I changed:**
+- Updated `Assets/Scripts/Unity/UI/ResourcesView.cs` to walk
+  `ResourceConfig.DisplayWhitelist`, omit missing state entries, and retain configured
+  presentation order.
+- Applied the base `resource-icon` class and the configured icon-key modifier only when
+  icon metadata exists, while leaving values and tooltips functional without definitions
+  or images.
+- Replaced raw gold ID comparisons with `ResourceDefinitions.Gold` without changing value,
+  effect, instant, control-income, or refresh behavior.
+- Added the localized resource description immediately below the localized tooltip name,
+  retaining the raw resource-ID fallback when no definition exists.
+- Bumped `ProjectSettings/ProjectSettings.asset` bundle version from 1.24 to 1.25 for the
+  required commit.
+
+**Gate:** BLOCKED. The required gate is Unity Editor compilation via `refresh_unity`, then
+`read_console(types=["error"])`. This session exposes neither Unity MCP tool (the available
+tool catalog contains no Unity Editor, `refresh_unity`, or `read_console` entry), so the
+gate could not be run. `git diff --check` exited 0, but that is not a substitute for the
+required Unity gate. The task remains `passes: false` and needs manual visual checking after
+Unity compilation succeeds.
+
+The next iteration should rerun the Unity compilation/error-console gate first. If it is
+clean, mark this task passed and record the output; do not redo the implementation.
+
+---

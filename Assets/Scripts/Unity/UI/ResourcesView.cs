@@ -23,18 +23,27 @@ namespace GS.Unity.UI {
 			if (!state.IsValid) {
 				return;
 			}
-			foreach (var resource in state.Resources) {
+			foreach (string resourceId in _config.DisplayWhitelist) {
+				var resource = FindResourceState(state, resourceId);
+				if (resource == null) {
+					continue;
+				}
+
+				var resourceDefinition = _config.FindResource(resource.ResourceId);
 				var row = new VisualElement();
 				row.AddToClassList("resource-row");
 
 				var icon = new VisualElement();
-				icon.AddToClassList($"resource-icon--{resource.ResourceId}");
+				if (resourceDefinition != null && !string.IsNullOrEmpty(resourceDefinition.Icon)) {
+					icon.AddToClassList("resource-icon");
+					icon.AddToClassList($"resource-icon--{resourceDefinition.Icon}");
+				}
 				row.Add(icon);
 
 				var label = new Label();
 				label.AddToClassList("gs-label");
 				label.AddToClassList("resource-label");
-				label.text = resource.ResourceId == "gold"
+				label.text = resource.ResourceId == ResourceDefinitions.Gold
 					? $"{resource.Value.AsInt()}"
 					: $"{resource.Value.Display:F0}";
 				row.Add(label);
@@ -47,6 +56,15 @@ namespace GS.Unity.UI {
 			}
 		}
 
+		static ResourceStateEntry? FindResourceState(CountryResourcesState state, string resourceId) {
+			foreach (var resource in state.Resources) {
+				if (resource.ResourceId == resourceId) {
+					return resource;
+				}
+			}
+			return null;
+		}
+
 		VisualElement BuildResourceTooltip(TooltipContext ctx, ResourceStateEntry resource, CountryResourcesState state) {
 			var root = new VisualElement();
 
@@ -56,6 +74,12 @@ namespace GS.Unity.UI {
 			header.text = resDef != null ? _loc.Get(resDef.NameKey) : resource.ResourceId;
 			header.AddToClassList("tooltip-header");
 			root.Add(header);
+
+			if (resDef != null && !string.IsNullOrEmpty(resDef.DescriptionKey)) {
+				var description = new Label(_loc.Get(resDef.DescriptionKey));
+				description.AddToClassList("tooltip-description");
+				root.Add(description);
+			}
 
 			double plusTotal = 0;
 			double minusTotal = 0;
@@ -121,7 +145,7 @@ namespace GS.Unity.UI {
 			}
 
 			// Control income rows (gold resource only)
-			if (resource.ResourceId == "gold" && state.ControlIncomes.Count > 0) {
+			if (resource.ResourceId == ResourceDefinitions.Gold && state.ControlIncomes.Count > 0) {
 				double controlTotal = 0;
 				foreach (var inc in state.ControlIncomes) {
 					controlTotal += inc.MonthlyGold;
