@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Feature Issues"
+  short_description: "Run the GitHub issue approval workflow"
+  default_prompt: "Process the current Codex-labeled feature issue safely."
