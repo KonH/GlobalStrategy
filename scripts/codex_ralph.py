@@ -395,21 +395,23 @@ def main():
         passed, total, percent = task_progress(prd_text)
         print(f"Progress: {passed}/{total} tasks passed ({percent:.0f}%)")
 
+        has_open_tasks = bool(re.search(r'"passes":\s*false', prd_text))
         if r.get("is_error"):
             stop_reason = "result_error"
-        elif "<promise>COMPLETE</promise>" in (r.get("result") or ""):
-            stop_reason = "complete_promise"
-        elif not re.search(r'"passes":\s*false', prd_text):
+        elif not has_open_tasks:
             stop_reason = "all_tasks_passed"
-        elif stall_count >= args.stall_limit:
-            stop_reason = "stalled_no_progress"
-            print(
-                f"Stopping: {stall_count} consecutive iterations made no change beyond "
-                f"{', '.join(sorted(JOURNAL_ONLY_FILES))}. This usually means a required "
-                "prerequisite is unavailable (e.g. Unity Editor MCP bridge not connected, or a "
-                "missing tool like Node.js) - check the latest .ralph/activity.md entries before "
-                "resuming."
-            )
+        else:
+            if "<promise>COMPLETE</promise>" in (r.get("result") or ""):
+                print("Ignoring COMPLETE promise because the PRD still has open tasks.")
+            if stall_count >= args.stall_limit:
+                stop_reason = "stalled_no_progress"
+                print(
+                    f"Stopping: {stall_count} consecutive iterations made no change beyond "
+                    f"{', '.join(sorted(JOURNAL_ONLY_FILES))}. This usually means a required "
+                    "prerequisite is unavailable (e.g. Unity Editor MCP bridge not connected, or a "
+                    "missing tool like Node.js) - check the latest .ralph/activity.md entries before "
+                    "resuming."
+                )
         if stop_reason != "max_iterations":
             break
 
