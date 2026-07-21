@@ -10,6 +10,10 @@ The automation drives a feature issue through `/specify` → (owner review) → 
 
 The PR only carries the code (spec.md/plan.md) and is linked via `Closes #N`. Every summary, question, and conclusion is posted as an issue comment. This keeps one single thread across the whole spec→plan→merge lifecycle instead of splitting between the issue and a PR that doesn't exist yet at issue-creation time.
 
+## Progress checklist: one comment, edited in place
+
+Every issue gets a single tracking comment (its own `<!-- claude-automation:checklist -->` marker, separate from the general one) showing checkboxes for spec/plan drafted/approved, merged, and classified, plus a one-line status. It's created as the issue's first comment and edited via `gh api -X PATCH` on every subsequent cycle rather than ever being reposted — the checkbox state is fully derived from the current phase each time, not something a human can toggle to signal approval (that stays the reaction-based flow above). Full template and derivation rules are in the command file.
+
 ## Discovery: label + lookback window + reaction check
 
 Every cron tick, the script:
