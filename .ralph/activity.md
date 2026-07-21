@@ -55,3 +55,30 @@ The next iteration should configure the static seed targets and ordered display 
 shared gold definition remains country-targeted.
 
 ---
+
+## 2026-07-22 — Configure static resource seed targets and ordered display catalog
+
+Task: "Configure static resource seed targets and the ordered display catalog."
+
+**What I changed:**
+- Updated `Assets/Configs/resource_config.json` with the exact ordered display whitelist:
+  `gold`, `country_population`, `country_score`, and `org_score`.
+- Added complete presentation definitions and stable icon keys for all four displayed
+  resources.
+- Added explicit seed targets for country, province, organization, and character resources.
+- Preserved gold's 100 default value and monthly base-income effect; collector-backed
+  resources use zero defaults and no generic effects, while character skill definitions
+  contain only their target metadata.
+- Bumped `ProjectSettings/ProjectSettings.asset` bundle version from 1.23 to 1.24 per the
+  repository commit rules.
+
+**Gate:** With `DOTNET_ROLL_FORWARD=Major`, `dotnet test src/GlobalStrategy.Core.sln`
+exited 0. Evidence: `ECS.Tests.dll` passed 34/34, `ECS.Viewer.Tests.dll` passed
+16/16, and `Game.Tests.dll` passed 322/322 (372 total, 0 failed).
+
+The next iteration should implement whitelist filtering, ordering, icon selection, and
+localized descriptions in `Assets/Scripts/Unity/UI/ResourcesView.cs`. Its PRD gate states
+that manual Unity Editor compilation is required; follow the Ralph blocker rules if that
+gate cannot be executed.
+
+---

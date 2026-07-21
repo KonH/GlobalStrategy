@@ -46,7 +46,7 @@ Make the shared country and organization resource summaries consume a config-ord
 			"Preserve existing gold defaults and effects; use zero defaults and no generic effects for collector-backed definitions; keep character skill ranges and localization authoritative in CharacterConfig."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "unity-headless",
