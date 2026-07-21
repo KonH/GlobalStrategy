@@ -143,3 +143,13 @@ Checked against `Docs/Constitution.md`; no violations found.
 - **C# style:** Implementation will use tabs, same-line braces, `_`-prefixed private fields, and braced control flow.
 
 Use the issue approval checkpoint before implementation, or request plan clarifications on issue #41.
+
+## Automation Notes
+
+The `full-env-headless` pass skips these plan steps because they require a Unity Editor, Unity MCP, image generation, asset import, or visual inspection:
+
+- [ ] **Add localized names and descriptions** — update `Assets/Localization/en.asset` and `Assets/Localization/ru.asset` for `country_population`, `country_score`, and `org_score`.
+- [ ] **Generate and import the three resource images** — add the three transparent PNGs and Unity metadata under `Assets/UI/Icons/`; keep the existing coin SVG.
+- [ ] **Render resource items as one row** — update `Assets/UI/Shared/SharedStyles.uss` with the horizontal container and icon classes.
+- [ ] **Run Unity verification** — refresh/import in Unity, confirm the new sprites and USS URLs resolve, and read the console for compile/import/UXML/USS errors.
+- [ ] **Perform visual verification** — in Play mode inspect all three affected views in both locales and at representative HUD widths; verify resource subset/order, single-line layout, icon legibility, live refresh, missing-entry behavior, and tooltip content.
