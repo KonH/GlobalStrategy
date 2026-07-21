@@ -78,7 +78,7 @@ At the very start of processing a given issue, apply the `claude-in-progress` la
 As soon as you identify what triggered processing for an issue, react to it immediately, before doing any real work:
 - Triggered by a brand-new issue → add an `eyes` reaction to the issue itself.
 - Triggered by a new comment → add an `eyes` reaction to that specific comment.
-- Triggered by a new reaction (no new comment) → no ack reaction needed (you can't react to a reaction).
+- Triggered by a new reaction (no new comment) → add an `eyes` reaction to the **marker comment the owner reacted on** (`gh api repos/KonH/GlobalStrategy/issues/comments/<comment-id>/reactions -f content=eyes`). You can't react to a reaction, but you can react to the comment it landed on — do this even though it already has a 👍, since that's the only visible sign the run was actually picked up before it produces its next comment. This matters most for section 4b (the Ralph loop), which can run for many minutes with no new comment until it finishes — without this, there's no way to tell from the issue alone whether the 👍 has been seen yet, short of noticing the `claude-in-progress` label.
 
 ## Bounded clarification loop
 
