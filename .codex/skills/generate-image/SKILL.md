@@ -5,13 +5,31 @@ description: Generate project-bound raster assets with this repository's local C
 
 # Generate Game Image
 
-Use the local ComfyUI server and the repository's reusable scripts. This skill is the canonical Codex workflow for the existing embedded image-generation setup.
+Use the local ComfyUI server and the repository's reusable scripts. This skill is the canonical Codex workflow for the embedded image-generation setup.
 
-## Preconditions
+## Environment rules
 
 - Do not use this skill from a Ralph `code-only` or `full-env-headless` run. Those environments must leave Unity and image work untouched.
-- Confirm ComfyUI is available at `http://127.0.0.1:8188`. If it is unavailable, report that prerequisite; do not substitute a hosted generator or stock image.
 - Keep generated project assets under their intended `Assets/` path and do not overwrite an existing asset unless the request explicitly calls for it.
+- Never substitute a hosted generator, placeholder service, stock-image URL, or emoji glyph for a required game asset.
+
+## Ensure ComfyUI is ready
+
+1. Check `http://127.0.0.1:8188/system_stats`.
+2. If it is unavailable and `ComfyUI/run_nvidia_gpu.bat` exists, start it in a hidden detached process, then poll the endpoint for up to two minutes.
+3. If it is unavailable and ComfyUI is not installed, run the bundled resumable installer in the background:
+
+   ```powershell
+   Start-Process -FilePath ".venv\Scripts\python.exe" `
+     -ArgumentList ".codex\skills\generate-image\scripts\setup_comfyui.py --project-root ." `
+     -WorkingDirectory (Get-Location) -WindowStyle Hidden `
+     -RedirectStandardOutput ".tmp\comfyui_setup.log" `
+     -RedirectStandardError ".tmp\comfyui_setup.err"
+   ```
+
+   Read the log periodically. The installer downloads the portable NVIDIA build and the non-gated FLUX.1-schnell checkpoint, VAE, and text encoders; it resumes partial downloads. When it reports `=== All done ===`, start ComfyUI and repeat the endpoint check.
+
+4. If startup or installation fails, report the log error rather than silently switching tools.
 
 ## Generate one asset
 
@@ -41,4 +59,3 @@ The batch stops with an error when any entry fails. Report successful and failed
 - State the subject, intended in-game use, visual style, composition, palette, and exclusions. Require no text or watermark unless text is explicitly needed.
 - For icons, ask for a simple high-contrast silhouette that remains legible at its rendered size.
 - For portrait prompts and regional/role wording, read [portrait-recipes.md](references/portrait-recipes.md).
-- Never use placeholder services, stock-image URLs, or emoji glyphs as replacements for required visual assets.
