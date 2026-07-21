@@ -34,7 +34,7 @@ Make the shared country and organization resource summaries consume a config-ord
 			"Fail fast with the resource ID and target when a statically configured target/resource pairing has no supported initialization strategy."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "resource-config",
