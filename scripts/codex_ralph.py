@@ -130,10 +130,21 @@ def invoke_codex_step(codex_exe, phase, iteration, prompt, dangerously_skip_perm
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     err_file = log_dir / f"{phase}_{iteration}_{stamp}.stderr.log"
 
-    proc = subprocess.run(codex_args, capture_output=True, text=True)
+    # Codex emits UTF-8 JSON/text.  On Windows, ``text=True`` otherwise uses
+    # the active ANSI code page (often cp1252), which can fail while decoding
+    # valid Codex output before the runner has a chance to record the error.
+    proc = subprocess.run(
+        codex_args,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
     exit_code = proc.returncode
-    stdout_text = proc.stdout
-    stderr_text = proc.stderr
+    # A subprocess failure can leave either stream unset.  Error reporting
+    # must still produce the Ralph activity and diagnostic logs in that case.
+    stdout_text = proc.stdout or ""
+    stderr_text = proc.stderr or ""
 
     if exit_code != 0:
         err_file.write_text(stderr_text, encoding="utf-8")
