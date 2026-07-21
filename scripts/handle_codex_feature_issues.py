@@ -260,14 +260,21 @@ def main():
     ]
     if args.dangerously_skip_permissions:
         codex_args.append("--yolo")
-    codex_args.append(prompt)
+    # Read the prompt from stdin rather than a Windows command-line argument. Issue bodies
+    # can be large or contain characters that are hard to preserve through command-line parsing.
+    codex_args.append("-")
     process = subprocess.Popen(
         codex_args,
+        stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         bufsize=1,
     )
+    process.stdin.write(prompt)
+    process.stdin.close()
     for line in process.stdout:
         line = line.rstrip()
         if not line:
