@@ -8,6 +8,8 @@
 #   gh label create claude --color 5319E7 --description "Feature-issue automation"
 #   gh label create claude-in-progress --color FBCA04 --description "Automation actively working this issue"
 #   gh label create claude-needs-attention --color D93F0B --description "Automation stopped, needs a human"
+#   gh label create code-only --color 0E8A16 --description "Implementable without Unity Editor/MCP or image generation"
+#   gh label create full-env-required --color 5319E7 --description "Needs Unity Editor/MCP or image generation to implement"
 #
 # Note: flock-based process locking (see handle_feature_issues.py) is POSIX-only and is a
 # no-op on Windows - use Task Scheduler's own "don't start a new instance if already

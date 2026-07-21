@@ -27,9 +27,20 @@ Every cron tick, the script:
 gh label create claude --color 5319E7 --description "Feature-issue automation"
 gh label create claude-in-progress --color FBCA04 --description "Automation actively working this issue"
 gh label create claude-needs-attention --color D93F0B --description "Automation stopped, needs a human"
+gh label create code-only --color 0E8A16 --description "Implementable without Unity Editor/MCP or image generation"
+gh label create full-env-required --color 5319E7 --description "Needs Unity Editor/MCP or image generation to implement"
 ```
 
-**Add the `claude` label manually when creating a qualifying issue** — no required body format, just write it naturally (title → feature name, body → feature description, optional leading `/specify` stripped if present). The other two labels are applied/removed by the automation itself.
+**Add the `claude` label manually when creating a qualifying issue** — no required body format, just write it naturally (title → feature name, body → feature description, optional leading `/specify` stripped if present). The other four labels are applied/removed by the automation itself.
+
+## Post-merge classification: `code-only` vs `full-env-required`
+
+Right after a successful merge, the command labels the (now auto-closed) issue with exactly one of:
+
+- **`code-only`** — the plan is confined to `src/` (Unity-independent logic), pure C#/ECS work under `Assets/Scripts/` verifiable via `dotnet build`/tests without the Editor open, or `scripts/*.py` config generators.
+- **`full-env-required`** — anything touching `Assets/UI/`, `Assets/Prefabs/`, scenes, ScriptableObject/prefab assets, textures/flags/portraits, or that otherwise needs Unity MCP tool usage or the image-generation pipeline to implement or verify.
+
+This is a forward-looking signal for whatever picks up implementation later (manually, or a future automated `/implement` step) — it can filter to `code-only` issues for anything meant to run without a Unity Editor available. Ambiguous/mixed plans default to `full-env-required`, since an implementation attempt wrongly assuming no Editor is needed fails worse than a human just double-checking one that didn't need it.
 
 ## Concurrency: a process lock, not GitHub state
 
