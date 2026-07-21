@@ -13,10 +13,10 @@ When the user specifies a scope (e.g. `@Design/02_icons_and_cards`), work in tha
 
 **Never use placeholder services (placehold.it, picsum, lorempixel, etc.) or third-party stock images.** For any image content needed in the prototype (character portraits, card art, icons, map thumbnails), use the project's image generation pipeline:
 
-- For AI-generated images: invoke the `/generate-image` skill (ComfyUI + FLUX backend)
+- For AI-generated images: invoke the `$generate-image` skill (ComfyUI + FLUX backend)
 - For screenshots of existing in-game content: reference files already in the scope's `initial/` folder
 
-If a suitable image does not yet exist, leave an empty container with a CSS background-color placeholder and a comment `<!-- TODO: generate via /generate-image -->` rather than pulling from a third-party URL.
+If a suitable image does not yet exist, leave an empty container with a CSS background-color placeholder and a comment `<!-- TODO: generate via $generate-image -->` rather than pulling from a third-party URL.
 
 ## Workflow
 
