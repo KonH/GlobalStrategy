@@ -1,4 +1,8 @@
-Poll GitHub for new feature-request issues from the repo owner and drive them through `/specify`, opening a PR with the spec and any clarifying questions. Invoked by `scripts/handle_feature_issues.sh`, run on a cron schedule **in the user's own environment** (not this Claude Code Remote session) — see `.claude/rules/github_issue_automation.md` for why. Each invocation is a fresh `claude -p` process with no memory of previous runs; use `gh` CLI (already authenticated as the repo owner in that environment) and plain `git` for everything — this command must not assume any MCP tools are present.
+Drive a pre-filtered list of feature-request issues/PRs from the repo owner through `/specify`, opening a PR with the spec and any clarifying questions. Invoked by `scripts/handle_feature_issues.py` (via `.sh`/`.ps1` wrappers), run on a cron schedule **in the user's own environment** (not this Claude Code Remote session) — see `.claude/rules/github_issue_automation.md` for why.
+
+The invocation prompt already contains the full candidate list — every open issue/PR labeled `claude` that was created or updated within the wrapper's lookback window, each as a `[ISSUE #N]`/`[PR #N]` block with its URL, title, and body. **Do not re-scan the repo for other candidates** — that `gh issue list`/`gh pr list` work already happened in the wrapper specifically so this process doesn't have to spend a turn (and subscription usage) rediscovering what it already knows. Process only what's in that list.
+
+Each invocation is a fresh `claude -p` process with no memory of previous runs; use `gh` CLI (already authenticated as the repo owner in that environment) and plain `git` for everything — this command must not assume any MCP tools are present.
 
 Repo: `KonH/GlobalStrategy`. Author to act on: `KonH`. Base branch: `main`.
 
@@ -12,31 +16,23 @@ The `gh`/git credentials in the user's own environment are their own personal ac
 
 (an HTML comment — invisible when rendered on GitHub). This is the only reliable way later runs can tell "we already said this" apart from "the human just replied."
 
-## 1. Find candidate issues
+## 1. Filter the given candidates
 
-```
-gh issue list --repo KonH/GlobalStrategy --author KonH --state open --json number,title,body
-```
+For each `[ISSUE #N]` block in the prompt, read its body directly. Skip any whose body doesn't contain a line starting with `topic:` and a line starting with `description:` (case-insensitive, either order) — the `claude` label alone isn't sufficient, it isn't a feature-automation request, leave it untouched. (`[PR #N]` blocks are always replies to something this automation already opened — go straight to step 2's classification for those.)
 
-For each issue, read its `body` directly. Skip any issue whose body doesn't contain a line starting with `topic:` and a line starting with `description:` (case-insensitive, either order) — it isn't a feature-automation request, leave it untouched.
+## 2. Classify each remaining candidate
 
-## 2. Classify each matching issue
-
-```
-gh pr list --repo KonH/GlobalStrategy --state all --json number,headRefName,state
-```
-
-Look for a PR whose `headRefName` starts with `claude/issue-<issue-number>-`.
-
-- **No such PR** → **new request** → go to step 3.
-- **PR exists and is open** → fetch its comments:
+- **`[ISSUE #N]` block** → check whether a PR already exists with head branch `claude/issue-<N>-*` (`gh pr list --repo KonH/GlobalStrategy --state all --json number,headRefName`):
+  - No such PR → **new request** → go to step 3.
+  - PR exists and is open → treat this issue as already handled; the follow-up work happens via the `[PR #N]` block instead (see below), not here.
+  - PR exists but closed/merged → done, skip.
+- **`[PR #N]` block** → fetch its comments:
   ```
   gh api repos/KonH/GlobalStrategy/issues/<pr-number>/comments
   ```
   Look at the **last** comment:
-  - Body starts with `<!-- claude-automation -->` → that was this automation's own comment, nothing new since → skip this issue this cycle.
+  - Body starts with `<!-- claude-automation -->` → that was this automation's own comment (the PR's `updatedAt` moved because of that comment, not a new human reply) → skip.
   - Otherwise → a new human reply → go to step 4.
-- **PR exists but closed/merged** → done, skip.
 
 ## 3. New request: write the spec and open a PR
 
@@ -53,22 +49,24 @@ Look for a PR whose `headRefName` starts with `claude/issue-<issue-number>-`.
 
    <brief summary>"
    ```
-7. Post the spec's presentation/questions content as a PR comment, marker line first:
+7. **Label the new PR `claude`** (`gh pr edit <pr-number> --repo KonH/GlobalStrategy --add-label claude`) — this is what makes the wrapper's next poll pick up future replies on it at all; without this the PR is invisible to `--label claude` discovery and no reply would ever be processed.
+8. Post the spec's presentation/questions content as a PR comment, marker line first:
    ```
    gh pr comment <pr-number> --repo KonH/GlobalStrategy --body "<!-- claude-automation -->
    <spec summary + questions>"
    ```
-8. Stop. Do **not** run `/plan` — that stays a manual step the user triggers separately, even after the spec is finalized.
+9. Stop. Do **not** run `/plan` — that stays a manual step the user triggers separately, even after the spec is finalized.
 
 ## 4. Existing PR: incorporate a reply
 
-1. Re-fetch the PR's comments (same endpoint as step 2) to read the full thread — the question(s) asked and the human's latest answer(s).
+1. Re-fetch the PR's comments (same endpoint as step 2) to read the full thread — the question(s) asked and the human's latest answer(s). The candidate block already gives the PR's current body/title; comments need the API call since they aren't included in the prompt.
 2. `git fetch origin <branch>` and check it out. Read the current `spec.md`, edit it directly to incorporate the answers — a normal file edit, not a from-scratch `/specify` re-run.
 3. `git add`, `git commit`, `git push` to the same branch.
-4. Post a follow-up comment (marker line first, same as step 7) summarizing what changed. If all open questions are resolved, say so explicitly and note the spec is ready for `/plan` (manual, user-triggered). If questions remain, ask them in this same comment.
+4. Post a follow-up comment (marker line first, same as step 8 above) summarizing what changed. If all open questions are resolved, say so explicitly and note the spec is ready for `/plan` (manual, user-triggered). If questions remain, ask them in this same comment.
 
 ## Non-goals
 
-- Never touch issues that don't match the `topic:`/`description:` convention.
+- Never touch issues that don't match the `topic:`/`description:` convention, even if labeled `claude`.
 - Never touch issues or PRs authored by anyone other than `KonH`.
 - Never advance to `/plan` or `/implement` automatically — this command's scope ends at a reviewed, PR'd spec.
+- Never re-run the repo-wide `gh issue list`/`gh pr list` discovery the wrapper already did — operate only on the candidates given in the prompt.

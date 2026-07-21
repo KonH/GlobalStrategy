@@ -5,32 +5,44 @@ Meant to run on a schedule (cron / Task Scheduler) in the user's own environment
 CI runner or Claude Code Remote session - it uses whatever `gh` auth and `claude` login
 (subscription-based, not an API key) already exist on the machine it runs on.
 
+Cheap discovery, expensive work gated behind it: this script does the "is there anything to
+do at all" check itself, via plain `gh` calls (no LLM usage). `claude -p` is only invoked -
+and only then does it spend subscription usage - when at least one issue/PR labeled `claude`
+was created or updated within the lookback window (`--since-hours`, default 1h, meant to
+match the cron interval). An empty poll costs nothing.
+
 Flow per invocation:
   1. Switch to `main`, pull latest (so it always runs the current `.claude/commands/
      handle-feature-issue.md` and never drifts from a stale local checkout).
-  2. Run `claude -p "/handle-feature-issue"` once - all the actual polling/classification/
-     spec-writing/PR/comment logic lives in that command file, not here. This wrapper only
-     owns "make sure the repo is current, then invoke Claude."
+  2. `gh issue list` / `gh pr list`, both filtered to `--label claude`, to find candidates.
+  3. Keep only candidates whose `updatedAt` falls inside the lookback window.
+  4. If none: exit, no `claude -p` call made.
+  5. If any: invoke `claude -p "/handle-feature-issue ..."` once, with each candidate's
+     link + content embedded directly in the prompt - the command's own classification/
+     spec-writing/PR/comment logic then takes it from there.
 
-Requires `gh` authenticated as the repo owner (`gh auth login`) and `claude` logged into a
-subscription (`claude` with no ANTHROPIC_API_KEY set - see .claude/rules/
-github_issue_automation.md for why this matters).
-
-Runs explicitly on the Sonnet 5 model at high reasoning effort - this is scheduled,
-unattended work with no one watching to catch a model/effort default drifting under it.
+Requires `gh` authenticated as the repo owner (`gh auth login`), the `claude` label already
+created in the repo (`gh label create claude`), and `claude` logged into a subscription
+(`claude` with no ANTHROPIC_API_KEY set - see .claude/rules/github_issue_automation.md for
+why this matters). Runs explicitly on Sonnet 5 at high reasoning effort - unattended,
+scheduled work with no one watching to catch a model/effort default drifting under it.
 
 Usage (from project root):
   python scripts/handle_feature_issues.py
-  python scripts/handle_feature_issues.py --max-turns 60
+  python scripts/handle_feature_issues.py --since-hours 2 --max-turns 60
 """
 
 import argparse
+import json
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timedelta, timezone
 
 MODEL = "claude-sonnet-5"
 EFFORT = "high"
+LABEL = "claude"
+FIELDS = "number,title,body,url,updatedAt"
 
 
 def find_claude_executable():
@@ -44,18 +56,66 @@ def run_git(args):
     return result.stdout.strip()
 
 
+def run_gh_json(args):
+    result = subprocess.run(["gh", *args, "--json", FIELDS], capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"gh {' '.join(args)} failed: {result.stderr.strip()}")
+    return json.loads(result.stdout)
+
+
+def parse_updated_at(value):
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def find_candidates(kind, cutoff):
+    items = run_gh_json([kind, "list", "--label", LABEL, "--state", "open"])
+    return [
+        {**item, "kind": "issue" if kind == "issue" else "pr"}
+        for item in items
+        if parse_updated_at(item["updatedAt"]) >= cutoff
+    ]
+
+
+def build_prompt(candidates):
+    sections = [
+        f"[{c['kind'].upper()} #{c['number']}] {c['url']} (updated {c['updatedAt']})\n"
+        f"{c['title']}\n\n{c['body'] or '(empty body)'}"
+        for c in candidates
+    ]
+    joined = "\n\n---\n\n".join(sections)
+    return (
+        "/handle-feature-issue\n\n"
+        "The following GitHub issues/PRs are labeled 'claude' and were created or updated "
+        "within the lookback window. Process each one per the command's rules - do not "
+        "re-scan the whole repo for other candidates, this list is already the full set:\n\n"
+        f"{joined}"
+    )
+
+
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--max-turns", type=int, default=40)
+    parser.add_argument("--since-hours", type=float, default=1.0,
+                         help="Lookback window in hours; should match the cron interval (default: 1)")
     args = parser.parse_args()
 
     run_git(["checkout", "main"])
     run_git(["fetch", "origin", "main"])
     run_git(["reset", "--hard", "origin/main"])
 
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=args.since_hours)
+    candidates = find_candidates("issue", cutoff) + find_candidates("pr", cutoff)
+
+    if not candidates:
+        print(f"No '{LABEL}'-labeled issues/PRs updated in the last {args.since_hours}h - nothing to do.")
+        return
+
+    prompt = build_prompt(candidates)
+    print(f"Found {len(candidates)} candidate(s) - invoking claude -p.")
+
     claude_exe = find_claude_executable()
     result = subprocess.run([
-        claude_exe, "-p", "/handle-feature-issue",
+        claude_exe, "-p", prompt,
         "--model", MODEL,
         "--effort", EFFORT,
         "--dangerously-skip-permissions",
