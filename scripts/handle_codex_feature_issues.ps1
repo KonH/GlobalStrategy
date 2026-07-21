@@ -18,6 +18,7 @@
 #   .\scripts\handle_codex_feature_issues.ps1
 #   .\scripts\handle_codex_feature_issues.ps1 -SinceHours 2
 #   .\scripts\handle_codex_feature_issues.ps1 -SinceMinutes 15 -Model gpt-5.6-sol -Effort high
+#   .\scripts\handle_codex_feature_issues.ps1 -Sandbox danger-full-access
 #
 # -SinceHours/-SinceMinutes (combined; default 1h if both omitted) should match the Task
 # Scheduler interval below - it's the lookback window used to decide whether there's
@@ -35,6 +36,8 @@ param(
     [string]$Model = "gpt-5.6-sol",
     [ValidateSet("minimal", "low", "medium", "high", "xhigh")]
     [string]$Effort = "high",
+    [ValidateSet("read-only", "workspace-write", "danger-full-access")]
+    [string]$Sandbox = "workspace-write",
     [switch]$DangerouslySkipPermissions
 )
 
@@ -43,7 +46,7 @@ $ErrorActionPreference = "Stop"
 $pythonExe = if (Test-Path ".venv\Scripts\python.exe") { ".venv\Scripts\python.exe" } else { "python" }
 $scriptPath = Join-Path $PSScriptRoot "handle_codex_feature_issues.py"
 
-$pyArgs = @($scriptPath, "--since-hours", $SinceHours, "--since-minutes", $SinceMinutes, "--model", $Model, "--effort", $Effort)
+$pyArgs = @($scriptPath, "--since-hours", $SinceHours, "--since-minutes", $SinceMinutes, "--model", $Model, "--effort", $Effort, "--sandbox", $Sandbox)
 if ($DangerouslySkipPermissions) { $pyArgs += "--dangerously-skip-permissions" }
 & $pythonExe @pyArgs
 exit $LASTEXITCODE

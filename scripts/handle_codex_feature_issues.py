@@ -52,6 +52,7 @@ Usage (from project root):
 import argparse
 import json
 import logging
+import os
 import re
 import shutil
 import subprocess
@@ -62,6 +63,8 @@ from pathlib import Path
 
 MODEL = "gpt-5.6-sol"
 EFFORT = "high"
+DEFAULT_SANDBOX = "workspace-write"
+SANDBOX_CHOICES = ["read-only", "workspace-write", "danger-full-access"]
 LABEL = "codex"
 OWNER = "KonH"
 REPO = "GlobalStrategy"
@@ -73,6 +76,7 @@ DEFAULT_LOG_MAX_BYTES = 5 * 1024 * 1024  # 5 MB per file
 DEFAULT_LOG_BACKUP_COUNT = 5  # + the active file = 30 MB max on disk
 DEFAULT_LOCK_FILE = Path(__file__).resolve().parent.parent / "Logs" / "handle_codex_feature_issues.lock"
 DEFAULT_STATE_FILE = Path(__file__).resolve().parent.parent / "Logs" / "handle_codex_feature_issues.state.json"
+DEFAULT_GH_CONFIG_DIR = Path(__file__).resolve().parent.parent / "Logs" / "codex-gh-config"
 
 logger = logging.getLogger("handle_codex_feature_issues")
 
@@ -142,6 +146,32 @@ def save_last_check(state_file, when):
 
 def find_codex_executable():
     return shutil.which("codex") or "codex"
+
+
+def build_codex_arguments(model, effort, sandbox):
+    codex_args = [
+        find_codex_executable(), "exec", "--json", "--sandbox", sandbox,
+        "--config", "approval_policy=\"never\"",
+        "--model", model,
+        "--config", f'model_reasoning_effort=\"{effort}\"',
+        "--ignore-user-config",
+        "-",
+    ]
+    if sandbox == "workspace-write":
+        codex_args[5:5] = ["--config", "sandbox_workspace_write.network_access=true"]
+    return codex_args
+
+
+def build_codex_environment():
+    environment = os.environ.copy()
+    token = environment.get("GH_ACCESS_TOKEN") or environment.get("GH_TOKEN") or environment.get("GITHUB_TOKEN")
+    if token:
+        environment["GH_TOKEN"] = token
+    DEFAULT_GH_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    environment["GH_CONFIG_DIR"] = str(DEFAULT_GH_CONFIG_DIR)
+    environment["GIT_TERMINAL_PROMPT"] = "0"
+    environment["GCM_INTERACTIVE"] = "Never"
+    return environment
 
 
 def run_git(args):
@@ -217,8 +247,10 @@ def main():
     parser.add_argument("--model", default=MODEL)
     parser.add_argument("--effort", default=EFFORT,
                         choices=["minimal", "low", "medium", "high", "xhigh"])
+    parser.add_argument("--sandbox", default=DEFAULT_SANDBOX, choices=SANDBOX_CHOICES,
+                        help="Codex sandbox mode. Use danger-full-access only on an isolated automation host.")
     parser.add_argument("--dangerously-skip-permissions", action="store_true",
-                        help="Bypass Codex sandboxing. Use only if the dedicated automation host is isolated.")
+                        help="Deprecated alias for --sandbox danger-full-access.")
     parser.add_argument("--since-hours", type=float, default=0.0,
                          help="Lookback window, hours component. Combines with --since-minutes; "
                               "if both are 0 (the default), falls back to a 1-hour window.")
@@ -234,6 +266,8 @@ def main():
                               "to lock contention doesn't shrink the effective lookback window "
                               "for the run after it.")
     args = parser.parse_args()
+    if args.dangerously_skip_permissions:
+        args.sandbox = "danger-full-access"
 
     setup_logging(args.log_file, args.log_max_bytes, args.log_backup_count)
 
@@ -268,18 +302,7 @@ def main():
     prompt = build_prompt(candidates)
     logger.info(f"Found {len(candidates)} candidate(s) - invoking codex exec.")
 
-    codex_args = [
-        find_codex_executable(), "exec", "--json", "--sandbox", "workspace-write",
-        "--config", "approval_policy=\"never\"",
-        "--config", "sandbox_workspace_write.network_access=true",
-        "--model", args.model,
-        "--config", f'model_reasoning_effort=\"{args.effort}\"',
-    ]
-    if args.dangerously_skip_permissions:
-        codex_args.append("--yolo")
-    # Read the prompt from stdin rather than a Windows command-line argument. Issue bodies
-    # can be large or contain characters that are hard to preserve through command-line parsing.
-    codex_args.append("-")
+    codex_args = build_codex_arguments(args.model, args.effort, args.sandbox)
     process = subprocess.Popen(
         codex_args,
         stdin=subprocess.PIPE,
@@ -289,6 +312,7 @@ def main():
         encoding="utf-8",
         errors="replace",
         bufsize=1,
+        env=build_codex_environment(),
     )
     process.stdin.write(prompt)
     process.stdin.close()
