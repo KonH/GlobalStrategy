@@ -27,6 +27,10 @@ created in the repo (`gh label create claude`), and `claude` logged into a subsc
 why this matters). Runs explicitly on Sonnet 5 at high reasoning effort - unattended,
 scheduled work with no one watching to catch a model/effort default drifting under it.
 
+Logs to Logs/handle_feature_issues.log (gitignored, same as Unity's own Logs/ folder) with
+size-based auto-rotation - no unbounded append, no manual cleanup needed. Override with
+--log-file/--log-max-bytes/--log-backup-count if you want it elsewhere.
+
 Usage (from project root):
   python scripts/handle_feature_issues.py
   python scripts/handle_feature_issues.py --since-hours 2 --max-turns 60
@@ -35,15 +39,39 @@ Usage (from project root):
 
 import argparse
 import json
+import logging
 import shutil
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 MODEL = "claude-sonnet-5"
 EFFORT = "high"
 LABEL = "claude"
 FIELDS = "number,title,body,url,updatedAt"
+
+DEFAULT_LOG_FILE = Path(__file__).resolve().parent.parent / "Logs" / "handle_feature_issues.log"
+DEFAULT_LOG_MAX_BYTES = 5 * 1024 * 1024  # 5 MB per file
+DEFAULT_LOG_BACKUP_COUNT = 5  # + the active file = 30 MB max on disk
+
+logger = logging.getLogger("handle_feature_issues")
+
+
+def setup_logging(log_file, max_bytes, backup_count):
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+    formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+
+    file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+
+    logger.setLevel(logging.INFO)
 
 
 def find_claude_executable():
@@ -102,7 +130,12 @@ def main():
     parser.add_argument("--since-minutes", type=float, default=0.0,
                          help="Lookback window, minutes component - use this alone for sub-hour "
                               "cron intervals, e.g. --since-minutes 15.")
+    parser.add_argument("--log-file", type=Path, default=DEFAULT_LOG_FILE)
+    parser.add_argument("--log-max-bytes", type=int, default=DEFAULT_LOG_MAX_BYTES)
+    parser.add_argument("--log-backup-count", type=int, default=DEFAULT_LOG_BACKUP_COUNT)
     args = parser.parse_args()
+
+    setup_logging(args.log_file, args.log_max_bytes, args.log_backup_count)
 
     run_git(["checkout", "main"])
     run_git(["fetch", "origin", "main"])
@@ -115,11 +148,11 @@ def main():
     candidates = find_candidates("issue", cutoff) + find_candidates("pr", cutoff)
 
     if not candidates:
-        print(f"No '{LABEL}'-labeled issues/PRs updated in the last {lookback_minutes:g}m - nothing to do.")
+        logger.info(f"No '{LABEL}'-labeled issues/PRs updated in the last {lookback_minutes:g}m - nothing to do.")
         return
 
     prompt = build_prompt(candidates)
-    print(f"Found {len(candidates)} candidate(s) - invoking claude -p.")
+    logger.info(f"Found {len(candidates)} candidate(s) - invoking claude -p.")
 
     claude_exe = find_claude_executable()
     result = subprocess.run([
@@ -129,8 +162,13 @@ def main():
         "--dangerously-skip-permissions",
         "--max-turns", str(args.max_turns),
     ])
+    logger.info(f"claude -p exited with code {result.returncode}.")
     sys.exit(result.returncode)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        logger.exception("handle_feature_issues.py failed")
+        sys.exit(1)

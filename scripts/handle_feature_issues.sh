@@ -18,11 +18,16 @@
 # new to act on at all. claude -p is only invoked (and only then spends subscription
 # usage) when that check finds something.
 #
+# The Python script writes its own auto-rotating log (Logs/handle_feature_issues.log,
+# 5MB x 5 backups by default) - don't also pipe stdout to a separate `>> file.log`, that
+# would just grow unbounded next to it with no rotation. Redirect to /dev/null instead so
+# cron doesn't try to mail you the output:
+#
 # Example crontab entry (hourly):
-#   0 * * * * cd /path/to/dedicated-clone && ./scripts/handle_feature_issues.sh >> ~/.local/state/handle_feature_issues.log 2>&1
+#   0 * * * * cd /path/to/dedicated-clone && ./scripts/handle_feature_issues.sh >/dev/null 2>&1
 #
 # Example crontab entry (every 15 minutes):
-#   */15 * * * * cd /path/to/dedicated-clone && ./scripts/handle_feature_issues.sh --since-minutes 15 >> ~/.local/state/handle_feature_issues.log 2>&1
+#   */15 * * * * cd /path/to/dedicated-clone && ./scripts/handle_feature_issues.sh --since-minutes 15 >/dev/null 2>&1
 
 set -e
 

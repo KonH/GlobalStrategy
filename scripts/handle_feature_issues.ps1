@@ -17,6 +17,9 @@
 # anything new to act on at all. claude -p is only invoked (and only then spends
 # subscription usage) when that check finds something.
 #
+# The Python script writes its own auto-rotating log (Logs\handle_feature_issues.log,
+# 5MB x 5 backups by default) - no need to also capture Task Scheduler's own output.
+#
 # Example Task Scheduler action (hourly, or every 15 min with -SinceMinutes 15 passed as
 # an argument): run this script with working directory set to the dedicated clone's root.
 
