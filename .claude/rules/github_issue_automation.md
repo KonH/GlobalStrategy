@@ -12,7 +12,7 @@ Every cron tick, the script:
 4. If nothing qualifies, **exits without ever invoking `claude -p`** — zero usage spent on an empty poll.
 5. If something qualifies, invokes `claude -p` once with every candidate's link, title, and body embedded directly in the prompt, so the command doesn't have to spend a turn re-discovering what the wrapper already found.
 
-This means the `claude` label is required, not just the `topic:`/`description:` body convention below — an issue without the label is never even looked at, regardless of its body.
+This means the `claude` label is the only opt-in signal — an issue without the label is never even looked at, but a labeled issue has no required body format: the issue's own title and body are used directly (title → feature name, body → feature description, an optional leading `/specify` stripped if present). Just write the issue naturally.
 
 **One-time setup**: the label must exist in the repo before it can be applied —
 ```
@@ -20,17 +20,6 @@ gh label create claude --color 5319E7 --description "Feature-issue automation"
 ```
 
 **Add the label manually when creating a qualifying issue.** The automation applies the label itself to the PR it opens (so future replies on that PR are discovered the same way next poll) — you don't need to label the PR yourself.
-
-## Issue convention
-
-Issue body must contain:
-
-```
-topic: <feature name>
-description: /specify <feature description>
-```
-
-Issues that don't match this shape are ignored even if labeled `claude` — safe to use GitHub issues normally alongside it.
 
 ## Scope: spec stage only
 

@@ -16,14 +16,12 @@ The `gh`/git credentials in the user's own environment are their own personal ac
 
 (an HTML comment — invisible when rendered on GitHub). This is the only reliable way later runs can tell "we already said this" apart from "the human just replied."
 
-## 1. Filter the given candidates
+## 1. Classify each candidate
 
-For each `[ISSUE #N]` block in the prompt, read its body directly. Skip any whose body doesn't contain a line starting with `topic:` and a line starting with `description:` (case-insensitive, either order) — the `claude` label alone isn't sufficient, it isn't a feature-automation request, leave it untouched. (`[PR #N]` blocks are always replies to something this automation already opened — go straight to step 2's classification for those.)
-
-## 2. Classify each remaining candidate
+The `claude` label on an issue is the only opt-in signal needed — no required body format. Use the issue's own title and body naturally: title = feature name, body = feature description (see step 2 for the exact parsing).
 
 - **`[ISSUE #N]` block** → check whether a PR already exists with head branch `claude/issue-<N>-*` (`gh pr list --repo KonH/GlobalStrategy --state all --json number,headRefName`):
-  - No such PR → **new request** → go to step 3.
+  - No such PR → **new request** → go to step 2.
   - PR exists and is open → treat this issue as already handled; the follow-up work happens via the `[PR #N]` block instead (see below), not here.
   - PR exists but closed/merged → done, skip.
 - **`[PR #N]` block** → fetch its comments:
@@ -32,14 +30,14 @@ For each `[ISSUE #N]` block in the prompt, read its body directly. Skip any whos
   ```
   Look at the **last** comment:
   - Body starts with `<!-- claude-automation -->` → that was this automation's own comment (the PR's `updatedAt` moved because of that comment, not a new human reply) → skip.
-  - Otherwise → a new human reply → go to step 4.
+  - Otherwise → a new human reply → go to step 3.
 
-## 3. New request: write the spec and open a PR
+## 2. New request: write the spec and open a PR
 
-1. Parse the `topic:` line's value → feature name. Slugify it (lowercase, spaces/punctuation → `-`) for branch/folder naming.
-2. Parse the `description:` line's value; strip a leading `/specify` token if present — the remainder is the feature description.
+1. Feature name = the issue's title, as-is. Slugify it (lowercase, spaces/punctuation → `-`) for branch/folder naming.
+2. Feature description = the issue's body; strip a leading `/specify` token if the body happens to start with one (either is fine — some issues will, some won't, both mean the same thing here since the `claude` label is what actually signals intent).
 3. `git fetch origin main`, then create and check out branch `claude/issue-<issue-number>-<slug>` from `origin/main`.
-4. Invoke the `specify` command/skill (`.claude/commands/specify.md`) with the parsed feature name + description. It writes `Docs/Specs/<YY_MM_DD_HH>_<slug>/spec.md` and normally "presents it to the user and stops" per `.claude/rules/workflow.md` — capture that same summary/questions content as text for step 7, since nobody is watching this process's stdout.
+4. Invoke the `specify` command/skill (`.claude/commands/specify.md`) with the feature name + description. It writes `Docs/Specs/<YY_MM_DD_HH>_<slug>/spec.md` and normally "presents it to the user and stops" per `.claude/rules/workflow.md` — capture that same summary/questions content as text for step 8, since nobody is watching this process's stdout.
 5. `git add`, `git commit`, `git push -u origin claude/issue-<issue-number>-<slug>`.
 6. Open the PR:
    ```
@@ -57,16 +55,15 @@ For each `[ISSUE #N]` block in the prompt, read its body directly. Skip any whos
    ```
 9. Stop. Do **not** run `/plan` — that stays a manual step the user triggers separately, even after the spec is finalized.
 
-## 4. Existing PR: incorporate a reply
+## 3. Existing PR: incorporate a reply
 
-1. Re-fetch the PR's comments (same endpoint as step 2) to read the full thread — the question(s) asked and the human's latest answer(s). The candidate block already gives the PR's current body/title; comments need the API call since they aren't included in the prompt.
+1. Re-fetch the PR's comments (same endpoint as step 1) to read the full thread — the question(s) asked and the human's latest answer(s). The candidate block already gives the PR's current body/title; comments need the API call since they aren't included in the prompt.
 2. `git fetch origin <branch>` and check it out. Read the current `spec.md`, edit it directly to incorporate the answers — a normal file edit, not a from-scratch `/specify` re-run.
 3. `git add`, `git commit`, `git push` to the same branch.
 4. Post a follow-up comment (marker line first, same as step 8 above) summarizing what changed. If all open questions are resolved, say so explicitly and note the spec is ready for `/plan` (manual, user-triggered). If questions remain, ask them in this same comment.
 
 ## Non-goals
 
-- Never touch issues that don't match the `topic:`/`description:` convention, even if labeled `claude`.
 - Never touch issues or PRs authored by anyone other than `KonH`.
 - Never advance to `/plan` or `/implement` automatically — this command's scope ends at a reviewed, PR'd spec.
 - Never re-run the repo-wide `gh issue list`/`gh pr list` discovery the wrapper already did — operate only on the candidates given in the prompt.
