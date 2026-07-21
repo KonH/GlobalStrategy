@@ -26,6 +26,15 @@ run exits immediately instead of racing it - the lock releases automatically eve
 run crashed, since it's tied to the OS file descriptor, not manually cleared state. (POSIX
 only; on Windows, use Task Scheduler's own "don't start a new instance if already running".)
 
+Skipping a locked-out run must never cost a window of activity: the lookback cutoff is not
+just "now minus --since-hours/--since-minutes", it's also clamped to the timestamp of the
+last run that actually completed discovery (Logs/handle_feature_issues.state.json). A run
+that gets skipped because the lock is held simply never advances that timestamp, so the next
+run that does acquire the lock looks back at least as far as the last successful check -
+covering whatever activity happened during the skipped window - instead of the fixed rolling
+window silently missing anything older than --since-minutes/--since-hours by the time it
+finally runs.
+
 Requires `gh` authenticated as the repo owner (`gh auth login`), the `claude` label already
 created in the repo (`gh label create claude`), and `claude` logged into a subscription
 (`claude` with no ANTHROPIC_API_KEY set - see .claude/rules/github_issue_automation.md for
@@ -64,6 +73,7 @@ DEFAULT_LOG_FILE = Path(__file__).resolve().parent.parent / "Logs" / "handle_fea
 DEFAULT_LOG_MAX_BYTES = 5 * 1024 * 1024  # 5 MB per file
 DEFAULT_LOG_BACKUP_COUNT = 5  # + the active file = 30 MB max on disk
 DEFAULT_LOCK_FILE = Path(__file__).resolve().parent.parent / "Logs" / "handle_feature_issues.lock"
+DEFAULT_STATE_FILE = Path(__file__).resolve().parent.parent / "Logs" / "handle_feature_issues.state.json"
 
 logger = logging.getLogger("handle_feature_issues")
 
@@ -98,6 +108,22 @@ def acquire_lock(lock_file):
         lock_fp.close()
         return None
     return lock_fp
+
+
+def load_last_check(state_file):
+    if not state_file.exists():
+        return None
+    try:
+        data = json.loads(state_file.read_text(encoding="utf-8"))
+        return parse_timestamp(data["last_check_at"])
+    except (ValueError, KeyError, json.JSONDecodeError):
+        logger.warning(f"Could not parse {state_file} - ignoring stored last-check time.")
+        return None
+
+
+def save_last_check(state_file, when):
+    state_file.parent.mkdir(parents=True, exist_ok=True)
+    state_file.write_text(json.dumps({"last_check_at": when.isoformat()}), encoding="utf-8")
 
 
 def find_claude_executable():
@@ -183,27 +209,40 @@ def main():
     parser.add_argument("--log-max-bytes", type=int, default=DEFAULT_LOG_MAX_BYTES)
     parser.add_argument("--log-backup-count", type=int, default=DEFAULT_LOG_BACKUP_COUNT)
     parser.add_argument("--lock-file", type=Path, default=DEFAULT_LOCK_FILE)
+    parser.add_argument("--state-file", type=Path, default=DEFAULT_STATE_FILE,
+                         help="Tracks the last completed discovery check, so a run skipped due "
+                              "to lock contention doesn't shrink the effective lookback window "
+                              "for the run after it.")
     args = parser.parse_args()
 
     setup_logging(args.log_file, args.log_max_bytes, args.log_backup_count)
 
     lock = acquire_lock(args.lock_file)
     if lock is None:
-        logger.info("Another instance is already running - exiting.")
+        logger.info("Another instance is already running - exiting. Not updating the last-check "
+                     "timestamp, so the next run that acquires the lock still covers this window.")
         return
 
     run_git(["checkout", "main"])
     run_git(["fetch", "origin", "main"])
     run_git(["reset", "--hard", "origin/main"])
 
+    now = datetime.now(timezone.utc)
     lookback_minutes = args.since_hours * 60 + args.since_minutes
     if lookback_minutes <= 0:
         lookback_minutes = 60
-    cutoff = datetime.now(timezone.utc) - timedelta(minutes=lookback_minutes)
+    window_cutoff = now - timedelta(minutes=lookback_minutes)
+    last_check = load_last_check(args.state_file)
+    cutoff = min(window_cutoff, last_check) if last_check else window_cutoff
+    if last_check and last_check < window_cutoff:
+        logger.info(f"Last completed check was {last_check.isoformat()}, older than the "
+                     f"{lookback_minutes:g}m window - extending cutoff back to it so nothing "
+                     "from a lock-skipped run is missed.")
     candidates = find_candidates(cutoff)
 
     if not candidates:
-        logger.info(f"No '{LABEL}'-labeled issues with new activity in the last {lookback_minutes:g}m - nothing to do.")
+        logger.info(f"No '{LABEL}'-labeled issues with new activity since {cutoff.isoformat()} - nothing to do.")
+        save_last_check(args.state_file, now)
         return
 
     prompt = build_prompt(candidates)
@@ -218,6 +257,7 @@ def main():
         "--max-turns", str(args.max_turns),
     ])
     logger.info(f"claude -p exited with code {result.returncode}.")
+    save_last_check(args.state_file, now)
     sys.exit(result.returncode)
 
 

@@ -7,7 +7,10 @@ Flow:
   3. Loop:     claude .ralph/PROMPT.md           - one task per fresh-context iteration
   4. Post-run: claude "/complete-prd <SpecId>" - commits leftovers and opens a PR (only if all tasks passed)
 
-The Unity Editor should be running (Unity MCP is used to verify Unity-side tasks).
+Normally the Unity Editor should be running (Unity MCP is used to verify Unity-side tasks).
+For unattended runs with no Editor available, pass --env full-env-headless (or --env
+code-only if the plan never touches Unity assets/scenes) - see .claude/commands/create-prd.md
+for what each marker changes about task planning.
 
 Usage (from project root):
   python scripts/ralph.py --spec 26_07_11_10_province-ownership --max-iterations 10
@@ -15,11 +18,17 @@ Usage (from project root):
   python scripts/ralph.py --spec 26_07_11_10_province-ownership --skip-pull-request        # stop after the loop, no commit/PR phase
   python scripts/ralph.py --spec 26_07_11_10_province-ownership --dangerously-skip-permissions
   python scripts/ralph.py --spec 26_07_11_10_province-ownership --stall-limit 5
+  python scripts/ralph.py --spec 26_07_11_10_province-ownership --env full-env-headless --model claude-sonnet-5 --effort medium --auto-adjust-iterations --skip-pull-request --dangerously-skip-permissions
 
 The loop stops early (before -MaxIterations) if --stall-limit consecutive iterations commit
 nothing but .ralph/activity.md - a sign the loop is blocked on an unavailable prerequisite
 (e.g. Unity Editor MCP bridge not connected, a missing tool like Node.js) rather than making
 real progress.
+
+--model/--effort apply to every claude -p invocation this run (create-prd, loop, complete-prd);
+omit either to use the CLI's own defaults. --auto-adjust-iterations raises --max-iterations to
+the recommended minimum instead of failing when the PRD ends up with more tasks than expected -
+meant for automation with nobody watching to retry by hand.
 
 Metrics per phase/iteration are appended to .ralph/metrics_<SpecId>.csv (gitignored).
 """
@@ -125,8 +134,12 @@ def task_progress(prd_text):
 
 
 def invoke_claude_step(claude_exe, phase, iteration, prompt, allowed_tools, dangerously_skip_permissions,
-                        csv_file, log_dir, activity_file):
+                        csv_file, log_dir, activity_file, model=None, effort=None):
     claude_args = [claude_exe, "-p", prompt, "--output-format", "json"]
+    if model:
+        claude_args += ["--model", model]
+    if effort:
+        claude_args += ["--effort", effort]
     if dangerously_skip_permissions:
         claude_args.append("--dangerously-skip-permissions")
     else:
@@ -215,6 +228,22 @@ def main():
     parser.add_argument("--skip-create-prd", action="store_true")
     parser.add_argument("--skip-pull-request", action="store_true")
     parser.add_argument("--dangerously-skip-permissions", action="store_true")
+    parser.add_argument("--model", type=str, default=None,
+                         help="Model id passed to every claude -p invocation this run (e.g. "
+                              "claude-sonnet-5). Omit to use the CLI's own default.")
+    parser.add_argument("--effort", type=str, default=None,
+                         help="Reasoning effort passed to every claude -p invocation this run "
+                              "(e.g. medium). Omit to use the CLI's own default.")
+    parser.add_argument("--env", type=str, default=None, choices=["code-only", "full-env-headless"],
+                         help="Environment marker forwarded to /create-prd (spec mode only) so it "
+                              "can plan tasks appropriately when no Unity Editor/MCP is available "
+                              "(full-env-headless) or confirm no adjustment is needed (code-only). "
+                              "Omit for normal interactive runs where a Unity Editor is expected.")
+    parser.add_argument("--auto-adjust-iterations", action="store_true",
+                         help="If --max-iterations is below the recommended minimum (task count "
+                              "x 1.5), raise it to that minimum automatically instead of failing. "
+                              "Intended for unattended automation, where there's no one to notice "
+                              "a RuntimeError and re-invoke by hand with a higher value.")
     args = parser.parse_args()
 
     mode_count = sum(1 for m in (args.spec, args.bot_feature, args.perf_target) if m is not None)
@@ -289,10 +318,14 @@ def main():
         print(f"Skipping /create-prd, reusing existing {prd_file}")
     else:
         print()
-        print(f"=== Phase: /create-prd {args.spec} ===")
+        create_prd_prompt = f"/create-prd {args.spec}"
+        if args.env:
+            create_prd_prompt += f" {args.env}"
+        print(f"=== Phase: {create_prd_prompt} ===")
         r = invoke_claude_step(
-            claude_exe, "create-prd", "", f"/create-prd {args.spec}", loop_tools,
+            claude_exe, "create-prd", "", create_prd_prompt, loop_tools,
             args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
+            model=args.model, effort=args.effort,
         )
         if r is None or r.get("is_error"):
             raise RuntimeError("/create-prd failed - aborting before the loop.")
@@ -305,11 +338,19 @@ def main():
     task_count = len(re.findall(r'"passes":\s*(?:true|false)', prd_text))
     min_recommended = math.ceil(task_count * 1.5)
     if args.max_iterations < min_recommended:
-        raise RuntimeError(
-            f"MaxIterations ({args.max_iterations}) is below the recommended minimum "
-            f"({min_recommended} = {task_count} tasks x 1.5) for {prd_file}. "
-            "Increase --max-iterations, or split the PRD, before looping."
-        )
+        if args.auto_adjust_iterations:
+            print(
+                f"--max-iterations ({args.max_iterations}) is below the recommended minimum "
+                f"({min_recommended} = {task_count} tasks x 1.5) for {prd_file} - "
+                f"raising it to {min_recommended} (--auto-adjust-iterations)."
+            )
+            args.max_iterations = min_recommended
+        else:
+            raise RuntimeError(
+                f"MaxIterations ({args.max_iterations}) is below the recommended minimum "
+                f"({min_recommended} = {task_count} tasks x 1.5) for {prd_file}. "
+                "Increase --max-iterations (or pass --auto-adjust-iterations), or split the PRD, before looping."
+            )
     print(f"PRD has {task_count} tasks; MaxIterations={args.max_iterations} (recommended >= {min_recommended}).")
 
     # --- Phase 2: the loop ---
@@ -324,6 +365,7 @@ def main():
         r = invoke_claude_step(
             claude_exe, "loop", str(i), prompt, loop_tools,
             args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
+            model=args.model, effort=args.effort,
         )
         if r is None:
             stop_reason = "claude_error"
@@ -387,6 +429,7 @@ def main():
         r = invoke_claude_step(
             claude_exe, "complete-prd", "", f"/complete-prd {complete_prd_arg}", pr_tools,
             args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
+            model=args.model, effort=args.effort,
         )
         if r is None or r.get("is_error"):
             print("/complete-prd failed - commit/PR may need manual attention.")
