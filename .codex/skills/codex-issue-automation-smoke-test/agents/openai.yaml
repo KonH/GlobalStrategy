@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Issue Smoke Test"
+  short_description: "Exercise unattended issue automation"
+  default_prompt: "Use $codex-issue-automation-smoke-test to validate issue automation."
