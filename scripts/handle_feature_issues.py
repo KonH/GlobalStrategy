@@ -36,6 +36,13 @@ Logs to Logs/handle_feature_issues.log (gitignored, same as Unity's own Logs/ fo
 size-based auto-rotation - no unbounded append, no manual cleanup needed. Override with
 --log-file/--log-max-bytes/--log-backup-count if you want it elsewhere.
 
+claude -p runs with --output-format stream-json --verbose, streamed and parsed line-by-line
+(each line is a self-contained JSON event - confirmed by direct testing against the CLI, not
+just docs) so the actual tool calls, assistant text, and final result land in the same log,
+not just "invoked, exited with code N". Noisy bookkeeping events (rate-limit pings, the full
+skill-list dump on startup, etc.) are filtered out; assistant turns and the final result are
+kept.
+
 Usage (from project root):
   python scripts/handle_feature_issues.py
   python scripts/handle_feature_issues.py --since-hours 2 --max-turns 60
@@ -152,6 +159,32 @@ def find_candidates(cutoff):
     return candidates
 
 
+def summarize_stream_event(obj):
+    """Turn one --output-format stream-json line into a readable log line, or None to skip it."""
+    etype = obj.get("type")
+
+    if etype in ("assistant", "user"):
+        message = obj.get("message", {})
+        role = message.get("role", etype)
+        parts = []
+        for block in message.get("content") or []:
+            btype = block.get("type")
+            if btype == "text" and block.get("text", "").strip():
+                parts.append(block["text"].strip())
+            elif btype == "tool_use":
+                parts.append(f"[tool_use {block.get('name')} input={json.dumps(block.get('input'))[:300]}]")
+            elif btype == "tool_result":
+                parts.append(f"[tool_result {str(block.get('content'))[:300]}]")
+        return f"{role}: " + " | ".join(parts) if parts else None
+
+    if etype == "result":
+        return (f"result: subtype={obj.get('subtype')} success={not obj.get('is_error')} "
+                f"duration_ms={obj.get('duration_ms')} turns={obj.get('num_turns')} "
+                f"cost_usd={obj.get('total_cost_usd')}")
+
+    return None  # skip bookkeeping noise: active_goal, rate_limit_event, system/*, etc.
+
+
 def build_prompt(candidates):
     sections = [
         f"[ISSUE #{c['number']}] {c['url']} (reason: {c['reason']})\n"
@@ -210,15 +243,35 @@ def main():
     logger.info(f"Found {len(candidates)} candidate(s) - invoking claude -p.")
 
     claude_exe = find_claude_executable()
-    result = subprocess.run([
-        claude_exe, "-p", prompt,
-        "--model", MODEL,
-        "--effort", EFFORT,
-        "--dangerously-skip-permissions",
-        "--max-turns", str(args.max_turns),
-    ])
-    logger.info(f"claude -p exited with code {result.returncode}.")
-    sys.exit(result.returncode)
+    process = subprocess.Popen(
+        [
+            claude_exe, "-p", prompt,
+            "--model", MODEL,
+            "--effort", EFFORT,
+            "--output-format", "stream-json",
+            "--verbose",
+            "--dangerously-skip-permissions",
+            "--max-turns", str(args.max_turns),
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+    for line in process.stdout:
+        line = line.rstrip()
+        if not line:
+            continue
+        try:
+            summary = summarize_stream_event(json.loads(line))
+        except json.JSONDecodeError:
+            logger.info(f"[claude -p] {line}")
+            continue
+        if summary:
+            logger.info(f"[claude -p] {summary}")
+    process.wait()
+    logger.info(f"claude -p exited with code {process.returncode}.")
+    sys.exit(process.returncode)
 
 
 if __name__ == "__main__":
