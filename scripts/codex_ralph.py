@@ -118,6 +118,7 @@ def invoke_codex_step(codex_exe, phase, iteration, prompt, dangerously_skip_perm
         codex_exe, "exec", "--json", "--sandbox", "workspace-write",
         "--config", "approval_policy=\"never\"",
         "--config", "sandbox_workspace_write.network_access=true",
+        "--ignore-user-config",
     ]
     if model:
         codex_args += ["--model", model]
@@ -125,7 +126,9 @@ def invoke_codex_step(codex_exe, phase, iteration, prompt, dangerously_skip_perm
         codex_args += ["--config", f'model_reasoning_effort=\"{effort}\"']
     if dangerously_skip_permissions:
         codex_args.append("--yolo")
-    codex_args.append(prompt)
+    # Read the prompt from standard input.  This avoids Windows command-line
+    # length limits and ensures the full iteration instructions reach Codex.
+    codex_args.append("-")
 
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     err_file = log_dir / f"{phase}_{iteration}_{stamp}.stderr.log"
@@ -139,6 +142,7 @@ def invoke_codex_step(codex_exe, phase, iteration, prompt, dangerously_skip_perm
         text=True,
         encoding="utf-8",
         errors="replace",
+        input=prompt,
     )
     exit_code = proc.returncode
     # A subprocess failure can leave either stream unset.  Error reporting
