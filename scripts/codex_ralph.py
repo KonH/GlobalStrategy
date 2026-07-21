@@ -55,6 +55,8 @@ def run_git(args, check=True):
 
 
 JOURNAL_ONLY_FILES = {".ralph/activity.md"}
+DEFAULT_SANDBOX = "danger-full-access"
+SANDBOX_CHOICES = ["read-only", "workspace-write", "danger-full-access"]
 
 
 def get_head():
@@ -112,14 +114,15 @@ def task_progress(prd_text):
     return passed, total, percent
 
 
-def invoke_codex_step(codex_exe, phase, iteration, prompt, dangerously_skip_permissions,
+def invoke_codex_step(codex_exe, phase, iteration, prompt, sandbox, dangerously_skip_permissions,
                       csv_file, log_dir, activity_file, model=None, effort=None):
     codex_args = [
-        codex_exe, "exec", "--json", "--sandbox", "workspace-write",
+        codex_exe, "exec", "--json", "--sandbox", sandbox,
         "--config", "approval_policy=\"never\"",
-        "--config", "sandbox_workspace_write.network_access=true",
         "--ignore-user-config",
     ]
+    if sandbox == "workspace-write":
+        codex_args += ["--config", "sandbox_workspace_write.network_access=true"]
     if model:
         codex_args += ["--model", model]
     if effort:
@@ -230,6 +233,10 @@ def main():
     )
     parser.add_argument("--skip-create-prd", action="store_true")
     parser.add_argument("--skip-pull-request", action="store_true")
+    parser.add_argument(
+        "--sandbox", default=DEFAULT_SANDBOX, choices=SANDBOX_CHOICES,
+        help="Codex sandbox mode (defaults to danger-full-access for this dedicated automation clone).",
+    )
     parser.add_argument("--dangerously-skip-permissions", action="store_true")
     parser.add_argument("--model", type=str, default=None,
                          help="Model id passed to every Codex invocation (e.g. gpt-5.6-sol). "
@@ -327,7 +334,7 @@ def main():
         print(f"=== Phase: {create_prd_prompt} ===")
         r = invoke_codex_step(
             codex_exe, "create-prd", "", create_prd_prompt,
-            args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
+            args.sandbox, args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
             model=args.model, effort=args.effort,
         )
         if r is None or r.get("is_error"):
@@ -367,7 +374,7 @@ def main():
         prompt = "Read AGENTS.md first, then follow these iteration instructions exactly:\n\n" + prompt_file.read_text(encoding="utf-8")
         r = invoke_codex_step(
             codex_exe, "loop", str(i), prompt,
-            args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
+            args.sandbox, args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
             model=args.model, effort=args.effort,
         )
         if r is None:
@@ -435,7 +442,7 @@ def main():
         )
         r = invoke_codex_step(
             codex_exe, "complete-prd", "", complete_prompt,
-            args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
+            args.sandbox, args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
             model=args.model, effort=args.effort,
         )
         if r is None or r.get("is_error"):
