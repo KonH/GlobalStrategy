@@ -101,6 +101,7 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<EcsViewerBridge>();
 
 			builder.RegisterComponentInHierarchy<GameMenuDocument>();
+			builder.RegisterComponentInHierarchy<LeaderboardWindowDocument>();
 			builder.RegisterComponentInHierarchy<SettingsWindowDocument>();
 			builder.RegisterComponentInHierarchy<OrgInfoDocument>();
 			builder.RegisterComponentInHierarchy<CardPlayAnimator>();

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Components;
+using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class OrgMetrics {
@@ -24,7 +25,7 @@ namespace GS.Game.Systems {
 				Resource[] resources = arch.GetColumn<Resource>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId == orgId && resources[i].ResourceId == "gold") {
+					if (owners[i].OwnerId == orgId && resources[i].ResourceId == ResourceDefinitions.Gold) {
 						return resources[i].Value;
 					}
 				}

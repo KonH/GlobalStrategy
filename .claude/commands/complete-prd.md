@@ -1,12 +1,13 @@
 Finish a Ralph loop run: commit any remaining changes and open a pull request.
 
-Arguments: `$ARGUMENTS` — either the spec index (e.g. `45`), or `bot:<featureId>` for a bot-feature run (e.g. `bot:opinionTargeting`).
+Arguments: `$ARGUMENTS` — either the spec index (e.g. `45`), `bot:<featureId>` for a bot-feature run (e.g. `bot:opinionTargeting`), or `perf:<target>` for a performance-optimization run (e.g. `perf:CountryPopulationCollector`).
 
 ## Steps
 
 1. **Resolve the spec folder.**
    - Spec-index form: `Docs/Specs/<index>_<name>/`.
    - `bot:<featureId>` form: the standing spec `Docs/Specs/52_bot-feature-eval-harness/` (bot features have no per-feature spec/plan — see the Constitution's bot-feature carve-out).
+   - `perf:<target>` form: the standing spec `Docs/Specs/26_07_18_18_benchmarkdotnet-perf-harness/` (perf-optimization attempts have no per-target spec/plan — see the Constitution's performance-optimization carve-out).
 
    Read `.ralph/prd.md` and `.ralph/activity.md`. Determine run status: how many tasks have `"passes": true` out of the total, and which are `"category": "unity-manual"`.
 2. Run `git status` (never `-uall`) and `git diff`. If uncommitted changes remain, stage them and create a commit using the **/commit** skill (it handles branch rules and the version bump). If the working tree is clean, still run the /commit version-bump flow only if no commit exists on this branch yet; otherwise proceed.
@@ -34,6 +35,17 @@ Arguments: `$ARGUMENTS` — either the spec index (e.g. `45`), or `bot:<featureI
    - Details: Docs/BotFeatures/<featureId>/
    ```
 
+   **`perf:<target>` form only** — follow the Ralph run section with a `## Benchmark verdict` section sourced from `Docs/Benchmarks/history.json` (latest entry/entries for the target) and `Docs/Benchmarks/summary.md`:
+
+   ```
+   ## Benchmark verdict
+   | Benchmark | Baseline mean | Current mean | % change | Verdict | Allocated bytes |
+   |---|---|---|---|---|---|
+   | <name> | <baseline ns> | <current ns> | <%> | <pass/fail> | <bytes> |
+   - Attempts: <count>
+   - Details: Docs/Benchmarks/
+   ```
+
 4. Report the PR URL.
 
 ## Rules
@@ -41,3 +53,4 @@ Arguments: `$ARGUMENTS` — either the spec index (e.g. `45`), or `bot:<featureI
 - Do not flip any `"passes"` flags here — this skill reports state, it does not verify tasks.
 - If the loop left blockers in `.ralph/activity.md`, quote them in the PR body verbatim rather than paraphrasing them away.
 - For `bot:<featureId>` runs: never fabricate the eval verdict section — read it from the committed `eval_history.json`/`eval_summary.md`; if those files are missing or empty, say so rather than inventing numbers.
+- For `perf:<target>` runs: never fabricate the benchmark verdict section — read it from the committed `Docs/Benchmarks/history.json`/`summary.md`; if those files are missing the target's entries, say so rather than inventing numbers.

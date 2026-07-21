@@ -194,7 +194,7 @@ namespace GS.Game.ConsoleRunner {
 				OrgId = orgId,
 				TotalControl = GS.Game.Systems.OrgMetrics.GetTotalControl(logic.World, orgId),
 				Gold = GS.Game.Systems.OrgMetrics.GetGold(logic.World, orgId),
-				Score = GS.Game.Systems.OrgScoreSystem.GetScore(logic.World, orgId)
+				Score = GS.Game.Systems.ResourceQuery.GetValue(logic.World, orgId, GS.Game.Configs.ResourceDefinitions.OrgScore)
 			};
 		}
 	}

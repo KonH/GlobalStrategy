@@ -7,7 +7,7 @@ using System.Text.Json.Nodes;
 using GS.Game.Configs;
 
 namespace GS.Game.Loader {
-	static class Program {
+	public static class Program {
 		static readonly JsonSerializerOptions _writeOptions = new JsonSerializerOptions {
 			WriteIndented = true,
 			PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -92,7 +92,7 @@ namespace GS.Game.Loader {
 		// Copies user/generator-set fields that ProcessGeoJson never sets (IsAvailable, InitialResources)
 		// from an existing country_config.json onto the freshly-rebuilt entries, so re-running the loader
 		// against the live Assets/Configs/country_config.json doesn't wipe them back to defaults.
-		internal static void ApplyPreservedFields(List<CountryEntry> rebuilt, CountryConfig? existing) {
+		public static void ApplyPreservedFields(List<CountryEntry> rebuilt, CountryConfig? existing) {
 			if (existing == null) {
 				return;
 			}

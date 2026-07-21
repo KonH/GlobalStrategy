@@ -1,0 +1,134 @@
+[
+  {
+    "name": "ControlSystemBenchmarks.Update",
+    "meanNanoseconds": 28810.810953776043,
+    "stdDevNanoseconds": 138.71710452166062,
+    "allocatedBytes": 1752
+  },
+  {
+    "name": "CountryPopulationCollectorBenchmarks.Compute",
+    "meanNanoseconds": 260735.8090049342,
+    "stdDevNanoseconds": 5666.556507755787,
+    "allocatedBytes": 608992
+  },
+  {
+    "name": "CountryScoreCollectorBenchmarks.Compute",
+    "meanNanoseconds": 4912.510563777043,
+    "stdDevNanoseconds": 19.159872771630475,
+    "allocatedBytes": 128
+  },
+  {
+    "name": "EcsWorldBenchmarks.AddTwoComponents(EntityCount=1000)",
+    "meanNanoseconds": 66076.1003766741,
+    "stdDevNanoseconds": 184.6994872473092,
+    "allocatedBytes": 136000
+  },
+  {
+    "name": "EcsWorldBenchmarks.AddTwoComponents(EntityCount=10000)",
+    "meanNanoseconds": 712886.3346354166,
+    "stdDevNanoseconds": 3427.430223191484,
+    "allocatedBytes": 1818627
+  },
+  {
+    "name": "EcsWorldBenchmarks.CreateEntities(EntityCount=1000)",
+    "meanNanoseconds": 7392.045429774693,
+    "stdDevNanoseconds": 40.61408496089696,
+    "allocatedBytes": 37880
+  },
+  {
+    "name": "EcsWorldBenchmarks.CreateEntities(EntityCount=10000)",
+    "meanNanoseconds": 124058.35123697917,
+    "stdDevNanoseconds": 998.5702766839405,
+    "allocatedBytes": 652642
+  },
+  {
+    "name": "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=1000)",
+    "meanNanoseconds": 3239.7181584284854,
+    "stdDevNanoseconds": 3.1981796518863055,
+    "allocatedBytes": 0
+  },
+  {
+    "name": "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=10000)",
+    "meanNanoseconds": 32945.203857421875,
+    "stdDevNanoseconds": 319.0086423110922,
+    "allocatedBytes": 0
+  },
+  {
+    "name": "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=1000)",
+    "meanNanoseconds": 1312.7351614145132,
+    "stdDevNanoseconds": 3.85415262839658,
+    "allocatedBytes": 352
+  },
+  {
+    "name": "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=10000)",
+    "meanNanoseconds": 12118.510335286459,
+    "stdDevNanoseconds": 167.0475389030133,
+    "allocatedBytes": 352
+  },
+  {
+    "name": "FullTickBenchmarks.Tick_MonthBoundary",
+    "meanNanoseconds": 60609761.538461536,
+    "stdDevNanoseconds": 709058.6077545136,
+    "allocatedBytes": 14079360
+  },
+  {
+    "name": "FullTickBenchmarks.Tick_RegularDay",
+    "meanNanoseconds": 1522975,
+    "stdDevNanoseconds": 15986.876720383105,
+    "allocatedBytes": 123208
+  },
+  {
+    "name": "OrgScoreCollectorBenchmarks.Compute",
+    "meanNanoseconds": 306.4210448946272,
+    "stdDevNanoseconds": 2.4400311863319875,
+    "allocatedBytes": 472
+  },
+  {
+    "name": "PopulationGrowthCollectorBenchmarks.Compute",
+    "meanNanoseconds": 0.015325074394543966,
+    "stdDevNanoseconds": 0.0160051101740818,
+    "allocatedBytes": 0
+  },
+  {
+    "name": "RecruitsGrowthCollectorBenchmarks.Compute",
+    "meanNanoseconds": 4958.7550862630205,
+    "stdDevNanoseconds": 19.831826896503614,
+    "allocatedBytes": 128
+  },
+  {
+    "name": "RecruitsSeedCollectorBenchmarks.Compute",
+    "meanNanoseconds": 5110.499013264974,
+    "stdDevNanoseconds": 58.37341166169791,
+    "allocatedBytes": 128
+  },
+  {
+    "name": "ResourceQueryBenchmarks.GetValue",
+    "meanNanoseconds": 5103.8250732421875,
+    "stdDevNanoseconds": 33.56764678024571,
+    "allocatedBytes": 128
+  },
+  {
+    "name": "ResourceSystemBenchmarks.Update_MonthBoundary",
+    "meanNanoseconds": 61662085.41666667,
+    "stdDevNanoseconds": 1133216.9948256274,
+    "allocatedBytes": 13965303
+  },
+  {
+    "name": "ResourceSystemBenchmarks.Update_RegularDay",
+    "meanNanoseconds": 149507.48697916666,
+    "stdDevNanoseconds": 579.2460314762923,
+    "allocatedBytes": 4464
+  },
+  {
+    "name": "TimeSystemBenchmarks.Update",
+    "meanNanoseconds": 9.796711206436157,
+    "stdDevNanoseconds": 0.039648294440640816,
+    "allocatedBytes": 0
+  },
+  {
+    "name": "VisualStateConverterBenchmarks.Update",
+    "meanNanoseconds": 43758.31258138021,
+    "stdDevNanoseconds": 231.02351450968078,
+    "allocatedBytes": 18224
+  }
+]

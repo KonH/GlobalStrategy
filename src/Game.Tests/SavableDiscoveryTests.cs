@@ -19,11 +19,13 @@ namespace GS.Game.Tests {
 			typeof(ResourceEffect),
 			typeof(Organization),
 			typeof(ControlEffect),
-			typeof(DiscoveredCountry)
+			typeof(DiscoveredCountry),
+			typeof(ProvinceOccupation)
 		};
 
 		static readonly Type[] ExpectedNotSavable = {
-			typeof(TriggerSave)
+			typeof(TriggerSave),
+			typeof(ProvinceOccupationVersion)
 		};
 
 		[Fact]

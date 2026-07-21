@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Components;
+using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class ControlSystem {
@@ -71,9 +72,9 @@ namespace GS.Game.Systems {
 
 				// Apply gains
 				foreach (var (orgId, gain) in orgGains) {
-					MutateResource(world, orgId, "gold", gain, resourceRequired);
+					MutateResource(world, orgId, ResourceDefinitions.Gold, gain, resourceRequired);
 				}
-				MutateResource(world, countryId, "gold", -totalGain, resourceRequired);
+				MutateResource(world, countryId, ResourceDefinitions.Gold, -totalGain, resourceRequired);
 			}
 		}
 
@@ -93,7 +94,7 @@ namespace GS.Game.Systems {
 					if (owners[i].OwnerId != countryId) {
 						continue;
 					}
-					if (links[i].ResourceId != "gold") {
+					if (links[i].ResourceId != ResourceDefinitions.Gold) {
 						continue;
 					}
 					if (effects[i].PayType != PayType.Monthly) {

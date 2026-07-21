@@ -304,6 +304,27 @@ namespace GS.Main {
 		}
 	}
 
+	public class ProvinceOccupationState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyDictionary<string, string> OccupierByProvinceId { get; private set; } = new Dictionary<string, string>();
+		public string RecentProvinceId { get; private set; } = "";
+		public string RecentOldOccupierId { get; private set; } = "";
+		public string RecentNewOccupierId { get; private set; } = "";
+
+		public void Set(
+			IReadOnlyDictionary<string, string> occupierByProvinceId,
+			string recentProvinceId = "",
+			string recentOldOccupierId = "",
+			string recentNewOccupierId = "") {
+			OccupierByProvinceId = occupierByProvinceId;
+			RecentProvinceId = recentProvinceId;
+			RecentOldOccupierId = recentOldOccupierId;
+			RecentNewOccupierId = recentNewOccupierId;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class CountryScoreState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -311,6 +332,33 @@ namespace GS.Main {
 
 		public void Set(IReadOnlyDictionary<string, double> scoreByCountryId) {
 			ScoreByCountryId = scoreByCountryId;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
+	public class LeaderboardEntryState {
+		public int Place { get; }
+		public string EntityId { get; }
+		public string DisplayName { get; }
+		public double Score { get; }
+
+		public LeaderboardEntryState(int place, string entityId, string displayName, double score) {
+			Place = place;
+			EntityId = entityId;
+			DisplayName = displayName;
+			Score = score;
+		}
+	}
+
+	public class LeaderboardState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyList<LeaderboardEntryState> Organizations { get; private set; } = Array.Empty<LeaderboardEntryState>();
+		public IReadOnlyList<LeaderboardEntryState> Countries { get; private set; } = Array.Empty<LeaderboardEntryState>();
+
+		public void Set(List<LeaderboardEntryState> organizations, List<LeaderboardEntryState> countries) {
+			Organizations = organizations;
+			Countries = countries;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -383,8 +431,10 @@ namespace GS.Main {
 		public VisualEffectCollection LastFrameEffects { get; } = new VisualEffectCollection();
 		public SaveResultState SaveResult { get; } = new SaveResultState();
 		public ProvinceOwnershipState ProvinceOwnership { get; } = new ProvinceOwnershipState();
+		public ProvinceOccupationState ProvinceOccupation { get; } = new ProvinceOccupationState();
 		public SelectedProvinceState SelectedProvince { get; } = new SelectedProvinceState();
 		public CountryScoreState CountryScore { get; } = new CountryScoreState();
+		public LeaderboardState Leaderboard { get; } = new LeaderboardState();
 		public GameLogState GameLog { get; } = new GameLogState();
 	}
 }

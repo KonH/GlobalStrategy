@@ -129,7 +129,7 @@ namespace GS.Game.Bots {
 					if (def != null) {
 						foreach (var cost in def.Cost) {
 							costs.Add(new BotCostView { ResourceId = cost.ResourceId, Amount = cost.Amount });
-							if (cost.ResourceId == "gold") { goldCost += cost.Amount; }
+							if (cost.ResourceId == ResourceDefinitions.Gold) { goldCost += cost.Amount; }
 						}
 					}
 
