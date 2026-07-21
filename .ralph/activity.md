@@ -136,3 +136,27 @@ The next iteration must retry the Unity refresh/error-console gate before doing 
 task. If Unity MCP is still absent, leave `passes: false` and journal the blocker again.
 
 ---
+
+## 2026-07-22 — Verify ordered resource presentation in ResourcesView (blocked)
+
+Task: "Implement config-whitelist filtering, ordering, icon selection, and localized descriptions in ResourcesView."
+
+**What I changed:**
+- Made no implementation changes because commit `ad611d3` already contains the requested
+  `ResourcesView` implementation.
+- Inspected the complete tool catalog for Unity Editor, `refresh_unity`, `read_console`,
+  and editor-state capabilities; none are available in this session.
+- Left this task's `passes` flag false because its required compilation gate did not run.
+- Bumped `ProjectSettings/ProjectSettings.asset` bundle version from 1.26 to 1.27 for this
+  iteration's required journal commit.
+
+**Gate:** BLOCKED. The required gate is Unity Editor compilation via `refresh_unity`, then
+`read_console(types=["error"])`. The complete available tool catalog returned no matching
+Unity tools, so there is no compilation/error-console output and the task cannot be marked
+passed. `git diff --check` exited 0, but this does not substitute for the gate. Manual visual
+checking will still be needed after compilation succeeds.
+
+The next iteration must retry the Unity refresh/error-console gate before doing any later
+task. If Unity MCP is still absent, leave `passes: false` and journal the blocker again.
+
+---
