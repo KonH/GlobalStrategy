@@ -8,8 +8,8 @@ CI runner or Claude Code Remote session - it uses whatever `gh` auth and `claude
 Cheap discovery, expensive work gated behind it: this script does the "is there anything to
 do at all" check itself, via plain `gh` calls (no LLM usage). `claude -p` is only invoked -
 and only then does it spend subscription usage - when at least one issue/PR labeled `claude`
-was created or updated within the lookback window (`--since-hours`, default 1h, meant to
-match the cron interval). An empty poll costs nothing.
+was created or updated within the lookback window (`--since-hours` / `--since-minutes`,
+default 1h, meant to match the cron interval). An empty poll costs nothing.
 
 Flow per invocation:
   1. Switch to `main`, pull latest (so it always runs the current `.claude/commands/
@@ -30,6 +30,7 @@ scheduled work with no one watching to catch a model/effort default drifting und
 Usage (from project root):
   python scripts/handle_feature_issues.py
   python scripts/handle_feature_issues.py --since-hours 2 --max-turns 60
+  python scripts/handle_feature_issues.py --since-minutes 15
 """
 
 import argparse
@@ -95,19 +96,26 @@ def build_prompt(candidates):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--max-turns", type=int, default=40)
-    parser.add_argument("--since-hours", type=float, default=1.0,
-                         help="Lookback window in hours; should match the cron interval (default: 1)")
+    parser.add_argument("--since-hours", type=float, default=0.0,
+                         help="Lookback window, hours component. Combines with --since-minutes; "
+                              "if both are 0 (the default), falls back to a 1-hour window.")
+    parser.add_argument("--since-minutes", type=float, default=0.0,
+                         help="Lookback window, minutes component - use this alone for sub-hour "
+                              "cron intervals, e.g. --since-minutes 15.")
     args = parser.parse_args()
 
     run_git(["checkout", "main"])
     run_git(["fetch", "origin", "main"])
     run_git(["reset", "--hard", "origin/main"])
 
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=args.since_hours)
+    lookback_minutes = args.since_hours * 60 + args.since_minutes
+    if lookback_minutes <= 0:
+        lookback_minutes = 60
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=lookback_minutes)
     candidates = find_candidates("issue", cutoff) + find_candidates("pr", cutoff)
 
     if not candidates:
-        print(f"No '{LABEL}'-labeled issues/PRs updated in the last {args.since_hours}h - nothing to do.")
+        print(f"No '{LABEL}'-labeled issues/PRs updated in the last {lookback_minutes:g}m - nothing to do.")
         return
 
     prompt = build_prompt(candidates)

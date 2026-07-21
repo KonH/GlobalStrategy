@@ -11,13 +11,18 @@
 # Usage (from the dedicated clone's root):
 #   ./scripts/handle_feature_issues.sh
 #   ./scripts/handle_feature_issues.sh --since-hours 2 --max-turns 60
+#   ./scripts/handle_feature_issues.sh --since-minutes 15
 #
-# --since-hours (default 1) should match the cron interval below - it's the lookback
-# window used to decide whether there's anything new to act on at all. claude -p is only
-# invoked (and only then spends subscription usage) when that check finds something.
+# --since-hours/--since-minutes (combined; default 1h if both omitted) should match the
+# cron interval below - it's the lookback window used to decide whether there's anything
+# new to act on at all. claude -p is only invoked (and only then spends subscription
+# usage) when that check finds something.
 #
 # Example crontab entry (hourly):
 #   0 * * * * cd /path/to/dedicated-clone && ./scripts/handle_feature_issues.sh >> ~/.local/state/handle_feature_issues.log 2>&1
+#
+# Example crontab entry (every 15 minutes):
+#   */15 * * * * cd /path/to/dedicated-clone && ./scripts/handle_feature_issues.sh --since-minutes 15 >> ~/.local/state/handle_feature_issues.log 2>&1
 
 set -e
 

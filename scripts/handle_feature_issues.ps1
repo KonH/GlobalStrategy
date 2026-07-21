@@ -10,17 +10,20 @@
 # Usage (from the dedicated clone's root):
 #   .\scripts\handle_feature_issues.ps1
 #   .\scripts\handle_feature_issues.ps1 -SinceHours 2 -MaxTurns 60
+#   .\scripts\handle_feature_issues.ps1 -SinceMinutes 15
 #
-# -SinceHours (default 1) should match the Task Scheduler interval below - it's the
-# lookback window used to decide whether there's anything new to act on at all. claude -p
-# is only invoked (and only then spends subscription usage) when that check finds something.
+# -SinceHours/-SinceMinutes (combined; default 1h if both omitted) should match the Task
+# Scheduler interval below - it's the lookback window used to decide whether there's
+# anything new to act on at all. claude -p is only invoked (and only then spends
+# subscription usage) when that check finds something.
 #
-# Example Task Scheduler action (hourly): run this script with working directory set to
-# the dedicated clone's root.
+# Example Task Scheduler action (hourly, or every 15 min with -SinceMinutes 15 passed as
+# an argument): run this script with working directory set to the dedicated clone's root.
 
 param(
     [int]$MaxTurns = 40,
-    [double]$SinceHours = 1
+    [double]$SinceHours = 0,
+    [double]$SinceMinutes = 0
 )
 
 $ErrorActionPreference = "Stop"
@@ -28,5 +31,5 @@ $ErrorActionPreference = "Stop"
 $pythonExe = if (Test-Path ".venv\Scripts\python.exe") { ".venv\Scripts\python.exe" } else { "python" }
 $scriptPath = Join-Path $PSScriptRoot "handle_feature_issues.py"
 
-& $pythonExe $scriptPath --max-turns $MaxTurns --since-hours $SinceHours
+& $pythonExe $scriptPath --max-turns $MaxTurns --since-hours $SinceHours --since-minutes $SinceMinutes
 exit $LASTEXITCODE

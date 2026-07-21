@@ -8,7 +8,7 @@ Every cron tick, the script:
 
 1. Pulls `main` (so it always runs the current command file, never a stale checkout).
 2. `gh issue list`/`gh pr list`, both filtered to `--label claude`, `--state open`.
-3. Keeps only results whose `updatedAt` falls within the lookback window (`--since-hours`, default `1` — should match the cron interval).
+3. Keeps only results whose `updatedAt` falls within the lookback window (`--since-hours`/`--since-minutes`, combined; defaults to 1h if both are omitted — should match the cron interval, e.g. `--since-minutes 15` for a 15-minute cron).
 4. If nothing qualifies, **exits without ever invoking `claude -p`** — zero usage spent on an empty poll.
 5. If something qualifies, invokes `claude -p` once with every candidate's link, title, and body embedded directly in the prompt, so the command doesn't have to spend a turn re-discovering what the wrapper already found.
 
