@@ -16,6 +16,9 @@ Requires `gh` authenticated as the repo owner (`gh auth login`) and `claude` log
 subscription (`claude` with no ANTHROPIC_API_KEY set - see .claude/rules/
 github_issue_automation.md for why this matters).
 
+Runs explicitly on the Sonnet 5 model at high reasoning effort - this is scheduled,
+unattended work with no one watching to catch a model/effort default drifting under it.
+
 Usage (from project root):
   python scripts/handle_feature_issues.py
   python scripts/handle_feature_issues.py --max-turns 60
@@ -25,6 +28,9 @@ import argparse
 import shutil
 import subprocess
 import sys
+
+MODEL = "claude-sonnet-5"
+EFFORT = "high"
 
 
 def find_claude_executable():
@@ -50,6 +56,8 @@ def main():
     claude_exe = find_claude_executable()
     result = subprocess.run([
         claude_exe, "-p", "/handle-feature-issue",
+        "--model", MODEL,
+        "--effort", EFFORT,
         "--dangerously-skip-permissions",
         "--max-turns", str(args.max_turns),
     ])
