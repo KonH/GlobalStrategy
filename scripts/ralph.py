@@ -59,7 +59,9 @@ def run_git(args, check=True):
     return result.stdout.strip(), result.returncode
 
 
-JOURNAL_ONLY_FILES = {".ralph/activity.md"}
+# A version bump is required for every Ralph commit. It must not hide a stalled
+# loop that is otherwise only adding another journal entry.
+JOURNAL_ONLY_FILES = {".ralph/activity.md", "ProjectSettings/ProjectSettings.asset"}
 
 
 def get_head():
@@ -362,6 +364,12 @@ def main():
 
         prev_head = get_head()
         prompt = prompt_file.read_text(encoding="utf-8")
+        if args.env:
+            prompt += (
+                f"\n\nAutomation environment: {args.env}. Unity Editor/MCP and image-generation "
+                "tools are unavailable. Do not probe for or invoke them; leave excluded asset, "
+                "scene, and image tasks untouched."
+            )
         r = invoke_claude_step(
             claude_exe, "loop", str(i), prompt, loop_tools,
             args.dangerously_skip_permissions, csv_file, log_dir, activity_file,
@@ -387,6 +395,9 @@ def main():
 
         if r.get("is_error"):
             stop_reason = "result_error"
+        elif "<promise>BLOCKED_REPEAT_LIMIT</promise>" in (r.get("result") or ""):
+            stop_reason = "blocked_repeat_limit"
+            print("Stopping: the iteration reached the three-attempt repeat limit for a blocked task.")
         elif "<promise>COMPLETE</promise>" in (r.get("result") or ""):
             stop_reason = "complete_promise"
         elif not re.search(r'"passes":\s*false', prd_text):
@@ -407,22 +418,8 @@ def main():
     print(f"=== Loop finished: {stop_reason} ===")
 
     # --- Phase 3: commit + pull request ---
-    loop_succeeded = stop_reason in ("complete_promise", "all_tasks_passed")
     if args.skip_pull_request:
         print("Skipping /complete-prd (--skip-pull-request).")
-    elif not loop_succeeded:
-        print("Loop did not finish all tasks - skipping PR. To create one anyway, run:")
-        print(f'  claude -p "/complete-prd {complete_prd_arg}"')
-        if bot_mode:
-            print(
-                f"Failure report: Docs/BotFeatures/{feature_id}/eval_summary.md, "
-                f"Docs/BotFeatures/{feature_id}/eval_history.json, and .ralph/activity.md."
-            )
-        elif perf_mode:
-            print(
-                "Failure report: Docs/Benchmarks/history.json, Docs/Benchmarks/summary.md, "
-                "and .ralph/activity.md."
-            )
     else:
         print()
         print(f"=== Phase: /complete-prd {complete_prd_arg} ===")
@@ -432,7 +429,7 @@ def main():
             model=args.model, effort=args.effort,
         )
         if r is None or r.get("is_error"):
-            print("/complete-prd failed - commit/PR may need manual attention.")
+            print("/complete-prd failed - commit/push may need manual attention.")
         elif r.get("result"):
             print(r["result"])
 

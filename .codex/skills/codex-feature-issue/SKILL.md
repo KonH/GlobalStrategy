@@ -53,10 +53,11 @@ On approval of the implementation proposal or latest implementation summary:
 
 1. Start or resume `ralph/<spec-id>` from `origin/main`; do not use a worktree.
 2. Run `scripts/codex_ralph.py --spec <spec-id> --env code-only` for `code-only`, otherwise use `--env full-env-headless`. Use `--auto-adjust-iterations --skip-pull-request` for unattended runs.
-3. If it stalls, exits unsuccessfully, or completes zero tasks, post `## Needs Manual Attention` with the relevant `.ralph/activity.md` entries and stop.
-4. Otherwise inspect the changed files for concrete bugs and relevant rule violations. Do not apply discretionary review fixes until the owner requests them.
-5. Commit remaining changes with the repository version bump, push `ralph/<spec-id>`, and create or update an implementation PR whose body contains `Closes #<number>`.
-6. Post `## Implementation Summary`: passed/remaining PRD tasks, headless-skipped work, concrete review concerns, and the PR URL. Update the checklist and wait.
+3. Commit all remaining Ralph changes with the repository version bump and push `ralph/<spec-id>` before reporting any outcome, including a stall, error, or manual-attention condition. Do not discard partial work.
+4. If it stalls, exits unsuccessfully, or completes zero tasks, post `## Needs Manual Attention` with the relevant `.ralph/activity.md` entries and stop. Do not open or update an implementation PR when there was no real progress.
+5. Otherwise inspect the changed files for concrete bugs and relevant rule violations. Do not apply discretionary review fixes until the owner requests them.
+6. Create or update an implementation PR whose body contains `Closes #<number>`.
+7. Post `## Implementation Summary`: passed/remaining PRD tasks, headless-skipped work, concrete review concerns, and the PR URL. Update the checklist and wait.
 
 On an owner comment, apply only the requested follow-up changes, commit/push, post a short confirmation, and wait again. On approval with no outstanding change request, merge `origin/main` using the same narrow version-conflict rule, push, merge the implementation PR, and mark the checklist complete.
 
