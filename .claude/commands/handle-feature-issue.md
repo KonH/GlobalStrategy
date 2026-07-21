@@ -2,7 +2,7 @@ Drive a repo owner's feature-request issues through spec → plan → merge, ent
 
 The invocation prompt already contains the full candidate list — every open, `claude`-labeled, owner-authored issue with new activity, each as a `[ISSUE #N]` block with its URL, title, body, and a `reason` hint (`issue/comment updated` or `new reaction on a summary/conclusion comment`). **Do not re-scan the repo for other candidates** — that discovery already happened in the wrapper specifically so this process doesn't spend a turn (and subscription usage) rediscovering what it already knows. The reason hint only tells you an issue needs attention, not exactly what changed — investigate each one's full comment/reaction history yourself via `gh`.
 
-**All conversation happens on the issue, never the PR.** The PR is just the code artifact (linked via `Closes #N`); every summary, question, and conclusion this command posts is an issue comment.
+**All conversation happens on the issue, never the PR.** PRs are just the code artifact — the spec+plan PR links back with `Part of #N` (it must not auto-close the issue), and the final implementation PR links with `Closes #N` (merging it is what ends the issue's lifecycle) — every summary, question, and conclusion this command posts is an issue comment, on both PRs alike.
 
 Each invocation is a fresh `claude -p` process with no memory of previous runs; use `gh` CLI (already authenticated as the repo owner in that environment) and plain `git` for everything — this command must not assume any MCP tools are present.
 
@@ -22,10 +22,12 @@ Every comment this command posts starts with this exact first line:
 - `## Spec Conclusion` — spec finalized after Q&A, decisions recorded
 - `## Plan Summary` — plan first drafted (via `/plan`), may include clarifying questions or constitution violations
 - `## Plan Conclusion` — plan finalized after Q&A, decisions recorded
-- `## Clarification Needed` — a free-form follow-up question mid-review (spec or plan phase)
+- `## Implementation Proposal` — implementation plan for the merged spec+plan posted, describing what the Ralph loop will build and how it'll be verified (see section 4's environment-marker rules); may include clarifying questions
+- `## Implementation Summary` — a Ralph loop run finished (fully or partially) and its changes are pushed to the implementation PR; describes remaining/skipped steps and code-review points, waiting on your decision
+- `## Clarification Needed` — a free-form follow-up question mid-review (spec, plan, or implementation phase)
 - `## Needs Manual Attention` — the automation stopped and is waiting on you directly (see the round-cap and merge-conflict rules below)
 
-The **phase** of an issue is derived by scanning its comments for the most recent of these headings: no `Spec Summary` yet → not started (shouldn't happen, since a PR/branch already existing implies one exists). Most recent is `Spec Summary`/`Spec Conclusion`/`Clarification Needed` under a spec context → **SPEC_REVIEW**. Most recent is `Plan Summary`/`Plan Conclusion`/`Clarification Needed` under a plan context → **PLAN_REVIEW**. PR merged → done, shouldn't still be labeled `claude`+open.
+The **phase** of an issue is derived by scanning its comments for the most recent of these headings: no `Spec Summary` yet → not started (shouldn't happen, since a PR/branch already existing implies one exists). Most recent is `Spec Summary`/`Spec Conclusion`/`Clarification Needed` under a spec context → **SPEC_REVIEW**. Most recent is `Plan Summary`/`Plan Conclusion`/`Clarification Needed` under a plan context → **PLAN_REVIEW**. Spec+plan PR merged, most recent is `Implementation Proposal`/`Implementation Summary`/`Clarification Needed` under an implementation context → **IMPLEMENT_REVIEW** (section 4). Implementation PR merged → done — that PR's `Closes #<issue-number>` is what finally auto-closes the issue, so it shouldn't still be labeled `claude`+open at that point.
 
 ## Progress checklist comment
 
@@ -41,12 +43,18 @@ A single comment tracks overall state at a glance, always **edited in place, nev
 - [ ] Plan approved
 - [ ] Merged
 - [ ] Classified
+- [ ] Implementation proposed
+- [ ] Implementation approved
+- [ ] Implemented
+- [ ] Implementation merged
 
 **Status:** <one-line current state, see below>
-**PR:** #<pr-number> (once known)
+**Spec:** Docs/Specs/<YY_MM_DD_HH>_<slug>/ (once known)
+**PR:** #<pr-number> (spec+plan PR, once known)
+**Implementation PR:** #<pr-number> (once known)
 ```
 
-Checkbox state is always fully derived from the current phase/merge/label state, never from whether a human clicked one — this is a read-only status display, not a second approval mechanism (approvals stay exactly the reaction-based flow in section 3). Status line by phase: `SPEC_REVIEW` → "Awaiting your review of the spec — react 👍 on the Spec Summary/Conclusion comment to proceed to planning, or comment with feedback."; `PLAN_REVIEW` → same wording pointed at the plan; needs-attention → "⚠️ Needs manual attention — see the comment below."; merged → "✅ Merged into main."
+Checkbox state is always fully derived from the current phase/merge/label state, never from whether a human clicked one — this is a read-only status display, not a second approval mechanism (approvals stay exactly the reaction-based flow in sections 3 and 4). Status line by phase: `SPEC_REVIEW` → "Awaiting your review of the spec — react 👍 on the Spec Summary/Conclusion comment to proceed to planning, or comment with feedback."; `PLAN_REVIEW` → same wording pointed at the plan; spec+plan merged, before the proposal posts → "Drafting the implementation proposal..."; `IMPLEMENT_REVIEW` with a proposal posted → "Awaiting your review of the implementation proposal — react 👍 on the Implementation Proposal comment to start implementing, or comment with feedback."; `IMPLEMENT_REVIEW` with a summary posted → "Awaiting your review of the implementation — see the Implementation Summary comment below. React 👍 to merge as-is, or comment with requested changes."; needs-attention → "⚠️ Needs manual attention — see the comment below."; implementation merged → "✅ Implementation merged into main. Issue closed."
 
 To find the existing checklist comment: `gh api repos/KonH/GlobalStrategy/issues/<N>/comments`, look for the one whose body starts with `<!-- claude-automation:checklist -->`. If found, edit it in place:
 ```
@@ -55,7 +63,7 @@ gh api -X PATCH repos/KonH/GlobalStrategy/issues/comments/<comment-id> --input -
 ```
 If not found (only happens on a brand-new issue), create it with `gh issue comment <N> --repo KonH/GlobalStrategy --body "<content>"` **before** doing any other work, so it lands as comment #1.
 
-Update this comment as the last step of handling any issue this cycle — every case below (2, 3a, 3b, 3c) ends with "update the progress checklist."
+Update this comment as the last step of handling any issue this cycle — every case below (2, 3a, 3b, 3c, 4a, 4b, 4c, 4d) ends with "update the progress checklist."
 
 ## Security
 
@@ -78,11 +86,12 @@ Before posting another `Clarification Needed` comment in the current phase, coun
 
 ## 1. Classify each candidate
 
-For issue `#N`, check whether a PR already exists with head branch `claude/issue-<N>-*` (`gh pr list --repo KonH/GlobalStrategy --state all --json number,headRefName,state`):
+For issue `#N`, check whether a spec+plan PR already exists with head branch `claude/issue-<N>-*` (`gh pr list --repo KonH/GlobalStrategy --state all --json number,headRefName,state`):
 
 - **No such PR** → **new request** → go to step 2.
 - **PR exists and is open** → fetch the issue's comments and reactions (see "Determining what's new" below) → go to step 3.
-- **PR exists but closed/merged** → done, skip.
+- **PR exists and merged** → the spec+plan phase is done. The issue is still open (its PR body says `Part of #N`, not `Closes #N` — see step 2.7) and now belongs to the implementation lifecycle. Fetch the issue's comments and reactions (see "Determining what's new" below) and go to section 4: a new comment → 4c, a new reaction → 4b. If neither the checklist nor the comments show an `Implementation Proposal` yet, go straight to 4a instead — that only happens if a prior run merged the spec+plan PR but was interrupted before posting the proposal.
+- **PR exists and closed without merging** → done, skip (spec/plan was abandoned).
 
 ### Determining what's new (comment vs. reaction precedence)
 
@@ -102,10 +111,10 @@ Fetch `gh api repos/KonH/GlobalStrategy/issues/<N>/comments` and, for each comme
 4. `git fetch origin main`, then create and check out branch `claude/issue-<issue-number>-<slug>` from `origin/main`.
 5. Invoke the `specify` command/skill (`.claude/commands/specify.md`) with the feature name + description. It writes `Docs/Specs/<YY_MM_DD_HH>_<slug>/spec.md` and normally "presents it to the user and stops" per `.claude/rules/workflow.md` — capture that presentation content for the `Spec Summary` comment below.
 6. `git add`, `git commit`, `git push -u origin claude/issue-<issue-number>-<slug>`.
-7. Open the PR: `gh pr create --repo KonH/GlobalStrategy --title "<feature name>" --base main --head claude/issue-<issue-number>-<slug> --body "Closes #<issue-number>\n\n<brief summary>"`.
+7. Open the PR: `gh pr create --repo KonH/GlobalStrategy --title "<feature name>" --base main --head claude/issue-<issue-number>-<slug> --body "Part of #<issue-number>\n\n<brief summary>"`. Deliberately **not** `Closes` — this PR only carries the spec+plan; merging it must not auto-close the issue, since the implementation lifecycle (section 4) still needs it open. The eventual implementation PR is what carries `Closes #<issue-number>`.
 8. Post on the **issue** (not the PR): marker line, then `## Spec Summary`, then the spec's presentation content and any clarifying questions, then a link to the PR.
-9. Update the progress checklist: check "Spec drafted," fill in the PR number, status → the `SPEC_REVIEW` wording above.
-10. Stop. Do **not** run `/plan` yet — that only happens after a 👍 (step 4 below).
+9. Update the progress checklist: check "Spec drafted," fill in `**Spec:**` (the folder `/specify` just created) and `**PR:**`, status → the `SPEC_REVIEW` wording above.
+10. Stop. Do **not** run `/plan` yet — that only happens after a 👍 on the Spec Summary/Conclusion comment (section 3b).
 
 ## 3. Existing PR: handle new activity
 
@@ -130,23 +139,67 @@ Fetch `gh api repos/KonH/GlobalStrategy/issues/<N>/comments` and, for each comme
 ### 3c. New reaction on a Plan Summary/Conclusion comment — merge
 
 1. `git fetch origin main`, `git checkout <branch>`, `git merge origin/main`.
-2. **Clean merge** → `git push`, then `gh pr merge <pr-number> --repo KonH/GlobalStrategy --merge --delete-branch`. Then classify and label the issue (step 4 below). Post a short confirmation comment on the issue (marker + a plain sentence, no special heading needed) and stop — the `Closes #<issue-number>` in the PR body auto-closes the issue.
+2. **Clean merge** → `git push`, then `gh pr merge <pr-number> --repo KonH/GlobalStrategy --merge --delete-branch`. Then classify and label the issue (step 4 below).
 3. **Conflict** → check `git diff --name-only --diff-filter=U`:
    - If the **only** conflicted file is `ProjectSettings/ProjectSettings.asset` and the **only** conflicting hunk in it is the `bundleVersion:` line: read both conflicting values, take the **greater** of the two, then apply the same increment `.claude/commands/commit.md` uses for a normal commit: `hundredths = X*100 + YY + 1`, reformat as `"{newMajor}.{newMinor:D2}"` where `newMajor = hundredths / 100` and `newMinor = hundredths % 100` — i.e. the resolved version is one higher than the larger of the two conflicting values, not either side as-is. Replace the conflict markers with that single resolved line, `git add`, `git commit` (completes the merge), `git push`, then merge the PR as in step 2 (including the classification below).
    - **Any other conflict** (any other file, or any other hunk even in `ProjectSettings.asset`) → `git merge --abort`. Post `## Needs Manual Attention` on the issue listing the conflicted file(s), apply `claude-needs-attention`, update the checklist status to the needs-attention wording, and stop. Never guess at resolving a real content conflict unattended.
 4. **Classify and label the issue** (only after a successful merge, whether clean or conflict-resolved) — decide whether implementing this spec+plan is possible without a running Unity Editor:
    - `full-env-required` — the plan touches anything under `Assets/UI/`, `Assets/Prefabs/`, `.unity` scenes, `.prefab`/ScriptableObject assets, textures/flags/character portraits, or otherwise calls for Unity MCP tool usage (per `.claude/rules/unity/mcp_usage.md`) or the image-generation pipeline (`.claude/rules/image_generation.md`) to implement or verify.
    - `code-only` — the plan is confined to `src/` (Unity-independent domain logic), pure C# logic/ECS systems under `Assets/Scripts/` verifiable by `dotnet build`/tests without opening the Editor, or `scripts/*.py` config generators.
-   - If genuinely mixed or unclear from the plan, default to `full-env-required` — wrongly labeling something `code-only` risks a later automated implementation attempt getting stuck with no Editor available, which is worse than a human just checking.
-   - Apply with `gh issue edit <issue-number> --repo KonH/GlobalStrategy --add-label <code-only|full-env-required>` — this works on the now-closed issue too, no need to reopen it first.
-5. Update the progress checklist: check "Plan approved," "Merged," and "Classified," status → "✅ Merged into main."
+   - If genuinely mixed or unclear from the plan, default to `full-env-required` — wrongly labeling something `code-only` risks the implementation phase below (which never has a Unity Editor of its own — see section 4) planning work it can't actually attempt.
+   - Apply with `gh issue edit <issue-number> --repo KonH/GlobalStrategy --add-label <code-only|full-env-required>`.
+5. Update the progress checklist: check "Plan approved" and "Merged," status → "Drafting the implementation proposal...". This PR intentionally does **not** close the issue (step 2.7) — the issue stays open through the implementation phase below.
+6. **Continue immediately into implementation, in this same run**: go to section 4, step 4a (draft the Implementation Proposal). Do not wait for a new poll cycle — the merge and the proposal are one continuous action, the same way step 3b flows directly from a spec 👍 into drafting the plan.
+
+## 4. Implementation lifecycle
+
+Runs entirely after section 3c's merge, on the `ralph/<spec-id>` branch that `scripts/ralph.py` itself manages — never the now-deleted `claude/issue-<N>-<slug>` spec+plan branch. `<spec-id>` is the spec folder name (`Docs/Specs/<YY_MM_DD_HH>_<slug>/`), read back from the checklist's `**Spec:**` line rather than re-derived.
+
+### 4a. Draft the Implementation Proposal (runs immediately after 3c's merge)
+
+1. Summarize the merged `plan.md` into a short implementation proposal: what the Ralph loop will build, in what order, and how each piece will be gated (`dotnet build`/`dotnet test`, python config validation, or — `code-only` issues only — Unity MCP compile checks in a future interactive run). For a `full-env-required` issue, say explicitly that this automation has no Unity Editor available and list which plan steps will therefore be skipped entirely (Unity asset/scene/prefab/ScriptableObject work, image generation) versus which C# script steps will be attempted without compile verification — see `.claude/commands/create-prd.md`'s environment-marker rules for exactly how that split works.
+2. Post on the issue: marker line, `## Implementation Proposal`, the summary from step 1, any clarifying questions.
+3. Update the progress checklist: check "Implementation proposed," status → "Awaiting your review of the implementation proposal — react 👍 on the Implementation Proposal comment to start implementing, or comment with feedback."
+4. Stop. Do **not** start the Ralph loop yet — that only happens after a 👍 on an Implementation Proposal/Summary comment (4b below).
+
+### 4b. New reaction on an Implementation Proposal/Summary comment — run the Ralph loop
+
+1. If `**Implementation PR:**` is not yet set on the checklist: `git fetch origin main`, `git checkout main`, `git reset --hard origin/main` — the Ralph branch starts fresh from `main`, which already has the merged spec+plan. If an implementation PR already exists from a previous round: `git fetch origin ralph/<spec-id>` and `git checkout ralph/<spec-id>` instead, so this round continues on top of prior implementation commits rather than restarting.
+2. Map the issue's classification label to an environment marker for `--env`: `code-only` → `code-only`; `full-env-required` → `full-env-headless` (this automation never has Unity Editor/MCP, regardless of what the label says the plan needs).
+3. Run:
+   ```
+   python scripts/ralph.py --spec <spec-id> --env <marker> --model claude-sonnet-5 --effort medium \
+       --max-iterations 20 --auto-adjust-iterations --skip-pull-request --dangerously-skip-permissions
+   ```
+   `--auto-adjust-iterations` covers the "MaxIterations too low" failure mode by itself — `ralph.py` raises its own iteration budget to the PRD's recommended minimum instead of erroring out, so a single invocation is enough; no separate detect-and-re-run step is needed. `--skip-pull-request` is required — this section owns PR creation/update (it needs to be linked to the GitHub issue), not the generic `/complete-prd` → `/pr` flow, which has no knowledge of the issue number.
+4. If the loop's final `=== Loop finished: <reason> ===` line reports `stalled_no_progress` or `claude_error`, or zero PRD tasks ended up `"passes": true` — treat this as blocked, not a normal (possibly partial) result: post `## Needs Manual Attention` quoting the relevant `.ralph/activity.md` entries, apply `claude-needs-attention`, update the checklist status accordingly, and stop. Do not open or update an implementation PR with no real progress behind it.
+5. Otherwise (any real progress, even short of every task passing): run the review sub-agent step from `.claude/commands/code-review.md` against the branch's changes (`git diff --name-only origin/main...HEAD`) — spawn the review sub-agent and collect its concerns, but skip that command's interactive "ask the user to approve/skip each fix" flow entirely. Concerns are recorded for the Implementation Summary comment (step 7 below) and are only ever applied after the owner responds on the issue (4c), never auto-applied here.
+6. Commit any remaining uncommitted changes via the **/commit** skill's rules (version bump included), then push: if `**Implementation PR:**` is not yet set on the checklist, `git push -u origin ralph/<spec-id>` and `gh pr create --repo KonH/GlobalStrategy --title "<feature name> (implementation)" --base main --head ralph/<spec-id> --body "Closes #<issue-number>\n\n<brief summary>"` — this PR body uses `Closes`, unlike the spec+plan PR, since merging it is what finally closes the issue. If an Implementation PR already exists, just push to update it (no new PR).
+7. Post on the issue: marker line, `## Implementation Summary`, covering: which PRD tasks passed/remain (from `.ralph/prd.md`), any plan steps skipped entirely because of the `full-env-headless` marker (from `/create-prd`'s report and `plan.md`'s `## Automation Notes` section), and the code-review concerns collected in step 5 (each with file/location, problem, proposed fix, same shape `code-review.md` already uses). Link the implementation PR.
+8. Update the progress checklist: check "Implementation approved" (this round's 👍 is what triggered step 1) and "Implemented," fill in `**Implementation PR:**`, status → "Awaiting your review of the implementation — see the Implementation Summary comment below. React 👍 to merge as-is, or comment with requested changes."
+9. Stop. Do **not** merge yet — that only happens after a 👍 on an Implementation Summary comment with no further requested changes (4d below).
+
+### 4c. New comment on an Implementation Summary — apply requested changes
+
+1. `git fetch origin ralph/<spec-id>` and check it out.
+2. Read the comment as implementation feedback — code-review decisions (which flagged points to fix, which to skip) and/or new change requests. Apply directly (edit files); only re-run `scripts/ralph.py` the same way as 4b if the request is substantial enough to need its own multi-step loop, not for a small follow-up fix.
+3. Commit via **/commit**, push to `ralph/<spec-id>` (updates the existing implementation PR automatically).
+4. Post a short confirmation comment on the issue (marker + a plain sentence summarizing what changed, no special heading needed) and update the checklist status back to the "Awaiting your review..." wording from 4b.8 — subject to the same bounded-loop rule as spec/plan Q&A (a 4th unresolved round in this phase → `## Needs Manual Attention` instead of another silent fix-and-wait cycle).
+
+### 4d. New reaction on an Implementation Summary comment (no further changes requested) — merge
+
+1. `git fetch origin main`, `git checkout ralph/<spec-id>`, `git merge origin/main`. Resolve a `bundleVersion`-only conflict exactly as in 3c.3; abort and escalate to `## Needs Manual Attention` on anything else.
+2. `git push`, then `gh pr merge <implementation-pr-number> --repo KonH/GlobalStrategy --merge --delete-branch`. The `Closes #<issue-number>` in this PR's body auto-closes the issue.
+3. Update the progress checklist one last time: check "Implementation merged," status → "✅ Implementation merged into main. Issue closed."
 
 ## Non-goals
 
 - Never touch issues or PRs authored by anyone other than `KonH`, or act on comments/reactions from anyone else.
 - Never advance to `/plan` without an explicit 👍 on a Spec Summary/Conclusion comment.
-- Never merge without an explicit 👍 on a Plan Summary/Conclusion comment.
+- Never merge the spec+plan PR without an explicit 👍 on a Plan Summary/Conclusion comment.
+- Never start the Ralph implementation loop without an explicit 👍 on an Implementation Proposal/Summary comment.
+- Never merge the implementation PR without an explicit 👍 on an Implementation Summary comment with no unresolved change requests.
+- Never apply code-review concerns to the implementation PR before the owner has responded to the Implementation Summary that lists them.
 - Never auto-resolve a merge conflict that isn't exactly the single-line `bundleVersion` case described above.
-- Never run `/implement` automatically — actual feature implementation stays a manual step (e.g. via `scripts/ralph.py`) after the spec+plan PR is merged.
 - Never re-run the repo-wide `gh issue list` discovery the wrapper already did — operate only on the candidates given in the prompt.
 - Never repost the progress checklist as a new comment once it exists — always edit the existing one in place.
