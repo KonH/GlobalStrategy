@@ -19,11 +19,10 @@ A candidate issue (open, labeled `codex`, authored by the owner) is picked up if
     NOT bump `updatedAt` on GitHub's side, so this needs its own separate check per open
     candidate, not just a timestamp filter on the issue list itself.
 
-Single-instance lock: acquires an exclusive flock on Logs/handle_codex_feature_issues.lock before
-doing anything else. If a previous run is still in flight when the next cron tick fires, this
-run exits immediately instead of racing it - the lock releases automatically even if a prior
-run crashed, since it's tied to the OS file descriptor, not manually cleared state. (POSIX
-only; on Windows, use Task Scheduler's own "don't start a new instance if already running".)
+Single-instance lock: acquires an exclusive OS lock on Logs/handle_codex_feature_issues.lock
+before doing anything else. If a previous run is still in flight when the next cron tick fires,
+this run exits immediately instead of racing it - the lock releases automatically even if a
+prior run crashed, since it's tied to the OS file descriptor, not manually cleared state.
 
 Skipping a locked-out run must never cost a window of activity: the lookback cutoff is not
 just "now minus --since-hours/--since-minutes", it's also clamped to the timestamp of the
@@ -53,6 +52,7 @@ Usage (from project root):
 import argparse
 import json
 import logging
+import re
 import shutil
 import subprocess
 import sys
@@ -94,7 +94,22 @@ def setup_logging(log_file, max_bytes, backup_count):
 
 def acquire_lock(lock_file):
     lock_file.parent.mkdir(parents=True, exist_ok=True)
-    lock_fp = open(lock_file, "w")
+    lock_fp = open(lock_file, "a+b")
+    lock_fp.seek(0, 2)
+    if lock_fp.tell() == 0:
+        lock_fp.write(b"\0")
+        lock_fp.flush()
+    lock_fp.seek(0)
+
+    if sys.platform == "win32":
+        import msvcrt
+        try:
+            msvcrt.locking(lock_fp.fileno(), msvcrt.LK_NBLCK, 1)
+        except OSError:
+            lock_fp.close()
+            return None
+        return lock_fp
+
     try:
         import fcntl
     except ImportError:
@@ -190,7 +205,9 @@ def build_prompt(candidates):
         "have new activity. Process each one per that skill - investigate its full "
         "comment/reaction history yourself, this list only tells you WHICH issues need "
         "attention, not WHAT changed. Do not re-scan the repo for other candidates, this list "
-        "is already the full set:\n\n"
+        "is already the full set. In your final agent message, end with exactly one line: "
+        "AUTOMATION_RESULT: COMPLETED if every candidate reached its intended stopping point, "
+        "or AUTOMATION_RESULT: BLOCKED if a missing prerequisite prevented that transition:\n\n"
         f"{joined}"
     )
 
@@ -275,6 +292,7 @@ def main():
     )
     process.stdin.write(prompt)
     process.stdin.close()
+    automation_result = None
     for line in process.stdout:
         line = line.rstrip()
         if not line:
@@ -284,11 +302,22 @@ def main():
         except json.JSONDecodeError:
             logger.info(f"[codex exec] {line}")
             continue
+        item = event.get("item", {})
+        if event.get("type") == "item.completed" and item.get("type") == "agent_message":
+            match = re.search(r"^AUTOMATION_RESULT:\s*(COMPLETED|BLOCKED)\s*$", item.get("text", ""), re.MULTILINE)
+            if match:
+                automation_result = match.group(1)
         logger.info("[codex exec] %s", json.dumps(event, ensure_ascii=False))
     process.wait()
     logger.info(f"codex exec exited with code {process.returncode}.")
+    if process.returncode != 0:
+        sys.exit(process.returncode)
+    if automation_result != "COMPLETED":
+        logger.error("Codex did not complete the automation transition (result: %s). "
+                     "Leaving the last-check timestamp unchanged for retry.", automation_result or "missing")
+        sys.exit(1)
     save_last_check(args.state_file, now)
-    sys.exit(process.returncode)
+    sys.exit(0)
 
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@ Use this workflow only for issues authored by `KonH` and labeled `codex`. Work i
 - Process only the issue candidates supplied by the runner. Do not discover additional issues.
 - Do not invoke `git worktree`. The runner resets this dedicated clone to `origin/main` before each poll.
 - Treat a comment from the owner as higher priority than an owner reaction. A reaction means approval only when it is newer than the latest automation comment.
+- End the final agent message with exactly one result line: `AUTOMATION_RESULT: COMPLETED` after every supplied candidate reaches its intended stopping point, or `AUTOMATION_RESULT: BLOCKED` when a missing prerequisite prevents that transition. Never report `COMPLETED` when blocked.
 
 ## Checklist
 

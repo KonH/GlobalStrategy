@@ -11,9 +11,8 @@
 #   gh label create code-only --color 0E8A16 --description "Implementable without Unity Editor/MCP or image generation"
 #   gh label create full-env-required --color 5319E7 --description "Needs Unity Editor/MCP or image generation to implement"
 #
-# Note: flock-based process locking (see handle_codex_feature_issues.py) is POSIX-only and is a
-# no-op on Windows - use Task Scheduler's own "don't start a new instance if already
-# running" setting for the same guarantee here.
+# The Python runner uses an OS-level non-blocking lock on Windows and POSIX. Also set Task
+# Scheduler's "don't start a new instance if already running" option as a second safeguard.
 #
 # Usage (from the dedicated clone's root):
 #   .\scripts\handle_codex_feature_issues.ps1
