@@ -41,34 +41,41 @@ MODEL_FILES = [
 
 
 def download(url, destination, label):
-	destination.parent.mkdir(parents=True, exist_ok=True)
-	existing = destination.stat().st_size if destination.exists() else 0
-	request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-	if existing:
-		request.add_header("Range", f"bytes={existing}-")
-	try:
-		response = urllib.request.urlopen(request, timeout=60)
-	except urllib.error.HTTPError as error:
-		if error.code == 416:
-			print(f"[SKIP] {label} — already complete", flush=True)
-			return
-		raise
-
-	content_length = int(response.headers.get("Content-Length") or 0)
-	total = existing + content_length
-	downloaded = existing
-	last_log = time.time() - 11
-	with open(destination, "ab" if existing else "wb") as output:
-		while data := response.read(1024 * 1024):
-			output.write(data)
-			downloaded += len(data)
-			if time.time() - last_log >= 10:
-				if total:
-					print(f"[{label}] {downloaded // (1024 * 1024)} / {total // (1024 * 1024)} MB ({downloaded / total * 100:.1f}%)", flush=True)
-				else:
-					print(f"[{label}] {downloaded // (1024 * 1024)} MB", flush=True)
-				last_log = time.time()
-	print(f"[DONE] {label}", flush=True)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    for attempt in range(1, 4):
+        existing = destination.stat().st_size if destination.exists() else 0
+        request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        if existing:
+            request.add_header("Range", f"bytes={existing}-")
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                content_length = int(response.headers.get("Content-Length") or 0)
+                total = existing + content_length
+                downloaded = existing
+                last_log = time.time() - 11
+                with open(destination, "ab" if existing else "wb") as output:
+                    while data := response.read(1024 * 1024):
+                        output.write(data)
+                        downloaded += len(data)
+                        if time.time() - last_log >= 10:
+                            if total:
+                                print(f"[{label}] {downloaded // (1024 * 1024)} / {total // (1024 * 1024)} MB ({downloaded / total * 100:.1f}%)", flush=True)
+                            else:
+                                print(f"[{label}] {downloaded // (1024 * 1024)} MB", flush=True)
+                            last_log = time.time()
+            print(f"[DONE] {label}", flush=True)
+            return
+        except urllib.error.HTTPError as error:
+            if error.code == 416:
+                print(f"[SKIP] {label} — already complete", flush=True)
+                return
+            failure = error
+        except (OSError, TimeoutError, urllib.error.URLError) as error:
+            failure = error
+        if attempt == 3:
+            raise failure
+        print(f"[RETRY] {label} attempt {attempt}/3 failed: {failure}", flush=True)
+        time.sleep(5)
 
 
 if not COMFYUI_DIR.exists():

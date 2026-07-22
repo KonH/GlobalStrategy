@@ -252,10 +252,23 @@
 
 /* ===== Resource row ===== */
 
+.resources-container {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+}
+
 .resource-row {
     flex-direction: row;
     align-items: center;
-    margin-top: 4px;
+    flex-shrink: 0;
+}
+
+.resource-icon {
+    width: 22px;
+    height: 22px;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .resource-label {
@@ -264,11 +277,8 @@
     margin-left: 4px;
 }
 
-.resource-icon--gold {
-    width: 22px;
-    height: 22px;
+.resource-icon--coin {
     background-image: url("project://database/Assets/UI/Icons/coin.svg?fileID=11400000&guid=b8c9d0e1f2a301234567890123456789&type=3#coin");
-    -unity-background-scale-mode: scale-to-fit;
     -unity-background-image-tint-color: rgb(200, 160, 64);
 }
 
