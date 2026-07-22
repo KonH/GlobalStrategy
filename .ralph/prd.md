@@ -127,7 +127,7 @@ End an in-progress game when one participating organization satisfies the config
 			"Add BotSession integration coverage proving terminal ticks emit no bot commands, callbacks, or BotActionLog entries."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "completion-persistence-tests",

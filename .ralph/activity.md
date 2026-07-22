@@ -224,3 +224,27 @@ runtime rather than the targeted .NET 8 runtime.
 The next iteration should add winner-selection and game-loop completion integration coverage.
 
 ---
+
+## 2026-07-22 — Add winner-selection and game-loop completion integration coverage
+
+Task: "Add winner-selection and game-loop completion integration coverage."
+
+**What I changed:**
+- Added `src/Game.Tests/GameCompletionSystemTests.cs` covering empty inputs, no qualifier,
+  simultaneous qualifiers in stable participation order, exactly one winner/all other losers,
+  and idempotent repeated evaluation.
+- Added `src/Game.Tests/GameCompletionLogicTests.cs` covering player-relative InProgress/Win/Lose
+  projection, completion after all winning-tick mutations, final publication, and terminal freezing
+  of time, resources, control, actions, bot logs, and organization outcomes.
+- Extended `src/Game.Tests/BotSessionTests.cs` to prove a terminal tick emits no bot command,
+  observer callback, or `BotActionLog` entry.
+- Bumped `ProjectSettings/ProjectSettings.asset` bundle version from `1.49` to `1.50`.
+
+**Gate:** `$env:DOTNET_ROLL_FORWARD='Major'; dotnet test src/GlobalStrategy.Core.sln` exited 0.
+Evidence: ECS.Tests passed 34/34, ECS.Viewer.Tests passed 16/16, and Game.Tests passed 357/357;
+407 total tests, 0 failed. Major roll-forward was required because this runner provides the .NET 10
+runtime rather than the targeted .NET 8 runtime.
+
+The next iteration should add savable discovery and save/load completion regression coverage.
+
+---

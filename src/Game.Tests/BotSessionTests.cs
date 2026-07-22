@@ -164,5 +164,29 @@ namespace GS.Game.Tests {
 			Assert.NotEmpty(ReadBotActionLogEntries(logicA.World));
 			Assert.Empty(ReadBotActionLogEntries(logicB.World));
 		}
+
+		[Fact]
+		void terminal_tick_emits_no_bot_command_callback_or_action_log_entry() {
+			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 7);
+			var logic = new GameLogic(ctx);
+			logic.Update(0f);
+			var observed = new List<string>();
+			var profiles = new List<BotProfile> { DiscoverAndControlProfile(MultiOrgTestSupport.OrgB) };
+			var session = BotSession.Create(logic, rngSeed: 7, explicitProfiles: profiles, onAction: (orgId, featureId, actionId, countryId) => {
+				observed.Add(actionId);
+			});
+			int[] required = { TypeId<GameCompletion>.Value };
+			foreach (var archetype in logic.World.GetMatchingArchetypes(required, null)) {
+				ref GameCompletion completion = ref archetype.GetColumn<GameCompletion>()[0];
+				completion.IsCompleted = true;
+				completion.WinnerOrganizationId = MultiOrgTestSupport.OrgA;
+				break;
+			}
+
+			session.Update(24f);
+
+			Assert.Empty(observed);
+			Assert.Empty(ReadBotActionLogEntries(logic.World));
+		}
 	}
 }
