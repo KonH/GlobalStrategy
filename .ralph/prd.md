@@ -92,7 +92,7 @@ End an in-progress game when one participating organization satisfies the config
 			"Expose GameLogic.IsCompleted, make RecordBotAction a no-op after completion, and update BotSession to skip terminal decision ticks while still calling GameLogic.Update."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "completion-loading",

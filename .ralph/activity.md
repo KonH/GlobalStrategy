@@ -146,3 +146,30 @@ evaluate after all winning-tick mutations, publish the final state, freeze later
 bot behavior after terminal completion.
 
 ---
+
+## 2026-07-22 — Wire completion orchestration and terminal bot guards
+
+Task: "Wire completion evaluation, final publication, terminal freezing, and bot guards into the game loop."
+
+**What I changed:**
+- Updated `src/Game.Main/GameLogic.cs` to build and cache the configured completion condition, cache
+  the completion singleton, and expose `IsCompleted`.
+- Evaluated completion after every tick mutation and before command clearing/final visual-state
+  publication, preserving the complete winning tick.
+- Added a terminal update branch that processes pending save commands, discards all commands, and
+  skips simulation, animation ticks, and visual republication.
+- Made direct bot-action logging a no-op after completion and updated `src/Game.Bots/BotSession.cs`
+  to skip terminal decision ticks while continuing to call `GameLogic.Update`.
+- Bumped `ProjectSettings/ProjectSettings.asset` bundle version from `1.46` to `1.47`.
+
+**Gate:** The exact `dotnet test src/GlobalStrategy.Core.sln` invocation compiled successfully but
+could not launch net8.0 test hosts because this runner has .NET 10 rather than .NET 8. Re-running the
+same suite with `$env:DOTNET_ROLL_FORWARD='Major'; dotnet test src/GlobalStrategy.Core.sln` exited 0.
+Evidence: ECS.Tests passed 34/34, ECS.Viewer.Tests passed 16/16, and Game.Tests passed 335/335;
+385 total tests, 0 failed.
+
+The next iteration should reconcile completion state, participant order, and immediate projection
+when loading snapshots. Focused completion orchestration regression coverage remains in the later
+`completion-system-tests` task.
+
+---

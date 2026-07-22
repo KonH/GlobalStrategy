@@ -17,6 +17,7 @@ namespace GS.Main {
 		readonly string[] _resourceIdUpdateOrder;
 		readonly Random _rng;
 		readonly Dictionary<string, string> _hqCountryByOrgId;
+		readonly ICompletionCondition _completionCondition;
 		int _gameTimeEntity = -1;
 		int _localeEntity = -1;
 		int _settingsEntity = -1;
@@ -24,6 +25,7 @@ namespace GS.Main {
 		int _proximityEntity = -1;
 		int _provinceSelectionEntity = -1;
 		int _botActionLogEntity = -1;
+		int _gameCompletionEntity = -1;
 		int _botActionLogRetentionCap;
 		string _sessionId = Guid.NewGuid().ToString("N");
 		DateTime _previousTime;
@@ -41,6 +43,8 @@ namespace GS.Main {
 		public ProvinceConfig ProvinceConfig { get; private set; } = null!;
 		public IReadOnlyList<BotFeatureConfigEntry> BotFeatures { get; private set; } = null!;
 		public int MaxControlPool { get; private set; }
+		public bool IsCompleted => _gameCompletionEntity >= 0
+			&& _world.Get<GameCompletion>(_gameCompletionEntity).IsCompleted;
 
 		public GameLogic(GameLogicContext context) {
 			_context = context;
@@ -71,6 +75,7 @@ namespace GS.Main {
 			_botActionLogRetentionCap = settings.BotActionLogRetentionCap;
 			BotFeatures = settings.BotFeatures;
 			MaxControlPool = settings.MaxControlPool;
+			_completionCondition = CompletionConditionFactory.Create(settings.CompletionCondition, MaxControlPool);
 			VisualState.SelectedCountry.Control.PoolSize = MaxControlPool;
 			_previousTime = new DateTime(settings.StartYear, 1, 1);
 		}
@@ -80,6 +85,12 @@ namespace GS.Main {
 				RefreshSingletonEntities();
 				ProvinceOwnershipSystem.Seed(_world, ProvinceConfig);
 				ProvinceOccupationSystem.Seed(_world, ProvinceConfig);
+			}
+
+			if (IsCompleted) {
+				ProcessSaveCommands();
+				_commandAccessor.Clear();
+				return;
 			}
 
 			ref GameTime time = ref _world.Get<GameTime>(_gameTimeEntity);
@@ -113,14 +124,7 @@ namespace GS.Main {
 				AutoSaveSystem.Update(_world, _settingsEntity, _gameTimeEntity, _previousTime, _commandAccessor);
 			}
 
-			var saveCommands = _commandAccessor.ReadSaveGameCommand();
-			if (saveCommands.Count > 0) {
-				bool isAutoSave = false;
-				foreach (var cmd in saveCommands.AsSpan()) {
-					isAutoSave = cmd.IsAutoSave;
-				}
-				SaveGame(isAutoSave);
-			}
+			ProcessSaveCommands();
 
 			// Game Log: sweep last tick's RoleChangeApplied before today's character-cycling
 			// handlers might create a new one. See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
@@ -190,6 +194,7 @@ namespace GS.Main {
 			CheckHandSizeSystem.Update(_world);
 			DrawCardSystem.Update(_world, _actionConfig, _rng);
 			CleanupCardDiscardSystem.Update(_world);
+			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool);
 
 			_commandAccessor.Clear();
 			_visualStateConverter.Update(deltaTime, _world, _gameTimeEntity, _localeEntity, _orgEntity);
@@ -231,6 +236,19 @@ namespace GS.Main {
 			}
 		}
 
+		void ProcessSaveCommands() {
+			var saveCommands = _commandAccessor.ReadSaveGameCommand();
+			if (saveCommands.Count == 0) {
+				return;
+			}
+
+			bool isAutoSave = false;
+			foreach (var cmd in saveCommands.AsSpan()) {
+				isAutoSave = cmd.IsAutoSave;
+			}
+			SaveGame(isAutoSave);
+		}
+
 		void RefreshSingletonEntities() {
 			_gameTimeEntity = FindEntityWith<GameTime>();
 			_localeEntity = FindEntityWith<Locale>();
@@ -239,6 +257,7 @@ namespace GS.Main {
 			_proximityEntity = FindEntityWith<ProximityMapData>();
 			_provinceSelectionEntity = FindEntityWith<ProvinceSelection>();
 			_botActionLogEntity = FindEntityWith<BotActionLog>();
+			_gameCompletionEntity = FindEntityWith<GameCompletion>();
 		}
 
 		int FindViewOrgEntity() {
@@ -265,7 +284,7 @@ namespace GS.Main {
 		}
 
 		public void RecordBotAction(string orgId, string featureId, string actionId, string countryId) {
-			if (_botActionLogEntity < 0) { return; }
+			if (IsCompleted || _botActionLogEntity < 0) { return; }
 			DateTime date = _gameTimeEntity >= 0 ? _world.Get<GameTime>(_gameTimeEntity).CurrentTime : default;
 			string dateStr = date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
 			string target = string.IsNullOrEmpty(countryId) ? "" : $" -> {countryId}";
