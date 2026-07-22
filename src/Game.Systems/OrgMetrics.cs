@@ -34,13 +34,26 @@ namespace GS.Game.Systems {
 		}
 
 		public static Dictionary<string, int> GetControlByCountry(IReadOnlyWorld world, string orgId) {
+			return GetControlByCountry(world, orgId, null);
+		}
+
+		public static Dictionary<string, int> GetControlByCountry(
+			IReadOnlyWorld world,
+			string orgId,
+			IReadOnlyCollection<string>? availableCountryIds) {
 			var result = new Dictionary<string, int>();
+			HashSet<string>? availableCountries = availableCountryIds == null
+				? null
+				: new HashSet<string>(availableCountryIds, System.StringComparer.Ordinal);
 			int[] req = { TypeId<ControlEffect>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
 				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (effects[i].OrgId != orgId) { continue; }
+					if (effects[i].OrgId != orgId
+						|| (availableCountries != null && !availableCountries.Contains(effects[i].CountryId))) {
+						continue;
+					}
 					result.TryGetValue(effects[i].CountryId, out int existing);
 					result[effects[i].CountryId] = existing + effects[i].Value;
 				}

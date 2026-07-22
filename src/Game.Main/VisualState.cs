@@ -420,6 +420,27 @@ namespace GS.Main {
 		}
 	}
 
+	public enum GameResult {
+		InProgress,
+		Win,
+		Lose
+	}
+
+	public class GameCompletionState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public bool IsCompleted { get; private set; }
+		public string WinnerOrganizationId { get; private set; } = "";
+		public GameResult Result { get; private set; }
+
+		public void Set(bool isCompleted, string winnerOrganizationId, GameResult result) {
+			IsCompleted = isCompleted;
+			WinnerOrganizationId = winnerOrganizationId;
+			Result = result;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class VisualState {
 		public SelectedCountryState SelectedCountry { get; } = new SelectedCountryState();
 		public TimeState Time { get; } = new TimeState();
@@ -437,5 +458,6 @@ namespace GS.Main {
 		public CountryScoreState CountryScore { get; } = new CountryScoreState();
 		public LeaderboardState Leaderboard { get; } = new LeaderboardState();
 		public GameLogState GameLog { get; } = new GameLogState();
+		public GameCompletionState GameCompletion { get; } = new GameCompletionState();
 	}
 }
