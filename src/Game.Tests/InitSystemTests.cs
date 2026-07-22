@@ -163,6 +163,35 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void init_creates_one_in_progress_completion_singleton() {
+			var logic = BuildLogic();
+			logic.Update(0f);
+
+			Assert.Equal(1, CountEntities<GameCompletion>(logic.World));
+			int[] required = { TypeId<GameCompletion>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(required, null)) {
+				GameCompletion[] completions = arch.GetColumn<GameCompletion>();
+				Assert.False(completions[0].IsCompleted);
+				Assert.Equal("", completions[0].WinnerOrganizationId);
+			}
+		}
+
+		[Fact]
+		void init_attaches_ordered_in_progress_outcome_to_participant() {
+			var logic = BuildLogic();
+			logic.Update(0f);
+
+			int[] required = { TypeId<Organization>.Value, TypeId<OrganizationGameOutcome>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(required, null)) {
+				Organization[] organizations = arch.GetColumn<Organization>();
+				OrganizationGameOutcome[] outcomes = arch.GetColumn<OrganizationGameOutcome>();
+				Assert.Equal("Illuminati", organizations[0].OrganizationId);
+				Assert.Equal(0, outcomes[0].ParticipationOrder);
+				Assert.Equal(OrganizationGameResult.InProgress, outcomes[0].Result);
+			}
+		}
+
+		[Fact]
 		void init_skipped_after_load() {
 			var storage = new MemoryStorage();
 			var serializer = new CapturingSerializer();

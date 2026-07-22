@@ -17,6 +17,13 @@ namespace GS.Game.Configs {
 		};
 		public int BotActionLogRetentionCap { get; set; } = 500;
 		public int MaxControlPool { get; set; } = 100;
+		public CompletionConditionConfig CompletionCondition { get; set; } = new CompletionConditionConfig {
+			Type = "any",
+			Members = new List<CompletionConditionConfig> {
+				new CompletionConditionConfig { Type = "total_control", Value = 0.8 },
+				new CompletionConditionConfig { Type = "full_control_countries", Value = 15 }
+			}
+		};
 		public GameLogSettings GameLog { get; set; } = new GameLogSettings();
 
 		// discoveredCountriesAvailableControl: 0 is the eval-validated threshold (see

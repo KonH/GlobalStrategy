@@ -11,6 +11,13 @@
   "resourceIdUpdateOrder": ["population", "country_population", "country_score", "recruits", "org_score"],
   "botActionLogRetentionCap": 500,
   "maxControlPool": 100,
+  "completionCondition": {
+    "type": "any",
+    "members": [
+      { "type": "total_control", "value": 0.8 },
+      { "type": "full_control_countries", "value": 15 }
+    ]
+  },
   "botFeatures": [
     {
       "featureId": "discoverAndControl",

@@ -63,11 +63,22 @@ namespace GS.Main {
 			var orgConfig = context.Organization.Load();
 			var participating = ResolveParticipatingOrgs(context, orgConfig);
 
-			foreach (var orgEntry in participating) {
+			int completionEntity = world.Create();
+			world.Add(completionEntity, new GameCompletion {
+				IsCompleted = false,
+				WinnerOrganizationId = ""
+			});
+
+			for (int participationOrder = 0; participationOrder < participating.Count; participationOrder++) {
+				var orgEntry = participating[participationOrder];
 				int orgEntity = world.Create();
 				world.Add(orgEntity, new Organization {
 					OrganizationId = orgEntry.OrganizationId,
 					DisplayName = orgEntry.DisplayName
+				});
+				world.Add(orgEntity, new OrganizationGameOutcome {
+					ParticipationOrder = participationOrder,
+					Result = OrganizationGameResult.InProgress
 				});
 				if (orgEntry.OrganizationId != context.InitialOrganizationId) {
 					world.Add(orgEntity, new BotControlled());

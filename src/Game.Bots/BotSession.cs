@@ -45,8 +45,10 @@ namespace GS.Game.Bots {
 		}
 
 		public void Update(float deltaTime) {
-			foreach (var bot in _botsByOrgId.Values) {
-				bot.ExecuteDecisionTick(_logic.World, _logic.ActionConfig);
+			if (!_logic.IsCompleted) {
+				foreach (var bot in _botsByOrgId.Values) {
+					bot.ExecuteDecisionTick(_logic.World, _logic.ActionConfig);
+				}
 			}
 			_logic.Update(deltaTime);
 			if (_discoverFromWorld) {
