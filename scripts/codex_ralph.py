@@ -17,9 +17,9 @@ Usage (from project root):
   python scripts/codex_ralph.py --spec 26_07_11_10_province-ownership --env full-env-headless --model gpt-5.6-sol --effort medium --auto-adjust-iterations --skip-pull-request
 
 The loop stops early (before -MaxIterations) if --stall-limit consecutive iterations commit
-nothing but .ralph/activity.md - a sign the loop is blocked on an unavailable prerequisite
-(e.g. Unity Editor MCP bridge not connected, a missing tool like Node.js) rather than making
-real progress.
+nothing but .ralph/activity.md and the mandatory ProjectSettings.asset version bump - a sign
+the loop is blocked on an unavailable prerequisite (e.g. Unity Editor MCP bridge not connected,
+a missing tool like Node.js) rather than making real progress.
 
 --model/--effort apply to every Codex invocation this run (create-prd, loop, complete-prd);
 omit either to use the CLI's own defaults. --auto-adjust-iterations raises --max-iterations to
@@ -54,7 +54,14 @@ def run_git(args, check=True):
     return result.stdout.strip(), result.returncode
 
 
-JOURNAL_ONLY_FILES = {".ralph/activity.md"}
+# Files that change on every iteration regardless of real progress: the activity journal
+# (always appended per PROMPT.md step 6) and ProjectSettings.asset (bundleVersion bump is
+# mandatory on every commit per .claude/commands/commit.md). A "blocked, made no real change"
+# iteration still touches both of these, so excluding only activity.md let a stuck loop commit
+# its way past --stall-limit forever (see the GlobalStrategy#41 incident, where 12
+# verification-only bundleVersion-bump commits masked a fully stalled loop). A genuine progress
+# commit always touches at least one other file, so it still counts as meaningful.
+NON_PROGRESS_FILES = {".ralph/activity.md", "ProjectSettings/ProjectSettings.asset"}
 DEFAULT_SANDBOX = "danger-full-access"
 SANDBOX_CHOICES = ["read-only", "workspace-write", "danger-full-access"]
 
@@ -229,7 +236,7 @@ def main():
     parser.add_argument(
         "--stall-limit", type=int, default=3,
         help="Stop the loop after this many consecutive iterations that commit nothing but "
-             "%s (e.g. blocked on Unity MCP / other unavailable prerequisites)." % ", ".join(sorted(JOURNAL_ONLY_FILES)),
+             "%s (e.g. blocked on Unity MCP / other unavailable prerequisites)." % ", ".join(sorted(NON_PROGRESS_FILES)),
     )
     parser.add_argument("--skip-create-prd", action="store_true")
     parser.add_argument("--skip-pull-request", action="store_true")
@@ -383,7 +390,7 @@ def main():
 
         new_head = get_head()
         changed = changed_files_since(prev_head, new_head)
-        meaningful_change = new_head != prev_head and any(f not in JOURNAL_ONLY_FILES for f in changed)
+        meaningful_change = new_head != prev_head and any(f not in NON_PROGRESS_FILES for f in changed)
         if meaningful_change:
             stall_count = 0
         else:
@@ -407,7 +414,7 @@ def main():
                 stop_reason = "stalled_no_progress"
                 print(
                     f"Stopping: {stall_count} consecutive iterations made no change beyond "
-                    f"{', '.join(sorted(JOURNAL_ONLY_FILES))}. This usually means a required "
+                    f"{', '.join(sorted(NON_PROGRESS_FILES))}. This usually means a required "
                     "prerequisite is unavailable (e.g. Unity Editor MCP bridge not connected, or a "
                     "missing tool like Node.js) - check the latest .ralph/activity.md entries before "
                     "resuming."
