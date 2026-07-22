@@ -46,7 +46,8 @@ Arguments: `$ARGUMENTS` — either the spec index (e.g. `45`), `bot:<featureId>`
    - Details: Docs/Benchmarks/
    ```
 
-4. Report the PR URL.
+4. After the pull request exists, clear the completed run artifacts: replace `.ralph/prd.md` with a short `# Ralph PRD` header stating that no run is active, and reset `.ralph/activity.md` to its standard header only (`# Ralph Activity Journal`, its intro line, and `---`). Stage and commit this cleanup as a **separate follow-up commit** using the **/commit** skill, then push it to the same pull-request branch. Do not combine this artifact cleanup with the implementation commit or the PR-creation commit.
+5. Report the PR URL and the follow-up cleanup commit.
 
 ## Rules
 
