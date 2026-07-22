@@ -89,16 +89,16 @@ Because the three affected UXML documents already use `resources-container`, imp
 
 ### Agent Steps
 
-- [ ] **Add presentation-order and target metadata** — update `src/Game.Configs/ResourceConfig.cs` with `DisplayWhitelist`, `ResourceSeedTarget`, backward-compatible `ResourceDefinition.SeedTarget`, and target-filtered lookup; enable named-enum loading in `src/Core.Configs.IO/FileConfig.cs`.
-- [ ] **Route config-backed initialization by target** — update `src/Game.Main/InitSystem.cs` so country, province, organization, and character resource paths consume only their target's definitions, reuse existing target-specific value sources/collectors, and never create duplicate resources; retain explicit organization-gold and dynamic-opinion exceptions.
-- [ ] **Configure static resource targets and the display catalog** — update `Assets/Configs/resource_config.json` with the exact whitelist, complete displayed definitions, icon keys, and explicit targets for gold, population, country population/score, recruits, org score, and character skills while preserving current values/effects.
-- [ ] **Add localized names and descriptions** — update `Assets/Localization/en.asset` and `Assets/Localization/ru.asset` for `country_population`, `country_score`, and `org_score`.
-- [ ] **Implement whitelist filtering, ordering, and icon selection** — update `Assets/Scripts/Unity/UI/ResourcesView.cs`, including absent-entry omission, missing-image fallback, localized resource descriptions, and preserved tooltip details.
-- [ ] **Generate and import the three resource images** — add the three transparent PNGs and Unity metadata under `Assets/UI/Icons/`; keep the existing coin SVG.
-- [ ] **Render resource items as one row** — update `Assets/UI/Shared/SharedStyles.uss` with the horizontal container and icon classes.
-- [ ] **Add initialization regression tests** — extend `src/Game.Tests/InitSystemTests.cs` (or a focused adjacent test file) to assert target-correct ownership and singular creation across countries, provinces, organizations, and both character sources; preserve organization-gold values, target-specific collector effects, and default `SeedTarget == Country` compatibility.
-- [ ] **Run core verification** — run the focused initialization tests, then `dotnet test src/GlobalStrategy.sln`.
-- [ ] **Run Unity verification** — refresh/import in Unity, confirm the new sprites and USS URLs resolve, and read the console for compile/import/UXML/USS errors.
+- [x] **Add presentation-order and target metadata** — update `src/Game.Configs/ResourceConfig.cs` with `DisplayWhitelist`, `ResourceSeedTarget`, backward-compatible `ResourceDefinition.SeedTarget`, and target-filtered lookup; enable named-enum loading in `src/Core.Configs.IO/FileConfig.cs`.
+- [x] **Route config-backed initialization by target** — update `src/Game.Main/InitSystem.cs` so country, province, organization, and character resource paths consume only their target's definitions, reuse existing target-specific value sources/collectors, and never create duplicate resources; retain explicit organization-gold and dynamic-opinion exceptions.
+- [x] **Configure static resource targets and the display catalog** — update `Assets/Configs/resource_config.json` with the exact whitelist, complete displayed definitions, icon keys, and explicit targets for gold, population, country population/score, recruits, org score, and character skills while preserving current values/effects.
+- [x] **Add localized names and descriptions** — update `Assets/Localization/en.asset` and `Assets/Localization/ru.asset` for `country_population`, `country_score`, and `org_score`.
+- [x] **Implement whitelist filtering, ordering, and icon selection** — update `Assets/Scripts/Unity/UI/ResourcesView.cs`, including absent-entry omission, missing-image fallback, localized resource descriptions, and preserved tooltip details.
+- [x] **Generate and import the three resource images** — add the three transparent PNGs and Unity metadata under `Assets/UI/Icons/`; keep the existing coin SVG.
+- [x] **Render resource items as one row** — update `Assets/UI/Shared/SharedStyles.uss` with the horizontal container and icon classes.
+- [x] **Add initialization regression tests** — extend `src/Game.Tests/InitSystemTests.cs` (or a focused adjacent test file) to assert target-correct ownership and singular creation across countries, provinces, organizations, and both character sources; preserve organization-gold values, target-specific collector effects, and default `SeedTarget == Country` compatibility.
+- [x] **Run core verification** — run the focused initialization tests, then `dotnet test src/GlobalStrategy.Core.sln`.
+- [x] **Run Unity verification** — refresh/import in Unity, confirm the new sprites and USS URLs resolve, and read the console for compile/import/UXML/USS errors.
 - [ ] **Perform visual verification** — in Play mode inspect all three affected views in both locales and at representative HUD widths; verify resource subset/order, single-line layout, icon legibility, live refresh, missing-entry behavior, and tooltip content.
 
 ### User Steps
@@ -118,7 +118,7 @@ Because the three affected UXML documents already use `resources-container`, imp
 - Organization gold retains `OrganizationEntry.InitialGold` and its existing effect shape even though the shared gold catalog entry is country-targeted; dynamic opinion resources remain unaffected.
 - Omitting `seedTarget` from an in-memory or deserialized legacy definition retains the current country-seeding behavior.
 - Unsupported static target/resource pairings fail with a contextual error instead of being silently ignored.
-- Full `src/GlobalStrategy.sln` tests remain green, guarding resource initialization, collectors, save/load, and visual-state projections.
+- Run the full `src/GlobalStrategy.Core.sln` suite to guard resource initialization, collectors, save/load, and visual-state projections.
 
 ### Unity / visual
 
@@ -129,6 +129,12 @@ Because the three affected UXML documents already use `resources-container`, imp
 - Items stay on one horizontal line with distinct spacing and legible 22 px images.
 - Existing live resource and locale refresh paths rebuild cleanly without duplicate/stale elements.
 - Tooltips preserve effect/control-income details and show localized resource names/descriptions.
+
+## Verification Notes
+
+- Target-aware initialization regression tests pass 7/7; the broader focused initialization/configuration/character set passes 45/45.
+- The full core run passes 378 tests and has one reproducible unrelated failure in `DiscoverAndControlFeatureTests.plays_control_card_over_discover_card_once_threshold_is_met`.
+- Unity refresh, sprite import, compilation, and targeted console checks pass. Manual Play-mode verification remains a user step.
 
 ## Constitution Check
 

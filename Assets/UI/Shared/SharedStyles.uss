@@ -282,6 +282,18 @@
     -unity-background-image-tint-color: rgb(200, 160, 64);
 }
 
+.resource-icon--country-population {
+    background-image: url("project://database/Assets/UI/Icons/resource-country-population.png?fileID=2800000&guid=638952adcd0f967479900c82a4a49f31&type=3#resource-country-population");
+}
+
+.resource-icon--country-score {
+    background-image: url("project://database/Assets/UI/Icons/resource-country-score.png?fileID=2800000&guid=dfb61e9081a07f74196091d5a84be440&type=3#resource-country-score");
+}
+
+.resource-icon--org-score {
+    background-image: url("project://database/Assets/UI/Icons/resource-org-score.png?fileID=2800000&guid=dac01e69bc5754343b6a1e8dfa36e5db&type=3#resource-org-score");
+}
+
 /* ===== Tooltips ===== */
 
 .tooltip-overlay {

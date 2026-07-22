@@ -278,7 +278,7 @@ namespace GS.Main {
 				}
 
 				int resourceEntity = world.Create();
-				world.Add(resourceEntity, new ResourceOwner(entry.CountryId));
+				world.Add(resourceEntity, new ResourceOwner(entry.CountryId, OwnerType.Country));
 				world.Add(resourceEntity, new Resource { ResourceId = resourceDef.ResourceId, Value = initialValue });
 
 				if (resourceDef.ResourceId == ResourceDefinitions.CountryPopulation) {
@@ -291,7 +291,7 @@ namespace GS.Main {
 
 				foreach (var effectDef in resourceDef.DefaultEffects) {
 					int effectEntity = world.Create();
-					world.Add(effectEntity, new ResourceOwner(entry.CountryId));
+					world.Add(effectEntity, new ResourceOwner(entry.CountryId, OwnerType.Country));
 					world.Add(effectEntity, new ResourceLink(resourceDef.ResourceId));
 					world.Add(effectEntity, new ResourceEffect {
 						EffectId = effectDef.EffectId,
