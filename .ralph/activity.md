@@ -73,3 +73,26 @@ The next iteration should initialize exactly one in-progress completion singleto
 ordered in-progress outcomes to every resolved participant in `InitSystem`.
 
 ---
+
+## 2026-07-22 — Initialize completion state and participant outcomes
+
+Task: "Initialize the completion singleton and ordered participant outcomes."
+
+**What I changed:**
+- Updated `src/Game.Main/InitSystem.cs` to create exactly one in-progress `GameCompletion`
+  singleton during first-time world initialization.
+- Attached an in-progress `OrganizationGameOutcome` directly to each organization entity,
+  using its index in `ResolveParticipatingOrgs` as the stable `ParticipationOrder`.
+- Added focused initialization regression coverage in `src/Game.Tests/InitSystemTests.cs`.
+- Bumped `ProjectSettings/ProjectSettings.asset` bundle version from `1.43` to `1.44`.
+
+**Gate:** `$env:DOTNET_ROLL_FORWARD='Major'; dotnet test src/GlobalStrategy.Core.sln`
+exited 0. The runner has .NET 10 but not the targeted .NET 8 runtime, so the standard gate's
+first invocation built successfully but its test hosts could not launch; major roll-forward
+allowed the same built test suite to execute. Evidence: ECS.Tests passed 34/34,
+ECS.Viewer.Tests passed 16/16, and Game.Tests passed 335/335; 385 total tests, 0 failed.
+
+The next iteration should implement deterministic, idempotent winner selection and outcome
+assignment in `GameCompletionSystem`.
+
+---

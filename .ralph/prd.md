@@ -57,7 +57,7 @@ End an in-progress game when one participating organization satisfies the config
 			"Preserve configured initialization order independently of later archetype moves."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "completion-system",
