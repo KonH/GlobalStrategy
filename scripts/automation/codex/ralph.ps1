@@ -1,14 +1,14 @@
-# Codex Ralph loop - thin wrapper that passes execution to scripts/codex_ralph.py.
+# Ralph loop (Codex) - thin wrapper that passes execution to ralph.py in this same folder.
 #
-# See scripts/codex_ralph.py for the full flow description.
+# See ralph.py for the full flow description.
 #
 # Usage (from project root):
-#   .\scripts\ralph.ps1 -Spec 26_07_11_10_province-ownership -MaxIterations 10
-#   .\scripts\ralph.ps1 -Spec 26_07_11_10_province-ownership -SkipCreatePrd          # reuse the existing .ralph/prd.md
-#   .\scripts\ralph.ps1 -Spec 26_07_11_10_province-ownership -SkipPullRequest        # stop after the loop, no commit/PR phase
-#   .\scripts\ralph.ps1 -Spec 26_07_11_10_province-ownership -DangerouslySkipPermissions
-#   .\scripts\ralph.ps1 -BotFeature opinionTargeting          # bot-feature mode: PRD written by /implement-bot-feature
-#   .\scripts\ralph.ps1 -PerfTarget CountryPopulationCollector # perf mode: PRD written by /optimize-performance
+#   .\scripts\automation\codex\ralph.ps1 -Spec 26_07_11_10_province-ownership -MaxIterations 10
+#   .\scripts\automation\codex\ralph.ps1 -Spec 26_07_11_10_province-ownership -SkipCreatePrd          # reuse the existing .ralph/prd.md
+#   .\scripts\automation\codex\ralph.ps1 -Spec 26_07_11_10_province-ownership -SkipPullRequest        # stop after the loop, no commit/PR phase
+#   .\scripts\automation\codex\ralph.ps1 -Spec 26_07_11_10_province-ownership -DangerouslySkipPermissions
+#   .\scripts\automation\codex\ralph.ps1 -BotFeature opinionTargeting          # bot-feature mode: PRD written by /implement-bot-feature
+#   .\scripts\automation\codex\ralph.ps1 -PerfTarget CountryPopulationCollector # perf mode: PRD written by /optimize-performance
 #
 # Exactly one of -Spec / -BotFeature / -PerfTarget must be given.
 #
@@ -30,7 +30,9 @@ param(
     [string]$Effort,
     [ValidateSet("code-only", "full-env-headless")]
     [string]$Env,
-    [switch]$AutoAdjustIterations
+    [switch]$AutoAdjustIterations,
+    [ValidateSet("read-only", "workspace-write", "danger-full-access")]
+    [string]$Sandbox
 )
 
 $ErrorActionPreference = "Stop"
@@ -41,7 +43,7 @@ if ($modeCount -ne 1) {
 }
 
 $pythonExe = if (Test-Path ".venv\Scripts\python.exe") { ".venv\Scripts\python.exe" } else { "python" }
-$scriptPath = Join-Path $PSScriptRoot "codex_ralph.py"
+$scriptPath = Join-Path $PSScriptRoot "ralph.py"
 
 $pyArgs = @(
     $scriptPath,
@@ -58,6 +60,7 @@ if ($Model) { $pyArgs += @("--model", $Model) }
 if ($Effort) { $pyArgs += @("--effort", $Effort) }
 if ($Env) { $pyArgs += @("--env", $Env) }
 if ($AutoAdjustIterations) { $pyArgs += "--auto-adjust-iterations" }
+if ($Sandbox) { $pyArgs += @("--sandbox", $Sandbox) }
 
 & $pythonExe @pyArgs
 exit $LASTEXITCODE

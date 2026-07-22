@@ -1,8 +1,8 @@
-# Handle Feature Issues - thin wrapper that passes execution to scripts/handle_feature_issues.py.
+# Handle Feature Issues (Claude) - thin wrapper that passes execution to handle_issues.py in this same folder.
 #
 # Run this on a scheduled task in your own environment (NOT this repo's main working copy -
 # it does `git reset --hard origin/main`, so point it at a separate dedicated clone).
-# See scripts/handle_feature_issues.py and .claude/rules/github_issue_automation.md.
+# See handle_issues.py and .claude/rules/github_issue_automation.md.
 #
 # Only issues labeled 'claude' are ever considered - create the labels once per repo:
 #   gh label create claude --color 5319E7 --description "Feature-issue automation"
@@ -11,14 +11,14 @@
 #   gh label create code-only --color 0E8A16 --description "Implementable without Unity Editor/MCP or image generation"
 #   gh label create full-env-required --color 5319E7 --description "Needs Unity Editor/MCP or image generation to implement"
 #
-# Note: flock-based process locking (see handle_feature_issues.py) is POSIX-only and is a
-# no-op on Windows - use Task Scheduler's own "don't start a new instance if already
-# running" setting for the same guarantee here.
+# Note: the process lock (see handle_issues.py) is cross-platform (msvcrt on Windows, fcntl on
+# POSIX) - also set Task Scheduler's own "don't start a new instance if already running" as a
+# second safeguard.
 #
 # Usage (from the dedicated clone's root):
-#   .\scripts\handle_feature_issues.ps1
-#   .\scripts\handle_feature_issues.ps1 -SinceHours 2 -MaxTurns 60
-#   .\scripts\handle_feature_issues.ps1 -SinceMinutes 15
+#   .\scripts\automation\claude\handle_issues.ps1
+#   .\scripts\automation\claude\handle_issues.ps1 -SinceHours 2 -MaxTurns 60
+#   .\scripts\automation\claude\handle_issues.ps1 -SinceMinutes 15
 #
 # -SinceHours/-SinceMinutes (combined; default 1h if both omitted) should match the Task
 # Scheduler interval below - it's the lookback window used to decide whether there's
@@ -40,7 +40,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $pythonExe = if (Test-Path ".venv\Scripts\python.exe") { ".venv\Scripts\python.exe" } else { "python" }
-$scriptPath = Join-Path $PSScriptRoot "handle_feature_issues.py"
+$scriptPath = Join-Path $PSScriptRoot "handle_issues.py"
 
 & $pythonExe $scriptPath --max-turns $MaxTurns --since-hours $SinceHours --since-minutes $SinceMinutes
 exit $LASTEXITCODE

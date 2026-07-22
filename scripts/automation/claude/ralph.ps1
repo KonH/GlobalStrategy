@@ -1,14 +1,14 @@
-# Ralph loop - thin wrapper that passes execution to scripts/ralph.py.
+# Ralph loop (Claude) - thin wrapper that passes execution to ralph.py in this same folder.
 #
-# See scripts/ralph.py for the full flow description.
+# See ralph.py for the full flow description.
 #
 # Usage (from project root):
-#   .\scripts\ralph.ps1 -Spec 26_07_11_10_province-ownership -MaxIterations 10
-#   .\scripts\ralph.ps1 -Spec 26_07_11_10_province-ownership -SkipCreatePrd          # reuse the existing .ralph/prd.md
-#   .\scripts\ralph.ps1 -Spec 26_07_11_10_province-ownership -SkipPullRequest        # stop after the loop, no commit/PR phase
-#   .\scripts\ralph.ps1 -Spec 26_07_11_10_province-ownership -DangerouslySkipPermissions
-#   .\scripts\ralph.ps1 -BotFeature opinionTargeting          # bot-feature mode: PRD written by /implement-bot-feature
-#   .\scripts\ralph.ps1 -PerfTarget CountryPopulationCollector # perf mode: PRD written by /optimize-performance
+#   .\scripts\automation\claude\ralph.ps1 -Spec 26_07_11_10_province-ownership -MaxIterations 10
+#   .\scripts\automation\claude\ralph.ps1 -Spec 26_07_11_10_province-ownership -SkipCreatePrd          # reuse the existing .ralph/prd.md
+#   .\scripts\automation\claude\ralph.ps1 -Spec 26_07_11_10_province-ownership -SkipPullRequest        # stop after the loop, no commit/PR phase
+#   .\scripts\automation\claude\ralph.ps1 -Spec 26_07_11_10_province-ownership -DangerouslySkipPermissions
+#   .\scripts\automation\claude\ralph.ps1 -BotFeature opinionTargeting          # bot-feature mode: PRD written by /implement-bot-feature
+#   .\scripts\automation\claude\ralph.ps1 -PerfTarget CountryPopulationCollector # perf mode: PRD written by /optimize-performance
 #
 # Exactly one of -Spec / -BotFeature / -PerfTarget must be given.
 #
@@ -24,7 +24,12 @@ param(
     [int]$StallLimit = 3,
     [switch]$SkipCreatePrd,
     [switch]$SkipPullRequest,
-    [switch]$DangerouslySkipPermissions
+    [switch]$DangerouslySkipPermissions,
+    [string]$Model,
+    [string]$Effort,
+    [ValidateSet("code-only", "full-env-headless")]
+    [string]$Env,
+    [switch]$AutoAdjustIterations
 )
 
 $ErrorActionPreference = "Stop"
@@ -48,6 +53,10 @@ if ($PerfTarget) { $pyArgs += @("--perf-target", $PerfTarget) }
 if ($SkipCreatePrd) { $pyArgs += "--skip-create-prd" }
 if ($SkipPullRequest) { $pyArgs += "--skip-pull-request" }
 if ($DangerouslySkipPermissions) { $pyArgs += "--dangerously-skip-permissions" }
+if ($Model) { $pyArgs += @("--model", $Model) }
+if ($Effort) { $pyArgs += @("--effort", $Effort) }
+if ($Env) { $pyArgs += @("--env", $Env) }
+if ($AutoAdjustIterations) { $pyArgs += "--auto-adjust-iterations" }
 
 & $pythonExe @pyArgs
 exit $LASTEXITCODE

@@ -4,7 +4,7 @@ Flag PNGs live in `Assets/Textures/Flags/Countries/<countryId>.png` and org imag
 
 ## Scripts
 
-All scripts live in `scripts/` and must be run from the **project root** so relative paths resolve correctly.
+All scripts live in `scripts/utils/` and must be run from the **project root** so relative paths resolve correctly.
 
 | Script | Purpose |
 |---|---|
@@ -24,7 +24,7 @@ All scripts live in `scripts/` and must be run from the **project root** so rela
 
 1. Find the era-accurate flag on Wikimedia Commons (`commons.wikimedia.org/wiki/File:…`). Copy the full page title including `File:`.
 
-2. Add an entry to `COUNTRY_FLAGS` in `scripts/download_flags.py`:
+2. Add an entry to `COUNTRY_FLAGS` in `scripts/utils/download_flags.py`:
    ```python
    "NewCountryId": "File:Flag_of_New_Country_(1850).svg",
    ```
@@ -35,17 +35,17 @@ All scripts live in `scripts/` and must be run from the **project root** so rela
 
 3. If the filename is uncertain, verify it resolves before downloading:
    ```powershell
-   .venv\Scripts\python.exe scripts\check_flags.py "File:Flag_of_New_Country_(1850).svg"
+   .venv\Scripts\python.exe scripts\utils\check_flags.py "File:Flag_of_New_Country_(1850).svg"
    ```
    A `NOT FOUND` result means the filename is wrong — search Wikimedia Commons and try again.
 
 4. Download (skips files that already exist):
    ```powershell
-   .venv\Scripts\python.exe scripts\download_flags.py
+   .venv\Scripts\python.exe scripts\utils\download_flags.py
    ```
    Or force re-download of all files:
    ```powershell
-   .venv\Scripts\python.exe scripts\download_flags.py --force
+   .venv\Scripts\python.exe scripts\utils\download_flags.py --force
    ```
 
 5. Confirm the script reports `Verified N/N files OK`.
@@ -96,6 +96,6 @@ After downloading, follow the same Unity steps (6–8 above) but target `Texture
 ## Converting a standalone SVG to PNG
 
 ```powershell
-.venv\Scripts\python.exe scripts\svg_to_png.py path\to\file.svg output.png --width 256
-.venv\Scripts\python.exe scripts\svg_to_png.py https://example.com/flag.svg output.png
+.venv\Scripts\python.exe scripts\utils\svg_to_png.py path\to\file.svg output.png --width 256
+.venv\Scripts\python.exe scripts\utils\svg_to_png.py https://example.com/flag.svg output.png
 ```

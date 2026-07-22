@@ -1,6 +1,6 @@
 ---
 name: codex-feature-issue
-description: Drive owner-authored GitHub feature issues labeled `codex` through specification, plan, implementation, review, and merge using the repository's Codex automation. Use when processing a `codex`-labeled issue manually or from `scripts/handle_codex_feature_issues.py`.
+description: Drive owner-authored GitHub feature issues labeled `codex` through specification, plan, implementation, review, and merge using the repository's Codex automation. Use when processing a `codex`-labeled issue manually or from `scripts/automation/codex/handle_issues.py`.
 ---
 
 # Codex Feature-Issue Automation
@@ -52,7 +52,7 @@ On approval of the plan:
 On approval of the implementation proposal or latest implementation summary:
 
 1. Start or resume `ralph/<spec-id>` from `origin/main`; do not use a worktree.
-2. Run `scripts/codex_ralph.py --spec <spec-id> --env code-only` for `code-only`, otherwise use `--env full-env-headless`. Use `--auto-adjust-iterations --skip-pull-request` for unattended runs.
+2. Run `scripts/automation/codex/ralph.py --spec <spec-id> --env code-only` for `code-only`, otherwise use `--env full-env-headless`. Use `--auto-adjust-iterations --skip-pull-request` for unattended runs.
 3. If it stalls, exits unsuccessfully, or completes zero tasks, post `## Needs Manual Attention` with the relevant `.ralph/activity.md` entries and stop.
 4. Otherwise inspect the changed files for concrete bugs and relevant rule violations. Do not apply discretionary review fixes until the owner requests them.
 5. Commit remaining changes with the repository version bump, push `ralph/<spec-id>`, and create or update an implementation PR whose body contains `Closes #<number>`.
