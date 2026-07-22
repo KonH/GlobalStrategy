@@ -133,7 +133,7 @@ Because the three affected UXML documents already use `resources-container`, imp
 ## Verification Notes
 
 - Target-aware initialization regression tests pass 7/7; the broader focused initialization/configuration/character set passes 45/45.
-- The full core run passes 378 tests and has one reproducible unrelated failure in `DiscoverAndControlFeatureTests.plays_control_card_over_discover_card_once_threshold_is_met`.
+- The full core run passes all 379 tests after making the bot priority fixture's country-card composition deterministic.
 - Unity refresh, sprite import, compilation, and targeted console checks pass. Manual Play-mode verification remains a user step.
 
 ## Constitution Check
