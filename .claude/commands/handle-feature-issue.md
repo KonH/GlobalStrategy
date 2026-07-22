@@ -1,4 +1,4 @@
-Drive a repo owner's feature-request issues through spec → plan → merge, entirely via comments and reactions on the issue itself. Invoked by `scripts/handle_feature_issues.py` (via `.sh`/`.ps1` wrappers), run on a cron schedule **in the user's own environment** (not this Claude Code Remote session) — see `.claude/rules/github_issue_automation.md` for the full design writeup.
+Drive a repo owner's feature-request issues through spec → plan → merge, entirely via comments and reactions on the issue itself. Invoked by `scripts/automation/claude/handle_issues.py` (via `.sh`/`.ps1` wrappers), run on a cron schedule **in the user's own environment** (not this Claude Code Remote session) — see `.claude/rules/github_issue_automation.md` for the full design writeup.
 
 The invocation prompt already contains the full candidate list — every open, `claude`-labeled, owner-authored issue with new activity, each as a `[ISSUE #N]` block with its URL, title, body, and a `reason` hint (`issue/comment updated` or `new reaction on a summary/conclusion comment`). **Do not re-scan the repo for other candidates** — that discovery already happened in the wrapper specifically so this process doesn't spend a turn (and subscription usage) rediscovering what it already knows. The reason hint only tells you an issue needs attention, not exactly what changed — investigate each one's full comment/reaction history yourself via `gh`.
 
@@ -146,7 +146,7 @@ Fetch `gh api repos/KonH/GlobalStrategy/issues/<N>/comments` and, for each comme
    - **Any other conflict** (any other file, or any other hunk even in `ProjectSettings.asset`) → `git merge --abort`. Post `## Needs Manual Attention` on the issue listing the conflicted file(s), apply `claude-needs-attention`, update the checklist status to the needs-attention wording, and stop. Never guess at resolving a real content conflict unattended.
 5. **Classify and label the issue** (only after a successful merge, whether clean or conflict-resolved) — decide whether implementing this spec+plan is possible without a running Unity Editor:
    - `full-env-required` — the plan touches anything under `Assets/UI/`, `Assets/Prefabs/`, `.unity` scenes, `.prefab`/ScriptableObject assets, textures/flags/character portraits, or otherwise calls for Unity MCP tool usage (per `.claude/rules/unity/mcp_usage.md`) or the image-generation pipeline (`.claude/rules/image_generation.md`) to implement or verify.
-   - `code-only` — the plan is confined to `src/` (Unity-independent domain logic), pure C# logic/ECS systems under `Assets/Scripts/` verifiable by `dotnet build`/tests without opening the Editor, or `scripts/*.py` config generators.
+   - `code-only` — the plan is confined to `src/` (Unity-independent domain logic), pure C# logic/ECS systems under `Assets/Scripts/` verifiable by `dotnet build`/tests without opening the Editor, or `scripts/utils/*.py` config generators.
    - If genuinely mixed or unclear from the plan, default to `full-env-required` — wrongly labeling something `code-only` risks the implementation phase below (which never has a Unity Editor of its own — see section 4) planning work it can't actually attempt.
    - Apply with `gh issue edit <issue-number> --repo KonH/GlobalStrategy --add-label <code-only|full-env-required>`.
 6. Update the progress checklist: check "Plan approved" and "Merged," status → "Drafting the implementation proposal...". This PR intentionally does **not** close the issue (step 2.7, and the step-2 safeguard above) — the issue stays open through the implementation phase below.
@@ -154,7 +154,7 @@ Fetch `gh api repos/KonH/GlobalStrategy/issues/<N>/comments` and, for each comme
 
 ## 4. Implementation lifecycle
 
-Runs entirely after section 3c's merge, on the `ralph/<spec-id>` branch that `scripts/ralph.py` itself manages — never the now-deleted `claude/issue-<N>-<slug>` spec+plan branch. `<spec-id>` is the spec folder name (`Docs/Specs/<YY_MM_DD_HH>_<slug>/`), read back from the checklist's `**Spec:**` line rather than re-derived.
+Runs entirely after section 3c's merge, on the `ralph/<spec-id>` branch that `scripts/automation/claude/ralph.py` itself manages — never the now-deleted `claude/issue-<N>-<slug>` spec+plan branch. `<spec-id>` is the spec folder name (`Docs/Specs/<YY_MM_DD_HH>_<slug>/`), read back from the checklist's `**Spec:**` line rather than re-derived.
 
 ### 4a. Draft the Implementation Proposal (runs immediately after 3c's merge)
 
@@ -169,7 +169,7 @@ Runs entirely after section 3c's merge, on the `ralph/<spec-id>` branch that `sc
 2. Map the issue's classification label to an environment marker for `--env`: `code-only` → `code-only`; `full-env-required` → `full-env-headless` (this automation never has Unity Editor/MCP, regardless of what the label says the plan needs).
 3. Run:
    ```
-   python scripts/ralph.py --spec <spec-id> --env <marker> --model claude-sonnet-5 --effort medium \
+   python scripts/automation/claude/ralph.py --spec <spec-id> --env <marker> --model claude-sonnet-5 --effort medium \
        --max-iterations 20 --auto-adjust-iterations --skip-pull-request --dangerously-skip-permissions
    ```
    `--auto-adjust-iterations` covers the "MaxIterations too low" failure mode by itself — `ralph.py` raises its own iteration budget to the PRD's recommended minimum instead of erroring out, so a single invocation is enough; no separate detect-and-re-run step is needed. `--skip-pull-request` is required — this section owns PR creation/update (it needs to be linked to the GitHub issue), not the generic `/complete-prd` → `/pr` flow, which has no knowledge of the issue number.
@@ -184,7 +184,7 @@ Runs entirely after section 3c's merge, on the `ralph/<spec-id>` branch that `sc
 ### 4c. New comment on an Implementation Summary — apply requested changes
 
 1. `git fetch origin ralph/<spec-id>` and check it out.
-2. Read the comment as implementation feedback — code-review decisions (which flagged points to fix, which to skip) and/or new change requests. Apply directly (edit files); only re-run `scripts/ralph.py` the same way as 4b if the request is substantial enough to need its own multi-step loop, not for a small follow-up fix.
+2. Read the comment as implementation feedback — code-review decisions (which flagged points to fix, which to skip) and/or new change requests. Apply directly (edit files); only re-run `scripts/automation/claude/ralph.py` the same way as 4b if the request is substantial enough to need its own multi-step loop, not for a small follow-up fix.
 3. Commit via **/commit**, push to `ralph/<spec-id>` (updates the existing implementation PR automatically).
 4. Post a short confirmation comment on the issue (marker + a plain sentence summarizing what changed, no special heading needed) and update the checklist status back to the "Awaiting your review..." wording from 4b.8 — subject to the same bounded-loop rule as spec/plan Q&A (a 4th unresolved round in this phase → `## Needs Manual Attention` instead of another silent fix-and-wait cycle).
 

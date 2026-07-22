@@ -38,7 +38,7 @@ Use the local ComfyUI server and the repository's reusable scripts. This skill i
 
    ```powershell
    $env:PYTHONUTF8 = '1'
-   & ".venv\Scripts\python.exe" "scripts\generate_image.py" "<output-path>" "<width>x<height>" "<prompt>"
+   & ".venv\Scripts\python.exe" "scripts\utils\generate_image.py" "<output-path>" "<width>x<height>" "<prompt>"
    ```
 
 3. Inspect the generated PNG before reporting it. For a Unity-bound asset, follow the relevant Unity import and `.meta` rules, then refresh Unity and check the console when an interactive Editor is available.
@@ -49,7 +49,7 @@ For a batch, create `.tmp/images.json` with entries shaped as `{ "output", "size
 
 ```powershell
 $env:PYTHONUTF8 = '1'
-& ".venv\Scripts\python.exe" "scripts\generate_images_batch.py" ".tmp\images.json"
+& ".venv\Scripts\python.exe" "scripts\utils\generate_images_batch.py" ".tmp\images.json"
 ```
 
 The batch stops with an error when any entry fails. Report successful and failed paths separately; do not claim a partial batch is complete.

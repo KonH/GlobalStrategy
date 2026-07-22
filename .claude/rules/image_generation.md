@@ -19,10 +19,10 @@ If ComfyUI returns 400 with empty node lists, the models are in the wrong folder
 
 ## Scripts
 
-- `scripts/generate_image.py` — single image, CLI args: `outputPath WxH prompt`
-- `scripts/generate_images_batch.py` — reads `.tmp/images.json`, calls the above per entry
+- `scripts/utils/generate_image.py` — single image, CLI args: `outputPath WxH prompt`
+- `scripts/utils/generate_images_batch.py` — reads `.tmp/images.json`, calls the above per entry
 
-Run: `.venv\Scripts\python.exe scripts\generate_images_batch.py .tmp\images.json`
+Run: `.venv\Scripts\python.exe scripts\utils\generate_images_batch.py .tmp\images.json`
 ComfyUI must be running at `http://127.0.0.1:8188` before invoking either script.
 
 ## Windows Unicode encoding
@@ -30,7 +30,7 @@ ComfyUI must be running at `http://127.0.0.1:8188` before invoking either script
 Prompts that contain non-ASCII characters (e.g. accented names from localization) crash the batch script on Windows due to the cp1251 console codepage. Always prefix the run command with `$env:PYTHONUTF8 = '1'`:
 
 ```powershell
-$env:PYTHONUTF8 = '1'; & ".venv\Scripts\python.exe" "scripts\generate_images_batch.py" ".tmp\images.json"
+$env:PYTHONUTF8 = '1'; & ".venv\Scripts\python.exe" "scripts\utils\generate_images_batch.py" ".tmp\images.json"
 ```
 
 ## Character portrait recipe

@@ -5,12 +5,12 @@ two-stage pipeline. This is a build-time data/config foundation only — no `Map
 changes, no runtime consumption yet. See `Docs/Specs/43_province-division/` for the full
 spec and plan.
 
-## Stage 1 — Python geometry stage (`scripts/generate_provinces.py`)
+## Stage 1 — Python geometry stage (`scripts/utils/generate_provinces.py`)
 
 Run from the project root:
 
 ```powershell
-.venv\Scripts\python.exe scripts\generate_provinces.py [--force-download]
+.venv\Scripts\python.exe scripts\utils\generate_provinces.py [--force-download]
 ```
 
 Dependencies (installed into `.venv`): `geopandas`, `shapely`, `scipy`, `pyproj`, `requests`

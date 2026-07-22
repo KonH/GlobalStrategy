@@ -17,7 +17,7 @@ This skill is the sanctioned autonomous path for **micro-optimizations to alread
 
 1. **Resolve the target's benchmark class(es).** Confirm `$ARGUMENTS` (or `all`) matches at least one class under `src/Game.Benchmarks` (e.g. via `Grep` for `class.*Benchmarks` filtered by the substring). If nothing matches, stop and report — do not guess a class name.
 
-2. **Branch.** Require a clean working tree (`git status`, never `-uall`). Create or switch to `ralph/perf_<target>` (the exact branch name `scripts/ralph.ps1 -PerfTarget <target>` resolves to).
+2. **Branch.** Require a clean working tree (`git status`, never `-uall`). Create or switch to `ralph/perf_<target>` (the exact branch name `scripts/automation/claude/ralph.ps1 -PerfTarget <target>` resolves to).
 
 3. **Write `.ralph/prd.md` directly** (no `/specify`/`/plan`/`/create-prd`), reset `.ralph/activity.md` to its header only (`# Ralph Activity Journal` + intro line + `---`). One task, `category: "perf-optimization"`:
    - `gate`: `dotnet test src/GlobalStrategy.Core.sln && dotnet run --project src/Game.Benchmarks -c Release -- --compare --benchmark <target>` (`--benchmark all` when target is `all`) — both must pass; never a fabricated always-green gate.
@@ -31,12 +31,12 @@ This skill is the sanctioned autonomous path for **micro-optimizations to alread
 
 5. **Hand off** — print exactly this for the user to run in a terminal, this skill does **not** spawn the loop itself:
    ```
-   .\scripts\ralph.ps1 -PerfTarget <target>
+   .\scripts\automation\claude\ralph.ps1 -PerfTarget <target>
    ```
 
 ## Finish / failure semantics
 
-Executed by the driver's phases (`scripts/ralph.ps1 -PerfTarget <target>` → `scripts/ralph.py`), not by this skill directly:
+Executed by the driver's phases (`scripts/automation/claude/ralph.ps1 -PerfTarget <target>` → `scripts/automation/claude/ralph.py`), not by this skill directly:
 
 - **All gates pass:** the driver runs `--update-baseline` for the target (`dotnet run --project src/Game.Benchmarks -c Release -- --update-baseline --benchmark <target>`), commits via **/commit**, then hands off to `/complete-prd perf:<target>` — PR body carries the before/after benchmark table for the target, sourced from `Docs/Benchmarks/history.json`/`summary.md`. The loop **never merges** — human review gates merge, because a benchmark and a test suite passing cannot judge subtler tradeoffs (readability, maintainability) that only a human reviewer weighs.
 - **Budget exhausted / loop incomplete:** no baseline update, no PR opened as "done." The committed-artifact state reached on the branch stays as-is; the failure report is `Docs/Benchmarks/history.json` + `Docs/Benchmarks/summary.md` (which attempts failed the gate and by how much) and `.ralph/activity.md`. Nothing is force-reverted. A human can run `claude -p "/complete-prd perf:<target>"` manually if they want a PR anyway.
