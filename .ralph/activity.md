@@ -273,3 +273,28 @@ The next iteration should run the full verification task and refresh the tracked
 Release assemblies. The automation environment is code-only, so Unity Editor/MCP was not invoked.
 
 ---
+
+## 2026-07-22 — Verify the full core suite and refresh Release assemblies
+
+Task: "Run the full core test suite and refresh the Unity-consumed release assemblies."
+
+**What I changed:**
+- Ran the complete core test suite and confirmed all projects' tests pass.
+- Ran the Release build and refreshed the tracked Unity-consumed assemblies under
+  `Assets/Plugins/Core`.
+- Marked the final Ralph verification task complete and bumped
+  `ProjectSettings/ProjectSettings.asset` bundle version from `1.51` to `1.52`.
+
+**Test evidence:** `$env:DOTNET_ROLL_FORWARD='Major'; dotnet test src/GlobalStrategy.Core.sln`
+exited 0. ECS.Tests passed 34/34, ECS.Viewer.Tests passed 16/16, and Game.Tests passed
+360/360; 410 total tests, 0 failed. Major roll-forward was required because this runner provides
+the .NET 10 runtime rather than the targeted .NET 8 runtime.
+
+**Gate:** `dotnet build src/GlobalStrategy.Core.sln -c Release` exited 0. Evidence:
+`Build succeeded.`, 0 warnings, 0 errors; all solution projects built and the Unity-consumed
+Release assemblies were emitted to `Assets/Plugins/Core` in 14.23 seconds.
+
+All Ralph PRD tasks now pass. The automation environment was code-only, so Unity Editor/MCP was
+not invoked.
+
+---

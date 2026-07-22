@@ -148,7 +148,7 @@ End an in-progress game when one participating organization satisfies the config
 			"Run the Release build after tests so the tracked Unity-consumed assemblies under Assets/Plugins/Core are refreshed."
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	}
 ]
 ```
