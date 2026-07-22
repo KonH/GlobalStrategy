@@ -23,6 +23,21 @@ Use this workflow only for issues authored by `KonH` and labeled `codex`. Work i
 
 Create the checklist as the first automation comment. Keep editing that same comment; never repost it. Include checkboxes for: spec drafted, spec approved, plan drafted, plan approved, merged, implementation proposed, implementation approved, implemented, implementation merged. Record the spec folder, spec/plan PR, implementation PR, classification, and the current status.
 
+## Specification drafting
+
+Follow the current shared `k:specify` workflow referenced by `.claude/commands/specify.md`. If that skill is unavailable in the automation session, read its canonical source from `KonH/ClaudeTools` at `plugins/k/skills/specify/SKILL.md` on `main` before drafting or revising a spec.
+
+Use this section order:
+
+1. `# Spec: <Feature Name>`
+2. `## Feature Intent` with one user-story sentence: `As a <role>, I want <capability>, so that <benefit>.`
+3. `## Acceptance Criteria` beginning with the legend `Precondition => Action => Outcome`. Group related rows under a shared precondition instead of repeating it.
+4. `## Tech Notes` mapping each behavior group to concrete files, classes, methods, commands, and state paths.
+5. `## Out of Scope` with explicit exclusions.
+6. `## Ambiguities` only when unresolved questions remain, using `[NEEDS CLARIFICATION: ...]` markers.
+
+Keep acceptance criteria in plain product language. Put implementation anchors and design details in Tech Notes, cover the happy path and important edge cases, and do not create `plan.md` or implementation changes before the spec approval checkpoint.
+
 ## Spec and plan phase
 
 1. For a new issue, create `codex/issue-<number>-<slug>` from `origin/main`.
