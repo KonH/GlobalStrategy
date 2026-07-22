@@ -64,15 +64,21 @@ and prompt text.
 import argparse
 import json
 import logging
+import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from common.issue_handler import (  # noqa: E402
     acquire_lock, compute_cutoff, find_candidates, run_git, save_last_check, setup_logging,
 )
+from scripts.stats.collect_usage import record_usage_row  # noqa: E402
+
+USAGE_STAGE_RE = re.compile(r"^USAGE_STAGE:\s*(\S+)\s+(spec|plan)\s*$", re.MULTILINE)
 
 MODEL = "claude-sonnet-5"
 EFFORT = "high"
@@ -178,6 +184,7 @@ def main():
     prompt = build_prompt(candidates)
     logger.info(f"Found {len(candidates)} candidate(s) - invoking claude -p.")
 
+    run_start = datetime.now(timezone.utc).isoformat()
     claude_exe = find_claude_executable()
     process = subprocess.Popen(
         [
@@ -194,21 +201,59 @@ def main():
         text=True,
         bufsize=1,
     )
+    assistant_text_parts = []
+    result_event = None
     for line in process.stdout:
         line = line.rstrip()
         if not line:
             continue
         try:
-            summary = summarize_stream_event(json.loads(line))
+            event = json.loads(line)
         except json.JSONDecodeError:
             logger.info(f"[claude -p] {line}")
             continue
+        if event.get("type") == "assistant":
+            for block in (event.get("message", {}).get("content") or []):
+                if block.get("type") == "text" and block.get("text"):
+                    assistant_text_parts.append(block["text"])
+        elif event.get("type") == "result":
+            result_event = event
+        summary = summarize_stream_event(event)
         if summary:
             logger.info(f"[claude -p] {summary}")
     process.wait()
     logger.info(f"claude -p exited with code {process.returncode}.")
+
+    record_usage_stats_rows(assistant_text_parts, result_event, run_start)
+
     save_last_check(args.state_file, now)
     sys.exit(process.returncode)
+
+
+def record_usage_stats_rows(assistant_text_parts, result_event, run_start):
+    """Scans the run's assistant text for USAGE_STAGE markers (see
+    .claude/commands/handle-feature-issue.md) and records one usage.csv row per match,
+    using the whole run's own usage totals - the wrapper has no finer-grained per-issue
+    breakdown available, matching the acceptance of imprecision already accepted for
+    multi-spec transcript segments elsewhere in this feature."""
+    if result_event is None:
+        return
+    matches = USAGE_STAGE_RE.findall("\n".join(assistant_text_parts))
+    if not matches:
+        return
+    usage = result_event.get("usage", {})
+    run_end = datetime.now(timezone.utc).isoformat()
+    for spec_dir, stage in matches:
+        try:
+            record_usage_row(
+                provider="claude", stage=stage, spec_dir=spec_dir, mode="automated",
+                session_id=result_event.get("session_id", ""), model=result_event.get("model", MODEL),
+                start=run_start, end=run_end,
+                input_tokens=usage.get("input_tokens", 0), cached_input_tokens=usage.get("cache_read_input_tokens", 0),
+                output_tokens=usage.get("output_tokens", 0),
+            )
+        except Exception as error:  # usage-stats recording must never abort/fail the run
+            logger.warning(f"failed to record usage stats row for {spec_dir}/{stage}: {error}")
 
 
 if __name__ == "__main__":

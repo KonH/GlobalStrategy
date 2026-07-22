@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.cs"
+---
+
 # C# Code Style
 
 - Indentation: tabs (not spaces)

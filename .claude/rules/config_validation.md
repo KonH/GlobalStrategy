@@ -1,3 +1,8 @@
+---
+paths:
+  - "Assets/Configs/*.json"
+---
+
 # Config Cross-Validation
 
 ## Country IDs must match `country_config.json` exactly

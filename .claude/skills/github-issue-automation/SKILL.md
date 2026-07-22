@@ -1,3 +1,8 @@
+---
+name: github-issue-automation
+description: Reference for scripts/automation/claude/handle_issues.py (and the codex/common equivalents) — the cron-driven GitHub issue → spec/plan → merge pipeline. Load when working on, debugging, or extending that automation, or its .claude/commands/handle-feature-issue.md command.
+---
+
 # GitHub Issue → Spec/Plan Automation
 
 `scripts/automation/claude/handle_issues.{py,sh,ps1}` runs on a cron schedule **in the user's own environment** (a personal machine or server the user controls — not this Claude Code Remote session, not a GitHub Actions runner). The script itself does cheap discovery via plain `gh` calls (no LLM usage); it only invokes `claude -p "/handle-feature-issue ..."` (`.claude/commands/handle-feature-issue.md`) — and only then spends subscription usage — when that discovery actually finds something to act on. Discovery/locking/state logic shared with the Codex equivalent (`scripts/automation/codex/handle_issues.py`) lives in `scripts/automation/common/issue_handler.py`.

@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.asmdef"
+---
+
 # Assembly Definition Format
 
 Each feature folder under `Scripts/` contains one `.asmdef` file. Use this template:
