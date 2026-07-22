@@ -11,5 +11,5 @@ Steps:
 2. Check that ComfyUI is running — follow all steps in `/setup-comfy-ui`.
    If setup reports that ComfyUI is not installed or could not start, stop here with that message.
 3. Run the reusable script via PowerShell, passing the three arguments:
-   & ".venv\Scripts\python.exe" "scripts\generate_image.py" "<outputPath>" "<size>" "<prompt>"
+   & ".venv\Scripts\python.exe" "scripts\utils\generate_image.py" "<outputPath>" "<size>" "<prompt>"
 4. Report the saved path and any console output.

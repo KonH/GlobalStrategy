@@ -44,9 +44,13 @@ size-based auto-rotation - no unbounded append, no manual cleanup needed. Overri
 Codex runs with `exec --json`; every event is written to the rotating log for diagnosis.
 
 Usage (from project root):
-  python scripts/handle_codex_feature_issues.py
-  python scripts/handle_codex_feature_issues.py --since-hours 2
-  python scripts/handle_codex_feature_issues.py --since-minutes 15 --model gpt-5.6-sol --effort high
+  python scripts/automation/codex/handle_issues.py
+  python scripts/automation/codex/handle_issues.py --since-hours 2
+  python scripts/automation/codex/handle_issues.py --since-minutes 15 --model gpt-5.6-sol --effort high
+
+Shared discovery/locking/state logic lives in scripts/automation/common/issue_handler.py - this
+file only supplies what's specific to driving Codex: CLI invocation, exec --json event parsing,
+and prompt text.
 """
 
 import argparse
@@ -57,91 +61,28 @@ import re
 import shutil
 import subprocess
 import sys
-from datetime import datetime, timedelta, timezone
-from logging.handlers import RotatingFileHandler
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from common.issue_handler import (  # noqa: E402
+    acquire_lock, compute_cutoff, find_candidates, run_git, save_last_check, setup_logging,
+)
 
 MODEL = "gpt-5.6-sol"
 EFFORT = "high"
 DEFAULT_SANDBOX = "workspace-write"
 SANDBOX_CHOICES = ["read-only", "workspace-write", "danger-full-access"]
 LABEL = "codex"
-OWNER = "KonH"
-REPO = "GlobalStrategy"
 MARKER = "<!-- codex-automation -->"
-FIELDS = "number,title,body,url,updatedAt"
 
-DEFAULT_LOG_FILE = Path(__file__).resolve().parent.parent / "Logs" / "handle_codex_feature_issues.log"
+DEFAULT_LOG_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_codex_feature_issues.log"
 DEFAULT_LOG_MAX_BYTES = 5 * 1024 * 1024  # 5 MB per file
 DEFAULT_LOG_BACKUP_COUNT = 5  # + the active file = 30 MB max on disk
-DEFAULT_LOCK_FILE = Path(__file__).resolve().parent.parent / "Logs" / "handle_codex_feature_issues.lock"
-DEFAULT_STATE_FILE = Path(__file__).resolve().parent.parent / "Logs" / "handle_codex_feature_issues.state.json"
-DEFAULT_GH_CONFIG_DIR = Path(__file__).resolve().parent.parent / "Logs" / "codex-gh-config"
+DEFAULT_LOCK_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_codex_feature_issues.lock"
+DEFAULT_STATE_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_codex_feature_issues.state.json"
+DEFAULT_GH_CONFIG_DIR = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "codex-gh-config"
 
 logger = logging.getLogger("handle_codex_feature_issues")
-
-
-def setup_logging(log_file, max_bytes, backup_count):
-    log_file.parent.mkdir(parents=True, exist_ok=True)
-    formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
-
-    file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
-
-    logger.setLevel(logging.INFO)
-
-
-def acquire_lock(lock_file):
-    lock_file.parent.mkdir(parents=True, exist_ok=True)
-    lock_fp = open(lock_file, "a+b")
-    lock_fp.seek(0, 2)
-    if lock_fp.tell() == 0:
-        lock_fp.write(b"\0")
-        lock_fp.flush()
-    lock_fp.seek(0)
-
-    if sys.platform == "win32":
-        import msvcrt
-        try:
-            msvcrt.locking(lock_fp.fileno(), msvcrt.LK_NBLCK, 1)
-        except OSError:
-            lock_fp.close()
-            return None
-        return lock_fp
-
-    try:
-        import fcntl
-    except ImportError:
-        logger.info("fcntl unavailable (non-POSIX) - skipping process lock; rely on the "
-                     "scheduler's own single-instance setting instead.")
-        return lock_fp
-    try:
-        fcntl.flock(lock_fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except BlockingIOError:
-        lock_fp.close()
-        return None
-    return lock_fp
-
-
-def load_last_check(state_file):
-    if not state_file.exists():
-        return None
-    try:
-        data = json.loads(state_file.read_text(encoding="utf-8"))
-        return parse_timestamp(data["last_check_at"])
-    except (ValueError, KeyError, json.JSONDecodeError):
-        logger.warning(f"Could not parse {state_file} - ignoring stored last-check time.")
-        return None
-
-
-def save_last_check(state_file, when):
-    state_file.parent.mkdir(parents=True, exist_ok=True)
-    state_file.write_text(json.dumps({"last_check_at": when.isoformat()}), encoding="utf-8")
 
 
 def find_codex_executable():
@@ -172,54 +113,6 @@ def build_codex_environment():
     environment["GIT_TERMINAL_PROMPT"] = "0"
     environment["GCM_INTERACTIVE"] = "Never"
     return environment
-
-
-def run_git(args):
-    result = subprocess.run(["git", *args], capture_output=True, text=True)
-    if result.returncode != 0:
-        raise RuntimeError(f"git {' '.join(args)} failed: {result.stderr.strip()}")
-    return result.stdout.strip()
-
-
-def run_gh_json(args):
-    result = subprocess.run(["gh", *args], capture_output=True, text=True)
-    if result.returncode != 0:
-        raise RuntimeError(f"gh {' '.join(args)} failed: {result.stderr.strip()}")
-    return json.loads(result.stdout)
-
-
-def parse_timestamp(value):
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
-
-
-def list_open_codex_issues():
-    return run_gh_json([
-        "issue", "list", "--repo", f"{OWNER}/{REPO}",
-        "--label", LABEL, "--author", OWNER, "--state", "open",
-        "--json", FIELDS,
-    ])
-
-
-def has_recent_owner_reaction(issue_number, cutoff):
-    comments = run_gh_json(["api", f"repos/{OWNER}/{REPO}/issues/{issue_number}/comments"])
-    for comment in comments:
-        if not comment.get("body", "").startswith(MARKER):
-            continue
-        reactions = run_gh_json(["api", f"repos/{OWNER}/{REPO}/issues/comments/{comment['id']}/reactions"])
-        for reaction in reactions:
-            if reaction["user"]["login"] == OWNER and parse_timestamp(reaction["created_at"]) >= cutoff:
-                return True
-    return False
-
-
-def find_candidates(cutoff):
-    candidates = []
-    for issue in list_open_codex_issues():
-        if parse_timestamp(issue["updatedAt"]) >= cutoff:
-            candidates.append({**issue, "reason": "issue/comment updated"})
-        elif has_recent_owner_reaction(issue["number"], cutoff):
-            candidates.append({**issue, "reason": "new reaction on a summary/conclusion comment"})
-    return candidates
 
 
 def build_prompt(candidates):
@@ -269,9 +162,9 @@ def main():
     if args.dangerously_skip_permissions:
         args.sandbox = "danger-full-access"
 
-    setup_logging(args.log_file, args.log_max_bytes, args.log_backup_count)
+    setup_logging(logger, args.log_file, args.log_max_bytes, args.log_backup_count)
 
-    lock = acquire_lock(args.lock_file)
+    lock = acquire_lock(logger, args.lock_file)
     if lock is None:
         logger.info("Another instance is already running - exiting. Not updating the last-check "
                      "timestamp, so the next run that acquires the lock still covers this window.")
@@ -281,18 +174,8 @@ def main():
     run_git(["fetch", "origin", "main"])
     run_git(["reset", "--hard", "origin/main"])
 
-    now = datetime.now(timezone.utc)
-    lookback_minutes = args.since_hours * 60 + args.since_minutes
-    if lookback_minutes <= 0:
-        lookback_minutes = 60
-    window_cutoff = now - timedelta(minutes=lookback_minutes)
-    last_check = load_last_check(args.state_file)
-    cutoff = min(window_cutoff, last_check) if last_check else window_cutoff
-    if last_check and last_check < window_cutoff:
-        logger.info(f"Last completed check was {last_check.isoformat()}, older than the "
-                     f"{lookback_minutes:g}m window - extending cutoff back to it so nothing "
-                     "from a lock-skipped run is missed.")
-    candidates = find_candidates(cutoff)
+    now, cutoff = compute_cutoff(logger, args.state_file, args.since_hours, args.since_minutes)
+    candidates = find_candidates(LABEL, MARKER, cutoff)
 
     if not candidates:
         logger.info(f"No '{LABEL}'-labeled issues with new activity since {cutoff.isoformat()} - nothing to do.")
