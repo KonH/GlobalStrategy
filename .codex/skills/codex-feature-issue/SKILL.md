@@ -69,10 +69,10 @@ On approval of the implementation proposal or latest implementation summary:
 1. Start or resume `ralph/<spec-id>` from `origin/main`; do not use a worktree.
 2. Run `scripts/automation/codex/ralph.py --spec <spec-id> --env code-only` for `code-only`, otherwise use `--env full-env-headless`. Use `--auto-adjust-iterations --skip-pull-request` for unattended runs.
 3. Commit all remaining Ralph changes with the repository version bump and push `ralph/<spec-id>` before reporting any outcome, including a stall, error, or manual-attention condition. Do not discard partial work.
-4. If it stalls, exits unsuccessfully, or completes zero tasks, post `## Needs Manual Attention` with the relevant `.ralph/activity.md` entries and stop. Do not open or update an implementation PR when there was no real progress.
-5. Otherwise inspect the changed files for concrete bugs and relevant rule violations. Do not apply discretionary review fixes until the owner requests them.
-6. Create or update an implementation PR whose body contains `Closes #<number>`.
-7. Post `## Implementation Summary`: passed/remaining PRD tasks, headless-skipped work, concrete review concerns, and the PR URL. Update the checklist and wait.
+4. Determine whether the branch contains real implementation progress. If zero PRD tasks passed and there are no material implementation changes, post `## Needs Manual Attention` with the relevant `.ralph/activity.md` entries and stop without opening an empty PR.
+5. Inspect every changed file for concrete bugs and relevant rule violations. Do not apply discretionary review fixes until the owner requests them.
+6. Create or update an implementation PR whenever there is real progress, even if Ralph stalled, exited unsuccessfully, or left PRD tasks incomplete. Its body must contain `Closes #<number>`. Keep the PR in draft while any PRD task is incomplete or the run needs manual attention; mark it ready only after all automated tasks pass and no blocker remains.
+7. Post `## Implementation Summary`: passed/remaining PRD tasks, the Ralph stop reason and relevant activity entries when incomplete, headless-skipped work, concrete review concerns, and the PR URL. Update the checklist and wait. Apply `codex-needs-attention` when the partial result is blocked on a missing prerequisite or unsafe condition, but never hide real progress by omitting its PR.
 
 On an owner comment, apply only the requested follow-up changes, commit/push, post a short confirmation, and wait again. On approval with no outstanding change request, merge `origin/main` using the same narrow version-conflict rule, push, merge the implementation PR, and mark the checklist complete.
 

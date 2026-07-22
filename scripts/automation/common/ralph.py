@@ -16,6 +16,7 @@ keeps its own policy here.
 
 import argparse
 import csv
+import json
 import math
 import re
 import subprocess
@@ -88,11 +89,42 @@ def resolve_branch(ralph_branch):
     return branch, ralph_branch
 
 
+def parse_prd_tasks(prd_text):
+    match = re.search(
+        r"^## Tasks[ \t]*\r?\n+```json[ \t]*\r?\n(?P<tasks>.*?)\r?\n```[ \t]*(?:\r?\n|$)",
+        prd_text,
+        re.MULTILINE | re.DOTALL,
+    )
+    if match is None:
+        raise RuntimeError("PRD has no fenced JSON task array under the '## Tasks' heading.")
+
+    try:
+        tasks = json.loads(match.group("tasks"))
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"PRD task array is invalid JSON: {error}") from error
+
+    if not isinstance(tasks, list):
+        raise RuntimeError("PRD task JSON must be an array.")
+    for index, task in enumerate(tasks, start=1):
+        if not isinstance(task, dict) or not isinstance(task.get("passes"), bool):
+            raise RuntimeError(f"PRD task {index} must be an object with a boolean 'passes' field.")
+    return tasks
+
+
+def has_open_tasks(prd_text):
+    return any(not task["passes"] for task in parse_prd_tasks(prd_text))
+
+
 def task_progress(prd_text):
-    total = len(re.findall(r'"passes":\s*(?:true|false)', prd_text))
-    passed = len(re.findall(r'"passes":\s*true', prd_text))
+    tasks = parse_prd_tasks(prd_text)
+    total = len(tasks)
+    passed = sum(task["passes"] for task in tasks)
     percent = (passed / total * 100) if total else 0.0
     return passed, total, percent
+
+
+def should_complete_prd(skip_pull_request, passed_tasks):
+    return not skip_pull_request and passed_tasks > 0
 
 
 def log_step_failure(tool_name, phase, iteration, prompt, exit_code, stdout_text, stderr_text,
@@ -246,7 +278,7 @@ def run_ralph(args, *, tool_name, invoke_step, build_create_prd_prompt, build_lo
         if not prd_file.exists():
             raise RuntimeError(f"{prd_file} does not exist - run /implement-bot-feature first.")
         prd_text = prd_file.read_text(encoding="utf-8")
-        if not re.search(r'"passes":\s*false', prd_text):
+        if not has_open_tasks(prd_text):
             raise RuntimeError(f"{prd_file} has no open tasks - nothing to loop.")
         print(f"Skipping /create-prd (bot-feature mode), reusing existing {prd_file}")
     elif perf_mode:
@@ -255,7 +287,7 @@ def run_ralph(args, *, tool_name, invoke_step, build_create_prd_prompt, build_lo
         if not prd_file.exists():
             raise RuntimeError(f"{prd_file} does not exist - run /optimize-performance first.")
         prd_text = prd_file.read_text(encoding="utf-8")
-        if not re.search(r'"passes":\s*false', prd_text):
+        if not has_open_tasks(prd_text):
             raise RuntimeError(f"{prd_file} has no open tasks - nothing to loop.")
         print(f"Skipping /create-prd (perf-target mode), reusing existing {prd_file}")
     elif args.skip_create_prd:
@@ -271,12 +303,12 @@ def run_ralph(args, *, tool_name, invoke_step, build_create_prd_prompt, build_lo
         if r is None or r.get("is_error"):
             raise RuntimeError("/create-prd failed - aborting before the loop.")
         prd_text = prd_file.read_text(encoding="utf-8")
-        if not re.search(r'"passes":\s*false', prd_text):
+        if not has_open_tasks(prd_text):
             raise RuntimeError(f"/create-prd produced no open tasks in {prd_file} - check its output before looping.")
 
     # --- Guard: MaxIterations should cover at least 1.5x the task count ---
     prd_text = prd_file.read_text(encoding="utf-8")
-    task_count = len(re.findall(r'"passes":\s*(?:true|false)', prd_text))
+    task_count = len(parse_prd_tasks(prd_text))
     min_recommended = math.ceil(task_count * 1.5)
     if args.max_iterations < min_recommended:
         if args.auto_adjust_iterations:
@@ -331,12 +363,12 @@ def run_ralph(args, *, tool_name, invoke_step, build_create_prd_prompt, build_lo
     print(f"=== Loop finished: {stop_reason} ===")
 
     # --- Phase 3: commit + pull request ---
-    loop_succeeded = stop_reason in ("complete_promise", "all_tasks_passed")
+    passed_tasks, total_tasks, _ = task_progress(prd_text)
     if args.skip_pull_request:
         print("Skipping /complete-prd (--skip-pull-request).")
-    elif not loop_succeeded:
-        print("Loop did not finish all tasks - skipping PR. To create one anyway, run:")
-        print(f"  {complete_prd_hint(complete_prd_arg)}")
+    elif not should_complete_prd(args.skip_pull_request, passed_tasks):
+        print("No PRD tasks passed - skipping /complete-prd because there is no verified progress to propose.")
+        print(f"To inspect or package the branch manually, run: {complete_prd_hint(complete_prd_arg)}")
         if bot_mode:
             print(
                 f"Failure report: Docs/BotFeatures/{feature_id}/eval_summary.md, "
@@ -350,6 +382,11 @@ def run_ralph(args, *, tool_name, invoke_step, build_create_prd_prompt, build_lo
     else:
         print()
         complete_prompt = build_complete_prd_prompt(complete_prd_arg)
+        if passed_tasks < total_tasks:
+            print(
+                f"Loop stopped with {passed_tasks}/{total_tasks} tasks passed ({stop_reason}); "
+                "creating a PR for the verified partial work."
+            )
         print(f"=== Phase: {complete_prompt} ===")
         r = invoke_step("complete-prd", "", complete_prompt, csv_file, log_dir, activity_file,
                          args.model, args.effort)
