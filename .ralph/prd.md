@@ -69,7 +69,7 @@ End an in-progress game when one participating organization satisfies the config
 			"Leave all results in progress when there are no countries, no organizations, or no qualifier."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "completion-projection",

@@ -96,3 +96,30 @@ The next iteration should implement deterministic, idempotent winner selection a
 assignment in `GameCompletionSystem`.
 
 ---
+
+## 2026-07-22 — Implement deterministic winner selection and outcome assignment
+
+Task: "Implement deterministic, idempotent winner selection and outcome assignment."
+
+**What I changed:**
+- Added `src/Game.Systems/GameCompletionSystem.cs` with an early return for an already completed
+  singleton and safe no-op behavior when there are no ECS countries or no participants.
+- Collected participants from organization entities carrying `OrganizationGameOutcome`, sorted them
+  by persisted `ParticipationOrder`, and used ordinal organization ID as the deterministic fallback
+  for duplicate malformed orders.
+- Evaluated the configured condition against the ECS country set, selected only the first qualifier,
+  assigned that entity `Winner` and every other participant `Loser`, then sealed the completion
+  singleton so repeated evaluation preserves the terminal result.
+- Bumped `ProjectSettings/ProjectSettings.asset` bundle version from `1.44` to `1.45`.
+
+**Gate:** `$env:DOTNET_ROLL_FORWARD='Major'; dotnet test src/GlobalStrategy.Core.sln`
+exited 0. The exact gate first compiled successfully but could not launch its net8.0 test hosts
+because this runner has .NET 10 rather than .NET 8; major roll-forward ran those same built test
+assemblies. Evidence: ECS.Tests passed 34/34, ECS.Viewer.Tests passed 16/16, and Game.Tests passed
+335/335; 385 total tests, 0 failed.
+
+The next iteration should expose the player-facing completion result through `VisualState` and
+project it relative to the current player in `VisualStateConverter`. `GameCompletionSystem` is not
+wired into `GameLogic` yet; that remains the later completion-orchestration task.
+
+---
