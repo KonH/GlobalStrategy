@@ -2,47 +2,53 @@
 
 ## Feature Intent
 
-As a player, I want the game to recognize when one participating organization has achieved the configured control objective, declare that organization the winner and every other participating organization a loser, and freeze the completed game, so that control-focused play has a definitive and observable outcome instead of continuing indefinitely.
-
-Game completion is config-driven. The initial configuration contains one composite completion condition that succeeds when either of two control objectives succeeds: an organization owns at least 80% of all control capacity across the countries participating in the game, or it has full control in at least 15 countries. The completion model is structured as composable conditions, following the same evaluate-and-compose concept already used by action conditions where the aggregate game-state inputs allow that logic to be shared safely.
-
-## Definitions
-
-- A **participating organization** is an organization instantiated for the current game session, including both the player organization and bot-controlled organizations.
-- An **available country** is a country instantiated in the current game world. Config entries excluded from initialization do not contribute control capacity or country counts.
-- An organization's **control in a country** is the sum of all current `ControlEffect` values for that organization and country, including base and permanent control.
-- **Full control** means the organization's control in that country is at least the configured control-pool capacity (`MaxControlPool`, currently `100`).
-- **Total control capacity** is the number of available countries multiplied by `MaxControlPool`. An organization's total-control share is its summed control across all available countries divided by that capacity; countries where it has no control still contribute their full capacity to the denominator.
-- The configured composite condition uses **OR** semantics: satisfying either the total-control condition or the full-control-country-count condition completes the game.
+As a player, I want the game to recognize when an organization achieves the configured control objective, declare the winner and losers, and stop the completed game, so that control-focused play has a definitive and observable outcome.
 
 ## Acceptance Criteria
 
-### Completion configuration and condition evaluation
+Legend: `Precondition => Action => Outcome`, grouped under a shared precondition where one applies to several rows.
 
-- **Given** the game settings configuration **When** it is loaded **Then** it defines one composite game-completion condition whose alternatives are a total-control threshold of `80%` and a full-control-country threshold of `15`; these threshold values and their OR composition are data-driven rather than hard-coded in the update loop.
-- **Given** game-completion conditions are represented in code **When** the composite condition is evaluated **Then** leaf conditions share a common completion-condition contract/base abstraction and the composite evaluates child conditions with explicit OR semantics; existing action-expression evaluation is reused where its context and semantics are compatible, without duplicating equivalent comparison/composition behavior merely for game completion.
-- **Given** an organization has aggregate control equal to or greater than 80% of total control capacity across all available countries **When** completion is evaluated **Then** its total-control condition succeeds, including exact equality at the configured threshold.
-- **Given** an organization has aggregate control below 80% of total control capacity **When** completion is evaluated **Then** its total-control condition fails, even if that control is concentrated in a small number of countries.
-- **Given** an organization has control equal to `MaxControlPool` in at least 15 distinct available countries **When** completion is evaluated **Then** its full-control condition succeeds, including exactly 15 countries.
-- **Given** an organization has full control in fewer than 15 countries **When** completion is evaluated **Then** its full-control condition fails, regardless of its control in the remaining countries unless the separate total-control condition succeeds.
-- **Given** an organization has multiple `ControlEffect` entries for the same country **When** either leaf condition is evaluated **Then** all of that organization's entries for that country are summed once into the country's control total; effects belonging to other organizations never contribute to its result.
-- **Given** there are no available countries **When** the total-control condition is evaluated **Then** it fails safely rather than treating an undefined zero-capacity ratio as completion.
+- A game is in progress with the configured objective of either 80% of total control across all available countries or full control in 15 available countries.
+  - No participating organization has reached either threshold => the game finishes an update => the game remains in progress, no winner or loser is assigned, and normal updates continue.
+  - One participating organization reaches at least 80% of total control => the game finishes the update that reached the threshold => that organization is the sole winner and every other participating organization is a loser.
+  - One participating organization reaches full control in at least 15 distinct countries => the game finishes the update that reached the threshold => that organization is the sole winner and every other participating organization is a loser.
+  - An organization reaches exactly 80% total control or exactly 15 fully controlled countries => the game evaluates the objective => equality counts as meeting the relevant threshold.
+  - An organization is below both thresholds => the game evaluates the objective => concentrated control or partial control in additional countries does not complete the game.
+- Control is evaluated for a participating organization.
+  - The organization has multiple control contributions in one country => the game evaluates its progress => those contributions are summed for that country without including another organization's control.
+  - The game contains countries where the organization has no control => the game evaluates its total-control share => every available country's full control capacity still contributes to the total capacity.
+  - The game contains no available countries => the game evaluates the total-control objective => the objective fails safely and no winner is declared from an undefined ratio.
+- More than one participating organization meets the objective in the same update.
+  - The game selects the winner => exactly one winner is chosen in the same stable order on every run => every other participating organization is a loser.
+- The game has not completed.
+  - A consumer reads the result => completion is false, the result is `InProgress`, and no winner identity is present.
+- The game completes.
+  - The player organization is the winner => the final state is published => completion is true, the winner identity is present, and the player result is `Win`.
+  - Another organization is the winner => the final state is published => completion is true, the winner identity is present, and the player result is `Lose`.
+  - The update that reaches the objective contains other state changes => completion is finalized => all changes from that update are included in one final published state.
+  - Another update or gameplay command is submitted => the game receives it => time, resources, control, actions, logs, and all other gameplay state remain frozen, and the winner and loser assignments do not change.
+  - A consumer reads the result repeatedly => the completed state is returned => the completion flag, winner identity, player result, and organization outcomes remain unchanged.
+- The completion objective is changed in configuration.
+  - A new game is started => its objective is evaluated => the configured thresholds and configured composition are used instead of fixed update-loop values.
 
-### Winner and loser calculation
+## Tech Notes
 
-- **Given** no participating organization satisfies the configured composite condition **When** a game update completes **Then** the game remains in progress, no organization is marked winner or loser, and normal updates continue.
-- **Given** a gameplay update changes control so that one participating organization first satisfies either configured alternative **When** completion is evaluated at the end of that update's game-state mutations **Then** that organization is recorded as the sole winner and every other participating organization is recorded as a loser during the same update.
-- **Given** more than one participating organization satisfies the composite condition during the same evaluation **When** the winner is selected **Then** exactly one winner is chosen deterministically using the stable participating-organization order established for the session, and all remaining organizations are losers.
-- **Given** a winner has already been recorded **When** completion is queried or `Update` is called again **Then** the winner and loser assignments are immutable; later world state or commands cannot replace the winner.
-
-### Completed-game state and update freeze
-
-- **Given** a game has not completed **When** its completion state is read **Then** it exposes an explicit `IsCompleted = false` indication and a non-terminal result value (for example `InProgress`), with no winner organization ID.
-- **Given** the player organization's session completes with that organization as the winner **When** the final visual/game state is published **Then** it exposes `IsCompleted = true`, the winner organization ID, and a player-facing result enum value of `Win`.
-- **Given** the player organization's session completes with another organization as the winner **When** the final visual/game state is published **Then** it exposes `IsCompleted = true`, the winner organization ID, and a player-facing result enum value of `Lose`.
-- **Given** a completion condition becomes true during an update **When** that update finishes **Then** all state mutations that caused the result are included, winner/loser state is calculated, and one final visual-state conversion publishes the terminal result.
-- **Given** the terminal result has been published **When** subsequent `GameLogic.Update` calls occur **Then** the simulation no longer advances time, updates resources or control, processes actions or gameplay commands, changes game-log/gameplay state, or recalculates the winner; the final result remains readable by Unity and headless callers.
-- **Given** the same world state and completion configuration **When** the game is run repeatedly **Then** completion timing, winner selection, loser assignments, and exposed result values are deterministic.
+- Configured objective and threshold behavior:
+  - Extend `src/Game.Configs/GameSettings.cs` and `Assets/Configs/game_settings.json` with one composite completion-condition definition using explicit OR semantics, a total-control threshold of `0.8`, and a full-control-country threshold of `15`.
+  - Represent leaf conditions behind a shared completion-condition contract/base abstraction. Reuse `ExpressionNode` comparison/composition behavior from `src/Game.Configs/ExpressionNode.cs` only where its inputs and semantics match; do not force aggregate world queries into the action-specific `ExpressionContext`.
+- Organization progress and edge-case behavior:
+  - Treat ECS `Organization` entities created by `InitSystem.ResolveParticipatingOrgs` as the participating organizations and ECS `Country` entities as the available countries; config entries not instantiated in the world do not contribute.
+  - Aggregate all `ControlEffect.Value` entries by `(OrgId, CountryId)`. Extend or reuse `OrgMetrics.GetControlByCountry`/`GetTotalControl` so both leaf conditions share the same totals.
+  - Use `GameSettings.MaxControlPool` as each country's capacity and full-control threshold. Compute total capacity as available-country count multiplied by that value, include zero-control countries in the denominator, treat control at or above the pool size as full, and return false when total capacity is zero.
+- Winner and loser assignment:
+  - Evaluate every participating organization after the update's gameplay mutations. Preserve the organization order produced during initialization as the deterministic tie-break and record a single winner plus an outcome for every other organization.
+  - Store terminal state in ECS game logic, rather than in a MonoBehaviour, so Unity and headless callers observe the same result and repeated evaluation cannot replace it.
+- Published result and update freeze:
+  - Add a game-result enum with `InProgress`, `Win`, and `Lose`, plus a completion-state model carrying `IsCompleted`, the winner organization ID, and organization outcomes.
+  - Expose the player-facing result through `src/Game.Main/VisualState.cs` and populate it from `VisualStateConverter` using the current player organization.
+  - In `GameLogic.Update`, evaluate completion after all state-changing systems and commands for the tick, then run the final `VisualStateConverter.Update`. On later calls, return before simulation and command processing so the terminal world and visual state remain unchanged.
+- Verification coverage:
+  - Add focused headless tests for both thresholds and equality, OR composition, multi-effect aggregation, zero-country handling, non-qualifying states, deterministic simultaneous qualifiers, player win/lose projection, final-state publication, and the post-completion update/command freeze.
 
 ## Out of Scope
 
