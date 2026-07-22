@@ -203,7 +203,7 @@
 }
 
 .gs-icon--png-control {
-    background-image: url("project://database/Assets/UI/Icons/control.svg?fileID=11400000&guid=dc912c33694389345a78cfdfb52e2299&type=3#control");
+    background-image: url("project://database/Assets/UI/Icons/control.png?fileID=2800000&guid=5000d0a84170c354f8e76b2c31b7e13e&type=3#control");
 }
 
 .gs-icon--png-crown {
