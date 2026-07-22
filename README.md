@@ -54,7 +54,7 @@ Feature work follows a strict pipeline of custom Claude Code commands ([`.claude
 
 ### 2. "Ralph loop" — autonomous fresh-context implementation
 
-The most advanced piece: [`scripts/ralph.ps1`](scripts/ralph.ps1) + [`.ralph/`](.ralph/) implement an **autonomous agent loop** that turns an approved plan into working, committed code without a human in the loop:
+The most advanced piece: [`scripts/automation/claude/ralph.ps1`](scripts/automation/claude/ralph.ps1) + [`.ralph/`](.ralph/) implement an **autonomous agent loop** that turns an approved plan into working, committed code without a human in the loop:
 
 1. `/create-prd` converts a plan into a machine-readable task list (`.ralph/prd.md`) where **every task carries a verification gate** — `dotnet build`, `dotnet test`, a Python config-validation script, or a Unity compile/console check via MCP.
 2. The loop runs `claude -p` with a **fresh context per iteration**: each iteration reads the task list and an activity journal, picks exactly one unfinished task, implements it, runs its gate, and may only mark the task done if the gate actually passes (with output evidence journaled).
@@ -76,8 +76,8 @@ Via Unity MCP, Claude works inside the running editor rather than blindly editin
 
 ### 5. AI-powered content & data pipelines
 
-- **Character portraits** — generated locally with ComfyUI + FLUX via scripted batch pipelines ([`scripts/generate_image.py`](scripts/generate_image.py)), with a documented prompt recipe per character role and region.
-- **Province generation** — a two-stage geo pipeline ([`scripts/generate_provinces.py`](scripts/generate_provinces.py)): Python (geopandas/shapely/scipy) reconstructs 1880 borders, intersects them with Natural Earth admin regions or falls back to deterministic seeded Voronoi tessellation, names provinces from nearest historical settlements, simplifies geometry for WebGL — then a C# stage cross-validates and emits runtime configs. Fully reproducible, warnings-audited, and localized (including automated Latin→Cyrillic handling).
+- **Character portraits** — generated locally with ComfyUI + FLUX via scripted batch pipelines ([`scripts/utils/generate_image.py`](scripts/utils/generate_image.py)), with a documented prompt recipe per character role and region.
+- **Province generation** — a two-stage geo pipeline ([`scripts/utils/generate_provinces.py`](scripts/utils/generate_provinces.py)): Python (geopandas/shapely/scipy) reconstructs 1880 borders, intersects them with Natural Earth admin regions or falls back to deterministic seeded Voronoi tessellation, names provinces from nearest historical settlements, simplifies geometry for WebGL — then a C# stage cross-validates and emits runtime configs. Fully reproducible, warnings-audited, and localized (including automated Latin→Cyrillic handling).
 - **Flag assets** — era-accurate flags scripted from Wikimedia Commons with resolution checks and fallbacks.
 
 ### 6. Guardrails that make AI output trustworthy
@@ -98,8 +98,8 @@ This setup demonstrates AI adoption as an **engineering discipline**, not autoco
 Assets/            Unity project (scenes, prefabs, UI Toolkit assets, configs, generated art)
 src/               Engine-independent C# solution: custom ECS, game systems, source
                    generators, tests, console runner, live web-based ECS viewer
-scripts/           Python/PowerShell pipelines: province geo-generation, flag download,
-                   image generation, Ralph loop runner
+scripts/           automation/ (Ralph loop + GitHub issue automation, common + per-provider),
+                   utils/ (province geo-generation, flag download, image generation)
 Docs/              Constitution, 45+ numbered specs & plans (the project's paper trail)
 .claude/           The AI workflow itself: 16 custom commands, 25+ rule documents
 .ralph/            Autonomous loop state: prompt, task list (PRD), activity journal
