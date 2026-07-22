@@ -123,3 +123,26 @@ project it relative to the current player in `VisualStateConverter`. `GameComple
 wired into `GameLogic` yet; that remains the later completion-orchestration task.
 
 ---
+
+## 2026-07-22 — Expose the player-facing completion result through VisualState
+
+Task: "Expose the player-facing completion result through VisualState."
+
+**What I changed:**
+- Added `GameResult` values `InProgress`, `Win`, and `Lose`, plus observable
+  `GameCompletionState` fields for completion, winner organization ID, and player-relative result.
+- Added `GameCompletion` to `VisualState` and updated `VisualStateConverter` to project the ECS
+  completion singleton relative to the resolved player organization without evaluating game rules.
+- Kept missing or incomplete completion state projected as `InProgress` for legacy/pre-reconciliation
+  worlds, and refreshed the tracked Unity-consumed Release assemblies under `Assets/Plugins/Core`.
+- Bumped `ProjectSettings/ProjectSettings.asset` bundle version from `1.45` to `1.46`.
+
+**Gate:** `dotnet build src/GlobalStrategy.Core.sln -c Release` exited 0. Evidence:
+`Build succeeded.`, 0 warnings, 0 errors; all solution projects built, including the updated
+`Game.Main.dll`, in 18.94 seconds.
+
+The next iteration should wire the configured completion condition and singleton into `GameLogic`,
+evaluate after all winning-tick mutations, publish the final state, freeze later gameplay, and guard
+bot behavior after terminal completion.
+
+---

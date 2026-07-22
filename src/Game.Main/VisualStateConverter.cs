@@ -43,6 +43,7 @@ namespace GS.Main {
 			UpdateTime(world, gameTimeEntity);
 			UpdateLocale(world, localeEntity);
 			UpdatePlayerOrganization(world, orgEntity);
+			UpdateGameCompletion(world, orgEntity);
 			UpdateResources(world);
 			UpdateSelectedControl(world);
 			UpdateCharacters(world, orgEntity);
@@ -257,6 +258,32 @@ namespace GS.Main {
 			ref Organization org = ref world.Get<Organization>(orgEntity);
 			_hqCountryByOrgId.TryGetValue(org.OrganizationId, out var hqCountryId);
 			_state.PlayerOrganization.Set(true, org.OrganizationId, org.DisplayName, hqCountryId ?? "");
+		}
+
+		void UpdateGameCompletion(IReadOnlyWorld world, int orgEntity) {
+			int[] required = { TypeId<GameCompletion>.Value };
+			foreach (Archetype archetype in world.GetMatchingArchetypes(required, null)) {
+				if (archetype.Count == 0) {
+					continue;
+				}
+
+				GameCompletion completion = archetype.GetColumn<GameCompletion>()[0];
+				if (!completion.IsCompleted) {
+					_state.GameCompletion.Set(false, completion.WinnerOrganizationId ?? "", GameResult.InProgress);
+					return;
+				}
+
+				string playerOrganizationId = orgEntity >= 0
+					? world.Get<Organization>(orgEntity).OrganizationId
+					: "";
+				GameResult result = playerOrganizationId == completion.WinnerOrganizationId
+					? GameResult.Win
+					: GameResult.Lose;
+				_state.GameCompletion.Set(true, completion.WinnerOrganizationId ?? "", result);
+				return;
+			}
+
+			_state.GameCompletion.Set(false, "", GameResult.InProgress);
 		}
 
 		void UpdateResources(IReadOnlyWorld world) {
