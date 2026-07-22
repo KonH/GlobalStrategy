@@ -1,3 +1,9 @@
+---
+paths:
+  - "Assets/Localization/**"
+  - "Assets/Scripts/Unity/UI/**"
+---
+
 # Localization
 
 ## Architecture

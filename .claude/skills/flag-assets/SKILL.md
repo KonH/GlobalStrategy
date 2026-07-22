@@ -1,3 +1,8 @@
+---
+name: flag-assets
+description: Add or troubleshoot country flag and org image assets (Assets/Textures/Flags/Countries and Orgs) sourced from Wikimedia Commons, including the download_flags.py/check_flags.py/svg_to_png.py scripts and CountryVisualConfig/OrgVisualConfig wiring. Load when adding a new country flag or org image.
+---
+
 # Flag and Org Image Assets
 
 Flag PNGs live in `Assets/Textures/Flags/Countries/<countryId>.png` and org images in `Assets/Textures/Flags/Orgs/<orgId>.png`. All assets are sourced from Wikimedia Commons and downloaded as server-side PNG renders — no local SVG rendering required for download.

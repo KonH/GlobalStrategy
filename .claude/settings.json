@@ -21,7 +21,15 @@
     ],
     "deny": []
   },
-  "hooks": {},
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python \"${CLAUDE_PROJECT_DIR}/scripts/stats/collect_usage.py\" --hook" }
+        ]
+      }
+    ]
+  },
   "enabledPlugins": {
     "k@claude-tools": true
   },

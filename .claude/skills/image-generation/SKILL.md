@@ -1,3 +1,8 @@
+---
+name: image-generation
+description: Generate character portraits and other art via the local ComfyUI + FLUX pipeline (scripts/utils/generate_image.py / generate_images_batch.py). Load when creating character portraits or other generated images for Assets/Textures.
+---
+
 # Image Generation (ComfyUI + FLUX)
 
 ## Folder structure

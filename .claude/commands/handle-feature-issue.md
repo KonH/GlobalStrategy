@@ -80,6 +80,20 @@ As soon as you identify what triggered processing for an issue, react to it imme
 - Triggered by a new comment → add an `eyes` reaction to that specific comment.
 - Triggered by a new reaction (no new comment) → add an `eyes` reaction to the **marker comment the owner reacted on** (`gh api repos/KonH/GlobalStrategy/issues/comments/<comment-id>/reactions -f content=eyes`). You can't react to a reaction, but you can react to the comment it landed on — do this even though it already has a 👍, since that's the only visible sign the run was actually picked up before it produces its next comment. This matters most for section 4b (the Ralph loop), which can run for many minutes with no new comment until it finishes — without this, there's no way to tell from the issue alone whether the 👍 has been seen yet, short of noticing the `claude-in-progress` label.
 
+## Usage stats marker
+
+Whenever this run **completes drafting a spec** (section 2) or **completes drafting a plan** (section 3b), emit one line, on its own, anywhere in your response for that issue:
+
+```
+USAGE_STAGE: <spec-folder-name> spec
+```
+or
+```
+USAGE_STAGE: <spec-folder-name> plan
+```
+
+`scripts/automation/claude/handle_issues.py` scans its own captured output for these lines after this process exits, and records a `stage="spec"`/`stage="plan"` row (mode `automated`) in `Docs/Specs/<spec-folder-name>/usage.csv` — the wrapper's own Python code has no visibility into which spec a given phase belongs to (it only sees one aggregate result for the whole batch of candidates), so this marker is the only way that information reaches it. Emit exactly one marker per issue per phase completed this cycle; omit it entirely for clarification-only turns (3a/4c), merge/classify (3c), and implementation work (4a-4d, already recorded separately by `ralph.py` itself).
+
 ## Bounded clarification loop
 
 Before posting another `Clarification Needed` comment in the current phase, count how many `Clarification Needed` comments already exist since the last `Spec Summary`/`Plan Summary` (whichever starts the current phase). If this would be the **4th**, don't ask again — instead post `## Needs Manual Attention` explaining the loop hasn't converged, apply the `claude-needs-attention` label, and stop. A later human comment on the issue is still picked up normally next run (new `updatedAt` → new candidate) and should be treated as a fresh attempt, implicitly resetting this — remove `claude-needs-attention` once you resume normal handling of it.
@@ -113,7 +127,7 @@ Fetch `gh api repos/KonH/GlobalStrategy/issues/<N>/comments` and, for each comme
 6. `git add`, `git commit`, `git push -u origin claude/issue-<issue-number>-<slug>`.
 7. Open the PR: `gh pr create --repo KonH/GlobalStrategy --title "<feature name>" --base main --head claude/issue-<issue-number>-<slug> --body "Part of #<issue-number>\n\n<brief summary>"`. Deliberately **not** `Closes` — this PR only carries the spec+plan; merging it must not auto-close the issue, since the implementation lifecycle (section 4) still needs it open. The eventual implementation PR is what carries `Closes #<issue-number>`.
 8. Post on the **issue** (not the PR): marker line, then `## Spec Summary`, then the spec's presentation content and any clarifying questions, then a link to the PR.
-9. Update the progress checklist: check "Spec drafted," fill in `**Spec:**` (the folder `/specify` just created) and `**PR:**`, status → the `SPEC_REVIEW` wording above.
+9. Update the progress checklist: check "Spec drafted," fill in `**Spec:**` (the folder `/specify` just created) and `**PR:**`, status → the `SPEC_REVIEW` wording above. Emit the `USAGE_STAGE: <spec-folder-name> spec` marker (see "Usage stats marker" above).
 10. Stop. Do **not** run `/plan` yet — that only happens after a 👍 on the Spec Summary/Conclusion comment (section 3b).
 
 ## 3. Existing PR: handle new activity
@@ -133,7 +147,7 @@ Fetch `gh api repos/KonH/GlobalStrategy/issues/<N>/comments` and, for each comme
 2. Invoke the `plan` command/skill (`.claude/commands/plan.md`) against the existing spec. It checks `Docs/Constitution.md`, writes `plan.md` into the same spec folder, and normally surfaces constitution violations + "stops and waits for user feedback" per `.claude/rules/workflow.md` — capture that content.
 3. `git add`, `git commit`, `git push` to the same branch.
 4. Post on the issue: marker line, `## Plan Summary`, the plan's presentation content (including any constitution violations flagged), and any clarifying questions.
-5. Update the progress checklist: check "Spec approved" and "Plan drafted," status → `PLAN_REVIEW` wording.
+5. Update the progress checklist: check "Spec approved" and "Plan drafted," status → `PLAN_REVIEW` wording. Emit the `USAGE_STAGE: <spec-folder-name> plan` marker (see "Usage stats marker" above).
 6. Stop. Do **not** merge yet — that only happens after a 👍 on a Plan Summary/Conclusion comment.
 
 ### 3c. New reaction on a Plan Summary/Conclusion comment — merge

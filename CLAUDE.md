@@ -36,7 +36,8 @@
 - **Unity WebGL gotchas:** `.claude/rules/unity/webgl.md`
 - **Game loop integration from UI:** `.claude/rules/unity/game_loop_integration.md`
 - **Animation barriers:** `.claude/rules/animation_barriers.md`
-- **Flag & org image assets:** `.claude/rules/flag_assets.md`
+- **Flag & org image assets:** `flag-assets` skill
+- **Image generation (ComfyUI):** `image-generation` skill
 - **Temporary scripts:** `.claude/rules/temp_scripts.md`
 - **Learning workflow:** `.claude/commands/learn.md`
-- **GitHub issue → spec automation:** `.claude/rules/github_issue_automation.md` — cron script (`scripts/automation/claude/handle_issues.py`) that turns owner-authored issues into spec PRs via `.claude/commands/handle-feature-issue.md`
+- **GitHub issue → spec automation:** `github-issue-automation` skill — cron script (`scripts/automation/claude/handle_issues.py`) that turns owner-authored issues into spec PRs via `.claude/commands/handle-feature-issue.md`

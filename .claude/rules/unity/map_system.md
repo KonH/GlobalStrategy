@@ -1,3 +1,8 @@
+---
+paths:
+  - "Assets/Scripts/**/Map/**"
+---
+
 # Map System Architecture
 
 ## Rendering model — all lenses render via ProvinceRenderer

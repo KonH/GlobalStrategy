@@ -1,3 +1,9 @@
+---
+paths:
+  - "**/*Barrier*.cs"
+  - "**/*Animatable*.cs"
+---
+
 # Animation Barrier Conventions
 
 `AnimatableInt` and `AnimatableDouble` support barriers via `Hold(offset)`. The barrier adds `offset` to `Display` until released via `barrier.Release(duration)`, which animates the offset back to zero.
