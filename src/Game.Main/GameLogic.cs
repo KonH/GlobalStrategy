@@ -207,10 +207,85 @@ namespace GS.Main {
 			string json = _context.Storage.Read($"Saves/{saveName}.json");
 			var snapshot = _context.Serializer.Deserialize(json);
 			LoadSystem.Apply(snapshot, _world);
+			_commandAccessor.Clear();
 			if (!string.IsNullOrEmpty(snapshot.Header.SessionId)) {
 				_sessionId = snapshot.Header.SessionId;
 			}
 			RefreshSingletonEntities();
+			ReconcileLoadedCompletionState();
+			RefreshSingletonEntities();
+			_previousTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
+			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool);
+			_visualStateConverter.Update(0f, _world, _gameTimeEntity, _localeEntity, _orgEntity);
+		}
+
+		void ReconcileLoadedCompletionState() {
+			if (_gameCompletionEntity < 0) {
+				_gameCompletionEntity = _world.Create();
+				_world.Add(_gameCompletionEntity, new GameCompletion {
+					IsCompleted = false,
+					WinnerOrganizationId = ""
+				});
+			}
+
+			var organizations = new Dictionary<string, int>(StringComparer.Ordinal);
+			var savedOrders = new HashSet<int>();
+			var missingOutcomeIds = new HashSet<string>(StringComparer.Ordinal);
+			int[] required = { TypeId<Organization>.Value };
+			foreach (Archetype archetype in _world.GetMatchingArchetypes(required, null)) {
+				Organization[] organizationComponents = archetype.GetColumn<Organization>();
+				for (int i = 0; i < archetype.Count; i++) {
+					string organizationId = organizationComponents[i].OrganizationId;
+					int entity = archetype.Entities[i];
+					if (!organizations.TryAdd(organizationId, entity)) {
+						throw new InvalidOperationException(
+							$"Cannot reconcile loaded completion state: duplicate organization ID '{organizationId}'.");
+					}
+
+					if (_world.Has<OrganizationGameOutcome>(entity)) {
+						int order = _world.Get<OrganizationGameOutcome>(entity).ParticipationOrder;
+						if (order < 0 || !savedOrders.Add(order)) {
+							throw new InvalidOperationException(
+								$"Cannot reconcile loaded completion state: participation order {order} is invalid or duplicated.");
+						}
+					} else {
+						missingOutcomeIds.Add(organizationId);
+					}
+				}
+			}
+
+			var reconstructionOrder = new List<string>();
+			if (_context.ParticipatingOrganizationIds != null && _context.ParticipatingOrganizationIds.Count > 0) {
+				foreach (string organizationId in _context.ParticipatingOrganizationIds) {
+					if (missingOutcomeIds.Contains(organizationId) && !reconstructionOrder.Contains(organizationId)) {
+						reconstructionOrder.Add(organizationId);
+					}
+				}
+			} else if (!string.IsNullOrEmpty(_context.InitialOrganizationId)
+				&& missingOutcomeIds.Contains(_context.InitialOrganizationId)) {
+				reconstructionOrder.Add(_context.InitialOrganizationId);
+			}
+
+			var unmatched = new List<string>(missingOutcomeIds);
+			unmatched.Sort(StringComparer.Ordinal);
+			foreach (string organizationId in unmatched) {
+				if (!reconstructionOrder.Contains(organizationId)) {
+					reconstructionOrder.Add(organizationId);
+				}
+			}
+
+			int nextOrder = 0;
+			foreach (string organizationId in reconstructionOrder) {
+				while (savedOrders.Contains(nextOrder)) {
+					nextOrder++;
+				}
+				_world.Add(organizations[organizationId], new OrganizationGameOutcome {
+					ParticipationOrder = nextOrder,
+					Result = OrganizationGameResult.InProgress
+				});
+				savedOrders.Add(nextOrder);
+				nextOrder++;
+			}
 		}
 
 		void SaveGame(bool isAutoSave) {

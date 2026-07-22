@@ -173,3 +173,28 @@ when loading snapshots. Focused completion orchestration regression coverage rem
 `completion-system-tests` task.
 
 ---
+
+## 2026-07-22 — Reconcile completion state when loading snapshots
+
+Task: "Reconcile completion state, participant order, and immediate projection when loading snapshots."
+
+**What I changed:**
+- Updated `src/Game.Main/GameLogic.cs` to clear pre-load commands, refresh loaded singleton IDs,
+  restore `_previousTime` from the loaded `GameTime`, evaluate completion once, and immediately
+  project the loaded state with zero delta.
+- Added legacy-load reconciliation that creates a missing in-progress `GameCompletion`, preserves
+  valid saved outcome orders, and reconstructs missing outcomes from configured participant order,
+  the initial-player fallback, then unmatched loaded organizations in ordinal order.
+- Added fail-fast validation for duplicate loaded organization IDs, negative participation orders,
+  and duplicate saved participation orders.
+- Bumped `ProjectSettings/ProjectSettings.asset` bundle version from `1.47` to `1.48`.
+
+**Gate:** `$env:DOTNET_ROLL_FORWARD='Major'; dotnet test src/GlobalStrategy.Core.sln` exited 0.
+Evidence: ECS.Tests passed 34/34, ECS.Viewer.Tests passed 16/16, and Game.Tests passed 335/335;
+385 total tests, 0 failed. Major roll-forward was required because this runner provides the .NET 10
+runtime rather than the targeted .NET 8 runtime.
+
+The next iteration should add configuration and completion-condition tree regression coverage.
+Focused legacy/terminal persistence cases remain in the later `completion-persistence-tests` task.
+
+---

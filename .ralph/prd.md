@@ -104,7 +104,7 @@ End an in-progress game when one participating organization satisfies the config
 			"Evaluate the configured condition once against the restored world and immediately run VisualStateConverter.Update with zero delta so loaded terminal results are observable without advancing simulation."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "completion-condition-tests",
