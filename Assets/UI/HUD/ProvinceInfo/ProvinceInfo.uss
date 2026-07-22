@@ -1,0 +1,29 @@
+.province-bar {
+    flex-direction: column;
+}
+
+.province-name-header {
+    font-size: 28px;
+    color: rgb(240, 232, 208);
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+}
+
+.province-country-name {
+    font-size: 22px;
+    color: rgb(240, 232, 208);
+}
+
+.province-owner-occupant-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.province-country-chip {
+    margin-right: 24px;
+}
+
+.province-owner-row--occupied {
+    opacity: 0.5;
+}

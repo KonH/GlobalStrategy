@@ -145,6 +145,22 @@
     display: none;
 }
 
+.province-info-panel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgb(26, 42, 72);
+    border-color: rgb(200, 160, 64);
+    border-top-width: 3px;
+    border-left-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-radius: 0;
+    padding: 16px 16px;
+    display: none;
+}
+
 .lens-switcher-panel {
     position: absolute;
     bottom: 280px;

@@ -368,6 +368,7 @@ namespace GS.Main {
 
 		public bool IsValid { get; private set; }
 		public string ProvinceId { get; private set; } = "";
+		public CountryResourcesState Resources { get; } = new CountryResourcesState();
 
 		public void Set(bool isValid, string provinceId) {
 			IsValid = isValid;

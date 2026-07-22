@@ -5,6 +5,7 @@
     <ui:Template name="LensSwitcher" src="project://database/Assets/UI/HUD/LensSwitcher/LensSwitcher.uxml"/>
     <ui:Template name="OrgLensCountryInfo" src="project://database/Assets/UI/HUD/OrgLensCountryInfo/OrgLensCountryInfo.uxml"/>
     <ui:Template name="ActionLog" src="project://database/Assets/UI/HUD/ActionLog/ActionLog.uxml"/>
+    <ui:Template name="ProvinceInfo" src="project://database/Assets/UI/HUD/ProvinceInfo/ProvinceInfo.uxml"/>
     <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
     <ui:Style src="project://database/Assets/UI/HUD/HUD.uss?fileID=7433441132597879392&amp;guid=960ca7226a908b347be612c19639c422&amp;type=3#HUD"/>
     <ui:Style src="project://database/Assets/UI/Overlay/OrgInfo/OrgActions.uss"/>
@@ -14,6 +15,7 @@
             <ui:Button name="btn-leaderboard" text="Leaderboard" class="gs-btn leaderboard-hud-button"/>
         </ui:VisualElement>
         <ui:Instance template="CountryInfo" name="country-info" class="country-info-panel"/>
+        <ui:Instance template="ProvinceInfo" name="province-info" class="province-info-panel"/>
         <ui:Instance template="OrgLensCountryInfo" name="org-lens-country-info" class="org-lens-country-info-panel"/>
         <ui:Instance template="LensSwitcher" name="lens-switcher" class="lens-switcher-panel"/>
 <ui:VisualElement name="top-center" class="top-center-panel" picking-mode="Ignore">
