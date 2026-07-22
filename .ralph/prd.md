@@ -35,7 +35,7 @@ End an in-progress game when one participating organization satisfies the config
 			"Fail fast with contextual errors for unknown types, empty any groups, non-positive capacity, and invalid thresholds."
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "completion-state",
