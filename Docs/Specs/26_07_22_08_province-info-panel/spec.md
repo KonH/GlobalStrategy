@@ -6,20 +6,63 @@ As a player exploring the map in the Province lens, I want a selected-province i
 
 ## Acceptance Criteria
 
-Legend: `Precondition => Action => Outcome`
+Legend: `Precondition => Action => Outcome`, grouped under a shared precondition where one applies to several rows.
 
-- The Province map lens is active and the player clicks a province polygon => `MapClickHandler.HandleProvinceClick` pushes `SelectProvinceCommand { ProvinceId = provinceId }` and `GameLogic.ApplySelectProvince` processes it => `VisualState.SelectedProvince.IsValid` becomes `true` and a new player-facing province info panel becomes visible in the HUD.
-- The province panel is visible for a valid `VisualState.SelectedProvince.ProvinceId` => it renders its header => the header Label text comes from `_loc.Get($"province_name.{provinceId}")` (the locale key convention documented in `.claude/rules/unity/province_config_generator.md`), never a raw `provinceId`.
-- The province panel is visible => it resolves the current owner => it reads `VisualState.ProvinceOwnership.OwnerByProvinceId[provinceId]` (per `.claude/rules/unity/map_system.md`'s runtime-ownership-first rule) and displays the owner's flag (`CountryVisualConfig.Find(ownerId)?.flag`) and localized name (`_loc.Get($"country_name.{ownerId}")`), mirroring the flag/name construction already used by `CountryInfoView` and `OrgLensCountryView`.
-- The owner flag+name row is clicked => the pointer-up lands inside its bounds => the interaction is implemented via `PointerUpEvent` + a manual `ContainsPoint` check (per the documented Unity 6000.4.1f1 `Button.clicked`/`ClickEvent` bug — never those APIs) and pushes both `SelectCountryCommand(ownerId)` (the same command `MapClickHandler` already pushes when clicking a country in a non-Province lens) and a lens-change command switching `MapLens.Lens` away from `Province` (e.g. to `Political`) in the same frame, so the now-selected country's info panel becomes immediately visible per the action-before-pause command-ordering convention (`.claude/rules/unity/game_loop_integration.md`).
-- `VisualState.ProvinceOccupation.OccupierByProvinceId` has no entry for the selected province, or its entry equals the current owner id (the existing "occupier == owner counts as visually unoccupied" rule from `Docs/Specs/26_07_18_19_province-occupation/spec.md`) => the panel renders => only the single owner flag/name row is shown, at full opacity/color, with no occupant row.
-- `VisualState.ProvinceOccupation.OccupierByProvinceId[provinceId]` holds an occupier id different from the current owner id => the panel renders => both flag/name chips are laid out side-by-side in a single horizontal row (not stacked): the owner's chip first, rendered semi-transparent and gray (reduced opacity plus a neutral/gray tint, the same category of treatment as the `opacity: 0.5` disabled-state pattern already used elsewhere in `Assets/UI/Shared/SharedStyles.uss`), followed by a second, full-opacity chip for the occupier (`CountryVisualConfig.Find(occupierId)?.flag`, `_loc.Get($"country_name.{occupierId}")`).
-- The occupant chip is visible and clicked => the pointer-up lands inside its bounds => it triggers the identical click-to-select interaction as the owner row — `SelectCountryCommand(occupierId)` plus the same lens-change command — using the same `PointerUpEvent`/`ContainsPoint` pattern; both chips are independently clickable regardless of the grayed-out treatment on the owner chip.
-- The province panel is showing resources => it builds the resource list => it reuses the same generic resource-row rendering `CountryInfoView`'s `ResourcesView` already uses for country resources, sourced from whichever ECS `Resource`/`ResourceOwner` entities currently have `OwnerId == provinceId` — today that is only the `population` resource (`ResourceOwner.OwnerType.Province`, seeded by `InitSystem`/consumed today only by `CountryPopulationCollector`'s country-level aggregation) — and shows every such entry unfiltered and uncurated, with no limiting/prioritization UX (that curation is explicitly deferred to GitHub issue #41 per the user's request).
-- No province has ever been selected, or the selection was cleared (`SelectProvinceCommand { ProvinceId = "" }`, e.g. clicking open water while the Province lens is active, per `MapClickHandler.HandleProvinceClick`) => `VisualState.SelectedProvince.IsValid` is `false` => the province panel is hidden (`style.display = DisplayStyle.None`), the same `IsValid`-gated hide pattern `CountryInfoView.Refresh` already uses for `SelectedCountryState`.
-- A province is selected and the player switches the active map lens away from `Province` => the lens change takes effect => the province panel is hidden, symmetric to how `HUDDocument.RefreshCountryViews`'s existing `isProvinceLens` branch already force-hides the country-info panel while the Province lens is active — this feature adds the mirror-image hide for the new panel in the non-Province-lens branches, without mutating `VisualState.SelectedProvince` itself (the selection is preserved, only its visual surface is hidden).
-- The province panel is visible => `VisualState.ProvinceOwnership.PropertyChanged` or `VisualState.ProvinceOccupation.PropertyChanged` fires for the currently selected province (e.g. via the existing debug ownership/occupation cheats) => the panel's owner/occupier rows refresh immediately, the same way `MapLensApplier` already reacts to both of those events to recolor the map.
-- The selected province currently has zero resource entities owned by it => the panel renders => the resources container is simply empty — no error, no placeholder text — mirroring the existing empty-state behavior of `ResourcesView.Refresh`.
+- Panel visibility
+  - Player clicks a province while the Province lens is active => the province info panel opens, showing that province
+  - No province is selected, or the selection is cleared (e.g. clicking open water) => the panel is hidden
+  - Player switches the active map lens away from Province => the panel is hidden (the selection itself is kept, only the panel hides)
+
+- Panel content, while visible
+  - Renders its header => shows the province's localized name (never a raw province id)
+  - Resolves the current owner => shows the owner's flag and localized country name
+  - Builds the resources list => shows every resource the province currently has, unfiltered (today: just population; see "Out of Scope")
+  - Province currently has zero resources => the resources section is simply empty, no placeholder text
+
+- Occupation display
+  - Province has no occupier, or the occupier is the same country as the owner => only the owner row is shown, full color, no occupant row
+  - Province has an occupier different from its owner => owner row shown grayed out/semi-transparent, occupier row shown full-color, both side by side in one row
+
+- Click-to-select
+  - Player clicks the owner row => selects that country and switches the map lens off Province so the country's own info panel becomes visible
+  - Player clicks the occupant row => same as above, but selects the occupier's country
+
+- Live refresh
+  - Owner or occupier changes while the panel is visible (e.g. via existing debug cheats) => the panel's rows update immediately, no stale flag/name left showing
+
+## Tech Notes
+
+Maps each product-facing behaviour above to its concrete implementation.
+
+- Player clicks a province while the Province lens is active:
+  - `MapClickHandler.HandleProvinceClick` pushes `SelectProvinceCommand { ProvinceId = provinceId }`
+  - `GameLogic.ApplySelectProvince` processes it, setting `VisualState.SelectedProvince.IsValid = true`
+- No province selected / selection cleared:
+  - `SelectProvinceCommand { ProvinceId = "" }` (e.g. clicking open water) sets `VisualState.SelectedProvince.IsValid = false`
+  - Panel hides via `style.display = DisplayStyle.None`, the same pattern `CountryInfoView.Refresh` already uses for `SelectedCountryState`
+- Player switches lens away from Province:
+  - Mirrors `HUDDocument.RefreshCountryViews`'s existing `isProvinceLens` branch, which already force-hides the country-info panel while the Province lens is active; this feature adds the inverse hide for the new panel in the non-Province-lens branches
+  - `VisualState.SelectedProvince` itself is not mutated — only the panel's visual surface is hidden
+- Header:
+  - Text = `_loc.Get($"province_name.{provinceId}")`, per the locale key convention in `.claude/rules/unity/province_config_generator.md`
+- Owner resolution:
+  - Reads `VisualState.ProvinceOwnership.OwnerByProvinceId[provinceId]` (runtime-ownership-first rule, `.claude/rules/unity/map_system.md`)
+  - Flag: `CountryVisualConfig.Find(ownerId)?.flag`; name: `_loc.Get($"country_name.{ownerId}")` — same construction `CountryInfoView`/`OrgLensCountryView` already use
+- Resources list:
+  - Reuses `CountryInfoView`'s `ResourcesView` generic resource-row rendering
+  - Sourced from ECS `Resource`/`ResourceOwner` entities with `OwnerId == provinceId` — today only `population` (`ResourceOwner.OwnerType.Province`, seeded by `InitSystem`, otherwise consumed only by `CountryPopulationCollector`'s country-level aggregation)
+  - No limiting/prioritization UX — that curation is deferred to GitHub issue #41
+  - Empty state mirrors `ResourcesView.Refresh`'s existing empty-state behavior (empty container, no placeholder)
+- Occupation rules:
+  - `VisualState.ProvinceOccupation.OccupierByProvinceId` has no entry, or its entry equals the owner id => treated as unoccupied (same rule established in `Docs/Specs/26_07_18_19_province-occupation/spec.md`)
+  - When occupied: owner chip gets the semi-transparent/gray treatment (same category as the `opacity: 0.5` disabled-state pattern already used elsewhere in `Assets/UI/Shared/SharedStyles.uss`); occupier chip is full-opacity, built from `CountryVisualConfig.Find(occupierId)?.flag` / `_loc.Get($"country_name.{occupierId}")`
+  - Both chips are laid out side-by-side in a single horizontal row, not stacked
+- Click-to-select (owner and occupant rows alike):
+  - Implemented via `PointerUpEvent` + a manual `ContainsPoint` check (per the documented Unity 6000.4.1f1 `Button.clicked`/`ClickEvent` bug — never those APIs)
+  - Pushes `SelectCountryCommand(id)` (the same command `MapClickHandler` already pushes for non-Province-lens country clicks) plus a lens-change command switching `MapLens.Lens` away from `Province` (e.g. to `Political`), both in the same frame, per the action-before-pause command-ordering convention (`.claude/rules/unity/game_loop_integration.md`)
+  - The occupant row is independently clickable, regardless of the owner row's grayed-out treatment
+- Live refresh:
+  - Panel subscribes to `VisualState.ProvinceOwnership.PropertyChanged` and `VisualState.ProvinceOccupation.PropertyChanged` — the same events `MapLensApplier` already reacts to for map recoloring
 
 ## Out of Scope
 
@@ -32,10 +75,3 @@ Legend: `Precondition => Action => Outcome`
 - Hover-triggered or tooltip-only province previews — this is a click-to-select panel, matching the existing click-to-select country panel, not a hover preview.
 - Multi-province selection, comparison views, or any change to `SelectedProvinceState` supporting more than one concurrently selected province.
 - Any change to the existing debug-only "Selected province" menu in `HUDDocument.cs` (`RefreshSelectedProvinceDebugMenu` and its cheat buttons) — that remains a separate, developer-facing surface untouched by this feature.
-
-## Resolved Decisions
-
-- Clicking the owner or occupant flag/name row pushes `SelectCountryCommand` **and** a lens-change command (switching away from `Province`, e.g. to `Political`) in the same frame, so the country info panel becomes visible immediately rather than selecting silently in the background.
-- Owner and occupant chips render side-by-side in a single row (owner grayed out first, occupant full-color second), not stacked.
-- The occupant chip is independently clickable, identical to the owner chip.
-- The resources section shows whatever province-scoped resource entities currently exist (today: only `population`) unfiltered, even though that means a single row for now — no additional province-scoped resources are introduced by this feature.
