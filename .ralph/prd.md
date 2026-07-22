@@ -46,7 +46,7 @@ End an in-progress game when one participating organization satisfies the config
 			"Keep outcomes attached directly to Organization entities."
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "completion-initialization",

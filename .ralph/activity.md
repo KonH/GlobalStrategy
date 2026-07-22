@@ -51,3 +51,25 @@ components. Condition behavior has compilation coverage here; focused regression
 the later `completion-condition-tests` task.
 
 ---
+
+## 2026-07-22 — Add savable completion and organization outcome components
+
+Task: "Add savable ECS completion and per-organization outcome components."
+
+**What I changed:**
+- Added `src/Game.Components/GameCompletion.cs` with the savable terminal flag and winner
+  organization ID.
+- Added `src/Game.Components/OrganizationGameOutcome.cs` with the savable participation order,
+  `OrganizationGameResult`, and `InProgress`, `Winner`, and `Loser` values.
+- Kept organization outcomes shaped for direct attachment to existing organization entities.
+- Refreshed the tracked Unity-consumed Release assemblies under `Assets/Plugins/Core` and bumped
+  `ProjectSettings.asset` bundle version from `1.42` to `1.43` for the commit.
+
+**Gate:** `dotnet build src/GlobalStrategy.Core.sln -c Release` exited 0. Evidence:
+`Build succeeded.`, 0 warnings, 0 errors; all solution projects built, including the updated
+`Game.Components.dll`, in 7.13 seconds.
+
+The next iteration should initialize exactly one in-progress completion singleton and attach
+ordered in-progress outcomes to every resolved participant in `InitSystem`.
+
+---
