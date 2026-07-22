@@ -18,6 +18,8 @@ namespace GS.Game.Tests {
 			typeof(ResourceLink),
 			typeof(ResourceEffect),
 			typeof(Organization),
+			typeof(GameCompletion),
+			typeof(OrganizationGameOutcome),
 			typeof(ControlEffect),
 			typeof(DiscoveredCountry),
 			typeof(ProvinceOccupation)

@@ -138,7 +138,7 @@ End an in-progress game when one participating organization satisfies the config
 			"Cover legacy snapshots without completion components, participant entities restored through different archetypes, reconstructed order, and isolation from commands queued before load."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "verification",
