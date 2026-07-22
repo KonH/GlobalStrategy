@@ -1,3 +1,9 @@
+---
+paths:
+  - "Assets/Prefabs/UI/**"
+  - "Assets/UI/**"
+---
+
 # UI Implementation Rules
 
 ## Prefab Structure

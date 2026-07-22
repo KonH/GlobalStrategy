@@ -1,3 +1,8 @@
+---
+paths:
+  - "Assets/**"
+---
+
 # Unity MCP Usage
 
 When Unity Editor is connected via UnityMCP, prefer MCP tools over file operations.

@@ -1,3 +1,8 @@
+---
+paths:
+  - "Assets/**"
+---
+
 # Unity WebGL Build Gotchas
 
 ## StreamingAssets files are not TextAssets

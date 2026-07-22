@@ -1,3 +1,8 @@
+---
+paths:
+  - "Assets/Scripts/**/*.cs"
+---
+
 # VContainer Usage
 
 ## Composition Root

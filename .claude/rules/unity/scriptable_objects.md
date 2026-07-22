@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.cs"
+---
+
 # ScriptableObject Rules
 
 ## One type per file

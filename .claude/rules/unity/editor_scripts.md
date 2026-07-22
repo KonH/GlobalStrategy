@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/Editor/**/*.cs"
+---
+
 # Editor Scripts
 
 ## Accessing Runtime State from Menu Items

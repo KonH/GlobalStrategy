@@ -1,3 +1,9 @@
+---
+paths:
+  - "src/**/*.csproj"
+  - "Assets/Plugins/**"
+---
+
 # Unity Plugins (DLLs from src/)
 
 ## Output Path Convention
