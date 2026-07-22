@@ -634,17 +634,22 @@ namespace GS.Main {
 				_state.ProvinceOccupation.RecentNewOccupierId);
 		}
 
-		void UpdateSelectedProvince(IReadOnlyWorld world) {
+		public void UpdateSelectedProvince(IReadOnlyWorld world) {
 			int[] required = { TypeId<ProvinceSelection>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
 				if (arch.Count == 0) {
 					continue;
 				}
 				ProvinceSelection[] selections = arch.GetColumn<ProvinceSelection>();
-				_state.SelectedProvince.Set(true, selections[0].ProvinceId);
-				return;
+				string provinceId = selections[0].ProvinceId;
+				if (!string.IsNullOrEmpty(provinceId)) {
+					_state.SelectedProvince.Set(true, provinceId);
+					_state.SelectedProvince.Resources.Set(true, provinceId, BuildResources(world, provinceId));
+					return;
+				}
 			}
 			_state.SelectedProvince.Set(false, "");
+			_state.SelectedProvince.Resources.Set(false, "", new List<ResourceStateEntry>());
 		}
 
 		public void UpdateCountryScore(IReadOnlyWorld world) {

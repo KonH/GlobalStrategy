@@ -1,0 +1,18 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/HUD/ProvinceInfo/ProvinceInfo.uss" />
+    <ui:VisualElement name="province-bar" class="province-bar">
+        <ui:Label name="province-name" class="province-name-header" text="" />
+        <ui:VisualElement name="province-owner-occupant-row" class="province-owner-occupant-row">
+            <ui:VisualElement name="province-owner-row" class="flag-name-row province-country-chip">
+                <ui:VisualElement name="province-owner-flag" class="entity-flag" picking-mode="Ignore" />
+                <ui:Label name="province-owner-name" class="province-country-name" text="" />
+            </ui:VisualElement>
+            <ui:VisualElement name="province-occupant-row" class="flag-name-row province-country-chip" style="display: none;">
+                <ui:VisualElement name="province-occupant-flag" class="entity-flag" picking-mode="Ignore" />
+                <ui:Label name="province-occupant-name" class="province-country-name" text="" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="province-resources-container" class="resources-container" />
+    </ui:VisualElement>
+</ui:UXML>

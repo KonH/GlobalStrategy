@@ -393,18 +393,18 @@ No new `.asmdef`, no new VContainer registration. `ProvinceInfoView` is plain C#
 
 ### Agent Steps
 
-- [ ] **Fix `UpdateSelectedProvince` deselect bug and add resources population** — `src/Game.Main/VisualStateConverter.cs`: guard on non-empty `provinceId`, make the method `public`, call `BuildResources(world, provinceId)` into the new sub-state.
-- [ ] **Add `SelectedProvinceState.Resources`** — `src/Game.Main/VisualState.cs`: add `CountryResourcesState Resources` field.
-- [ ] **Write `src/Game.Tests/VisualStateConverterSelectedProvinceTests.cs`** — see Tests section.
-- [ ] **Run `dotnet test src/GlobalStrategy.Core.sln`** — confirm new and existing tests pass.
-- [ ] **Run `dotnet build src/GlobalStrategy.Core.sln -c Release`** — refresh `Assets/Plugins/Core/` DLLs with the `src/` changes.
-- [ ] **Create `Assets/Scripts/Unity/UI/ProvinceInfoView.cs`** — new view class per Approach step 3.
-- [ ] **Create `Assets/UI/HUD/ProvinceInfo/ProvinceInfo.uxml` and `ProvinceInfo.uss`** — per Approach step 4.
-- [ ] **Edit `Assets/UI/HUD/HUD.uxml`** — add the `ProvinceInfo` template declaration and `province-info` instance.
-- [ ] **Edit `Assets/UI/HUD/HUD.uss`** — add `.province-info-panel`.
-- [ ] **Edit `Assets/Scripts/Unity/UI/HUDDocument.cs`** — fields, `Start()` construction, `RefreshProvinceInfoView()`, click-to-select handler, subscription wiring, and the five extended handlers, per Approach step 6.
-- [ ] **Refresh Unity and check console** — `refresh_unity` then `read_console(types=["error"])`; fix any compile errors before proceeding.
-- [ ] **Confirm no stray references** — grep `HUDDocument.cs` for the exact five handler names touched to double check every one now calls `RefreshProvinceInfoView()`, and confirm `RefreshSelectedProvinceDebugMenu`/`RefreshProvinceActionButtons`/`BuildProvinceDebugUi`/debug commands were left untouched.
+- [x] **Fix `UpdateSelectedProvince` deselect bug and add resources population** — `src/Game.Main/VisualStateConverter.cs`: guard on non-empty `provinceId`, make the method `public`, call `BuildResources(world, provinceId)` into the new sub-state.
+- [x] **Add `SelectedProvinceState.Resources`** — `src/Game.Main/VisualState.cs`: add `CountryResourcesState Resources` field.
+- [x] **Write `src/Game.Tests/VisualStateConverterSelectedProvinceTests.cs`** — see Tests section.
+- [x] **Run `dotnet test src/GlobalStrategy.Core.sln`** — confirm new and existing tests pass.
+- [x] **Run `dotnet build src/GlobalStrategy.Core.sln -c Release`** — refresh `Assets/Plugins/Core/` DLLs with the `src/` changes.
+- [x] **Create `Assets/Scripts/Unity/UI/ProvinceInfoView.cs`** — new view class per Approach step 3.
+- [x] **Create `Assets/UI/HUD/ProvinceInfo/ProvinceInfo.uxml` and `ProvinceInfo.uss`** — per Approach step 4.
+- [x] **Edit `Assets/UI/HUD/HUD.uxml`** — add the `ProvinceInfo` template declaration and `province-info` instance.
+- [x] **Edit `Assets/UI/HUD/HUD.uss`** — add `.province-info-panel`.
+- [x] **Edit `Assets/Scripts/Unity/UI/HUDDocument.cs`** — fields, `Start()` construction, `RefreshProvinceInfoView()`, click-to-select handler, subscription wiring, and the five extended handlers, per Approach step 6.
+- [x] **Refresh Unity and check console** — `refresh_unity` then `read_console(types=["error"])`; fix any compile errors before proceeding.
+- [x] **Confirm no stray references** — grep `HUDDocument.cs` for the exact five handler names touched to double check every one now calls `RefreshProvinceInfoView()`, and confirm `RefreshSelectedProvinceDebugMenu`/`RefreshProvinceActionButtons`/`BuildProvinceDebugUi`/debug commands were left untouched.
 
 ### User Steps
 

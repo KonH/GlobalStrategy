@@ -16,6 +16,7 @@ namespace GS.Unity.UI {
 	public class HUDDocument : MonoBehaviour {
 		UIDocument _document;
 		CountryInfoView _countryInfo;
+		ProvinceInfoView _provinceInfo;
 		PlayerOrgView _playerOrgView;
 		TimeView _timeView;
 		TooltipSystem _tooltip;
@@ -43,6 +44,7 @@ namespace GS.Unity.UI {
 		OrgInfoDocument _orgInfoDocument;
 		VisualElement _root;
 		VisualElement _countryInfoRoot;
+		VisualElement _provinceInfoRoot;
 		int _lastOrgAgentSlotCount = -1;
 		bool _orgPanelOpen;
 		LensSwitcherView _lensSwitcher;
@@ -109,6 +111,9 @@ namespace GS.Unity.UI {
 			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _actionConfig, _actionVisualConfig, _countryVisualConfig, _orgVisualConfig);
 			_countryInfo.OnSubPanelOpened += HandleOrgSubPanelOpened;
 			_countryInfo.OnCountryActionCardClicked += HandleCountryActionCardClicked;
+			_provinceInfoRoot = _root.Q("province-info");
+			_provinceInfo = new ProvinceInfoView(_provinceInfoRoot, _loc, _resourceConfig, _tooltip, _countryVisualConfig);
+			_provinceInfo.OnCountryRowClicked += HandleProvinceInfoCountryRowClicked;
 			_playerOrgView = new PlayerOrgView(_root.Q("player-country"), _loc, _resourceConfig, _tooltip, _orgVisualConfig);
 			_lensSwitcher = new LensSwitcherView(_root.Q("lens-switcher"), _tooltip, _loc);
 			_lensSwitcher.OnLensSelected = OnLensSelected;
@@ -290,11 +295,13 @@ namespace GS.Unity.UI {
 			_state.PlayerOrganization.Characters.PropertyChanged += HandleOrgCharactersChanged;
 			_state.SelectedCountry.Control.UsedControl.PropertyChanged += HandleControlTickChanged;
 			_state.SelectedProvince.PropertyChanged += HandleSelectedProvinceChanged;
+			_state.SelectedProvince.Resources.PropertyChanged += HandleSelectedProvinceResourcesChanged;
 			_state.ProvinceOwnership.PropertyChanged += HandleProvinceOwnershipChanged;
 			_state.ProvinceOccupation.PropertyChanged += HandleProvinceOccupationChanged;
 			_state.GameLog.PropertyChanged += HandleGameLogChanged;
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			RefreshCountryViews();
+			RefreshProvinceInfoView();
 			RefreshControlDebugRow();
 			RefreshSelectedCountryCharacterDebugButtons();
 			RefreshSelectedProvinceDebugMenu();
@@ -321,6 +328,7 @@ namespace GS.Unity.UI {
 			_state.PlayerOrganization.Characters.PropertyChanged -= HandleOrgCharactersChanged;
 			_state.SelectedCountry.Control.UsedControl.PropertyChanged -= HandleControlTickChanged;
 			_state.SelectedProvince.PropertyChanged -= HandleSelectedProvinceChanged;
+			_state.SelectedProvince.Resources.PropertyChanged -= HandleSelectedProvinceResourcesChanged;
 			_state.ProvinceOwnership.PropertyChanged -= HandleProvinceOwnershipChanged;
 			_state.ProvinceOccupation.PropertyChanged -= HandleProvinceOccupationChanged;
 			_state.GameLog.PropertyChanged -= HandleGameLogChanged;
@@ -330,6 +338,7 @@ namespace GS.Unity.UI {
 			}
 			if (_countryInfo != null) { _countryInfo.OnSubPanelOpened -= HandleOrgSubPanelOpened; }
 			if (_countryInfo != null) { _countryInfo.OnCountryActionCardClicked -= HandleCountryActionCardClicked; }
+			if (_provinceInfo != null) { _provinceInfo.OnCountryRowClicked -= HandleProvinceInfoCountryRowClicked; }
 		}
 
 		void Update() {
@@ -370,6 +379,29 @@ namespace GS.Unity.UI {
 				}
 			}
 			_playerOrgView?.Refresh(_state.PlayerOrganization, _state.PlayerOrganization.Resources);
+		}
+
+		void RefreshProvinceInfoView() {
+			if (_provinceInfo == null || _state == null) {
+				return;
+			}
+			bool visible = _state.MapLens.Lens == MapLens.Province && _state.SelectedProvince.IsValid;
+			string provinceId = _state.SelectedProvince.ProvinceId;
+			string ownerId = GetProvinceOwner(provinceId);
+			string occupierId = GetProvinceOccupier(provinceId);
+			_provinceInfo.Refresh(visible, provinceId, ownerId, occupierId, _state.SelectedProvince.Resources);
+		}
+
+		void HandleProvinceInfoCountryRowClicked(string countryId) {
+			if (string.IsNullOrEmpty(countryId)) {
+				return;
+			}
+			_commands.Push(new SelectCountryCommand(countryId));
+			_commands.Push(new ChangeLensCommand { Lens = MapLens.Political });
+		}
+
+		void HandleSelectedProvinceResourcesChanged(object sender, PropertyChangedEventArgs e) {
+			RefreshProvinceInfoView();
 		}
 
 		void RefreshLeaderboardButtonText() {
@@ -468,6 +500,7 @@ namespace GS.Unity.UI {
 			_loc.SetLocale(_state.Locale.Locale);
 			RefreshLeaderboardButtonText();
 			RefreshCountryViews();
+			RefreshProvinceInfoView();
 			_timeView.Refresh(_state.Time);
 		}
 
@@ -509,19 +542,23 @@ namespace GS.Unity.UI {
 		void HandleLensChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			RefreshCountryViews();
+			RefreshProvinceInfoView();
 			RefreshSelectedProvinceDebugMenu();
 		}
 
 		void HandleSelectedProvinceChanged(object sender, PropertyChangedEventArgs e) {
+			RefreshProvinceInfoView();
 			RefreshSelectedProvinceDebugMenu();
 		}
 
 		void HandleProvinceOwnershipChanged(object sender, PropertyChangedEventArgs e) {
 			_lastProvinceIdForDropdown = "";
+			RefreshProvinceInfoView();
 			RefreshSelectedProvinceDebugMenu();
 		}
 
 		void HandleProvinceOccupationChanged(object sender, PropertyChangedEventArgs e) {
+			RefreshProvinceInfoView();
 			RefreshProvinceActionButtons();
 		}
 
