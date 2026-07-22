@@ -13,10 +13,10 @@ When the user specifies a scope (e.g. `@Design/02_icons_and_cards`), work in tha
 
 **Never use placeholder services (placehold.it, picsum, lorempixel, etc.) or third-party stock images.** For any image content needed in the prototype (character portraits, card art, icons, map thumbnails), use the project's image generation pipeline:
 
-- For AI-generated images: invoke the `/generate-image` skill (ComfyUI + FLUX backend)
+- For AI-generated images: invoke the `$generate-image` skill (ComfyUI + FLUX backend)
 - For screenshots of existing in-game content: reference files already in the scope's `initial/` folder
 
-If a suitable image does not yet exist, leave an empty container with a CSS background-color placeholder and a comment `<!-- TODO: generate via /generate-image -->` rather than pulling from a third-party URL.
+If a suitable image does not yet exist, leave an empty container with a CSS background-color placeholder and a comment `<!-- TODO: generate via $generate-image -->` rather than pulling from a third-party URL.
 
 ## Workflow
 
@@ -89,13 +89,13 @@ Speed-active button override: `background:#1E5030; color:#90FFB8; border-color:#
 ### Icons (in `icons/` folder relative to scope, or `Design/01_prototype/icons/` as fallback)
 | File | Usage | CSS tint |
 |---|---|---|
-| `coin.svg` | Gold counter prefix | `filter: brightness(0) invert(1) sepia(0.8) saturate(3) hue-rotate(15deg) brightness(0.82)` |
+| `coin.png` | Gold counter prefix | `filter: brightness(0) invert(1) sepia(0.8) saturate(3) hue-rotate(15deg) brightness(0.82)` |
 | `pause.svg` | Pause button | `filter: brightness(0) invert(0.94) sepia(0.12)` |
 | `play.svg` | Play button (shown when paused) | same |
 | `menu.svg` | Menu button | same |
-| `control.svg` | Control counter | same |
+| `control.png` | Control counter | same |
 
-Use `<img class="btn-icon" src="icons/X.svg">` inside buttons, `<img class="coin-icon" src="icons/coin.svg">` in counters.
+Use `<img class="btn-icon" src="icons/X.svg">` inside buttons, `<img class="coin-icon" src="icons/coin.png">` in counters.
 
 ## Section Template
 

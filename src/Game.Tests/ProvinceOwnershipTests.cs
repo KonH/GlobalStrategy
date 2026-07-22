@@ -39,7 +39,11 @@ namespace GS.Game.Tests {
 				SpeedMultipliers = new[] { 1, 2, 4 },
 				AutoSaveInterval = "monthly"
 			};
-			var resourceConfig = new ResourceConfig { Resources = new List<ResourceDefinition>() };
+			var resourceConfig = new ResourceConfig {
+				Resources = new List<ResourceDefinition> {
+					new ResourceDefinition { ResourceId = ResourceDefinitions.Population, SeedTarget = ResourceSeedTarget.Province }
+				}
+			};
 			var geoJson = new GeoJsonConfig();
 			var mapEntry = new MapEntryConfig();
 			var provinceConfig = new ProvinceConfig {

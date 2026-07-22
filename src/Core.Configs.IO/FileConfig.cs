@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using GS.Configs;
 
 namespace GS.Configs.IO {
@@ -8,7 +9,7 @@ namespace GS.Configs.IO {
 
 		static readonly JsonSerializerOptions _options = new JsonSerializerOptions {
 			PropertyNameCaseInsensitive = true,
-			Converters = { new ActionEffectDefinitionListConverter() },
+			Converters = { new JsonStringEnumConverter(), new ActionEffectDefinitionListConverter() },
 		};
 
 		public FileConfig(string filePath) {

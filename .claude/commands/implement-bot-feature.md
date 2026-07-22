@@ -67,7 +67,7 @@ This skill is the sanctioned autonomous path for **bot features only**: `IBotFea
 
 6. **Hand off to the driver.** Print exactly this for the user to run in a terminal — this skill does **not** spawn the loop itself:
    ```
-   .\scripts\ralph.ps1 -BotFeature <featureId>
+   .\scripts\automation\claude\ralph.ps1 -BotFeature <featureId>
    ```
 
 ## Finish / failure semantics

@@ -105,7 +105,14 @@ namespace GS.Game.Tests {
 				SpeedMultipliers = new[] { 1, 2, 4 },
 				AutoSaveInterval = "monthly"
 			};
-			var resourceConfig = new ResourceConfig { Resources = new List<ResourceDefinition>() };
+			var resourceConfig = new ResourceConfig {
+				Resources = new List<ResourceDefinition> {
+					new ResourceDefinition { ResourceId = "power", SeedTarget = ResourceSeedTarget.Character },
+					new ResourceDefinition { ResourceId = "charm", SeedTarget = ResourceSeedTarget.Character },
+					new ResourceDefinition { ResourceId = "stinginess", SeedTarget = ResourceSeedTarget.Character },
+					new ResourceDefinition { ResourceId = "intrigue", SeedTarget = ResourceSeedTarget.Character }
+				}
+			};
 
 			var ctx = new GameLogicContext(
 				new StaticConfig<GeoJsonConfig>(new GeoJsonConfig()),

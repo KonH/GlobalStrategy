@@ -35,9 +35,11 @@ everything you need to know about prior progress lives in the files below, not i
   be rare: `/create-prd` should not have planned a task with an unavailable gate in the first place
   (see the environment-marker rules in `.claude/commands/create-prd.md`); this is a fallback for a task
   that slips through anyway.
-- Unity MCP IS available (the Unity Editor is expected to be running). Use it for Unity-side work and
-  verification per `.claude/rules/unity/mcp_usage.md`. If Unity MCP is unreachable, treat the task as
-  blocked (journal it) - never skip verification and mark the task passed anyway.
+- Respect the environment notice supplied by the runner. In `code-only` and `full-env-headless`
+  automation, Unity Editor/MCP and image-generation tools are unavailable: do not probe for or invoke
+  them, and leave excluded asset, scene, and image tasks untouched. With no environment notice, Unity
+  MCP is expected to be available; if it is unreachable, treat the task as blocked and never mark it
+  passed without its gate.
 - Purely visual/UX outcomes cannot be fully verified in this loop: implement them, pass the
   compile/console gate, and note "needs manual visual check" in `.ralph/activity.md`.
 - If ALL tasks in `.ralph/prd.md` have `"passes": true`, make no changes and output exactly:

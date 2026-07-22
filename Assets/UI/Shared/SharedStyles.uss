@@ -203,7 +203,7 @@
 }
 
 .gs-icon--png-control {
-    background-image: url("project://database/Assets/UI/Icons/control.svg?fileID=11400000&guid=dc912c33694389345a78cfdfb52e2299&type=3#control");
+    background-image: url("project://database/Assets/UI/Icons/control.png?fileID=2800000&guid=5000d0a84170c354f8e76b2c31b7e13e&type=3#control");
 }
 
 .gs-icon--png-crown {
@@ -252,10 +252,26 @@
 
 /* ===== Resource row ===== */
 
+.resources-container {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
 .resource-row {
     flex-direction: row;
     align-items: center;
-    margin-top: 4px;
+    flex-shrink: 0;
+}
+
+.resource-row--spaced {
+    margin-left: 12px;
+}
+
+.resource-icon {
+    width: 22px;
+    height: 22px;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .resource-label {
@@ -264,12 +280,21 @@
     margin-left: 4px;
 }
 
-.resource-icon--gold {
-    width: 22px;
-    height: 22px;
-    background-image: url("project://database/Assets/UI/Icons/coin.svg?fileID=11400000&guid=b8c9d0e1f2a301234567890123456789&type=3#coin");
-    -unity-background-scale-mode: scale-to-fit;
+.resource-icon--coin {
+    background-image: url("project://database/Assets/UI/Icons/coin.png?fileID=2800000&guid=46e003f67ebde7347a8004dd120d478a&type=3#coin");
     -unity-background-image-tint-color: rgb(200, 160, 64);
+}
+
+.resource-icon--country-population {
+    background-image: url("project://database/Assets/UI/Icons/resource-country-population.png?fileID=2800000&guid=638952adcd0f967479900c82a4a49f31&type=3#resource-country-population");
+}
+
+.resource-icon--country-score {
+    background-image: url("project://database/Assets/UI/Icons/resource-country-score.png?fileID=2800000&guid=dfb61e9081a07f74196091d5a84be440&type=3#resource-country-score");
+}
+
+.resource-icon--org-score {
+    background-image: url("project://database/Assets/UI/Icons/resource-org-score.png?fileID=2800000&guid=dac01e69bc5754343b6a1e8dfa36e5db&type=3#resource-org-score");
 }
 
 /* ===== Tooltips ===== */

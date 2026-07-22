@@ -189,7 +189,7 @@ def run_ralph(args, *, tool_name, invoke_step, build_create_prd_prompt, build_lo
       failure (see log_step_failure above). Returns None on hard failure, or a dict with at
       least {"is_error": bool, "result": str} on completion.
     - build_create_prd_prompt(spec_id, env) -> str
-    - build_loop_prompt(prompt_text) -> str
+    - build_loop_prompt(prompt_text, env) -> str
     - build_complete_prd_prompt(complete_prd_arg) -> str
     - determine_stop_reason(result, prd_text, stall_count, stall_limit) -> str | None. Returns a
       stop_reason to end the loop this iteration, or None to keep going. See the module
@@ -302,7 +302,7 @@ def run_ralph(args, *, tool_name, invoke_step, build_create_prd_prompt, build_lo
         print(f"=== Ralph iteration {i} / {args.max_iterations} ({ralph_branch}) ===")
 
         prev_head = get_head()
-        prompt = build_loop_prompt(prompt_file.read_text(encoding="utf-8"))
+        prompt = build_loop_prompt(prompt_file.read_text(encoding="utf-8"), args.env)
         r = invoke_step("loop", str(i), prompt, csv_file, log_dir, activity_file, args.model, args.effort)
         if r is None:
             stop_reason = f"{tool_name}_error"

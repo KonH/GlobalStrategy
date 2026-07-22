@@ -77,8 +77,15 @@ def build_create_prd_prompt(spec_id, env):
     return prompt
 
 
-def build_loop_prompt(prompt_text):
-    return prompt_text
+def build_loop_prompt(prompt_text, env):
+    if not env:
+        return prompt_text
+    return (
+        prompt_text
+        + f"\n\nAutomation environment: {env}. Unity Editor/MCP and image-generation "
+          "tools are unavailable. Do not probe for or invoke them; leave excluded asset, "
+          "scene, and image tasks untouched."
+    )
 
 
 def build_complete_prd_prompt(complete_prd_arg):

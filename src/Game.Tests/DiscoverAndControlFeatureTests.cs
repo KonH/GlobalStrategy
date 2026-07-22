@@ -54,8 +54,8 @@ namespace GS.Game.Tests {
 						ActionId = DiscoverCardId, OwnerType = "org", EffectIds = new List<string> { "discover" },
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 100.0 } }
 					},
-					new ActionDefinition { ActionId = ControlCardId, OwnerType = "country", EffectIds = new List<string> { "control_pos" } },
-					new ActionDefinition { ActionId = OpinionCardId, OwnerType = "country", EffectIds = new List<string> { "opinion" } }
+					new ActionDefinition { ActionId = ControlCardId, OwnerType = "country", DeckCopies = 1, EffectIds = new List<string> { "control_pos" } },
+					new ActionDefinition { ActionId = OpinionCardId, OwnerType = "country", DeckCopies = 1, EffectIds = new List<string> { "opinion" } }
 				}
 			};
 			var effectConfig = new EffectConfig {

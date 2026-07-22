@@ -1,10 +1,17 @@
 {
+  "displayWhitelist": [
+    "gold",
+    "country_population",
+    "country_score",
+    "org_score"
+  ],
   "resources": [
     {
       "resourceId": "gold",
       "nameKey": "resource.gold.name",
       "descriptionKey": "resource.gold.description",
-      "icon": "$",
+      "icon": "coin",
+      "seedTarget": "Country",
       "defaultInitialValue": 100.0,
       "defaultEffects": [
         {
@@ -15,6 +22,61 @@
           "payType": "Monthly"
         }
       ]
+    },
+    {
+      "resourceId": "country_population",
+      "nameKey": "resource.country_population.name",
+      "descriptionKey": "resource.country_population.description",
+      "icon": "country-population",
+      "seedTarget": "Country",
+      "defaultInitialValue": 0.0,
+      "defaultEffects": []
+    },
+    {
+      "resourceId": "country_score",
+      "nameKey": "resource.country_score.name",
+      "descriptionKey": "resource.country_score.description",
+      "icon": "country-score",
+      "seedTarget": "Country",
+      "defaultInitialValue": 0.0,
+      "defaultEffects": []
+    },
+    {
+      "resourceId": "recruits",
+      "seedTarget": "Country",
+      "defaultInitialValue": 0.0,
+      "defaultEffects": []
+    },
+    {
+      "resourceId": "population",
+      "seedTarget": "Province",
+      "defaultInitialValue": 0.0,
+      "defaultEffects": []
+    },
+    {
+      "resourceId": "org_score",
+      "nameKey": "resource.org_score.name",
+      "descriptionKey": "resource.org_score.description",
+      "icon": "org-score",
+      "seedTarget": "Org",
+      "defaultInitialValue": 0.0,
+      "defaultEffects": []
+    },
+    {
+      "resourceId": "power",
+      "seedTarget": "Character"
+    },
+    {
+      "resourceId": "charm",
+      "seedTarget": "Character"
+    },
+    {
+      "resourceId": "stinginess",
+      "seedTarget": "Character"
+    },
+    {
+      "resourceId": "intrigue",
+      "seedTarget": "Character"
     }
   ]
 }

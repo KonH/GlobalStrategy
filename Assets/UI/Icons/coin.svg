@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#FFFFFF" viewBox="0 0 16 16">
-  <!-- Coin outer ring (bold, thick border via evenodd) -->
-  <path fill-rule="evenodd" d="M8 0a8 8 0 100 16A8 8 0 008 0zm0 2a6 6 0 110 12A6 6 0 018 2z"/>
-  <!-- 5-pointed star center -->
-  <path d="M8 4L9 6.6h2.8L9.6 8.4l.9 2.8L8 9.7l-2.5 1.5.9-2.8L4.2 6.6H7z"/>
-</svg>

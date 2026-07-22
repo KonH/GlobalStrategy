@@ -62,8 +62,15 @@ def build_create_prd_prompt(spec_id, env):
     return prompt
 
 
-def build_loop_prompt(prompt_text):
-    return "Read AGENTS.md first, then follow these iteration instructions exactly:\n\n" + prompt_text
+def build_loop_prompt(prompt_text, env):
+    prompt = "Read AGENTS.md first, then follow these iteration instructions exactly:\n\n" + prompt_text
+    if env:
+        prompt += (
+            f"\n\nAutomation environment: {env}. Unity Editor/MCP and image-generation "
+            "tools are unavailable. Do not probe for or invoke them; leave excluded asset, "
+            "scene, and image tasks untouched."
+        )
+    return prompt
 
 
 def build_complete_prd_prompt(complete_prd_arg):
