@@ -1,6 +1,6 @@
-# Ralph PRD — Resources Visual Update
+# Ralph PRD — Win / Lose Logic
 
-Make the shared country and organization resource summaries consume a config-ordered presentation catalog while preserving existing ownership, initialization, values, effects, persistence, and update behavior. Headless automation will implement the core target-aware resource model, configuration, Unity-side view script, and regression coverage; Unity asset, image, styling, import, and visual work remains explicitly deferred. Source: [approved spec and plan](../Docs/Specs/26_07_21_18_resources-visual-update/).
+End an in-progress game when one participating organization satisfies the configured composite control objective, select one deterministic winner, publish the player's result, preserve the complete final tick, freeze later gameplay, and persist the terminal ECS state across save/load. Source: [approved spec and plan](../Docs/Specs/26_07_22_11_win-lose-logic/).
 
 ## How this file works
 
@@ -13,74 +13,141 @@ Make the shared country and organization resource summaries consume a config-ord
 ```json
 [
 	{
-		"category": "resource-config",
-		"description": "Add presentation-order and seed-target metadata to the resource configuration model and loaders.",
+		"category": "completion-config",
+		"description": "Add the recursive completion-condition configuration model and configured default objective.",
 		"steps": [
-			"Update src/Game.Configs/ResourceConfig.cs with DisplayWhitelist, a ResourceSeedTarget enum containing exactly Character, Province, Country, and Org, and a backward-compatible ResourceDefinition.SeedTarget defaulting to Country.",
-			"Add a target-filtered lookup or enumeration helper while retaining FindResource for presentation lookup.",
-			"Add JsonStringEnumConverter to the shared System.Text.Json options in src/Core.Configs.IO/FileConfig.cs so readable seedTarget names load consistently in the headless path.",
-			"Add focused loader/config tests for named enum deserialization and the legacy Country default."
+			"Add src/Game.Configs/CompletionConditionConfig.cs with Type, numeric Value, and recursive Members fields shaped for world-level completion conditions.",
+			"Add GameSettings.CompletionCondition with the approved backward-compatible default tree.",
+			"Configure Assets/Configs/game_settings.json as an any node containing total_control at 0.8 and full_control_countries at 15.",
+			"Keep completion inputs separate from the action-specific ExpressionContext."
 		],
-		"gate": "dotnet test src/GlobalStrategy.Core.sln",
+		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
 		"passes": true
 	},
 	{
-		"category": "resource-initialization",
-		"description": "Route config-backed resource initialization through seed targets without changing specialized values or effects.",
+		"category": "completion-conditions",
+		"description": "Implement the completion-condition contract, leaves, recursive composition, and validation.",
 		"steps": [
-			"Update src/Game.Main/InitSystem.cs so country, province, organization, and both character creation paths consume only definitions for their ResourceSeedTarget.",
-			"Refactor collector-backed initialization to attach the existing effects and collectors to singular resources while retaining target-specific initial value sources and CountryEntry.InitialResources overrides.",
-			"Keep organization gold based on OrganizationEntry.InitialGold and runtime opinion_<orgId> resources explicit and documented.",
-			"Fail fast with the resource ID and target when a statically configured target/resource pairing has no supported initialization strategy."
+			"Add ICompletionCondition and CompletionConditionContext carrying IReadOnlyWorld, candidate organization ID, the ordinal available-country set, and MaxControlPool.",
+			"Add AnyCompletionCondition, TotalControlCondition, FullControlCondition, and CompletionConditionFactory under src/Game.Systems/.",
+			"Extend OrgMetrics with one available-country-filtered aggregation path shared by both leaves, summing multiple matching contributions once per organization and country.",
+			"Use inclusive thresholds, include zero-control available countries in total capacity, exclude unavailable countries and other organizations, and fail safely for zero countries or capacity.",
+			"Fail fast with contextual errors for unknown types, empty any groups, non-positive capacity, and invalid thresholds."
 		],
-		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": true
-	},
-	{
-		"category": "resource-config",
-		"description": "Configure static resource seed targets and the ordered display catalog.",
-		"steps": [
-			"Update Assets/Configs/resource_config.json with displayWhitelist ordered exactly as gold, country_population, country_score, org_score.",
-			"Add complete displayed definitions and stable icon keys coin, country-population, country-score, and org-score.",
-			"Set explicit targets for gold, country_population, country_score, recruits, population, org_score, power, charm, stinginess, and intrigue as specified by the plan.",
-			"Preserve existing gold defaults and effects; use zero defaults and no generic effects for collector-backed definitions; keep character skill ranges and localization authoritative in CharacterConfig."
-		],
-		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": true
-	},
-	{
-		"category": "unity-headless",
-		"description": "Implement config-whitelist filtering, ordering, icon selection, and localized descriptions in ResourcesView.",
-		"steps": [
-			"Update Assets/Scripts/Unity/UI/ResourcesView.cs to iterate ResourceConfig.DisplayWhitelist, find matching current-state entries, omit absent entries, and preserve whitelist order.",
-			"Apply resource-icon and resource-icon--<configured icon key> classes when metadata exists, while continuing to render values and tooltips when definitions or optional images are missing.",
-			"Use ResourceDefinitions.Gold for gold formatting and preserve all existing numeric, effect, instant, control-income, and refresh behavior.",
-			"Add the configured localized description immediately below the localized name in the tooltip when available, retaining raw-ID fallback for a missing definition.",
-			"Unity-side compilation is unverified in full-env-headless and must be checked by a human with the Unity Editor open."
-		],
-		"gate": "No headless gate available; manual Unity Editor compilation required",
+		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
 		"passes": false
 	},
 	{
-		"category": "resource-tests",
-		"description": "Add regression tests for target-correct, singular resource initialization and preserved special cases.",
+		"category": "completion-state",
+		"description": "Add savable ECS completion and per-organization outcome components.",
 		"steps": [
-			"Extend src/Game.Tests/InitSystemTests.cs or add a focused adjacent test file covering target-correct ownership across countries, provinces, organizations, and both character sources.",
-			"Assert country_population, country_score, recruits, population, and org_score are singular and retain their target-specific collector effects.",
-			"Assert organization gold retains OrganizationEntry.InitialGold and its existing effect shape, and dynamic opinion resources remain unaffected.",
-			"Assert unsupported static target/resource pairings fail with contextual resource ID and target information."
+			"Add the savable GameCompletion component with IsCompleted and WinnerOrganizationId.",
+			"Add OrganizationGameResult values InProgress, Winner, and Loser and the savable OrganizationGameOutcome component with ParticipationOrder and Result.",
+			"Keep outcomes attached directly to Organization entities."
+		],
+		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
+		"passes": false
+	},
+	{
+		"category": "completion-initialization",
+		"description": "Initialize the completion singleton and ordered participant outcomes.",
+		"steps": [
+			"Update InitSystem to create exactly one in-progress GameCompletion entity.",
+			"Attach an in-progress OrganizationGameOutcome to every participant using its ResolveParticipatingOrgs index as ParticipationOrder.",
+			"Preserve configured initialization order independently of later archetype moves."
+		],
+		"gate": "dotnet test src/GlobalStrategy.Core.sln",
+		"passes": false
+	},
+	{
+		"category": "completion-system",
+		"description": "Implement deterministic, idempotent winner selection and outcome assignment.",
+		"steps": [
+			"Add GameCompletionSystem and return immediately when the singleton is already complete.",
+			"Evaluate participating organizations against the ECS Country set in ParticipationOrder, using ordinal organization ID only as a defensive fallback for duplicate malformed orders.",
+			"Choose the first qualifier, write the singleton winner, and atomically mark it Winner and every other participant Loser.",
+			"Leave all results in progress when there are no countries, no organizations, or no qualifier."
+		],
+		"gate": "dotnet test src/GlobalStrategy.Core.sln",
+		"passes": false
+	},
+	{
+		"category": "completion-projection",
+		"description": "Expose the player-facing completion result through VisualState.",
+		"steps": [
+			"Add GameResult values InProgress, Win, and Lose plus GameCompletionState with IsCompleted, WinnerOrganizationId, and Result.",
+			"Add the completion state to VisualState.",
+			"Update VisualStateConverter to project the completion singleton relative to the current player without deciding game rules."
+		],
+		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
+		"passes": false
+	},
+	{
+		"category": "completion-orchestration",
+		"description": "Wire completion evaluation, final publication, terminal freezing, and bot guards into the game loop.",
+		"steps": [
+			"Build and cache the configured condition tree and completion singleton in GameLogic.",
+			"Evaluate completion after all tick mutations but before command clearing and the final VisualState conversion so the whole winning tick is published.",
+			"On later terminal updates, process only pending SaveGameCommand work, discard gameplay commands, and skip simulation, animation ticks, and visual republication.",
+			"Expose GameLogic.IsCompleted, make RecordBotAction a no-op after completion, and update BotSession to skip terminal decision ticks while still calling GameLogic.Update."
+		],
+		"gate": "dotnet test src/GlobalStrategy.Core.sln",
+		"passes": false
+	},
+	{
+		"category": "completion-loading",
+		"description": "Reconcile completion state, participant order, and immediate projection when loading snapshots.",
+		"steps": [
+			"After LoadSystem.Apply, clear pre-load commands, refresh singleton/entity IDs, and restore _previousTime from GameTime.",
+			"Create a missing in-progress completion singleton and reconstruct missing organization outcomes from participating context, the single-player fallback, then unmatched loaded organizations in ordinal order.",
+			"Preserve valid saved orders and fail fast on duplicate organization IDs or irreconcilable duplicate orders.",
+			"Evaluate the configured condition once against the restored world and immediately run VisualStateConverter.Update with zero delta so loaded terminal results are observable without advancing simulation."
+		],
+		"gate": "dotnet test src/GlobalStrategy.Core.sln",
+		"passes": false
+	},
+	{
+		"category": "completion-condition-tests",
+		"description": "Add configuration and condition-tree regression coverage.",
+		"steps": [
+			"Add CompletionConditionTests for recursive any composition, configured threshold changes, both leaves, inclusive 0.8 and 15 boundaries, and below-threshold states.",
+			"Cover multiple same-country contributions, exclusion of other organizations and unavailable countries, zero-control countries in capacity, and zero-country safety.",
+			"Test the camelCase tree through FileConfig and Newtonsoft production-equivalent deserializers, including recursive members, numeric values, explicit any, absent-key default, and contextual errors for null or invalid trees."
+		],
+		"gate": "dotnet test src/GlobalStrategy.Core.sln",
+		"passes": false
+	},
+	{
+		"category": "completion-system-tests",
+		"description": "Add winner-selection and game-loop completion integration coverage.",
+		"steps": [
+			"Add GameCompletionSystemTests for no participants, no qualifier, simultaneous qualifiers in stable participation order, exactly one winner, all other participants losing, and repeated evaluation preserving the terminal result.",
+			"Add GameCompletionLogicTests for player Win, Lose, and InProgress projection, completion after all mutations in the winning tick, and publication of the complete final state.",
+			"Verify later updates and queued gameplay commands freeze time, resources, control, actions, logs, and outcomes.",
+			"Add BotSession integration coverage proving terminal ticks emit no bot commands, callbacks, or BotActionLog entries."
+		],
+		"gate": "dotnet test src/GlobalStrategy.Core.sln",
+		"passes": false
+	},
+	{
+		"category": "completion-persistence-tests",
+		"description": "Add savable discovery and save/load completion regression coverage.",
+		"steps": [
+			"Extend SavableDiscoveryTests for GameCompletion and OrganizationGameOutcome.",
+			"Cover in-progress and terminal round trips, winner/loser/order preservation, immediate loaded projection, and terminal loaded-game freeze.",
+			"Cover legacy snapshots without completion components, participant entities restored through different archetypes, reconstructed order, and isolation from commands queued before load."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
 		"passes": false
 	},
 	{
 		"category": "verification",
-		"description": "Run the full headless core verification suite.",
+		"description": "Run the full core test suite and refresh the Unity-consumed release assemblies.",
 		"steps": [
-			"Run the focused initialization tests after all implementation and regression-test changes are complete.",
-			"Run the complete src/GlobalStrategy.sln test suite and resolve any regressions within the approved plan scope."
+			"Run dotnet test src/GlobalStrategy.Core.sln and resolve regressions within the approved plan scope.",
+			"Run the Release build after tests so the tracked Unity-consumed assemblies under Assets/Plugins/Core are refreshed."
 		],
-		"gate": "dotnet test src/GlobalStrategy.sln",
+		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
 		"passes": false
 	}
 ]
