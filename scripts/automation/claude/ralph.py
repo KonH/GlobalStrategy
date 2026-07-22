@@ -37,7 +37,6 @@ specific to driving Claude Code: CLI argument shape, prompt text, and result int
 """
 
 import json
-import re
 import shutil
 import subprocess
 import sys
@@ -45,7 +44,13 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from common.ralph import NON_PROGRESS_FILES, build_arg_parser, log_step_failure, run_ralph  # noqa: E402
+from common.ralph import (  # noqa: E402
+    NON_PROGRESS_FILES,
+    build_arg_parser,
+    has_open_tasks,
+    log_step_failure,
+    run_ralph,
+)
 
 
 TOOL_NAME = "claude"
@@ -101,7 +106,7 @@ def determine_stop_reason(result, prd_text, stall_count, stall_limit):
         return "result_error"
     if "<promise>COMPLETE</promise>" in (result.get("result") or ""):
         return "complete_promise"
-    if not re.search(r'"passes":\s*false', prd_text):
+    if not has_open_tasks(prd_text):
         return "all_tasks_passed"
     if stall_count >= stall_limit:
         print(
