@@ -2,7 +2,7 @@
 Province-geometry generator for GlobalStrategy (Python stage of the province-division pipeline).
 
 Usage (run from project root):
-    .venv\\Scripts\\python.exe scripts\\generate_provinces.py [--force-download]
+    .venv\\Scripts\\python.exe scripts\\utils\\generate_provinces.py [--force-download]
 
 Options:
     --force-download   Re-download Natural Earth datasets even if already cached

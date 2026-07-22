@@ -1,10 +1,10 @@
 # GitHub Issue → Spec/Plan Automation
 
-`scripts/handle_feature_issues.{py,sh,ps1}` runs on a cron schedule **in the user's own environment** (a personal machine or server the user controls — not this Claude Code Remote session, not a GitHub Actions runner). The script itself does cheap discovery via plain `gh` calls (no LLM usage); it only invokes `claude -p "/handle-feature-issue ..."` (`.claude/commands/handle-feature-issue.md`) — and only then spends subscription usage — when that discovery actually finds something to act on.
+`scripts/automation/claude/handle_issues.{py,sh,ps1}` runs on a cron schedule **in the user's own environment** (a personal machine or server the user controls — not this Claude Code Remote session, not a GitHub Actions runner). The script itself does cheap discovery via plain `gh` calls (no LLM usage); it only invokes `claude -p "/handle-feature-issue ..."` (`.claude/commands/handle-feature-issue.md`) — and only then spends subscription usage — when that discovery actually finds something to act on. Discovery/locking/state logic shared with the Codex equivalent (`scripts/automation/codex/handle_issues.py`) lives in `scripts/automation/common/issue_handler.py`.
 
 ## Scope: spec → plan → merge, never `/implement`
 
-The automation drives a feature issue through `/specify` → (owner review) → `/plan` → (owner review) → merge to `main`, entirely via comments/reactions on the issue. It never runs `/implement` automatically — actual implementation (e.g. via `scripts/ralph.py`) stays a manual step after the spec+plan lands on `main`. This mirrors the `workflow.md` approval-checkpoint rule that `/specify` and `/plan` each stop and wait for the user — "present to the user" here means an issue comment instead of a chat message, since nobody is watching this process's stdout, and "wait for the user" means waiting for a comment or 👍 reaction instead of the next chat turn.
+The automation drives a feature issue through `/specify` → (owner review) → `/plan` → (owner review) → merge to `main`, entirely via comments/reactions on the issue. It never runs `/implement` automatically — actual implementation (e.g. via `scripts/automation/claude/ralph.py`) stays a manual step after the spec+plan lands on `main`. This mirrors the `workflow.md` approval-checkpoint rule that `/specify` and `/plan` each stop and wait for the user — "present to the user" here means an issue comment instead of a chat message, since nobody is watching this process's stdout, and "wait for the user" means waiting for a comment or 👍 reaction instead of the next chat turn.
 
 ## All conversation happens on the issue, not the PR
 
@@ -41,7 +41,7 @@ gh label create full-env-required --color 5319E7 --description "Needs Unity Edit
 
 Right after a successful merge, the command labels the (now auto-closed) issue with exactly one of:
 
-- **`code-only`** — the plan is confined to `src/` (Unity-independent logic), pure C#/ECS work under `Assets/Scripts/` verifiable via `dotnet build`/tests without the Editor open, or `scripts/*.py` config generators.
+- **`code-only`** — the plan is confined to `src/` (Unity-independent logic), pure C#/ECS work under `Assets/Scripts/` verifiable via `dotnet build`/tests without the Editor open, or `scripts/utils/*.py` config generators.
 - **`full-env-required`** — anything touching `Assets/UI/`, `Assets/Prefabs/`, scenes, ScriptableObject/prefab assets, textures/flags/portraits, or that otherwise needs Unity MCP tool usage or the image-generation pipeline to implement or verify.
 
 This is a forward-looking signal for whatever picks up implementation later (manually, or a future automated `/implement` step) — it can filter to `code-only` issues for anything meant to run without a Unity Editor available. Ambiguous/mixed plans default to `full-env-required`, since an implementation attempt wrongly assuming no Editor is needed fails worse than a human just double-checking one that didn't need it.
@@ -81,8 +81,8 @@ Running `claude -p` directly in an environment where the user is logged into the
   1. On any machine with normal browser access (doesn't have to be the automation host), run `claude setup-token`. It opens the browser OAuth flow and prints a token to the terminal after approval — it does not save the token anywhere itself.
   2. On the automation host, `export CLAUDE_CODE_OAUTH_TOKEN=<that token>` (in the cron job's environment, e.g. the crontab's own env or a sourced profile — cron doesn't inherit an interactive shell's exports).
   3. Do **not** also set `ANTHROPIC_API_KEY` — its presence makes the CLI bill the API instead of the subscription.
-- A **dedicated clone** of this repo for the automation to run against — `scripts/handle_feature_issues.py` does `git reset --hard origin/main` on every run, which would blow away uncommitted work in a normal dev checkout.
-- A cron entry (Linux/macOS/WSL) or Scheduled Task (Windows) calling `scripts/handle_feature_issues.sh` / `.ps1` from that dedicated clone's root, on whatever interval the user wants (this is real polling, not a webhook — interval directly trades off cost of polling vs. latency until a new issue/reply/reaction is noticed).
+- A **dedicated clone** of this repo for the automation to run against — `scripts/automation/claude/handle_issues.py` does `git reset --hard origin/main` on every run, which would blow away uncommitted work in a normal dev checkout.
+- A cron entry (Linux/macOS/WSL) or Scheduled Task (Windows) calling `scripts/automation/claude/handle_issues.sh` / `.ps1` from that dedicated clone's root, on whatever interval the user wants (this is real polling, not a webhook — interval directly trades off cost of polling vs. latency until a new issue/reply/reaction is noticed).
 
 ### Interactive testing (not the cron path)
 

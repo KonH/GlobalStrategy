@@ -2,8 +2,8 @@
 Convert an SVG file or URL to a PNG file.
 
 Usage:
-    python scripts/svg_to_png.py input.svg output.png [--width 256]
-    python scripts/svg_to_png.py https://example.com/flag.svg output.png --width 256
+    python scripts/utils/svg_to_png.py input.svg output.png [--width 256]
+    python scripts/utils/svg_to_png.py https://example.com/flag.svg output.png --width 256
 
 Backends (tried in order):
     1. cairosvg   — best quality; requires libcairo-2.dll on Windows

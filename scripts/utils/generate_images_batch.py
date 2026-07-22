@@ -1,7 +1,7 @@
 """
 Batch image generation via ComfyUI.
 
-Usage: .venv\Scripts\python.exe scripts\generate_images_batch.py <config.json>
+Usage: .venv\Scripts\python.exe scripts\\utils\generate_images_batch.py <config.json>
 
 Config file format (.tmp/images.json):
 [
@@ -30,7 +30,7 @@ if not images:
     sys.exit(0)
 
 script = Path(__file__).parent / "generate_image.py"
-python = Path(__file__).parent.parent / ".venv" / "Scripts" / "python.exe"
+python = Path(__file__).parent.parent.parent / ".venv" / "Scripts" / "python.exe"
 
 print(f"Generating {len(images)} image(s) from {config_path}\n")
 failed = []

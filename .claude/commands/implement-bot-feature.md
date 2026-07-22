@@ -12,7 +12,7 @@ This skill is the sanctioned autonomous path for **bot features only**: `IBotFea
 
 1. **Derive `featureId`.** camelCase, matching spec 51's naming convention (e.g. "target countries where our opinion is highest" → `opinionTargeting`). Check `src/Game.Bots/BotFeatureRegistry.cs` — if the id is already registered, **stop and report**; do not silently overwrite an existing feature.
 
-2. **Branch.** Require a clean working tree (`git status`, never `-uall`). Create or switch to `ralph/bot_<featureId>` (the exact branch name `scripts/ralph.ps1 -BotFeature <featureId>` resolves to).
+2. **Branch.** Require a clean working tree (`git status`, never `-uall`). Create or switch to `ralph/bot_<featureId>` (the exact branch name `scripts/automation/claude/ralph.ps1 -BotFeature <featureId>` resolves to).
 
 3. **Write the eval config** — `Docs/BotFeatures/<featureId>/eval_config.json`:
    ```json
@@ -72,7 +72,7 @@ This skill is the sanctioned autonomous path for **bot features only**: `IBotFea
 
 ## Finish / failure semantics
 
-Executed by the driver's phases (`scripts/ralph.ps1 -BotFeature <featureId>` → `scripts/ralph.py`), not by this skill directly:
+Executed by the driver's phases (`scripts/automation/claude/ralph.ps1 -BotFeature <featureId>` → `scripts/automation/claude/ralph.py`), not by this skill directly:
 
 - **All gates pass:** the driver runs `/commit` + `/complete-prd bot:<featureId>`, opening a PR whose body carries the eval verdict (gate outcomes, mean/median delta vs ε, improved flag, winning parameters, attempt count). The loop **never merges** — human review gates merge, because evals cannot judge metric-gaming or gameplay feel.
 - **Budget exhausted / loop incomplete:** no "done" PR is opened. The committed-artifact state reached on the branch stays as-is; the failure report is `Docs/BotFeatures/<featureId>/eval_summary.md` + `eval_history.json` (which gates failed on which attempts) and `.ralph/activity.md`. Nothing is force-reverted. A human can run `claude -p "/complete-prd bot:<featureId>"` manually if they want a PR anyway.
