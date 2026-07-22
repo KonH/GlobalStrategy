@@ -41,3 +41,13 @@ Every task in this PRD gates on `dotnet build`/`dotnet test`/the `dotnet-benchma
 Re-verified independently: `which dotnet` → not found; `/usr/local/bin/dotnet` → symlink to `/root/.dotnet/dotnet`; `/root` itself is `drwx------` (mode 0700, owned by root:root) so the `automation` user cannot even `stat`/traverse into `/root/.dotnet`, let alone execute the binary. `sudo -n true` still requires a password. `find / -iname dotnet` finds only the same broken symlink; no `/usr/share/dotnet`, no `/opt` install. This is a hard filesystem permission boundary, not a transient issue — it will not resolve on its own between iterations.
 
 Every task in this PRD gates on `dotnet build`/`dotnet test`/the `dotnet-benchmark` skill (all shell out to `dotnet`), so the whole PRD remains structurally blocked in this run. No changes made; no commit. Confirming `ENV-BLOCKED` stands for all tasks.
+
+---
+
+## 2026-07-22 — re-check ENV-BLOCKED status (no eligible task, 4th confirmation)
+
+**Task considered:** state-equality-helper (task 1, still `"passes": false`).
+
+Independently re-verified: `which dotnet` → not found; `/usr/local/bin/dotnet` → symlink to `/root/.dotnet/dotnet`; `ls -la /root` → `Permission denied` (cannot even traverse the directory as the `automation` user); `sudo -n true` → still requires a password; `find / -maxdepth 4 -iname dotnet*` → only the same broken symlink plus `/etc/profile.d/dotnet.sh` (an env-var script, not a binary). No change from the prior three checks — this is a persistent filesystem permission boundary, not something that resolves between iterations.
+
+Every task in this PRD's `gate` shells out to `dotnet` (build/test) or the `dotnet-benchmark` skill (which itself shells out to `dotnet`), so the whole PRD remains structurally blocked in this run. No changes made; no commit. `ENV-BLOCKED` stands for all tasks.
