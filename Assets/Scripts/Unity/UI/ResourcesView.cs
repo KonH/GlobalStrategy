@@ -1,5 +1,7 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine.UIElements;
 using GS.Main;
 using GS.Game.Components;
@@ -32,6 +34,9 @@ namespace GS.Unity.UI {
 				var resourceDefinition = _config.FindResource(resource.ResourceId);
 				var row = new VisualElement();
 				row.AddToClassList("resource-row");
+				if (_container.childCount > 0) {
+					row.AddToClassList("resource-row--spaced");
+				}
 
 				var icon = new VisualElement();
 				if (resourceDefinition != null && !string.IsNullOrEmpty(resourceDefinition.Icon)) {
@@ -43,9 +48,7 @@ namespace GS.Unity.UI {
 				var label = new Label();
 				label.AddToClassList("gs-label");
 				label.AddToClassList("resource-label");
-				label.text = resource.ResourceId == ResourceDefinitions.Gold
-					? $"{resource.Value.AsInt()}"
-					: $"{resource.Value.Display:F0}";
+				label.text = FormatResourceValue(resource.Value.Display);
 				row.Add(label);
 
 				var capturedResource = resource;
@@ -54,6 +57,24 @@ namespace GS.Unity.UI {
 
 				_container.Add(row);
 			}
+		}
+
+		static string FormatResourceValue(double value) {
+			double roundedValue = Math.Round(value, MidpointRounding.AwayFromZero);
+			double magnitude = Math.Abs(roundedValue);
+			if (magnitude < 1_000) {
+				return roundedValue.ToString("0", CultureInfo.InvariantCulture);
+			}
+
+			double divisor = magnitude < 1_000_000 ? 1_000 : 1_000_000;
+			string suffix = magnitude < 1_000_000 ? "K" : "M";
+			double scaledValue = Math.Round(roundedValue / divisor, MidpointRounding.AwayFromZero);
+			if (suffix == "K" && Math.Abs(scaledValue) >= 1_000) {
+				scaledValue = Math.Round(roundedValue / 1_000_000, MidpointRounding.AwayFromZero);
+				suffix = "M";
+			}
+
+			return $"{scaledValue.ToString("0", CultureInfo.InvariantCulture)}{suffix}";
 		}
 
 		static ResourceStateEntry? FindResourceState(CountryResourcesState state, string resourceId) {
