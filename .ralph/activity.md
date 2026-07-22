@@ -21,3 +21,13 @@ This is **not** the `code-only`/`full-env-headless` Unity-MCP exclusion describe
 **ENV-BLOCKED: state-equality-helper — dotnet CLI is installed under /root/.dotnet but inaccessible to the automation user (Permission denied), and no other dotnet binary exists on the machine. This blocks every task in this PRD, since all gates are dotnet build/test/benchmark.**
 
 Left `.ralph/prd.md` task 1 `"passes": false`. The `StateEquality.cs` implementation is believed correct against the plan's spec (types/signatures verified by reading `VisualState.cs`, `ResourcesState.cs`, `AnimatableInt.cs`, `AnimatableDouble.cs`) but is **unverified** — next iteration (or a human) must run the gate once `dotnet` is reachable before flipping `passes` to `true`. No other eligible task exists this run since every remaining task has the same blocked gate class.
+
+---
+
+## 2026-07-22 — re-check ENV-BLOCKED status (no eligible task)
+
+**Task considered:** state-equality-helper (task 1, still `"passes": false`).
+
+Re-verified the blocker before skipping: `which dotnet` → not found; `/usr/local/bin/dotnet` still symlinks to `/root/.dotnet/dotnet`; `ls -la /root/.dotnet/dotnet` → `Permission denied`; `sudo -n true` → `a password is required`; no other `dotnet` executable found on the filesystem. Identical to the prior iteration's finding — the `automation` user still cannot reach the dotnet CLI in this run.
+
+Every task in this PRD gates on `dotnet build`/`dotnet test`/the `dotnet-benchmark` skill (which itself shells out to `dotnet`), so this remains a structural, run-wide blocker per the loop rules, not something a different task choice can route around. No changes made; no commit. Confirming `ENV-BLOCKED: state-equality-helper` (and by extension every other task) stands until `dotnet` is reachable in this environment.
