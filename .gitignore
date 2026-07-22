@@ -2,6 +2,9 @@
 .tmp/
 __pycache__/
 
+# Spec dev-stats collector watermark (local, gitignored - see scripts/stats/watermark.py)
+.stats/
+
 # Ralph loop metrics (per-run, not shared)
 .ralph/metrics*.csv
 

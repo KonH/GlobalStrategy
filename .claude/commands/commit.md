@@ -16,6 +16,10 @@ Steps:
 
 Always run this before committing so the version bump is included in the commit.
 
+## Usage stats catch-all scan (best-effort)
+
+Run `python scripts/stats/collect_usage.py --scan` (or `scripts/stats/collect_usage.ps1 -Scan` / `collect_usage.sh --scan`) once, before invoking `k:commit` below. This is the manual/cron catch-all scan from `Docs/Specs/26_07_22_17_spec-dev-stats/plan.md` §16, piggybacked onto the one command that already runs at the end of nearly every work session (both Claude and Codex) — it needs no global machine config and no scheduled task. It reads Claude Code transcripts and Codex rollouts newer than the local watermark and updates each affected `Docs/Specs/<dir>/usage.csv`. **Never block or fail the commit on this step** — if it errors (missing Python, a locked file, anything), log the error and continue straight to the commit; usage-stats freshness is not a commit precondition.
+
 ## Commit
 
 After the version bump is staged, invoke the `k:commit` skill (from the `k` plugin) and follow it — it handles branch selection off the default branch and the commit message rules.

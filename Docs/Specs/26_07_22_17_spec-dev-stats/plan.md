@@ -177,43 +177,56 @@ where `record_usage_row` is imported from `scripts/stats/collect_usage.py` (adde
 
 Same shape in `invoke_codex_step`, using the `--scan-latest-rollout-since` path (§9) since there is no clean parsed `result` object here — call `record_usage_row_codex(spec_dir_name, stage, mode="automated", since_iso=iteration_start_iso, diff_lines=...)`.
 
-### 14. Wrapper integration — `scripts/automation/{claude,codex}/handle_issues.py`
+### 14. Wrapper integration — `scripts/automation/{claude,codex}/handle_issues.py` (revised design: `USAGE_STAGE` marker convention)
 
-Both already invoke `claude -p`/`codex exec` for `/specify` and `/plan` phases per `.claude/rules/github_issue_automation.md`. Same `record_usage_row`/`record_usage_row_codex` calls, `stage="spec"` or `stage="plan"` per which phase just ran, `mode="automated"`. `diff_lines` is not applicable at this point (no PR/branch diff yet at spec/plan stage in this flow) — pass `None`, leaving the cell empty for these rows (matches the spec's acceptance criteria, which only requires `diff_lines` at complete-prd/PR-creation time).
+**Investigated during implementation, actual shape differs from what this plan assumed.** Both `handle_issues.py` scripts invoke `claude -p`/`codex exec` exactly **once per cron tick**, with a single batched prompt covering every qualifying issue (`build_prompt(candidates)` in both files) — the command being invoked (`/handle-feature-issue`, `.codex/skills/codex-feature-issue/SKILL.md`) then decides internally, per issue, whether that issue needs `/specify`, `/plan`, or a merge this round. The wrapper's own Python code only ever sees one aggregate `claude -p`/`codex exec` result for the whole batch — it has no visibility into which stage ran for which issue's spec, so it cannot supply the `stage="spec"` or `stage="plan"` label this plan originally assumed it could, and a single invocation can legitimately span multiple issues at different stages (or none) at once, which the fixed one-`spec_id`-per-row schema can't represent from the wrapper side alone.
 
-### 15. Codex `notify` config
+**Resolved via a marker convention, not a wrapper-side inference.** Since only the command running *inside* the `claude -p`/`codex exec` session knows which issue reached which stage this round, `.claude/commands/handle-feature-issue.md` and `.codex/skills/codex-feature-issue/SKILL.md` were both updated to emit a line of the form `USAGE_STAGE: <spec-folder-name> spec` or `USAGE_STAGE: <spec-folder-name> plan` in their own agent output immediately after completing that phase for an issue (mirroring the `AUTOMATION_RESULT: COMPLETED|BLOCKED` convention `codex-feature-issue/SKILL.md` already used). Both wrapper scripts now capture their own subprocess output (`assistant`-type text blocks for Claude's `--output-format stream-json`; `item.completed`/`agent_message` text for `codex exec --json`, already partially captured for the existing `AUTOMATION_RESULT` scan) across the whole run, scan it with `USAGE_STAGE_RE` after the process exits, and call `record_usage_row`/`record_usage_row_codex` once per match — Claude's form using the run's own `result` event's `usage`/`session_id`/`model` fields directly (no re-parse needed, matching `ralph.py`'s pattern); Codex's form using the same `record_usage_row_codex(since_iso=run_start)` rollout-lookup path `ralph.py`'s Codex integration already uses, since `codex exec`'s own stdout still has no single clean usage-summary object.
 
-Codex CLI supports a `notify` config hook (agent-turn-complete) analogous to Claude's `SessionEnd`. Add a `notify` entry to the Codex config (locate the actual config file — `~/.codex/config.toml` — during implementation; not yet inspected) invoking `python scripts/stats/collect_usage.py --hook-codex` (a Codex-specific stdin/argument contract — Codex's `notify` payload shape must be confirmed against its actual documentation/behavior during implementation, since it was not available to inspect for this plan). If Codex's `notify` mechanism turns out not to provide a session/rollout file path directly, this invocation point degrades gracefully to "just trigger a `--scan`" — correctness never depends on it, per the spec's explicit "freshness optimization only" framing.
+**Known imprecision, accepted deliberately:** if one cron tick's batched prompt advances two different issues to two different specs' `spec`/`plan` stage in the same run, both rows get the *same* whole-run `usage`/cost figures (there's no way to split a single aggregate result across multiple markers) — the same "no sub-segment splitting" tradeoff already accepted elsewhere in this design (see spec's Out of Scope). In the common case (one cron tick advances at most one issue by one phase), this is exact. Recording is wrapped in `try/except` on both wrappers so a stats-recording failure never blocks the real automation run's success/failure exit code.
 
-### 16. Manual/cron catch-all
+### 15. Codex `notify` config — finding: skipped by user request, replaced by a `commit.md`-triggered scan (§16)
 
-`python scripts/stats/collect_usage.py --scan` (or `collect_usage.sh --scan` / `collect_usage.ps1 -Scan`) run on whatever schedule the user wants (same pattern as the existing `handle_issues` cron entry) — no new automation infrastructure needed beyond documenting the command, since this plan doesn't add a dedicated cron script (the spec only asks for "manual / cron catch-all run of the scanner", satisfied by the CLI itself being directly cron-invokable).
+**Investigated during implementation.** `~/.codex/config.toml` on this machine already has a `notify` entry:
+
+```toml
+notify = [ "C:\\Users\\KonH\\AppData\\Local\\OpenAI\\Codex\\runtimes\\cua_node\\...\\codex-computer-use.exe", "turn-ended" ]
+```
+
+Unlike Claude Code's `hooks.SessionEnd` (an array — multiple hooks can coexist), Codex's `notify` config key holds exactly **one** external-program invocation. It's already pointed at an existing `codex-computer-use` integration on this machine; overwriting it to point at `collect_usage.py` instead would silently break that other integration for this user, and — separately — the user explicitly did not want a personal, global, hard-to-track machine config change for this feature (a dispatcher-script approach was proposed and declined for that reason, not because it wouldn't have worked technically).
+
+**Resolved without touching `~/.codex/config.toml` at all** — see §16: `.claude/commands/commit.md` (fully repo-owned, unlike `specify.md`/`plan.md` which just delegate to the external `k` plugin) now runs the catch-all `--scan` as a best-effort step before every commit, for both providers, with no global config and no OS-level scheduled task. This trades "notify fires after every single Codex turn" for "scan fires at least once per commit" — a coarser cadence, but one that needs zero maintenance outside this repo and was the user's stated preference.
+
+### 16. Manual/cron catch-all — wired via `commit.md`, not a scheduled task
+
+`python scripts/stats/collect_usage.py --scan` (or `collect_usage.sh --scan` / `collect_usage.ps1 -Scan`) can always be run by hand on whatever schedule the user wants. During implementation, the user asked for it to run automatically without touching global machine config (no Codex `notify` rewrite, no Windows Scheduled Task) — `.claude/commands/commit.md` (§14/§15) now runs it as a best-effort step before every commit for both providers, which is repo-tracked, needs no machine-specific setup, and fires at least once per unit of real work either provider does. The CLI itself remains directly cron-invokable for anyone who additionally wants a time-based schedule.
 
 ## Steps
 
 ### Agent Steps
 
-- [ ] **Confirm Codex prompt-construction strings** — read `scripts/automation/codex/ralph.py`'s and `scripts/automation/codex/handle_issues.py`'s actual prompt text per phase, to finalize the Codex stage-detection match table in `codex_rollout.py` (§4).
-- [ ] **Confirm Ralph phase-to-stage mapping** — read `scripts/automation/common/ralph.py`'s phase name constants to finalize `map_phase_to_stage` (§12).
-- [ ] **Write the pricing table and `pricing.py`** — `pricing_table.json` with real per-Mtok rates (use the `claude-api` skill for Claude models; current public OpenAI/Codex rates for the model strings seen in local `~/.codex/sessions/*.jsonl`), `compute_cost` + unknown-model warning path, with `tests/test_pricing.py` written first (test-first per implement skill convention).
-- [ ] **Write `version_info.py`** — `read_bundle_version`, with a test against a small fixture `ProjectSettings.asset`-shaped file.
-- [ ] **Write `segmentation.py`** — shared segment/sub-stage dataclasses and the "first completed response, then subsequent human turns become user-input sub-stages" splitting logic used by both providers.
-- [ ] **Write `claude_transcript.py`** — full segmentation per §3, using this machine's real transcripts under `~/.claude/projects/E--Users-KonH-Git-GlobalStrategy/` as manual fixtures/spot-checks (do not commit real transcript content — extract small synthetic fixture files for the test suite).
-- [ ] **Write `codex_rollout.py`** — full segmentation per §4, including the `thread_source != "subagent"` filter and cwd filter, using this machine's real rollouts under `~/.codex/sessions/` as manual fixtures/spot-checks.
-- [ ] **Write `attribution.py`** — file-write scan + branch-name fallback per §5.
-- [ ] **Write `csv_store.py`** — dedup/upsert/rewrite per §6.
-- [ ] **Write `watermark.py`** — per §7; add `.stats/` to `.gitignore`.
-- [ ] **Write `collect_usage.py` CLI** — `--scan`, `--hook`, `--record` (both provider forms) per §9, wiring together all the above modules.
-- [ ] **Write `collect_usage.sh`** — per §10; mark executable via `git update-index --chmod=+x`.
-- [ ] **Write `collect_usage.ps1`** — per §10.
-- [ ] **Wire the `SessionEnd` hook** — add the `hooks.SessionEnd` block to `.claude/settings.json` per §11.
-- [ ] **Integrate `scripts/automation/claude/ralph.py`** — per §12; verify existing Ralph loop behavior (metrics CSV, activity log) is unchanged aside from the new `record_usage_row` call.
-- [ ] **Integrate `scripts/automation/codex/ralph.py`** — per §13.
-- [ ] **Integrate `scripts/automation/claude/handle_issues.py`** — per §14.
-- [ ] **Integrate `scripts/automation/codex/handle_issues.py`** — per §14.
-- [ ] **Investigate and wire Codex `notify` config** — per §15; document findings (or the graceful-degradation fallback actually used) directly in this plan's §15 if the real config shape differs from what's written here.
-- [ ] **Document the manual/cron catch-all command** — confirm `--scan` works end-to-end against this repo's own real `Docs/Specs/*/usage.csv` output for at least one real spec directory with actual interactive history (e.g. this spec's own directory once it has transcripts).
-- [ ] **Full test suite run** — `scripts/stats/tests/` per the Tests section below, plus `scripts/automation/common/test_ralph.py` (unchanged) to confirm no regression in the existing Ralph test suite.
+- [x] **Confirm Codex prompt-construction strings** — read `scripts/automation/codex/ralph.py`'s and `scripts/automation/codex/handle_issues.py`'s actual prompt text per phase, to finalize the Codex stage-detection match table in `codex_rollout.py` (§4).
+- [x] **Confirm Ralph phase-to-stage mapping** — read `scripts/automation/common/ralph.py`'s phase name constants to finalize `map_phase_to_stage` (§12). Finding: Ralph only ever runs after a spec+plan already exist (it's the `/implement` step of the flow), so `create-prd`/`loop`/`complete-prd` all map to the constant stage `"implement"` — no per-phase table needed.
+- [x] **Write the pricing table and `pricing.py`** — `pricing_table.json` with real per-Mtok rates (use the `claude-api` skill for Claude models; current public OpenAI/Codex rates for the model strings seen in local `~/.codex/sessions/*.jsonl`), `compute_cost` + unknown-model warning path, with `tests/test_pricing.py` written first (test-first per implement skill convention).
+- [x] **Write `version_info.py`** — `read_bundle_version`, with a test against a small fixture `ProjectSettings.asset`-shaped file.
+- [x] **Write `segmentation.py`** — shared segment/sub-stage dataclasses and the "first completed response, then subsequent human turns become user-input sub-stages" splitting logic used by both providers.
+- [x] **Write `claude_transcript.py`** — full segmentation per §3, using this machine's real transcripts under `~/.claude/projects/E--Users-KonH-Git-GlobalStrategy/` as manual fixtures/spot-checks (do not commit real transcript content — extract small synthetic fixture files for the test suite).
+- [x] **Write `codex_rollout.py`** — full segmentation per §4, including the `thread_source != "subagent"` filter and cwd filter, using this machine's real rollouts under `~/.codex/sessions/` as manual fixtures/spot-checks.
+- [x] **Write `attribution.py`** — file-write scan + branch-name fallback per §5. Fixed during implementation: a write-path match must also verify the spec dir currently exists on disk (same rule already applied to the branch fallback) — otherwise stale `Docs/Specs/<dir>/` paths referenced in old transcripts (from specs since renamed/removed) fabricate empty spec directories on every `--scan`. Caught via a real full-repo `--scan` run that created a dozen bogus directories before the fix.
+- [x] **Write `csv_store.py`** — dedup/upsert/rewrite per §6.
+- [x] **Write `watermark.py`** — per §7; add `.stats/` to `.gitignore`.
+- [x] **Write `collect_usage.py` CLI** — `--scan`, `--hook`, `--record` (both provider forms) per §9, wiring together all the above modules.
+- [x] **Write `collect_usage.sh`** — per §10; mark executable via `git update-index --chmod=+x`.
+- [x] **Write `collect_usage.ps1`** — per §10.
+- [x] **Wire the `SessionEnd` hook** — add the `hooks.SessionEnd` block to `.claude/settings.json` per §11.
+- [x] **Integrate `scripts/automation/claude/ralph.py`** — per §12; verify existing Ralph loop behavior (metrics CSV, activity log) is unchanged aside from the new `record_usage_row` call.
+- [x] **Integrate `scripts/automation/codex/ralph.py`** — per §13.
+- [x] **Integrate `scripts/automation/claude/handle_issues.py`** — per §14 (revised: `USAGE_STAGE` marker convention, since the wrapper itself has no per-stage visibility — see §14).
+- [x] **Integrate `scripts/automation/codex/handle_issues.py`** — per §14, same marker convention.
+- [x] **Investigate and wire Codex `notify` config** — per §15; document findings (or the graceful-degradation fallback actually used) directly in this plan's §15 if the real config shape differs from what's written here. Finding: user declined a global `~/.codex/config.toml` edit (hard to maintain, would risk the existing `codex-computer-use` hook) — see §15/§16 for the `commit.md`-triggered scan used instead.
+- [x] **Wire the catch-all scan into `.claude/commands/commit.md`** — per the revised §16: runs `collect_usage.py --scan` as a best-effort step before every commit, for both providers, with no global machine config or scheduled task.
+- [x] **Document the manual/cron catch-all command** — confirm `--scan` works end-to-end against this repo's own real `Docs/Specs/*/usage.csv` output for at least one real spec directory with actual interactive history (e.g. this spec's own directory once it has transcripts). Confirmed against `Docs/Specs/26_07_22_08_province-info-panel/usage.csv` — real multi-row output with correct stage/sub-stage segmentation, costs, and token sums.
+- [x] **Full test suite run** — `scripts/stats/tests/` per the Tests section below, plus `scripts/automation/common/test_ralph.py` (unchanged) to confirm no regression in the existing Ralph test suite.
 
 ### User Steps
 
