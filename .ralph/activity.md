@@ -198,3 +198,29 @@ The next iteration should add configuration and completion-condition tree regres
 Focused legacy/terminal persistence cases remain in the later `completion-persistence-tests` task.
 
 ---
+
+## 2026-07-22 — Add completion-condition configuration and tree regression coverage
+
+Task: "Add configuration and condition-tree regression coverage."
+
+**What I changed:**
+- Added `src/Game.Tests/CompletionConditionTests.cs` covering recursive `any` composition,
+  configured threshold changes, inclusive total-control and full-country boundaries, and
+  below-threshold behavior.
+- Covered repeated same-country contributions, other-organization and unavailable-country
+  exclusion, zero-control countries in total capacity, and zero-country safety.
+- Covered camelCase recursive trees and absent-key defaults through both `FileConfig` and
+  Newtonsoft, plus contextual errors for null/unknown trees, empty groups, invalid thresholds,
+  and non-positive capacity.
+- Updated `src/Game.Configs/CompletionConditionConfig.cs` so Newtonsoft replaces initialized
+  recursive member lists instead of appending JSON members to them.
+- Bumped `ProjectSettings/ProjectSettings.asset` bundle version from `1.48` to `1.49`.
+
+**Gate:** `$env:DOTNET_ROLL_FORWARD='Major'; dotnet test src/GlobalStrategy.Core.sln` exited 0.
+Evidence: ECS.Tests passed 34/34, ECS.Viewer.Tests passed 16/16, and Game.Tests passed 349/349;
+399 total tests, 0 failed. Major roll-forward was required because this runner provides the .NET 10
+runtime rather than the targeted .NET 8 runtime.
+
+The next iteration should add winner-selection and game-loop completion integration coverage.
+
+---

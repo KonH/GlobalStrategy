@@ -115,7 +115,7 @@ End an in-progress game when one participating organization satisfies the config
 			"Test the camelCase tree through FileConfig and Newtonsoft production-equivalent deserializers, including recursive members, numeric values, explicit any, absent-key default, and contextual errors for null or invalid trees."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "completion-system-tests",
