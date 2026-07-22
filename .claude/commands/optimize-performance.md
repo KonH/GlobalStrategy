@@ -31,7 +31,7 @@ This skill is the sanctioned autonomous path for **micro-optimizations to alread
 
 5. **Hand off** — print exactly this for the user to run in a terminal, this skill does **not** spawn the loop itself:
    ```
-   .\scripts\ralph.ps1 -PerfTarget <target>
+   .\scripts\automation\claude\ralph.ps1 -PerfTarget <target>
    ```
 
 ## Finish / failure semantics

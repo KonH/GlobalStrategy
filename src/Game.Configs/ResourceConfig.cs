@@ -2,7 +2,16 @@ using System.Collections.Generic;
 
 namespace GS.Game.Configs {
 	public class ResourceConfig {
+		public List<string> DisplayWhitelist { get; set; } = new List<string>();
 		public List<ResourceDefinition> Resources { get; set; } = new List<ResourceDefinition>();
+
+		public IEnumerable<ResourceDefinition> FindResources(ResourceSeedTarget seedTarget) {
+			foreach (var resource in Resources) {
+				if (resource.SeedTarget == seedTarget) {
+					yield return resource;
+				}
+			}
+		}
 
 		public ResourceDefinition? FindResource(string resourceId) {
 			foreach (var r in Resources) {
@@ -14,6 +23,7 @@ namespace GS.Game.Configs {
 
 	public class ResourceDefinition {
 		public string ResourceId { get; set; } = "";
+		public ResourceSeedTarget SeedTarget { get; set; } = ResourceSeedTarget.Country;
 		public string NameKey { get; set; } = "";
 		public string DescriptionKey { get; set; } = "";
 		public string Icon { get; set; } = "";
@@ -26,6 +36,13 @@ namespace GS.Game.Configs {
 			}
 			return null;
 		}
+	}
+
+	public enum ResourceSeedTarget {
+		Character,
+		Province,
+		Country,
+		Org,
 	}
 
 	public class EffectDefinition {

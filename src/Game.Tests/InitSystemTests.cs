@@ -70,7 +70,15 @@ namespace GS.Game.Tests {
 				SpeedMultipliers = new[] { 1, 2, 4 },
 				AutoSaveInterval = "monthly"
 			};
-			var resourceConfig = new ResourceConfig { Resources = new List<ResourceDefinition>() };
+			var resourceConfig = new ResourceConfig {
+				Resources = new List<ResourceDefinition> {
+					new ResourceDefinition { ResourceId = ResourceDefinitions.CountryPopulation },
+					new ResourceDefinition { ResourceId = ResourceDefinitions.CountryScore },
+					new ResourceDefinition { ResourceId = ResourceDefinitions.Recruits },
+					new ResourceDefinition { ResourceId = ResourceDefinitions.Population, SeedTarget = ResourceSeedTarget.Province },
+					new ResourceDefinition { ResourceId = ResourceDefinitions.OrgScore, SeedTarget = ResourceSeedTarget.Org }
+				}
+			};
 			var geoJson = new GeoJsonConfig();
 			var mapEntry = new MapEntryConfig();
 			var provinceConfig = new ProvinceConfig {

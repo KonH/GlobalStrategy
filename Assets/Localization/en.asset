@@ -400,6 +400,18 @@ MonoBehaviour:
     Value: Gold
   - Key: resource.gold.description
     Value: The primary currency for funding armies, diplomacy, and development.
+  - Key: resource.country_population.name
+    Value: Country Population
+  - Key: resource.country_population.description
+    Value: The total population living in this country.
+  - Key: resource.country_score.name
+    Value: Country Score
+  - Key: resource.country_score.description
+    Value: A combined measure of this country's influence and development.
+  - Key: resource.org_score.name
+    Value: Organization Score
+  - Key: resource.org_score.description
+    Value: A combined measure of this organization's influence.
   - Key: effect.base_income.name
     Value: Base Income
   - Key: effect.base_income.description

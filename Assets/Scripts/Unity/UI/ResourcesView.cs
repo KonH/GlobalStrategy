@@ -1,5 +1,7 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine.UIElements;
 using GS.Main;
 using GS.Game.Components;
@@ -23,20 +25,30 @@ namespace GS.Unity.UI {
 			if (!state.IsValid) {
 				return;
 			}
-			foreach (var resource in state.Resources) {
+			foreach (string resourceId in _config.DisplayWhitelist) {
+				var resource = FindResourceState(state, resourceId);
+				if (resource == null) {
+					continue;
+				}
+
+				var resourceDefinition = _config.FindResource(resource.ResourceId);
 				var row = new VisualElement();
 				row.AddToClassList("resource-row");
+				if (_container.childCount > 0) {
+					row.AddToClassList("resource-row--spaced");
+				}
 
 				var icon = new VisualElement();
-				icon.AddToClassList($"resource-icon--{resource.ResourceId}");
+				if (resourceDefinition != null && !string.IsNullOrEmpty(resourceDefinition.Icon)) {
+					icon.AddToClassList("resource-icon");
+					icon.AddToClassList($"resource-icon--{resourceDefinition.Icon}");
+				}
 				row.Add(icon);
 
 				var label = new Label();
 				label.AddToClassList("gs-label");
 				label.AddToClassList("resource-label");
-				label.text = resource.ResourceId == "gold"
-					? $"{resource.Value.AsInt()}"
-					: $"{resource.Value.Display:F0}";
+				label.text = FormatResourceValue(resource.Value.Display);
 				row.Add(label);
 
 				var capturedResource = resource;
@@ -45,6 +57,33 @@ namespace GS.Unity.UI {
 
 				_container.Add(row);
 			}
+		}
+
+		static string FormatResourceValue(double value) {
+			double roundedValue = Math.Round(value, MidpointRounding.AwayFromZero);
+			double magnitude = Math.Abs(roundedValue);
+			if (magnitude < 1_000) {
+				return roundedValue.ToString("0", CultureInfo.InvariantCulture);
+			}
+
+			double divisor = magnitude < 1_000_000 ? 1_000 : 1_000_000;
+			string suffix = magnitude < 1_000_000 ? "K" : "M";
+			double scaledValue = Math.Round(roundedValue / divisor, MidpointRounding.AwayFromZero);
+			if (suffix == "K" && Math.Abs(scaledValue) >= 1_000) {
+				scaledValue = Math.Round(roundedValue / 1_000_000, MidpointRounding.AwayFromZero);
+				suffix = "M";
+			}
+
+			return $"{scaledValue.ToString("0", CultureInfo.InvariantCulture)}{suffix}";
+		}
+
+		static ResourceStateEntry? FindResourceState(CountryResourcesState state, string resourceId) {
+			foreach (var resource in state.Resources) {
+				if (resource.ResourceId == resourceId) {
+					return resource;
+				}
+			}
+			return null;
 		}
 
 		VisualElement BuildResourceTooltip(TooltipContext ctx, ResourceStateEntry resource, CountryResourcesState state) {
@@ -56,6 +95,12 @@ namespace GS.Unity.UI {
 			header.text = resDef != null ? _loc.Get(resDef.NameKey) : resource.ResourceId;
 			header.AddToClassList("tooltip-header");
 			root.Add(header);
+
+			if (resDef != null && !string.IsNullOrEmpty(resDef.DescriptionKey)) {
+				var description = new Label(_loc.Get(resDef.DescriptionKey));
+				description.AddToClassList("tooltip-description");
+				root.Add(description);
+			}
 
 			double plusTotal = 0;
 			double minusTotal = 0;
@@ -121,7 +166,7 @@ namespace GS.Unity.UI {
 			}
 
 			// Control income rows (gold resource only)
-			if (resource.ResourceId == "gold" && state.ControlIncomes.Count > 0) {
+			if (resource.ResourceId == ResourceDefinitions.Gold && state.ControlIncomes.Count > 0) {
 				double controlTotal = 0;
 				foreach (var inc in state.ControlIncomes) {
 					controlTotal += inc.MonthlyGold;
