@@ -11,7 +11,7 @@ Arguments: `$ARGUMENTS` — either the spec index (e.g. `45`), `bot:<featureId>`
 
    Read `.ralph/prd.md` and `.ralph/activity.md`. Determine run status: how many tasks have `"passes": true` out of the total, and which are `"category": "unity-manual"`.
 2. Run `git status` (never `-uall`) and `git diff`. If uncommitted changes remain, stage them and create a commit using the **/commit** skill (it handles branch rules and the version bump). If the working tree is clean, still run the /commit version-bump flow only if no commit exists on this branch yet; otherwise proceed.
-3. Create the pull request using the **/pr** skill. In addition to the /pr skill's standard body format, append a section:
+3. Create the pull request using the **/pr** skill. Create it as a draft when any PRD task is unfinished or the activity journal records a blocker; create it ready for review only when every task passes and no blocker remains. In addition to the /pr skill's standard body format, append a section:
 
    ```
    ## Ralph run
@@ -51,6 +51,7 @@ Arguments: `$ARGUMENTS` — either the spec index (e.g. `45`), `bot:<featureId>`
 ## Rules
 
 - Do not flip any `"passes"` flags here — this skill reports state, it does not verify tasks.
+- Do not refuse to create a PR merely because the Ralph run is incomplete. A partial PR preserves verified progress and makes the remaining tasks and blockers reviewable.
 - If the loop left blockers in `.ralph/activity.md`, quote them in the PR body verbatim rather than paraphrasing them away.
 - For `bot:<featureId>` runs: never fabricate the eval verdict section — read it from the committed `eval_history.json`/`eval_summary.md`; if those files are missing or empty, say so rather than inventing numbers.
 - For `perf:<target>` runs: never fabricate the benchmark verdict section — read it from the committed `Docs/Benchmarks/history.json`/`summary.md`; if those files are missing the target's entries, say so rather than inventing numbers.
