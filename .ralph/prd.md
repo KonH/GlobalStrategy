@@ -77,7 +77,7 @@ Make every in-scope `VisualState`/`ResourcesState`/`TimeState` class's `Set(...)
 			"NoOp calls Set(...) with the exact values currently stored; Update calls Set(...) with a genuinely different value."
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "benchmarks",
