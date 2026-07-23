@@ -11,7 +11,7 @@ Usage:
   python scripts/stats/collect_usage.py --scan
   python scripts/stats/collect_usage.py --hook
   python scripts/stats/collect_usage.py --record --provider claude --stage implement \\
-      --spec-dir <dir> --mode automated --session-id <id> --model <model> \\
+      --spec-dir <dir> --mode automated --session-id <id> --model <model> --effort <effort> \\
       --start <iso> --end <iso> --input-tokens N --cached-input-tokens N --output-tokens N
   python scripts/stats/collect_usage.py --record --provider codex --stage implement \\
       --spec-dir <dir> --mode automated --scan-latest-rollout-since <iso>
@@ -94,7 +94,7 @@ def diff_lines_for_branch(branch, root):
         return ""
 
 
-def build_row(spec_dir, stage, mode, context, provider, session_id, model, start, end,
+def build_row(spec_dir, stage, mode, context, provider, session_id, model, effort, start, end,
               input_tokens, cached_input_tokens, output_tokens, diff_lines, root):
     cost, warning = compute_cost(model, input_tokens, cached_input_tokens, output_tokens)
     if warning:
@@ -111,6 +111,7 @@ def build_row(spec_dir, stage, mode, context, provider, session_id, model, start
         "end": end,
         "provider": provider,
         "model": model,
+        "effort": effort,
         "cost_usd": "" if cost is None else cost,
         "input_tokens": input_tokens,
         "cached_input_tokens": cached_input_tokens,
@@ -131,7 +132,7 @@ def process_rows(rows, mode, root):
             record = build_row(
                 spec_dir=spec_dir, stage=row["stage"], mode=mode, context=row["context"],
                 provider=row["provider"], session_id=row["session_id"], model=row["model"],
-                start=row["start"], end=row["end"], input_tokens=row["input_tokens"],
+                effort=row["effort"], start=row["start"], end=row["end"], input_tokens=row["input_tokens"],
                 cached_input_tokens=row["cached_input_tokens"], output_tokens=row["output_tokens"],
                 diff_lines=diff_lines_for_branch(row["git_branch"], root) if row["git_branch"] else "",
                 root=root,
@@ -146,14 +147,14 @@ def process_rows(rows, mode, root):
 
 def record_usage_row(provider, stage, spec_dir, mode, session_id, model, start, end,
                       input_tokens, cached_input_tokens, output_tokens, diff_lines=None,
-                      context="fresh", root=None):
+                      context="fresh", effort="", root=None):
     """Direct-record path used by the automation wrappers - no transcript re-parse,
     every field comes from data the wrapper already has (e.g. `claude -p
     --output-format json`'s own result object)."""
     root = root or repo_root()
     record = build_row(
         spec_dir=spec_dir, stage=stage, mode=mode, context=context, provider=provider,
-        session_id=session_id, model=model, start=start, end=end,
+        session_id=session_id, model=model, effort=effort, start=start, end=end,
         input_tokens=input_tokens, cached_input_tokens=cached_input_tokens,
         output_tokens=output_tokens, diff_lines="" if diff_lines is None else diff_lines,
         root=root,
@@ -190,8 +191,8 @@ def record_usage_row_codex(spec_dir, stage, mode, since_iso, diff_lines=None, ro
     aggregate_output = sum(r["output_tokens"] for r in rows)
     record = build_row(
         spec_dir=spec_dir, stage=stage, mode=mode, context=rows[0]["context"], provider="codex",
-        session_id=rows[0]["session_id"], model=rows[0]["model"], start=rows[0]["start"],
-        end=rows[-1]["end"], input_tokens=aggregate_input, cached_input_tokens=aggregate_cached,
+        session_id=rows[0]["session_id"], model=rows[0]["model"], effort=rows[0]["effort"],
+        start=rows[0]["start"], end=rows[-1]["end"], input_tokens=aggregate_input, cached_input_tokens=aggregate_cached,
         output_tokens=aggregate_output, diff_lines="" if diff_lines is None else diff_lines,
         root=root,
     )
@@ -256,6 +257,7 @@ def main():
     parser.add_argument("--context", choices=["fresh", "continued"], default="fresh")
     parser.add_argument("--session-id")
     parser.add_argument("--model")
+    parser.add_argument("--effort", default="")
     parser.add_argument("--start")
     parser.add_argument("--end")
     parser.add_argument("--input-tokens", type=int, default=0)
@@ -280,7 +282,7 @@ def main():
         else:
             record_usage_row(
                 provider="claude", stage=args.stage, spec_dir=args.spec_dir, mode=args.mode,
-                session_id=args.session_id, model=args.model, start=args.start, end=args.end,
+                session_id=args.session_id, model=args.model, effort=args.effort, start=args.start, end=args.end,
                 input_tokens=args.input_tokens, cached_input_tokens=args.cached_input_tokens,
                 output_tokens=args.output_tokens, diff_lines=args.diff_lines, context=args.context,
                 root=root,
