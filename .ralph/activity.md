@@ -63,3 +63,31 @@ Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — succeeded, 0 war
 Next iteration: pick up `goal-hint-projector` task — add `WinConditionHintKind`,
 `WinConditionHintRowState`, `WinConditionHintState` (registered on `VisualState`) to
 `src/Game.Main/VisualState.cs` and `src/Game.Main/WinConditionHintProjector.cs`.
+
+---
+
+## 2026-07-23 — goal-hint-projector
+
+Task: Add WinConditionHintState/row model and the pure WinConditionHintProjector.
+
+Changes:
+- `src/Game.Main/VisualState.cs`: added `WinConditionHintKind` enum (TotalControl,
+  FullControlCountries), `WinConditionHintRowState` (Kind, Value, AvailableCountryCount),
+  and `WinConditionHintState : INotifyPropertyChanged` (IsAvailable, IsAlternativeGroup,
+  Rows, `Set(...)`), following the same private-setter + `PropertyChanged` pattern as
+  `GameCompletionState`/`LeaderboardState`. Registered `WinConditionHintState
+  WinConditionHint` on `VisualState`.
+- `src/Game.Main/WinConditionHintProjector.cs`: new static `Build(CompletionConditionConfig?
+  condition, int availableCountryCount)` returning `(bool isAvailable, bool
+  isAlternativeGroup, List<WinConditionHintRowState> rows)`. Recursively flattens
+  `condition.Type == "any"` depth-first in `Members` order; maps `total_control` and
+  `full_control_countries` leaves to typed rows; unknown leaf types are silently skipped
+  (no row added); null condition or an all-unsupported tree yields `(false, false, [])`;
+  `isAlternativeGroup` is true only when 2+ rows result.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — succeeded, 0 warnings, 0 errors.
+
+Next iteration: pick up `projector-tests` task — add
+`src/Game.Tests/EndGameComparisonProjectorTests.cs` and
+`src/Game.Tests/WinConditionHintProjectorTests.cs`, gate `dotnet test
+src/GlobalStrategy.Core.sln`.

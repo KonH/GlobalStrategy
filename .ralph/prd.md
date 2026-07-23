@@ -65,7 +65,7 @@ see `## Automation Notes` in the plan file for the verbatim list of what a human
 			"Behavior: recursively flatten condition.Type == \"any\" preserving configuration order depth-first; map total_control and full_control_countries leaves to typed rows; silently skip unsupported leaf types; null/empty/all-unsupported condition yields (false, false, []); isAlternativeGroup is true only when 2+ rows result."
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "projector-tests",
