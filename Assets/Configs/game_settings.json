@@ -28,5 +28,6 @@
   "gameLog": {
     "includePlayerActions": true,
     "maxLogEntries": 12
-  }
+  },
+  "endGameComparisons": []
 }
