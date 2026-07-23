@@ -15,6 +15,9 @@ namespace GS.Main {
 		public CountryActionsState CountryActions { get; } = new CountryActionsState();
 
 		public void Set(bool isValid, string countryId) {
+			if (IsValid == isValid && CountryId == countryId) {
+				return;
+			}
 			IsValid = isValid;
 			CountryId = countryId;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
@@ -47,6 +50,9 @@ namespace GS.Main {
 		public OrgActionsState Actions { get; } = new OrgActionsState();
 
 		public void Set(bool isValid, string orgId, string displayName, string hqCountryId = "") {
+			if (IsValid == isValid && OrgId == orgId && DisplayName == displayName && HqCountryId == hqCountryId) {
+				return;
+			}
 			IsValid = isValid;
 			OrgId = orgId;
 			DisplayName = displayName;
@@ -64,6 +70,9 @@ namespace GS.Main {
 		public double InitialGold { get; private set; }
 
 		public void Set(bool isValid, string orgId, string displayName, double initialGold) {
+			if (IsValid == isValid && OrgId == orgId && DisplayName == displayName && InitialGold == initialGold) {
+				return;
+			}
 			IsValid = isValid;
 			OrgId = orgId;
 			DisplayName = displayName;
@@ -371,6 +380,9 @@ namespace GS.Main {
 		public CountryResourcesState Resources { get; } = new CountryResourcesState();
 
 		public void Set(bool isValid, string provinceId) {
+			if (IsValid == isValid && ProvinceId == provinceId) {
+				return;
+			}
 			IsValid = isValid;
 			ProvinceId = provinceId;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));

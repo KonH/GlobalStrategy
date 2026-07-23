@@ -23,3 +23,28 @@ Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded,
 Set `state-equality-helper` task's `"passes"` to `true` in `.ralph/prd.md`.
 
 Next iteration: pick up `visualstate-scalar` (early-return-on-equal for SelectedCountryState, SelectedOrganizationState, SelectedProvinceState, PlayerOrganizationState, TimeState), following the existing LocaleState/MapLensState pattern in `src/Game.Main/VisualState.cs` and `src/Game.Main/TimeState.cs`.
+
+---
+
+## 2026-07-23 — visualstate-scalar
+
+Task: Add early-return-on-equal to Set(...) for scalar-field state classes.
+
+Note: found `.ralph/activity.md` had an uncommitted local modification that stripped the previous entry (the `state-equality-helper` journal entry existed in HEAD/`c0d0f62` but not in the working tree). Restored it with `git checkout -- .ralph/activity.md` before appending this entry, so no prior journal content is lost.
+
+Changed `src/Game.Main/VisualState.cs`:
+- `SelectedCountryState.Set`: early-return when `IsValid`/`CountryId` both match stored values.
+- `PlayerOrganizationState.Set`: early-return when `IsValid`/`OrgId`/`DisplayName`/`HqCountryId` all match.
+- `SelectedOrganizationState.Set`: early-return when `IsValid`/`OrgId`/`DisplayName`/`InitialGold` all match.
+- `SelectedProvinceState.Set`: early-return when `IsValid`/`ProvinceId` both match.
+
+Changed `src/Game.Main/TimeState.cs`:
+- `TimeState.Set`: early-return when `CurrentTime`/`IsPaused`/`MultiplierIndex` all match.
+
+Each follows the existing `LocaleState`/`MapLensState` pattern: `if (equal) { return; }` before any field assignment, with assignment + `PropertyChanged` invoke only on the changed path. `LocaleState`/`MapLensState` themselves untouched.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded, 0 Warning(s), 0 Error(s).
+
+Set `visualstate-scalar` task's `"passes"` to `true` in `.ralph/prd.md`.
+
+Next iteration: pick up `visualstate-list` (structural-equality early-return for CountryControlState, CountryCharactersState, OrgCharactersState, OrgMapState, OrgActionsState, CountryActionsState, LeaderboardState, GameLogState, VisualEffectCollection, CountryResourcesState) in `src/Game.Main/VisualState.cs`, using the `StateEquality` helper's `ListEquals` with the matching per-entry comparer. Remember `CountryControlState.Set` needs `usedChanged` captured BEFORE calling `UsedControl.SetActual(used)` since `SetActual` must still run unconditionally.
