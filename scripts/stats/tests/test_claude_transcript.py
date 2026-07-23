@@ -60,6 +60,14 @@ def assistant_line(session_id, timestamp, stop_reason, model="claude-sonnet-5",
     }
 
 
+def skill_invocation_line(session_id, timestamp, skill, branch="main",
+                          input_tokens=10, cached=5, output_tokens=20):
+    line = assistant_line(session_id, timestamp, "tool_use", branch=branch,
+                          input_tokens=input_tokens, cached=cached, output_tokens=output_tokens)
+    line["message"]["content"] = [{"type": "tool_use", "name": "Skill", "input": {"skill": skill}}]
+    return line
+
+
 def write_transcript(lines):
     tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False, encoding="utf-8")
     for line in lines:
@@ -149,6 +157,57 @@ class ClaudeTranscriptTests(unittest.TestCase):
         self.assertEqual(15, rows[0]["input_tokens"])
         self.assertEqual(1, rows[0]["cached_input_tokens"])
         self.assertEqual(10, rows[0]["output_tokens"])
+
+    def test_skill_tool_invocation_starts_stage(self):
+        path = write_transcript([
+            user_line("s1", "write spec for my feature please", "2026-01-01T00:00:00Z"),
+            skill_invocation_line("s1", "2026-01-01T00:00:01Z", "specify", input_tokens=7, cached=3, output_tokens=11),
+            tool_result_line("s1", "2026-01-01T00:00:02Z"),
+            assistant_line("s1", "2026-01-01T00:00:03Z", "end_turn", input_tokens=5, cached=0, output_tokens=8),
+        ])
+
+        rows = parse_claude_transcript(path)
+
+        self.assertEqual(1, len(rows))
+        self.assertEqual("spec", rows[0]["stage"])
+        self.assertEqual(12, rows[0]["input_tokens"])
+        self.assertEqual(19, rows[0]["output_tokens"])
+
+    def test_plugin_prefixed_skill_invocation_maps_to_stage(self):
+        path = write_transcript([
+            skill_invocation_line("s1", "2026-01-01T00:00:00Z", "k:plan"),
+            assistant_line("s1", "2026-01-01T00:00:01Z", "end_turn"),
+        ])
+
+        rows = parse_claude_transcript(path)
+
+        self.assertEqual(1, len(rows))
+        self.assertEqual("plan", rows[0]["stage"])
+
+    def test_repeated_skill_invocation_of_current_stage_does_not_restart_it(self):
+        path = write_transcript([
+            skill_invocation_line("s1", "2026-01-01T00:00:00Z", "specify"),
+            tool_result_line("s1", "2026-01-01T00:00:01Z"),
+            skill_invocation_line("s1", "2026-01-01T00:00:02Z", "k:specify"),
+            tool_result_line("s1", "2026-01-01T00:00:03Z"),
+            assistant_line("s1", "2026-01-01T00:00:04Z", "end_turn"),
+        ])
+
+        rows = parse_claude_transcript(path)
+
+        self.assertEqual(1, len(rows))
+        self.assertEqual("spec", rows[0]["stage"])
+        self.assertEqual("2026-01-01T00:00:00Z", rows[0]["start"])
+
+    def test_skill_names_containing_stage_words_do_not_start_stages(self):
+        path = write_transcript([
+            skill_invocation_line("s1", "2026-01-01T00:00:00Z", "implement-bot-feature"),
+            assistant_line("s1", "2026-01-01T00:00:01Z", "end_turn"),
+        ])
+
+        rows = parse_claude_transcript(path)
+
+        self.assertEqual(0, len(rows))
 
     def test_outer_session_id_used_not_nested_message_session_id(self):
         path = write_transcript([
