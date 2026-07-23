@@ -1,386 +1,386 @@
 [
   {
     "name": "ControlSystemBenchmarks.Update",
-    "meanNanoseconds": 75044.31467848558,
-    "stdDevNanoseconds": 156.22201006505222,
+    "meanNanoseconds": 61122.788899739586,
+    "stdDevNanoseconds": 569.4321817963171,
     "allocatedBytes": 1752
   },
   {
     "name": "CountryPopulationCollectorBenchmarks.Compute",
-    "meanNanoseconds": 934620.939453125,
-    "stdDevNanoseconds": 18343.25818817369,
-    "allocatedBytes": 608728
+    "meanNanoseconds": 422477.0322265625,
+    "stdDevNanoseconds": 71856.11228140688,
+    "allocatedBytes": 608862
   },
   {
     "name": "CountryScoreCollectorBenchmarks.Compute",
-    "meanNanoseconds": 13311.6426755465,
-    "stdDevNanoseconds": 36.663128204799776,
+    "meanNanoseconds": 5204.015477498372,
+    "stdDevNanoseconds": 215.82683464965245,
     "allocatedBytes": 128
   },
   {
     "name": "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_NoOp",
-    "meanNanoseconds": 881.4765658696492,
-    "stdDevNanoseconds": 3.7252782702664335,
+    "meanNanoseconds": 471.52450634883,
+    "stdDevNanoseconds": 7.055947273341313,
     "allocatedBytes": 832
   },
   {
     "name": "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_Update",
-    "meanNanoseconds": 8.432552778295108,
-    "stdDevNanoseconds": 0.011396698908639279,
+    "meanNanoseconds": 2.9048175613085427,
+    "stdDevNanoseconds": 0.02071235263443506,
     "allocatedBytes": 0
   },
   {
     "name": "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_NoOp",
-    "meanNanoseconds": 311.1562923284677,
-    "stdDevNanoseconds": 1.447919836409981,
+    "meanNanoseconds": 84.83370145161946,
+    "stdDevNanoseconds": 0.24361838930113477,
     "allocatedBytes": 176
   },
   {
     "name": "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_Update",
-    "meanNanoseconds": 29.41785078048706,
-    "stdDevNanoseconds": 0.14772838670607746,
+    "meanNanoseconds": 9.604958395163218,
+    "stdDevNanoseconds": 0.06566474833179994,
     "allocatedBytes": 0
   },
   {
     "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_NoOp",
-    "meanNanoseconds": 94.92369107689176,
-    "stdDevNanoseconds": 0.2672976287304657,
+    "meanNanoseconds": 24.49962283883776,
+    "stdDevNanoseconds": 0.15806075871775083,
     "allocatedBytes": 80
   },
   {
     "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_Update",
-    "meanNanoseconds": 21.34032630281789,
-    "stdDevNanoseconds": 0.07759751432329011,
+    "meanNanoseconds": 10.876120130221048,
+    "stdDevNanoseconds": 0.04623595804156061,
     "allocatedBytes": 0
   },
   {
     "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_NoOp",
-    "meanNanoseconds": 522655.73828125,
-    "stdDevNanoseconds": 12015.500336054245,
-    "allocatedBytes": 163943
+    "meanNanoseconds": 228371.97341918945,
+    "stdDevNanoseconds": 10503.898402403636,
+    "allocatedBytes": 163709
   },
   {
     "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_Update",
-    "meanNanoseconds": 22.32446108185328,
-    "stdDevNanoseconds": 0.010764371747602634,
+    "meanNanoseconds": 10.37890593210856,
+    "stdDevNanoseconds": 0.043711884514382605,
     "allocatedBytes": 0
   },
   {
     "name": "EcsWorldBenchmarks.AddTwoComponents(EntityCount=1000)",
-    "meanNanoseconds": 196652.49150390626,
-    "stdDevNanoseconds": 574.5567794186466,
+    "meanNanoseconds": 64299.41969651442,
+    "stdDevNanoseconds": 434.9473435706264,
     "allocatedBytes": 136000
   },
   {
     "name": "EcsWorldBenchmarks.AddTwoComponents(EntityCount=10000)",
-    "meanNanoseconds": 2346221.91328125,
-    "stdDevNanoseconds": 18907.32747130864,
-    "allocatedBytes": 1818694
+    "meanNanoseconds": 719299.7314453125,
+    "stdDevNanoseconds": 7545.067050792064,
+    "allocatedBytes": 1818627
   },
   {
     "name": "EcsWorldBenchmarks.CreateEntities(EntityCount=1000)",
-    "meanNanoseconds": 24324.051681518555,
-    "stdDevNanoseconds": 126.01056631077542,
+    "meanNanoseconds": 8483.397020612445,
+    "stdDevNanoseconds": 34.11705880278641,
     "allocatedBytes": 37880
   },
   {
     "name": "EcsWorldBenchmarks.CreateEntities(EntityCount=10000)",
-    "meanNanoseconds": 286885.52998046874,
-    "stdDevNanoseconds": 3993.9952497273935,
-    "allocatedBytes": 652684
+    "meanNanoseconds": 126469.09044053819,
+    "stdDevNanoseconds": 2703.7258865924678,
+    "allocatedBytes": 652642
   },
   {
     "name": "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=1000)",
-    "meanNanoseconds": 11292.220700073241,
-    "stdDevNanoseconds": 28.205251447262018,
+    "meanNanoseconds": 3259.9234654353213,
+    "stdDevNanoseconds": 28.939998464910033,
     "allocatedBytes": 0
   },
   {
     "name": "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=10000)",
-    "meanNanoseconds": 115295.51871163504,
-    "stdDevNanoseconds": 454.86186542543436,
+    "meanNanoseconds": 33419.17683919271,
+    "stdDevNanoseconds": 380.3064773668142,
     "allocatedBytes": 0
   },
   {
     "name": "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=1000)",
-    "meanNanoseconds": 4732.667519160679,
-    "stdDevNanoseconds": 5.0591591151443165,
+    "meanNanoseconds": 1304.8110689435687,
+    "stdDevNanoseconds": 4.279299801143538,
     "allocatedBytes": 352
   },
   {
     "name": "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=10000)",
-    "meanNanoseconds": 44257.798248291016,
-    "stdDevNanoseconds": 69.91799832782333,
+    "meanNanoseconds": 12467.746175130209,
+    "stdDevNanoseconds": 219.87194486033292,
     "allocatedBytes": 352
   },
   {
     "name": "FullTickBenchmarks.Tick_MonthBoundary",
-    "meanNanoseconds": 155736106.85714287,
-    "stdDevNanoseconds": 1660689.2712513104,
+    "meanNanoseconds": 65362562.16216216,
+    "stdDevNanoseconds": 2196180.539197712,
     "allocatedBytes": 14088208
   },
   {
     "name": "FullTickBenchmarks.Tick_RegularDay",
-    "meanNanoseconds": 2035394.641304348,
-    "stdDevNanoseconds": 162848.51540042565,
-    "allocatedBytes": 132728
+    "meanNanoseconds": 1570900,
+    "stdDevNanoseconds": 14088.766210471851,
+    "allocatedBytes": 132056
   },
   {
     "name": "ListVisualStateSetBenchmarks.CountryActionsState_NoOp",
-    "meanNanoseconds": 82.96403705222266,
-    "stdDevNanoseconds": 0.2989548010105759,
+    "meanNanoseconds": 48.39506189028422,
+    "stdDevNanoseconds": 0.6341170422879061,
     "allocatedBytes": 64
   },
   {
     "name": "ListVisualStateSetBenchmarks.CountryActionsState_Update",
-    "meanNanoseconds": 11.305472765117884,
-    "stdDevNanoseconds": 0.02099280219740394,
+    "meanNanoseconds": 11.58513714160238,
+    "stdDevNanoseconds": 0.3144746172639368,
     "allocatedBytes": 0
   },
   {
     "name": "ListVisualStateSetBenchmarks.CountryCharactersState_NoOp",
-    "meanNanoseconds": 40.82482914924621,
-    "stdDevNanoseconds": 0.10689377627760757,
+    "meanNanoseconds": 22.909260590871174,
+    "stdDevNanoseconds": 0.38590803730330525,
     "allocatedBytes": 32
   },
   {
     "name": "ListVisualStateSetBenchmarks.CountryCharactersState_Update",
-    "meanNanoseconds": 8.068803621026186,
-    "stdDevNanoseconds": 0.02148156173878701,
+    "meanNanoseconds": 7.392986094759356,
+    "stdDevNanoseconds": 0.2816486384834405,
     "allocatedBytes": 0
   },
   {
     "name": "ListVisualStateSetBenchmarks.CountryControlState_NoOp",
-    "meanNanoseconds": 41.926317087809245,
-    "stdDevNanoseconds": 0.12649256040194923,
+    "meanNanoseconds": 14.60898738840352,
+    "stdDevNanoseconds": 0.40341867433710504,
     "allocatedBytes": 32
   },
   {
     "name": "ListVisualStateSetBenchmarks.CountryControlState_Update",
-    "meanNanoseconds": 11.091056029001871,
-    "stdDevNanoseconds": 0.00347290548159831,
+    "meanNanoseconds": 7.983243500902539,
+    "stdDevNanoseconds": 0.22434014533173927,
     "allocatedBytes": 0
   },
   {
     "name": "ListVisualStateSetBenchmarks.CountryResourcesState_NoOp",
-    "meanNanoseconds": 36.920729347637725,
-    "stdDevNanoseconds": 0.17830605385773413,
+    "meanNanoseconds": 13.16218161305716,
+    "stdDevNanoseconds": 0.5425162326076663,
     "allocatedBytes": 32
   },
   {
     "name": "ListVisualStateSetBenchmarks.CountryResourcesState_Update",
-    "meanNanoseconds": 19.369770109653473,
-    "stdDevNanoseconds": 0.06562236041271377,
+    "meanNanoseconds": 9.757709732422462,
+    "stdDevNanoseconds": 0.07344854075800497,
     "allocatedBytes": 0
   },
   {
     "name": "ListVisualStateSetBenchmarks.GameLogState_NoOp",
-    "meanNanoseconds": 38.29608825345834,
-    "stdDevNanoseconds": 0.09013587645416951,
+    "meanNanoseconds": 23.300404250621796,
+    "stdDevNanoseconds": 0.6678436560911857,
     "allocatedBytes": 32
   },
   {
     "name": "ListVisualStateSetBenchmarks.GameLogState_Update",
-    "meanNanoseconds": 8.407888738008646,
-    "stdDevNanoseconds": 0.012688010515191936,
+    "meanNanoseconds": 7.521978544968146,
+    "stdDevNanoseconds": 0.25917619252464563,
     "allocatedBytes": 0
   },
   {
     "name": "ListVisualStateSetBenchmarks.LeaderboardState_NoOp",
-    "meanNanoseconds": 389.015833791097,
-    "stdDevNanoseconds": 1.8645407487843453,
+    "meanNanoseconds": 283.51036310195923,
+    "stdDevNanoseconds": 4.7738883281193605,
     "allocatedBytes": 288
   },
   {
     "name": "ListVisualStateSetBenchmarks.LeaderboardState_Update",
-    "meanNanoseconds": 11.724271122898374,
-    "stdDevNanoseconds": 0.04319771611328615,
+    "meanNanoseconds": 11.198284377654394,
+    "stdDevNanoseconds": 0.20641515963344934,
     "allocatedBytes": 0
   },
   {
     "name": "ListVisualStateSetBenchmarks.OrgActionsState_NoOp",
-    "meanNanoseconds": 108.1719428896904,
-    "stdDevNanoseconds": 0.25034143190539293,
+    "meanNanoseconds": 61.60271832576165,
+    "stdDevNanoseconds": 0.784529384913663,
     "allocatedBytes": 96
   },
   {
     "name": "ListVisualStateSetBenchmarks.OrgActionsState_Update",
-    "meanNanoseconds": 10.991190181175869,
-    "stdDevNanoseconds": 0.011836244988461668,
+    "meanNanoseconds": 10.729642733931541,
+    "stdDevNanoseconds": 0.28780757320167966,
     "allocatedBytes": 0
   },
   {
     "name": "ListVisualStateSetBenchmarks.OrgCharactersState_NoOp",
-    "meanNanoseconds": 123.84668691953023,
-    "stdDevNanoseconds": 0.5240927375470432,
+    "meanNanoseconds": 86.1967499767031,
+    "stdDevNanoseconds": 0.8521238401462833,
     "allocatedBytes": 88
   },
   {
     "name": "ListVisualStateSetBenchmarks.OrgCharactersState_Update",
-    "meanNanoseconds": 7.993064227700233,
-    "stdDevNanoseconds": 0.010378205554874448,
+    "meanNanoseconds": 7.459954073031743,
+    "stdDevNanoseconds": 0.12212371470712026,
     "allocatedBytes": 0
   },
   {
     "name": "ListVisualStateSetBenchmarks.OrgMapState_NoOp",
-    "meanNanoseconds": 80.12027523914973,
-    "stdDevNanoseconds": 0.31387235140342823,
+    "meanNanoseconds": 49.16000028451284,
+    "stdDevNanoseconds": 0.5709453494365029,
     "allocatedBytes": 72
   },
   {
     "name": "ListVisualStateSetBenchmarks.OrgMapState_Update",
-    "meanNanoseconds": 8.52842233479023,
-    "stdDevNanoseconds": 0.15319089769398647,
+    "meanNanoseconds": 7.59846751888593,
+    "stdDevNanoseconds": 0.15872783321042713,
     "allocatedBytes": 0
   },
   {
     "name": "ListVisualStateSetBenchmarks.VisualEffectCollection_NoOp",
-    "meanNanoseconds": 36.50814143021901,
-    "stdDevNanoseconds": 0.1332698559609961,
+    "meanNanoseconds": 12.203134298324585,
+    "stdDevNanoseconds": 0.06380274515539727,
     "allocatedBytes": 32
   },
   {
     "name": "ListVisualStateSetBenchmarks.VisualEffectCollection_Update",
-    "meanNanoseconds": 9.430467414855958,
-    "stdDevNanoseconds": 0.008340544863371055,
+    "meanNanoseconds": 5.384330153465271,
+    "stdDevNanoseconds": 0.07901853693378072,
     "allocatedBytes": 0
   },
   {
     "name": "OrgScoreCollectorBenchmarks.Compute",
-    "meanNanoseconds": 1072.6957968543556,
-    "stdDevNanoseconds": 22.126590453584768,
+    "meanNanoseconds": 320.6115654536656,
+    "stdDevNanoseconds": 3.240166036296863,
     "allocatedBytes": 472
   },
   {
     "name": "PopulationGrowthCollectorBenchmarks.Compute",
-    "meanNanoseconds": 0.09625033338864644,
-    "stdDevNanoseconds": 0.009497176713695463,
+    "meanNanoseconds": 0.1720056434472402,
+    "stdDevNanoseconds": 0.0063606731926432285,
     "allocatedBytes": 0
   },
   {
     "name": "RecruitsGrowthCollectorBenchmarks.Compute",
-    "meanNanoseconds": 13354.497776285807,
-    "stdDevNanoseconds": 89.54879063920765,
+    "meanNanoseconds": 5023.8991292317705,
+    "stdDevNanoseconds": 81.32569534161672,
     "allocatedBytes": 128
   },
   {
     "name": "RecruitsSeedCollectorBenchmarks.Compute",
-    "meanNanoseconds": 13448.670771280924,
-    "stdDevNanoseconds": 45.352691707727466,
+    "meanNanoseconds": 5253.148508071899,
+    "stdDevNanoseconds": 100.76793073930261,
     "allocatedBytes": 128
   },
   {
     "name": "ResourceQueryBenchmarks.GetValue",
-    "meanNanoseconds": 13367.82257385254,
-    "stdDevNanoseconds": 103.35332330554182,
+    "meanNanoseconds": 5232.5665283203125,
+    "stdDevNanoseconds": 94.49227270397937,
     "allocatedBytes": 128
   },
   {
     "name": "ResourceSystemBenchmarks.Update_MonthBoundary",
-    "meanNanoseconds": 159196842.13333333,
-    "stdDevNanoseconds": 1871453.863073587,
-    "allocatedBytes": 13959072
+    "meanNanoseconds": 63466927.205882356,
+    "stdDevNanoseconds": 1240572.2113315426,
+    "allocatedBytes": 13965628
   },
   {
     "name": "ResourceSystemBenchmarks.Update_RegularDay",
-    "meanNanoseconds": 472370.4072265625,
-    "stdDevNanoseconds": 866.7983338864319,
+    "meanNanoseconds": 177208.28125,
+    "stdDevNanoseconds": 1219.7892419006726,
     "allocatedBytes": 4464
   },
   {
     "name": "ScalarVisualStateSetBenchmarks.LocaleState_NoOp",
-    "meanNanoseconds": 1.3087817887465159,
-    "stdDevNanoseconds": 0.024721995032153388,
+    "meanNanoseconds": 0.39925294426771313,
+    "stdDevNanoseconds": 0.0027237766958343452,
     "allocatedBytes": 0
   },
   {
     "name": "ScalarVisualStateSetBenchmarks.LocaleState_Update",
-    "meanNanoseconds": 7.5129649468830655,
-    "stdDevNanoseconds": 0.023261166633765845,
+    "meanNanoseconds": 2.801522413889567,
+    "stdDevNanoseconds": 0.03435271224898116,
     "allocatedBytes": 0
   },
   {
     "name": "ScalarVisualStateSetBenchmarks.MapLensState_NoOp",
-    "meanNanoseconds": 0.6883887566093888,
-    "stdDevNanoseconds": 0.0009329755162450446,
+    "meanNanoseconds": 0.00113430122534434,
+    "stdDevNanoseconds": 0.0020130457957559028,
     "allocatedBytes": 0
   },
   {
     "name": "ScalarVisualStateSetBenchmarks.MapLensState_Update",
-    "meanNanoseconds": 1.922296442836523,
-    "stdDevNanoseconds": 0.004386282185846107,
+    "meanNanoseconds": 0.6115016341209412,
+    "stdDevNanoseconds": 0.006076601211326629,
     "allocatedBytes": 0
   },
   {
     "name": "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_NoOp",
-    "meanNanoseconds": 3.9204311785953387,
-    "stdDevNanoseconds": 0.0018448470177261482,
+    "meanNanoseconds": 0.6119682054434504,
+    "stdDevNanoseconds": 0.0079245088214132,
     "allocatedBytes": 0
   },
   {
     "name": "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_Update",
-    "meanNanoseconds": 5.832429934825216,
-    "stdDevNanoseconds": 0.00524257684029981,
+    "meanNanoseconds": 2.627278119325638,
+    "stdDevNanoseconds": 0.10515841402943706,
     "allocatedBytes": 0
   },
   {
     "name": "ScalarVisualStateSetBenchmarks.SelectedCountryState_NoOp",
-    "meanNanoseconds": 0.6372127801179885,
-    "stdDevNanoseconds": 0.014553856474929813,
+    "meanNanoseconds": 0.18466536753943988,
+    "stdDevNanoseconds": 0.014520119882363887,
     "allocatedBytes": 0
   },
   {
     "name": "ScalarVisualStateSetBenchmarks.SelectedCountryState_Update",
-    "meanNanoseconds": 3.880880250994648,
-    "stdDevNanoseconds": 0.00989442821032464,
+    "meanNanoseconds": 2.0140784978866577,
+    "stdDevNanoseconds": 0.029531220714842807,
     "allocatedBytes": 0
   },
   {
     "name": "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_NoOp",
-    "meanNanoseconds": 3.6415478507677714,
-    "stdDevNanoseconds": 0.012602469862235637,
+    "meanNanoseconds": 0.2448944995800654,
+    "stdDevNanoseconds": 0.00942597096217785,
     "allocatedBytes": 0
   },
   {
     "name": "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_Update",
-    "meanNanoseconds": 5.992668017067692,
-    "stdDevNanoseconds": 0.2144646080468944,
+    "meanNanoseconds": 2.4416586260000863,
+    "stdDevNanoseconds": 0.05116542845183547,
     "allocatedBytes": 0
   },
   {
     "name": "ScalarVisualStateSetBenchmarks.SelectedProvinceState_NoOp",
-    "meanNanoseconds": 1.2013205029070377,
-    "stdDevNanoseconds": 0.0069493891052297705,
+    "meanNanoseconds": 0.203415642802914,
+    "stdDevNanoseconds": 0.0035707576310067095,
     "allocatedBytes": 0
   },
   {
     "name": "ScalarVisualStateSetBenchmarks.SelectedProvinceState_Update",
-    "meanNanoseconds": 10.580560398789553,
-    "stdDevNanoseconds": 0.005048941932013487,
+    "meanNanoseconds": 3.5890711843967438,
+    "stdDevNanoseconds": 0.07984169339694394,
     "allocatedBytes": 0
   },
   {
     "name": "ScalarVisualStateSetBenchmarks.TimeState_NoOp",
-    "meanNanoseconds": 1.4113846612828118,
-    "stdDevNanoseconds": 0.001095368445732065,
+    "meanNanoseconds": 0.2016546470778329,
+    "stdDevNanoseconds": 0.0035218044290456275,
     "allocatedBytes": 0
   },
   {
     "name": "ScalarVisualStateSetBenchmarks.TimeState_Update",
-    "meanNanoseconds": 1.7934283938791071,
-    "stdDevNanoseconds": 0.0028592985450696974,
+    "meanNanoseconds": 0.558953657746315,
+    "stdDevNanoseconds": 0.013844419979871528,
     "allocatedBytes": 0
   },
   {
     "name": "TimeSystemBenchmarks.Update",
-    "meanNanoseconds": 38.65825734535853,
-    "stdDevNanoseconds": 0.018595187436731206,
+    "meanNanoseconds": 13.49707177052131,
+    "stdDevNanoseconds": 0.04570353868534257,
     "allocatedBytes": 0
   },
   {
     "name": "VisualStateConverterBenchmarks.Update",
-    "meanNanoseconds": 138732.1109049479,
-    "stdDevNanoseconds": 766.4270514239437,
+    "meanNanoseconds": 45201.29656110491,
+    "stdDevNanoseconds": 425.57293061179814,
     "allocatedBytes": 18440
   }
 ]
