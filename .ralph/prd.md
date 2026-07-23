@@ -22,7 +22,7 @@ Make every in-scope `VisualState`/`ResourcesState`/`TimeState` class's `Set(...)
 			"CharacterStateEntryEquals must be reusable both directly by CountryCharactersState and nested inside OrgCharacterSlotEntry comparison for OrgCharactersState."
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "visualstate-scalar",
