@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using GS.Game.Commands;
+using GS.Game.Common;
 
 namespace GS.Main {
 	public class SelectedCountryState : INotifyPropertyChanged {
@@ -13,6 +13,7 @@ namespace GS.Main {
 		public CountryControlState Control { get; } = new CountryControlState();
 		public CountryCharactersState Characters { get; } = new CountryCharactersState();
 		public CountryActionsState CountryActions { get; } = new CountryActionsState();
+		public CountryRelationsState Relations { get; } = new CountryRelationsState();
 
 		public void Set(bool isValid, string countryId) {
 			if (IsValid == isValid && CountryId == countryId) {
@@ -20,6 +21,19 @@ namespace GS.Main {
 			}
 			IsValid = isValid;
 			CountryId = countryId;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
+	public class CountryRelationsState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyList<string> Friends { get; private set; } = Array.Empty<string>();
+		public IReadOnlyList<string> Rivals { get; private set; } = Array.Empty<string>();
+
+		public void Set(IReadOnlyList<string> friends, IReadOnlyList<string> rivals) {
+			Friends = friends;
+			Rivals = rivals;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}

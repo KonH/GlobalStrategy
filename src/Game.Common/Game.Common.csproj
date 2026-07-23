@@ -11,12 +11,4 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="../Game.Components/Game.Components.csproj" />
-    <ProjectReference Include="../Game.Commands/Game.Commands.csproj" />
-    <ProjectReference Include="../Game.Configs/Game.Configs.csproj" />
-    <ProjectReference Include="../Game.Common/Game.Common.csproj" />
-    <ProjectReference Include="../ECS.Core/ECS.Core.csproj" />
-  </ItemGroup>
-
 </Project>

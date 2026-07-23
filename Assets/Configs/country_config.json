@@ -13,7 +13,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Algeria",
@@ -28,7 +30,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "American_Samoa",
@@ -43,7 +47,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Anguilla",
@@ -58,7 +64,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Annam",
@@ -73,7 +81,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Antigua_and_Barbuda",
@@ -88,7 +98,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Arabia",
@@ -103,7 +115,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Argentina",
@@ -118,7 +132,13 @@
           "value": 75
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "United_States_of_America"
+      ],
+      "historicalRivals": [
+        "Kingdom_of_Brazil"
+      ]
     },
     {
       "countryId": "Asante",
@@ -133,7 +153,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Ato_trading_confederacy",
@@ -148,7 +170,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Austria_Hungary",
@@ -163,7 +187,15 @@
           "value": 150
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "Germany",
+        "Russian_Empire"
+      ],
+      "historicalRivals": [
+        "Italy",
+        "Ottoman_Empire"
+      ]
     },
     {
       "countryId": "Barotse",
@@ -178,7 +210,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Basutoland",
@@ -193,7 +227,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Belgium",
@@ -203,7 +239,14 @@
       ],
       "secondaryMapFeatureIds": [],
       "initialResources": [],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "United_Kingdom_of_Great_Britain_and_Ireland",
+        "France"
+      ],
+      "historicalRivals": [
+        "Netherlands"
+      ]
     },
     {
       "countryId": "Belize",
@@ -218,7 +261,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Benin",
@@ -233,7 +278,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Bhutan",
@@ -248,7 +295,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Bokhara_Khanate",
@@ -263,7 +312,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Bolivia",
@@ -278,7 +329,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Borgu_States",
@@ -293,7 +346,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Bosnia_Herzegovina",
@@ -308,7 +363,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "British_Guiana",
@@ -323,7 +380,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "British_Raj",
@@ -338,7 +397,9 @@
           "value": 150
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Brunei",
@@ -353,7 +414,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Buganda",
@@ -368,7 +431,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Bulgaria",
@@ -383,7 +448,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Bunyoro",
@@ -398,7 +465,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Burundi",
@@ -413,7 +482,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Calabar",
@@ -428,7 +499,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Canada",
@@ -438,7 +511,9 @@
       ],
       "secondaryMapFeatureIds": [],
       "initialResources": [],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Cape_Colony",
@@ -453,7 +528,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Ceylon",
@@ -468,7 +545,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Chile",
@@ -483,7 +562,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Colombia",
@@ -498,7 +579,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Congo",
@@ -513,7 +596,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Costa_Rica",
@@ -528,7 +613,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Cotonou",
@@ -543,7 +630,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Dahomey",
@@ -558,7 +647,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Dendi_Kingdom",
@@ -573,7 +664,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Denmark",
@@ -591,7 +684,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Dominica",
@@ -606,7 +701,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Dominican_Republic",
@@ -621,7 +718,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Dutch_Guiana",
@@ -636,7 +735,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Ecuador",
@@ -651,7 +752,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Egypt",
@@ -666,7 +769,13 @@
           "value": 75
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "Ottoman_Empire"
+      ],
+      "historicalRivals": [
+        "Ethiopia"
+      ]
     },
     {
       "countryId": "El_Salvador",
@@ -681,7 +790,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Ethiopia",
@@ -696,7 +807,13 @@
           "value": 75
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "Portugal"
+      ],
+      "historicalRivals": [
+        "Egypt"
+      ]
     },
     {
       "countryId": "Fiji",
@@ -711,7 +828,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "France",
@@ -730,7 +849,15 @@
           "value": 150
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "Belgium",
+        "Spain"
+      ],
+      "historicalRivals": [
+        "Germany",
+        "United_Kingdom_of_Great_Britain_and_Ireland"
+      ]
     },
     {
       "countryId": "French_Guiana",
@@ -745,7 +872,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "French_Indochina",
@@ -760,7 +889,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Futa_Jalon",
@@ -775,7 +906,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Futa_Toro",
@@ -790,7 +923,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Gabon",
@@ -805,7 +940,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Gambia",
@@ -820,7 +957,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Germany",
@@ -836,7 +975,16 @@
           "value": 150
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "Austria_Hungary",
+        "Russian_Empire",
+        "Imperial_Japan"
+      ],
+      "historicalRivals": [
+        "France",
+        "Portugal"
+      ]
     },
     {
       "countryId": "Greece",
@@ -851,7 +999,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Griqualand_West",
@@ -866,7 +1016,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Guadeloupe",
@@ -881,7 +1033,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Guatemala",
@@ -896,7 +1050,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Haiti",
@@ -911,7 +1067,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Harer_Egypt",
@@ -926,7 +1084,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Honduras",
@@ -941,7 +1101,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Ibadan",
@@ -956,7 +1118,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Imerina",
@@ -971,7 +1135,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Imperial_Japan",
@@ -986,7 +1152,13 @@
           "value": 150
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "Germany"
+      ],
+      "historicalRivals": [
+        "Manchu_Empire"
+      ]
     },
     {
       "countryId": "Italy",
@@ -1001,7 +1173,13 @@
           "value": 150
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "United_Kingdom_of_Great_Britain_and_Ireland"
+      ],
+      "historicalRivals": [
+        "Austria_Hungary"
+      ]
     },
     {
       "countryId": "Ivory_Coast",
@@ -1016,7 +1194,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Kanem_Bornu",
@@ -1031,7 +1211,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Kingdom_of_Brazil",
@@ -1046,7 +1228,13 @@
           "value": 150
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "United_States_of_America"
+      ],
+      "historicalRivals": [
+        "Argentina"
+      ]
     },
     {
       "countryId": "Kingdom_of_Hawaii",
@@ -1061,7 +1249,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Kong_Empire",
@@ -1076,7 +1266,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Korea",
@@ -1091,7 +1283,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Kuba",
@@ -1106,7 +1300,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Lagos",
@@ -1121,7 +1317,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Liberia",
@@ -1136,7 +1334,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Lozi",
@@ -1151,7 +1351,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Luba",
@@ -1166,7 +1368,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Lunda",
@@ -1181,7 +1385,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Luxembourg",
@@ -1196,7 +1402,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "M_ori",
@@ -1211,7 +1419,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Madagascar",
@@ -1226,7 +1436,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Malaya",
@@ -1241,7 +1453,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Malta",
@@ -1256,7 +1470,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Manchu_Empire",
@@ -1271,7 +1487,14 @@
           "value": 150
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "Netherlands"
+      ],
+      "historicalRivals": [
+        "Russian_Empire",
+        "Imperial_Japan"
+      ]
     },
     {
       "countryId": "Mbailundu",
@@ -1286,7 +1509,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Mexico",
@@ -1301,7 +1526,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Mirambo_Unyanyembe_Ukimbu",
@@ -1316,7 +1543,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Montenegro",
@@ -1331,7 +1560,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Montserrat",
@@ -1346,7 +1577,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Morocco",
@@ -1361,7 +1594,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Mossi_States",
@@ -1376,7 +1611,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Mozambique",
@@ -1391,7 +1628,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Natal",
@@ -1406,7 +1645,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Ndebele",
@@ -1421,7 +1662,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Nepal",
@@ -1436,7 +1679,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Netherlands",
@@ -1448,7 +1693,14 @@
         "Netherlands_Indies"
       ],
       "initialResources": [],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "SwedenNorway",
+        "Manchu_Empire"
+      ],
+      "historicalRivals": [
+        "Belgium"
+      ]
     },
     {
       "countryId": "Netherlands_Antilles",
@@ -1463,7 +1715,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Nguni",
@@ -1478,7 +1732,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Ngwato",
@@ -1493,7 +1749,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Nicaragua",
@@ -1508,7 +1766,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Niue",
@@ -1523,7 +1783,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Oman",
@@ -1538,7 +1800,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Opobo",
@@ -1553,7 +1817,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Orange_Free_State",
@@ -1568,7 +1834,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Ottoman_Empire",
@@ -1583,7 +1851,15 @@
           "value": 150
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "Egypt"
+      ],
+      "historicalRivals": [
+        "Russian_Empire",
+        "Austria_Hungary",
+        "Persia"
+      ]
     },
     {
       "countryId": "Ovimbundu",
@@ -1598,7 +1874,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Oyo",
@@ -1613,7 +1891,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Papua_New_Guinea",
@@ -1628,7 +1908,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Paraguay",
@@ -1643,7 +1925,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Persia",
@@ -1658,7 +1942,13 @@
           "value": 75
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "Russian_Empire"
+      ],
+      "historicalRivals": [
+        "Ottoman_Empire"
+      ]
     },
     {
       "countryId": "Peru",
@@ -1673,7 +1963,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Philippines",
@@ -1688,7 +1980,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Polynesians",
@@ -1703,7 +1997,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Portugal",
@@ -1720,7 +2016,15 @@
           "value": 75
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "United_Kingdom_of_Great_Britain_and_Ireland",
+        "Spain",
+        "Ethiopia"
+      ],
+      "historicalRivals": [
+        "Germany"
+      ]
     },
     {
       "countryId": "Portuguese_Guinea",
@@ -1735,7 +2039,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Qatar",
@@ -1750,7 +2056,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Rabih_az_Zubayr",
@@ -1765,7 +2073,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Rattanakosin_Kingdom",
@@ -1780,7 +2090,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Romania",
@@ -1795,7 +2107,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Russian_Empire",
@@ -1811,7 +2125,17 @@
           "value": 150
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "Germany",
+        "Austria_Hungary",
+        "Persia"
+      ],
+      "historicalRivals": [
+        "Ottoman_Empire",
+        "Manchu_Empire",
+        "SwedenNorway"
+      ]
     },
     {
       "countryId": "Rwanda",
@@ -1826,7 +2150,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Saint_Barthelemy",
@@ -1841,7 +2167,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Saint_Kitts_and_Nevis",
@@ -1856,7 +2184,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Saint_Martin",
@@ -1871,7 +2201,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Samoa",
@@ -1886,7 +2218,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Serbia",
@@ -1901,7 +2235,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Shona",
@@ -1916,7 +2252,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Sierra_Leone",
@@ -1931,7 +2269,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Sokoto_Caliphate",
@@ -1946,7 +2286,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Spain",
@@ -1962,7 +2304,14 @@
           "value": 75
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "France",
+        "Portugal"
+      ],
+      "historicalRivals": [
+        "United_States_of_America"
+      ]
     },
     {
       "countryId": "Spanish_Guinea",
@@ -1977,7 +2326,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Sultanate_of_Damagaram",
@@ -1992,7 +2343,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Sultanate_of_Utetera",
@@ -2007,7 +2360,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Sultinate_of_Zanzibar",
@@ -2022,7 +2377,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Swaziland",
@@ -2037,7 +2394,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "SwedenNorway",
@@ -2047,7 +2406,13 @@
       ],
       "secondaryMapFeatureIds": [],
       "initialResources": [],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "Netherlands"
+      ],
+      "historicalRivals": [
+        "Russian_Empire"
+      ]
     },
     {
       "countryId": "Switzerland",
@@ -2057,7 +2422,9 @@
       ],
       "secondaryMapFeatureIds": [],
       "initialResources": [],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Taiwan",
@@ -2072,7 +2439,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Teke",
@@ -2087,7 +2456,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Tonga",
@@ -2102,7 +2473,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Transvaal",
@@ -2117,7 +2490,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Trucial_Oman",
@@ -2132,7 +2507,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Tukular_Caliphate",
@@ -2147,7 +2524,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "United_Kingdom_of_Great_Britain_and_Ireland",
@@ -2171,7 +2550,15 @@
           "value": 150
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "Portugal",
+        "Belgium",
+        "Italy"
+      ],
+      "historicalRivals": [
+        "France"
+      ]
     },
     {
       "countryId": "United_States_of_America",
@@ -2188,7 +2575,14 @@
           "value": 150
         }
       ],
-      "isAvailable": true
+      "isAvailable": true,
+      "historicalFriends": [
+        "Kingdom_of_Brazil",
+        "Argentina"
+      ],
+      "historicalRivals": [
+        "Spain"
+      ]
     },
     {
       "countryId": "Uruguay",
@@ -2203,7 +2597,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Venezuela",
@@ -2218,7 +2614,9 @@
           "value": 75
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Wadai_Empire",
@@ -2233,7 +2631,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Wassoulou_Empire",
@@ -2248,7 +2648,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Yaka",
@@ -2263,7 +2665,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Yeke",
@@ -2278,7 +2682,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "Zululand",
@@ -2293,7 +2699,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     },
     {
       "countryId": "central_Asian_khanates",
@@ -2308,7 +2716,9 @@
           "value": 50
         }
       ],
-      "isAvailable": false
+      "isAvailable": false,
+      "historicalFriends": [],
+      "historicalRivals": []
     }
   ]
 }

@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using VContainer;
 using GS.Main;
 using GS.Game.Commands;
+using GS.Game.Common;
 using GS.Unity.Common;
 
 namespace GS.Unity.Map {

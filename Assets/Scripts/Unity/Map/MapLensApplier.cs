@@ -3,6 +3,7 @@ using UnityEngine;
 using VContainer;
 using GS.Main;
 using GS.Game.Commands;
+using GS.Game.Common;
 using GS.Game.Configs;
 
 namespace GS.Unity.Map {

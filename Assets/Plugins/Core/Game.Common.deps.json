@@ -7,30 +7,14 @@
   "targets": {
     ".NETStandard,Version=v2.1": {},
     ".NETStandard,Version=v2.1/": {
-      "Game.Commands/1.0.0": {
-        "dependencies": {
-          "Game.Common": "1.0.0"
-        },
-        "runtime": {
-          "Game.Commands.dll": {}
-        }
-      },
       "Game.Common/1.0.0": {
         "runtime": {
-          "Game.Common.dll": {
-            "assemblyVersion": "1.0.0",
-            "fileVersion": "1.0.0.0"
-          }
+          "Game.Common.dll": {}
         }
       }
     }
   },
   "libraries": {
-    "Game.Commands/1.0.0": {
-      "type": "project",
-      "serviceable": false,
-      "sha512": ""
-    },
     "Game.Common/1.0.0": {
       "type": "project",
       "serviceable": false,
