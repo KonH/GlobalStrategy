@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
 using GS.Game.Commands;
+using GS.Game.Common;
 
 namespace GS.Unity.UI {
 	class LensSwitcherView {
