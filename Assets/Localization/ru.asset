@@ -382,6 +382,8 @@ MonoBehaviour:
     Value: Данные
   - Key: settings.delete_saves
     Value: Удалить все сохранения
+  - Key: settings.delete_saves.confirmation
+    Value: Операция завершена.
   - Key: settings.back
     Value: Назад
   - Key: game_menu.title
@@ -1640,6 +1642,8 @@ MonoBehaviour:
     Value: Requires {0} control
   - Key: hud.actions
     Value: Действия
+  - Key: hud.discovery.confirmation
+    Value: "Обнаружено: {0}!"
   - Key: game_log.discovered_format
     Value: "{0} discovered {1}"
   - Key: game_log.control_increased_format

@@ -382,6 +382,8 @@ MonoBehaviour:
     Value: Data
   - Key: settings.delete_saves
     Value: Delete All Saves
+  - Key: settings.delete_saves.confirmation
+    Value: Operation completed.
   - Key: settings.back
     Value: Back
   - Key: game_menu.title
@@ -1640,6 +1642,8 @@ MonoBehaviour:
     Value: Requires {0} control
   - Key: hud.actions
     Value: Actions
+  - Key: hud.discovery.confirmation
+    Value: "Discovered: {0}!"
   - Key: game_log.discovered_format
     Value: "{0} discovered {1}"
   - Key: game_log.control_increased_format
