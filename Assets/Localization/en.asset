@@ -1615,27 +1615,27 @@ MonoBehaviour:
   - Key: action.sphere_of_pressure.name
     Value: Sphere of Pressure
   - Key: action.sphere_of_pressure.desc
-    Value: Consolidate your foothold. Coordinated strength may tip the balance.
+    Value: Increase control.
   - Key: action.letter_of_commendation_diplomacy_advisor.name
     Value: Diplomatic Dispatch
   - Key: action.letter_of_commendation_diplomacy_advisor.desc
-    Value: A communique to the foreign minister. Goodwill opens corridors force cannot.
+    Value: Increase control and diplomacy advisor opinion.
   - Key: action.letter_of_commendation_economic_advisor.name
     Value: Treasury Commission
   - Key: action.letter_of_commendation_economic_advisor.desc
-    Value: A letter acknowledging the minister's fiscal acumen, proposing closer cooperation.
+    Value: Increase control and economic advisor opinion.
   - Key: action.letter_of_commendation_military_advisor.name
     Value: Campaign Commendation
   - Key: action.letter_of_commendation_military_advisor.desc
-    Value: A letter commending the general's campaigns. Admiration is a soldier's currency.
+    Value: Increase control and military advisor opinion.
   - Key: action.letter_of_commendation_secret_advisor.name
     Value: Shadow Accord
   - Key: action.letter_of_commendation_secret_advisor.desc
-    Value: A whispered arrangement sealed with mutual benefit. Some alliances are better unwritten.
+    Value: Increase control and secret advisor opinion.
   - Key: action.royal_audience.name
     Value: Royal Audience
   - Key: action.royal_audience.desc
-    Value: A private audience with the sovereign. The right words may forge a lasting alliance.
+    Value: Increase control and ruler opinion.
   - Key: action.country.unplayable.pool_full
     Value: No control pool space remaining
   - Key: action.country.unplayable.insufficient_control

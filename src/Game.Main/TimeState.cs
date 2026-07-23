@@ -10,6 +10,9 @@ namespace GS.Main {
 		public int MultiplierIndex { get; private set; }
 
 		public void Set(DateTime time, bool paused, int multiplierIndex) {
+			if (CurrentTime == time && IsPaused == paused && MultiplierIndex == multiplierIndex) {
+				return;
+			}
 			CurrentTime = time;
 			IsPaused = paused;
 			MultiplierIndex = multiplierIndex;

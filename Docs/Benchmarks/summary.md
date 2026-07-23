@@ -2,31 +2,52 @@
 
 > **Comparability caveat:** BenchmarkDotNet timings are machine- and environment-dependent. Baseline comparisons are only meaningful when `--compare` runs are produced on hardware comparable to the machine that produced the committed baseline (e.g. consistently within the same CI/dev-container class of machine) - no cross-machine normalization is attempted.
 
-Mode: `update-baseline`
-Timestamp: 2026-07-20 18:40:26 UTC
+Mode: `compare`
+Timestamp: 2026-07-23 20:59:34 UTC
 Overall: FAIL
 
 | Benchmark | Baseline mean (ns) | Current mean (ns) | % change | Verdict | Allocated bytes |
 |---|---|---|---|---|---|
-| ControlSystemBenchmarks.Update | 28894.7 | 28810.8 | -0.3% | pass | 1752 |
-| CountryPopulationCollectorBenchmarks.Compute | 269260.6 | 260735.8 | -3.2% | pass | 608992 |
-| CountryScoreCollectorBenchmarks.Compute | 5126.9 | 4912.5 | -4.2% | pass | 128 |
-| EcsWorldBenchmarks.CreateEntities(EntityCount=1000) | 7891.7 | 7392.0 | -6.3% | pass | 37880 |
-| EcsWorldBenchmarks.AddTwoComponents(EntityCount=1000) | 66568.8 | 66076.1 | -0.7% | pass | 136000 |
-| EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=1000) | 1392.3 | 1312.7 | -5.7% | pass | 352 |
-| EcsWorldBenchmarks.GetComponentByEntity(EntityCount=1000) | 3296.0 | 3239.7 | -1.7% | pass | 0 |
-| EcsWorldBenchmarks.CreateEntities(EntityCount=10000) | 126058.9 | 124058.4 | -1.6% | pass | 652642 |
-| EcsWorldBenchmarks.AddTwoComponents(EntityCount=10000) | 732200.8 | 712886.3 | -2.6% | pass | 1818627 |
-| EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=10000) | 12162.9 | 12118.5 | -0.4% | pass | 352 |
-| EcsWorldBenchmarks.GetComponentByEntity(EntityCount=10000) | 33775.9 | 32945.2 | -2.5% | pass | 0 |
-| FullTickBenchmarks.Tick_RegularDay | 1604860.0 | 1522975.0 | -5.1% | pass | 123208 |
-| FullTickBenchmarks.Tick_MonthBoundary | 61695455.6 | 60609761.5 | -1.8% | pass | 14079360 |
-| OrgScoreCollectorBenchmarks.Compute | 312.2 | 306.4 | -1.9% | pass | 472 |
-| PopulationGrowthCollectorBenchmarks.Compute | 0.0 | 0.0 | +39.4% | FAIL | 0 |
-| RecruitsGrowthCollectorBenchmarks.Compute | 5146.1 | 4958.8 | -3.6% | pass | 128 |
-| RecruitsSeedCollectorBenchmarks.Compute | 4920.0 | 5110.5 | +3.9% | pass | 128 |
-| ResourceQueryBenchmarks.GetValue | 4980.7 | 5103.8 | +2.5% | pass | 128 |
-| ResourceSystemBenchmarks.Update_RegularDay | 160127.9 | 149507.5 | -6.6% | pass | 4464 |
-| ResourceSystemBenchmarks.Update_MonthBoundary | 64957427.7 | 61662085.4 | -5.1% | pass | 13965303 |
-| TimeSystemBenchmarks.Update | 9.6 | 9.8 | +1.9% | pass | 0 |
-| VisualStateConverterBenchmarks.Update | 43155.4 | 43758.3 | +1.4% | pass | 18224 |
+| DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_NoOp | 228372.0 | 218794.6 | -4.2% | pass | 163709 |
+| DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_Update | 10.4 | 10.4 | +0.4% | pass | 0 |
+| DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_NoOp | 24.5 | 24.6 | +0.3% | pass | 80 |
+| DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_Update | 10.9 | 10.9 | +0.3% | pass | 0 |
+| DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_NoOp | 471.5 | 463.6 | -1.7% | pass | 832 |
+| DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_Update | 2.9 | 2.8 | -5.2% | pass | 0 |
+| DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_NoOp | 84.8 | 83.6 | -1.5% | pass | 176 |
+| DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_Update | 9.6 | 11.6 | +21.2% | FAIL | 0 |
+| ListVisualStateSetBenchmarks.CountryControlState_NoOp | 14.6 | 14.3 | -2.0% | pass | 32 |
+| ListVisualStateSetBenchmarks.CountryControlState_Update | 8.0 | 5.0 | -37.0% | pass | 0 |
+| ListVisualStateSetBenchmarks.CountryCharactersState_NoOp | 22.9 | 14.6 | -36.2% | pass | 32 |
+| ListVisualStateSetBenchmarks.CountryCharactersState_Update | 7.4 | 4.6 | -37.3% | pass | 0 |
+| ListVisualStateSetBenchmarks.OrgCharactersState_NoOp | 86.2 | 48.2 | -44.1% | pass | 88 |
+| ListVisualStateSetBenchmarks.OrgCharactersState_Update | 7.5 | 5.2 | -30.8% | pass | 0 |
+| ListVisualStateSetBenchmarks.OrgMapState_NoOp | 49.2 | 32.8 | -33.4% | pass | 72 |
+| ListVisualStateSetBenchmarks.OrgMapState_Update | 7.6 | 5.1 | -32.6% | pass | 0 |
+| ListVisualStateSetBenchmarks.OrgActionsState_NoOp | 61.6 | 39.7 | -35.6% | pass | 96 |
+| ListVisualStateSetBenchmarks.OrgActionsState_Update | 10.7 | 7.2 | -33.0% | pass | 0 |
+| ListVisualStateSetBenchmarks.CountryActionsState_NoOp | 48.4 | 31.3 | -35.3% | pass | 64 |
+| ListVisualStateSetBenchmarks.CountryActionsState_Update | 11.6 | 7.7 | -33.3% | pass | 0 |
+| ListVisualStateSetBenchmarks.LeaderboardState_NoOp | 283.5 | 185.9 | -34.4% | pass | 288 |
+| ListVisualStateSetBenchmarks.LeaderboardState_Update | 11.2 | 7.3 | -35.2% | pass | 0 |
+| ListVisualStateSetBenchmarks.GameLogState_NoOp | 23.3 | 14.6 | -37.5% | pass | 32 |
+| ListVisualStateSetBenchmarks.GameLogState_Update | 7.5 | 5.3 | -29.0% | pass | 0 |
+| ListVisualStateSetBenchmarks.CountryResourcesState_NoOp | 13.2 | 12.6 | -4.5% | pass | 32 |
+| ListVisualStateSetBenchmarks.CountryResourcesState_Update | 9.8 | 9.5 | -2.4% | pass | 0 |
+| ListVisualStateSetBenchmarks.VisualEffectCollection_NoOp | 12.2 | 12.2 | -0.3% | pass | 32 |
+| ListVisualStateSetBenchmarks.VisualEffectCollection_Update | 5.4 | 5.2 | -3.5% | pass | 0 |
+| ScalarVisualStateSetBenchmarks.SelectedCountryState_NoOp | 0.2 | 0.2 | +10.6% | FAIL | 0 |
+| ScalarVisualStateSetBenchmarks.SelectedCountryState_Update | 2.0 | 2.0 | -0.2% | pass | 0 |
+| ScalarVisualStateSetBenchmarks.SelectedOrganizationState_NoOp | 0.2 | 0.2 | -6.6% | pass | 0 |
+| ScalarVisualStateSetBenchmarks.SelectedOrganizationState_Update | 2.4 | 2.5 | +1.8% | pass | 0 |
+| ScalarVisualStateSetBenchmarks.SelectedProvinceState_NoOp | 0.2 | 0.2 | +0.6% | pass | 0 |
+| ScalarVisualStateSetBenchmarks.SelectedProvinceState_Update | 3.6 | 3.5 | -2.0% | pass | 0 |
+| ScalarVisualStateSetBenchmarks.PlayerOrganizationState_NoOp | 0.6 | 0.6 | -2.9% | pass | 0 |
+| ScalarVisualStateSetBenchmarks.PlayerOrganizationState_Update | 2.6 | 2.2 | -15.0% | pass | 0 |
+| ScalarVisualStateSetBenchmarks.TimeState_NoOp | 0.2 | 0.2 | +0.8% | pass | 0 |
+| ScalarVisualStateSetBenchmarks.TimeState_Update | 0.6 | 0.6 | -1.4% | pass | 0 |
+| ScalarVisualStateSetBenchmarks.LocaleState_NoOp | 0.4 | 0.4 | +1.2% | pass | 0 |
+| ScalarVisualStateSetBenchmarks.LocaleState_Update | 2.8 | 2.7 | -2.4% | pass | 0 |
+| ScalarVisualStateSetBenchmarks.MapLensState_NoOp | 0.0 | 0.0 | -100.0% | pass | 0 |
+| ScalarVisualStateSetBenchmarks.MapLensState_Update | 0.6 | 0.6 | -3.2% | pass | 0 |
+| VisualStateConverterBenchmarks.Update | 45201.3 | 45466.3 | +0.6% | pass | 18440 |

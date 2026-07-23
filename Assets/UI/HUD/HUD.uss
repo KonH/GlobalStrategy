@@ -125,7 +125,6 @@
 
 .gs-icon-btn--menu {
     background-image: url("project://database/Assets/UI/Icons/menu.png?fileID=2800000&guid=6192f7eb384ec334f8e2fcefbf3ec4ca&type=3#menu");
-    -unity-background-image-tint-color: rgb(240, 232, 208);
     -unity-background-scale-mode: scale-to-fit;
 }
 

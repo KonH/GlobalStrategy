@@ -88,7 +88,6 @@ namespace GS.Unity.UI {
 				chip.AddToClassList("char-stat-chip");
 				var skillIcon = new VisualElement();
 				skillIcon.AddToClassList("char-stat-icon");
-				skillIcon.AddToClassList(GetSkillTintClass(skill.SkillId));
 				skillIcon.AddToClassList($"character-skill-icon--{skill.SkillId}");
 				chip.Add(skillIcon);
 				var valueLabel = new Label(skill.Value.ToString());
@@ -137,16 +136,6 @@ namespace GS.Unity.UI {
 
 			card.Add(infoBlock);
 			return card;
-		}
-
-		static string GetSkillTintClass(string skillId) {
-			switch (skillId) {
-				case "power": return "gs-icon--tint-mil";
-				case "charm": return "gs-icon--tint-dip";
-				case "stinginess": return "gs-icon--tint-eco";
-				case "intrigue": return "gs-icon--tint-sec";
-				default: return "gs-icon--tint-light";
-			}
 		}
 
 		VisualElement BuildSimpleTooltip(string header, string body) {

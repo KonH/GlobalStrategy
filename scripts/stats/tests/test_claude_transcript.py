@@ -37,7 +37,7 @@ def tool_result_line(session_id, timestamp, branch="main"):
     }
 
 
-def assistant_line(session_id, timestamp, stop_reason, model="claude-sonnet-5",
+def assistant_line(session_id, timestamp, stop_reason, model="claude-sonnet-5", effort="high",
                     input_tokens=10, cached=5, output_tokens=20, nested_session_id="other-session",
                     branch="main"):
     return {
@@ -46,6 +46,7 @@ def assistant_line(session_id, timestamp, stop_reason, model="claude-sonnet-5",
         "session_id": nested_session_id,
         "gitBranch": branch,
         "timestamp": timestamp,
+        "effort": effort,
         "message": {
             "role": "assistant",
             "model": model,
@@ -159,6 +160,16 @@ class ClaudeTranscriptTests(unittest.TestCase):
         rows = parse_claude_transcript(path)
 
         self.assertEqual("outer-session", rows[0]["session_id"])
+
+    def test_effort_is_captured_from_assistant_line(self):
+        path = write_transcript([
+            user_line("s1", "<command-name>/specify</command-name>", "2026-01-01T00:00:00Z"),
+            assistant_line("s1", "2026-01-01T00:00:01Z", "end_turn", effort="high"),
+        ])
+
+        rows = parse_claude_transcript(path)
+
+        self.assertEqual("high", rows[0]["effort"])
 
 
 if __name__ == "__main__":

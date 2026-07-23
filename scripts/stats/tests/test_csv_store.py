@@ -16,8 +16,8 @@ class CsvStoreTests(unittest.TestCase):
     def test_column_order_matches_spec_exactly(self):
         expected = [
             "spec_id", "version", "stage", "mode", "context", "start", "end",
-            "provider", "model", "cost_usd", "input_tokens", "cached_input_tokens",
-            "output_tokens", "spec_size_kb", "plan_size_kb", "diff_lines", "session_id",
+            "provider", "model", "effort", "cost_usd", "input_tokens", "cached_input_tokens",
+            "output_tokens", "spec_size_kb", "plan_size_kb", "prd_size_kb", "diff_lines", "session_id",
         ]
         self.assertEqual(expected, COLUMNS)
 
