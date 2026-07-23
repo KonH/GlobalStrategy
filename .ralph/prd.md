@@ -76,7 +76,7 @@ see `## Automation Notes` in the plan file for the verbatim list of what a human
 			"Confirm existing LeaderboardEntryState/SortAndAssignPlaces, GameCompletion/GameCompletionSystem, and SelectOrgLogicTests suites still pass unmodified."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "calibration-runner",

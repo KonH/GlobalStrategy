@@ -91,3 +91,37 @@ Next iteration: pick up `projector-tests` task — add
 `src/Game.Tests/EndGameComparisonProjectorTests.cs` and
 `src/Game.Tests/WinConditionHintProjectorTests.cs`, gate `dotnet test
 src/GlobalStrategy.Core.sln`.
+
+---
+
+## 2026-07-23 — projector-tests
+
+Task: Add core tests for both new pure projectors with synthetic fixtures.
+
+Changes:
+- `src/Game.Tests/EndGameComparisonProjectorTests.cs`: player inserted among N
+  configured entries and sorted descending by score; deterministic reproducible
+  tie-break by ComparisonElementId ordinal (re-running `Build` with the same inputs
+  yields identical ordering); null and empty `configuredEntries` both yield a
+  single player-only row; scores/ids/display names pass through unchanged;
+  `Place` is 1-based and consecutive. Needed `Assert.NotNull` + null-forgiving `!`
+  on `List.Find` results to satisfy nullable-reference-type analysis (CS8602)
+  since `EndGameComparisonRowState` is a class and `Find` can return null.
+- `src/Game.Tests/WinConditionHintProjectorTests.cs`: single `total_control` leaf;
+  single `full_control_countries` leaf carrying the supplied available-country
+  count; nested `any` groups flatten depth-first in configuration order regardless
+  of nesting depth; unsupported leaf types are silently skipped without failing
+  the projection; null condition, empty `any`, and an `any` with only unsupported
+  leaves all yield `isAvailable == false` with zero rows; `isAlternativeGroup` is
+  true only for 2+ resulting rows.
+- Did not modify any existing test file — `LeaderboardEntryState`/
+  `GameCompletion*`/`SelectOrgLogicTests` suites were confirmed still passing via
+  the full-solution test run (no changes needed to keep them green).
+
+Gate: `dotnet test src/GlobalStrategy.Core.sln` — `Passed! - Failed: 0, Passed:
+371, Skipped: 0, Total: 371` (Game.Tests.dll), plus ECS.Tests (34/34) and
+ECS.Viewer.Tests (16/16) all green.
+
+Next iteration: pick up `calibration-runner` task — add
+`src/Game.ConsoleRunner/CalibrationRunner.cs`, a new `calibrate-end-game` CLI verb
+in `Program.cs`, and `.claude/skills/end-game-score-calibration/SKILL.md`.
