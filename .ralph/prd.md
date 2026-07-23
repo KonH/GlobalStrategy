@@ -88,7 +88,7 @@ Make every in-scope `VisualState`/`ResourcesState`/`TimeState` class's `Set(...)
 			"Use the harness's existing ~163-country fixture volume for list sizes, not empty/single-element lists; Update variants append or mutate one entry on a copy of the stored collection."
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "benchmarks",
