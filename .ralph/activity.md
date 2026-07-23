@@ -48,3 +48,25 @@ Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded,
 Set `visualstate-scalar` task's `"passes"` to `true` in `.ralph/prd.md`.
 
 Next iteration: pick up `visualstate-list` (structural-equality early-return for CountryControlState, CountryCharactersState, OrgCharactersState, OrgMapState, OrgActionsState, CountryActionsState, LeaderboardState, GameLogState, VisualEffectCollection, CountryResourcesState) in `src/Game.Main/VisualState.cs`, using the `StateEquality` helper's `ListEquals` with the matching per-entry comparer. Remember `CountryControlState.Set` needs `usedChanged` captured BEFORE calling `UsedControl.SetActual(used)` since `SetActual` must still run unconditionally.
+
+---
+
+## 2026-07-23 — visualstate-list
+
+Task: Add structural-equality early-return to Set(...) for list-holding state classes, preserving unconditional SetActual calls.
+
+Changed `src/Game.Main/VisualState.cs`:
+- `CountryControlState.Set`: captures `usedChanged` before the unconditional `UsedControl.SetActual(used)` call, combines it with `StateEquality.ListEquals(OrgEntries, entries, OrgControlEntryEquals)` to decide the early return.
+- `CountryCharactersState.Set`, `OrgCharactersState.Set`, `OrgMapState.Set`, `GameLogState.Set`: single-list `ListEquals` early-return with the matching per-entry comparer (`CharacterStateEntryEquals`, `OrgCharacterSlotEntryEquals`, `OrgCountryEntryEquals`, `GameLogEntryEquals`).
+- `VisualEffectCollection.Set`: normalizes the `effects ?? new List<...>()` null-coalesce first, then compares via `ListEquals`/`VisualResourceChangeEffectEquals` before assigning.
+- `LeaderboardState.Set`: `ListEquals` over both `Organizations` and `Countries` (`LeaderboardEntryStateEquals`) combined with AND.
+- `OrgActionsState.Set` and `CountryActionsState.Set`: `HandSize`/`CurrentTime` are assigned unconditionally every call (matching the `UsedControl.SetActual` pattern) since they're not logically tied to list contents — `CountryActionsState.CurrentTime` in particular changes almost every tick regardless of card-list changes, so folding it into the equality check would defeat the optimization entirely; the PRD step explicitly scopes `CountryActionsState.Set` to "(Hand and Deck)" for this reason, and `OrgActionsState.Set` was made symmetric with the same reasoning even though not explicitly parenthesized in the PRD step, since it has the same `HandSize` shape. `PropertyChanged` fires only when `Hand`/`Deck` `ListEquals` (with `ActionCardEntryEquals`) says something changed.
+
+Changed `src/Game.Main/ResourcesState.cs`:
+- `CountryResourcesState.Set`: early-return combines `IsValid`/`CountryId` scalar equality with `ListEquals` over `Resources` (`ResourceStateEntryEquals`) and `ControlIncomes` (`ControlIncomeEntryEquals`); included `IsValid`/`CountryId` in the check (beyond the PRD step's literal "over ResourceStateEntry/ControlIncomeEntry lists" wording) because selecting a different country/org with an identical resource list would otherwise be wrongly treated as a no-op. No `SetActual` capture needed — confirmed `AnimatableDouble.SetActual` happens in `VisualStateConverter.BuildResources`, outside this method.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded, 0 Warning(s), 0 Error(s).
+
+Set `visualstate-list` task's `"passes"` to `true` in `.ralph/prd.md`.
+
+Next iteration: pick up `visualstate-dictionary-set` (durable-content-only equality early-return for `ProvinceOwnershipState.Set`, `ProvinceOccupationState.Set`, `CountryScoreState.Set` using `StateEquality.DictionaryContentEquals`, and `DiscoveredCountriesState.Set` using `HashSet.SetEquals`), excluding the transient `Recent*`/`RecentlyDiscovered` fields from the equality check but still assigning them unconditionally every call (same pattern used here for `CountryActionsState.CurrentTime`/`HandSize`).

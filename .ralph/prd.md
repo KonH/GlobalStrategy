@@ -44,7 +44,7 @@ Make every in-scope `VisualState`/`ResourcesState`/`TimeState` class's `Set(...)
 			"Update CountryResourcesState.Set using StateEquality.ListEquals over ResourceStateEntry/ControlIncomeEntry lists; no SetActual capture needed here since AnimatableDouble.SetActual happens in VisualStateConverter.BuildResources, outside this Set method."
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "visualstate-dictionary-set",
