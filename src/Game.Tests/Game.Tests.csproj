@@ -26,6 +26,7 @@
     <ProjectReference Include="../Game.Bots/Game.Bots.csproj" />
     <ProjectReference Include="../Game.Evals/Game.Evals.csproj" />
     <ProjectReference Include="../Game.Benchmarks/Game.Benchmarks.csproj" />
+    <ProjectReference Include="../Game.Common/Game.Common.csproj" />
   </ItemGroup>
 
 </Project>

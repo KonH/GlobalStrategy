@@ -109,18 +109,18 @@ Rationale (for the commit/PR description, not the JSON itself): Dual Alliance an
 
 ### Agent Steps
 
-- [ ] Add `src/Game.Common/Game.Common.csproj` (zero references); move `MapLens` into `src/Game.Common/MapLens.cs`; add `src/Game.Common/RelationKind.cs`; add the project to `GlobalStrategy.Core.sln` and to every `.csproj` that names either enum (`Game.Commands`, `Game.Components`, `Game.Systems`, `Game.Main`, `Game.Tests`).
-- [ ] Update `ChangeLensCommand.cs` and the 5 Unity scripts that reference `MapLens` (`HUDDocument.cs`, `LensSwitcherView.cs`, `MapClickHandler.cs`, `MapLensApplier.cs`, `GameLifetimeScope.cs`) to `using GS.Game.Common;`. Add a hand-authored `Assets/Plugins/Core/Game.Common.dll.meta` (fresh GUID, same format as `Game.Bots.dll.meta`) and add that GUID to the `references` array of `GS.Unity.UI.asmdef`, `GS.Unity.Map.asmdef`, and `GS.Unity.DI.asmdef`.
-- [ ] Add `CountryRelation` (using `GS.Game.Common.RelationKind`) in `src/Game.Components/`; add `typeof(CountryRelation)` to `SavableDiscoveryTests.ExpectedSavable`.
-- [ ] Add the `CountryRelations` static helper (`SetRelation`/`RemoveRelation`/`GetRelation`/`GetRelationsByCountryId`) in `src/Game.Systems/`.
-- [ ] Extend `CountryEntry` with `HistoricalFriends`/`HistoricalRivals`; route both through `ApplyPreservedFields` in `src/Game.Configs.Loader/Program.cs`.
-- [ ] Add `SeedCountryRelations` to `InitSystem.cs` (raw entity creation, dedup + first-declared-wins conflict resolution, unavailable-target skip) and call it from `Run()`.
-- [ ] Populate `Assets/Configs/country_config.json` with the historical friend/rival table above for all 20 available countries.
-- [ ] Add `DebugSetCountryRelationCommand`/`DebugClearCountryRelationCommand` in `src/Game.Commands/`; wire both in `GameLogic.Update`.
-- [ ] Add `CountryRelationsState` to `VisualState.cs` (`SelectedCountry.Relations`); add `UpdateCountryRelations` to `VisualStateConverter.cs` and call it unconditionally alongside `UpdateCountryActions`.
-- [ ] Add `relation-debug-container` to `HUD.uxml`; add `BuildRelationDebugUi`/`RebuildRelationCountryDropdown`/`RefreshRelationActionButtons`/command-push methods to `HUDDocument.cs`; wire the `Relations.PropertyChanged` subscription and the `HandleCountryChanged` refresh call.
-- [ ] Add `src/Game.Tests/CountryRelationsTests.cs` (see Tests); extend `SavableDiscoveryTests` and `InitSystemTests`/config-loader preservation tests as listed below.
-- [ ] Run `dotnet test src/GlobalStrategy.Core.sln`, then `dotnet build src/GlobalStrategy.Core.sln -c Release` to refresh the Unity-consumed assemblies under `Assets/Plugins/Core/`.
+- [x] Add `src/Game.Common/Game.Common.csproj` (zero references); move `MapLens` into `src/Game.Common/MapLens.cs`; add `src/Game.Common/RelationKind.cs`; add the project to `GlobalStrategy.Core.sln` and to every `.csproj` that names either enum (`Game.Commands`, `Game.Components`, `Game.Systems`, `Game.Main`, `Game.Tests`).
+- [ ] Update `ChangeLensCommand.cs` and the 5 Unity scripts that reference `MapLens` (`HUDDocument.cs`, `LensSwitcherView.cs`, `MapClickHandler.cs`, `MapLensApplier.cs`, `GameLifetimeScope.cs`) to `using GS.Game.Common;`. Add a hand-authored `Assets/Plugins/Core/Game.Common.dll.meta` (fresh GUID, same format as `Game.Bots.dll.meta`) and add that GUID to the `references` array of `GS.Unity.UI.asmdef`, `GS.Unity.Map.asmdef`, and `GS.Unity.DI.asmdef`. — **Deferred: needs live Unity Editor MCP.** `ChangeLensCommand.cs` itself was already updated (it lives in `src/`); the 5 Unity scripts, the `.dll.meta`, and the 3 asmdef edits are outstanding.
+- [x] Add `CountryRelation` (using `GS.Game.Common.RelationKind`) in `src/Game.Components/`; add `typeof(CountryRelation)` to `SavableDiscoveryTests.ExpectedSavable`.
+- [x] Add the `CountryRelations` static helper (`SetRelation`/`RemoveRelation`/`GetRelation`/`GetRelationsByCountryId`) in `src/Game.Systems/`.
+- [x] Extend `CountryEntry` with `HistoricalFriends`/`HistoricalRivals`; route both through `ApplyPreservedFields` in `src/Game.Configs.Loader/Program.cs`.
+- [x] Add `SeedCountryRelations` to `InitSystem.cs` (raw entity creation, dedup + first-declared-wins conflict resolution, unavailable-target skip) and call it from `Run()`.
+- [x] Populate `Assets/Configs/country_config.json` with the historical friend/rival table above for all 20 available countries.
+- [x] Add `DebugSetCountryRelationCommand`/`DebugClearCountryRelationCommand` in `src/Game.Commands/`; wire both in `GameLogic.Update`.
+- [x] Add `CountryRelationsState` to `VisualState.cs` (`SelectedCountry.Relations`); add `UpdateCountryRelations` to `VisualStateConverter.cs` and call it unconditionally alongside `UpdateCountryActions`.
+- [ ] Add `relation-debug-container` to `HUD.uxml`; add `BuildRelationDebugUi`/`RebuildRelationCountryDropdown`/`RefreshRelationActionButtons`/command-push methods to `HUDDocument.cs`; wire the `Relations.PropertyChanged` subscription and the `HandleCountryChanged` refresh call. — **Deferred: needs live Unity Editor MCP.**
+- [x] Add `src/Game.Tests/CountryRelationsTests.cs` (see Tests); extend `SavableDiscoveryTests` and `InitSystemTests`/config-loader preservation tests as listed below.
+- [x] Run `dotnet test src/GlobalStrategy.Core.sln`, then `dotnet build src/GlobalStrategy.Core.sln -c Release` to refresh the Unity-consumed assemblies under `Assets/Plugins/Core/`.
 
 ### User Steps
 

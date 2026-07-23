@@ -103,6 +103,8 @@ namespace GS.Game.Loader {
 				}
 				entry.IsAvailable = existingEntry.IsAvailable;
 				entry.InitialResources = existingEntry.InitialResources;
+				entry.HistoricalFriends = existingEntry.HistoricalFriends;
+				entry.HistoricalRivals = existingEntry.HistoricalRivals;
 			}
 		}
 
