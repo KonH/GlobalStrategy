@@ -67,7 +67,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from common.issue_handler import (  # noqa: E402
-    acquire_lock, compute_cutoff, find_candidates, run_git, save_last_check, setup_logging,
+    acquire_lock, compute_cutoff, find_candidates, reset_to_main_unless_in_progress,
+    save_last_check, setup_logging,
 )
 from scripts.stats.collect_usage import record_usage_row_codex  # noqa: E402
 
@@ -175,9 +176,7 @@ def main():
                      "timestamp, so the next run that acquires the lock still covers this window.")
         return
 
-    run_git(["checkout", "main"])
-    run_git(["fetch", "origin", "main"])
-    run_git(["reset", "--hard", "origin/main"])
+    reset_to_main_unless_in_progress(logger)
 
     now, cutoff = compute_cutoff(logger, args.state_file, args.since_hours, args.since_minutes)
     candidates = find_candidates(LABEL, MARKER, cutoff)
