@@ -113,7 +113,7 @@ Make every in-scope `VisualState`/`ResourcesState`/`TimeState` class's `Set(...)
    "DiscoveredCountriesState test: two HashSet<string> instances with same members in different insertion order fire 0 additional times; a member added/removed fires once; a different recentlyDiscovered string alongside an unchanged CountryIds set still fires 0 additional times."
   ],
   "gate": "dotnet test src/GlobalStrategy.Core.sln",
-  "passes": false
+  "passes": true
  },
  {
   "category": "verification",

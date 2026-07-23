@@ -189,3 +189,19 @@ claude exited with code 1. See `.ralph/logs/loop_2_20260723_070659.log` for full
 Summary: {"type":"result","subtype":"success","is_error":true,"api_error_status":429,"duration_ms":109088,"duration_api_ms":100763,"num_turns":27,"result":"You've hit your session limit · resets 11:20am (UTC)","stop_reason":"stop_sequence","session_id":"bd8630e9-425b-42fb-b8aa-db52846a1c4a","total_cost_usd":0.8986713999999999,"usage":{"input_tokens":40,"cache_creation_input_tokens":73945,"cache_read_input_tokens":1106358,"output_tokens":8095,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":73945,"ephemeral_5m_input_tokens":0},"inference_geo":"not_available","iterations":[{"input_tokens":2,"output_tokens":2061,"cache_read_input_tokens":86061,"cache_creation_input_tokens":2387,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":2387},"type":"message"}],"speed":"standard"},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":1484,"outputTokens":13,"cacheReadInputTokens":0,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.001549,"contextWindow":200000,"maxOutputTokens":32000},"claude-sonnet-5":{"inputTokens":40,"outputTokens":8095,"cacheReadInputTokens":1106358,"cacheCreationInputTokens":73945,"webSearchRequests":0,"costUSD":0.8971223999999999,"contextWindow":1000000,"maxOutputTokens":64000}},"permission_denials":[],"terminal_reason":"api_error","fast_mode_state":"off","uuid":"6828f4f6-4f58-4fe1-862a-6b6cf289a2ea"}
 
 ---
+
+## 2026-07-23 — tests (VisualStateChangeNotificationTests)
+
+Task: Add VisualStateChangeNotificationTests covering scalar, list, dictionary, and HashSet equality-check shapes.
+
+The test file `src/Game.Tests/VisualStateChangeNotificationTests.cs` was already written and committed by a prior iteration (`790ecf7: ralph: add VisualStateChangeNotificationTests, resume after env fix`), but that iteration's commit message notes the run hit the account session/usage-limit before the gate (`dotnet test`) was actually executed, so `prd.md` still had `"passes": false` for this task.
+
+This iteration: ran the gate via the `dotnet-test` skill.
+
+Gate: `dotnet test src/GlobalStrategy.Core.sln` — all three test assemblies passed: `ECS.Viewer.Tests.dll` (16/16), `Game.Tests.dll` (365/365, includes the new `VisualStateChangeNotificationTests`), `ECS.Tests.dll` (34/34). 0 failures, 0 skipped across all three.
+
+Set `tests` task's `"passes"` to `true` in `.ralph/prd.md`.
+
+Next iteration: pick up `verification` (re-run `dotnet test src/GlobalStrategy.Core.sln` to confirm no regressions from the full set of `Set(...)` equality-check changes — same gate as this task, should pass identically since no code changed here, only the gate was verified and the flag flipped). After that: `benchmark-baseline` (dotnet-benchmark skill `--update-baseline` then `--compare`).
+
+---
