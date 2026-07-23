@@ -56,7 +56,6 @@
                 <ui:VisualElement name="card-test-card" class="action-card action-card--available" style="width: 240px;" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:Label name="fly-text" class="gs-title" style="display: none; position: absolute; left: 50%; top: 40%; -unity-text-align: middle-center;" text="" />
         <ui:VisualElement name="card-transition-overlay" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;" />
     </ui:VisualElement>
 </ui:UXML>

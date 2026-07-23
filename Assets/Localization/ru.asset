@@ -393,6 +393,8 @@ MonoBehaviour:
     Value: "\u0414\u0430\u043D\u043D\u044B\u0435"
   - Key: settings.delete_saves
     Value: "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0432\u0441\u0435 \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u0438\u044F"
+  - Key: settings.delete_saves.confirmation
+    Value: "\u041E\u043F\u0435\u0440\u0430\u0446\u0438\u044F \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0430."
   - Key: settings.back
     Value: "\u041D\u0430\u0437\u0430\u0434"
   - Key: game_menu.title
@@ -1657,6 +1659,8 @@ MonoBehaviour:
     Value: Requires {0} control
   - Key: hud.actions
     Value: "Действия"
+  - Key: hud.discovery.confirmation
+    Value: "Обнаружено: {0}!"
   - Key: game_log.discovered_format
     Value: "{0} обнаружил {1}"
   - Key: game_log.control_increased_format

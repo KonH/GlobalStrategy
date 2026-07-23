@@ -238,17 +238,17 @@ Add to `Assets/Localization/en.asset` and `ru.asset`:
 ## Steps
 
 ### Agent Steps
-- [ ] **Extract `GameLogLineFormatter`** — new `Assets/Scripts/Unity/UI/GameLogLineFormatter.cs`; move `BuildDiscoveryLine`/`BuildControlLine`/`BuildOpinionLine`/`BuildNewCharacterLine`/`WrapColored`/`FormatNumber` out of `ActionLogView.cs` unchanged in logic; update `ActionLogView.BuildLabel` to call the new static methods.
-- [ ] **Add `NotifyRaw` to `IFlyTextNotifier`** — `Assets/Scripts/Unity/UI/IFlyTextNotifier.cs`.
-- [ ] **Rework `FlyTextNotifierDocument` to fade-only + rich text** — `Assets/Scripts/Unity/UI/FlyTextNotifierDocument.cs`; replace Entrance/Exit scale/move phases with FadeIn/Hold/FadeOut opacity-only phases (`_fadeInDuration=0.5f`, `_holdDuration=2.0f`, `_fadeOutDuration=0.5f`); remove now-unused scale/move fields; set `_label.enableRichText = true` in `Start()`; implement `NotifyRaw`.
-- [ ] **Update `FlyText.uxml`** — Label classes `gs-content gs-header fly-text-label` → `gs-title fly-text-label`.
-- [ ] **Update `FlyText.uss`** — `.fly-text-root` → `top: 40%; left: 50%; translate: -50% 0;`; `.fly-text-label` → `font-size: 46px; text-shadow: 3px 3px 0 rgba(0,0,0,0.9); -unity-text-outline-width: 1px; -unity-text-outline-color: rgb(0,0,0);`.
-- [ ] **Migrate discovery in `CardPlayAnimator`** — add `IFlyTextNotifier flyText` to `Construct(...)`; remove the `"fly-text"` Label lookup and hand-rolled fade block; replace with a single `_flyText?.Notify("hud.discovery.confirmation", localizedName);` call.
-- [ ] **Remove the bespoke `fly-text` element** — delete the `<ui:Label name="fly-text" .../>` line from `Assets/UI/HUD/HUD.uxml`; delete the `#fly-text { ... }` rule from `Assets/UI/HUD/HUD.uss`.
-- [ ] **Wire delete-all-saves** — `Assets/Scripts/Unity/UI/SettingsWindowDocument.cs`; add `IFlyTextNotifier flyText` to `Construct(...)`; call `_flyText?.Notify("settings.delete_saves.confirmation");` in `DeleteAllSaves()` after the existing `_saveFileManager?.DeleteAllSaves();`.
-- [ ] **Wire opinion/control fly text in `HUDDocument`** — add `IFlyTextNotifier flyText` to `Construct(...)`; add `_lastNotifiedLogSequenceId` field, initialized in `OnEnable()` right after the existing initial `_actionLog?.Refresh(_state.GameLog);` call; extend `HandleGameLogChanged` to call a new `NotifyNewLogEntries()` that scans for `Control`/`Opinion` entries newer than the watermark and calls `_flyText.NotifyRaw(GameLogLineFormatter.BuildControlLine/BuildOpinionLine(...))`.
-- [ ] **Add locale keys** — `Assets/Localization/en.asset` and `ru.asset`; `hud.discovery.confirmation` and `settings.delete_saves.confirmation`.
-- [ ] **Compile check** — after all script/UXML/USS changes, `refresh_unity` then `read_console(types=["error"])`.
+- [x] **Extract `GameLogLineFormatter`** — new `Assets/Scripts/Unity/UI/GameLogLineFormatter.cs`; move `BuildDiscoveryLine`/`BuildControlLine`/`BuildOpinionLine`/`BuildNewCharacterLine`/`WrapColored`/`FormatNumber` out of `ActionLogView.cs` unchanged in logic; update `ActionLogView.BuildLabel` to call the new static methods.
+- [x] **Add `NotifyRaw` to `IFlyTextNotifier`** — `Assets/Scripts/Unity/UI/IFlyTextNotifier.cs`.
+- [x] **Rework `FlyTextNotifierDocument` to fade-only + rich text** — `Assets/Scripts/Unity/UI/FlyTextNotifierDocument.cs`; replace Entrance/Exit scale/move phases with FadeIn/Hold/FadeOut opacity-only phases (`_fadeInDuration=0.5f`, `_holdDuration=2.0f`, `_fadeOutDuration=0.5f`); remove now-unused scale/move fields; set `_label.enableRichText = true` in `Start()`; implement `NotifyRaw`.
+- [x] **Update `FlyText.uxml`** — Label classes `gs-content gs-header fly-text-label` → `gs-title fly-text-label`.
+- [x] **Update `FlyText.uss`** — `.fly-text-root` → `top: 40%; left: 50%; translate: -50% 0;`; `.fly-text-label` → `font-size: 46px; text-shadow: 3px 3px 0 rgba(0,0,0,0.9); -unity-text-outline-width: 1px; -unity-text-outline-color: rgb(0,0,0);`.
+- [x] **Migrate discovery in `CardPlayAnimator`** — add `IFlyTextNotifier flyText` to `Construct(...)`; remove the `"fly-text"` Label lookup and hand-rolled fade block; replace with a single `_flyText?.Notify("hud.discovery.confirmation", localizedName);` call.
+- [x] **Remove the bespoke `fly-text` element** — delete the `<ui:Label name="fly-text" .../>` line from `Assets/UI/HUD/HUD.uxml`; delete the `#fly-text { ... }` rule from `Assets/UI/HUD/HUD.uss`.
+- [x] **Wire delete-all-saves** — `Assets/Scripts/Unity/UI/SettingsWindowDocument.cs`; add `IFlyTextNotifier flyText` to `Construct(...)`; call `_flyText?.Notify("settings.delete_saves.confirmation");` in `DeleteAllSaves()` after the existing `_saveFileManager?.DeleteAllSaves();`.
+- [x] **Wire opinion/control fly text in `HUDDocument`** — add `IFlyTextNotifier flyText` to `Construct(...)`; add `_lastNotifiedLogSequenceId` field, initialized in `OnEnable()` right after the existing initial `_actionLog?.Refresh(_state.GameLog);` call; extend `HandleGameLogChanged` to call a new `NotifyNewLogEntries()` that scans for `Control`/`Opinion` entries newer than the watermark and calls `_flyText.NotifyRaw(GameLogLineFormatter.BuildControlLine/BuildOpinionLine(...))`.
+- [x] **Add locale keys** — `Assets/Localization/en.asset` and `ru.asset`; `hud.discovery.confirmation` and `settings.delete_saves.confirmation`.
+- [x] **Compile check** — after all script/UXML/USS changes, `refresh_unity` then `read_console(types=["error"])`.
 
 ### User Steps
 ### 1. Visually verify the shared fade-only visual across all five call sites (Map scene)
