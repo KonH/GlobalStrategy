@@ -17,7 +17,7 @@ class CsvStoreTests(unittest.TestCase):
         expected = [
             "spec_id", "version", "stage", "mode", "context", "start", "end",
             "provider", "model", "effort", "cost_usd", "input_tokens", "cached_input_tokens",
-            "output_tokens", "spec_size_kb", "plan_size_kb", "diff_lines", "session_id",
+            "output_tokens", "spec_size_kb", "plan_size_kb", "prd_size_kb", "diff_lines", "session_id",
         ]
         self.assertEqual(expected, COLUMNS)
 

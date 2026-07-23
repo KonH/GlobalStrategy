@@ -38,6 +38,7 @@ One file per spec: `Docs/Specs/<spec_dir>/usage.csv`, multi-row. Columns:
 | `cost_usd` | Computed from a checked-in, hand-maintained pricing table (`model → $/Mtok`, separate rates for uncached input, cached input, output) for BOTH providers in ALL modes; CLI-reported cost figures are ignored |
 | `input_tokens`, `cached_input_tokens`, `output_tokens` | Split because cached reads cost ~10x less; always recorded as-is (what the API actually processed) — `continued` stages carry inflated cache-read input and are never discounted, `context` is the comparability flag |
 | `spec_size_kb`, `plan_size_kb` | Snapshot of `spec.md` / `plan.md` sizes at the row's end time; empty cell when the file does not exist yet (distinguishable from a zero-byte file) |
+| `prd_size_kb` | Snapshot of `.ralph/prd.md` size (repo root, not per-spec) at the row's end time; empty cell when the file does not exist yet |
 | `diff_lines` | `git diff --shortstat` changed-line count vs merge-base with `main` on the spec's branch; captured at complete-prd/PR-creation and re-computed on user-input rounds; exactly one branch per spec is supported |
 | `session_id` | Provider session id; `(session_id, stage)` is the idempotency/dedup key |
 

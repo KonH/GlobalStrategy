@@ -118,6 +118,7 @@ def build_row(spec_dir, stage, mode, context, provider, session_id, model, effor
         "output_tokens": output_tokens,
         "spec_size_kb": file_size_kb(full_spec_dir / "spec.md"),
         "plan_size_kb": file_size_kb(full_spec_dir / "plan.md"),
+        "prd_size_kb": file_size_kb(Path(root) / ".ralph" / "prd.md"),
         "diff_lines": diff_lines,
         "session_id": session_id,
     }
