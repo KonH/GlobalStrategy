@@ -55,6 +55,7 @@ def parse_codex_rollout(path, repo_dir_name="GlobalStrategy"):
     cwd = None
     thread_source = None
     model = None
+    effort = None
     stages = []
     current = None
     any_stage_started = False
@@ -81,7 +82,9 @@ def parse_codex_rollout(path, repo_dir_name="GlobalStrategy"):
         if obj_type == "event_msg":
             event_type = payload.get("type")
             if event_type == "thread_settings_applied":
-                model = (payload.get("thread_settings") or {}).get("model") or model
+                thread_settings = payload.get("thread_settings") or {}
+                model = thread_settings.get("model") or model
+                effort = thread_settings.get("reasoning_effort") or effort
             elif event_type == "user_message":
                 text = payload.get("message", "")
                 new_stage = _match_stage(text)
@@ -102,6 +105,7 @@ def parse_codex_rollout(path, repo_dir_name="GlobalStrategy"):
                     "is_completed_response": True,
                     "timestamp": obj.get("timestamp"),
                     "model": model,
+                    "effort": effort,
                 })
             elif event_type == "token_count" and current is not None:
                 usage = (payload.get("info") or {}).get("total_token_usage") or {}
@@ -134,6 +138,7 @@ def parse_codex_rollout(path, repo_dir_name="GlobalStrategy"):
                 "start": segment.start,
                 "end": segment.end,
                 "model": segment.model,
+                "effort": segment.effort,
                 "input_tokens": segment.input_tokens,
                 "cached_input_tokens": segment.cached_input_tokens,
                 "output_tokens": segment.output_tokens,

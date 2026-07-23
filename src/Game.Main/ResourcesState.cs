@@ -48,10 +48,16 @@ namespace GS.Main {
 
 		public void Set(bool isValid, string countryId, List<ResourceStateEntry> resources,
 				IReadOnlyList<ControlIncomeEntry>? controlIncomes = null) {
+			var incomes = controlIncomes ?? Array.Empty<ControlIncomeEntry>();
+			if (IsValid == isValid && CountryId == countryId
+				&& StateEquality.ListEquals(Resources, resources, StateEquality.ResourceStateEntryEquals)
+				&& StateEquality.ListEquals(ControlIncomes, incomes, StateEquality.ControlIncomeEntryEquals)) {
+				return;
+			}
 			IsValid = isValid;
 			CountryId = countryId;
 			Resources = resources;
-			ControlIncomes = controlIncomes ?? Array.Empty<ControlIncomeEntry>();
+			ControlIncomes = incomes;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}

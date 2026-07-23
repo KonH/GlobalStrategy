@@ -20,6 +20,7 @@ class Segment:
     start: str
     end: str
     model: str = ""
+    effort: str = ""
     input_tokens: int = 0
     cached_input_tokens: int = 0
     output_tokens: int = 0
@@ -37,6 +38,7 @@ def split_into_substages(base_stage, context, turns):
         - is_completed_response: bool - a non-tool-use assistant completion
         - timestamp: str
         - model: str | None
+        - effort: str | None
         - usage: {"input_tokens", "cached_input_tokens", "output_tokens"} | None
         - write_paths: list[str]
         - git_branch: str | None
@@ -58,6 +60,7 @@ def split_into_substages(base_stage, context, turns):
             continue
         timestamps = [t["timestamp"] for t in bucket if t.get("timestamp")]
         models = [t["model"] for t in bucket if t.get("model")]
+        efforts = [t["effort"] for t in bucket if t.get("effort")]
         write_paths = [p for t in bucket for p in t.get("write_paths", [])]
         branches = [t["git_branch"] for t in bucket if t.get("git_branch")]
 
@@ -75,6 +78,7 @@ def split_into_substages(base_stage, context, turns):
             start=timestamps[0] if timestamps else "",
             end=timestamps[-1] if timestamps else "",
             model=models[0] if models else "",
+            effort=efforts[0] if efforts else "",
             input_tokens=input_tokens,
             cached_input_tokens=cached_tokens,
             output_tokens=output_tokens,

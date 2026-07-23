@@ -53,7 +53,7 @@ def _write_paths_from_assistant(message):
 
 def parse_claude_transcript(path):
     """Returns a list of row dicts, one per stage/sub-stage segment found in the
-    transcript, each carrying session_id/provider/model/token sums/write_paths/
+    transcript, each carrying session_id/provider/model/effort/token sums/write_paths/
     git_branch/context/start/end/stage. Sessions with no /specify, /plan, or
     /implement command marker produce an empty list (nothing to attribute).
     """
@@ -115,6 +115,7 @@ def parse_claude_transcript(path):
                 "is_completed_response": message.get("stop_reason") != "tool_use",
                 "timestamp": obj.get("timestamp"),
                 "model": message.get("model"),
+                "effort": obj.get("effort"),
                 "usage": {
                     "input_tokens": usage.get("input_tokens", 0),
                     "cached_input_tokens": usage.get("cache_read_input_tokens", 0),
@@ -138,6 +139,7 @@ def parse_claude_transcript(path):
                 "start": segment.start,
                 "end": segment.end,
                 "model": segment.model,
+                "effort": segment.effort,
                 "input_tokens": segment.input_tokens,
                 "cached_input_tokens": segment.cached_input_tokens,
                 "output_tokens": segment.output_tokens,

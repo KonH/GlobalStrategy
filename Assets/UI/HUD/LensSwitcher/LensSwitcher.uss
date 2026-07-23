@@ -20,23 +20,22 @@
     width: 24px;
     height: 24px;
     -unity-background-scale-mode: scale-to-fit;
-    -unity-background-image-tint-color: rgb(240, 232, 208);
 }
 
 .lens-icon--political {
-    background-image: url("project://database/Assets/UI/Icons/crown.svg?fileID=11400000&guid=a1b2c3d4e5f601234567890123456789&type=3#crown");
+    background-image: url("project://database/Assets/UI/Icons/lens-political.png?fileID=2800000&guid=2b5811c78c710124da711ce9622a6a09&type=3#lens-political");
 }
 
 .lens-icon--geographic {
-    background-image: url("project://database/Assets/UI/Icons/globe2.svg?fileID=11400000&guid=c3d4e5f6a7b801234567890123456789&type=3#globe2");
+    background-image: url("project://database/Assets/UI/Icons/lens-geographic.png?fileID=2800000&guid=bd2bf14ea51b8a04e843053f793df393&type=3#lens-geographic");
 }
 
 .lens-icon--org {
-    background-image: url("project://database/Assets/UI/Icons/shield-fill.svg?fileID=11400000&guid=b2c3d4e5f6a701234567890123456789&type=3#shield-fill");
+    background-image: url("project://database/Assets/UI/Icons/lens-org.png?fileID=2800000&guid=221585c1b060f4243ac2370c13c9ec9d&type=3#lens-org");
 }
 
 .lens-icon--province {
-    background-image: url("project://database/Assets/UI/Icons/province.svg?fileID=11400000&guid=26118ff23b6212941bb25abf079e139d&type=3#province");
+    background-image: url("project://database/Assets/UI/Icons/lens-province.png?fileID=2800000&guid=07bc271ff4237364fa4f20b64d1b3be0&type=3#lens-province");
 }
 
 .lens-btn--active {

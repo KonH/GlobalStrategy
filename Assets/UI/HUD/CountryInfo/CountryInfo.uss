@@ -8,9 +8,8 @@
 .control-icon {
     width: 22px;
     height: 22px;
-    background-image: url("project://database/Assets/UI/Icons/control.png?fileID=2800000&guid=5000d0a84170c354f8e76b2c31b7e13e&type=3#control");
+    background-image: url("project://database/Assets/UI/Icons/resource-country-control.png?fileID=2800000&guid=21487500afe0051408fd79abd94154e3&type=3#resource-country-control");
     -unity-background-scale-mode: scale-to-fit;
-    -unity-background-image-tint-color: rgb(200, 184, 144);
     margin-right: 4px;
 }
 

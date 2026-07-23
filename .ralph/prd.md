@@ -1,3 +1,3 @@
 # Ralph PRD
 
-No Ralph run is active.
+No run is currently active.

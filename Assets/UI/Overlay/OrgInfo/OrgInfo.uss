@@ -88,11 +88,9 @@
 }
 
 .org-toggle-btn-icon--characters {
-    background-image: url("project://database/Assets/UI/Icons/compass.svg?fileID=11400000&guid=abc0f945a8c17e143a5422e140de0dba&type=3#compass");
-    -unity-background-image-tint-color: rgb(240, 232, 208);
+    background-image: url("project://database/Assets/UI/Icons/selected-panel-characters.png?fileID=2800000&guid=4f388c1d3414bec42be5d16abdd0ec52&type=3#selected-panel-characters");
 }
 
 .org-toggle-btn-icon--actions {
-    background-image: url("project://database/Assets/UI/Icons/star-fill.svg?fileID=11400000&guid=33403e92846874d40ad16097ec491044&type=3#star-fill");
-    -unity-background-image-tint-color: rgb(200, 160, 64);
+    background-image: url("project://database/Assets/UI/Icons/selected-panel-actions.png?fileID=2800000&guid=0c7047268a1a4174bbc56094fd302142&type=3#selected-panel-actions");
 }
