@@ -18,6 +18,7 @@ Use this workflow only for issues authored by `KonH` and labeled `codex`. Work i
 - Do not invoke `git worktree`. The runner resets this dedicated clone to `origin/main` before each poll.
 - Treat a comment from the owner as higher priority than an owner reaction. A reaction means approval only when it is newer than the latest automation comment.
 - End the final agent message with exactly one result line: `AUTOMATION_RESULT: COMPLETED` after every supplied candidate reaches its intended stopping point, or `AUTOMATION_RESULT: BLOCKED` when a missing prerequisite prevents that transition. Never report `COMPLETED` when blocked.
+- Whenever this run completes drafting a spec or completes drafting a plan for an issue, emit a line of the form `USAGE_STAGE: <spec-folder-name> spec` or `USAGE_STAGE: <spec-folder-name> plan` anywhere in an agent message during that step. `scripts/automation/codex/handle_issues.py` scans its captured output for these lines after the run exits and records a per-spec usage-stats row — it has no other way to know which spec a given phase belongs to, since one `codex exec` invocation can cover multiple candidate issues at once. Omit the marker for clarification-only turns, merge/classification, and implementation work (already recorded separately by `ralph.py`).
 
 ## Checklist
 
@@ -43,9 +44,9 @@ Keep acceptance criteria in plain product language. Put implementation anchors a
 1. For a new issue, create `codex/issue-<number>-<slug>` from `origin/main`.
 2. Produce `Docs/Specs/<YY_MM_DD_HH>_<slug>/spec.md`. Follow the repository specification workflow in `.claude/commands/specify.md`; honor the approval checkpoint.
 3. Commit with the version-bump rules in `.claude/commands/commit.md`, push, and open a PR with `Part of #<number>`—never `Closes #<number>`.
-4. Post `## Spec Summary`, update the checklist, and stop for an owner thumbs-up or clarification.
+4. Post `## Spec Summary`, update the checklist, emit `USAGE_STAGE: <spec-folder-name> spec`, and stop for an owner thumbs-up or clarification.
 5. On clarification, edit the existing spec, commit/push, then post either `## Spec Conclusion` or `## Clarification Needed`.
-6. On approval of the spec, create `plan.md` in the same folder. Follow `.claude/commands/plan.md`, including the Constitution check. Commit/push, post `## Plan Summary`, and stop.
+6. On approval of the spec, create `plan.md` in the same folder. Follow `.claude/commands/plan.md`, including the Constitution check. Commit/push, post `## Plan Summary`, emit `USAGE_STAGE: <spec-folder-name> plan`, and stop.
 7. On plan clarification, edit `plan.md`, commit/push, then post a conclusion or clarification request.
 
 Before a fourth clarification request in either phase, post `## Needs Manual Attention`, add `codex-needs-attention`, update the checklist, and stop.

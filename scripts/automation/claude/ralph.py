@@ -44,6 +44,7 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from common.ralph import (  # noqa: E402
     NON_PROGRESS_FILES,
     build_arg_parser,
@@ -51,6 +52,7 @@ from common.ralph import (  # noqa: E402
     log_step_failure,
     run_ralph,
 )
+from scripts.stats.collect_usage import diff_lines_for_branch, record_usage_row  # noqa: E402
 
 
 TOOL_NAME = "claude"
@@ -121,8 +123,9 @@ def determine_stop_reason(result, prd_text, stall_count, stall_limit):
 
 
 def invoke_claude_step(claude_exe, phase, iteration, prompt, dangerously_skip_permissions,
-                        csv_file, log_dir, activity_file, model=None, effort=None):
+                        csv_file, log_dir, activity_file, model=None, effort=None, spec_dir_name=None):
     allowed_tools = LOOP_TOOLS + PR_EXTRA_TOOLS if phase == "complete-prd" else LOOP_TOOLS
+    iteration_start = datetime.utcnow().isoformat() + "Z"
 
     claude_args = [claude_exe, "-p", prompt, "--output-format", "json"]
     if model:
@@ -167,6 +170,20 @@ def invoke_claude_step(claude_exe, phase, iteration, prompt, dangerously_skip_pe
         )
     duration_s = (result.get("duration_ms") or 0) / 1000
     print(f"{phase}: cost ${result.get('total_cost_usd')}  turns {result.get('num_turns')}  duration {duration_s:.0f}s")
+
+    if spec_dir_name is not None:
+        try:
+            record_usage_row(
+                provider="claude", stage="implement", spec_dir=spec_dir_name, mode="automated",
+                session_id=result.get("session_id", ""), model=result.get("model", model or ""),
+                start=iteration_start, end=datetime.utcnow().isoformat() + "Z",
+                input_tokens=usage.get("input_tokens", 0), cached_input_tokens=usage.get("cache_read_input_tokens", 0),
+                output_tokens=usage.get("output_tokens", 0),
+                diff_lines=diff_lines_for_branch(f"ralph/{spec_dir_name}", Path.cwd()) if phase == "complete-prd" else None,
+            )
+        except Exception as error:  # usage-stats recording must never abort the Ralph loop
+            print(f"warning: failed to record usage stats row: {error}")
+
     return result
 
 
@@ -175,11 +192,12 @@ def main():
     args = parser.parse_args()
 
     claude_exe = find_claude_executable()
+    spec_dir_name = args.spec  # None in --bot-feature/--perf-target mode - no Docs/Specs/ dir to attribute to
 
     def invoke_step(phase, iteration, prompt, csv_file, log_dir, activity_file, model, effort):
         return invoke_claude_step(
             claude_exe, phase, iteration, prompt, args.dangerously_skip_permissions,
-            csv_file, log_dir, activity_file, model=model, effort=effort,
+            csv_file, log_dir, activity_file, model=model, effort=effort, spec_dir_name=spec_dir_name,
         )
 
     run_ralph(

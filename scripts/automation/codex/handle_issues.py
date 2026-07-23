@@ -61,12 +61,18 @@ import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from common.issue_handler import (  # noqa: E402
-    acquire_lock, compute_cutoff, find_candidates, run_git, save_last_check, setup_logging,
+    acquire_lock, compute_cutoff, find_candidates, reset_to_main_unless_in_progress,
+    save_last_check, setup_logging,
 )
+from scripts.stats.collect_usage import record_usage_row_codex  # noqa: E402
+
+USAGE_STAGE_RE = re.compile(r"^USAGE_STAGE:\s*(\S+)\s+(spec|plan)\s*$", re.MULTILINE)
 
 MODEL = "gpt-5.6-sol"
 EFFORT = "high"
@@ -170,9 +176,7 @@ def main():
                      "timestamp, so the next run that acquires the lock still covers this window.")
         return
 
-    run_git(["checkout", "main"])
-    run_git(["fetch", "origin", "main"])
-    run_git(["reset", "--hard", "origin/main"])
+    reset_to_main_unless_in_progress(logger)
 
     now, cutoff = compute_cutoff(logger, args.state_file, args.since_hours, args.since_minutes)
     candidates = find_candidates(LABEL, MARKER, cutoff)
@@ -185,6 +189,7 @@ def main():
     prompt = build_prompt(candidates)
     logger.info(f"Found {len(candidates)} candidate(s) - invoking codex exec.")
 
+    run_start = datetime.now(timezone.utc).isoformat()
     codex_args = build_codex_arguments(args.model, args.effort, args.sandbox)
     process = subprocess.Popen(
         codex_args,
@@ -200,6 +205,7 @@ def main():
     process.stdin.write(prompt)
     process.stdin.close()
     automation_result = None
+    agent_messages = []
     for line in process.stdout:
         line = line.rstrip()
         if not line:
@@ -211,12 +217,17 @@ def main():
             continue
         item = event.get("item", {})
         if event.get("type") == "item.completed" and item.get("type") == "agent_message":
-            match = re.search(r"^AUTOMATION_RESULT:\s*(COMPLETED|BLOCKED)\s*$", item.get("text", ""), re.MULTILINE)
+            text = item.get("text", "")
+            agent_messages.append(text)
+            match = re.search(r"^AUTOMATION_RESULT:\s*(COMPLETED|BLOCKED)\s*$", text, re.MULTILINE)
             if match:
                 automation_result = match.group(1)
         logger.info("[codex exec] %s", json.dumps(event, ensure_ascii=False))
     process.wait()
     logger.info(f"codex exec exited with code {process.returncode}.")
+
+    record_usage_stats_rows(agent_messages, run_start)
+
     if process.returncode != 0:
         sys.exit(process.returncode)
     if automation_result != "COMPLETED":
@@ -225,6 +236,21 @@ def main():
         sys.exit(1)
     save_last_check(args.state_file, now)
     sys.exit(0)
+
+
+def record_usage_stats_rows(agent_messages, run_start):
+    """Scans the run's agent messages for USAGE_STAGE markers (see
+    .codex/skills/codex-feature-issue/SKILL.md) and records one usage.csv row per
+    match, via the newest rollout file for this repo written since run_start - the
+    wrapper has no finer-grained per-issue breakdown available, matching the
+    acceptance of imprecision already accepted for multi-spec transcript segments
+    elsewhere in this feature."""
+    matches = USAGE_STAGE_RE.findall("\n".join(agent_messages))
+    for spec_dir, stage in matches:
+        try:
+            record_usage_row_codex(spec_dir=spec_dir, stage=stage, mode="automated", since_iso=run_start)
+        except Exception as error:  # usage-stats recording must never abort/fail the run
+            logger.warning(f"failed to record usage stats row for {spec_dir}/{stage}: {error}")
 
 
 if __name__ == "__main__":

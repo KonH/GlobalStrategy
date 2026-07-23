@@ -80,6 +80,20 @@ As soon as you identify what triggered processing for an issue, react to it imme
 - Triggered by a new comment → add an `eyes` reaction to that specific comment.
 - Triggered by a new reaction (no new comment) → add an `eyes` reaction to the **marker comment the owner reacted on** (`gh api repos/KonH/GlobalStrategy/issues/comments/<comment-id>/reactions -f content=eyes`). You can't react to a reaction, but you can react to the comment it landed on — do this even though it already has a 👍, since that's the only visible sign the run was actually picked up before it produces its next comment. This matters most for section 4b (the Ralph loop), which can run for many minutes with no new comment until it finishes — without this, there's no way to tell from the issue alone whether the 👍 has been seen yet, short of noticing the `claude-in-progress` label.
 
+## Usage stats marker
+
+Whenever this run **completes drafting a spec** (section 2) or **completes drafting a plan** (section 3b), emit one line, on its own, anywhere in your response for that issue:
+
+```
+USAGE_STAGE: <spec-folder-name> spec
+```
+or
+```
+USAGE_STAGE: <spec-folder-name> plan
+```
+
+`scripts/automation/claude/handle_issues.py` scans its own captured output for these lines after this process exits, and records a `stage="spec"`/`stage="plan"` row (mode `automated`) in `Docs/Specs/<spec-folder-name>/usage.csv` — the wrapper's own Python code has no visibility into which spec a given phase belongs to (it only sees one aggregate result for the whole batch of candidates), so this marker is the only way that information reaches it. Emit exactly one marker per issue per phase completed this cycle; omit it entirely for clarification-only turns (3a/4c), merge/classify (3c), and implementation work (4a-4d, already recorded separately by `ralph.py` itself).
+
 ## Bounded clarification loop
 
 Before posting another `Clarification Needed` comment in the current phase, count how many `Clarification Needed` comments already exist since the last `Spec Summary`/`Plan Summary` (whichever starts the current phase). If this would be the **4th**, don't ask again — instead post `## Needs Manual Attention` explaining the loop hasn't converged, apply the `claude-needs-attention` label, and stop. A later human comment on the issue is still picked up normally next run (new `updatedAt` → new candidate) and should be treated as a fresh attempt, implicitly resetting this — remove `claude-needs-attention` once you resume normal handling of it.
@@ -113,7 +127,7 @@ Fetch `gh api repos/KonH/GlobalStrategy/issues/<N>/comments` and, for each comme
 6. `git add`, `git commit`, `git push -u origin claude/issue-<issue-number>-<slug>`.
 7. Open the PR: `gh pr create --repo KonH/GlobalStrategy --title "<feature name>" --base main --head claude/issue-<issue-number>-<slug> --body "Part of #<issue-number>\n\n<brief summary>"`. Deliberately **not** `Closes` — this PR only carries the spec+plan; merging it must not auto-close the issue, since the implementation lifecycle (section 4) still needs it open. The eventual implementation PR is what carries `Closes #<issue-number>`.
 8. Post on the **issue** (not the PR): marker line, then `## Spec Summary`, then the spec's presentation content and any clarifying questions, then a link to the PR.
-9. Update the progress checklist: check "Spec drafted," fill in `**Spec:**` (the folder `/specify` just created) and `**PR:**`, status → the `SPEC_REVIEW` wording above.
+9. Update the progress checklist: check "Spec drafted," fill in `**Spec:**` (the folder `/specify` just created) and `**PR:**`, status → the `SPEC_REVIEW` wording above. Emit the `USAGE_STAGE: <spec-folder-name> spec` marker (see "Usage stats marker" above).
 10. Stop. Do **not** run `/plan` yet — that only happens after a 👍 on the Spec Summary/Conclusion comment (section 3b).
 
 ## 3. Existing PR: handle new activity
@@ -133,7 +147,7 @@ Fetch `gh api repos/KonH/GlobalStrategy/issues/<N>/comments` and, for each comme
 2. Invoke the `plan` command/skill (`.claude/commands/plan.md`) against the existing spec. It checks `Docs/Constitution.md`, writes `plan.md` into the same spec folder, and normally surfaces constitution violations + "stops and waits for user feedback" per `.claude/rules/workflow.md` — capture that content.
 3. `git add`, `git commit`, `git push` to the same branch.
 4. Post on the issue: marker line, `## Plan Summary`, the plan's presentation content (including any constitution violations flagged), and any clarifying questions.
-5. Update the progress checklist: check "Spec approved" and "Plan drafted," status → `PLAN_REVIEW` wording.
+5. Update the progress checklist: check "Spec approved" and "Plan drafted," status → `PLAN_REVIEW` wording. Emit the `USAGE_STAGE: <spec-folder-name> plan` marker (see "Usage stats marker" above).
 6. Stop. Do **not** merge yet — that only happens after a 👍 on a Plan Summary/Conclusion comment.
 
 ### 3c. New reaction on a Plan Summary/Conclusion comment — merge
@@ -167,11 +181,15 @@ Runs entirely after section 3c's merge, on the `ralph/<spec-id>` branch that `sc
 
 1. If `**Implementation PR:**` is not yet set on the checklist: `git fetch origin main`, `git checkout main`, `git reset --hard origin/main` — the Ralph branch starts fresh from `main`, which already has the merged spec+plan. If an implementation PR already exists from a previous round: `git fetch origin ralph/<spec-id>` and `git checkout ralph/<spec-id>` instead, so this round continues on top of prior implementation commits rather than restarting.
 2. Map the issue's classification label to an environment marker for `--env`: `code-only` → `code-only`; `full-env-required` → `full-env-headless` (this automation never has Unity Editor/MCP, regardless of what the label says the plan needs).
-3. Run:
+3. Run `ralph.py` as a **detached OS process that this run polls to completion**, never as a non-blocking/backgrounded tool call:
    ```
-   python scripts/automation/claude/ralph.py --spec <spec-id> --env <marker> --model claude-sonnet-5 --effort medium \
-       --max-iterations 20 --auto-adjust-iterations --skip-pull-request --dangerously-skip-permissions
+   nohup python scripts/automation/claude/ralph.py --spec <spec-id> --env <marker> --model claude-sonnet-5 --effort medium \
+       --max-iterations 20 --auto-adjust-iterations --skip-pull-request --dangerously-skip-permissions \
+       > /tmp/ralph_<spec-id>.log 2>&1 &
+   echo $! > /tmp/ralph_<spec-id>.pid
    ```
+   then repeatedly check `kill -0 $(cat /tmp/ralph_<spec-id>.pid) 2>/dev/null`, sleeping between checks, each check its own **synchronous, foreground** tool call — do not move on to step 4 until that check shows the process has exited. **This is a hard rule, not a style preference**: this whole command runs as a one-shot `claude -p` process with no later turn to come back on. If `ralph.py` is instead launched via a non-blocking/backgrounded tool call and this run then stops making tool calls (declaring it will "monitor and report once it finishes," polling later, etc.), the `claude -p` process simply exits — there is no later for it to check back at, so the loop is silently abandoned mid-run: no PRD iterations happen, no commits, no PR, and the issue is left stuck with `claude-in-progress` applied and an Implementation Proposal that was never actually acted on. Polling via short foreground calls inside this same run, as above, is what keeps this process alive until `ralph.py` truly finishes, while still respecting each individual tool call's own timeout. **Never set a backgrounding option (e.g. `run_in_background: true`) on the poll command itself, and never wrap the poll in its own shell loop (e.g. `while kill -0 ...; do sleep 15; done`) run as a single call** — either of those hands control back to the CLI immediately, indistinguishable from not polling at all: the outer `claude -p` process has nothing left to do and exits while `ralph.py` is still running, silently abandoning the loop exactly as described above. Each poll must be its own blocking, foreground `kill -0` call that this run waits on before issuing the next one. Once a check shows the process has exited, read `/tmp/ralph_<spec-id>.log` for the `=== Loop finished: <reason> ===` line before proceeding.
+
    `--auto-adjust-iterations` covers the "MaxIterations too low" failure mode by itself — `ralph.py` raises its own iteration budget to the PRD's recommended minimum instead of erroring out, so a single invocation is enough; no separate detect-and-re-run step is needed. `--skip-pull-request` is required — this section owns PR creation/update (it needs to be linked to the GitHub issue), not the generic `/complete-prd` → `/pr` flow, which has no knowledge of the issue number.
 4. Commit any remaining uncommitted changes via the **/commit** skill's rules (version bump included), then push `ralph/<spec-id>` before deciding whether the result needs manual attention. This is mandatory even for a stalled, errored, or zero-progress loop; never discard partial Ralph work.
 5. If the loop's final `=== Loop finished: <reason> ===` line reports `stalled_no_progress`, `blocked_repeat_limit`, or `claude_error`, or zero PRD tasks ended up `"passes": true` — treat this as blocked, not a normal (possibly partial) result: post `## Needs Manual Attention` quoting the relevant `.ralph/activity.md` entries, apply `claude-needs-attention`, update the checklist status accordingly, and stop. Do not open or update an implementation PR with no real progress behind it.

@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/**"
+---
+
 # ECS Patterns
 
 ## No system-to-system calls

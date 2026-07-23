@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.prefab"
+---
+
 # Prefab and Prefab Variant Format
 
 Prefabs are Unity YAML files (`%YAML 1.1`). They can be created and modified by hand following the rules below. FileIDs are large unique positive integers — pick random 9–18 digit values that don't collide with existing anchors in the file.

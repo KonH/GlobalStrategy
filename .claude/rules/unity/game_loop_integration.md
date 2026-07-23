@@ -1,3 +1,8 @@
+---
+paths:
+  - "Assets/Scripts/Unity/UI/**"
+---
+
 # Game Loop Integration from UI
 
 ## Command ordering: action before pause

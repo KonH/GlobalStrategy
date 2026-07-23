@@ -116,6 +116,37 @@ def run_git(args):
     return result.stdout.strip()
 
 
+def reset_to_main_unless_in_progress(logger):
+    """Hard-resets the local checkout to origin/main, unless some issue is still labeled
+    `claude-in-progress` on GitHub - the marker handle-feature-issue.md applies at the start of
+    handling an issue and removes when done (see its "Concurrency label" section). A label left
+    on means the previous run crashed or was interrupted mid-issue (e.g. a Ralph loop from
+    section 4b) before it could commit/push its work-in-progress and remove the label; forcibly
+    resetting in that state would discard that work. Every code path in handle-feature-issue.md
+    already does its own git fetch/checkout as its first step, so skipping this wrapper-level
+    reset is safe - it's a cleanliness convenience for the common case, not something the
+    command relies on. Any other local dirtiness (e.g. changes left behind after an issue
+    completed and the label was cleared) is not treated as a reason to skip - only an
+    in-progress label means a run is still mid-flight."""
+    in_progress = run_gh_json([
+        "issue", "list", "--repo", f"{OWNER}/{REPO}",
+        "--label", "claude-in-progress", "--state", "open",
+        "--json", "number",
+    ])
+    if in_progress:
+        numbers = ", ".join(f"#{issue['number']}" for issue in in_progress)
+        logger.warning(
+            f"Issue(s) {numbers} still labeled 'claude-in-progress' - skipping the local reset "
+            "to origin/main. This looks like a previous run's issue handling failed or was "
+            "interrupted before finishing and clearing the label; leaving the checkout as-is so "
+            "nothing is discarded. Investigate manually if this persists across runs."
+        )
+        return
+    run_git(["checkout", "main"])
+    run_git(["fetch", "origin", "main"])
+    run_git(["reset", "--hard", "origin/main"])
+
+
 def run_gh_json(args):
     result = subprocess.run(["gh", *args], capture_output=True, text=True)
     if result.returncode != 0:

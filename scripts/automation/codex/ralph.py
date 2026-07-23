@@ -35,10 +35,11 @@ specific to driving Codex: CLI argument shape, prompt text, and result interpret
 import shutil
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from common.ralph import (  # noqa: E402
     NON_PROGRESS_FILES,
     build_arg_parser,
@@ -46,6 +47,7 @@ from common.ralph import (  # noqa: E402
     log_step_failure,
     run_ralph,
 )
+from scripts.stats.collect_usage import diff_lines_for_branch, record_usage_row_codex  # noqa: E402
 
 
 TOOL_NAME = "codex"
@@ -109,7 +111,8 @@ def determine_stop_reason(result, prd_text, stall_count, stall_limit):
 
 
 def invoke_codex_step(codex_exe, phase, iteration, prompt, sandbox, dangerously_skip_permissions,
-                       csv_file, log_dir, activity_file, model=None, effort=None):
+                       csv_file, log_dir, activity_file, model=None, effort=None, spec_dir_name=None):
+    iteration_start = datetime.now(timezone.utc).isoformat()
     codex_args = [
         codex_exe, "exec", "--json", "--sandbox", sandbox,
         "--config", "approval_policy=\"never\"",
@@ -172,6 +175,16 @@ def invoke_codex_step(codex_exe, phase, iteration, prompt, sandbox, dangerously_
     with csv_file.open("a", encoding="utf-8", newline="") as f:
         f.write(f"{phase},{iteration},,,,,,,,,\n")
     print(f"{phase}: Codex completed successfully.")
+
+    if spec_dir_name is not None:
+        try:
+            record_usage_row_codex(
+                spec_dir=spec_dir_name, stage="implement", mode="automated", since_iso=iteration_start,
+                diff_lines=diff_lines_for_branch(f"ralph/{spec_dir_name}", Path.cwd()) if phase == "complete-prd" else None,
+            )
+        except Exception as error:  # usage-stats recording must never abort the Ralph loop
+            print(f"warning: failed to record usage stats row: {error}")
+
     return {"is_error": False, "result": stdout_text}
 
 
@@ -184,11 +197,12 @@ def main():
     args = parser.parse_args()
 
     codex_exe = find_codex_executable()
+    spec_dir_name = args.spec  # None in --bot-feature/--perf-target mode - no Docs/Specs/ dir to attribute to
 
     def invoke_step(phase, iteration, prompt, csv_file, log_dir, activity_file, model, effort):
         return invoke_codex_step(
             codex_exe, phase, iteration, prompt, args.sandbox, args.dangerously_skip_permissions,
-            csv_file, log_dir, activity_file, model=model, effort=effort,
+            csv_file, log_dir, activity_file, model=model, effort=effort, spec_dir_name=spec_dir_name,
         )
 
     run_ralph(

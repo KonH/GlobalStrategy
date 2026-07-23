@@ -1,3 +1,11 @@
+---
+paths:
+  - "Assets/UI/**"
+  - "**/*.uxml"
+  - "**/*.uss"
+  - "Assets/Scripts/Unity/UI/**"
+---
+
 # UI Toolkit Architecture
 
 The project uses Unity UI Toolkit exclusively. Do not add Canvas, UGUI, or uGUI components.

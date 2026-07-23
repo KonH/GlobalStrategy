@@ -1,3 +1,8 @@
+---
+paths:
+  - "**/*.unity"
+---
+
 # Scene Format and Registration
 
 ## File Format

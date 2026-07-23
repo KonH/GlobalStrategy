@@ -1,22 +1,10 @@
+---
+paths:
+  - "Assets/**"
+  - "src/**"
+---
+
 # Unity Project Structure
-
-```
-Assets/
-├── Plugins/
-│   └── Core/            # prebuilt DLL(s) from src/
-├── Prefabs/
-│   └── [Feature]/       # e.g. UI/, Units/
-├── Scenes/
-│   └── [Feature]/
-├── Scripts/
-│   └── [Feature]/       # contains .cs files and one .asmdef per feature folder
-└── UI/
-    └── [Feature]/       # UXML, USS, PanelSettings assets
-
-src/                     # plain C# solution, Unity-independent
-└── GlobalStrategy.Core/
-    └── Map/             # domain logic with no UnityEngine dependency
-```
 
 - Every feature folder under `Scripts/` has exactly one `.asmdef` file named after the folder
 - Prefabs and scenes mirror the same feature subfolder names used in Scripts

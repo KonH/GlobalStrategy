@@ -1,3 +1,8 @@
+---
+paths:
+  - "Assets/Scripts/**/*.cs"
+---
+
 # Unity Input Handling
 
 The project uses the **Input System package** (`com.unity.inputsystem`). The legacy `UnityEngine.Input` class is disabled in Player Settings and throws `InvalidOperationException` at runtime — never use it.

@@ -1,3 +1,9 @@
+---
+paths:
+  - "scripts/utils/generate_map*.py"
+  - "Assets/Configs/*.json"
+---
+
 # Map Config Generator Rules
 
 ## Colonial territory handling
