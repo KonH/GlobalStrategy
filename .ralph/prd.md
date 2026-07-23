@@ -134,7 +134,7 @@ Make every in-scope `VisualState`/`ResourcesState`/`TimeState` class's `Set(...)
    "Confirm no existing (non-VisualState) benchmark regressed from the Set(...) changes, e.g. VisualStateConverterBenchmarks.Update."
   ],
   "gate": "dotnet-benchmark skill --compare",
-  "passes": false
+  "passes": true
  }
 ]
 ```

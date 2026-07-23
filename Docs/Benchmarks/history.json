@@ -2021,5 +2021,51 @@
       "VisualStateConverterBenchmarks.Update": true
     },
     "pass": false
+  },
+  {
+    "timestamp": "2026-07-23T21:03:44.7365285Z",
+    "mode": "compare",
+    "results": [
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_NoOp",
+        "meanNanoseconds": 92.68395105997722,
+        "stdDevNanoseconds": 0.9168096754706787,
+        "allocatedBytes": 176
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_Update",
+        "meanNanoseconds": 9.742948710918427,
+        "stdDevNanoseconds": 0.07815668069294832,
+        "allocatedBytes": 0
+      }
+    ],
+    "verdicts": {
+      "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_NoOp": false,
+      "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_Update": true
+    },
+    "pass": false
+  },
+  {
+    "timestamp": "2026-07-23T21:05:26.4208907Z",
+    "mode": "compare",
+    "results": [
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedCountryState_NoOp",
+        "meanNanoseconds": 0.20573733995358148,
+        "stdDevNanoseconds": 0.006616836039225858,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedCountryState_Update",
+        "meanNanoseconds": 1.6189750816140855,
+        "stdDevNanoseconds": 0.015153564862795767,
+        "allocatedBytes": 0
+      }
+    ],
+    "verdicts": {
+      "ScalarVisualStateSetBenchmarks.SelectedCountryState_NoOp": false,
+      "ScalarVisualStateSetBenchmarks.SelectedCountryState_Update": true
+    },
+    "pass": false
   }
 ]
