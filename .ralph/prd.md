@@ -54,7 +54,7 @@ Make every in-scope `VisualState`/`ResourcesState`/`TimeState` class's `Set(...)
 			"Update DiscoveredCountriesState.Set using CountryIds.SetEquals(ids); RecentlyDiscovered is excluded from the equality check the same way."
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "call-site-review",

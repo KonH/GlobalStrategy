@@ -216,8 +216,12 @@ namespace GS.Main {
 		public string RecentlyDiscovered { get; private set; } = "";
 
 		public void Set(System.Collections.Generic.HashSet<string> ids, string recentlyDiscovered = "") {
-			CountryIds = ids;
+			var equal = CountryIds.SetEquals(ids);
 			RecentlyDiscovered = recentlyDiscovered;
+			if (equal) {
+				return;
+			}
+			CountryIds = ids;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 
@@ -333,10 +337,14 @@ namespace GS.Main {
 			string recentProvinceId = "",
 			string recentOldOwnerId = "",
 			string recentNewOwnerId = "") {
-			OwnerByProvinceId = ownerByProvinceId;
+			var equal = StateEquality.DictionaryContentEquals(OwnerByProvinceId, ownerByProvinceId);
 			RecentProvinceId = recentProvinceId;
 			RecentOldOwnerId = recentOldOwnerId;
 			RecentNewOwnerId = recentNewOwnerId;
+			if (equal) {
+				return;
+			}
+			OwnerByProvinceId = ownerByProvinceId;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -354,10 +362,14 @@ namespace GS.Main {
 			string recentProvinceId = "",
 			string recentOldOccupierId = "",
 			string recentNewOccupierId = "") {
-			OccupierByProvinceId = occupierByProvinceId;
+			var equal = StateEquality.DictionaryContentEquals(OccupierByProvinceId, occupierByProvinceId);
 			RecentProvinceId = recentProvinceId;
 			RecentOldOccupierId = recentOldOccupierId;
 			RecentNewOccupierId = recentNewOccupierId;
+			if (equal) {
+				return;
+			}
+			OccupierByProvinceId = occupierByProvinceId;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -368,6 +380,9 @@ namespace GS.Main {
 		public IReadOnlyDictionary<string, double> ScoreByCountryId { get; private set; } = new Dictionary<string, double>();
 
 		public void Set(IReadOnlyDictionary<string, double> scoreByCountryId) {
+			if (StateEquality.DictionaryContentEquals(ScoreByCountryId, scoreByCountryId)) {
+				return;
+			}
 			ScoreByCountryId = scoreByCountryId;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}

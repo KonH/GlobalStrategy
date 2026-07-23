@@ -70,3 +70,21 @@ Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded,
 Set `visualstate-list` task's `"passes"` to `true` in `.ralph/prd.md`.
 
 Next iteration: pick up `visualstate-dictionary-set` (durable-content-only equality early-return for `ProvinceOwnershipState.Set`, `ProvinceOccupationState.Set`, `CountryScoreState.Set` using `StateEquality.DictionaryContentEquals`, and `DiscoveredCountriesState.Set` using `HashSet.SetEquals`), excluding the transient `Recent*`/`RecentlyDiscovered` fields from the equality check but still assigning them unconditionally every call (same pattern used here for `CountryActionsState.CurrentTime`/`HandSize`).
+
+---
+
+## 2026-07-23 — visualstate-dictionary-set
+
+Task: Add durable-content-only equality early-return to Set(...) for dictionary- and HashSet-holding state classes, excluding transient recent-event fields.
+
+Changed `src/Game.Main/VisualState.cs`:
+- `ProvinceOwnershipState.Set`: captures `equal = StateEquality.DictionaryContentEquals(OwnerByProvinceId, ownerByProvinceId)` before assigning `RecentProvinceId`/`RecentOldOwnerId`/`RecentNewOwnerId` (which happen unconditionally every call, same as `CountryActionsState.CurrentTime`); early-returns before assigning `OwnerByProvinceId`/firing `PropertyChanged` when `equal`.
+- `ProvinceOccupationState.Set`: same pattern for `OccupierByProvinceId` / `RecentProvinceId`/`RecentOldOccupierId`/`RecentNewOccupierId`.
+- `CountryScoreState.Set`: early-return via `StateEquality.DictionaryContentEquals(ScoreByCountryId, scoreByCountryId)` — no transient fields to preserve here.
+- `DiscoveredCountriesState.Set`: captures `equal = CountryIds.SetEquals(ids)` before assigning `RecentlyDiscovered` unconditionally; early-returns before assigning `CountryIds`/firing `PropertyChanged` when `equal`.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded, 0 Warning(s), 0 Error(s).
+
+Set `visualstate-dictionary-set` task's `"passes"` to `true` in `.ralph/prd.md`. (Note: the `Edit` tool repeatedly failed to match the surrounding JSON text for this specific block despite `Read` showing byte-identical content — used `sed -i '57s/.../'` on the line number instead; worth a look if this recurs.)
+
+Next iteration: pick up `call-site-review` (re-confirm transient-field call-site safety for `ProvinceOwnership.Set`/`ProvinceOccupation.Set`/`DiscoveredCountries` in `GameLogic.cs` and `VisualStateConverter.cs` against the equality-check changes made in `visualstate-list` and `visualstate-dictionary-set`). No code changes expected unless a call site has drifted — this task's gate is still `dotnet build`, so if nothing needs fixing, just confirm and flip `passes` to `true`.
