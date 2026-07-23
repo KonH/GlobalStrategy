@@ -88,3 +88,23 @@ Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded,
 Set `visualstate-dictionary-set` task's `"passes"` to `true` in `.ralph/prd.md`. (Note: the `Edit` tool repeatedly failed to match the surrounding JSON text for this specific block despite `Read` showing byte-identical content — used `sed -i '57s/.../'` on the line number instead; worth a look if this recurs.)
 
 Next iteration: pick up `call-site-review` (re-confirm transient-field call-site safety for `ProvinceOwnership.Set`/`ProvinceOccupation.Set`/`DiscoveredCountries` in `GameLogic.cs` and `VisualStateConverter.cs` against the equality-check changes made in `visualstate-list` and `visualstate-dictionary-set`). No code changes expected unless a call site has drifted — this task's gate is still `dotnet build`, so if nothing needs fixing, just confirm and flip `passes` to `true`.
+
+---
+
+## 2026-07-23 — call-site-review
+
+Task: Re-confirm transient-field call-site safety against current main before finalizing equality checks.
+
+No code changes — pure review. Confirmed all three call-site groups:
+
+- `GameLogic.cs`: both `VisualState.ProvinceOwnership.Set(...)` (line 154) and the two `VisualState.ProvinceOccupation.Set(...)` calls (lines 164, 174) are still inside `if (changed) { ... }` blocks guarded by `ProvinceOwnershipSystem.ChangeOwner`/`ProvinceOccupationSystem.SetOccupier`/`ClearOccupier`'s own `changed` return value — a `Recent*` field is only ever set in the same call where the durable dictionary entry actually changed.
+- `VisualStateConverter.UpdateProvinceOwnership`/`UpdateProvinceOccupation` (lines 626-662): both still pass `_state.ProvinceOwnership.Recent*`/`_state.ProvinceOccupation.Recent*` straight through unchanged (reading back the currently-stored value, not computing a new one) — confirmed by direct read of the current file.
+- `VisualStateConverter.UpdateDiscoveredCountries` (lines 464-486): `pendingRecently` is only set to a new `recently` value when the loop actually finds a `_previousDiscoveredIds`-absent id; otherwise it falls through to `_state.DiscoveredCountries.RecentlyDiscovered` (the existing stored value) — confirmed unchanged from the `visualstate-dictionary-set` iteration's expectations.
+
+No drift found — all three call sites still satisfy the invariant the equality-check changes depend on (a transient field only takes a genuinely new value in the same call where durable data also changes).
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — Build succeeded, 0 Warning(s), 0 Error(s).
+
+Set `call-site-review` task's `"passes"` to `true` in `.ralph/prd.md` (used `sed -i '69s/.../'` on the line number — `Edit` tool's exact-match on this JSON block has failed for two consecutive iterations now despite `Read` showing byte-identical surrounding text; worth investigating if it recurs a third time, but `sed` on the known line number is a reliable workaround).
+
+Next iteration: pick up the first `benchmarks` task — add `src/Game.Benchmarks/ScalarVisualStateSetBenchmarks.cs` (`[MemoryDiagnoser]`, following `VisualStateConverterBenchmarks.cs`'s `GameWorldFixture.Build()` + one warm `Update(...)` pass convention) with `<ClassName>_NoOp`/`<ClassName>_Update` benchmark pairs for `SelectedCountryState`, `SelectedOrganizationState`, `SelectedProvinceState`, `PlayerOrganizationState`, `TimeState`, `LocaleState`, `MapLensState`.

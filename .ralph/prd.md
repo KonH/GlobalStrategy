@@ -66,7 +66,7 @@ Make every in-scope `VisualState`/`ResourcesState`/`TimeState` class's `Set(...)
 			"If any call site has drifted such that a transient field is set without the durable data also changing in the same call, stop and surface it instead of silently proceeding with the equality-check change."
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "benchmarks",
