@@ -1,2 +1,3 @@
 spec_id,version,stage,mode,context,start,end,provider,model,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,plan_size_kb,prd_size_kb,diff_lines,session_id
 26_07_23_15_standalone-web-client,1.63,spec,interactive,fresh,2026-07-23T15:27:50.678Z,2026-07-23T16:04:55.531Z,claude,fable 5,,9632,21824525,187483,20.83,,0.04,,f1ebdc12-4503-551f-ad0d-5bd364fa382c
+26_07_23_15_standalone-web-client,1.64,plan,interactive,continued,2026-07-23T16:07:43.059Z,2026-07-23T16:14:53.552Z,claude,fable 5,,60,5058176,28204,20.83,18.16,0.04,,f1ebdc12-4503-551f-ad0d-5bd364fa382c
