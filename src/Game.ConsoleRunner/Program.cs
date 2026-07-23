@@ -10,6 +10,19 @@ using ECS.Viewer.Server;
 namespace GS.Game.ConsoleRunner {
 	public static class Program {
 		static int Main(string[] args) {
+			if (args.Length > 0 && args[0] == "calibrate-end-game") {
+				try {
+					var calibrationOptions = CalibrationOptions.Parse(args);
+					return CalibrationRunner.Run(calibrationOptions);
+				} catch (ArgumentException ex) {
+					Console.Error.WriteLine($"Usage error: {ex.Message}");
+					return 1;
+				} catch (Exception ex) {
+					Console.Error.WriteLine($"Calibration run failed: {ex.Message}");
+					return 1;
+				}
+			}
+
 			HeadlessOptions options;
 			try {
 				options = HeadlessOptions.Parse(args);

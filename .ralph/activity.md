@@ -125,3 +125,52 @@ ECS.Viewer.Tests (16/16) all green.
 Next iteration: pick up `calibration-runner` task — add
 `src/Game.ConsoleRunner/CalibrationRunner.cs`, a new `calibrate-end-game` CLI verb
 in `Program.cs`, and `.claude/skills/end-game-score-calibration/SKILL.md`.
+
+---
+
+## 2026-07-23 — calibration-runner
+
+Task: Add the calibration console-runner CLI verb and document it in a skill.
+
+Changes:
+- `src/Game.ConsoleRunner/CalibrationOptions.cs`: new options parser for the
+  `calibrate-end-game` verb (`--config`, `--scenario win|lose`, `--org`, `--seed`,
+  `--output`, plus `--max-ticks`/`--timeout-seconds`/`--hours-per-tick` overrides),
+  following `HeadlessOptions`'s `NextArg`/`ParseIntArg` pattern.
+- `src/Game.ConsoleRunner/CalibrationResult.cs`: new JSON result DTO (scenario, orgId,
+  winnerOrgId, seed, completed, tickCount, finalDate, score).
+- `src/Game.ConsoleRunner/CalibrationRunner.cs`: new `Run(CalibrationOptions)`. Resolves
+  the winner org (`--org` itself for `win`; the other participating org for `lose`, so the
+  scored `--org` stays a losing participant), builds a `GameLogicContext` via
+  `Program.BuildContext` with all organizations participating, runs one `Update(0f)` to
+  init, pushes `DebugDiscoverAllCountriesCommand` plus a `ChangeControlCommand` per
+  `country_config.json` entry giving the winner org `MaxControlPool` control (mirroring
+  `GameCompletionLogicTests.GiveTotalControl`), then loops `GameLogic.Update(deltaTime)`
+  per tick until `IsCompleted`, capped by `--max-ticks` (default 20000) and
+  `--timeout-seconds` (default 300, checked every 256 ticks — same cadence as
+  `HeadlessRunner`). Reads the final score via
+  `ResourceQuery.GetValue(logic.World, options.OrgId, ResourceDefinitions.OrgScore)` and
+  writes the JSON result to `--output`.
+- `src/Game.ConsoleRunner/Program.cs`: `Main` now checks `args[0] ==
+  "calibrate-end-game"` before the existing `HeadlessOptions.Parse` path and dispatches
+  to `CalibrationRunner.Run`.
+- `.claude/skills/end-game-score-calibration/SKILL.md`: new skill documenting the exact
+  command, the fixed calibration seed (`12345`) and org (`Illuminati`, the only other
+  organization `Masons` being the automatic `lose`-scenario winner per
+  `Assets/Configs/organizations.json`), the debug-command/control-command sequence, the
+  win/lose scenario framing, the score read-out call, the calibration-maximum definition
+  (higher of the two scenarios' scores), the threshold formula `factor(i) = 0.05 + i *
+  (1.20 - 0.05) / 8` for `i = 0..8` with `MidpointRounding.AwayFromZero`, the
+  `references/` output convention, and the rerun/update procedure.
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — succeeded, 0 warnings, 0
+errors (log deleted per `.claude/rules/temp_scripts.md`).
+
+Next iteration: pick up `calibration-run` task — actually run
+`calibrate-end-game` for both `win` and `lose` scenarios against
+`Assets/Configs` with seed `12345`/org `Illuminati` (per the new SKILL.md), verify
+`GameLogic.IsCompleted` is reached and re-runs reproduce the same score, and record
+both scenarios' inputs/outputs plus the calibration maximum under
+`.claude/skills/end-game-score-calibration/references/calibration_results.md`. That
+task's gate is a not-yet-written `.tmp/verify_calibration.py` — write it fresh each
+run per `.claude/rules/temp_scripts.md` (it isn't checked in, `.tmp/` is gitignored).

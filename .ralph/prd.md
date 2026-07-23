@@ -87,7 +87,7 @@ see `## Automation Notes` in the plan file for the verbatim list of what a human
 			"Add .claude/skills/end-game-score-calibration/SKILL.md (YAML frontmatter name/description + numbered instructions, matching .claude/skills/dotnet-test/SKILL.md's convention) documenting: the exact build/run command; fixed seed/org/HQ config taken from the committed Assets/Configs/*.json; the debug-command sequence and terminal assertion; win vs. lose scenario framing (lose scenario drives a different org to the winning threshold while the scored org stays a losing participant); the score read-out call; that the higher of the two scenarios' recorded score is the calibration maximum; the threshold formula factor(i) = 0.05 + i * (1.20 - 0.05) / 8 for i = 0..8 with MidpointRounding.AwayFromZero; output paths under .claude/skills/end-game-score-calibration/references/; and the rerun/update procedure for when config or score rules change."
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "calibration-run",
