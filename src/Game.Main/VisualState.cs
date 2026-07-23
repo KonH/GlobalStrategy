@@ -420,6 +420,22 @@ namespace GS.Main {
 		}
 	}
 
+	public class EndGameComparisonRowState {
+		public int Place { get; }
+		public string ComparisonElementId { get; }
+		public bool IsPlayer { get; }
+		public string DisplayName { get; }
+		public double Score { get; }
+
+		public EndGameComparisonRowState(int place, string comparisonElementId, bool isPlayer, string displayName, double score) {
+			Place = place;
+			ComparisonElementId = comparisonElementId;
+			IsPlayer = isPlayer;
+			DisplayName = displayName;
+			Score = score;
+		}
+	}
+
 	public enum GameResult {
 		InProgress,
 		Win,

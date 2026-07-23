@@ -36,3 +36,30 @@ Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — succeeded, 0 war
 
 Next iteration: pick up `comparison-projector` task — add `EndGameComparisonRowState` to
 `src/Game.Main/VisualState.cs` and `src/Game.Main/EndGameComparisonProjector.cs`.
+
+---
+
+## 2026-07-23 — comparison-projector
+
+Task: Add EndGameComparisonRowState and the pure EndGameComparisonProjector.
+
+Changes:
+- `src/Game.Main/VisualState.cs`: added `EndGameComparisonRowState` (Place,
+  ComparisonElementId, IsPlayer, DisplayName, Score), mirroring `LeaderboardEntryState`'s
+  constructor shape. Not registered on `VisualState` — the task only specifies the row
+  model + projector, not a wrapping `INotifyPropertyChanged` state (unlike the upcoming
+  goal-hint task, which explicitly adds `WinConditionHintState` to `VisualState`).
+- `src/Game.Main/EndGameComparisonProjector.cs`: new static `Build(configuredEntries,
+  playerOrgId, playerDisplayName, playerScore)` returning
+  `List<EndGameComparisonRowState>`. One row per configured entry (IsPlayer=false) plus
+  one player row (IsPlayer=true); sorted descending by Score, tie-break by
+  ComparisonElementId ordinal, then IsPlayer (false before true) as the deterministic
+  secondary/tertiary key; 1-based sequential Place assigned after sort. Null
+  `configuredEntries` yields a single player-only row (no null-check needed for empty
+  lists since the loop is a no-op).
+
+Gate: `dotnet build src/GlobalStrategy.Core.sln -c Release` — succeeded, 0 warnings, 0 errors.
+
+Next iteration: pick up `goal-hint-projector` task — add `WinConditionHintKind`,
+`WinConditionHintRowState`, `WinConditionHintState` (registered on `VisualState`) to
+`src/Game.Main/VisualState.cs` and `src/Game.Main/WinConditionHintProjector.cs`.

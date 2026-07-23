@@ -54,7 +54,7 @@ see `## Automation Notes` in the plan file for the verbatim list of what a human
 			"Behavior: one row per configured entry (IsPlayer=false) plus one player row (IsPlayer=true); sort descending by Score; tie-break by ComparisonElementId ordinal with IsPlayer as a documented deterministic secondary key; assign 1-based sequential Place; null/empty configuredEntries yields a single player-only row."
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "goal-hint-projector",
