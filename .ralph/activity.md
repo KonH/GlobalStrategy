@@ -205,3 +205,17 @@ Set `tests` task's `"passes"` to `true` in `.ralph/prd.md`.
 Next iteration: pick up `verification` (re-run `dotnet test src/GlobalStrategy.Core.sln` to confirm no regressions from the full set of `Set(...)` equality-check changes — same gate as this task, should pass identically since no code changed here, only the gate was verified and the flag flipped). After that: `benchmark-baseline` (dotnet-benchmark skill `--update-baseline` then `--compare`).
 
 ---
+
+## 2026-07-23 — verification
+
+Task: Run the full core test suite to confirm no regressions from the Set(...) equality-check changes.
+
+No code changes — pure re-verification. Confirmed branch was `ralph/26_07_21_08_visualstate-update-optimization` before starting.
+
+Gate: `dotnet test src/GlobalStrategy.Core.sln -c Debug` via the `dotnet-test` skill — all three test assemblies passed: `ECS.Tests.dll` (34/34), `ECS.Viewer.Tests.dll` (16/16), `Game.Tests.dll` (365/365, includes `VisualStateChangeNotificationTests`). 0 failures, 0 skipped across all three — identical counts to the `tests` task iteration, confirming no regression.
+
+Set `verification` task's `"passes"` to `true` in `.ralph/prd.md`. `Edit`'s exact-match worked cleanly this time (no tab-mismatch issue recurred).
+
+Next iteration: pick up `benchmark-baseline` (final task) — run the `dotnet-benchmark` skill with `--update-baseline` once (the new `ScalarVisualStateSetBenchmarks`/`ListVisualStateSetBenchmarks`/`DictionaryAndSetVisualStateSetBenchmarks` `<ClassName>_NoOp`/`<ClassName>_Update` methods have no prior baseline entry), then run it again with `--compare` to confirm the harness's existing 5%-regression gate passes cleanly, and confirm no existing (non-VisualState) benchmark such as `VisualStateConverterBenchmarks.Update` regressed. This is the last task in `prd.md` — once its gate passes and `passes` is flipped to `true`, all tasks are done and the loop should output `<promise>COMPLETE</promise>` on the following iteration.
+
+---

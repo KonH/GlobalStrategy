@@ -123,7 +123,7 @@ Make every in-scope `VisualState`/`ResourcesState`/`TimeState` class's `Set(...)
    "Confirm no test that reads VisualState sub-state values regressed, since assigned values are unchanged and only the fire/don't-fire decision changed."
   ],
   "gate": "dotnet test src/GlobalStrategy.Core.sln",
-  "passes": false
+  "passes": true
  },
  {
   "category": "benchmark-baseline",
