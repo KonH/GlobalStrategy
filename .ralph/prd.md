@@ -43,7 +43,7 @@ see `## Automation Notes` in the plan file for the verbatim list of what a human
 			"Do not touch Assets/Scripts/Unity/DI/GameLifetimeScope.cs in this task — that registration requires Unity and is out of scope for this headless run."
 		],
 		"gate": "dotnet build src/GlobalStrategy.Core.sln -c Release",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "comparison-projector",

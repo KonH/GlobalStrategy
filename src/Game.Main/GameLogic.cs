@@ -41,6 +41,7 @@ namespace GS.Main {
 		public ActionConfig ActionConfig { get; private set; } = null!;
 		public EffectConfig EffectConfig { get; private set; } = null!;
 		public ProvinceConfig ProvinceConfig { get; private set; } = null!;
+		public GameSettings GameSettings { get; private set; } = null!;
 		public IReadOnlyList<BotFeatureConfigEntry> BotFeatures { get; private set; } = null!;
 		public int MaxControlPool { get; private set; }
 		public bool IsCompleted => _gameCompletionEntity >= 0
@@ -65,6 +66,7 @@ namespace GS.Main {
 			EffectConfig = _effectConfig;
 			ProvinceConfig = context.Province.Load();
 			var settings = context.GameSettings.Load();
+			GameSettings = settings;
 			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId,
 				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig);
 			_speedMultipliers = settings.SpeedMultipliers;
