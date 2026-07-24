@@ -51,6 +51,9 @@ namespace GS.Game.ConsoleRunner {
 				}
 			}
 
+			if (scenario == null) {
+				throw new ArgumentException("calibrate-end-game requires --scenario.");
+			}
 			if (scenario != "win" && scenario != "lose") {
 				throw new ArgumentException($"--scenario must be 'win' or 'lose', got '{scenario}'.");
 			}
@@ -70,6 +73,11 @@ namespace GS.Game.ConsoleRunner {
 				throw new ArgumentException("calibrate-end-game requires --output.");
 			}
 			options.Output = output;
+
+			if (options.HoursPerTick < 1 || options.HoursPerTick > 672) {
+				throw new ArgumentException(
+					$"--hours-per-tick must be in [1, 672] (672h = 28 days, the shortest month, to avoid skipping a month boundary), got {options.HoursPerTick}.");
+			}
 
 			return options;
 		}

@@ -42,9 +42,15 @@ Optional flags (defaults match `HeadlessOptions`'s pattern): `--max-ticks` (defa
    `src/Game.Tests`).
 3. Calls `GameLogic.Update(deltaTime)` once per tick until `GameLogic.IsCompleted`, or until it hits
    `--max-ticks` or `--timeout-seconds` (checked every 256 ticks, same cadence as `HeadlessRunner`).
-4. Reads the final score via `ResourceQuery.GetValue(logic.World, --org, ResourceDefinitions.OrgScore)`
-   and writes a `CalibrationResult` JSON (`scenario`, `orgId`, `winnerOrgId`, `seed`, `completed`,
-   `tickCount`, `finalDate`, `score`) to `--output`.
+4. Reads the final score, settling it first rather than trusting a plain `ResourceQuery.GetValue`
+   read: `GameCompletionSystem` can complete the game the same tick `ChangeControlCommand` is applied,
+   one step after `ResourceSystem.Update` already ran with the pre-command control state, which would
+   otherwise leave `org_score` one tick stale forever (`Update` short-circuits once `IsCompleted`). It
+   reads the stale value via `ResourceQuery.GetValue(logic.World, --org, ResourceDefinitions.OrgScore)`
+   and settles it via `new OrgScoreCollector().Compute(--org, staleValue, logic.World)` — the same
+   collector formula `ResourceSystem` would have applied on the next, never-run tick — then writes a
+   `CalibrationResult` JSON (`scenario`, `orgId`, `winnerOrgId`, `seed`, `completed`, `tickCount`,
+   `finalDate`, `score`) to `--output`.
 
 ## Calibration maximum and threshold formula
 
