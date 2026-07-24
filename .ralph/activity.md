@@ -241,3 +241,36 @@ populating it needs the Google Trends research this headless run can't do). Gate
 `dotnet test src/GlobalStrategy.Core.sln`.
 
 ---
+
+## 2026-07-24 — threshold-formula-test
+
+Task: Add a deterministic test for the endGameComparisons threshold formula and rounding
+policy using a synthetic calibration maximum.
+
+Changes:
+- `src/Game.Tests/EndGameThresholdFormulaTests.cs`: new fixture using a synthetic
+  `CalibrationMaximum = 1000.0` (not the real recorded `286971.0094511145`, per the task's
+  intent to keep expected values hand-computable). Computes `factor(i) = 0.05 + i *
+  (1.20 - 0.05) / 8` for `i = 0..8`, multiplies by the synthetic maximum, and rounds with
+  `MidpointRounding.AwayFromZero`. Two tests: thresholds are strictly ascending across all
+  nine indices; thresholds match a hand-computed expected array.
+- Gotcha for the next similar test: the mathematical midpoint at `i=2` (`337.5`) is not
+  exactly representable in `double` — `0.05 + 2 * 1.15 / 8` lands fractionally *below* .5
+  due to binary floating-point representation, so `AwayFromZero` rounds it down to `337`,
+  not up to `338` as naive decimal hand-arithmetic would suggest. Fixed the expected array
+  to `337` (not `338`) to match the actual double-precision result of the documented
+  formula, with a comment explaining why. Did not touch `Assets/Configs/game_settings.json`'s
+  `endGameComparisons` (still the empty placeholder array).
+
+Gate: `dotnet test src/GlobalStrategy.Core.sln` — `Passed! - Failed: 0, Passed: 373, Skipped: 0,
+Total: 373` (Game.Tests.dll), plus ECS.Tests (34/34) and ECS.Viewer.Tests (16/16) all green.
+
+Next iteration: pick up `select-org-logic` task — extend
+`src/Game.Main/SelectOrgLogic.cs`'s constructor to accept `IConfigSource<GameSettings>`,
+compute `availableCountryCount`, call `WinConditionHintProjector.Build(...)`, and set
+`VisualState.WinConditionHint.Set(...)` once; update `SelectOrgLogicTests` for the new
+constructor signature. Do not touch
+`Assets/Scripts/Unity/DI/SelectCountryLifetimeScope.cs` (Unity, out of scope). Gate:
+`dotnet test src/GlobalStrategy.Core.sln`.
+
+---

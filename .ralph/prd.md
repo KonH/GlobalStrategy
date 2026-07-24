@@ -108,7 +108,7 @@ see `## Automation Notes` in the plan file for the verbatim list of what a human
 			"This intentionally does not touch Assets/Configs/game_settings.json's real endGameComparisons values or comparisonElementId identities — populating those requires the Google Trends research this headless run cannot perform; leave the placeholder empty array from the first task as-is."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "select-org-logic",
