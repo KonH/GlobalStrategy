@@ -1,0 +1,54 @@
+.end-game-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(0, 0, 0);
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.end-game-header {
+    font-size: 44px;
+    margin-bottom: 24px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.end-game-columns {
+    flex-direction: row;
+    flex-grow: 1;
+    width: 100%;
+}
+
+.end-game-column {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin: 0 16px;
+    align-items: center;
+}
+
+.end-game-column-title {
+    margin-bottom: 12px;
+}
+
+.end-game-list {
+    width: 100%;
+}
+
+.end-game-empty {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    margin-top: 12px;
+}
+
+.end-game-exit {
+    width: 240px;
+    height: 56px;
+    font-size: 26px;
+    margin-top: 24px;
+}

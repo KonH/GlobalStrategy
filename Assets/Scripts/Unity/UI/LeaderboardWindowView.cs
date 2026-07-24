@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
@@ -110,7 +109,7 @@ namespace GS.Unity.UI {
 			name.AddToClassList("leaderboard-row-name");
 			row.Add(name);
 
-			var score = new Label(FormatScore(entry.Score));
+			var score = new Label(ScoreFormat.Format(entry.Score));
 			score.AddToClassList("leaderboard-row-score");
 			row.Add(score);
 
@@ -126,15 +125,6 @@ namespace GS.Unity.UI {
 				}
 			}
 			return entry.DisplayName;
-		}
-
-		static readonly NumberFormatInfo s_scoreFormat = new NumberFormatInfo {
-			NumberGroupSeparator = " ",
-			NumberGroupSizes = new[] { 3 }
-		};
-
-		static string FormatScore(double value) {
-			return Math.Round(value, MidpointRounding.AwayFromZero).ToString("#,0", s_scoreFormat);
 		}
 	}
 }
