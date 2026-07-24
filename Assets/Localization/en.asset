@@ -1639,11 +1639,11 @@ MonoBehaviour:
   - Key: action.make_friend.name
     Value: Cordial Accord
   - Key: action.make_friend.desc
-    Value: A treaty of friendship, sealed with warm words and mutual advantage — the first step toward a lasting partnership.
+    Value: Mark new country as friend.
   - Key: action.make_rival.name
     Value: Declaration of Rivalry
   - Key: action.make_rival.desc
-    Value: A pointed rebuke, delivered through official channels — from this day, cooperation gives way to competition.
+    Value: Mark new country as rival.
   - Key: action.country.unplayable.pool_full
     Value: No control pool space remaining
   - Key: action.country.unplayable.insufficient_control
@@ -1668,6 +1668,10 @@ MonoBehaviour:
     Value: "{0} increased {1} {2} opinion in {3} by {4} ({5})"
   - Key: game_log.new_character_format
     Value: "New {0} in {1} - {2}"
+  - Key: game_log.relation_friend_format
+    Value: "{0} made {1} and {2} friends"
+  - Key: game_log.relation_rival_format
+    Value: "{0} made {1} and {2} rivals"
   - Key: province_name.Afghanistan__Andkhvoy
     Value: Andkhvoy
   - Key: province_name.Afghanistan__Asadabad

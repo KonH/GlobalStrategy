@@ -458,7 +458,8 @@ namespace GS.Main {
 		Discovery,
 		Control,
 		Opinion,
-		NewCharacter
+		NewCharacter,
+		Relation
 	}
 
 	public class GameLogEntry {
@@ -472,9 +473,12 @@ namespace GS.Main {
 		public double Delta { get; }             // Control/Opinion only; amount just applied
 		public double Total { get; }             // Control/Opinion only; new resulting total (Opinion: clamped to [-100,100])
 		public bool IsOrgRole { get; }           // NewCharacter only: true = OrgId set/CountryId empty
+		public string TargetCountryId { get; }   // Relation only: the country picked as the new friend/rival
+		public RelationKind RelationKind { get; } // Relation only
 
 		public GameLogEntry(long sequenceId, GameLogEntryKind kind, string orgId, string countryId,
-			string characterId, string roleId, string[] namePartKeys, double delta, double total, bool isOrgRole) {
+			string characterId, string roleId, string[] namePartKeys, double delta, double total, bool isOrgRole,
+			string targetCountryId = "", RelationKind relationKind = default) {
 			SequenceId = sequenceId;
 			Kind = kind;
 			OrgId = orgId;
@@ -485,6 +489,8 @@ namespace GS.Main {
 			Delta = delta;
 			Total = total;
 			IsOrgRole = isOrgRole;
+			TargetCountryId = targetCountryId;
+			RelationKind = relationKind;
 		}
 	}
 

@@ -75,6 +75,7 @@ namespace GS.Unity.UI {
 				GameLogEntryKind.Discovery => GameLogLineFormatter.BuildDiscoveryLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
 				GameLogEntryKind.Control => GameLogLineFormatter.BuildControlLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
 				GameLogEntryKind.Opinion => GameLogLineFormatter.BuildOpinionLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
+				GameLogEntryKind.Relation => GameLogLineFormatter.BuildRelationLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
 				GameLogEntryKind.NewCharacter => GameLogLineFormatter.BuildNewCharacterLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
 				_ => ""
 			};

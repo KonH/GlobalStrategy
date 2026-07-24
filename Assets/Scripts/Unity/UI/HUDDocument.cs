@@ -646,6 +646,8 @@ namespace GS.Unity.UI {
 						_flyText.NotifyRaw(GameLogLineFormatter.BuildControlLine(entry, _loc, _countryVisualConfig, _orgVisualConfig));
 					} else if (entry.Kind == GameLogEntryKind.Opinion) {
 						_flyText.NotifyRaw(GameLogLineFormatter.BuildOpinionLine(entry, _loc, _countryVisualConfig, _orgVisualConfig));
+					} else if (entry.Kind == GameLogEntryKind.Relation) {
+						_flyText.NotifyRaw(GameLogLineFormatter.BuildRelationLine(entry, _loc, _countryVisualConfig, _orgVisualConfig));
 					}
 				}
 				if (entry.SequenceId > maxSeen) { maxSeen = entry.SequenceId; }

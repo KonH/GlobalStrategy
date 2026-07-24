@@ -852,6 +852,17 @@ namespace GS.Main {
 				}
 			}
 
+			int[] relationReq = { TypeId<RelationSetApplied>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(relationReq, null)) {
+				RelationSetApplied[] applied = arch.GetColumn<RelationSetApplied>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (!_gameLogIncludePlayerActions && applied[i].OrgId == playerOrgId) { continue; }
+					newEntries.Add(new GameLogEntry(0, GameLogEntryKind.Relation, applied[i].OrgId, applied[i].CountryId,
+						"", "", Array.Empty<string>(), 0, 0, false, applied[i].TargetCountryId, applied[i].Kind));
+				}
+			}
+
 			if (roleChangeArchetypeNonEmpty) {
 				foreach (Archetype arch in world.GetMatchingArchetypes(roleChangeReq, null)) {
 					RoleChangeApplied[] applied = arch.GetColumn<RoleChangeApplied>();
@@ -873,7 +884,8 @@ namespace GS.Main {
 
 			foreach (var entry in newEntries) {
 				_gameLogEntries.Add(new GameLogEntry(_nextGameLogSequenceId++, entry.Kind, entry.OrgId, entry.CountryId,
-					entry.CharacterId, entry.RoleId, entry.NamePartKeys, entry.Delta, entry.Total, entry.IsOrgRole));
+					entry.CharacterId, entry.RoleId, entry.NamePartKeys, entry.Delta, entry.Total, entry.IsOrgRole,
+					entry.TargetCountryId, entry.RelationKind));
 			}
 			while (_gameLogEntries.Count > _gameLogMaxEntries) {
 				_gameLogEntries.RemoveAt(0);

@@ -3,6 +3,7 @@ using System.Linq;
 using ECS;
 using GS.Configs;
 using GS.Game.Commands;
+using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Main;
@@ -129,6 +130,46 @@ namespace GS.Game.Tests {
 				}
 			}
 			Assert.True(discoveredCountryExists);
+		}
+
+		static ActionConfig RelationActionConfig() => new ActionConfig {
+			Defaults = new List<ActionOwnerDefaults> {
+				new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
+			},
+			Actions = new List<ActionDefinition> {
+				new ActionDefinition { ActionId = "make_friend", OwnerType = "country", DeckCopies = 1, EffectIds = new List<string> { "make_friend_effect" } }
+			}
+		};
+
+		static EffectConfig RelationEffectConfig() => new EffectConfig {
+			Effects = new List<ActionEffectDefinition> {
+				new SetCountryRelationEffectParams { EffectId = "make_friend_effect", EffectType = "SetCountryRelation", Kind = RelationKind.Friend }
+			}
+		};
+
+		// Covers the Relation game-log/fly-text wiring: RelationSetApplied -> GameLogEntryKind.Relation.
+		// Only two available countries exist in the default CountryConfig (HqCountryId, OtherCountryId),
+		// so the candidate pool for a relation played from OtherCountryId is exactly {HqCountryId} —
+		// deterministic regardless of the 50/50 proximity/uniform pick inside SetCountryRelationSystem.
+		[Fact]
+		void relation_produces_exactly_one_entry_with_target_and_kind_and_no_extra_on_a_passive_tick() {
+			var logic = BuildLogic(RelationActionConfig(), RelationEffectConfig());
+			logic.Update(0f);
+
+			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "make_friend" });
+			logic.Update(0f);
+
+			var relations = Entries(logic).Where(e => e.Kind == GameLogEntryKind.Relation).ToList();
+			Assert.Single(relations);
+			Assert.Equal(OrgId, relations[0].OrgId);
+			Assert.Equal(OtherCountryId, relations[0].CountryId);
+			Assert.Equal(HqCountryId, relations[0].TargetCountryId);
+			Assert.Equal(RelationKind.Friend, relations[0].RelationKind);
+
+			// Passive tick, no new PlayCardActionCommand — no additional entry, confirming
+			// RelationSetApplied was swept by CleanupEffectNotificationsSystem like the other *Applied events.
+			logic.Update(0f);
+			Assert.Single(Entries(logic).Where(e => e.Kind == GameLogEntryKind.Relation));
 		}
 
 		static ActionConfig ControlActionConfig(int deckCopies) => new ActionConfig {
