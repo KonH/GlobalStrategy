@@ -1,0 +1,2 @@
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,plan_size_kb,prd_size_kb,diff_lines,session_id
+26_07_24_10_country-relation-cards,1.77,plan_user_input_3,interactive,continued,2026-07-24T13:38:25.490Z,2026-07-24T13:45:24.372Z,claude,claude-sonnet-5,high,6.602955000000001,4216,17350490,92344,17.39,40.99,0.03,7632,dc384bb4-5613-59f7-aca1-ce5a6aa9f493
