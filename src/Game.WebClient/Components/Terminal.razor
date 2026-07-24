@@ -15,6 +15,10 @@
 			<div class="gs-terminal-line @(line.Success ? "gs-terminal-ok" : "gs-terminal-error")">@line.Text</div>
 		}
 	</div>
+	<div class="gs-terminal-help">
+		<div>Name key=value ... (TAB to auto-complete)</div>
+		<div>CommandName (ENTER to execute)</div>
+	</div>
 	@if (_suggestions.Count > 0) {
 		<ul class="gs-terminal-suggestions">
 			@foreach (var item in _suggestions) {
