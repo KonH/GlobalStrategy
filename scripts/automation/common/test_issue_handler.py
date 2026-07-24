@@ -1,96 +1,127 @@
 import unittest
-from datetime import datetime, timezone
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
-from scripts.automation.common.issue_handler import find_candidates, has_new_owner_activity
+from scripts.automation.common.issue_handler import (
+    count_reclaims_since_owner_comment, find_candidates, reclaim_stale_in_progress,
+)
 
-CUTOFF = datetime(2026, 7, 23, 13, 0, 0, tzinfo=timezone.utc)
-BEFORE = "2026-07-23T12:00:00Z"
-AFTER = "2026-07-23T13:30:00Z"
 MARKER = "<!-- claude-automation -->"
-BOT_COMMENT_PREFIX = "<!-- claude-automation"
-BOT_STATUS_LABELS = {"claude-in-progress", "claude-needs-attention"}
+MARKER_PREFIX = "<!-- claude-automation"
+RECLAIM_MARKER = "<!-- claude-automation:reclaim -->"
 
 
-def labeled_event(name, created_at):
-    return {"event": "labeled", "label": {"name": name}, "created_at": created_at}
+def item(number, labels, **extra):
+    return {"number": number, "labels": [{"name": name} for name in labels], **extra}
 
 
-def unlabeled_event(name, created_at):
-    return {"event": "unlabeled", "label": {"name": name}, "created_at": created_at}
-
-
-def commented_event(body, created_at):
-    return {"event": "commented", "body": body, "created_at": created_at}
-
-
-class HasNewOwnerActivityTests(unittest.TestCase):
-    def test_bot_status_label_churn_is_not_new_activity(self):
-        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
-            labeled_event("claude-in-progress", AFTER),
-            unlabeled_event("claude-in-progress", AFTER),
-            labeled_event("claude-needs-attention", AFTER),
-        ]):
-            self.assertFalse(has_new_owner_activity(BOT_COMMENT_PREFIX, BOT_STATUS_LABELS, 1, CUTOFF))
-
-    def test_bot_marker_comment_is_not_new_activity(self):
-        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
-            commented_event("<!-- claude-automation -->\n## Needs Manual Attention", AFTER),
-            commented_event("<!-- claude-automation:checklist -->\n## Progress", AFTER),
-        ]):
-            self.assertFalse(has_new_owner_activity(BOT_COMMENT_PREFIX, BOT_STATUS_LABELS, 1, CUTOFF))
-
-    def test_owner_comment_is_new_activity(self):
-        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
-            commented_event("Try again", AFTER),
-        ]):
-            self.assertTrue(has_new_owner_activity(BOT_COMMENT_PREFIX, BOT_STATUS_LABELS, 1, CUTOFF))
-
-    def test_non_status_label_change_is_new_activity(self):
-        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
-            labeled_event("claude", AFTER),
-        ]):
-            self.assertTrue(has_new_owner_activity(BOT_COMMENT_PREFIX, BOT_STATUS_LABELS, 1, CUTOFF))
-
-    def test_events_before_cutoff_are_ignored(self):
-        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
-            commented_event("Try again", BEFORE),
-            labeled_event("claude", BEFORE),
-        ]):
-            self.assertFalse(has_new_owner_activity(BOT_COMMENT_PREFIX, BOT_STATUS_LABELS, 1, CUTOFF))
-
-    def test_renamed_event_is_new_activity(self):
-        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
-            {"event": "renamed", "created_at": AFTER},
-        ]):
-            self.assertTrue(has_new_owner_activity(BOT_COMMENT_PREFIX, BOT_STATUS_LABELS, 1, CUTOFF))
+def comment(body, author="KonH"):
+    return {"body": body, "user": {"login": author}}
 
 
 class FindCandidatesTests(unittest.TestCase):
-    def test_issue_updated_only_by_bots_own_edits_is_not_a_candidate(self):
-        issue = {"number": 1, "updatedAt": AFTER}
-        with patch("scripts.automation.common.issue_handler.list_open_issues", return_value=[issue]), \
-             patch("scripts.automation.common.issue_handler.has_new_owner_activity", return_value=False), \
-             patch("scripts.automation.common.issue_handler.has_recent_owner_reaction", return_value=False):
-            self.assertEqual([], find_candidates("claude", MARKER, CUTOFF))
+    def test_item_with_only_the_opt_in_label_is_a_candidate(self):
+        with patch("scripts.automation.common.issue_handler.run_gh_json",
+                   side_effect=[[item(1, ["claude"])], []]):
+            candidates = find_candidates("claude")
+        self.assertEqual([1], [c["number"] for c in candidates])
+        self.assertEqual("issue", candidates[0]["kind"])
 
-    def test_issue_with_real_new_activity_is_a_candidate(self):
-        issue = {"number": 1, "updatedAt": AFTER}
-        with patch("scripts.automation.common.issue_handler.list_open_issues", return_value=[issue]), \
-             patch("scripts.automation.common.issue_handler.has_new_owner_activity", return_value=True):
-            candidates = find_candidates("claude", MARKER, CUTOFF)
-        self.assertEqual(1, len(candidates))
-        self.assertEqual("issue/comment updated", candidates[0]["reason"])
+    def test_any_status_label_excludes_the_item(self):
+        issues = [
+            item(1, ["claude", "claude-in-progress"]),
+            item(2, ["claude", "claude-needs-attention"]),
+            item(3, ["claude", "claude-complete"]),
+            item(4, ["claude"]),
+        ]
+        with patch("scripts.automation.common.issue_handler.run_gh_json",
+                   side_effect=[issues, []]):
+            candidates = find_candidates("claude")
+        self.assertEqual([4], [c["number"] for c in candidates])
 
-    def test_issue_not_updated_since_cutoff_skips_timeline_but_checks_reaction(self):
-        issue = {"number": 1, "updatedAt": BEFORE}
-        with patch("scripts.automation.common.issue_handler.list_open_issues", return_value=[issue]), \
-             patch("scripts.automation.common.issue_handler.has_new_owner_activity") as mock_activity, \
-             patch("scripts.automation.common.issue_handler.has_recent_owner_reaction", return_value=True):
-            candidates = find_candidates("claude", MARKER, CUTOFF)
-        mock_activity.assert_not_called()
-        self.assertEqual(1, len(candidates))
-        self.assertEqual("new reaction on a summary/conclusion comment", candidates[0]["reason"])
+    def test_labeled_prs_are_candidates_with_kind_pr(self):
+        pr = item(7, ["claude"], headRefName="feature/foo")
+        with patch("scripts.automation.common.issue_handler.run_gh_json",
+                   side_effect=[[], [pr]]):
+            candidates = find_candidates("claude")
+        self.assertEqual([7], [c["number"] for c in candidates])
+        self.assertEqual("pr", candidates[0]["kind"])
+        self.assertEqual("feature/foo", candidates[0]["headRefName"])
+
+    def test_unrelated_labels_do_not_exclude(self):
+        with patch("scripts.automation.common.issue_handler.run_gh_json",
+                   side_effect=[[item(1, ["claude", "bug", "codex-in-progress"])], []]):
+            self.assertEqual(1, len(find_candidates("claude")))
+
+
+class CountReclaimsTests(unittest.TestCase):
+    def count(self):
+        return count_reclaims_since_owner_comment(MARKER_PREFIX, RECLAIM_MARKER, 1)
+
+    def test_counts_reclaim_marker_comments(self):
+        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
+            comment(f"{RECLAIM_MARKER}\nretry 1"),
+            comment(f"{RECLAIM_MARKER}\nretry 2"),
+        ]):
+            self.assertEqual(2, self.count())
+
+    def test_owner_comment_resets_the_counter(self):
+        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
+            comment(f"{RECLAIM_MARKER}\nretry 1"),
+            comment(f"{RECLAIM_MARKER}\nretry 2"),
+            comment("here is more guidance, try again"),
+            comment(f"{RECLAIM_MARKER}\nretry 1"),
+        ]):
+            self.assertEqual(1, self.count())
+
+    def test_bot_marker_comment_does_not_reset(self):
+        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
+            comment(f"{RECLAIM_MARKER}\nretry 1"),
+            comment(f"{MARKER}\nsummary of a previous run"),
+            comment(f"{RECLAIM_MARKER}\nretry 2"),
+        ]):
+            self.assertEqual(2, self.count())
+
+    def test_non_owner_comment_does_not_reset(self):
+        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
+            comment(f"{RECLAIM_MARKER}\nretry 1"),
+            comment("drive-by comment", author="someone-else"),
+            comment(f"{RECLAIM_MARKER}\nretry 2"),
+        ]):
+            self.assertEqual(2, self.count())
+
+
+class ReclaimStaleInProgressTests(unittest.TestCase):
+    def reclaim(self, items, reclaims):
+        logger = MagicMock()
+        with patch("scripts.automation.common.issue_handler.list_labeled_items", return_value=items), \
+             patch("scripts.automation.common.issue_handler.count_reclaims_since_owner_comment",
+                   return_value=reclaims), \
+             patch("scripts.automation.common.issue_handler.post_comment") as post, \
+             patch("scripts.automation.common.issue_handler.add_label") as add, \
+             patch("scripts.automation.common.issue_handler.remove_label") as remove:
+            reclaim_stale_in_progress(logger, "claude", MARKER)
+        return post, add, remove
+
+    def test_first_crash_requeues_with_a_reclaim_comment(self):
+        stale = item(5, ["claude", "claude-in-progress"], kind="issue")
+        post, add, remove = self.reclaim([stale], reclaims=0)
+        self.assertTrue(post.call_args[0][1].startswith(RECLAIM_MARKER))
+        add.assert_not_called()
+        remove.assert_called_once_with(5, "claude-in-progress")
+
+    def test_third_crash_escalates_to_needs_attention(self):
+        stale = item(5, ["claude", "claude-in-progress"], kind="issue")
+        post, add, remove = self.reclaim([stale], reclaims=2)
+        self.assertTrue(post.call_args[0][1].startswith(MARKER))
+        add.assert_called_once_with(5, "claude-needs-attention")
+        remove.assert_called_once_with(5, "claude-in-progress")
+
+    def test_needs_attention_items_are_left_untouched(self):
+        parked = item(5, ["claude", "claude-in-progress", "claude-needs-attention"], kind="issue")
+        post, add, remove = self.reclaim([parked], reclaims=2)
+        post.assert_not_called()
+        add.assert_not_called()
+        remove.assert_not_called()
 
 
 if __name__ == "__main__":

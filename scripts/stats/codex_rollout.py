@@ -18,7 +18,7 @@ STAGE_MATCH_TABLE = [
     ("create-prd.md", "implement"),
     ("complete-prd.md", "implement"),
     ("follow these iteration instructions exactly", "implement"),
-    ("codex-feature-issue/SKILL.md", None),  # batch handler - see module docstring below
+    ("codex-issue/SKILL.md", None),  # batch handler - see module docstring below
     ("/specify", "spec"),
     ("/plan", "plan"),
     ("/implement", "implement"),

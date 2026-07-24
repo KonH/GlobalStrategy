@@ -39,4 +39,4 @@
 - **Flag & org image assets:** `.claude/rules/flag_assets.md`
 - **Temporary scripts:** `.claude/rules/temp_scripts.md`
 - **Learning workflow:** `.claude/commands/learn.md`
-- **Codex issue automation:** `.codex/skills/codex-feature-issue/SKILL.md`
+- **Codex issue automation:** `.codex/skills/codex-issue/SKILL.md`

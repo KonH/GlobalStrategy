@@ -1,11 +1,28 @@
-"""Shared discovery/bookkeeping logic for the feature-issue automations - the parts that don't
-depend on which agent CLI (Claude Code or Codex) actually processes each issue. Provider-specific
-wrappers (scripts/automation/claude/handle_issues.py, scripts/automation/codex/handle_issues.py)
-own everything about invoking their CLI and interpreting its result (that differs enough between
-providers - stream-json parsing vs. exec --json event parsing, an AUTOMATION_RESULT convention
-Codex requires and Claude doesn't, etc. - that forcing it through a shared orchestrator would cost
-more clarity than it saves); this module covers the identical remainder: process locking, log
-setup, the lookback-window/state-file cutoff computation, and GitHub candidate discovery.
+"""Shared discovery/bookkeeping logic for the label-driven issue automations - the parts that
+don't depend on which agent CLI (Claude Code or Codex) actually processes each item. Provider-
+specific wrappers (scripts/automation/claude/handle_issues.py, scripts/automation/codex/
+handle_issues.py) own everything about invoking their CLI and interpreting its output; this
+module covers the identical remainder: process locking, log setup, candidate discovery, and
+stale-run reclaim.
+
+The label set IS the state machine - there is no local state file and no timestamp bookkeeping:
+
+- `<label>` (e.g. `claude`)      - the owner opted this issue/PR in; its description (plus the
+                                   owner's comments) is the prompt to execute.
+- `<label>-in-progress`          - a run is actively working it; skipped by discovery.
+- `<label>-needs-attention`      - the automation is waiting on the owner; skipped.
+- `<label>-complete`             - the prompt is fully done; skipped.
+
+An item is a candidate iff it carries `<label>` and none of the three status labels. The owner
+resumes a needs-attention/complete item by replying and removing that status label - discovery
+then selects it again with no further machinery.
+
+Stale-run reclaim: the wrapper holds an exclusive process lock, so at run start no other run
+can be active - any `<label>-in-progress` still on GitHub is by definition leftover from a
+crashed/interrupted run. `reclaim_stale_in_progress` re-queues such items (removes the label)
+up to MAX_AUTO_RECLAIMS times, counting attempts via `<marker>:reclaim` comments on the item
+itself (GitHub is the counter - no local state); one more crash after that escalates to
+`<label>-needs-attention` instead of retrying forever. A real owner comment resets the counter.
 
 Repo: KonH/GlobalStrategy. This is project-specific, not provider-specific, so it lives here
 rather than being duplicated per provider.
@@ -15,12 +32,15 @@ import json
 import logging
 import subprocess
 import sys
-from datetime import datetime, timedelta, timezone
 from logging.handlers import RotatingFileHandler
 
 OWNER = "KonH"
 REPO = "GlobalStrategy"
-FIELDS = "number,title,body,url,updatedAt"
+FIELDS = "number,title,body,url,labels"
+
+# How many times a crashed/interrupted run is silently re-queued before the item is parked
+# with `<label>-needs-attention` instead. 2 reclaims = 3 attempts total.
+MAX_AUTO_RECLAIMS = 2
 
 
 def setup_logging(logger, log_file, max_bytes, backup_count):
@@ -74,39 +94,16 @@ def acquire_lock(logger, lock_file):
     return lock_fp
 
 
-def load_last_check(logger, state_file):
-    if not state_file.exists():
-        return None
-    try:
-        data = json.loads(state_file.read_text(encoding="utf-8"))
-        return parse_timestamp(data["last_check_at"])
-    except (ValueError, KeyError, json.JSONDecodeError):
-        logger.warning(f"Could not parse {state_file} - ignoring stored last-check time.")
-        return None
-
-
-def save_last_check(state_file, when):
-    state_file.parent.mkdir(parents=True, exist_ok=True)
-    state_file.write_text(json.dumps({"last_check_at": when.isoformat()}), encoding="utf-8")
-
-
-def compute_cutoff(logger, state_file, since_hours, since_minutes):
-    """Combines the --since-hours/--since-minutes lookback window (defaulting to 1h if both are
-    0) with the timestamp of the last run that actually completed discovery, so a run skipped due
-    to lock contention doesn't shrink the effective lookback window for the run after it. Returns
-    (now, cutoff)."""
-    now = datetime.now(timezone.utc)
-    lookback_minutes = since_hours * 60 + since_minutes
-    if lookback_minutes <= 0:
-        lookback_minutes = 60
-    window_cutoff = now - timedelta(minutes=lookback_minutes)
-    last_check = load_last_check(logger, state_file)
-    cutoff = min(window_cutoff, last_check) if last_check else window_cutoff
-    if last_check and last_check < window_cutoff:
-        logger.info(f"Last completed check was {last_check.isoformat()}, older than the "
-                     f"{lookback_minutes:g}m window - extending cutoff back to it so nothing "
-                     "from a lock-skipped run is missed.")
-    return now, cutoff
+def reset_to_main(logger):
+    """Hard-resets the dedicated automation clone to origin/main so the CLI run always starts
+    from the current command/skill files, never a stale checkout. Local leftovers from a crashed
+    run are deliberately discarded - the new-design rule is that every run commits and pushes
+    even partial work, so anything only present locally was mid-crash churn the reclaimed retry
+    will redo from the pushed branch state."""
+    logger.info("Resetting checkout to origin/main.")
+    run_git(["checkout", "main"])
+    run_git(["fetch", "origin", "main"])
+    run_git(["reset", "--hard", "origin/main"])
 
 
 def run_git(args):
@@ -116,136 +113,118 @@ def run_git(args):
     return result.stdout.strip()
 
 
-def reset_to_main_unless_in_progress(logger):
-    """Hard-resets the local checkout to origin/main, unless some issue is still labeled
-    `claude-in-progress` on GitHub - the marker handle-feature-issue.md applies at the start of
-    handling an issue and removes when done (see its "Concurrency label" section). A label left
-    on means the previous run crashed or was interrupted mid-issue (e.g. a Ralph loop from
-    section 4b) before it could commit/push its work-in-progress and remove the label; forcibly
-    resetting in that state would discard that work. Every code path in handle-feature-issue.md
-    already does its own git fetch/checkout as its first step, so skipping this wrapper-level
-    reset is safe - it's a cleanliness convenience for the common case, not something the
-    command relies on. Any other local dirtiness (e.g. changes left behind after an issue
-    completed and the label was cleared) is not treated as a reason to skip - only an
-    in-progress label means a run is still mid-flight."""
-    in_progress = run_gh_json([
-        "issue", "list", "--repo", f"{OWNER}/{REPO}",
-        "--label", "claude-in-progress", "--state", "open",
-        "--json", "number",
-    ])
-    if in_progress:
-        numbers = ", ".join(f"#{issue['number']}" for issue in in_progress)
-        logger.warning(
-            f"Issue(s) {numbers} still labeled 'claude-in-progress' - skipping the local reset "
-            "to origin/main. This looks like a previous run's issue handling failed or was "
-            "interrupted before finishing and clearing the label; leaving the checkout as-is so "
-            "nothing is discarded. Investigate manually if this persists across runs."
-        )
-        return
-    run_git(["checkout", "main"])
-    run_git(["fetch", "origin", "main"])
-    run_git(["reset", "--hard", "origin/main"])
-
-
-def run_gh_json(args):
+def run_gh(args):
     result = subprocess.run(["gh", *args], capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(f"gh {' '.join(args)} failed: {result.stderr.strip()}")
-    return json.loads(result.stdout)
+    return result.stdout
 
 
-def parse_timestamp(value):
-    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+def run_gh_json(args):
+    return json.loads(run_gh(args))
 
 
-def list_open_issues(label):
-    return run_gh_json([
-        "issue", "list", "--repo", f"{OWNER}/{REPO}",
-        "--label", label, "--author", OWNER, "--state", "open",
-        "--json", FIELDS,
-    ])
+def add_label(number, name):
+    # The issues REST endpoints cover PRs too, so one call shape works for both kinds.
+    run_gh(["api", f"repos/{OWNER}/{REPO}/issues/{number}/labels", "-f", f"labels[]={name}"])
 
 
-def list_open_issues_with_labels(label):
-    return run_gh_json([
-        "issue", "list", "--repo", f"{OWNER}/{REPO}",
-        "--label", label, "--author", OWNER, "--state", "open",
-        "--json", f"{FIELDS},labels",
-    ])
+def remove_label(number, name):
+    run_gh(["api", "-X", "DELETE", f"repos/{OWNER}/{REPO}/issues/{number}/labels/{name}"])
 
 
-def has_recent_owner_reaction(marker, issue_number, cutoff):
-    comments = run_gh_json(["api", f"repos/{OWNER}/{REPO}/issues/{issue_number}/comments"])
-    for comment in comments:
-        if not comment.get("body", "").startswith(marker):
-            continue
-        reactions = run_gh_json(["api", f"repos/{OWNER}/{REPO}/issues/comments/{comment['id']}/reactions"])
-        for reaction in reactions:
-            if reaction["user"]["login"] == OWNER and parse_timestamp(reaction["created_at"]) >= cutoff:
-                return True
-    return False
+def post_comment(number, body):
+    run_gh(["api", f"repos/{OWNER}/{REPO}/issues/{number}/comments", "-f", f"body={body}"])
 
 
-def has_new_owner_activity(bot_comment_prefix, bot_status_labels, issue_number, cutoff):
-    """Timeline-based replacement for a blunt `updatedAt >= cutoff` check. `updatedAt` also
-    moves on events the automation caused itself in its own previous run - adding/removing its
-    `<label>-in-progress`/`<label>-needs-attention` status labels, posting a marker-prefixed
-    summary/checklist comment - which would otherwise make every run re-trigger itself on the
-    very next cycle even with no real owner activity. Only a comment that isn't one of the
-    automation's own marker comments, or a labeled/unlabeled event for a label outside its own
-    status labels, is filtered out - the automation never renames issues itself, so `renamed`
-    (and any other event type) still counts as real activity, same as before this filtering was
-    added."""
-    events = run_gh_json([
-        "api", f"repos/{OWNER}/{REPO}/issues/{issue_number}/timeline", "--paginate",
-    ])
-    for event in events:
-        timestamp = event.get("created_at")
-        if not timestamp or parse_timestamp(timestamp) < cutoff:
-            continue
-        event_type = event.get("event")
-        if event_type == "commented":
-            if not event.get("body", "").startswith(bot_comment_prefix):
-                return True
-        elif event_type in ("labeled", "unlabeled"):
-            label_name = (event.get("label") or {}).get("name", "")
-            if label_name not in bot_status_labels:
-                return True
-        else:
-            return True
-    return False
+def label_names(item):
+    return {item_label["name"] for item_label in item.get("labels", [])}
 
 
-def find_candidates(label, marker, cutoff):
-    bot_status_labels = {f"{label}-in-progress", f"{label}-needs-attention"}
-    bot_comment_prefix = marker.rsplit(" -->", 1)[0]
-    candidates = []
-    resumed_numbers = set()
-    # A `<label>-in-progress` issue means a prior run started handling it but never reached the
-    # point of clearing the label (e.g. it crashed, or a background Ralph loop from section 4b
-    # was still running when the process/session ended). Nothing about that state bumps
-    # `updatedAt` or produces a fresh owner reaction, so the normal activity-based checks below
-    # would never re-select it and the issue would be stuck in-progress forever. Always resume
-    # these regardless of the lookback cutoff - except one still carrying `<label>-needs-attention`
-    # too, which per handle-feature-issue.md's labeling rule shouldn't normally happen (in-progress
-    # is always cleared when a run stops to wait on the owner), but is excluded defensively anyway:
-    # that state means the automation is genuinely waiting on the owner, not stuck mid-run.
+def list_labeled_items(label):
+    """All open, owner-authored issues AND pull requests carrying `label`. Each item gets a
+    `kind` field ("issue"/"pr"); PRs also carry `headRefName` so the CLI run knows which branch
+    to work on."""
+    items = [
+        {**issue, "kind": "issue"}
+        for issue in run_gh_json([
+            "issue", "list", "--repo", f"{OWNER}/{REPO}",
+            "--label", label, "--author", OWNER, "--state", "open",
+            "--json", FIELDS,
+        ])
+    ]
+    items += [
+        {**pr, "kind": "pr"}
+        for pr in run_gh_json([
+            "pr", "list", "--repo", f"{OWNER}/{REPO}",
+            "--label", label, "--author", OWNER, "--state", "open",
+            "--json", f"{FIELDS},headRefName",
+        ])
+    ]
+    return items
+
+
+def find_candidates(label):
+    """An item is a candidate iff it carries `label` and none of the three status labels."""
+    status_labels = {f"{label}-in-progress", f"{label}-needs-attention", f"{label}-complete"}
+    return [item for item in list_labeled_items(label) if not (label_names(item) & status_labels)]
+
+
+def count_reclaims_since_owner_comment(marker_prefix, reclaim_marker, number):
+    """Counts consecutive reclaim-marker comments since the owner's last real (non-automation)
+    comment on the item. The automation authenticates with the owner's own credentials, so
+    author alone can't tell its comments apart from the owner's - the marker prefix is what
+    distinguishes them. Comments from anyone else never reset the counter (the automation only
+    ever acts on owner-authored content)."""
+    comments = run_gh_json(["api", f"repos/{OWNER}/{REPO}/issues/{number}/comments", "--paginate"])
+    count = 0
+    for comment in comments:  # the API returns comments in chronological order
+        body = comment.get("body", "")
+        if body.startswith(reclaim_marker):
+            count += 1
+        elif comment.get("user", {}).get("login") == OWNER and not body.startswith(marker_prefix):
+            count = 0
+    return count
+
+
+def reclaim_stale_in_progress(logger, label, marker):
+    """Called at run start, after the process lock is held: no other run can be active, so any
+    `<label>-in-progress` still on GitHub is leftover from a crashed/interrupted run. Re-queues
+    it (removes the label so normal discovery selects it again) up to MAX_AUTO_RECLAIMS times;
+    the crash after that escalates to `<label>-needs-attention` so repeated crashes never burn
+    usage forever. Items already carrying `<label>-needs-attention` are genuinely waiting on
+    the owner and are left untouched."""
+    marker_prefix = marker.rsplit(" -->", 1)[0]
+    reclaim_marker = f"{marker_prefix}:reclaim -->"
+    in_progress_label = f"{label}-in-progress"
     needs_attention_label = f"{label}-needs-attention"
-    for issue in list_open_issues_with_labels(f"{label}-in-progress"):
-        label_names = {issue_label["name"] for issue_label in issue.get("labels", [])}
-        if needs_attention_label in label_names:
+    for item in list_labeled_items(in_progress_label):
+        number = item["number"]
+        if needs_attention_label in label_names(item):
             continue
-        candidates.append({**issue, "reason": "still labeled in-progress - resuming interrupted run"})
-        resumed_numbers.add(issue["number"])
-    for issue in list_open_issues(label):
-        if issue["number"] in resumed_numbers:
-            continue
-        if parse_timestamp(issue["updatedAt"]) < cutoff:
-            if has_recent_owner_reaction(marker, issue["number"], cutoff):
-                candidates.append({**issue, "reason": "new reaction on a summary/conclusion comment"})
-            continue
-        if has_new_owner_activity(bot_comment_prefix, bot_status_labels, issue["number"], cutoff):
-            candidates.append({**issue, "reason": "issue/comment updated"})
-        elif has_recent_owner_reaction(marker, issue["number"], cutoff):
-            candidates.append({**issue, "reason": "new reaction on a summary/conclusion comment"})
-    return candidates
+        reclaims = count_reclaims_since_owner_comment(marker_prefix, reclaim_marker, number)
+        if reclaims >= MAX_AUTO_RECLAIMS:
+            logger.warning(
+                f"{item['kind']} #{number} still in-progress after {reclaims} automatic retries "
+                f"- escalating to {needs_attention_label} instead of retrying again."
+            )
+            post_comment(number, (
+                f"{marker}\nAutomated runs on this {item['kind']} were interrupted "
+                f"{reclaims + 1} times in a row without finishing. Stopping automatic retries - "
+                f"check the run logs, then reply with guidance and remove the "
+                f"`{needs_attention_label}` label to try again."
+            ))
+            add_label(number, needs_attention_label)
+            remove_label(number, in_progress_label)
+        else:
+            logger.warning(
+                f"{item['kind']} #{number} still labeled {in_progress_label} - previous run "
+                f"crashed or was interrupted; re-queuing (automatic retry {reclaims + 1} of "
+                f"{MAX_AUTO_RECLAIMS})."
+            )
+            post_comment(number, (
+                f"{reclaim_marker}\nA previous automated run was interrupted before finishing - "
+                f"re-queuing this {item['kind']} (automatic retry {reclaims + 1} of "
+                f"{MAX_AUTO_RECLAIMS})."
+            ))
+            remove_label(number, in_progress_label)

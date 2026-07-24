@@ -40,5 +40,5 @@
 - **Image generation (ComfyUI):** `image-generation` skill
 - **Temporary scripts:** `.claude/rules/temp_scripts.md`
 - **Learning workflow:** `.claude/commands/learn.md`
-- **GitHub issue → spec automation:** `github-issue-automation` skill — cron script (`scripts/automation/claude/handle_issues.py`) that turns owner-authored issues into spec PRs via `.claude/commands/handle-feature-issue.md`
+- **GitHub issue/PR automation:** `github-issue-automation` skill — cron script (`scripts/automation/claude/handle_issues.py`) that executes the owner's prompt from `claude`-labeled issues/PRs via `.claude/commands/handle-issue.md`; labels are the whole state machine
 - **Web client terminal commands:** `add-terminal-command` skill — checklist for keeping `src/Game.WebClient`'s debug terminal Tab completion working when adding or changing an `ICommand` type in `src/Game.Commands`
