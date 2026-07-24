@@ -1,0 +1,70 @@
+name: Deploy Web Client
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Test
+        run: dotnet test src/GlobalStrategy.Core.sln -c Release
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish Game.WebClient
+        run: dotnet publish src/Game.WebClient -c Release -o publish-output
+
+      - name: Rewrite base href for GitHub Pages project site
+        run: |
+          sed -i 's#<base href="/" />#<base href="/GlobalStrategy/" />#' publish-output/wwwroot/index.html
+
+      - name: Add .nojekyll and SPA fallback 404.html
+        run: |
+          touch publish-output/wwwroot/.nojekyll
+          cp publish-output/wwwroot/index.html publish-output/wwwroot/404.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: publish-output/wwwroot
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

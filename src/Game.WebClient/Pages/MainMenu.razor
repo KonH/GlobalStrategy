@@ -1,0 +1,42 @@
+@page "/"
+@using GS.Game.WebClient.Services
+@using GS.Main
+@inject Localization Localization
+@inject IPersistentStorage Storage
+@inject ISnapshotSerializer Serializer
+@inject GameSession Session
+@inject NavigationManager Navigation
+
+<div class="gs-menu">
+	<h1>@Localization.Get("menu.title")</h1>
+
+	<button @onclick="OnNewGame">@Localization.Get("menu.play")</button>
+
+	@if (_hasSaves) {
+		<button @onclick="OnContinue">@Localization.Get("menu.resume")</button>
+	}
+
+	<button @onclick="OnSettings">@Localization.Get("menu.settings")</button>
+</div>
+
+@code {
+	bool _hasSaves;
+
+	protected override void OnInitialized() {
+		var saveFileManager = new SaveFileManager(Storage, Serializer);
+		_hasSaves = saveFileManager.GetLastSave() != null;
+	}
+
+	void OnNewGame() {
+		Navigation.NavigateTo("/org-select");
+	}
+
+	void OnContinue() {
+		Session.ContinueLatest();
+		Navigation.NavigateTo("/game");
+	}
+
+	void OnSettings() {
+		Navigation.NavigateTo("/settings");
+	}
+}

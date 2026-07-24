@@ -1,0 +1,102 @@
+@using System.Collections.Generic
+@using System.Linq
+@using System.Threading.Tasks
+@using Microsoft.AspNetCore.Components
+@using GS.Game.WebClient.Services
+@using GS.Game.WebClient.Terminal
+@using GS.Game.WebClient.Terminal.Suggestions
+@inject GameSession GameSession
+@inject CommandExecutor CommandExecutor
+@inject SuggestionEngine SuggestionEngine
+
+<div class="gs-terminal">
+	<div class="gs-terminal-output">
+		@foreach (var line in _history) {
+			<div class="gs-terminal-line @(line.Success ? "gs-terminal-ok" : "gs-terminal-error")">@line.Text</div>
+		}
+	</div>
+	@if (_suggestions.Count > 0) {
+		<ul class="gs-terminal-suggestions">
+			@foreach (var item in _suggestions) {
+				<li><button type="button" @onclick="() => PickSuggestion(item)">@item.Label</button></li>
+			}
+		</ul>
+	}
+	<input @ref="_inputRef"
+		class="gs-terminal-input"
+		value="@_input"
+		@oninput="OnInput"
+		@onkeydown="OnKeyDown"
+		@onkeydown:preventDefault="_preventKeyDownDefault"
+		placeholder="Name key=value ..." />
+</div>
+
+@code {
+	readonly List<(bool Success, string Text)> _history = new();
+	List<SuggestionItem> _suggestions = new();
+	string _input = "";
+	bool _preventKeyDownDefault;
+	ElementReference _inputRef;
+
+	void OnInput(ChangeEventArgs e) {
+		_input = e.Value?.ToString() ?? "";
+		_suggestions = new List<SuggestionItem>();
+	}
+
+	async Task OnKeyDown(KeyboardEventArgs e) {
+		// Only Tab needs its native default (moving focus to the next control) suppressed -
+		// preventing default unconditionally would also block normal character typing.
+		_preventKeyDownDefault = e.Key == "Tab";
+
+		if (e.Key == "Tab") {
+			HandleTab();
+			// Blazor applies @onkeydown:preventDefault using the flag's value as of the
+			// previous render, so it never suppresses the native default on the very
+			// keystroke that sets it - reclaiming focus explicitly here is what actually
+			// keeps it in the input regardless of that timing quirk.
+			await _inputRef.FocusAsync();
+			return;
+		}
+
+		if (e.Key == "Enter") {
+			Execute();
+		}
+	}
+
+	void HandleTab() {
+		var result = SuggestionEngine.GetSuggestions(_input);
+		if (result.IsSingleMatch) {
+			_input = result.Complete(_input, result.Items[0].Value);
+			_suggestions = new List<SuggestionItem>();
+			return;
+		}
+		_suggestions = result.Items.ToList();
+	}
+
+	void PickSuggestion(SuggestionItem item) {
+		// Re-classify against the current input (unchanged since the suggestion list was built)
+		// to recover how to insert the chosen value - e.g. argument names get a trailing '='.
+		var result = SuggestionEngine.GetSuggestions(_input);
+		_input = result.Complete(_input, item.Value);
+		_suggestions = new List<SuggestionItem>();
+	}
+
+	void Execute() {
+		string input = _input;
+		_input = "";
+		_suggestions = new List<SuggestionItem>();
+		if (string.IsNullOrWhiteSpace(input)) {
+			return;
+		}
+
+		if (GameSession.Logic == null) {
+			_history.Add((false, $"> {input}"));
+			_history.Add((false, "No running game session."));
+			return;
+		}
+
+		var result = CommandExecutor.Execute(input, GameSession.Logic.Commands);
+		_history.Add((true, $"> {input}"));
+		_history.Add((result.Success, result.Message));
+	}
+}

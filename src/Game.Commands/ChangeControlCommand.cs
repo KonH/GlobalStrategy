@@ -1,7 +1,7 @@
 namespace GS.Game.Commands {
 	public struct ChangeControlCommand : ICommand {
-		public string OrgId;
-		public string CountryId;
+		[OrgId] public string OrgId;
+		[CountryId] public string CountryId;
 		public int Delta;
 	}
 }

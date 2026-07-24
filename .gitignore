@@ -51,6 +51,12 @@ Thumbs.db
 src/**/bin/
 src/**/obj/
 
+# Game.WebClient: config/locale JSONs copied from Assets/ at build time (see
+# CopyConfigsToWwwroot/ExtractLocales targets in Game.WebClient.csproj) -
+# Assets/Configs/*.json and Assets/Localization/*.asset are the source of truth.
+src/Game.WebClient/wwwroot/configs/
+src/Game.WebClient/wwwroot/locales/
+
 # BenchmarkDotNet's own raw per-run artifacts (generated exe copies, exported reports) —
 # Docs/Benchmarks/{baseline.json,history.json,summary.md} are the harness's own committed
 # snapshots and are tracked normally, not covered by this rule.

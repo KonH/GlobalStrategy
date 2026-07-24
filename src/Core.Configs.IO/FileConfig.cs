@@ -1,16 +1,10 @@
 using System.IO;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using GS.Configs;
 
 namespace GS.Configs.IO {
 	public class FileConfig<TConfig> : IConfigSource<TConfig> {
 		readonly string _filePath;
-
-		static readonly JsonSerializerOptions _options = new JsonSerializerOptions {
-			PropertyNameCaseInsensitive = true,
-			Converters = { new JsonStringEnumConverter(), new ActionEffectDefinitionListConverter() },
-		};
 
 		public FileConfig(string filePath) {
 			_filePath = filePath;
@@ -18,7 +12,7 @@ namespace GS.Configs.IO {
 
 		public TConfig Load() {
 			string json = File.ReadAllText(_filePath);
-			return JsonSerializer.Deserialize<TConfig>(json, _options)
+			return JsonSerializer.Deserialize<TConfig>(json, ConfigJsonOptions.Value)
 				?? throw new System.InvalidOperationException(
 					$"Failed to deserialize {typeof(TConfig).Name} from {_filePath}");
 		}

@@ -12649,3 +12649,11 @@ MonoBehaviour:
     Value: "\u041e\u0448"
   - Key: province_name.central_Asian_khanates__Osh_2
     Value: "\u041e\u0448"
+  - Key: web.header.warning
+    Value: Это экспериментальная веб-версия игры; она может быть нестабильной и терять данные.
+  - Key: web.header.full_client_link_text
+    Value: Играть в полную версию
+  - Key: web.footer.copyright
+    Value: © 2026 KonH · Лицензия MIT
+  - Key: web.footer.github_link_text
+    Value: Исходный код на GitHub

@@ -1,0 +1,149 @@
+@page "/game"
+@using GS.Main
+@using GS.Game.WebClient.Services
+@implements IDisposable
+@inject GameSession GameSession
+@inject Localization Localization
+@inject NavigationManager Navigation
+
+@if (_time != null) {
+	<div class="gs-game-view">
+		<div class="gs-game-toolbar">
+			<button @onclick="OnMenu">@Localization.Get("game_menu.title")</button>
+			<button class="@(_time.IsPaused ? "gs-active" : "")" @onclick="OnPauseToggle">@(_time.IsPaused ? "Play" : "Pause")</button>
+			<button class="@SpeedClass(0)" @onclick='() => OnSpeedChange(0)'>x1</button>
+			<button class="@SpeedClass(1)" @onclick='() => OnSpeedChange(1)'>x2</button>
+			<button class="@SpeedClass(2)" @onclick='() => OnSpeedChange(2)'>x3</button>
+			<span class="gs-game-date">@_time.CurrentTime.ToString("HH:00 dd/MM/yyyy")</span>
+		</div>
+
+		@if (_completion != null && _completion.IsCompleted) {
+			<div class="gs-completion-banner">
+				@if (_completion.Result == GameResult.Win) {
+					<span>You won! Winner: @WinnerDisplayName()</span>
+				} else {
+					<span>You lost. Winner: @WinnerDisplayName()</span>
+				}
+			</div>
+		}
+
+		<div class="gs-game-content">
+			<ActionsLog GameLog="GameSession.Logic!.VisualState.GameLog" />
+			<Terminal />
+		</div>
+
+		@if (_menuOpen) {
+			<div class="gs-modal-overlay">
+				<div class="gs-modal-panel">
+					<h2>@Localization.Get("game_menu.title")</h2>
+					<button @onclick="OnResume">@Localization.Get("game_menu.resume")</button>
+					<button @onclick="OnSave">@Localization.Get("game_menu.save")</button>
+					@if (_saveMessage != null) {
+						<div class="gs-save-message">@_saveMessage</div>
+					}
+					<button @onclick="OnExit">@Localization.Get("game_menu.exit")</button>
+				</div>
+			</div>
+		}
+	</div>
+}
+
+@code {
+	bool _menuOpen;
+	string? _saveMessage;
+	TimeState? _time;
+	GameCompletionState? _completion;
+	bool _subscribed;
+
+	protected override void OnInitialized() {
+		if (GameSession.Logic == null) {
+			Navigation.NavigateTo("/");
+			return;
+		}
+
+		_time = GameSession.Logic.VisualState.Time;
+		_completion = GameSession.Logic.VisualState.GameCompletion;
+		GameSession.Ticked += OnTicked;
+		_subscribed = true;
+	}
+
+	void OnTicked() {
+		InvokeAsync(StateHasChanged);
+	}
+
+	string SpeedClass(int index) {
+		if (_time == null) {
+			return "";
+		}
+		return (!_time.IsPaused && _time.MultiplierIndex == index) ? "gs-active" : "";
+	}
+
+	string WinnerDisplayName() {
+		if (_completion == null || string.IsNullOrEmpty(_completion.WinnerOrganizationId)) {
+			return "";
+		}
+		return Localization.Get($"organization_name.{_completion.WinnerOrganizationId}");
+	}
+
+	void OnPauseToggle() {
+		if (_time == null || GameSession.Logic == null) {
+			return;
+		}
+		if (_time.IsPaused) {
+			GameSession.Logic.Commands.Push(new GS.Game.Commands.UnpauseCommand());
+		} else {
+			GameSession.Logic.Commands.Push(new GS.Game.Commands.PauseCommand());
+		}
+	}
+
+	void OnSpeedChange(int index) {
+		GameSession.Logic?.Commands.Push(new GS.Game.Commands.ChangeTimeMultiplierCommand(index));
+	}
+
+	void OnMenu() {
+		_saveMessage = null;
+		GameSession.Logic?.Commands.Push(new GS.Game.Commands.PauseCommand());
+		_menuOpen = true;
+	}
+
+	void OnResume() {
+		GameSession.Logic?.Commands.Push(new GS.Game.Commands.UnpauseCommand());
+		_menuOpen = false;
+	}
+
+	void OnSave() {
+		if (GameSession.Logic == null) {
+			return;
+		}
+		GameSession.Logic.VisualState.SaveResult.PropertyChanged -= HandleSaveResultChanged;
+		GameSession.Logic.VisualState.SaveResult.PropertyChanged += HandleSaveResultChanged;
+		GameSession.Logic.Commands.Push(new GS.Game.Commands.SaveGameCommand());
+	}
+
+	void HandleSaveResultChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) {
+		if (GameSession.Logic == null) {
+			return;
+		}
+		var result = GameSession.Logic.VisualState.SaveResult;
+		_saveMessage = result.Success
+			? Localization.Get("game_menu.save.confirmation")
+			: string.Format(Localization.Get("game_menu.save.error"), result.ErrorType);
+		GameSession.Logic.VisualState.SaveResult.PropertyChanged -= HandleSaveResultChanged;
+		InvokeAsync(StateHasChanged);
+	}
+
+	void OnExit() {
+		GameSession.Dispose();
+		Navigation.NavigateTo("/");
+	}
+
+	public void Dispose() {
+		if (_subscribed) {
+			GameSession.Ticked -= OnTicked;
+			_subscribed = false;
+		}
+		if (GameSession.Logic != null) {
+			GameSession.Logic.VisualState.SaveResult.PropertyChanged -= HandleSaveResultChanged;
+		}
+	}
+}
