@@ -1636,10 +1636,22 @@ MonoBehaviour:
     Value: Королевская аудиенция
   - Key: action.royal_audience.desc
     Value: Увеличить контроль и мнение правителя.
+  - Key: action.make_friend.name
+    Value: Cordial Accord
+  - Key: action.make_friend.desc
+    Value: Mark new country as friend.
+  - Key: action.make_rival.name
+    Value: Declaration of Rivalry
+  - Key: action.make_rival.desc
+    Value: Mark new country as rival.
   - Key: action.country.unplayable.pool_full
     Value: Пул контроля переполнен
   - Key: action.country.unplayable.insufficient_control
-    Value: Требуется {0} контроля
+    Value: Requires {0} control
+  - Key: action.country.unplayable.insufficient_opinion
+    Value: Requires {0} opinion with the diplomacy advisor
+  - Key: action.country.unplayable.no_suitable_target
+    Value: No suitable target country available
   - Key: hud.actions
     Value: Действия
   - Key: hud.friends
@@ -1655,7 +1667,11 @@ MonoBehaviour:
   - Key: game_log.opinion_increased_format
     Value: "{0} увеличил мнение {1} {2} в {3} на {4} ({5})"
   - Key: game_log.new_character_format
-    Value: "Новый {0} в {1} - {2}"
+    Value: "New {0} in {1} - {2}"
+  - Key: game_log.relation_friend_format
+    Value: "{0} made {1} and {2} friends"
+  - Key: game_log.relation_rival_format
+    Value: "{0} made {1} and {2} rivals"
   - Key: province_name.Afghanistan__Andkhvoy
     Value: Andkhvoy
   - Key: province_name.Afghanistan__Asadabad

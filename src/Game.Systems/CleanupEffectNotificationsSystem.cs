@@ -18,6 +18,7 @@ namespace GS.Game.Systems {
 			RemoveComponent<ControlEffectApplied>(world);
 			RemoveComponent<OpinionEffectApplied>(world);
 			RemoveComponent<DiscoveryApplied>(world);
+			RemoveComponent<RelationSetApplied>(world);
 		}
 
 		static void RemoveComponent<T>(World world) where T : struct {

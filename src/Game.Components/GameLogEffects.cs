@@ -1,3 +1,5 @@
+using GS.Game.Common;
+
 namespace GS.Game.Components {
 	public struct ControlEffectApplied {
 		public string OrgId;
@@ -23,5 +25,12 @@ namespace GS.Game.Components {
 		public string OrgId;     // set for org roles, "" for country-government roles
 		public string RoleId;
 		public string CharacterId;
+	}
+
+	public struct RelationSetApplied {
+		public string OrgId;
+		public string CountryId;
+		public string TargetCountryId;
+		public RelationKind Kind;
 	}
 }

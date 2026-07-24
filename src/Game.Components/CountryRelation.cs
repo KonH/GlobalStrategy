@@ -7,4 +7,14 @@ namespace GS.Game.Components {
 		public string LeftCountryId;
 		public string RightCountryId;
 	}
+
+	// Not [Savable] — same-tick transient marker consumed and destroyed by
+	// SetCountryRelationSystem in the same GameLogic.Update tick it's created,
+	// exactly like DiscoverCountryEffect.
+	public struct SetCountryRelationEffect {
+		public string EffectId;
+		public string OrgId;
+		public string CountryId;
+		public RelationKind Kind;
+	}
 }

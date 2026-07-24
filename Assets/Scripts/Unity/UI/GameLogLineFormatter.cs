@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Linq;
 using UnityEngine;
+using GS.Game.Common;
 using GS.Main;
 using GS.Unity.Map;
 
@@ -28,6 +29,14 @@ namespace GS.Unity.UI {
 			string deltaText = "+" + FormatNumber(entry.Delta);
 			string totalText = FormatNumber(entry.Total);
 			return string.Format(loc.Get("game_log.opinion_increased_format"), orgName, roleName, characterName, countryName, deltaText, totalText);
+		}
+
+		public static string BuildRelationLine(GameLogEntry entry, ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig) {
+			string orgName = WrapColored(loc.Get($"organization_name.{entry.OrgId}"), orgVisualConfig.Find(entry.OrgId)?.color);
+			string countryName = WrapColored(loc.Get($"country_name.{entry.CountryId}"), countryVisualConfig.Find(entry.CountryId)?.color);
+			string targetCountryName = WrapColored(loc.Get($"country_name.{entry.TargetCountryId}"), countryVisualConfig.Find(entry.TargetCountryId)?.color);
+			string formatKey = entry.RelationKind == RelationKind.Friend ? "game_log.relation_friend_format" : "game_log.relation_rival_format";
+			return string.Format(loc.Get(formatKey), orgName, countryName, targetCountryName);
 		}
 
 		public static string BuildNewCharacterLine(GameLogEntry entry, ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig) {

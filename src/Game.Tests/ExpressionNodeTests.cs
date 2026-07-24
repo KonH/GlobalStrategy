@@ -15,8 +15,8 @@ namespace GS.Game.Tests {
 			return n;
 		}
 
-		static ExpressionContext Ctx(double control = 0, double opinion = 0) =>
-			new ExpressionContext { Control = control, Opinion = opinion };
+		static ExpressionContext Ctx(double control = 0, double opinion = 0, double hasSuitableRelationTarget = 0) =>
+			new ExpressionContext { Control = control, Opinion = opinion, HasSuitableRelationTarget = hasSuitableRelationTarget };
 
 		[Fact]
 		public void value_node_returns_literal() {
@@ -46,6 +46,13 @@ namespace GS.Game.Tests {
 		public void control_node_returns_context_control() {
 			var node = Control();
 			Assert.Equal(15.0, ExpressionNode.Evaluate(node, Ctx(control: 15)));
+		}
+
+		[Fact]
+		public void has_suitable_relation_target_node_returns_context_value() {
+			var node = new ExpressionNode { Type = "hasSuitableRelationTarget" };
+			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(hasSuitableRelationTarget: 1.0)));
+			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx(hasSuitableRelationTarget: 0.0)));
 		}
 
 		[Fact]

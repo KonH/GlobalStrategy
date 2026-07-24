@@ -77,6 +77,27 @@ namespace GS.Game.Systems {
 			return (friends, rivals);
 		}
 
+		public static List<string> GetSuitableRelationCandidates(IReadOnlyWorld world, string countryId) {
+			var result = new List<string>();
+			int[] required = { TypeId<Country>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				Country[] countries = arch.GetColumn<Country>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					string candidateId = countries[i].CountryId;
+					if (candidateId == countryId) { continue; }
+					if (GetRelation(world, countryId, candidateId) == null) {
+						result.Add(candidateId);
+					}
+				}
+			}
+			return result;
+		}
+
+		public static bool HasSuitableRelationTarget(IReadOnlyWorld world, string countryId) {
+			return GetSuitableRelationCandidates(world, countryId).Count > 0;
+		}
+
 		static bool Matches(CountryRelation relation, string countryIdA, string countryIdB) {
 			return (relation.LeftCountryId == countryIdA && relation.RightCountryId == countryIdB)
 				|| (relation.LeftCountryId == countryIdB && relation.RightCountryId == countryIdA);

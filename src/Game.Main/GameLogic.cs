@@ -202,6 +202,7 @@ namespace GS.Main {
 			ActionSucceededSystem.Update(_world, _actionConfig);
 			CreateActionEffectSystem.Update(_world, _actionConfig, _effectConfig, currentTime);
 			DiscoverCountrySystem.Update(_world, _proximityEntity, _rng, _hqCountryByOrgId);
+			SetCountryRelationSystem.Update(_world, _proximityEntity, _rng);
 			RemoveCardFromHandSystem.Update(_world);
 			CheckHandSizeSystem.Update(_world);
 			DrawCardSystem.Update(_world, _actionConfig, _rng);
