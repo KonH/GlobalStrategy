@@ -7,8 +7,9 @@ from unittest.mock import MagicMock, patch
 
 from scripts.automation.claude.handle_issues import detect_session_limit
 from scripts.automation.common.issue_handler import (
-    count_reclaims_since_owner_comment, find_candidates, limit_active,
-    reclaim_stale_in_progress, release_in_progress_silently, save_limit_retry_at,
+    candidate_branch, checkout_clean, count_reclaims_since_owner_comment, find_candidates,
+    limit_active, reclaim_stale_in_progress, release_in_progress_silently,
+    save_limit_retry_at,
 )
 
 MARKER = "<!-- claude-automation -->"
@@ -128,6 +129,26 @@ class ReclaimStaleInProgressTests(unittest.TestCase):
         post.assert_not_called()
         add.assert_not_called()
         remove.assert_not_called()
+
+
+class CandidateBranchTests(unittest.TestCase):
+    def test_issue_starts_from_main(self):
+        self.assertEqual("main", candidate_branch({"kind": "issue", "number": 1}))
+
+    def test_pr_starts_from_its_head_branch(self):
+        self.assertEqual("feature/foo",
+                         candidate_branch({"kind": "pr", "number": 1, "headRefName": "feature/foo"}))
+
+
+class CheckoutCleanTests(unittest.TestCase):
+    def test_force_resets_to_origin_and_removes_untracked(self):
+        with patch("scripts.automation.common.issue_handler.run_git") as run_git:
+            checkout_clean(MagicMock(), "feature/foo")
+        self.assertEqual([
+            (["fetch", "origin", "feature/foo"],),
+            (["checkout", "-f", "-B", "feature/foo", "origin/feature/foo"],),
+            (["clean", "-fd"],),
+        ], [c.args for c in run_git.call_args_list])
 
 
 class LimitFileTests(unittest.TestCase):

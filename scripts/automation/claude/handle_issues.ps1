@@ -1,7 +1,8 @@
 # Handle Labeled Issues (Claude) - thin wrapper that passes execution to handle_issues.py in this same folder.
 #
 # Run this on a scheduled task in your own environment (NOT this repo's main working copy -
-# it does `git reset --hard origin/main`, so point it at a separate dedicated clone).
+# it force-resets the checkout to each candidate's branch and removes untracked files, so
+# point it at a separate dedicated clone).
 # See handle_issues.py and .claude/skills/github-issue-automation/SKILL.md.
 #
 # Only issues/PRs labeled 'claude' are ever considered - create the labels once per repo:
