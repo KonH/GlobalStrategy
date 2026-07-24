@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>GS.Game.WebClient</RootNamespace>
+    <Nullable>enable</Nullable>
+    <LangVersion>latestMajor</LangVersion>
+    <PublishTrimmed>false</PublishTrimmed>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.10" PrivateAssets="all" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Game.Main/Game.Main.csproj" />
+    <ProjectReference Include="../Game.Bots/Game.Bots.csproj" />
+    <ProjectReference Include="../Core.Configs.IO/Core.Configs.IO.csproj" />
+    <ProjectReference Include="../Core.Map/Core.Map.csproj" />
+  </ItemGroup>
+
+  <!--
+    Config JSONs and extracted locale JSONs must be physically copied into this
+    project's own wwwroot/ folder (not just linked via Content/Link) - the Blazor
+    WASM dev server (`dotnet run`) resolves static web assets from an embedded
+    manifest whose content-root entry for these files points at the project's real
+    wwwroot directory. A Content item with Link="wwwroot/..." pointing at a file
+    that lives outside the project cone (e.g. ../../Assets/Configs/*.json) still
+    gets copied to the *build output* wwwroot at compile time, so `dotnet publish`
+    serves it fine (plain static files) - but the manifest-driven dev server 404s
+    because the source-tree wwwroot never actually contains the file. Copying the
+    files into the real wwwroot/configs and wwwroot/locales folders before build
+    fixes both `dotnet run` and `dotnet publish`. These generated files are
+    gitignored - Assets/Configs/*.json and Assets/Localization/*.asset remain the
+    single source of truth.
+  -->
+  <Target Name="CopyConfigsToWwwroot" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/geojson_world.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/map_entry_config.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/country_config.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/game_settings.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/resource_config.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/organizations.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/character_config.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/action_config.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/effect_config.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/province_config.json" />
+    </ItemGroup>
+    <MakeDir Directories="$(MSBuildThisFileDirectory)wwwroot/configs/" />
+    <Copy SourceFiles="@(ConfigSourceFiles)" DestinationFolder="$(MSBuildThisFileDirectory)wwwroot/configs/" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="ExtractLocales" BeforeTargets="BeforeBuild">
+    <PropertyGroup>
+      <LocaleToolProject>$(MSBuildThisFileDirectory)../Game.WebClient.LocaleTool/Game.WebClient.LocaleTool.csproj</LocaleToolProject>
+      <LocalesOutDir>$(MSBuildThisFileDirectory)wwwroot/locales/</LocalesOutDir>
+      <LocaleEnAsset>$(MSBuildThisFileDirectory)../../Assets/Localization/en.asset</LocaleEnAsset>
+      <LocaleRuAsset>$(MSBuildThisFileDirectory)../../Assets/Localization/ru.asset</LocaleRuAsset>
+    </PropertyGroup>
+    <MakeDir Directories="$(LocalesOutDir)" />
+    <Exec Command="dotnet run --project &quot;$(LocaleToolProject)&quot; -- &quot;$(LocaleEnAsset)&quot; &quot;$(LocaleRuAsset)&quot; &quot;$(LocalesOutDir)en.json&quot; &quot;$(LocalesOutDir)ru.json&quot;" />
+  </Target>
+
+</Project>

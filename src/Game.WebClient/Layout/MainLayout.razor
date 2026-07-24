@@ -1,0 +1,17 @@
+@inherits LayoutComponentBase
+@using GS.Game.WebClient.Services
+@inject Localization Localization
+
+<div class="gs-header">
+	<span class="gs-header-warning">@Localization.Get("web.header.warning")</span>
+	<a class="gs-header-link" href="https://play.unity.com/en/games/790490b4-2b09-4c1c-8a2e-df23f6b43b47/global-strategy" target="_blank" rel="noopener">@Localization.Get("web.header.full_client_link_text")</a>
+</div>
+
+<div class="gs-body">
+	@Body
+</div>
+
+<div class="gs-footer">
+	<span>@Localization.Get("web.footer.copyright")</span>
+	<a href="https://github.com/KonH/GlobalStrategy" target="_blank" rel="noopener">@Localization.Get("web.footer.github_link_text")</a>
+</div>

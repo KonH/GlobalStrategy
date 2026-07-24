@@ -1,0 +1,47 @@
+@page "/settings"
+@using GS.Game.WebClient.Services
+@inject Localization Localization
+@inject AppPreferences Preferences
+@inject NavigationManager Navigation
+
+<div class="gs-menu">
+	<h1>@Localization.Get("settings.title")</h1>
+
+	<div class="gs-field">
+		<label>@Localization.Get("settings.language")</label>
+		<div class="gs-toggle-row">
+			<button class="@ActiveClass("en")" @onclick='() => OnLocaleSelected("en")'>English</button>
+			<button class="@ActiveClass("ru")" @onclick='() => OnLocaleSelected("ru")'>Русский</button>
+		</div>
+	</div>
+
+	<div class="gs-field">
+		<label>@Localization.Get("settings.autosave")</label>
+		<div class="gs-toggle-row">
+			<button class="@AutoSaveActiveClass("daily")" @onclick='() => OnAutoSaveIntervalSelected("daily")'>@Localization.Get("settings.save_daily")</button>
+			<button class="@AutoSaveActiveClass("monthly")" @onclick='() => OnAutoSaveIntervalSelected("monthly")'>@Localization.Get("settings.save_monthly")</button>
+			<button class="@AutoSaveActiveClass("yearly")" @onclick='() => OnAutoSaveIntervalSelected("yearly")'>@Localization.Get("settings.save_yearly")</button>
+		</div>
+	</div>
+
+	<button @onclick="OnBack">@Localization.Get("settings.back")</button>
+</div>
+
+@code {
+	string ActiveClass(string locale) => Localization.CurrentLocale == locale ? "gs-active" : "";
+
+	string AutoSaveActiveClass(string interval) => Preferences.AutoSaveInterval == interval ? "gs-active" : "";
+
+	async Task OnLocaleSelected(string locale) {
+		Preferences.SetLocale(locale);
+		await Localization.SetLocaleAsync(locale);
+	}
+
+	void OnAutoSaveIntervalSelected(string interval) {
+		Preferences.SetAutoSaveInterval(interval);
+	}
+
+	void OnBack() {
+		Navigation.NavigateTo("/");
+	}
+}

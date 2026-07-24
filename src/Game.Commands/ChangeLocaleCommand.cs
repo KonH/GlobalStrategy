@@ -1,3 +1,3 @@
 namespace GS.Game.Commands {
-	public record struct ChangeLocaleCommand(string Locale) : ICommand;
+	public record struct ChangeLocaleCommand([property: LocaleId] string Locale) : ICommand;
 }

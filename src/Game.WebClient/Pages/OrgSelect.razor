@@ -1,0 +1,43 @@
+@page "/org-select"
+@using GS.Game.WebClient.Services
+@inject Localization Localization
+@inject IGameConfigSource ConfigSource
+@inject GameSession Session
+@inject NavigationManager Navigation
+
+<div class="gs-menu">
+	<h1>@Localization.Get("menu.play")</h1>
+
+	<select @bind="_selectedOrganizationId">
+		@foreach (var organization in _organizations) {
+			<option value="@organization.OrganizationId">@organization.DisplayName</option>
+		}
+	</select>
+
+	<button @onclick="OnConfirm" disabled="@string.IsNullOrEmpty(_selectedOrganizationId)">@Localization.Get("select_org.start")</button>
+	<button @onclick="OnBack">@Localization.Get("select_org.back")</button>
+</div>
+
+@code {
+	List<GS.Game.Configs.OrganizationEntry> _organizations = new();
+	string _selectedOrganizationId = "";
+
+	protected override void OnInitialized() {
+		_organizations = ConfigSource.Organization.Load().Organizations;
+		if (_organizations.Count > 0) {
+			_selectedOrganizationId = _organizations[0].OrganizationId;
+		}
+	}
+
+	void OnConfirm() {
+		if (string.IsNullOrEmpty(_selectedOrganizationId)) {
+			return;
+		}
+		Session.StartNew(_selectedOrganizationId);
+		Navigation.NavigateTo("/game");
+	}
+
+	void OnBack() {
+		Navigation.NavigateTo("/");
+	}
+}

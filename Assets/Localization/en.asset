@@ -12636,6 +12636,14 @@ MonoBehaviour:
     Value: Osh
   - Key: province_name.central_Asian_khanates__Osh_2
     Value: Osh
+  - Key: web.header.warning
+    Value: This is an experimental web version of the game; it may be unstable and lose data.
+  - Key: web.header.full_client_link_text
+    Value: Play the full client
+  - Key: web.footer.copyright
+    Value: © 2026 KonH · MIT License
+  - Key: web.footer.github_link_text
+    Value: View source on GitHub
   - Key: end_game.result.win
     Value: '{0} has won the game!'
   - Key: end_game.result.lose

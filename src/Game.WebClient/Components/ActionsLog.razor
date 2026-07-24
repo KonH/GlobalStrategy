@@ -1,0 +1,99 @@
+@using System.Collections.Generic
+@using System.Globalization
+@using System.Linq
+@using GS.Main
+@using GS.Game.WebClient.Services
+@inject Localization Localization
+
+<div class="gs-actions-log">
+	@foreach (var id in _order) {
+		<div class="log-entry" @key="id">@((MarkupString)_rendered[id])</div>
+	}
+</div>
+
+@code {
+	[Parameter] public GameLogState GameLog { get; set; } = null!;
+
+	// Diffs GameLog.Entries by SequenceId, mirroring Assets/Scripts/Unity/UI/ActionLogView.cs:
+	// formatted text is built once per new SequenceId and cached, entries no longer present
+	// (cap trim, or a fresh session's empty log) are dropped from the cache. Fade-in is a pure
+	// CSS @keyframes animation (see app.css .log-entry) that plays automatically when a genuinely
+	// new entry is mounted; @key ties each rendered <div> to its SequenceId so existing entries
+	// are never remounted (and never replay the fade-in) just because the list shifted. Fade-out
+	// is intentionally not animated here (removed entries disappear immediately) - a Blazor list
+	// removal drops the element from the DOM in the same render pass, so there is no time window
+	// to run a fade-out transition without keeping evicted entries alive in a "pending removal"
+	// side-list purely to animate their exit; that complexity isn't warranted for a debug client.
+	readonly Dictionary<long, string> _rendered = new();
+	List<long> _order = new();
+
+	protected override void OnParametersSet() {
+		var currentIds = new HashSet<long>();
+		var newOrder = new List<long>(GameLog.Entries.Count);
+		foreach (var entry in GameLog.Entries) {
+			currentIds.Add(entry.SequenceId);
+			newOrder.Add(entry.SequenceId);
+			if (!_rendered.ContainsKey(entry.SequenceId)) {
+				_rendered[entry.SequenceId] = FormatEntry(entry);
+			}
+		}
+		_order = newOrder;
+
+		var toRemove = new List<long>();
+		foreach (var id in _rendered.Keys) {
+			if (!currentIds.Contains(id)) {
+				toRemove.Add(id);
+			}
+		}
+		foreach (var id in toRemove) {
+			_rendered.Remove(id);
+		}
+	}
+
+	string FormatEntry(GameLogEntry entry) {
+		return entry.Kind switch {
+			GameLogEntryKind.Discovery => BuildDiscoveryLine(entry),
+			GameLogEntryKind.Control => BuildControlLine(entry),
+			GameLogEntryKind.Opinion => BuildOpinionLine(entry),
+			GameLogEntryKind.NewCharacter => BuildNewCharacterLine(entry),
+			_ => ""
+		};
+	}
+
+	string BuildDiscoveryLine(GameLogEntry entry) {
+		string orgName = Bold(Localization.Get($"organization_name.{entry.OrgId}"));
+		string countryName = Bold(Localization.Get($"country_name.{entry.CountryId}"));
+		return string.Format(Localization.Get("game_log.discovered_format"), orgName, countryName);
+	}
+
+	string BuildControlLine(GameLogEntry entry) {
+		string orgName = Bold(Localization.Get($"organization_name.{entry.OrgId}"));
+		string countryName = Bold(Localization.Get($"country_name.{entry.CountryId}"));
+		string deltaText = "+" + FormatNumber(entry.Delta);
+		string totalText = FormatNumber(entry.Total);
+		return string.Format(Localization.Get("game_log.control_increased_format"), orgName, countryName, deltaText, totalText);
+	}
+
+	string BuildOpinionLine(GameLogEntry entry) {
+		string orgName = Bold(Localization.Get($"organization_name.{entry.OrgId}"));
+		string countryName = Bold(Localization.Get($"country_name.{entry.CountryId}"));
+		string roleName = Bold(Localization.Get($"character.role.{entry.RoleId}.name"));
+		string characterName = string.Join(" ", entry.NamePartKeys.Select(Localization.Get));
+		string deltaText = "+" + FormatNumber(entry.Delta);
+		string totalText = FormatNumber(entry.Total);
+		return string.Format(Localization.Get("game_log.opinion_increased_format"), orgName, roleName, characterName, countryName, deltaText, totalText);
+	}
+
+	string BuildNewCharacterLine(GameLogEntry entry) {
+		string roleName = Bold(Localization.Get($"character.role.{entry.RoleId}.name"));
+		string targetName = entry.IsOrgRole
+			? Bold(Localization.Get($"organization_name.{entry.OrgId}"))
+			: Bold(Localization.Get($"country_name.{entry.CountryId}"));
+		string characterName = string.Join(" ", entry.NamePartKeys.Select(Localization.Get));
+		return string.Format(Localization.Get("game_log.new_character_format"), roleName, targetName, characterName);
+	}
+
+	static string FormatNumber(double value) => value.ToString("0.#", CultureInfo.InvariantCulture);
+
+	static string Bold(string text) => $"<b>{text}</b>";
+}

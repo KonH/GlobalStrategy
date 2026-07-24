@@ -2,6 +2,8 @@
 
 **▶ [Play the demo in your browser (Unity WebGL)](https://play.unity.com/en/games/790490b4-2b09-4c1c-8a2e-df23f6b43b47/global-strategy)**
 
+**▶ [Play the simplified web client (mobile-friendly, experimental)](https://konh.github.io/GlobalStrategy/)** — a lightweight Blazor debug build of the same simulation: no map, a text terminal for actions, works on phones. See [Standalone Web Client](#standalone-web-client) below to run it locally.
+
 A grand-strategy game set in the world of 1880, where you don't play a nation — you play a secret organization spreading its influence across 160+ historical countries. Built with Unity 6, a custom C# ECS, and a fully AI-assisted development workflow.
 
 This repository is both a game and a case study in **structured AI-driven software development**: every feature here was specified, planned, implemented, reviewed, and shipped through a custom Claude Code workflow — including fully autonomous multi-hour implementation runs.
@@ -110,6 +112,18 @@ Docs/              Constitution, 45+ numbered specs & plans (the project's paper
 - Open the project in **Unity 6000.4.x**; the core DLLs are prebuilt into `Assets/Plugins/Core/`.
 - To rebuild game logic: `dotnet build src/GlobalStrategy.Core.sln -c Release` (outputs directly into the Unity project).
 - Tests: `dotnet test src/GlobalStrategy.Core.sln`.
+
+## Standalone Web Client
+
+[`src/Game.WebClient/`](src/Game.WebClient/) is a Blazor WebAssembly (.NET 8) standalone build of the same `src/` simulation — no Unity, no map, a text terminal for actions instead. It's the client deployed at [konh.github.io/GlobalStrategy](https://konh.github.io/GlobalStrategy/).
+
+To run it locally:
+
+```
+dotnet run --project src/Game.WebClient
+```
+
+Then open the URL printed in the console (e.g. `http://localhost:5000`) in a browser. Saves are stored per-browser (IndexedDB); no Unity Editor is required.
 
 ## License
 

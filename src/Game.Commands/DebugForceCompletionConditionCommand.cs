@@ -3,8 +3,8 @@ namespace GS.Game.Commands {
 	// ("total_control" | "full_control_countries") — kept as a plain string here so
 	// Game.Commands does not need a project reference to Game.Configs.
 	public struct DebugForceCompletionConditionCommand : ICommand {
-		public string TargetOrgId;
-		public string ConditionType;
+		[OrgId] public string TargetOrgId;
+		[OneOf("total_control", "full_control_countries")] public string ConditionType;
 		public double Value;
 	}
 }
