@@ -1,5 +1,5 @@
 using System.IO;
-using System.Text.Json;
+using Newtonsoft.Json;
 using GS.Configs;
 
 namespace GS.Configs.IO {
@@ -12,7 +12,7 @@ namespace GS.Configs.IO {
 
 		public TConfig Load() {
 			string json = File.ReadAllText(_filePath);
-			return JsonSerializer.Deserialize<TConfig>(json, ConfigJsonOptions.Value)
+			return JsonConvert.DeserializeObject<TConfig>(json)
 				?? throw new System.InvalidOperationException(
 					$"Failed to deserialize {typeof(TConfig).Name} from {_filePath}");
 		}

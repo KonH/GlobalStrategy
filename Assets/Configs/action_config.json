@@ -1,7 +1,7 @@
 {
   "defaults": [
-    { "ownerType": "org",     "handSize": 1 },
-    { "ownerType": "country", "handSize": 3 }
+    { "ownerType": "org",     "handSize": 3 },
+    { "ownerType": "country", "handSize": 5 }
   ],
   "actions": [
     {
@@ -55,7 +55,7 @@
       "nameKey": "action.letter_of_commendation_economic_advisor.name",
       "descKey": "action.letter_of_commendation_economic_advisor.desc",
       "targetRole": "economic_advisor",
-      "deckCopies": 3,
+      "deckCopies": 1,
       "conditions": [
         {
           "type": "gte",
@@ -75,7 +75,7 @@
       "nameKey": "action.letter_of_commendation_military_advisor.name",
       "descKey": "action.letter_of_commendation_military_advisor.desc",
       "targetRole": "military_advisor",
-      "deckCopies": 3,
+      "deckCopies": 2,
       "conditions": [
         {
           "type": "gte",
@@ -95,7 +95,7 @@
       "nameKey": "action.letter_of_commendation_secret_advisor.name",
       "descKey": "action.letter_of_commendation_secret_advisor.desc",
       "targetRole": "secret_advisor",
-      "deckCopies": 3,
+      "deckCopies": 1,
       "conditions": [
         {
           "type": "gte",
@@ -115,7 +115,7 @@
       "nameKey": "action.royal_audience.name",
       "descKey": "action.royal_audience.desc",
       "targetRole": "ruler",
-      "deckCopies": 3,
+      "deckCopies": 2,
       "conditions": [
         {
           "type": "gte",
@@ -127,6 +127,36 @@
       ],
       "cost": [{ "resourceId": "gold", "amount": 10.0 }],
       "effectIds": ["royal_audience_control", "royal_audience_opinion"]
+    },
+    {
+      "actionId": "make_friend",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.make_friend.name",
+      "descKey": "action.make_friend.desc",
+      "targetRole": "diplomacy_advisor",
+      "deckCopies": 5,
+      "conditions": [
+        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 30 } ] },
+        { "type": "gte", "members": [ { "type": "hasSuitableRelationTarget" }, { "type": "value", "value": 1 } ] }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 50.0 }],
+      "effectIds": ["make_friend_effect"]
+    },
+    {
+      "actionId": "make_rival",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.make_rival.name",
+      "descKey": "action.make_rival.desc",
+      "targetRole": "diplomacy_advisor",
+      "deckCopies": 5,
+      "conditions": [
+        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 30 } ] },
+        { "type": "gte", "members": [ { "type": "hasSuitableRelationTarget" }, { "type": "value", "value": 1 } ] }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 50.0 }],
+      "effectIds": ["make_rival_effect"]
     }
   ],
   "orgPools": [

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ECS;
+using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
@@ -28,9 +29,49 @@ namespace GS.Game.Tests {
 							}
 						},
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 20.0 } }
+					},
+					new ActionDefinition {
+						ActionId = "make_friend",
+						OwnerType = "country",
+						TargetRole = "diplomacy_advisor",
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "opinion" },
+									new ExpressionNode { Type = "value", Value = 30 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "hasSuitableRelationTarget" },
+									new ExpressionNode { Type = "value", Value = 1 }
+								}
+							}
+						},
+						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } }
 					}
 				}
 			};
+		}
+
+		static int AddCountry(World world, string countryId) {
+			int e = world.Create();
+			world.Add(e, new Country(countryId));
+			return e;
+		}
+
+		static int AddDiplomacyAdvisor(World world, string countryId, string charId, string orgId, int opinion) {
+			int charEntity = world.Create();
+			world.Add(charEntity, new Character {
+				CharacterId = charId, CountryId = countryId, OrgId = "", RoleId = "diplomacy_advisor",
+				NamePartKeys = System.Array.Empty<string>()
+			});
+			int resEntity = world.Create();
+			world.Add(resEntity, new ResourceOwner(charId, OwnerType.Character));
+			world.Add(resEntity, new Resource { ResourceId = $"opinion_{orgId}", Value = opinion });
+			return charEntity;
 		}
 
 		static int AddGold(World world, string orgId, double amount) {
@@ -146,6 +187,67 @@ namespace GS.Game.Tests {
 			Assert.Equal(goldA, found);
 			Assert.Equal(50.0, world.Get<Resource>(goldA).Value);
 			Assert.Equal(100.0, world.Get<Resource>(goldB).Value);
+		}
+
+		[Fact]
+		void make_friend_unplayable_when_opinion_below_threshold_even_with_suitable_target() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 29);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, "make_friend", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void make_friend_unplayable_when_no_suitable_target_even_with_high_opinion() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
+			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, "make_friend", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void make_friend_playable_when_opinion_at_threshold_and_suitable_target_exists() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 30);
+
+			Assert.True(ActionPlayability.Evaluate(world, config, "make_friend", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void make_friend_unaffordable_despite_gates_satisfied_is_unplayable() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 10.0);
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, "make_friend", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void existing_control_gated_card_unaffected_by_opinion_wiring() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 10);
+
+			// No diplomacy advisor/opinion/relation data seeded at all — control-only card must
+			// still evaluate purely off Control, unaffected by the new Opinion/HasSuitableRelationTarget wiring.
+			Assert.True(ActionPlayability.Evaluate(world, config, "country_card", "OrgA", "Prussia"));
 		}
 	}
 }
