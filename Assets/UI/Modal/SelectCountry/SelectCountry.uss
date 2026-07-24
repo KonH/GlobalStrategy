@@ -52,6 +52,8 @@
 .goal-hint-header {
     margin-bottom: 8px;
     font-size: 24px;
+    white-space: normal;
+    width: 100%;
 }
 
 .goal-hint-rows {
@@ -63,6 +65,7 @@
     -unity-text-align: middle-left;
     margin-bottom: 4px;
     width: 100%;
+    color: rgb(255, 255, 255);
 }
 
 .goal-hint-alternative-cue {
