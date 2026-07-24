@@ -19,6 +19,7 @@
     min-width: 180px;
     height: 36px;
     font-size: 18px;
+    margin-left: 12px;
 }
 
 .action-log-panel {
@@ -31,7 +32,6 @@
     left: 6px;
     flex-direction: row;
     align-items: flex-start;
-    gap: 12px;
 }
 
 .player-country-panel {

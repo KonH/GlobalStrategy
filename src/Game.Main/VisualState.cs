@@ -32,6 +32,10 @@ namespace GS.Main {
 		public IReadOnlyList<string> Rivals { get; private set; } = Array.Empty<string>();
 
 		public void Set(IReadOnlyList<string> friends, IReadOnlyList<string> rivals) {
+			var equal = new HashSet<string>(Friends).SetEquals(friends) && new HashSet<string>(Rivals).SetEquals(rivals);
+			if (equal) {
+				return;
+			}
 			Friends = friends;
 			Rivals = rivals;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));

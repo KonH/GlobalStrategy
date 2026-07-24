@@ -23,6 +23,16 @@
             </ui:VisualElement>
             <ui:VisualElement name="resources-container" class="resources-container" />
         </ui:VisualElement>
+        <ui:VisualElement name="relations-block" class="relations-block">
+            <ui:VisualElement name="friends-row-block" class="relations-row-block">
+                <ui:Label name="friends-header" class="gs-label relations-header" text="Friends" />
+                <ui:VisualElement name="friends-flags" class="relations-flags" />
+            </ui:VisualElement>
+            <ui:VisualElement name="rivals-row-block" class="relations-row-block">
+                <ui:Label name="rivals-header" class="gs-label relations-header" text="Rivals" />
+                <ui:VisualElement name="rivals-flags" class="relations-flags" />
+            </ui:VisualElement>
+        </ui:VisualElement>
         <ui:VisualElement class="country-toggle-block">
             <ui:Button name="chars-toggle-btn" class="chars-toggle-btn gs-btn gs-btn--small">
                 <ui:VisualElement class="org-toggle-btn-icon org-toggle-btn-icon--characters" picking-mode="Ignore" />

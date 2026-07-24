@@ -1642,6 +1642,10 @@ MonoBehaviour:
     Value: Requires {0} control
   - Key: hud.actions
     Value: Actions
+  - Key: hud.friends
+    Value: Friends
+  - Key: hud.rivals
+    Value: Rivals
   - Key: hud.discovery.confirmation
     Value: "Discovered: {0}!"
   - Key: game_log.discovered_format
