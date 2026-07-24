@@ -50,6 +50,6 @@ As a player, I want to see the selected country's friends and rivals as flag row
 - Animated enter/exit transitions for individual flags when the friends/rivals list changes (e.g. relation gained/lost while the country stays selected) — rows are simply rebuilt on refresh.
 - Showing relation type/strength/duration or any relation metadata beyond the flag + name — only presence in `Friends`/`Rivals` is surfaced.
 
-## Ambiguities
+## Confirmed
 
-- [NEEDS CLARIFICATION: should clicking a friend/rival flag for a country that is *not the player's own* still be selectable the same way as any other country (no restriction), or should some countries be non-clickable/non-selectable in this context? Assumed no restriction — same `SelectCountryCommand` path used everywhere else in the HUD — but not explicitly confirmed by the feature request.]
+- Clicking any friend/rival flag selects that country with no restrictions — same `SelectCountryCommand` path used everywhere else in the HUD, regardless of which country it is.
