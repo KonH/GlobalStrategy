@@ -70,7 +70,7 @@ namespace GS.Game.Systems {
 							});
 						}
 					} else if (effectDef is OpinionModifierEffectParams opinionParams && !string.IsNullOrEmpty(countryId)) {
-						string targetCharId = GetTargetCharacterByCountryAndRole(world, countryId, def.TargetRole);
+						string targetCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, def.TargetRole);
 						if (string.IsNullOrEmpty(targetCharId)) { continue; }
 
 						string opinionResourceId = $"opinion_{orgId}";
@@ -100,6 +100,9 @@ namespace GS.Game.Systems {
 							MaxTotal = opinionParams.InitialValue,
 							ClampToZero = true
 						});
+					} else if (effectDef is SetCountryRelationEffectParams relationParams && !string.IsNullOrEmpty(countryId)) {
+						int e = world.Create();
+						world.Add(e, new SetCountryRelationEffect { EffectId = effectId, OrgId = orgId, CountryId = countryId, Kind = relationParams.Kind });
 					}
 				}
 			}
@@ -129,21 +132,6 @@ namespace GS.Game.Systems {
 				}
 			}
 			return total;
-		}
-
-		static string GetTargetCharacterByCountryAndRole(World world, string countryId, string targetRole) {
-			if (string.IsNullOrEmpty(targetRole)) { return ""; }
-			int[] req = { TypeId<Character>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				Character[] chars = arch.GetColumn<Character>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (chars[i].CountryId == countryId && chars[i].RoleId == targetRole) {
-						return chars[i].CharacterId;
-					}
-				}
-			}
-			return "";
 		}
 
 		static double EnsureOpinionResource(World world, string charId, string resourceId, int initialValue) {

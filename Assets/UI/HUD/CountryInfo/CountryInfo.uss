@@ -91,22 +91,6 @@
     min-width: 180px;
 }
 
-/* Hand-only overlays — not shared with test/flying cards */
-.action-card-cooldown-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    padding: 4px;
-}
-
-.action-card-cooldown-label {
-    font-size: 12px;
-    color: rgb(220, 200, 150);
-    -unity-text-align: middle-center;
-}
-
 .action-card-unplayable-reason {
     font-size: 12px;
     color: rgb(200, 80, 80);

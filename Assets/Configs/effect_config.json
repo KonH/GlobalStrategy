@@ -45,6 +45,20 @@
       "sourceId": "royal_audience",
       "initialValue": 25,
       "decayPerMonth": 1
+    },
+    {
+      "effectId": "make_friend_effect",
+      "effectType": "SetCountryRelation",
+      "nameKey": "effect.make_friend_effect.name",
+      "descKey": "effect.make_friend_effect.desc",
+      "kind": "Friend"
+    },
+    {
+      "effectId": "make_rival_effect",
+      "effectType": "SetCountryRelation",
+      "nameKey": "effect.make_rival_effect.name",
+      "descKey": "effect.make_rival_effect.desc",
+      "kind": "Rival"
     }
   ]
 }

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using GS.Configs.IO;
+using GS.Game.Common;
 using GS.Game.Configs;
 using Xunit;
 
@@ -103,6 +104,23 @@ namespace GS.Game.Tests {
 			Assert.Equal(fromFile.Effects.Count, fromString.Effects.Count);
 			Assert.Equal(fromFile.Effects[0].EffectId, fromString.Effects[0].EffectId);
 			Assert.Equal(fromFile.Effects[0].GetType(), fromString.Effects[0].GetType());
+		}
+
+		[Fact]
+		void effect_config_set_country_relation_entries_deserialize_with_correct_kind_through_both_sources() {
+			string path = FindRepoRootConfigPath("effect_config.json");
+			var fromFile = new FileConfig<EffectConfig>(path).Load();
+			var fromString = new StringConfig<EffectConfig>(File.ReadAllText(path)).Load();
+
+			var friendFromFile = Assert.IsType<SetCountryRelationEffectParams>(fromFile.Find("make_friend_effect"));
+			var friendFromString = Assert.IsType<SetCountryRelationEffectParams>(fromString.Find("make_friend_effect"));
+			Assert.Equal(RelationKind.Friend, friendFromFile.Kind);
+			Assert.Equal(RelationKind.Friend, friendFromString.Kind);
+
+			var rivalFromFile = Assert.IsType<SetCountryRelationEffectParams>(fromFile.Find("make_rival_effect"));
+			var rivalFromString = Assert.IsType<SetCountryRelationEffectParams>(fromString.Find("make_rival_effect"));
+			Assert.Equal(RelationKind.Rival, rivalFromFile.Kind);
+			Assert.Equal(RelationKind.Rival, rivalFromString.Kind);
 		}
 
 		[Fact]

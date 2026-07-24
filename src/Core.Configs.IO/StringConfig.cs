@@ -1,4 +1,4 @@
-using System.Text.Json;
+using Newtonsoft.Json;
 using GS.Configs;
 
 namespace GS.Configs.IO {
@@ -10,7 +10,7 @@ namespace GS.Configs.IO {
 		}
 
 		public TConfig Load() {
-			return JsonSerializer.Deserialize<TConfig>(_json, ConfigJsonOptions.Value)
+			return JsonConvert.DeserializeObject<TConfig>(_json)
 				?? throw new System.InvalidOperationException(
 					$"Failed to deserialize {typeof(TConfig).Name} from provided JSON string");
 		}

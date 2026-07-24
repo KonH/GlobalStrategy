@@ -60,6 +60,7 @@
       },
       "Game.Configs/1.0.0": {
         "dependencies": {
+          "Game.Common": "1.0.0",
           "Newtonsoft.Json": "13.0.3"
         },
         "runtime": {

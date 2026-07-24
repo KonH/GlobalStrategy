@@ -118,7 +118,9 @@ namespace GS.Main {
 				&& NamePartKeysEquals(a.NamePartKeys, b.NamePartKeys)
 				&& a.Delta == b.Delta
 				&& a.Total == b.Total
-				&& a.IsOrgRole == b.IsOrgRole;
+				&& a.IsOrgRole == b.IsOrgRole
+				&& a.TargetCountryId == b.TargetCountryId
+				&& a.RelationKind == b.RelationKind;
 		}
 
 		public static bool EffectStateEntryEquals(EffectStateEntry a, EffectStateEntry b) {

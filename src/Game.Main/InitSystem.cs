@@ -656,12 +656,15 @@ namespace GS.Main {
 					// Populate initial hand
 					if (handSize > 0 && createdEntities.Count > 0) {
 						int orgControl = GetOrgControlInCountry(world, orgId, entry.CountryId);
+						string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, entry.CountryId, "diplomacy_advisor");
+						double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
+						double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, entry.CountryId) ? 1.0 : 0.0;
 						var eligibleEntities = new List<int>();
 						foreach (var (e, actionId) in createdEntities) {
 							var d = actionConfig.Find(actionId);
 							if (d == null) { continue; }
 							bool eligible = true;
-							var ctx = new ExpressionContext { Control = orgControl };
+							var ctx = new ExpressionContext { Control = orgControl, Opinion = opinion, HasSuitableRelationTarget = hasSuitableTarget };
 							foreach (var cond in d.Conditions) {
 								if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
 									eligible = false;
