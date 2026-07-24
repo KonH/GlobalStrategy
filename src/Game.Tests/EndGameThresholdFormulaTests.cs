@@ -1,9 +1,30 @@
 using System;
+using System.IO;
+using GS.Configs.IO;
+using GS.Game.Configs;
 using Xunit;
 
 namespace GS.Game.Tests {
 	public class EndGameThresholdFormulaTests {
 		const double CalibrationMaximum = 1000.0;
+
+		// The recorded calibration maximum from
+		// .claude/skills/end-game-score-calibration/references/calibration_results.md — if a
+		// future calibration rerun changes this value, the shipped config must be regenerated
+		// and this constant updated in the same change, or the test below catches the drift.
+		const double ShippedCalibrationMaximum = 286971.0094511145;
+
+		// dotnet test runs from the test assembly's own output directory, not the repo root -
+		// walk up until Assets/Configs is found.
+		static string FindRepoRootConfigPath(string fileName) {
+			var dir = new DirectoryInfo(AppContext.BaseDirectory);
+			while (dir != null) {
+				string candidate = Path.Combine(dir.FullName, "Assets", "Configs", fileName);
+				if (File.Exists(candidate)) { return candidate; }
+				dir = dir.Parent;
+			}
+			throw new InvalidOperationException($"Could not locate Assets/Configs/{fileName} above {AppContext.BaseDirectory}.");
+		}
 
 		static double Factor(int i) {
 			return 0.05 + i * (1.20 - 0.05) / 8;
@@ -33,6 +54,18 @@ namespace GS.Game.Tests {
 
 			for (int i = 0; i <= 8; i++) {
 				Assert.Equal(expected[i], Threshold(i));
+			}
+		}
+
+		[Fact]
+		void shipped_end_game_comparisons_match_formula_against_calibration_maximum() {
+			GameSettings settings = new FileConfig<GameSettings>(FindRepoRootConfigPath("game_settings.json")).Load();
+
+			Assert.Equal(9, settings.EndGameComparisons.Count);
+
+			for (int i = 0; i < settings.EndGameComparisons.Count; i++) {
+				double expected = Math.Round(Factor(i) * ShippedCalibrationMaximum, MidpointRounding.AwayFromZero);
+				Assert.Equal(expected, settings.EndGameComparisons[i].Score);
 			}
 		}
 	}
