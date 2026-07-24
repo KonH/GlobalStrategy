@@ -33,6 +33,7 @@
 - **ECS patterns:** `.claude/rules/unity/ecs_patterns.md`
 - **Unity Editor scripts:** `.claude/rules/unity/editor_scripts.md`
 - **Localization system:** `.claude/rules/unity/localization.md`
+- **Adding new locale keys (English + real Russian translation):** `localization` skill
 - **Unity WebGL gotchas:** `.claude/rules/unity/webgl.md`
 - **Game loop integration from UI:** `.claude/rules/unity/game_loop_integration.md`
 - **Animation barriers:** `.claude/rules/animation_barriers.md`

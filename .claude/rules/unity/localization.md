@@ -46,6 +46,13 @@ Namespacing convention:
 - `resource.{id}.name/description` — resource names
 - `effect.{id}.name/description` — effect names
 
+## Adding New Locale Keys
+
+Do not add the same English text to `ru.asset` as a "placeholder Russian
+translation" — that pattern is deprecated. Use the `localization` skill,
+which spawns a lightweight Haiku subagent to produce a real Russian
+translation for every new key in the same change that introduces it.
+
 ## Click Blocking for Modal Dialogs
 
 `EventSystem.IsPointerOverGameObject()` does not reliably detect UI Toolkit panels with the new Input System (Unity 6). Use `ModalState` instead:
