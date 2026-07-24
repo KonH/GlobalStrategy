@@ -22,6 +22,14 @@
     "deny": []
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          { "type": "command", "command": "python \"${CLAUDE_PROJECT_DIR}/scripts/session/init_claude_tools_submodule.py\"" }
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "hooks": [
@@ -36,8 +44,8 @@
   "extraKnownMarketplaces": {
     "claude-tools": {
       "source": {
-        "source": "github",
-        "repo": "KonH/ClaudeTools"
+        "source": "directory",
+        "path": "./.claude/vendor/claude-tools"
       }
     }
   }
