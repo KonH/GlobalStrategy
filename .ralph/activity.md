@@ -174,3 +174,11 @@ both scenarios' inputs/outputs plus the calibration maximum under
 `.claude/skills/end-game-score-calibration/references/calibration_results.md`. That
 task's gate is a not-yet-written `.tmp/verify_calibration.py` — write it fresh each
 run per `.claude/rules/temp_scripts.md` (it isn't checked in, `.tmp/` is gitignored).
+
+## 2026-07-23 - Ralph loop error (phase: loop, iteration: 6)
+
+claude exited with code 1. See `.ralph/logs/loop_6_20260723_205853.log` for full stdout/stderr.
+
+Summary: {"type":"result","subtype":"success","is_error":true,"api_error_status":429,"duration_ms":260984,"duration_api_ms":236207,"num_turns":47,"result":"You've hit your session limit · resets 9:20pm (UTC)","stop_reason":"stop_sequence","session_id":"f2f5e64a-c747-4f20-8d06-dfc6448b95a9","total_cost_usd":1.5481580000000004,"usage":{"input_tokens":66,"cache_creation_input_tokens":84215,"cache_read_input_tokens":2495110,"output_tokens":19505,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":84215,"ephemeral_5m_input_tokens":0},"inference_geo":"not_available","iterations":[{"input_tokens":2,"output_tokens":174,"cache_read_input_tokens":97828,"cache_creation_input_tokens":890,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":890},"type":"message"}],"speed":"standard"},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":1487,"outputTokens":15,"cacheReadInputTokens":0,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.001562,"contextWindow":200000,"maxOutputTokens":32000},"claude-sonnet-5":{"inputTokens":66,"outputTokens":19505,"cacheReadInputTokens":2495110,"cacheCreationInputTokens":84215,"webSearchRequests":0,"costUSD":1.546596,"contextWindow":1000000,"maxOutputTokens":64000}},"permission_denials":[],"terminal_reason":"api_error","fast_mode_state":"off","uuid":"e9990020-eb00-44ed-b5b8-7cde8a711f1d"}
+
+---
