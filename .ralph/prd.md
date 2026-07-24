@@ -131,7 +131,7 @@ see `## Automation Notes` in the plan file for the verbatim list of what a human
 			"Write and run a Python script (.venv\\Scripts\\python.exe .tmp/verify_localization_keys.py) that parses both .asset files and confirms every new key above exists in both files with a non-empty value, then delete the script per .claude/rules/temp_scripts.md."
 		],
 		"gate": ".venv\\Scripts\\python.exe .tmp/verify_localization_keys.py",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "final-verification",

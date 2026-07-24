@@ -316,3 +316,36 @@ keys, which need the Google Trends research) to both `Assets/Localization/en.ass
 `.claude/rules/temp_scripts.md`. Gate: `python3 .tmp/verify_localization_keys.py`.
 
 ---
+
+## 2026-07-24 — localization-keys
+
+Task: Add the non-identity-dependent `end_game.*` and `select_org.win_conditions.*`
+localization keys to `en.asset` and `ru.asset`.
+
+Changes:
+- `Assets/Localization/en.asset`: appended 9 new entries at the end of the `Entries` list —
+  `end_game.result.win`, `end_game.result.lose` (both `{0}`-format templates taking the org
+  display name), `end_game.exit`, `end_game.leaderboard.empty`,
+  `select_org.win_conditions.header`, `select_org.win_conditions.alternative_cue`,
+  `select_org.win_conditions.empty`, `select_org.win_conditions.total_control` (`{0}`-format,
+  percent), and `select_org.win_conditions.full_control_countries` (`{0}`/`{1}`-format,
+  count/total).
+- `Assets/Localization/ru.asset`: appended the same 9 keys with Russian translations, in the
+  same order.
+- Did not add any `end_game.comparison.<comparisonElementId>` keys — those nine identities
+  depend on the Google Trends research this headless run cannot perform (per task scope).
+- Wrote `.tmp/verify_localization_keys.py` (gate script — not checked in, `.tmp/` is
+  gitignored): parses both `.asset` files' `- Key:`/`Value:` pairs and asserts all 9 required
+  keys exist with non-empty values in both files. Ran via system `python3` (this container has
+  no Windows-style `.venv`, same as the `calibration-run` task). Deleted after running per
+  `.claude/rules/temp_scripts.md`.
+
+Gate: `python3 .tmp/verify_localization_keys.py` — `OK: all required keys present with
+non-empty values in both asset files.`
+
+Next iteration: pick up `final-verification` task — run `dotnet test
+src/GlobalStrategy.Core.sln` and `dotnet build src/GlobalStrategy.Core.sln -c Release` as the
+final headless verification pass (Unity-side refresh/console verification is out of scope, see
+plan.md's Automation Notes). This is the last task in `.ralph/prd.md` for this headless subset.
+
+---
