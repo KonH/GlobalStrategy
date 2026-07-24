@@ -33,6 +33,14 @@ label removed, a `<!-- codex-automation:reclaim -->` comment posted as the attem
 to twice; a third consecutive crash parks it with `codex-needs-attention` instead of retrying
 forever. A real owner comment resets the counter.
 
+Usage limits are NOT crashes: when the run's error output reports a usage/rate limit, this
+script records a retry time (now + --limit-backoff-minutes; Codex reports no machine-readable
+reset time) as an aware-UTC timestamp in Logs/handle_issues_codex.limit.json, silently removes
+the `codex-in-progress` labels the interrupted run left behind (no reclaim comment, no
+crash-retry consumed, no error noise on the item), and exits 0. Every later run compares that
+timestamp against the current time - both aware UTC, so the machine's local timezone never
+skews it - and skips entirely (before any GitHub call) until the window has passed.
+
 Requires `gh` authenticated as the repo owner (`gh auth login`), the labels above already
 created in the repo (see handle_issues.sh for the `gh label create` commands), and
 `codex login status` succeeding. It uses gpt-5.6-sol at high reasoning effort by default;
@@ -57,14 +65,17 @@ import argparse
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.issue_handler import (  # noqa: E402
-    acquire_lock, find_candidates, reclaim_stale_in_progress, reset_to_main, setup_logging,
+    acquire_lock, find_candidates, limit_active, reclaim_stale_in_progress,
+    release_in_progress_silently, reset_to_main, save_limit_retry_at, setup_logging,
 )
 
 MODEL = "gpt-5.6-sol"
@@ -79,8 +90,20 @@ DEFAULT_LOG_MAX_BYTES = 5 * 1024 * 1024  # 5 MB per file
 DEFAULT_LOG_BACKUP_COUNT = 5  # + the active file = 30 MB max on disk
 DEFAULT_LOCK_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_issues_codex.lock"
 DEFAULT_GH_CONFIG_DIR = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "codex-gh-config"
+DEFAULT_LIMIT_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_issues_codex.limit.json"
+DEFAULT_LIMIT_BACKOFF_MINUTES = 60
 
 logger = logging.getLogger("handle_issues_codex")
+
+# Codex reports subscription/usage limits in error/failed events or plain-text output (no
+# machine-readable reset time). Detection deliberately looks ONLY at error output (non-JSON
+# lines and error/failed events), never at agent/tool text - an issue whose prompt merely
+# talks about usage limits must not trigger a false positive.
+LIMIT_TEXT_RE = re.compile(r"(usage limit|rate limit|quota exceeded)", re.IGNORECASE)
+
+
+def detect_session_limit(error_texts):
+    return bool(LIMIT_TEXT_RE.search("\n".join(error_texts)))
 
 
 def find_codex_executable():
@@ -146,6 +169,12 @@ def main():
     parser.add_argument("--log-max-bytes", type=int, default=DEFAULT_LOG_MAX_BYTES)
     parser.add_argument("--log-backup-count", type=int, default=DEFAULT_LOG_BACKUP_COUNT)
     parser.add_argument("--lock-file", type=Path, default=DEFAULT_LOCK_FILE)
+    parser.add_argument("--limit-file", type=Path, default=DEFAULT_LIMIT_FILE,
+                        help="Stores the aware-UTC timestamp until which runs are skipped "
+                             "after a usage-limit hit.")
+    parser.add_argument("--limit-backoff-minutes", type=int, default=DEFAULT_LIMIT_BACKOFF_MINUTES,
+                        help="How long to pause after a usage-limit hit (Codex reports no "
+                             "machine-readable reset time).")
     args = parser.parse_args()
     if args.dangerously_skip_permissions:
         args.sandbox = "danger-full-access"
@@ -155,6 +184,9 @@ def main():
     lock = acquire_lock(logger, args.lock_file)
     if lock is None:
         logger.info("Another instance is already running - exiting.")
+        return
+
+    if limit_active(logger, args.limit_file):
         return
 
     reclaim_stale_in_progress(logger, LABEL, MARKER)
@@ -183,6 +215,7 @@ def main():
     )
     process.stdin.write(prompt)
     process.stdin.close()
+    error_texts = []
     for line in process.stdout:
         line = line.rstrip()
         if not line:
@@ -190,11 +223,25 @@ def main():
         try:
             event = json.loads(line)
         except json.JSONDecodeError:
+            error_texts.append(line)  # non-JSON output = CLI error text, e.g. a limit message
             logger.info(f"[codex exec] {line}")
             continue
+        event_type = str(event.get("type", ""))
+        if "error" in event_type or "failed" in event_type:
+            error_texts.append(json.dumps(event, ensure_ascii=False))
         logger.info("[codex exec] %s", json.dumps(event, ensure_ascii=False))
     process.wait()
     logger.info(f"codex exec exited with code {process.returncode}.")
+
+    if detect_session_limit(error_texts):
+        retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
+        save_limit_retry_at(args.limit_file, retry_at)
+        release_in_progress_silently(logger, LABEL)
+        logger.warning(f"Usage limit hit - pausing runs until {retry_at.isoformat()}. This is "
+                       "a planned pause, not a failure (exit 0); interrupted items were "
+                       "returned to the candidate pool without consuming a crash retry.")
+        sys.exit(0)
+
     sys.exit(process.returncode)
 
 

@@ -1,8 +1,14 @@
+import json
+import tempfile
 import unittest
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+from scripts.automation.claude.handle_issues import detect_session_limit
 from scripts.automation.common.issue_handler import (
-    count_reclaims_since_owner_comment, find_candidates, reclaim_stale_in_progress,
+    count_reclaims_since_owner_comment, find_candidates, limit_active,
+    reclaim_stale_in_progress, release_in_progress_silently, save_limit_retry_at,
 )
 
 MARKER = "<!-- claude-automation -->"
@@ -121,6 +127,77 @@ class ReclaimStaleInProgressTests(unittest.TestCase):
         post, add, remove = self.reclaim([parked], reclaims=2)
         post.assert_not_called()
         add.assert_not_called()
+        remove.assert_not_called()
+
+
+class LimitFileTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.limit_file = Path(self.tmp.name) / "limit.json"
+        self.logger = MagicMock()
+
+    def test_no_file_means_no_active_limit(self):
+        self.assertFalse(limit_active(self.logger, self.limit_file))
+
+    def test_future_retry_at_skips_the_run(self):
+        save_limit_retry_at(self.limit_file, datetime.now(timezone.utc) + timedelta(hours=1))
+        self.assertTrue(limit_active(self.logger, self.limit_file))
+        self.assertTrue(self.limit_file.exists())
+
+    def test_expired_retry_at_resumes_and_deletes_the_file(self):
+        save_limit_retry_at(self.limit_file, datetime.now(timezone.utc) - timedelta(minutes=1))
+        self.assertFalse(limit_active(self.logger, self.limit_file))
+        self.assertFalse(self.limit_file.exists())
+
+    def test_retry_at_is_stored_as_aware_utc_even_from_another_timezone(self):
+        # +03:00 wall-clock one hour in the future - must still count as active after the
+        # round-trip through the file, regardless of the machine's local timezone.
+        offset = timezone(timedelta(hours=3))
+        save_limit_retry_at(self.limit_file, datetime.now(offset) + timedelta(hours=1))
+        stored = json.loads(self.limit_file.read_text(encoding="utf-8"))["retry_at"]
+        self.assertTrue(stored.endswith("+00:00"))
+        self.assertTrue(limit_active(self.logger, self.limit_file))
+
+    def test_corrupt_file_is_ignored(self):
+        self.limit_file.write_text("not json", encoding="utf-8")
+        self.assertFalse(limit_active(self.logger, self.limit_file))
+
+
+class DetectSessionLimitTests(unittest.TestCase):
+    def test_epoch_message_yields_aware_utc_retry_at(self):
+        limit_hit, retry_at = detect_session_limit(["Claude AI usage limit reached|1753305600"])
+        self.assertTrue(limit_hit)
+        self.assertEqual(timezone.utc, retry_at.tzinfo)
+        self.assertEqual(1753305600, int(retry_at.timestamp()))
+
+    def test_plain_limit_message_without_epoch(self):
+        limit_hit, retry_at = detect_session_limit(["Session limit reached, try again later"])
+        self.assertTrue(limit_hit)
+        self.assertIsNone(retry_at)
+
+    def test_unrelated_error_is_not_a_limit(self):
+        self.assertEqual((False, None), detect_session_limit(["fatal: repository not found"]))
+
+    def test_no_error_output_is_not_a_limit(self):
+        self.assertEqual((False, None), detect_session_limit([]))
+
+
+class ReleaseInProgressSilentlyTests(unittest.TestCase):
+    def test_releases_without_any_comment(self):
+        stale = item(5, ["claude", "claude-in-progress"], kind="issue")
+        with patch("scripts.automation.common.issue_handler.list_labeled_items", return_value=[stale]), \
+             patch("scripts.automation.common.issue_handler.post_comment") as post, \
+             patch("scripts.automation.common.issue_handler.remove_label") as remove:
+            release_in_progress_silently(MagicMock(), "claude")
+        post.assert_not_called()
+        remove.assert_called_once_with(5, "claude-in-progress")
+
+    def test_needs_attention_items_are_left_untouched(self):
+        parked = item(5, ["claude", "claude-in-progress", "claude-needs-attention"], kind="issue")
+        with patch("scripts.automation.common.issue_handler.list_labeled_items", return_value=[parked]), \
+             patch("scripts.automation.common.issue_handler.remove_label") as remove:
+            release_in_progress_silently(MagicMock(), "claude")
         remove.assert_not_called()
 
 

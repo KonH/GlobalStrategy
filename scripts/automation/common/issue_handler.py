@@ -24,6 +24,14 @@ up to MAX_AUTO_RECLAIMS times, counting attempts via `<marker>:reclaim` comments
 itself (GitHub is the counter - no local state); one more crash after that escalates to
 `<label>-needs-attention` instead of retrying forever. A real owner comment resets the counter.
 
+Session/usage limits are NOT crashes: when a wrapper detects that its CLI run was cut short by
+the provider's session/usage limit, it records an aware-UTC retry timestamp in a small local
+file and silently releases the `-in-progress` labels the interrupted run left behind (no
+reclaim comment, no crash-counter increment - `release_in_progress_silently`). Every later run
+first checks `limit_active` - both sides of the comparison are timezone-aware UTC datetimes,
+so the machine's local timezone never skews it - and exits immediately, before any GitHub
+call, while the window is still in effect.
+
 Repo: KonH/GlobalStrategy. This is project-specific, not provider-specific, so it lives here
 rather than being duplicated per provider.
 """
@@ -32,6 +40,7 @@ import json
 import logging
 import subprocess
 import sys
+from datetime import datetime, timezone
 from logging.handlers import RotatingFileHandler
 
 OWNER = "KonH"
@@ -168,6 +177,67 @@ def find_candidates(label):
     """An item is a candidate iff it carries `label` and none of the three status labels."""
     status_labels = {f"{label}-in-progress", f"{label}-needs-attention", f"{label}-complete"}
     return [item for item in list_labeled_items(label) if not (label_names(item) & status_labels)]
+
+
+def load_limit_retry_at(logger, limit_file):
+    """Returns the stored retry timestamp as an aware-UTC datetime, or None if the file is
+    absent or unreadable. A stored naive timestamp (shouldn't happen - save always writes an
+    aware one) is defensively interpreted as UTC rather than local time."""
+    if not limit_file.exists():
+        return None
+    try:
+        data = json.loads(limit_file.read_text(encoding="utf-8"))
+        retry_at = datetime.fromisoformat(data["retry_at"])
+    except (ValueError, KeyError, TypeError, json.JSONDecodeError):
+        logger.warning(f"Could not parse {limit_file} - ignoring stored limit-retry time.")
+        return None
+    if retry_at.tzinfo is None:
+        retry_at = retry_at.replace(tzinfo=timezone.utc)
+    return retry_at
+
+
+def save_limit_retry_at(limit_file, retry_at):
+    limit_file.parent.mkdir(parents=True, exist_ok=True)
+    limit_file.write_text(
+        json.dumps({"retry_at": retry_at.astimezone(timezone.utc).isoformat()}),
+        encoding="utf-8",
+    )
+
+
+def limit_active(logger, limit_file):
+    """True while a previously recorded session/usage-limit window is still in effect - the
+    caller must then skip the whole run (no GitHub calls, no CLI invocation). Both sides of
+    the comparison are timezone-aware UTC datetimes, so the machine's local timezone never
+    skews it. Once the window has passed, the file is removed and normal runs resume."""
+    retry_at = load_limit_retry_at(logger, limit_file)
+    if retry_at is None:
+        return False
+    now = datetime.now(timezone.utc)
+    if now < retry_at:
+        logger.info(f"Session/usage limit active until {retry_at.isoformat()} "
+                     f"(now {now.isoformat()}) - skipping this run entirely.")
+        return True
+    logger.info(f"Recorded limit window expired at {retry_at.isoformat()} - resuming normal runs.")
+    try:
+        limit_file.unlink()
+    except OSError:
+        pass
+    return False
+
+
+def release_in_progress_silently(logger, label):
+    """Removes `<label>-in-progress` from items a limit-interrupted run left behind, WITHOUT
+    posting a reclaim marker comment: hitting the provider's session/usage limit is a planned
+    pause, not a crash, so it must neither consume the crash-retry budget nor add error noise
+    to the item's thread. The items return to plain candidates and are picked up again once
+    the limit window passes. Items also carrying `<label>-needs-attention` stay untouched,
+    same as in reclaim_stale_in_progress."""
+    for item in list_labeled_items(f"{label}-in-progress"):
+        if f"{label}-needs-attention" in label_names(item):
+            continue
+        logger.info(f"Releasing {item['kind']} #{item['number']} from {label}-in-progress "
+                     "(limit pause, not a crash - no retry counted).")
+        remove_label(item["number"], f"{label}-in-progress")
 
 
 def count_reclaims_since_owner_comment(marker_prefix, reclaim_marker, number):

@@ -34,6 +34,15 @@ label removed, a `<!-- claude-automation:reclaim -->` comment posted as the atte
 to twice; a third consecutive crash parks it with `claude-needs-attention` instead of retrying
 forever. A real owner comment resets the counter.
 
+Session/usage limits are NOT crashes: when the run's error output reports the subscription's
+session/usage limit, this script records the window's reset time (from the CLI's reported
+epoch when present, else now + --limit-backoff-minutes) as an aware-UTC timestamp in
+Logs/handle_issues_claude.limit.json, silently removes the `claude-in-progress` labels the
+interrupted run left behind (no reclaim comment, no crash-retry consumed, no error noise on
+the item), and exits 0. Every later run compares that timestamp against the current time -
+both aware UTC, so the machine's local timezone never skews it - and skips entirely (before
+any GitHub call) until the window has passed.
+
 Requires `gh` authenticated as the repo owner (`gh auth login`), the labels above already
 created in the repo (see handle_issues.sh for the `gh label create` commands), and `claude`
 logged into a subscription (`claude` with no ANTHROPIC_API_KEY set). Runs explicitly on
@@ -62,14 +71,17 @@ parsing, and prompt text.
 import argparse
 import json
 import logging
+import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.issue_handler import (  # noqa: E402
-    acquire_lock, find_candidates, reclaim_stale_in_progress, reset_to_main, setup_logging,
+    acquire_lock, find_candidates, limit_active, reclaim_stale_in_progress,
+    release_in_progress_silently, reset_to_main, save_limit_retry_at, setup_logging,
 )
 
 MODEL = "claude-sonnet-5"
@@ -81,8 +93,30 @@ DEFAULT_LOG_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs"
 DEFAULT_LOG_MAX_BYTES = 5 * 1024 * 1024  # 5 MB per file
 DEFAULT_LOG_BACKUP_COUNT = 5  # + the active file = 30 MB max on disk
 DEFAULT_LOCK_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_issues_claude.lock"
+DEFAULT_LIMIT_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_issues_claude.limit.json"
+DEFAULT_LIMIT_BACKOFF_MINUTES = 60
 
 logger = logging.getLogger("handle_issues_claude")
+
+# Subscription session/usage limits surface either as a plain-text output line (e.g.
+# "Claude AI usage limit reached|1735689600" - epoch seconds of the window reset) or inside
+# the final result event's error text. Detection deliberately looks ONLY at error output
+# (non-JSON lines and the error result), never at assistant/tool text - an issue whose prompt
+# merely talks about usage limits must not trigger a false positive.
+LIMIT_TEXT_RE = re.compile(r"(usage|session) limit reached", re.IGNORECASE)
+LIMIT_EPOCH_RE = re.compile(r"limit reached\|(\d{10,})")
+
+
+def detect_session_limit(error_texts):
+    """Returns (limit_hit, retry_at). retry_at is an aware-UTC datetime when the CLI reported
+    the window's reset epoch, else None (caller falls back to a fixed backoff)."""
+    joined = "\n".join(error_texts)
+    match = LIMIT_EPOCH_RE.search(joined)
+    if match:
+        return True, datetime.fromtimestamp(int(match.group(1)), tz=timezone.utc)
+    if LIMIT_TEXT_RE.search(joined):
+        return True, None
+    return False, None
 
 
 def find_claude_executable():
@@ -142,6 +176,12 @@ def main():
     parser.add_argument("--log-max-bytes", type=int, default=DEFAULT_LOG_MAX_BYTES)
     parser.add_argument("--log-backup-count", type=int, default=DEFAULT_LOG_BACKUP_COUNT)
     parser.add_argument("--lock-file", type=Path, default=DEFAULT_LOCK_FILE)
+    parser.add_argument("--limit-file", type=Path, default=DEFAULT_LIMIT_FILE,
+                         help="Stores the aware-UTC timestamp until which runs are skipped "
+                              "after a session/usage-limit hit.")
+    parser.add_argument("--limit-backoff-minutes", type=int, default=DEFAULT_LIMIT_BACKOFF_MINUTES,
+                         help="How long to pause after a limit hit when the CLI's error text "
+                              "doesn't include the window's reset time.")
     args = parser.parse_args()
 
     setup_logging(logger, args.log_file, args.log_max_bytes, args.log_backup_count)
@@ -149,6 +189,9 @@ def main():
     lock = acquire_lock(logger, args.lock_file)
     if lock is None:
         logger.info("Another instance is already running - exiting.")
+        return
+
+    if limit_active(logger, args.limit_file):
         return
 
     reclaim_stale_in_progress(logger, LABEL, MARKER)
@@ -179,6 +222,8 @@ def main():
         text=True,
         bufsize=1,
     )
+    error_texts = []
+    result_event = None
     for line in process.stdout:
         line = line.rstrip()
         if not line:
@@ -186,13 +231,31 @@ def main():
         try:
             event = json.loads(line)
         except json.JSONDecodeError:
+            error_texts.append(line)  # non-JSON output = CLI error text, e.g. a limit message
             logger.info(f"[claude -p] {line}")
             continue
+        if event.get("type") == "result":
+            result_event = event
         summary = summarize_stream_event(event)
         if summary:
             logger.info(f"[claude -p] {summary}")
     process.wait()
     logger.info(f"claude -p exited with code {process.returncode}.")
+
+    if result_event and (result_event.get("is_error")
+                         or str(result_event.get("subtype", "")).startswith("error")):
+        error_texts.append(str(result_event.get("result", "")))
+    limit_hit, retry_at = detect_session_limit(error_texts)
+    if limit_hit:
+        if retry_at is None:
+            retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
+        save_limit_retry_at(args.limit_file, retry_at)
+        release_in_progress_silently(logger, LABEL)
+        logger.warning(f"Session/usage limit hit - pausing runs until {retry_at.isoformat()}. "
+                        "This is a planned pause, not a failure (exit 0); interrupted items "
+                        "were returned to the candidate pool without consuming a crash retry.")
+        sys.exit(0)
+
     sys.exit(process.returncode)
 
 

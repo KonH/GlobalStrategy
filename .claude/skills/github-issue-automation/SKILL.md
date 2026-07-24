@@ -42,6 +42,15 @@ The wrapper holds an exclusive process lock, so at run start no other run can be
 
 A crash *before* the run even applies `claude-in-progress` simply leaves the item a plain candidate — it retries next tick with no counter. That window is one label call wide; accepted.
 
+## Session/usage limits: a planned pause, never a crash
+
+A subscription session/usage-limit hit is handled entirely separately from crashes:
+
+- The wrapper detects it from **error output only** (non-JSON CLI lines and the final error result event — never assistant/tool text, so an issue whose prompt merely *talks about* limits can't false-positive).
+- It records the window's reset time — the epoch from the CLI's `usage limit reached|<epoch>` message when present, else now + `--limit-backoff-minutes` (default 60) — as a **timezone-aware UTC** timestamp in `Logs/handle_issues_claude.limit.json` (`handle_issues_codex.limit.json` for Codex, which reports no reset time and always uses the backoff).
+- It **silently removes** the `-in-progress` labels the interrupted run left behind — no reclaim comment, no crash-retry consumed, no error noise on the item — and exits 0. The items return to plain candidates.
+- Every later run checks the stored timestamp right after acquiring the lock, comparing aware-UTC to aware-UTC so the machine's local timezone never skews it, and **skips the whole run** (no GitHub calls, no CLI invocation) while the window is still in effect. Once it has passed, the file is deleted and normal runs resume.
+
 ## Concurrency: a process lock, not GitHub state
 
 `handle_issues.py` acquires an exclusive `flock` on `Logs/handle_issues_claude.lock` before doing anything else; a run that can't get the lock exits immediately. This stays a local OS-level lock rather than a GitHub label because it releases automatically the moment the process exits, crash or not — and it's precisely what makes the stale-reclaim logic above sound. (On Windows it uses `msvcrt` locking; also set Task Scheduler's "don't start a new instance" option as a second safeguard.)
