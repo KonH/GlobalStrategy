@@ -22,6 +22,17 @@ def user_message(text, timestamp="2026-01-01T00:00:01Z"):
     }
 
 
+def thread_settings_applied(model="gpt-5.6-terra", reasoning_effort="high", timestamp="2026-01-01T00:00:01Z"):
+    return {
+        "type": "event_msg",
+        "timestamp": timestamp,
+        "payload": {
+            "type": "thread_settings_applied",
+            "thread_settings": {"model": model, "reasoning_effort": reasoning_effort},
+        },
+    }
+
+
 def agent_message(timestamp="2026-01-01T00:00:02Z"):
     return {
         "type": "event_msg",
@@ -126,6 +137,19 @@ class CodexRolloutTests(unittest.TestCase):
 
         self.assertEqual(1, len(rows))
         self.assertEqual("implement", rows[0]["stage"])
+
+    def test_effort_is_captured_from_thread_settings(self):
+        path = write_rollout([
+            session_meta("s1", REPO_CWD),
+            thread_settings_applied(reasoning_effort="high"),
+            user_message("Read and follow .claude/commands/create-prd.md as a Codex procedure."),
+            agent_message(),
+        ])
+
+        rows = parse_codex_rollout(path)
+
+        self.assertEqual(1, len(rows))
+        self.assertEqual("high", rows[0]["effort"])
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Commands;
+using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
@@ -179,6 +180,12 @@ namespace GS.Main {
 						oldOccupierId,
 						"");
 				}
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugSetCountryRelationCommand().AsSpan()) {
+				CountryRelations.SetRelation(_world, cmd.CountryIdA, cmd.CountryIdB, cmd.Kind);
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugClearCountryRelationCommand().AsSpan()) {
+				CountryRelations.RemoveRelation(_world, cmd.CountryIdA, cmd.CountryIdB);
 			}
 
 			CleanupActionEffectsSystem.Update(_world);

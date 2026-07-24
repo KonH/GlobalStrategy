@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using UnityEngine;
 using UnityEngine.UIElements;
 using GS.Main;
 using GS.Unity.Map;
@@ -75,56 +72,16 @@ namespace GS.Unity.UI {
 
 		Label BuildLabel(GameLogEntry entry) {
 			string text = entry.Kind switch {
-				GameLogEntryKind.Discovery => BuildDiscoveryLine(entry),
-				GameLogEntryKind.Control => BuildControlLine(entry),
-				GameLogEntryKind.Opinion => BuildOpinionLine(entry),
-				GameLogEntryKind.NewCharacter => BuildNewCharacterLine(entry),
+				GameLogEntryKind.Discovery => GameLogLineFormatter.BuildDiscoveryLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
+				GameLogEntryKind.Control => GameLogLineFormatter.BuildControlLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
+				GameLogEntryKind.Opinion => GameLogLineFormatter.BuildOpinionLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
+				GameLogEntryKind.NewCharacter => GameLogLineFormatter.BuildNewCharacterLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
 				_ => ""
 			};
 			var label = new Label(text) { enableRichText = true };
 			label.AddToClassList("gs-label");
 			label.AddToClassList("action-log-entry");
 			return label;
-		}
-
-		string BuildDiscoveryLine(GameLogEntry entry) {
-			string orgName = WrapColored(_loc.Get($"organization_name.{entry.OrgId}"), _orgVisualConfig.Find(entry.OrgId)?.color);
-			string countryName = WrapColored(_loc.Get($"country_name.{entry.CountryId}"), _countryVisualConfig.Find(entry.CountryId)?.color);
-			return string.Format(_loc.Get("game_log.discovered_format"), orgName, countryName);
-		}
-
-		string BuildControlLine(GameLogEntry entry) {
-			string orgName = WrapColored(_loc.Get($"organization_name.{entry.OrgId}"), _orgVisualConfig.Find(entry.OrgId)?.color);
-			string countryName = WrapColored(_loc.Get($"country_name.{entry.CountryId}"), _countryVisualConfig.Find(entry.CountryId)?.color);
-			string deltaText = "+" + FormatNumber(entry.Delta);
-			string totalText = FormatNumber(entry.Total);
-			return string.Format(_loc.Get("game_log.control_increased_format"), orgName, countryName, deltaText, totalText);
-		}
-
-		string BuildOpinionLine(GameLogEntry entry) {
-			string orgName = WrapColored(_loc.Get($"organization_name.{entry.OrgId}"), _orgVisualConfig.Find(entry.OrgId)?.color);
-			string countryName = WrapColored(_loc.Get($"country_name.{entry.CountryId}"), _countryVisualConfig.Find(entry.CountryId)?.color);
-			string roleName = $"<b>{_loc.Get($"character.role.{entry.RoleId}.name")}</b>";
-			string characterName = string.Join(" ", entry.NamePartKeys.Select(_loc.Get));
-			string deltaText = "+" + FormatNumber(entry.Delta);
-			string totalText = FormatNumber(entry.Total);
-			return string.Format(_loc.Get("game_log.opinion_increased_format"), orgName, roleName, characterName, countryName, deltaText, totalText);
-		}
-
-		string BuildNewCharacterLine(GameLogEntry entry) {
-			string roleName = $"<b>{_loc.Get($"character.role.{entry.RoleId}.name")}</b>";
-			string targetName = entry.IsOrgRole
-				? WrapColored(_loc.Get($"organization_name.{entry.OrgId}"), _orgVisualConfig.Find(entry.OrgId)?.color)
-				: WrapColored(_loc.Get($"country_name.{entry.CountryId}"), _countryVisualConfig.Find(entry.CountryId)?.color);
-			string characterName = string.Join(" ", entry.NamePartKeys.Select(_loc.Get));
-			return string.Format(_loc.Get("game_log.new_character_format"), roleName, targetName, characterName);
-		}
-
-		static string FormatNumber(double value) => value.ToString("0.#", CultureInfo.InvariantCulture);
-
-		static string WrapColored(string text, Color? color) {
-			string hex = ColorUtility.ToHtmlStringRGB(color ?? Color.white);
-			return $"<b><color=#{hex}>{text}</color></b>";
 		}
 	}
 }

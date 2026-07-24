@@ -27,6 +27,8 @@ namespace GS.Game.Configs {
 		public List<string> SecondaryMapFeatureIds { get; set; } = new List<string>();
 		public List<CountryResourceInit> InitialResources { get; set; } = new List<CountryResourceInit>();
 		public bool IsAvailable { get; set; } = false;
+		public List<string> HistoricalFriends { get; set; } = new List<string>();
+		public List<string> HistoricalRivals { get; set; } = new List<string>();
 	}
 
 	public class CountryResourceInit {

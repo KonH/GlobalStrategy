@@ -20,10 +20,11 @@
           "Game.Bots.dll": {}
         }
       },
+      "Newtonsoft.Json/13.0.3": {},
       "Core.Configs/1.0.0": {
         "runtime": {
           "Core.Configs.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -31,7 +32,7 @@
       "Core.Map/1.0.0": {
         "runtime": {
           "Core.Map.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -39,7 +40,7 @@
       "ECS.Core/1.0.0": {
         "runtime": {
           "ECS.Core.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -50,31 +51,48 @@
         },
         "runtime": {
           "ECS.Core.Extensions.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
       },
       "Game.Commands/1.0.0": {
+        "dependencies": {
+          "Game.Common": "1.0.0"
+        },
         "runtime": {
           "Game.Commands.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Game.Common/1.0.0": {
+        "runtime": {
+          "Game.Common.dll": {
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
       },
       "Game.Components/1.0.0": {
+        "dependencies": {
+          "Game.Common": "1.0.0"
+        },
         "runtime": {
           "Game.Components.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
       },
       "Game.Configs/1.0.0": {
+        "dependencies": {
+          "Newtonsoft.Json": "13.0.3"
+        },
         "runtime": {
           "Game.Configs.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -86,13 +104,14 @@
           "ECS.Core": "1.0.0",
           "ECS.Core.Extensions": "1.0.0",
           "Game.Commands": "1.0.0",
+          "Game.Common": "1.0.0",
           "Game.Components": "1.0.0",
           "Game.Configs": "1.0.0",
           "Game.Systems": "1.0.0"
         },
         "runtime": {
           "Game.Main.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -101,12 +120,13 @@
         "dependencies": {
           "ECS.Core": "1.0.0",
           "Game.Commands": "1.0.0",
+          "Game.Common": "1.0.0",
           "Game.Components": "1.0.0",
           "Game.Configs": "1.0.0"
         },
         "runtime": {
           "Game.Systems.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -118,6 +138,13 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "Newtonsoft.Json/13.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ==",
+      "path": "newtonsoft.json/13.0.3",
+      "hashPath": "newtonsoft.json.13.0.3.nupkg.sha512"
     },
     "Core.Configs/1.0.0": {
       "type": "project",
@@ -140,6 +167,11 @@
       "sha512": ""
     },
     "Game.Commands/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Game.Common/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

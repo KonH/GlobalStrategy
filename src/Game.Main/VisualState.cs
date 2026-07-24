@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using GS.Game.Commands;
+using GS.Game.Common;
 
 namespace GS.Main {
 	public class SelectedCountryState : INotifyPropertyChanged {
@@ -13,10 +13,27 @@ namespace GS.Main {
 		public CountryControlState Control { get; } = new CountryControlState();
 		public CountryCharactersState Characters { get; } = new CountryCharactersState();
 		public CountryActionsState CountryActions { get; } = new CountryActionsState();
+		public CountryRelationsState Relations { get; } = new CountryRelationsState();
 
 		public void Set(bool isValid, string countryId) {
+			if (IsValid == isValid && CountryId == countryId) {
+				return;
+			}
 			IsValid = isValid;
 			CountryId = countryId;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
+	public class CountryRelationsState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyList<string> Friends { get; private set; } = Array.Empty<string>();
+		public IReadOnlyList<string> Rivals { get; private set; } = Array.Empty<string>();
+
+		public void Set(IReadOnlyList<string> friends, IReadOnlyList<string> rivals) {
+			Friends = friends;
+			Rivals = rivals;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -47,6 +64,9 @@ namespace GS.Main {
 		public OrgActionsState Actions { get; } = new OrgActionsState();
 
 		public void Set(bool isValid, string orgId, string displayName, string hqCountryId = "") {
+			if (IsValid == isValid && OrgId == orgId && DisplayName == displayName && HqCountryId == hqCountryId) {
+				return;
+			}
 			IsValid = isValid;
 			OrgId = orgId;
 			DisplayName = displayName;
@@ -64,6 +84,9 @@ namespace GS.Main {
 		public double InitialGold { get; private set; }
 
 		public void Set(bool isValid, string orgId, string displayName, double initialGold) {
+			if (IsValid == isValid && OrgId == orgId && DisplayName == displayName && InitialGold == initialGold) {
+				return;
+			}
 			IsValid = isValid;
 			OrgId = orgId;
 			DisplayName = displayName;
@@ -98,7 +121,11 @@ namespace GS.Main {
 		public IReadOnlyList<OrgControlEntry> OrgEntries { get; private set; } = Array.Empty<OrgControlEntry>();
 
 		public void Set(int used, List<OrgControlEntry> entries) {
+			bool usedChanged = UsedControl.Actual != used;
 			UsedControl.SetActual(used);
+			if (!usedChanged && StateEquality.ListEquals(OrgEntries, entries, StateEquality.OrgControlEntryEquals)) {
+				return;
+			}
 			OrgEntries = entries;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
@@ -129,6 +156,9 @@ namespace GS.Main {
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public IReadOnlyList<CharacterStateEntry> Characters { get; private set; } = Array.Empty<CharacterStateEntry>();
 		public void Set(List<CharacterStateEntry> characters) {
+			if (StateEquality.ListEquals(Characters, characters, StateEquality.CharacterStateEntryEquals)) {
+				return;
+			}
 			Characters = characters;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
@@ -151,6 +181,9 @@ namespace GS.Main {
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public IReadOnlyList<OrgCharacterSlotEntry> Slots { get; private set; } = Array.Empty<OrgCharacterSlotEntry>();
 		public void Set(List<OrgCharacterSlotEntry> slots) {
+			if (StateEquality.ListEquals(Slots, slots, StateEquality.OrgCharacterSlotEntryEquals)) {
+				return;
+			}
 			Slots = slots;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
@@ -183,6 +216,9 @@ namespace GS.Main {
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public IReadOnlyList<OrgCountryEntry> Entries { get; private set; } = Array.Empty<OrgCountryEntry>();
 		public void Set(List<OrgCountryEntry> entries) {
+			if (StateEquality.ListEquals(Entries, entries, StateEquality.OrgCountryEntryEquals)) {
+				return;
+			}
 			Entries = entries;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
@@ -194,8 +230,12 @@ namespace GS.Main {
 		public string RecentlyDiscovered { get; private set; } = "";
 
 		public void Set(System.Collections.Generic.HashSet<string> ids, string recentlyDiscovered = "") {
-			CountryIds = ids;
+			var equal = CountryIds.SetEquals(ids);
 			RecentlyDiscovered = recentlyDiscovered;
+			if (equal) {
+				return;
+			}
+			CountryIds = ids;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 
@@ -224,7 +264,12 @@ namespace GS.Main {
 		public void Set(System.Collections.Generic.List<ActionCardEntry> hand,
 		                System.Collections.Generic.List<ActionCardEntry> deck,
 		                int handSize) {
-			Hand = hand; Deck = deck; HandSize = handSize;
+			HandSize = handSize;
+			if (StateEquality.ListEquals(Hand, hand, StateEquality.ActionCardEntryEquals)
+				&& StateEquality.ListEquals(Deck, deck, StateEquality.ActionCardEntryEquals)) {
+				return;
+			}
+			Hand = hand; Deck = deck;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -244,7 +289,11 @@ namespace GS.Main {
 		public List<VisualResourceChangeEffect> Effects { get; private set; } = new List<VisualResourceChangeEffect>();
 
 		public void Set(List<VisualResourceChangeEffect> effects) {
-			Effects = effects ?? new List<VisualResourceChangeEffect>();
+			var newEffects = effects ?? new List<VisualResourceChangeEffect>();
+			if (StateEquality.ListEquals(Effects, newEffects, StateEquality.VisualResourceChangeEffectEquals)) {
+				return;
+			}
+			Effects = newEffects;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 
@@ -265,7 +314,13 @@ namespace GS.Main {
 		public DateTime CurrentTime { get; private set; }
 
 		public void Set(List<ActionCardEntry> hand, List<ActionCardEntry> deck, int handSize, DateTime currentTime) {
-			Hand = hand; Deck = deck; HandSize = handSize; CurrentTime = currentTime;
+			HandSize = handSize;
+			CurrentTime = currentTime;
+			if (StateEquality.ListEquals(Hand, hand, StateEquality.ActionCardEntryEquals)
+				&& StateEquality.ListEquals(Deck, deck, StateEquality.ActionCardEntryEquals)) {
+				return;
+			}
+			Hand = hand; Deck = deck;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -296,10 +351,14 @@ namespace GS.Main {
 			string recentProvinceId = "",
 			string recentOldOwnerId = "",
 			string recentNewOwnerId = "") {
-			OwnerByProvinceId = ownerByProvinceId;
+			var equal = StateEquality.DictionaryContentEquals(OwnerByProvinceId, ownerByProvinceId);
 			RecentProvinceId = recentProvinceId;
 			RecentOldOwnerId = recentOldOwnerId;
 			RecentNewOwnerId = recentNewOwnerId;
+			if (equal) {
+				return;
+			}
+			OwnerByProvinceId = ownerByProvinceId;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -317,10 +376,14 @@ namespace GS.Main {
 			string recentProvinceId = "",
 			string recentOldOccupierId = "",
 			string recentNewOccupierId = "") {
-			OccupierByProvinceId = occupierByProvinceId;
+			var equal = StateEquality.DictionaryContentEquals(OccupierByProvinceId, occupierByProvinceId);
 			RecentProvinceId = recentProvinceId;
 			RecentOldOccupierId = recentOldOccupierId;
 			RecentNewOccupierId = recentNewOccupierId;
+			if (equal) {
+				return;
+			}
+			OccupierByProvinceId = occupierByProvinceId;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -331,6 +394,9 @@ namespace GS.Main {
 		public IReadOnlyDictionary<string, double> ScoreByCountryId { get; private set; } = new Dictionary<string, double>();
 
 		public void Set(IReadOnlyDictionary<string, double> scoreByCountryId) {
+			if (StateEquality.DictionaryContentEquals(ScoreByCountryId, scoreByCountryId)) {
+				return;
+			}
 			ScoreByCountryId = scoreByCountryId;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
@@ -357,6 +423,10 @@ namespace GS.Main {
 		public IReadOnlyList<LeaderboardEntryState> Countries { get; private set; } = Array.Empty<LeaderboardEntryState>();
 
 		public void Set(List<LeaderboardEntryState> organizations, List<LeaderboardEntryState> countries) {
+			if (StateEquality.ListEquals(Organizations, organizations, StateEquality.LeaderboardEntryStateEquals)
+				&& StateEquality.ListEquals(Countries, countries, StateEquality.LeaderboardEntryStateEquals)) {
+				return;
+			}
 			Organizations = organizations;
 			Countries = countries;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
@@ -371,6 +441,9 @@ namespace GS.Main {
 		public CountryResourcesState Resources { get; } = new CountryResourcesState();
 
 		public void Set(bool isValid, string provinceId) {
+			if (IsValid == isValid && ProvinceId == provinceId) {
+				return;
+			}
 			IsValid = isValid;
 			ProvinceId = provinceId;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
@@ -415,6 +488,9 @@ namespace GS.Main {
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public IReadOnlyList<GameLogEntry> Entries { get; private set; } = Array.Empty<GameLogEntry>();
 		public void Set(List<GameLogEntry> entries) {
+			if (StateEquality.ListEquals(Entries, entries, StateEquality.GameLogEntryEquals)) {
+				return;
+			}
 			Entries = entries;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}

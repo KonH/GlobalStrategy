@@ -1,6 +1,6 @@
-namespace GS.Game.Commands {
-	public enum MapLens { Political, Geographic, Org, Province }
+using GS.Game.Common;
 
+namespace GS.Game.Commands {
 	public struct ChangeLensCommand : ICommand {
 		public MapLens Lens;
 	}
