@@ -340,5 +340,1732 @@
       "VisualStateConverterBenchmarks.Update": true
     },
     "pass": false
+  },
+  {
+    "timestamp": "2026-07-23T14:29:34.2743374Z",
+    "mode": "update-baseline",
+    "results": [
+      {
+        "name": "ControlSystemBenchmarks.Update",
+        "meanNanoseconds": 75044.31467848558,
+        "stdDevNanoseconds": 156.22201006505222,
+        "allocatedBytes": 1752
+      },
+      {
+        "name": "CountryPopulationCollectorBenchmarks.Compute",
+        "meanNanoseconds": 934620.939453125,
+        "stdDevNanoseconds": 18343.25818817369,
+        "allocatedBytes": 608728
+      },
+      {
+        "name": "CountryScoreCollectorBenchmarks.Compute",
+        "meanNanoseconds": 13311.6426755465,
+        "stdDevNanoseconds": 36.663128204799776,
+        "allocatedBytes": 128
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_NoOp",
+        "meanNanoseconds": 522655.73828125,
+        "stdDevNanoseconds": 12015.500336054245,
+        "allocatedBytes": 163943
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_Update",
+        "meanNanoseconds": 22.32446108185328,
+        "stdDevNanoseconds": 0.010764371747602634,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_NoOp",
+        "meanNanoseconds": 94.92369107689176,
+        "stdDevNanoseconds": 0.2672976287304657,
+        "allocatedBytes": 80
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_Update",
+        "meanNanoseconds": 21.34032630281789,
+        "stdDevNanoseconds": 0.07759751432329011,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_NoOp",
+        "meanNanoseconds": 881.4765658696492,
+        "stdDevNanoseconds": 3.7252782702664335,
+        "allocatedBytes": 832
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_Update",
+        "meanNanoseconds": 8.432552778295108,
+        "stdDevNanoseconds": 0.011396698908639279,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_NoOp",
+        "meanNanoseconds": 311.1562923284677,
+        "stdDevNanoseconds": 1.447919836409981,
+        "allocatedBytes": 176
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_Update",
+        "meanNanoseconds": 29.41785078048706,
+        "stdDevNanoseconds": 0.14772838670607746,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "EcsWorldBenchmarks.CreateEntities(EntityCount=1000)",
+        "meanNanoseconds": 24324.051681518555,
+        "stdDevNanoseconds": 126.01056631077542,
+        "allocatedBytes": 37880
+      },
+      {
+        "name": "EcsWorldBenchmarks.AddTwoComponents(EntityCount=1000)",
+        "meanNanoseconds": 196652.49150390626,
+        "stdDevNanoseconds": 574.5567794186466,
+        "allocatedBytes": 136000
+      },
+      {
+        "name": "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=1000)",
+        "meanNanoseconds": 4732.667519160679,
+        "stdDevNanoseconds": 5.0591591151443165,
+        "allocatedBytes": 352
+      },
+      {
+        "name": "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=1000)",
+        "meanNanoseconds": 11292.220700073241,
+        "stdDevNanoseconds": 28.205251447262018,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "EcsWorldBenchmarks.CreateEntities(EntityCount=10000)",
+        "meanNanoseconds": 286885.52998046874,
+        "stdDevNanoseconds": 3993.9952497273935,
+        "allocatedBytes": 652684
+      },
+      {
+        "name": "EcsWorldBenchmarks.AddTwoComponents(EntityCount=10000)",
+        "meanNanoseconds": 2346221.91328125,
+        "stdDevNanoseconds": 18907.32747130864,
+        "allocatedBytes": 1818694
+      },
+      {
+        "name": "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=10000)",
+        "meanNanoseconds": 44257.798248291016,
+        "stdDevNanoseconds": 69.91799832782333,
+        "allocatedBytes": 352
+      },
+      {
+        "name": "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=10000)",
+        "meanNanoseconds": 115295.51871163504,
+        "stdDevNanoseconds": 454.86186542543436,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "FullTickBenchmarks.Tick_RegularDay",
+        "meanNanoseconds": 2035394.641304348,
+        "stdDevNanoseconds": 162848.51540042565,
+        "allocatedBytes": 132728
+      },
+      {
+        "name": "FullTickBenchmarks.Tick_MonthBoundary",
+        "meanNanoseconds": 155736106.85714287,
+        "stdDevNanoseconds": 1660689.2712513104,
+        "allocatedBytes": 14088208
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryControlState_NoOp",
+        "meanNanoseconds": 41.926317087809245,
+        "stdDevNanoseconds": 0.12649256040194923,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryControlState_Update",
+        "meanNanoseconds": 11.091056029001871,
+        "stdDevNanoseconds": 0.00347290548159831,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryCharactersState_NoOp",
+        "meanNanoseconds": 40.82482914924621,
+        "stdDevNanoseconds": 0.10689377627760757,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryCharactersState_Update",
+        "meanNanoseconds": 8.068803621026186,
+        "stdDevNanoseconds": 0.02148156173878701,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgCharactersState_NoOp",
+        "meanNanoseconds": 123.84668691953023,
+        "stdDevNanoseconds": 0.5240927375470432,
+        "allocatedBytes": 88
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgCharactersState_Update",
+        "meanNanoseconds": 7.993064227700233,
+        "stdDevNanoseconds": 0.010378205554874448,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgMapState_NoOp",
+        "meanNanoseconds": 80.12027523914973,
+        "stdDevNanoseconds": 0.31387235140342823,
+        "allocatedBytes": 72
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgMapState_Update",
+        "meanNanoseconds": 8.52842233479023,
+        "stdDevNanoseconds": 0.15319089769398647,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgActionsState_NoOp",
+        "meanNanoseconds": 108.1719428896904,
+        "stdDevNanoseconds": 0.25034143190539293,
+        "allocatedBytes": 96
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgActionsState_Update",
+        "meanNanoseconds": 10.991190181175869,
+        "stdDevNanoseconds": 0.011836244988461668,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryActionsState_NoOp",
+        "meanNanoseconds": 82.96403705222266,
+        "stdDevNanoseconds": 0.2989548010105759,
+        "allocatedBytes": 64
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryActionsState_Update",
+        "meanNanoseconds": 11.305472765117884,
+        "stdDevNanoseconds": 0.02099280219740394,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.LeaderboardState_NoOp",
+        "meanNanoseconds": 389.015833791097,
+        "stdDevNanoseconds": 1.8645407487843453,
+        "allocatedBytes": 288
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.LeaderboardState_Update",
+        "meanNanoseconds": 11.724271122898374,
+        "stdDevNanoseconds": 0.04319771611328615,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.GameLogState_NoOp",
+        "meanNanoseconds": 38.29608825345834,
+        "stdDevNanoseconds": 0.09013587645416951,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.GameLogState_Update",
+        "meanNanoseconds": 8.407888738008646,
+        "stdDevNanoseconds": 0.012688010515191936,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryResourcesState_NoOp",
+        "meanNanoseconds": 36.920729347637725,
+        "stdDevNanoseconds": 0.17830605385773413,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryResourcesState_Update",
+        "meanNanoseconds": 19.369770109653473,
+        "stdDevNanoseconds": 0.06562236041271377,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.VisualEffectCollection_NoOp",
+        "meanNanoseconds": 36.50814143021901,
+        "stdDevNanoseconds": 0.1332698559609961,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.VisualEffectCollection_Update",
+        "meanNanoseconds": 9.430467414855958,
+        "stdDevNanoseconds": 0.008340544863371055,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "OrgScoreCollectorBenchmarks.Compute",
+        "meanNanoseconds": 1072.6957968543556,
+        "stdDevNanoseconds": 22.126590453584768,
+        "allocatedBytes": 472
+      },
+      {
+        "name": "PopulationGrowthCollectorBenchmarks.Compute",
+        "meanNanoseconds": 0.09625033338864644,
+        "stdDevNanoseconds": 0.009497176713695463,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "RecruitsGrowthCollectorBenchmarks.Compute",
+        "meanNanoseconds": 13354.497776285807,
+        "stdDevNanoseconds": 89.54879063920765,
+        "allocatedBytes": 128
+      },
+      {
+        "name": "RecruitsSeedCollectorBenchmarks.Compute",
+        "meanNanoseconds": 13448.670771280924,
+        "stdDevNanoseconds": 45.352691707727466,
+        "allocatedBytes": 128
+      },
+      {
+        "name": "ResourceQueryBenchmarks.GetValue",
+        "meanNanoseconds": 13367.82257385254,
+        "stdDevNanoseconds": 103.35332330554182,
+        "allocatedBytes": 128
+      },
+      {
+        "name": "ResourceSystemBenchmarks.Update_RegularDay",
+        "meanNanoseconds": 472370.4072265625,
+        "stdDevNanoseconds": 866.7983338864319,
+        "allocatedBytes": 4464
+      },
+      {
+        "name": "ResourceSystemBenchmarks.Update_MonthBoundary",
+        "meanNanoseconds": 159196842.13333333,
+        "stdDevNanoseconds": 1871453.863073587,
+        "allocatedBytes": 13959072
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedCountryState_NoOp",
+        "meanNanoseconds": 0.6372127801179885,
+        "stdDevNanoseconds": 0.014553856474929813,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedCountryState_Update",
+        "meanNanoseconds": 3.880880250994648,
+        "stdDevNanoseconds": 0.00989442821032464,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_NoOp",
+        "meanNanoseconds": 3.6415478507677714,
+        "stdDevNanoseconds": 0.012602469862235637,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_Update",
+        "meanNanoseconds": 5.992668017067692,
+        "stdDevNanoseconds": 0.2144646080468944,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedProvinceState_NoOp",
+        "meanNanoseconds": 1.2013205029070377,
+        "stdDevNanoseconds": 0.0069493891052297705,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedProvinceState_Update",
+        "meanNanoseconds": 10.580560398789553,
+        "stdDevNanoseconds": 0.005048941932013487,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_NoOp",
+        "meanNanoseconds": 3.9204311785953387,
+        "stdDevNanoseconds": 0.0018448470177261482,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_Update",
+        "meanNanoseconds": 5.832429934825216,
+        "stdDevNanoseconds": 0.00524257684029981,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.TimeState_NoOp",
+        "meanNanoseconds": 1.4113846612828118,
+        "stdDevNanoseconds": 0.001095368445732065,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.TimeState_Update",
+        "meanNanoseconds": 1.7934283938791071,
+        "stdDevNanoseconds": 0.0028592985450696974,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.LocaleState_NoOp",
+        "meanNanoseconds": 1.3087817887465159,
+        "stdDevNanoseconds": 0.024721995032153388,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.LocaleState_Update",
+        "meanNanoseconds": 7.5129649468830655,
+        "stdDevNanoseconds": 0.023261166633765845,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.MapLensState_NoOp",
+        "meanNanoseconds": 0.6883887566093888,
+        "stdDevNanoseconds": 0.0009329755162450446,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.MapLensState_Update",
+        "meanNanoseconds": 1.922296442836523,
+        "stdDevNanoseconds": 0.004386282185846107,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "TimeSystemBenchmarks.Update",
+        "meanNanoseconds": 38.65825734535853,
+        "stdDevNanoseconds": 0.018595187436731206,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "VisualStateConverterBenchmarks.Update",
+        "meanNanoseconds": 138732.1109049479,
+        "stdDevNanoseconds": 766.4270514239437,
+        "allocatedBytes": 18440
+      }
+    ],
+    "verdicts": {
+      "ControlSystemBenchmarks.Update": false,
+      "CountryPopulationCollectorBenchmarks.Compute": false,
+      "CountryScoreCollectorBenchmarks.Compute": false,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_Update": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_Update": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_Update": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_Update": true,
+      "EcsWorldBenchmarks.CreateEntities(EntityCount=1000)": false,
+      "EcsWorldBenchmarks.AddTwoComponents(EntityCount=1000)": false,
+      "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=1000)": false,
+      "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=1000)": false,
+      "EcsWorldBenchmarks.CreateEntities(EntityCount=10000)": false,
+      "EcsWorldBenchmarks.AddTwoComponents(EntityCount=10000)": false,
+      "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=10000)": false,
+      "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=10000)": false,
+      "FullTickBenchmarks.Tick_RegularDay": false,
+      "FullTickBenchmarks.Tick_MonthBoundary": false,
+      "ListVisualStateSetBenchmarks.CountryControlState_NoOp": true,
+      "ListVisualStateSetBenchmarks.CountryControlState_Update": true,
+      "ListVisualStateSetBenchmarks.CountryCharactersState_NoOp": true,
+      "ListVisualStateSetBenchmarks.CountryCharactersState_Update": true,
+      "ListVisualStateSetBenchmarks.OrgCharactersState_NoOp": true,
+      "ListVisualStateSetBenchmarks.OrgCharactersState_Update": true,
+      "ListVisualStateSetBenchmarks.OrgMapState_NoOp": true,
+      "ListVisualStateSetBenchmarks.OrgMapState_Update": true,
+      "ListVisualStateSetBenchmarks.OrgActionsState_NoOp": true,
+      "ListVisualStateSetBenchmarks.OrgActionsState_Update": true,
+      "ListVisualStateSetBenchmarks.CountryActionsState_NoOp": true,
+      "ListVisualStateSetBenchmarks.CountryActionsState_Update": true,
+      "ListVisualStateSetBenchmarks.LeaderboardState_NoOp": true,
+      "ListVisualStateSetBenchmarks.LeaderboardState_Update": true,
+      "ListVisualStateSetBenchmarks.GameLogState_NoOp": true,
+      "ListVisualStateSetBenchmarks.GameLogState_Update": true,
+      "ListVisualStateSetBenchmarks.CountryResourcesState_NoOp": true,
+      "ListVisualStateSetBenchmarks.CountryResourcesState_Update": true,
+      "ListVisualStateSetBenchmarks.VisualEffectCollection_NoOp": true,
+      "ListVisualStateSetBenchmarks.VisualEffectCollection_Update": true,
+      "OrgScoreCollectorBenchmarks.Compute": false,
+      "PopulationGrowthCollectorBenchmarks.Compute": false,
+      "RecruitsGrowthCollectorBenchmarks.Compute": false,
+      "RecruitsSeedCollectorBenchmarks.Compute": false,
+      "ResourceQueryBenchmarks.GetValue": false,
+      "ResourceSystemBenchmarks.Update_RegularDay": false,
+      "ResourceSystemBenchmarks.Update_MonthBoundary": false,
+      "ScalarVisualStateSetBenchmarks.SelectedCountryState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.SelectedCountryState_Update": true,
+      "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_Update": true,
+      "ScalarVisualStateSetBenchmarks.SelectedProvinceState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.SelectedProvinceState_Update": true,
+      "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_Update": true,
+      "ScalarVisualStateSetBenchmarks.TimeState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.TimeState_Update": true,
+      "ScalarVisualStateSetBenchmarks.LocaleState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.LocaleState_Update": true,
+      "ScalarVisualStateSetBenchmarks.MapLensState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.MapLensState_Update": true,
+      "TimeSystemBenchmarks.Update": false,
+      "VisualStateConverterBenchmarks.Update": false
+    },
+    "pass": false
+  },
+  {
+    "timestamp": "2026-07-23T19:45:34.2919321Z",
+    "mode": "update-baseline",
+    "results": [
+      {
+        "name": "ControlSystemBenchmarks.Update",
+        "meanNanoseconds": 61122.788899739586,
+        "stdDevNanoseconds": 569.4321817963171,
+        "allocatedBytes": 1752
+      },
+      {
+        "name": "CountryPopulationCollectorBenchmarks.Compute",
+        "meanNanoseconds": 422477.0322265625,
+        "stdDevNanoseconds": 71856.11228140688,
+        "allocatedBytes": 608862
+      },
+      {
+        "name": "CountryScoreCollectorBenchmarks.Compute",
+        "meanNanoseconds": 5204.015477498372,
+        "stdDevNanoseconds": 215.82683464965245,
+        "allocatedBytes": 128
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_NoOp",
+        "meanNanoseconds": 228371.97341918945,
+        "stdDevNanoseconds": 10503.898402403636,
+        "allocatedBytes": 163709
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_Update",
+        "meanNanoseconds": 10.37890593210856,
+        "stdDevNanoseconds": 0.043711884514382605,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_NoOp",
+        "meanNanoseconds": 24.49962283883776,
+        "stdDevNanoseconds": 0.15806075871775083,
+        "allocatedBytes": 80
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_Update",
+        "meanNanoseconds": 10.876120130221048,
+        "stdDevNanoseconds": 0.04623595804156061,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_NoOp",
+        "meanNanoseconds": 471.52450634883,
+        "stdDevNanoseconds": 7.055947273341313,
+        "allocatedBytes": 832
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_Update",
+        "meanNanoseconds": 2.9048175613085427,
+        "stdDevNanoseconds": 0.02071235263443506,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_NoOp",
+        "meanNanoseconds": 84.83370145161946,
+        "stdDevNanoseconds": 0.24361838930113477,
+        "allocatedBytes": 176
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_Update",
+        "meanNanoseconds": 9.604958395163218,
+        "stdDevNanoseconds": 0.06566474833179994,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "EcsWorldBenchmarks.CreateEntities(EntityCount=1000)",
+        "meanNanoseconds": 8483.397020612445,
+        "stdDevNanoseconds": 34.11705880278641,
+        "allocatedBytes": 37880
+      },
+      {
+        "name": "EcsWorldBenchmarks.AddTwoComponents(EntityCount=1000)",
+        "meanNanoseconds": 64299.41969651442,
+        "stdDevNanoseconds": 434.9473435706264,
+        "allocatedBytes": 136000
+      },
+      {
+        "name": "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=1000)",
+        "meanNanoseconds": 1304.8110689435687,
+        "stdDevNanoseconds": 4.279299801143538,
+        "allocatedBytes": 352
+      },
+      {
+        "name": "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=1000)",
+        "meanNanoseconds": 3259.9234654353213,
+        "stdDevNanoseconds": 28.939998464910033,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "EcsWorldBenchmarks.CreateEntities(EntityCount=10000)",
+        "meanNanoseconds": 126469.09044053819,
+        "stdDevNanoseconds": 2703.7258865924678,
+        "allocatedBytes": 652642
+      },
+      {
+        "name": "EcsWorldBenchmarks.AddTwoComponents(EntityCount=10000)",
+        "meanNanoseconds": 719299.7314453125,
+        "stdDevNanoseconds": 7545.067050792064,
+        "allocatedBytes": 1818627
+      },
+      {
+        "name": "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=10000)",
+        "meanNanoseconds": 12467.746175130209,
+        "stdDevNanoseconds": 219.87194486033292,
+        "allocatedBytes": 352
+      },
+      {
+        "name": "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=10000)",
+        "meanNanoseconds": 33419.17683919271,
+        "stdDevNanoseconds": 380.3064773668142,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "FullTickBenchmarks.Tick_RegularDay",
+        "meanNanoseconds": 1570900,
+        "stdDevNanoseconds": 14088.766210471851,
+        "allocatedBytes": 132056
+      },
+      {
+        "name": "FullTickBenchmarks.Tick_MonthBoundary",
+        "meanNanoseconds": 65362562.16216216,
+        "stdDevNanoseconds": 2196180.539197712,
+        "allocatedBytes": 14088208
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryControlState_NoOp",
+        "meanNanoseconds": 14.60898738840352,
+        "stdDevNanoseconds": 0.40341867433710504,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryControlState_Update",
+        "meanNanoseconds": 7.983243500902539,
+        "stdDevNanoseconds": 0.22434014533173927,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryCharactersState_NoOp",
+        "meanNanoseconds": 22.909260590871174,
+        "stdDevNanoseconds": 0.38590803730330525,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryCharactersState_Update",
+        "meanNanoseconds": 7.392986094759356,
+        "stdDevNanoseconds": 0.2816486384834405,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgCharactersState_NoOp",
+        "meanNanoseconds": 86.1967499767031,
+        "stdDevNanoseconds": 0.8521238401462833,
+        "allocatedBytes": 88
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgCharactersState_Update",
+        "meanNanoseconds": 7.459954073031743,
+        "stdDevNanoseconds": 0.12212371470712026,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgMapState_NoOp",
+        "meanNanoseconds": 49.16000028451284,
+        "stdDevNanoseconds": 0.5709453494365029,
+        "allocatedBytes": 72
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgMapState_Update",
+        "meanNanoseconds": 7.59846751888593,
+        "stdDevNanoseconds": 0.15872783321042713,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgActionsState_NoOp",
+        "meanNanoseconds": 61.60271832576165,
+        "stdDevNanoseconds": 0.784529384913663,
+        "allocatedBytes": 96
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgActionsState_Update",
+        "meanNanoseconds": 10.729642733931541,
+        "stdDevNanoseconds": 0.28780757320167966,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryActionsState_NoOp",
+        "meanNanoseconds": 48.39506189028422,
+        "stdDevNanoseconds": 0.6341170422879061,
+        "allocatedBytes": 64
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryActionsState_Update",
+        "meanNanoseconds": 11.58513714160238,
+        "stdDevNanoseconds": 0.3144746172639368,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.LeaderboardState_NoOp",
+        "meanNanoseconds": 283.51036310195923,
+        "stdDevNanoseconds": 4.7738883281193605,
+        "allocatedBytes": 288
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.LeaderboardState_Update",
+        "meanNanoseconds": 11.198284377654394,
+        "stdDevNanoseconds": 0.20641515963344934,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.GameLogState_NoOp",
+        "meanNanoseconds": 23.300404250621796,
+        "stdDevNanoseconds": 0.6678436560911857,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.GameLogState_Update",
+        "meanNanoseconds": 7.521978544968146,
+        "stdDevNanoseconds": 0.25917619252464563,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryResourcesState_NoOp",
+        "meanNanoseconds": 13.16218161305716,
+        "stdDevNanoseconds": 0.5425162326076663,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryResourcesState_Update",
+        "meanNanoseconds": 9.757709732422462,
+        "stdDevNanoseconds": 0.07344854075800497,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.VisualEffectCollection_NoOp",
+        "meanNanoseconds": 12.203134298324585,
+        "stdDevNanoseconds": 0.06380274515539727,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.VisualEffectCollection_Update",
+        "meanNanoseconds": 5.384330153465271,
+        "stdDevNanoseconds": 0.07901853693378072,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "OrgScoreCollectorBenchmarks.Compute",
+        "meanNanoseconds": 320.6115654536656,
+        "stdDevNanoseconds": 3.240166036296863,
+        "allocatedBytes": 472
+      },
+      {
+        "name": "PopulationGrowthCollectorBenchmarks.Compute",
+        "meanNanoseconds": 0.1720056434472402,
+        "stdDevNanoseconds": 0.0063606731926432285,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "RecruitsGrowthCollectorBenchmarks.Compute",
+        "meanNanoseconds": 5023.8991292317705,
+        "stdDevNanoseconds": 81.32569534161672,
+        "allocatedBytes": 128
+      },
+      {
+        "name": "RecruitsSeedCollectorBenchmarks.Compute",
+        "meanNanoseconds": 5253.148508071899,
+        "stdDevNanoseconds": 100.76793073930261,
+        "allocatedBytes": 128
+      },
+      {
+        "name": "ResourceQueryBenchmarks.GetValue",
+        "meanNanoseconds": 5232.5665283203125,
+        "stdDevNanoseconds": 94.49227270397937,
+        "allocatedBytes": 128
+      },
+      {
+        "name": "ResourceSystemBenchmarks.Update_RegularDay",
+        "meanNanoseconds": 177208.28125,
+        "stdDevNanoseconds": 1219.7892419006726,
+        "allocatedBytes": 4464
+      },
+      {
+        "name": "ResourceSystemBenchmarks.Update_MonthBoundary",
+        "meanNanoseconds": 63466927.205882356,
+        "stdDevNanoseconds": 1240572.2113315426,
+        "allocatedBytes": 13965628
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedCountryState_NoOp",
+        "meanNanoseconds": 0.18466536753943988,
+        "stdDevNanoseconds": 0.014520119882363887,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedCountryState_Update",
+        "meanNanoseconds": 2.0140784978866577,
+        "stdDevNanoseconds": 0.029531220714842807,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_NoOp",
+        "meanNanoseconds": 0.2448944995800654,
+        "stdDevNanoseconds": 0.00942597096217785,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_Update",
+        "meanNanoseconds": 2.4416586260000863,
+        "stdDevNanoseconds": 0.05116542845183547,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedProvinceState_NoOp",
+        "meanNanoseconds": 0.203415642802914,
+        "stdDevNanoseconds": 0.0035707576310067095,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedProvinceState_Update",
+        "meanNanoseconds": 3.5890711843967438,
+        "stdDevNanoseconds": 0.07984169339694394,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_NoOp",
+        "meanNanoseconds": 0.6119682054434504,
+        "stdDevNanoseconds": 0.0079245088214132,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_Update",
+        "meanNanoseconds": 2.627278119325638,
+        "stdDevNanoseconds": 0.10515841402943706,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.TimeState_NoOp",
+        "meanNanoseconds": 0.2016546470778329,
+        "stdDevNanoseconds": 0.0035218044290456275,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.TimeState_Update",
+        "meanNanoseconds": 0.558953657746315,
+        "stdDevNanoseconds": 0.013844419979871528,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.LocaleState_NoOp",
+        "meanNanoseconds": 0.39925294426771313,
+        "stdDevNanoseconds": 0.0027237766958343452,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.LocaleState_Update",
+        "meanNanoseconds": 2.801522413889567,
+        "stdDevNanoseconds": 0.03435271224898116,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.MapLensState_NoOp",
+        "meanNanoseconds": 0.00113430122534434,
+        "stdDevNanoseconds": 0.0020130457957559028,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.MapLensState_Update",
+        "meanNanoseconds": 0.6115016341209412,
+        "stdDevNanoseconds": 0.006076601211326629,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "TimeSystemBenchmarks.Update",
+        "meanNanoseconds": 13.49707177052131,
+        "stdDevNanoseconds": 0.04570353868534257,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "VisualStateConverterBenchmarks.Update",
+        "meanNanoseconds": 45201.29656110491,
+        "stdDevNanoseconds": 425.57293061179814,
+        "allocatedBytes": 18440
+      }
+    ],
+    "verdicts": {
+      "ControlSystemBenchmarks.Update": true,
+      "CountryPopulationCollectorBenchmarks.Compute": true,
+      "CountryScoreCollectorBenchmarks.Compute": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_Update": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_Update": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_Update": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_Update": true,
+      "EcsWorldBenchmarks.CreateEntities(EntityCount=1000)": true,
+      "EcsWorldBenchmarks.AddTwoComponents(EntityCount=1000)": true,
+      "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=1000)": true,
+      "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=1000)": true,
+      "EcsWorldBenchmarks.CreateEntities(EntityCount=10000)": true,
+      "EcsWorldBenchmarks.AddTwoComponents(EntityCount=10000)": true,
+      "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=10000)": true,
+      "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=10000)": true,
+      "FullTickBenchmarks.Tick_RegularDay": true,
+      "FullTickBenchmarks.Tick_MonthBoundary": true,
+      "ListVisualStateSetBenchmarks.CountryControlState_NoOp": true,
+      "ListVisualStateSetBenchmarks.CountryControlState_Update": true,
+      "ListVisualStateSetBenchmarks.CountryCharactersState_NoOp": true,
+      "ListVisualStateSetBenchmarks.CountryCharactersState_Update": true,
+      "ListVisualStateSetBenchmarks.OrgCharactersState_NoOp": true,
+      "ListVisualStateSetBenchmarks.OrgCharactersState_Update": true,
+      "ListVisualStateSetBenchmarks.OrgMapState_NoOp": true,
+      "ListVisualStateSetBenchmarks.OrgMapState_Update": true,
+      "ListVisualStateSetBenchmarks.OrgActionsState_NoOp": true,
+      "ListVisualStateSetBenchmarks.OrgActionsState_Update": true,
+      "ListVisualStateSetBenchmarks.CountryActionsState_NoOp": true,
+      "ListVisualStateSetBenchmarks.CountryActionsState_Update": true,
+      "ListVisualStateSetBenchmarks.LeaderboardState_NoOp": true,
+      "ListVisualStateSetBenchmarks.LeaderboardState_Update": true,
+      "ListVisualStateSetBenchmarks.GameLogState_NoOp": true,
+      "ListVisualStateSetBenchmarks.GameLogState_Update": true,
+      "ListVisualStateSetBenchmarks.CountryResourcesState_NoOp": true,
+      "ListVisualStateSetBenchmarks.CountryResourcesState_Update": true,
+      "ListVisualStateSetBenchmarks.VisualEffectCollection_NoOp": true,
+      "ListVisualStateSetBenchmarks.VisualEffectCollection_Update": true,
+      "OrgScoreCollectorBenchmarks.Compute": true,
+      "PopulationGrowthCollectorBenchmarks.Compute": false,
+      "RecruitsGrowthCollectorBenchmarks.Compute": true,
+      "RecruitsSeedCollectorBenchmarks.Compute": true,
+      "ResourceQueryBenchmarks.GetValue": true,
+      "ResourceSystemBenchmarks.Update_RegularDay": true,
+      "ResourceSystemBenchmarks.Update_MonthBoundary": true,
+      "ScalarVisualStateSetBenchmarks.SelectedCountryState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.SelectedCountryState_Update": true,
+      "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_Update": true,
+      "ScalarVisualStateSetBenchmarks.SelectedProvinceState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.SelectedProvinceState_Update": true,
+      "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_Update": true,
+      "ScalarVisualStateSetBenchmarks.TimeState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.TimeState_Update": true,
+      "ScalarVisualStateSetBenchmarks.LocaleState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.LocaleState_Update": true,
+      "ScalarVisualStateSetBenchmarks.MapLensState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.MapLensState_Update": true,
+      "TimeSystemBenchmarks.Update": true,
+      "VisualStateConverterBenchmarks.Update": true
+    },
+    "pass": false
+  },
+  {
+    "timestamp": "2026-07-23T20:23:44.6725782Z",
+    "mode": "compare",
+    "results": [
+      {
+        "name": "ControlSystemBenchmarks.Update",
+        "meanNanoseconds": 29181.353556315105,
+        "stdDevNanoseconds": 251.60770396852232,
+        "allocatedBytes": 1752
+      },
+      {
+        "name": "CountryPopulationCollectorBenchmarks.Compute",
+        "meanNanoseconds": 269819.49602971313,
+        "stdDevNanoseconds": 12090.502179734254,
+        "allocatedBytes": 608906
+      },
+      {
+        "name": "CountryScoreCollectorBenchmarks.Compute",
+        "meanNanoseconds": 5011.970113118489,
+        "stdDevNanoseconds": 69.66665647975414,
+        "allocatedBytes": 128
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_NoOp",
+        "meanNanoseconds": 237540.49784342447,
+        "stdDevNanoseconds": 6127.3558118404835,
+        "allocatedBytes": 163709
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_Update",
+        "meanNanoseconds": 10.47320822874705,
+        "stdDevNanoseconds": 0.04355357950137375,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_NoOp",
+        "meanNanoseconds": 24.822022020816803,
+        "stdDevNanoseconds": 0.2993579877675919,
+        "allocatedBytes": 80
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_Update",
+        "meanNanoseconds": 10.89328130086263,
+        "stdDevNanoseconds": 0.041700608368264544,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_NoOp",
+        "meanNanoseconds": 460.6718063354492,
+        "stdDevNanoseconds": 1.7298986653554855,
+        "allocatedBytes": 832
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_Update",
+        "meanNanoseconds": 2.8922871251900992,
+        "stdDevNanoseconds": 0.018084248903526726,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_NoOp",
+        "meanNanoseconds": 83.07396343776158,
+        "stdDevNanoseconds": 0.4512770908301513,
+        "allocatedBytes": 176
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_Update",
+        "meanNanoseconds": 10.914869010448456,
+        "stdDevNanoseconds": 0.14823186602247046,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "EcsWorldBenchmarks.CreateEntities(EntityCount=1000)",
+        "meanNanoseconds": 8176.676831926618,
+        "stdDevNanoseconds": 37.47014931501963,
+        "allocatedBytes": 37880
+      },
+      {
+        "name": "EcsWorldBenchmarks.AddTwoComponents(EntityCount=1000)",
+        "meanNanoseconds": 145327.5809326172,
+        "stdDevNanoseconds": 9131.286860022818,
+        "allocatedBytes": 136000
+      },
+      {
+        "name": "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=1000)",
+        "meanNanoseconds": 2752.2068590731233,
+        "stdDevNanoseconds": 91.80974298396426,
+        "allocatedBytes": 352
+      },
+      {
+        "name": "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=1000)",
+        "meanNanoseconds": 6895.1951090494795,
+        "stdDevNanoseconds": 77.05012048743743,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "EcsWorldBenchmarks.CreateEntities(EntityCount=10000)",
+        "meanNanoseconds": 259421.962890625,
+        "stdDevNanoseconds": 2932.8034115008936,
+        "allocatedBytes": 652642
+      },
+      {
+        "name": "EcsWorldBenchmarks.AddTwoComponents(EntityCount=10000)",
+        "meanNanoseconds": 1506964.027622768,
+        "stdDevNanoseconds": 54316.561512427514,
+        "allocatedBytes": 1818627
+      },
+      {
+        "name": "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=10000)",
+        "meanNanoseconds": 26991.83656311035,
+        "stdDevNanoseconds": 1648.590193598665,
+        "allocatedBytes": 352
+      },
+      {
+        "name": "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=10000)",
+        "meanNanoseconds": 68956.13998021834,
+        "stdDevNanoseconds": 2396.9471096515776,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "FullTickBenchmarks.Tick_RegularDay",
+        "meanNanoseconds": 1587595.8333333333,
+        "stdDevNanoseconds": 40480.940004194425,
+        "allocatedBytes": 132056
+      },
+      {
+        "name": "FullTickBenchmarks.Tick_MonthBoundary",
+        "meanNanoseconds": 62412021.428571425,
+        "stdDevNanoseconds": 844832.3704267486,
+        "allocatedBytes": 14088208
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryControlState_NoOp",
+        "meanNanoseconds": 24.845907498489726,
+        "stdDevNanoseconds": 0.6385985889713399,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryControlState_Update",
+        "meanNanoseconds": 7.716966280713677,
+        "stdDevNanoseconds": 0.1853343552961913,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryCharactersState_NoOp",
+        "meanNanoseconds": 23.82794266397303,
+        "stdDevNanoseconds": 0.6211890533582836,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryCharactersState_Update",
+        "meanNanoseconds": 7.570504784584045,
+        "stdDevNanoseconds": 0.24441834026844214,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgCharactersState_NoOp",
+        "meanNanoseconds": 88.01711020262346,
+        "stdDevNanoseconds": 2.1913022960058752,
+        "allocatedBytes": 88
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgCharactersState_Update",
+        "meanNanoseconds": 7.551452948858864,
+        "stdDevNanoseconds": 0.19824680086631644,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgMapState_NoOp",
+        "meanNanoseconds": 48.382409260823174,
+        "stdDevNanoseconds": 0.38952701019259967,
+        "allocatedBytes": 72
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgMapState_Update",
+        "meanNanoseconds": 7.584142763363688,
+        "stdDevNanoseconds": 0.2014302571103306,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgActionsState_NoOp",
+        "meanNanoseconds": 60.82018282678392,
+        "stdDevNanoseconds": 1.2816069657254272,
+        "allocatedBytes": 96
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgActionsState_Update",
+        "meanNanoseconds": 10.662507358938456,
+        "stdDevNanoseconds": 0.2443632095622853,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryActionsState_NoOp",
+        "meanNanoseconds": 33.77059294005572,
+        "stdDevNanoseconds": 1.5382837677007088,
+        "allocatedBytes": 64
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryActionsState_Update",
+        "meanNanoseconds": 7.69725243250529,
+        "stdDevNanoseconds": 0.0634621420971719,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.LeaderboardState_NoOp",
+        "meanNanoseconds": 189.71975071485653,
+        "stdDevNanoseconds": 6.989428864323062,
+        "allocatedBytes": 288
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.LeaderboardState_Update",
+        "meanNanoseconds": 7.757082184155782,
+        "stdDevNanoseconds": 0.09907482268419082,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.GameLogState_NoOp",
+        "meanNanoseconds": 15.055189095437527,
+        "stdDevNanoseconds": 0.2277588918169446,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.GameLogState_Update",
+        "meanNanoseconds": 5.150552441676457,
+        "stdDevNanoseconds": 0.03488938025066179,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryResourcesState_NoOp",
+        "meanNanoseconds": 22.935440057310565,
+        "stdDevNanoseconds": 0.710176123065195,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryResourcesState_Update",
+        "meanNanoseconds": 9.393044143915176,
+        "stdDevNanoseconds": 0.15369224567619064,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.VisualEffectCollection_NoOp",
+        "meanNanoseconds": 12.188194053513664,
+        "stdDevNanoseconds": 0.0328996155936562,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.VisualEffectCollection_Update",
+        "meanNanoseconds": 5.251431067784627,
+        "stdDevNanoseconds": 0.034025955472310826,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "OrgScoreCollectorBenchmarks.Compute",
+        "meanNanoseconds": 333.5752214704241,
+        "stdDevNanoseconds": 1.9154464294772398,
+        "allocatedBytes": 472
+      },
+      {
+        "name": "PopulationGrowthCollectorBenchmarks.Compute",
+        "meanNanoseconds": 0.21404165488023025,
+        "stdDevNanoseconds": 0.008417719588670592,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "RecruitsGrowthCollectorBenchmarks.Compute",
+        "meanNanoseconds": 5134.800556727818,
+        "stdDevNanoseconds": 58.855701860805546,
+        "allocatedBytes": 128
+      },
+      {
+        "name": "RecruitsSeedCollectorBenchmarks.Compute",
+        "meanNanoseconds": 4990.5572509765625,
+        "stdDevNanoseconds": 59.55665777449236,
+        "allocatedBytes": 128
+      },
+      {
+        "name": "ResourceQueryBenchmarks.GetValue",
+        "meanNanoseconds": 5185.399576822917,
+        "stdDevNanoseconds": 57.18807470295876,
+        "allocatedBytes": 128
+      },
+      {
+        "name": "ResourceSystemBenchmarks.Update_RegularDay",
+        "meanNanoseconds": 174500.8748372396,
+        "stdDevNanoseconds": 295.27548664597765,
+        "allocatedBytes": 4464
+      },
+      {
+        "name": "ResourceSystemBenchmarks.Update_MonthBoundary",
+        "meanNanoseconds": 63949036.60714286,
+        "stdDevNanoseconds": 731923.0346593874,
+        "allocatedBytes": 13965670
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedCountryState_NoOp",
+        "meanNanoseconds": 0.2291638683527708,
+        "stdDevNanoseconds": 0.03880380551017361,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedCountryState_Update",
+        "meanNanoseconds": 1.939791584244141,
+        "stdDevNanoseconds": 0.012876145586486835,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_NoOp",
+        "meanNanoseconds": 0.22264176358779272,
+        "stdDevNanoseconds": 0.012820368414377578,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_Update",
+        "meanNanoseconds": 2.096694161494573,
+        "stdDevNanoseconds": 0.012108663827194954,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedProvinceState_NoOp",
+        "meanNanoseconds": 0.2058045007288456,
+        "stdDevNanoseconds": 0.007182555031130015,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedProvinceState_Update",
+        "meanNanoseconds": 3.543340109966018,
+        "stdDevNanoseconds": 0.1206283039569774,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_NoOp",
+        "meanNanoseconds": 0.4258602112531662,
+        "stdDevNanoseconds": 0.00895453404248497,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_Update",
+        "meanNanoseconds": 2.6196214059988656,
+        "stdDevNanoseconds": 0.06767970411053029,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.TimeState_NoOp",
+        "meanNanoseconds": 0.20007769178066934,
+        "stdDevNanoseconds": 0.0035307587847372007,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.TimeState_Update",
+        "meanNanoseconds": 0.5539673815170923,
+        "stdDevNanoseconds": 0.015359177188572078,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.LocaleState_NoOp",
+        "meanNanoseconds": 0.40539500436612536,
+        "stdDevNanoseconds": 0.0036056896144987163,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.LocaleState_Update",
+        "meanNanoseconds": 2.8002122044563293,
+        "stdDevNanoseconds": 0.034982435102375926,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.MapLensState_NoOp",
+        "meanNanoseconds": 0.002118279891354697,
+        "stdDevNanoseconds": 0.002899473431391845,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.MapLensState_Update",
+        "meanNanoseconds": 0.5985400424553797,
+        "stdDevNanoseconds": 0.007754457108745615,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "TimeSystemBenchmarks.Update",
+        "meanNanoseconds": 10.250746859953953,
+        "stdDevNanoseconds": 0.022893784604768697,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "VisualStateConverterBenchmarks.Update",
+        "meanNanoseconds": 45107.39034016927,
+        "stdDevNanoseconds": 186.78531045915207,
+        "allocatedBytes": 18440
+      }
+    ],
+    "verdicts": {
+      "ControlSystemBenchmarks.Update": true,
+      "CountryPopulationCollectorBenchmarks.Compute": true,
+      "CountryScoreCollectorBenchmarks.Compute": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_Update": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_Update": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_Update": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_Update": false,
+      "EcsWorldBenchmarks.CreateEntities(EntityCount=1000)": true,
+      "EcsWorldBenchmarks.AddTwoComponents(EntityCount=1000)": false,
+      "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=1000)": false,
+      "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=1000)": false,
+      "EcsWorldBenchmarks.CreateEntities(EntityCount=10000)": false,
+      "EcsWorldBenchmarks.AddTwoComponents(EntityCount=10000)": false,
+      "EcsWorldBenchmarks.QueryTwoComponentsAndMutate(EntityCount=10000)": false,
+      "EcsWorldBenchmarks.GetComponentByEntity(EntityCount=10000)": false,
+      "FullTickBenchmarks.Tick_RegularDay": true,
+      "FullTickBenchmarks.Tick_MonthBoundary": true,
+      "ListVisualStateSetBenchmarks.CountryControlState_NoOp": false,
+      "ListVisualStateSetBenchmarks.CountryControlState_Update": true,
+      "ListVisualStateSetBenchmarks.CountryCharactersState_NoOp": true,
+      "ListVisualStateSetBenchmarks.CountryCharactersState_Update": true,
+      "ListVisualStateSetBenchmarks.OrgCharactersState_NoOp": true,
+      "ListVisualStateSetBenchmarks.OrgCharactersState_Update": true,
+      "ListVisualStateSetBenchmarks.OrgMapState_NoOp": true,
+      "ListVisualStateSetBenchmarks.OrgMapState_Update": true,
+      "ListVisualStateSetBenchmarks.OrgActionsState_NoOp": true,
+      "ListVisualStateSetBenchmarks.OrgActionsState_Update": true,
+      "ListVisualStateSetBenchmarks.CountryActionsState_NoOp": true,
+      "ListVisualStateSetBenchmarks.CountryActionsState_Update": true,
+      "ListVisualStateSetBenchmarks.LeaderboardState_NoOp": true,
+      "ListVisualStateSetBenchmarks.LeaderboardState_Update": true,
+      "ListVisualStateSetBenchmarks.GameLogState_NoOp": true,
+      "ListVisualStateSetBenchmarks.GameLogState_Update": true,
+      "ListVisualStateSetBenchmarks.CountryResourcesState_NoOp": false,
+      "ListVisualStateSetBenchmarks.CountryResourcesState_Update": true,
+      "ListVisualStateSetBenchmarks.VisualEffectCollection_NoOp": true,
+      "ListVisualStateSetBenchmarks.VisualEffectCollection_Update": true,
+      "OrgScoreCollectorBenchmarks.Compute": true,
+      "PopulationGrowthCollectorBenchmarks.Compute": false,
+      "RecruitsGrowthCollectorBenchmarks.Compute": true,
+      "RecruitsSeedCollectorBenchmarks.Compute": true,
+      "ResourceQueryBenchmarks.GetValue": true,
+      "ResourceSystemBenchmarks.Update_RegularDay": true,
+      "ResourceSystemBenchmarks.Update_MonthBoundary": true,
+      "ScalarVisualStateSetBenchmarks.SelectedCountryState_NoOp": false,
+      "ScalarVisualStateSetBenchmarks.SelectedCountryState_Update": true,
+      "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_Update": true,
+      "ScalarVisualStateSetBenchmarks.SelectedProvinceState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.SelectedProvinceState_Update": true,
+      "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_Update": true,
+      "ScalarVisualStateSetBenchmarks.TimeState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.TimeState_Update": true,
+      "ScalarVisualStateSetBenchmarks.LocaleState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.LocaleState_Update": true,
+      "ScalarVisualStateSetBenchmarks.MapLensState_NoOp": false,
+      "ScalarVisualStateSetBenchmarks.MapLensState_Update": true,
+      "TimeSystemBenchmarks.Update": true,
+      "VisualStateConverterBenchmarks.Update": true
+    },
+    "pass": false
+  },
+  {
+    "timestamp": "2026-07-23T20:59:34.0836611Z",
+    "mode": "compare",
+    "results": [
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_NoOp",
+        "meanNanoseconds": 218794.61669921875,
+        "stdDevNanoseconds": 9472.190933167743,
+        "allocatedBytes": 163709
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_Update",
+        "meanNanoseconds": 10.42541850890432,
+        "stdDevNanoseconds": 0.03793251971553958,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_NoOp",
+        "meanNanoseconds": 24.56525166829427,
+        "stdDevNanoseconds": 0.12387907765532806,
+        "allocatedBytes": 80
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_Update",
+        "meanNanoseconds": 10.904624462127686,
+        "stdDevNanoseconds": 0.027308280464203066,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_NoOp",
+        "meanNanoseconds": 463.6468117053692,
+        "stdDevNanoseconds": 0.8633942485562154,
+        "allocatedBytes": 832
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_Update",
+        "meanNanoseconds": 2.7533173064390817,
+        "stdDevNanoseconds": 0.04070285994118022,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_NoOp",
+        "meanNanoseconds": 83.55136258261544,
+        "stdDevNanoseconds": 0.4369547035164421,
+        "allocatedBytes": 176
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_Update",
+        "meanNanoseconds": 11.641615203448705,
+        "stdDevNanoseconds": 0.09462591843927716,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryControlState_NoOp",
+        "meanNanoseconds": 14.320930625711169,
+        "stdDevNanoseconds": 0.08624870076820142,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryControlState_Update",
+        "meanNanoseconds": 5.0298961997032166,
+        "stdDevNanoseconds": 0.03583147613899289,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryCharactersState_NoOp",
+        "meanNanoseconds": 14.615176717440287,
+        "stdDevNanoseconds": 0.08335534109268926,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryCharactersState_Update",
+        "meanNanoseconds": 4.637149473031362,
+        "stdDevNanoseconds": 0.05977956651797297,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgCharactersState_NoOp",
+        "meanNanoseconds": 48.16262602806091,
+        "stdDevNanoseconds": 0.15203340088507689,
+        "allocatedBytes": 88
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgCharactersState_Update",
+        "meanNanoseconds": 5.159051567316055,
+        "stdDevNanoseconds": 0.03578240307413447,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgMapState_NoOp",
+        "meanNanoseconds": 32.75004108746847,
+        "stdDevNanoseconds": 0.19421315852962376,
+        "allocatedBytes": 72
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgMapState_Update",
+        "meanNanoseconds": 5.120845139026642,
+        "stdDevNanoseconds": 0.045910199625933415,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgActionsState_NoOp",
+        "meanNanoseconds": 39.68470354874929,
+        "stdDevNanoseconds": 0.21799235052202864,
+        "allocatedBytes": 96
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.OrgActionsState_Update",
+        "meanNanoseconds": 7.188857453210013,
+        "stdDevNanoseconds": 0.05422254614820936,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryActionsState_NoOp",
+        "meanNanoseconds": 31.32594625155131,
+        "stdDevNanoseconds": 0.26514781810100185,
+        "allocatedBytes": 64
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryActionsState_Update",
+        "meanNanoseconds": 7.723381121953328,
+        "stdDevNanoseconds": 0.06208934876682819,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.LeaderboardState_NoOp",
+        "meanNanoseconds": 185.92774134415848,
+        "stdDevNanoseconds": 2.2009057277578865,
+        "allocatedBytes": 288
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.LeaderboardState_Update",
+        "meanNanoseconds": 7.259079707520349,
+        "stdDevNanoseconds": 0.05855578829532428,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.GameLogState_NoOp",
+        "meanNanoseconds": 14.561390663896288,
+        "stdDevNanoseconds": 0.06339330411800685,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.GameLogState_Update",
+        "meanNanoseconds": 5.342198642236846,
+        "stdDevNanoseconds": 0.04026825451114418,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryResourcesState_NoOp",
+        "meanNanoseconds": 12.566272062914711,
+        "stdDevNanoseconds": 0.052101902935603676,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.CountryResourcesState_Update",
+        "meanNanoseconds": 9.527297547230354,
+        "stdDevNanoseconds": 0.06936267066695465,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.VisualEffectCollection_NoOp",
+        "meanNanoseconds": 12.167114615440369,
+        "stdDevNanoseconds": 0.06155630220273054,
+        "allocatedBytes": 32
+      },
+      {
+        "name": "ListVisualStateSetBenchmarks.VisualEffectCollection_Update",
+        "meanNanoseconds": 5.195913463830948,
+        "stdDevNanoseconds": 0.030858447403145695,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedCountryState_NoOp",
+        "meanNanoseconds": 0.20416406293710074,
+        "stdDevNanoseconds": 0.003948182809639296,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedCountryState_Update",
+        "meanNanoseconds": 2.009261151154836,
+        "stdDevNanoseconds": 0.017365190152971628,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_NoOp",
+        "meanNanoseconds": 0.22877424955368042,
+        "stdDevNanoseconds": 0.007206613464732568,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_Update",
+        "meanNanoseconds": 2.485672425892618,
+        "stdDevNanoseconds": 0.0842423114457317,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedProvinceState_NoOp",
+        "meanNanoseconds": 0.20454203089078268,
+        "stdDevNanoseconds": 0.004922762196658626,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedProvinceState_Update",
+        "meanNanoseconds": 3.5176499684651694,
+        "stdDevNanoseconds": 0.08800539534758417,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_NoOp",
+        "meanNanoseconds": 0.5944659064213434,
+        "stdDevNanoseconds": 0.008176628017767978,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_Update",
+        "meanNanoseconds": 2.231918089091778,
+        "stdDevNanoseconds": 0.008752725109065346,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.TimeState_NoOp",
+        "meanNanoseconds": 0.20332856635962213,
+        "stdDevNanoseconds": 0.0034908528616548105,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.TimeState_Update",
+        "meanNanoseconds": 0.5510687331358591,
+        "stdDevNanoseconds": 0.012082908309694404,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.LocaleState_NoOp",
+        "meanNanoseconds": 0.40391822655995685,
+        "stdDevNanoseconds": 0.0029472211274930026,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.LocaleState_Update",
+        "meanNanoseconds": 2.735184282064438,
+        "stdDevNanoseconds": 0.0547523662829593,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.MapLensState_NoOp",
+        "meanNanoseconds": 0,
+        "stdDevNanoseconds": 0,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.MapLensState_Update",
+        "meanNanoseconds": 0.5916972245488848,
+        "stdDevNanoseconds": 0.012051163910544256,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "VisualStateConverterBenchmarks.Update",
+        "meanNanoseconds": 45466.326497395836,
+        "stdDevNanoseconds": 402.34669249424644,
+        "allocatedBytes": 18440
+      }
+    ],
+    "verdicts": {
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOwnershipState_Update": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.ProvinceOccupationState_Update": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.CountryScoreState_Update": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_NoOp": true,
+      "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_Update": false,
+      "ListVisualStateSetBenchmarks.CountryControlState_NoOp": true,
+      "ListVisualStateSetBenchmarks.CountryControlState_Update": true,
+      "ListVisualStateSetBenchmarks.CountryCharactersState_NoOp": true,
+      "ListVisualStateSetBenchmarks.CountryCharactersState_Update": true,
+      "ListVisualStateSetBenchmarks.OrgCharactersState_NoOp": true,
+      "ListVisualStateSetBenchmarks.OrgCharactersState_Update": true,
+      "ListVisualStateSetBenchmarks.OrgMapState_NoOp": true,
+      "ListVisualStateSetBenchmarks.OrgMapState_Update": true,
+      "ListVisualStateSetBenchmarks.OrgActionsState_NoOp": true,
+      "ListVisualStateSetBenchmarks.OrgActionsState_Update": true,
+      "ListVisualStateSetBenchmarks.CountryActionsState_NoOp": true,
+      "ListVisualStateSetBenchmarks.CountryActionsState_Update": true,
+      "ListVisualStateSetBenchmarks.LeaderboardState_NoOp": true,
+      "ListVisualStateSetBenchmarks.LeaderboardState_Update": true,
+      "ListVisualStateSetBenchmarks.GameLogState_NoOp": true,
+      "ListVisualStateSetBenchmarks.GameLogState_Update": true,
+      "ListVisualStateSetBenchmarks.CountryResourcesState_NoOp": true,
+      "ListVisualStateSetBenchmarks.CountryResourcesState_Update": true,
+      "ListVisualStateSetBenchmarks.VisualEffectCollection_NoOp": true,
+      "ListVisualStateSetBenchmarks.VisualEffectCollection_Update": true,
+      "ScalarVisualStateSetBenchmarks.SelectedCountryState_NoOp": false,
+      "ScalarVisualStateSetBenchmarks.SelectedCountryState_Update": true,
+      "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.SelectedOrganizationState_Update": true,
+      "ScalarVisualStateSetBenchmarks.SelectedProvinceState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.SelectedProvinceState_Update": true,
+      "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.PlayerOrganizationState_Update": true,
+      "ScalarVisualStateSetBenchmarks.TimeState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.TimeState_Update": true,
+      "ScalarVisualStateSetBenchmarks.LocaleState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.LocaleState_Update": true,
+      "ScalarVisualStateSetBenchmarks.MapLensState_NoOp": true,
+      "ScalarVisualStateSetBenchmarks.MapLensState_Update": true,
+      "VisualStateConverterBenchmarks.Update": true
+    },
+    "pass": false
+  },
+  {
+    "timestamp": "2026-07-23T21:03:44.7365285Z",
+    "mode": "compare",
+    "results": [
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_NoOp",
+        "meanNanoseconds": 92.68395105997722,
+        "stdDevNanoseconds": 0.9168096754706787,
+        "allocatedBytes": 176
+      },
+      {
+        "name": "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_Update",
+        "meanNanoseconds": 9.742948710918427,
+        "stdDevNanoseconds": 0.07815668069294832,
+        "allocatedBytes": 0
+      }
+    ],
+    "verdicts": {
+      "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_NoOp": false,
+      "DictionaryAndSetVisualStateSetBenchmarks.DiscoveredCountriesState_Update": true
+    },
+    "pass": false
+  },
+  {
+    "timestamp": "2026-07-23T21:05:26.4208907Z",
+    "mode": "compare",
+    "results": [
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedCountryState_NoOp",
+        "meanNanoseconds": 0.20573733995358148,
+        "stdDevNanoseconds": 0.006616836039225858,
+        "allocatedBytes": 0
+      },
+      {
+        "name": "ScalarVisualStateSetBenchmarks.SelectedCountryState_Update",
+        "meanNanoseconds": 1.6189750816140855,
+        "stdDevNanoseconds": 0.015153564862795767,
+        "allocatedBytes": 0
+      }
+    ],
+    "verdicts": {
+      "ScalarVisualStateSetBenchmarks.SelectedCountryState_NoOp": false,
+      "ScalarVisualStateSetBenchmarks.SelectedCountryState_Update": true
+    },
+    "pass": false
   }
 ]

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using ECS;
 using ECS.Extensions;
+using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
@@ -378,6 +379,35 @@ namespace GS.Game.Tests {
 			DateTime mar1 = new DateTime(1880, 3, 1, 0, 0, 0);
 			ResourceSystem.Update(restored, feb28, mar1, registry, order);
 			Assert.Equal(grownValue * 1.00075, restored.Get<Resource>(restoredEntity).Value, 6);
+		}
+
+		[Fact]
+		void round_trip_preserves_country_relation() {
+			var world = new World();
+			int relationEntity = world.Create();
+			world.Add(relationEntity, new CountryRelation {
+				Kind = RelationKind.Rival,
+				LeftCountryId = "France",
+				RightCountryId = "Germany"
+			});
+
+			var snapshot = Snapshot(world);
+			var restored = new World();
+			Restore(snapshot, restored);
+
+			int[] req = { TypeId<CountryRelation>.Value };
+			CountryRelation? restoredRelation = null;
+			foreach (var arch in restored.GetMatchingArchetypes(req, null)) {
+				if (arch.Count > 0) {
+					restoredRelation = arch.GetColumn<CountryRelation>()[0];
+					break;
+				}
+			}
+
+			Assert.NotNull(restoredRelation);
+			Assert.Equal(RelationKind.Rival, restoredRelation!.Value.Kind);
+			Assert.Equal("France", restoredRelation.Value.LeftCountryId);
+			Assert.Equal("Germany", restoredRelation.Value.RightCountryId);
 		}
 
 		[Fact]

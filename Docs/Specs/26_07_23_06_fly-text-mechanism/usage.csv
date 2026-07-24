@@ -1,0 +1,2 @@
+spec_id,version,stage,mode,context,start,end,provider,model,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,plan_size_kb,diff_lines,session_id
+26_07_23_06_fly-text-mechanism,1.61,plan_user_input_1,interactive,fresh,2026-07-23T10:23:55.609Z,2026-07-23T11:29:36.693Z,claude,<synthetic>,,88,6548323,79854,6.11,21.5,27670,c5185caa-f457-5df0-abb7-7b48579a85ab

@@ -7,6 +7,7 @@ using UnityEngine.UIElements;
 using VContainer;
 using GS.Main;
 using GS.Game.Commands;
+using GS.Game.Common;
 using GS.Game.Configs;
 using GS.Unity.EcsViewer;
 using GS.Unity.Common;
@@ -23,6 +24,8 @@ namespace GS.Unity.UI {
 		VisualState _state;
 		IWriteOnlyCommandAccessor _commands;
 		ILocalization _loc;
+		IFlyTextNotifier _flyText;
+		long _lastNotifiedLogSequenceId = -1;
 		ResourceConfig _resourceConfig;
 		CharacterConfig _characterConfig;
 		CharacterVisualConfig _characterVisualConfig;
@@ -66,10 +69,11 @@ namespace GS.Unity.UI {
 		readonly List<Button> _selectedCountryCharacterDebugButtons = new();
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig, IFlyTextNotifier flyText) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
+			_flyText = flyText;
 			_resourceConfig = resourceConfig;
 			_characterConfig = characterConfig;
 			_characterVisualConfig = characterVisualConfig;
@@ -307,6 +311,7 @@ namespace GS.Unity.UI {
 			RefreshSelectedProvinceDebugMenu();
 			_timeView.Refresh(_state.Time);
 			_actionLog?.Refresh(_state.GameLog);
+			_lastNotifiedLogSequenceId = HighestSequenceId(_state.GameLog);
 		}
 
 		void OnDisable() {
@@ -562,7 +567,36 @@ namespace GS.Unity.UI {
 			RefreshProvinceActionButtons();
 		}
 
-		void HandleGameLogChanged(object sender, PropertyChangedEventArgs e) => _actionLog?.Refresh(_state.GameLog);
+		void HandleGameLogChanged(object sender, PropertyChangedEventArgs e) {
+			_actionLog?.Refresh(_state.GameLog);
+			NotifyNewLogEntries();
+		}
+
+		void NotifyNewLogEntries() {
+			if (_flyText == null) { return; }
+			string playerOrgId = _state.PlayerOrganization.OrgId;
+			long maxSeen = _lastNotifiedLogSequenceId;
+			foreach (var entry in _state.GameLog.Entries) {
+				if (entry.SequenceId <= _lastNotifiedLogSequenceId) { continue; }
+				if (entry.OrgId == playerOrgId) {
+					if (entry.Kind == GameLogEntryKind.Control) {
+						_flyText.NotifyRaw(GameLogLineFormatter.BuildControlLine(entry, _loc, _countryVisualConfig, _orgVisualConfig));
+					} else if (entry.Kind == GameLogEntryKind.Opinion) {
+						_flyText.NotifyRaw(GameLogLineFormatter.BuildOpinionLine(entry, _loc, _countryVisualConfig, _orgVisualConfig));
+					}
+				}
+				if (entry.SequenceId > maxSeen) { maxSeen = entry.SequenceId; }
+			}
+			_lastNotifiedLogSequenceId = maxSeen;
+		}
+
+		static long HighestSequenceId(GameLogState state) {
+			long max = -1;
+			foreach (var entry in state.Entries) {
+				if (entry.SequenceId > max) { max = entry.SequenceId; }
+			}
+			return max;
+		}
 
 		void RefreshSelectedProvinceDebugMenu() {
 			if (_state == null) { return; }

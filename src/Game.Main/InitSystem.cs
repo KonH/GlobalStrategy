@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ECS;
+using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
@@ -30,6 +31,8 @@ namespace GS.Main {
 				world.Add(entity, new Country(entry.CountryId));
 				CreateCountryResourceEntities(world, entry, resourceConfig);
 			}
+
+			SeedCountryRelations(world, countryConfig);
 
 			// ProvinceOwnership is not seeded here — InitSystem only creates raw entity data,
 			// it does not call into other systems. GameLogic.Update seeds it via
@@ -186,6 +189,47 @@ namespace GS.Main {
 					});
 					CreateCharacterResourceEntities(world, resourceConfig, characterConfig, charEntry, rng, charEntry.CharacterId, null);
 				}
+			}
+		}
+
+		static void SeedCountryRelations(World world, CountryConfig config) {
+			var availableCountryIds = new HashSet<string>();
+			foreach (var entry in config.Countries) {
+				if (entry.IsAvailable) {
+					availableCountryIds.Add(entry.CountryId);
+				}
+			}
+
+			var seenPairs = new HashSet<(string, string)>();
+			foreach (var entry in config.Countries) {
+				if (!entry.IsAvailable) {
+					continue;
+				}
+				SeedRelationsForEntry(world, entry.CountryId, entry.HistoricalFriends, RelationKind.Friend, availableCountryIds, seenPairs);
+				SeedRelationsForEntry(world, entry.CountryId, entry.HistoricalRivals, RelationKind.Rival, availableCountryIds, seenPairs);
+			}
+		}
+
+		static void SeedRelationsForEntry(
+			World world, string countryId, List<string> otherIds, RelationKind kind,
+			HashSet<string> availableCountryIds, HashSet<(string, string)> seenPairs) {
+			foreach (var otherId in otherIds) {
+				if (otherId == countryId || !availableCountryIds.Contains(otherId)) {
+					continue;
+				}
+				string a = countryId;
+				string b = otherId;
+				if (string.CompareOrdinal(a, b) > 0) {
+					(a, b) = (b, a);
+				}
+				// First-declared-wins: config file order is stable, so if this pair was already
+				// seeded (as friend or rival) by an earlier entry, a later conflicting declaration
+				// is silently skipped rather than overwritten.
+				if (!seenPairs.Add((a, b))) {
+					continue;
+				}
+				int entity = world.Create();
+				world.Add(entity, new CountryRelation { Kind = kind, LeftCountryId = a, RightCountryId = b });
 			}
 		}
 

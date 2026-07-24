@@ -20,6 +20,7 @@
     <ProjectReference Include="../Core.Map/Core.Map.csproj" />
     <ProjectReference Include="../ECS.Core/ECS.Core.csproj" />
     <ProjectReference Include="../ECS.Core.Extensions/ECS.Core.Extensions.csproj" />
+    <ProjectReference Include="../Game.Common/Game.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

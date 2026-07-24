@@ -8,18 +8,15 @@ namespace GS.Unity.UI {
 	[RequireComponent(typeof(UIDocument))]
 	public class FlyTextNotifierDocument : MonoBehaviour, IFlyTextNotifier {
 		[SerializeField] int _topMostSortingOrder = 1000;
-		[SerializeField] float _entranceDuration = 0.2f;
-		[SerializeField] float _holdDuration = 1.5f;
-		[SerializeField] float _exitDuration = 0.5f;
-		[SerializeField] float _entranceStartScale = 0.5f;
-		[SerializeField] float _exitEndScale = 0.8f;
-		[SerializeField] float _exitMoveDownPx = 40f;
+		[SerializeField] float _fadeInDuration = 0.5f;
+		[SerializeField] float _holdDuration = 2.0f;
+		[SerializeField] float _fadeOutDuration = 0.5f;
 
 		enum Phase {
 			Idle,
-			Entrance,
+			FadeIn,
 			Hold,
-			Exit
+			FadeOut
 		}
 
 		ILocalization _loc;
@@ -43,10 +40,15 @@ namespace GS.Unity.UI {
 
 		void Start() {
 			_root = _doc.rootVisualElement.Q<VisualElement>("fly-text-root");
-			_label = _root.Q<Label>("fly-text-label");
 			if (_root == null) {
 				return;
 			}
+			_label = _root.Q<Label>("fly-text-label");
+			if (_label == null) {
+				_root = null;
+				return;
+			}
+			_label.enableRichText = true;
 			_root.style.display = DisplayStyle.None;
 			SetPickingIgnoreRecursive(_root);
 		}
@@ -63,6 +65,10 @@ namespace GS.Unity.UI {
 			_queue.Enqueue(formatted);
 		}
 
+		public void NotifyRaw(string text) {
+			_queue.Enqueue(text);
+		}
+
 		void Update() {
 			if (_root == null) {
 				return;
@@ -71,14 +77,13 @@ namespace GS.Unity.UI {
 			switch (_phase) {
 				case Phase.Idle:
 					if (_queue.Count > 0) {
-						StartEntrance(_queue.Dequeue());
+						StartFadeIn(_queue.Dequeue());
 					}
 					break;
-				case Phase.Entrance: {
+				case Phase.FadeIn: {
 					_elapsed += dt;
-					float t = Mathf.Clamp01(_elapsed / _entranceDuration);
-					float scale = Mathf.Lerp(_entranceStartScale, 1f, t);
-					_root.style.scale = new Scale(new Vector3(scale, scale, 1f));
+					float t = Mathf.Clamp01(_elapsed / _fadeInDuration);
+					_root.style.opacity = Mathf.Lerp(0f, 1f, t);
 					if (t >= 1f) {
 						_phase = Phase.Hold;
 						_elapsed = 0f;
@@ -88,18 +93,15 @@ namespace GS.Unity.UI {
 				case Phase.Hold:
 					_elapsed += dt;
 					if (_elapsed >= _holdDuration) {
-						_phase = Phase.Exit;
+						_phase = Phase.FadeOut;
 						_elapsed = 0f;
 					}
 					break;
-				case Phase.Exit: {
+				case Phase.FadeOut: {
 					_elapsed += dt;
-					float et = Mathf.Clamp01(_elapsed / _exitDuration);
-					_root.style.translate = new Translate(0, Mathf.Lerp(0, _exitMoveDownPx, et), 0);
-					float exitScale = Mathf.Lerp(1f, _exitEndScale, et);
-					_root.style.scale = new Scale(new Vector3(exitScale, exitScale, 1f));
-					_root.style.opacity = Mathf.Lerp(1f, 0f, et);
-					if (et >= 1f) {
+					float t = Mathf.Clamp01(_elapsed / _fadeOutDuration);
+					_root.style.opacity = Mathf.Lerp(1f, 0f, t);
+					if (t >= 1f) {
 						HideAndReset();
 						_phase = Phase.Idle;
 					}
@@ -108,20 +110,16 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		void StartEntrance(string text) {
+		void StartFadeIn(string text) {
 			_label.text = text;
-			_root.style.opacity = 1f;
-			_root.style.translate = new Translate(0, 0, 0);
-			_root.style.scale = new Scale(new Vector3(_entranceStartScale, _entranceStartScale, 1f));
+			_root.style.opacity = 0f;
 			_root.style.display = DisplayStyle.Flex;
-			_phase = Phase.Entrance;
+			_phase = Phase.FadeIn;
 			_elapsed = 0f;
 		}
 
 		void HideAndReset() {
 			_root.style.display = DisplayStyle.None;
-			_root.style.translate = new Translate(0, 0, 0);
-			_root.style.scale = new Scale(Vector3.one);
 			_root.style.opacity = 1f;
 		}
 

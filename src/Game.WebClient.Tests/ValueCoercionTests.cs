@@ -1,4 +1,5 @@
 using GS.Game.Commands;
+using GS.Game.Common;
 using GS.Game.WebClient.Terminal;
 using Xunit;
 

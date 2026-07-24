@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using GS.Game.Commands;
+using GS.Game.Common;
 using GS.Game.WebClient.Terminal;
 using GS.Main;
 using Xunit;

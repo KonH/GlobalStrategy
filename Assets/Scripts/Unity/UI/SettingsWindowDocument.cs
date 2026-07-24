@@ -13,6 +13,7 @@ namespace GS.Unity.UI {
 		VisualState _visualState;
 		ILocalization _loc;
 		SaveFileManager _saveFileManager;
+		IFlyTextNotifier _flyText;
 		UIDocument _doc;
 		VisualElement _root;
 
@@ -31,11 +32,12 @@ namespace GS.Unity.UI {
 		AutoSaveInterval _currentInterval = AutoSaveInterval.Monthly;
 
 		[Inject]
-		void Construct(IWriteOnlyCommandAccessor commands, VisualState visualState, ILocalization loc, SaveFileManager saveFileManager) {
+		void Construct(IWriteOnlyCommandAccessor commands, VisualState visualState, ILocalization loc, SaveFileManager saveFileManager, IFlyTextNotifier flyText) {
 			_commands = commands;
 			_visualState = visualState;
 			_loc = loc;
 			_saveFileManager = saveFileManager;
+			_flyText = flyText;
 		}
 
 		void Awake() {
@@ -116,6 +118,7 @@ namespace GS.Unity.UI {
 
 		void DeleteAllSaves() {
 			_saveFileManager?.DeleteAllSaves();
+			_flyText?.Notify("settings.delete_saves.confirmation");
 		}
 
 		void SetLocale(string locale) {

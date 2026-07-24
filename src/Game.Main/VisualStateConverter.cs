@@ -52,6 +52,7 @@ namespace GS.Main {
 			UpdateDiscoveredCountries(world, orgEntity);
 			UpdateOrgActions(world);
 			UpdateCountryActions(world, gameTimeEntity);
+			UpdateCountryRelations(world);
 			UpdateProvinceOwnership(world);
 			UpdateProvinceOccupation(world);
 			UpdateSelectedProvince(world);
@@ -621,6 +622,15 @@ namespace GS.Main {
 			string unplayableReason = poolFull ? "pool_full" : (insufficientControl ? "insufficient_control" : "");
 
 			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason);
+		}
+
+		void UpdateCountryRelations(IReadOnlyWorld world) {
+			if (!_state.SelectedCountry.IsValid) {
+				_state.SelectedCountry.Relations.Set(Array.Empty<string>(), Array.Empty<string>());
+				return;
+			}
+			var (friends, rivals) = CountryRelations.GetRelationsByCountryId(world, _state.SelectedCountry.CountryId);
+			_state.SelectedCountry.Relations.Set(friends, rivals);
 		}
 
 		void UpdateProvinceOwnership(IReadOnlyWorld world) {

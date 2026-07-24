@@ -28,6 +28,7 @@ namespace GS.Unity.UI {
 		bool _resultReady;
 		bool _lastActionSuccess;
 		CardPlayBarriersHolder _barrierHolder;
+		IFlyTextNotifier _flyText;
 
 		public bool IsPlaying => _isPlaying;
 		public event Action OnCardPlayComplete;
@@ -36,7 +37,7 @@ namespace GS.Unity.UI {
 		void Construct(VisualState state, IWriteOnlyCommandAccessor commands,
 			MapCameraController cameraController, CountryConfig domainConfig,
 			ActionConfig actionConfig, EffectConfig effectConfig,
-			ActionVisualConfig visualConfig, ILocalization loc) {
+			ActionVisualConfig visualConfig, ILocalization loc, IFlyTextNotifier flyText) {
 			_state = state;
 			_commands = commands;
 			_cameraController = cameraController;
@@ -45,6 +46,7 @@ namespace GS.Unity.UI {
 			_effectConfig = effectConfig;
 			_visualConfig = visualConfig;
 			_loc = loc;
+			_flyText = flyText;
 		}
 
 		void Awake() {
@@ -141,7 +143,6 @@ namespace GS.Unity.UI {
 			var root = _hudDocument.rootVisualElement;
 			var overlay = root.Q("card-test-overlay");
 			var cardTestCard = root.Q("card-test-card");
-			var flyText = root.Q<Label>("fly-text");
 
 			if (overlay != null) {
 				PopulateTestCard(cardTestCard, actionId);
@@ -235,35 +236,11 @@ namespace GS.Unity.UI {
 			if (success && !string.IsNullOrEmpty(discoveredCountryId)) {
 				_cameraController?.PanToCountry(discoveredCountryId);
 				await UniTask.Delay(1000);
-
-				if (flyText != null) {
-					string localizedName = _loc.Get($"country_name.{discoveredCountryId}");
-					if (string.IsNullOrEmpty(localizedName) || localizedName == $"country_name.{discoveredCountryId}") {
-						localizedName = discoveredCountryId.Replace("_", " ");
-					}
-					flyText.text = $"Discovered: {localizedName}!";
-					flyText.style.display = DisplayStyle.Flex;
-					flyText.style.opacity = 0f;
-					flyText.style.translate = new StyleTranslate(new Translate(Length.Percent(-50), Length.Percent(0)));
-
-					float t = 0f;
-					while (t < 0.5f) {
-						t += Time.deltaTime;
-						flyText.style.opacity = Mathf.Clamp01(t / 0.5f);
-						await UniTask.NextFrame();
-					}
-					flyText.style.opacity = 1f;
-
-					await UniTask.Delay(2000);
-
-					t = 0f;
-					while (t < 0.5f) {
-						t += Time.deltaTime;
-						flyText.style.opacity = 1f - Mathf.Clamp01(t / 0.5f);
-						await UniTask.NextFrame();
-					}
-					flyText.style.display = DisplayStyle.None;
+				string localizedName = _loc.Get($"country_name.{discoveredCountryId}");
+				if (string.IsNullOrEmpty(localizedName) || localizedName == $"country_name.{discoveredCountryId}") {
+					localizedName = discoveredCountryId.Replace("_", " ");
 				}
+				_flyText?.Notify("hud.discovery.confirmation", localizedName);
 			}
 
 			_state.DiscoveredCountries.ClearRecentlyDiscovered();
