@@ -95,6 +95,17 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void any_condition_with_null_members_yields_unavailable_with_no_rows_instead_of_throwing() {
+			var condition = new CompletionConditionConfig { Type = "any", Members = null! };
+
+			var (isAvailable, isAlternativeGroup, rows) = WinConditionHintProjector.Build(condition, 10);
+
+			Assert.False(isAvailable);
+			Assert.False(isAlternativeGroup);
+			Assert.Empty(rows);
+		}
+
+		[Fact]
 		void is_alternative_group_is_true_only_for_two_or_more_rows() {
 			var (_, singleIsAlternativeGroup, _) = WinConditionHintProjector.Build(Leaf("total_control", 0.75), 10);
 			Assert.False(singleIsAlternativeGroup);

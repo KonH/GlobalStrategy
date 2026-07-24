@@ -16,17 +16,21 @@ namespace GS.Main {
 			if (condition == null) {
 				return;
 			}
-			if (condition.Type == "any") {
-				foreach (var member in condition.Members) {
+			if (!CompletionConditionTypeParser.TryParse(condition.Type, out var type)) {
+				return;
+			}
+
+			if (type == CompletionConditionType.Any) {
+				foreach (var member in condition.Members ?? new List<CompletionConditionConfig>()) {
 					Flatten(member, availableCountryCount, rows);
 				}
 				return;
 			}
-			switch (condition.Type) {
-				case "total_control":
+			switch (type) {
+				case CompletionConditionType.TotalControl:
 					rows.Add(new WinConditionHintRowState(WinConditionHintKind.TotalControl, condition.Value, availableCountryCount));
 					break;
-				case "full_control_countries":
+				case CompletionConditionType.FullControlCountries:
 					rows.Add(new WinConditionHintRowState(WinConditionHintKind.FullControlCountries, condition.Value, availableCountryCount));
 					break;
 			}
