@@ -69,6 +69,12 @@ namespace GS.Unity.UI {
 		readonly List<string> _provinceDropdownCountryIds = new();
 		string _lastProvinceIdForDropdown = "";
 		readonly List<Button> _selectedCountryCharacterDebugButtons = new();
+		VisualElement _relationDebugContainer;
+		DropdownField _relationCountryDropdown;
+		Button _btnSetCountryFriend;
+		Button _btnSetCountryRival;
+		Button _btnClearCountryRelation;
+		readonly List<string> _relationDropdownCountryIds = new();
 
 		[Inject]
 		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig, IFlyTextNotifier flyText, GameSettings gameSettings) {
@@ -118,6 +124,7 @@ namespace GS.Unity.UI {
 			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _actionConfig, _actionVisualConfig, _countryVisualConfig, _orgVisualConfig);
 			_countryInfo.OnSubPanelOpened += HandleOrgSubPanelOpened;
 			_countryInfo.OnCountryActionCardClicked += HandleCountryActionCardClicked;
+			_countryInfo.OnRelatedCountryFlagClicked += HandleRelatedCountryFlagClicked;
 			_provinceInfoRoot = _root.Q("province-info");
 			_provinceInfo = new ProvinceInfoView(_provinceInfoRoot, _loc, _resourceConfig, _tooltip, _countryVisualConfig);
 			_provinceInfo.OnCountryRowClicked += HandleProvinceInfoCountryRowClicked;
@@ -217,6 +224,7 @@ namespace GS.Unity.UI {
 			_selectedProvinceDebugMenu = root.Q("selected-province-debug-menu");
 			RegisterDebugMenuToggle(_btnSelectedProvinceDebugMenu, _selectedProvinceDebugMenu, "Selected province");
 			BuildProvinceDebugUi();
+			BuildRelationDebugUi();
 
 			int availableCountryCount = _countryConfig != null ? CountAvailableCountries(_countryConfig) : 0;
 			var (_, _, winConditionRows) = WinConditionHintProjector.Build(_gameSettings?.CompletionCondition, availableCountryCount);
@@ -225,6 +233,8 @@ namespace GS.Unity.UI {
 			RebuildOrgCharDebugButtons();
 			RefreshSelectedCountryCharacterDebugButtons();
 			RefreshSelectedProvinceDebugMenu();
+			RebuildRelationCountryDropdown();
+			RefreshRelationActionButtons();
 		}
 
 		void BuildProvinceDebugUi() {
@@ -253,6 +263,34 @@ namespace GS.Unity.UI {
 			_btnResetProvinceOccupation.AddToClassList("gs-btn--small");
 			_btnResetProvinceOccupation.AddToClassList("debug-panel-button");
 			_provinceDebugContainer.Add(_btnResetProvinceOccupation);
+		}
+
+		void BuildRelationDebugUi() {
+			_relationDebugContainer = _root.Q("relation-debug-container");
+			if (_relationDebugContainer == null) { return; }
+
+			_relationCountryDropdown = new DropdownField();
+			_relationCountryDropdown.AddToClassList("debug-panel-button");
+			_relationCountryDropdown.RegisterValueChangedCallback(_ => RefreshRelationActionButtons());
+			_relationDebugContainer.Add(_relationCountryDropdown);
+
+			_btnSetCountryFriend = new Button(() => PushSetCountryRelationCommand(RelationKind.Friend)) { text = "Set friend" };
+			_btnSetCountryFriend.AddToClassList("gs-btn");
+			_btnSetCountryFriend.AddToClassList("gs-btn--small");
+			_btnSetCountryFriend.AddToClassList("debug-panel-button");
+			_relationDebugContainer.Add(_btnSetCountryFriend);
+
+			_btnSetCountryRival = new Button(() => PushSetCountryRelationCommand(RelationKind.Rival)) { text = "Set rival" };
+			_btnSetCountryRival.AddToClassList("gs-btn");
+			_btnSetCountryRival.AddToClassList("gs-btn--small");
+			_btnSetCountryRival.AddToClassList("debug-panel-button");
+			_relationDebugContainer.Add(_btnSetCountryRival);
+
+			_btnClearCountryRelation = new Button(PushClearCountryRelationCommand) { text = "Clear relation" };
+			_btnClearCountryRelation.AddToClassList("gs-btn");
+			_btnClearCountryRelation.AddToClassList("gs-btn--small");
+			_btnClearCountryRelation.AddToClassList("debug-panel-button");
+			_relationDebugContainer.Add(_btnClearCountryRelation);
 		}
 
 		void ToggleDebugPanel() {
@@ -301,6 +339,7 @@ namespace GS.Unity.UI {
 			_state.SelectedCountry.Control.PropertyChanged  += HandleControlChanged;
 			_state.SelectedCountry.Characters.PropertyChanged += HandleCharactersChanged;
 			_state.SelectedCountry.CountryActions.PropertyChanged += HandleCountryActionsChanged;
+			_state.SelectedCountry.Relations.PropertyChanged += HandleRelationsChanged;
 			_state.MapLens.PropertyChanged            += HandleLensChanged;
 			_state.OrgMap.PropertyChanged             += HandleOrgMapChanged;
 			_state.PlayerOrganization.Characters.PropertyChanged += HandleOrgCharactersChanged;
@@ -335,6 +374,7 @@ namespace GS.Unity.UI {
 			_state.SelectedCountry.Control.PropertyChanged  -= HandleControlChanged;
 			_state.SelectedCountry.Characters.PropertyChanged -= HandleCharactersChanged;
 			_state.SelectedCountry.CountryActions.PropertyChanged -= HandleCountryActionsChanged;
+			_state.SelectedCountry.Relations.PropertyChanged -= HandleRelationsChanged;
 			_state.MapLens.PropertyChanged            -= HandleLensChanged;
 			_state.OrgMap.PropertyChanged             -= HandleOrgMapChanged;
 			_state.PlayerOrganization.Characters.PropertyChanged -= HandleOrgCharactersChanged;
@@ -350,6 +390,7 @@ namespace GS.Unity.UI {
 			}
 			if (_countryInfo != null) { _countryInfo.OnSubPanelOpened -= HandleOrgSubPanelOpened; }
 			if (_countryInfo != null) { _countryInfo.OnCountryActionCardClicked -= HandleCountryActionCardClicked; }
+			if (_countryInfo != null) { _countryInfo.OnRelatedCountryFlagClicked -= HandleRelatedCountryFlagClicked; }
 			if (_provinceInfo != null) { _provinceInfo.OnCountryRowClicked -= HandleProvinceInfoCountryRowClicked; }
 		}
 
@@ -410,6 +451,13 @@ namespace GS.Unity.UI {
 			}
 			_commands.Push(new SelectCountryCommand(countryId));
 			_commands.Push(new ChangeLensCommand { Lens = MapLens.Political });
+		}
+
+		void HandleRelatedCountryFlagClicked(string countryId) {
+			if (string.IsNullOrEmpty(countryId)) {
+				return;
+			}
+			_commands.Push(new SelectCountryCommand(countryId));
 		}
 
 		void HandleSelectedProvinceResourcesChanged(object sender, PropertyChangedEventArgs e) {
@@ -475,6 +523,8 @@ namespace GS.Unity.UI {
 			RefreshCountryViews();
 			RefreshControlDebugRow();
 			RefreshSelectedCountryCharacterDebugButtons();
+			RebuildRelationCountryDropdown();
+			RefreshRelationActionButtons();
 		}
 
 		void RefreshSelectedCountryCharacterDebugButtons() {
@@ -530,6 +580,12 @@ namespace GS.Unity.UI {
 		}
 
 		void HandleCountryActionsChanged(object sender, PropertyChangedEventArgs e) => RefreshCountryViews();
+
+		void HandleRelationsChanged(object sender, PropertyChangedEventArgs e) {
+			RefreshCountryViews();
+			RebuildRelationCountryDropdown();
+			RefreshRelationActionButtons();
+		}
 
 		void HandleCountryActionCardClicked(string actionId, string targetCharId, VisualElement el) {
 			if (_cardPlayAnimator == null || _state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) { return; }
@@ -666,6 +722,49 @@ namespace GS.Unity.UI {
 			return index >= 0 && index < _provinceDropdownCountryIds.Count ? _provinceDropdownCountryIds[index] : "";
 		}
 
+		void RebuildRelationCountryDropdown() {
+			if (_relationCountryDropdown == null || _countryConfig == null || _state == null) { return; }
+			_relationDropdownCountryIds.Clear();
+			var choices = new List<string>();
+			string selectedCountryId = _state.SelectedCountry.CountryId;
+			var friends = _state.SelectedCountry.Relations.Friends;
+			var rivals = _state.SelectedCountry.Relations.Rivals;
+			foreach (var entry in _countryConfig.Countries) {
+				if (!entry.IsAvailable || entry.CountryId == selectedCountryId) { continue; }
+				_relationDropdownCountryIds.Add(entry.CountryId);
+				string suffix = "";
+				if (ContainsCountry(friends, entry.CountryId)) {
+					suffix = " (Friend)";
+				} else if (ContainsCountry(rivals, entry.CountryId)) {
+					suffix = " (Rival)";
+				}
+				choices.Add(GetCountryDisplayName(entry.CountryId) + suffix);
+			}
+			_relationCountryDropdown.choices = choices;
+			_relationCountryDropdown.index = choices.Count > 0 ? 0 : -1;
+		}
+
+		static bool ContainsCountry(IReadOnlyList<string> countryIds, string countryId) {
+			for (int i = 0; i < countryIds.Count; i++) {
+				if (countryIds[i] == countryId) { return true; }
+			}
+			return false;
+		}
+
+		void RefreshRelationActionButtons() {
+			bool countrySelected = _state != null && _state.SelectedCountry.IsValid;
+			bool hasTarget = countrySelected && _relationCountryDropdown != null && _relationCountryDropdown.index >= 0;
+			_btnSetCountryFriend?.SetEnabled(hasTarget);
+			_btnSetCountryRival?.SetEnabled(hasTarget);
+			_btnClearCountryRelation?.SetEnabled(hasTarget);
+		}
+
+		string GetSelectedRelationDropdownCountryId() {
+			if (_relationCountryDropdown == null) { return ""; }
+			int index = _relationCountryDropdown.index;
+			return index >= 0 && index < _relationDropdownCountryIds.Count ? _relationDropdownCountryIds[index] : "";
+		}
+
 		string GetProvinceOwner(string provinceId) {
 			if (_state == null || string.IsNullOrEmpty(provinceId)) { return ""; }
 			return _state.ProvinceOwnership.OwnerByProvinceId.TryGetValue(provinceId, out var ownerId) ? ownerId : "";
@@ -703,6 +802,22 @@ namespace GS.Unity.UI {
 			string provinceId = _state.SelectedProvince.ProvinceId;
 			if (string.IsNullOrEmpty(provinceId)) { return; }
 			_commands.Push(new DebugClearProvinceOccupationCommand { ProvinceId = provinceId });
+		}
+
+		void PushSetCountryRelationCommand(RelationKind kind) {
+			if (_state == null || _commands == null) { return; }
+			string countryId = _state.SelectedCountry.CountryId;
+			string otherCountryId = GetSelectedRelationDropdownCountryId();
+			if (string.IsNullOrEmpty(countryId) || string.IsNullOrEmpty(otherCountryId)) { return; }
+			_commands.Push(new DebugSetCountryRelationCommand { CountryIdA = countryId, CountryIdB = otherCountryId, Kind = kind });
+		}
+
+		void PushClearCountryRelationCommand() {
+			if (_state == null || _commands == null) { return; }
+			string countryId = _state.SelectedCountry.CountryId;
+			string otherCountryId = GetSelectedRelationDropdownCountryId();
+			if (string.IsNullOrEmpty(countryId) || string.IsNullOrEmpty(otherCountryId)) { return; }
+			_commands.Push(new DebugClearCountryRelationCommand { CountryIdA = countryId, CountryIdB = otherCountryId });
 		}
 
 		void PushDiscoverAllCountriesCommand() {

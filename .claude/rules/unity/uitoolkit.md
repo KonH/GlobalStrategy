@@ -188,7 +188,7 @@ Rule: put a USS class in the stylesheet of the **document that owns the containe
 
 **`border-style: dashed` is not supported.** Neither the USS shorthand (`border-style: dashed`), per-side USS properties (`border-top-style: dashed`), nor the C# `IStyle` API (no `borderTopStyle` property, no `BorderStyle` enum) are implemented. There is no way to achieve dashed borders in UI Toolkit on this version.
 
-**Use `gap` not `margin-left` for button row spacing.** `margin-left: Xpx` on all children of a flex row shifts the *first* child too, offsetting the entire row from the container edge. Use `gap: Xpx` on the container — it only inserts space *between* items.
+**`gap`/`row-gap`/`column-gap` are not supported at all in this Unity version — the USS property is silently ignored, in USS files and inline styles alike (previous guidance in this doc recommending `gap` was wrong).** For row/column spacing use `margin-left`/`margin-top` on every child **except the first**, not on the container: `margin-left: Xpx` on *all* children of a flex row shifts the first child too, offsetting the entire row from the container edge. For statically-authored UXML children, apply the margin to all but the first child's own class. For dynamically-created elements (a C# loop building `VisualElement`s), set `element.style.marginLeft = X` only when the loop index is greater than 0.
 
 **Use `opacity: 0` to hide while keeping layout space.** `DisplayStyle.None` removes the element from layout flow, causing siblings to reflow. `Visibility.Hidden` is supposed to preserve space but can be unreliable. `style.opacity = 0` is the most reliable way to make an element invisible while preserving its layout footprint.
 
@@ -340,9 +340,9 @@ In a `flex-direction: column` container, `align-items: stretch` makes children f
 
 If any child has `align-self` set — including via a shared stylesheet — it overrides `align-items: stretch` from the parent. Check for leftover `align-self: flex-end` or similar on elements being moved into a new layout container.
 
-### gap shorthand may not parse in UXML inline styles
+### `gap` is not supported — in USS classes or UXML inline styles
 
-`gap: 80px` in a UXML `style="..."` attribute can be silently ignored. Prefer `margin-right`/`margin-left` on individual children, or declare the gap in a USS class.
+`gap: 80px`, whether declared in a USS class or a UXML `style="..."` attribute, is silently ignored in this Unity version — it is not just an inline-style parsing quirk. Always use `margin-right`/`margin-left` on individual children (skip the margin on the first child) instead of relying on `gap` anywhere. See the "USS / C# limitations" section above for the full pattern, including the dynamic-C#-loop case.
 
 ### Absolute-only children give wrapper zero layout height
 

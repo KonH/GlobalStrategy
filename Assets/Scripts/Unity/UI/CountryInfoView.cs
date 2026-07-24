@@ -19,6 +19,12 @@ namespace GS.Unity.UI {
 		readonly Button? _charsToggleBtn;
 		readonly VisualElement? _actionsSlide;
 		readonly Button? _actionsToggleBtn;
+		readonly VisualElement? _friendsRowBlock;
+		readonly Label? _friendsHeader;
+		readonly VisualElement? _friendsFlags;
+		readonly VisualElement? _rivalsRowBlock;
+		readonly Label? _rivalsHeader;
+		readonly VisualElement? _rivalsFlags;
 		readonly ILocalization _loc;
 		readonly ResourcesView _resourcesView;
 		readonly CharactersView _charactersView;
@@ -33,6 +39,7 @@ namespace GS.Unity.UI {
 
 		public event Action<bool>? OnSubPanelOpened;
 		public event Action<string, string, VisualElement>? OnCountryActionCardClicked;
+		public event Action<string>? OnRelatedCountryFlagClicked;
 		public CountryActionsView? ActionsView => _actionsView;
 		public void OpenChars() => SetCharsOpen(true);
 
@@ -48,6 +55,12 @@ namespace GS.Unity.UI {
 			_charsToggleBtn = root.Q<Button>("chars-toggle-btn");
 			_actionsSlide = root.Q("actions-slide");
 			_actionsToggleBtn = root.Q<Button>("actions-toggle-btn");
+			_friendsRowBlock = root.Q("friends-row-block");
+			_friendsHeader = root.Q<Label>("friends-header");
+			_friendsFlags = root.Q("friends-flags");
+			_rivalsRowBlock = root.Q("rivals-row-block");
+			_rivalsHeader = root.Q<Label>("rivals-header");
+			_rivalsFlags = root.Q("rivals-flags");
 			_loc = loc;
 			_tooltip = tooltip;
 			_resourcesView = new ResourcesView(root.Q("resources-container"), loc, resourceConfig, tooltip);
@@ -95,6 +108,10 @@ namespace GS.Unity.UI {
 						_flagElement.style.display = DisplayStyle.None;
 					}
 				}
+				if (_friendsHeader != null) { _friendsHeader.text = _loc.Get("hud.friends"); }
+				if (_rivalsHeader != null) { _rivalsHeader.text = _loc.Get("hud.rivals"); }
+				BuildRelationsRow(_friendsFlags, _friendsRowBlock, selected.Relations.Friends);
+				BuildRelationsRow(_rivalsFlags, _rivalsRowBlock, selected.Relations.Rivals);
 			}
 
 			if (selected.CountryId != _lastCountryId) {
@@ -270,6 +287,41 @@ namespace GS.Unity.UI {
 			incomeRow.AddToClassList("tooltip-effect-positive");
 			root.Add(incomeRow);
 
+			return root;
+		}
+
+		void BuildRelationsRow(VisualElement? container, VisualElement? rowBlock, IReadOnlyList<string> countryIds) {
+			if (container == null || rowBlock == null) {
+				return;
+			}
+			container.Clear();
+			rowBlock.style.display = countryIds.Count == 0 ? DisplayStyle.None : DisplayStyle.Flex;
+			for (int i = 0; i < countryIds.Count; i++) {
+				var countryId = countryIds[i];
+				var flagEl = new VisualElement();
+				flagEl.AddToClassList("relations-flag");
+				if (i > 0) {
+					flagEl.style.marginLeft = 8;
+				}
+				var sprite = _countryVisualConfig?.Find(countryId)?.flag;
+				if (sprite != null) {
+					flagEl.style.backgroundImage = new StyleBackground(sprite);
+				}
+				flagEl.RegisterCallback<PointerUpEvent>(e => {
+					if (e.button == 0 && flagEl.ContainsPoint(e.localPosition)) {
+						OnRelatedCountryFlagClicked?.Invoke(countryId);
+					}
+				});
+				_tooltip.RegisterTrigger(flagEl, $"relation-{countryId}-{i}", _ => BuildRelationTooltip(countryId), new HashSet<string>());
+				container.Add(flagEl);
+			}
+		}
+
+		VisualElement BuildRelationTooltip(string countryId) {
+			var root = new VisualElement();
+			var header = new Label(_loc.Get($"country_name.{countryId}"));
+			header.AddToClassList("tooltip-header");
+			root.Add(header);
 			return root;
 		}
 

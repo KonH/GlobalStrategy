@@ -114,5 +114,28 @@ namespace GS.Game.Tests {
 			state.Set(removed, "Germany");
 			Assert.Equal(2, fireCount);
 		}
+
+		[Fact]
+		public void country_relations_state_no_op_set_does_not_fire_property_changed() {
+			var state = new CountryRelationsState();
+			var friends = new List<string> { "Great_Britain", "France" };
+			var rivals = new List<string> { "Germany", "Russia" };
+			state.Set(friends, rivals);
+			int fireCount = 0;
+			state.PropertyChanged += (_, __) => fireCount++;
+
+			var reorderedFriends = new List<string> { "France", "Great_Britain" };
+			var reorderedRivals = new List<string> { "Russia", "Germany" };
+			state.Set(reorderedFriends, reorderedRivals);
+			Assert.Equal(0, fireCount);
+
+			var changedFriends = new List<string> { "France", "Great_Britain", "Germany" };
+			state.Set(changedFriends, reorderedRivals);
+			Assert.Equal(1, fireCount);
+
+			var changedRivals = new List<string> { "Russia" };
+			state.Set(changedFriends, changedRivals);
+			Assert.Equal(2, fireCount);
+		}
 	}
 }
