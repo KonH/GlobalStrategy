@@ -151,6 +151,30 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void eviction_reduces_an_opponents_control_across_all_of_its_effect_entities_in_the_country() {
+			// OrgB's own HQ (France) carries a "base_{orgId}" ControlEffect seeded at init
+			// (10) *in addition to* whatever a later ChangeControlCommand accumulates under a
+			// separate "permanent_{orgId}_{countryId}" effect (here +20, for 30 total). Eviction
+			// must reduce OrgB's real total there (30), not just the "permanent_" entity (20).
+			GameLogic logic = BuildLogic(FullControlCondition(4), maxControlPool: 100);
+			GiveControl(logic, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.ExtraCountry2, 100);
+			GiveControl(logic, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.HqA, 90); // + pre-existing 10 base = 100
+			GiveControl(logic, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.ExtraCountry1, 100);
+			GiveControl(logic, MultiOrgTestSupport.OrgB, MultiOrgTestSupport.HqB, 20); // + pre-existing 10 base = 30
+			logic.Update(0f);
+
+			logic.Commands.Push(new DebugForceCompletionConditionCommand {
+				TargetOrgId = MultiOrgTestSupport.OrgA,
+				ConditionType = "full_control_countries",
+				Value = 4 // all 4 countries: forces the solver into OrgB's own HQ (France)
+			});
+			logic.Update(0f);
+
+			Assert.Equal(100, GetControl(logic.World, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.HqB));
+			Assert.Equal(0, GetControl(logic.World, MultiOrgTestSupport.OrgB, MultiOrgTestSupport.HqB));
+		}
+
+		[Fact]
 		void forcing_a_bot_org_to_the_condition_completes_the_game_as_a_player_loss() {
 			GameLogic logic = BuildLogic(TotalControlCondition(0.5));
 

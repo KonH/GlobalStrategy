@@ -34,17 +34,17 @@ namespace GS.Unity.UI {
 				_header.text = string.Format(_loc.Get(key), player.DisplayName);
 			}
 
-			RefreshLeaderboard(leaderboard);
+			RefreshLeaderboard(leaderboard, player.OrgId);
 			RefreshComparison(comparisons, player, leaderboard);
 		}
 
-		void RefreshLeaderboard(LeaderboardState leaderboard) {
+		void RefreshLeaderboard(LeaderboardState leaderboard, string playerOrgId) {
 			if (_leaderboardList == null) {
 				return;
 			}
 			_leaderboardList.Clear();
 			foreach (var entry in leaderboard.Organizations) {
-				_leaderboardList.Add(CreateLeaderboardRow(entry));
+				_leaderboardList.Add(CreateLeaderboardRow(entry, entry.EntityId == playerOrgId));
 			}
 			if (_leaderboardEmpty != null) {
 				_leaderboardEmpty.style.display = leaderboard.Organizations.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
@@ -52,9 +52,12 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		VisualElement CreateLeaderboardRow(LeaderboardEntryState entry) {
+		VisualElement CreateLeaderboardRow(LeaderboardEntryState entry, bool isPlayer) {
 			var row = new VisualElement();
 			row.AddToClassList("leaderboard-row");
+			if (isPlayer) {
+				row.AddToClassList("leaderboard-row--player");
+			}
 
 			var place = new Label(entry.Place.ToString(CultureInfo.InvariantCulture));
 			place.AddToClassList("leaderboard-row-place");
@@ -103,6 +106,9 @@ namespace GS.Unity.UI {
 		VisualElement CreateComparisonRow(EndGameComparisonRowState row) {
 			var element = new VisualElement();
 			element.AddToClassList("leaderboard-row");
+			if (row.IsPlayer) {
+				element.AddToClassList("leaderboard-row--player");
+			}
 
 			var place = new Label(row.Place.ToString(CultureInfo.InvariantCulture));
 			place.AddToClassList("leaderboard-row-place");

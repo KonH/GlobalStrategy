@@ -12655,20 +12655,20 @@ MonoBehaviour:
   - Key: select_org.win_conditions.full_control_countries
     Value: 'Полностью контролируйте {0} из {1} стран'
   - Key: end_game.comparison.CommitteeOf300
-    Value: Комитет 300 (мифология)
+    Value: Комитет 300
   - Key: end_game.comparison.TrilateralCommission
-    Value: Трёхсторонняя комиссия (мифология)
+    Value: Трёхсторонняя комиссия
   - Key: end_game.comparison.BilderbergGroup
-    Value: Бильдербергский клуб (мифология)
+    Value: Бильдербергский клуб
   - Key: end_game.comparison.DeepState
-    Value: Глубинное государство (мифология)
+    Value: Глубинное государство
   - Key: end_game.comparison.Reptilians
-    Value: Рептилоиды (мифология)
+    Value: Рептилоиды
   - Key: end_game.comparison.SkullAndBones
-    Value: Череп и кости (мифология)
+    Value: Череп и кости
   - Key: end_game.comparison.NewWorldOrder
-    Value: Новый мировой порядок (мифология)
+    Value: Новый мировой порядок
   - Key: end_game.comparison.KnightsTemplar
-    Value: Тамплиеры (мифология)
+    Value: Тамплиеры
   - Key: end_game.comparison.BohemianGrove
-    Value: Богемская роща (мифология)
+    Value: Богемская роща

@@ -183,6 +183,35 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void force_resource_recompute_marker_bypasses_daily_gate_and_is_consumed_once() {
+			var world = CreateWorldWithResource("Russia", "test_resource", 100.0, out int re);
+			int effectEntity = world.Create();
+			world.Add(effectEntity, new ResourceOwner("Russia"));
+			world.Add(effectEntity, new ResourceLink("test_resource"));
+			world.Add(effectEntity, new ResourceEffect {
+				EffectId = "stub",
+				Value = 999.0,
+				PayType = PayType.Daily
+			});
+			world.Add(effectEntity, new ResourceCollector { CollectorId = "stub_add_ten" });
+			world.Add(effectEntity, new ForceResourceRecompute());
+
+			var registry = new ResourceCollectorRegistry();
+			registry.Register("stub_add_ten", new StubFixedDeltaCollector(10.0));
+
+			// previousTime == currentTime: no day/month boundary at all — without the marker
+			// this Daily effect would be skipped entirely (see daily_effect_not_applied_within_same_day).
+			ResourceSystem.Update(world, Jan1, Jan1, registry, new[] { "test_resource" });
+
+			Assert.Equal(110.0, world.Get<Resource>(re).Value);
+			Assert.False(world.Has<ForceResourceRecompute>(effectEntity));
+
+			// One-shot: a second same-tick call without re-adding the marker must not reapply.
+			ResourceSystem.Update(world, Jan1, Jan1, registry, new[] { "test_resource" });
+			Assert.Equal(110.0, world.Get<Resource>(re).Value);
+		}
+
+		[Fact]
 		void resourceid_update_order_resolves_dependency_before_dependent() {
 			var world = new World();
 			int reA = world.Create();

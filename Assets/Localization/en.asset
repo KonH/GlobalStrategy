@@ -12655,20 +12655,20 @@ MonoBehaviour:
   - Key: select_org.win_conditions.full_control_countries
     Value: 'Fully control {0} of {1} countries'
   - Key: end_game.comparison.CommitteeOf300
-    Value: The Committee of 300 (folklore)
+    Value: The Committee of 300
   - Key: end_game.comparison.TrilateralCommission
-    Value: The Trilateral Commission (folklore)
+    Value: The Trilateral Commission
   - Key: end_game.comparison.BilderbergGroup
-    Value: The Bilderberg Group (folklore)
+    Value: The Bilderberg Group
   - Key: end_game.comparison.DeepState
-    Value: The Deep State (folklore)
+    Value: The Deep State
   - Key: end_game.comparison.Reptilians
-    Value: The Reptilians (folklore)
+    Value: The Reptilians
   - Key: end_game.comparison.SkullAndBones
-    Value: Skull and Bones (folklore)
+    Value: Skull and Bones
   - Key: end_game.comparison.NewWorldOrder
-    Value: The New World Order (folklore)
+    Value: The New World Order
   - Key: end_game.comparison.KnightsTemplar
-    Value: The Knights Templar (folklore)
+    Value: The Knights Templar
   - Key: end_game.comparison.BohemianGrove
-    Value: The Bohemian Grove (folklore)
+    Value: The Bohemian Grove

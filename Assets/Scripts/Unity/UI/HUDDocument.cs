@@ -794,18 +794,28 @@ namespace GS.Unity.UI {
 				var capturedRow = row;
 				string label = FormatWinConditionLabel(capturedRow);
 
-				var winBtn = new Button(() => PushForceCompletionCondition(GetPlayerOrgId(), capturedRow));
+				var winBtn = new Button();
 				winBtn.text = $"Win ({label})";
 				winBtn.AddToClassList("gs-btn");
 				winBtn.AddToClassList("gs-btn--small");
 				winBtn.AddToClassList("debug-panel-button");
+				winBtn.RegisterCallback<PointerUpEvent>(e => {
+					if (e.button == 0 && winBtn.ContainsPoint(e.localPosition)) {
+						PushForceCompletionCondition(GetPlayerOrgId(), capturedRow);
+					}
+				});
 				orgCharDebugContainer.Add(winBtn);
 
-				var loseBtn = new Button(() => PushForceCompletionCondition(GetOpponentOrgId(), capturedRow));
+				var loseBtn = new Button();
 				loseBtn.text = $"Lose ({label})";
 				loseBtn.AddToClassList("gs-btn");
 				loseBtn.AddToClassList("gs-btn--small");
 				loseBtn.AddToClassList("debug-panel-button");
+				loseBtn.RegisterCallback<PointerUpEvent>(e => {
+					if (e.button == 0 && loseBtn.ContainsPoint(e.localPosition)) {
+						PushForceCompletionCondition(GetOpponentOrgId(), capturedRow);
+					}
+				});
 				orgCharDebugContainer.Add(loseBtn);
 			}
 
