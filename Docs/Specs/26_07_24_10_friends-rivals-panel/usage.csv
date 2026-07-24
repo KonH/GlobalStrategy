@@ -1,2 +1,3 @@
 spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,plan_size_kb,prd_size_kb,diff_lines,session_id
-26_07_24_10_friends-rivals-panel,1.75,spec_user_input_1,interactive,fresh,2026-07-24T11:13:41.730Z,2026-07-24T12:31:08.090Z,claude,claude-sonnet-5,high,0.5602338,26,1353386,10276,7.91,11.7,0.03,7334,93fa5274-0714-555f-99b2-92791351cab0
+26_07_24_10_friends-rivals-panel,1.76,spec_user_input_1,interactive,fresh,2026-07-24T11:13:41.730Z,2026-07-24T12:31:08.090Z,claude,claude-sonnet-5,high,0.5602338,26,1353386,10276,7.91,15.14,0.03,7411,93fa5274-0714-555f-99b2-92791351cab0
+26_07_24_10_friends-rivals-panel,1.76,spec_user_input_4,interactive,fresh,2026-07-24T13:02:32.569Z,2026-07-24T13:05:29.195Z,claude,claude-sonnet-5,high,2.5943715000000003,82,7344685,26048,7.91,15.14,0.03,7411,93fa5274-0714-555f-99b2-92791351cab0
