@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Handle Codex Feature Issues - poll GitHub and drive approved feature issues to reviewable PRs.
+"""Handle Labeled Issues (Codex) - polls GitHub and executes the owner's prompts from
+`codex`-labeled issues and PRs.
 
 Meant to run on a schedule (cron / Task Scheduler) in the user's own environment, not in a
 CI runner or remote agent session - it uses the local `gh` and Codex CLI authentication on
@@ -8,36 +9,50 @@ the machine that owns this dedicated clone.
 Cheap discovery, expensive work gated behind it: this script does the "is there anything to
 do at all" check itself, via plain `gh` calls (no LLM usage). `codex exec` is only invoked
 when discovery actually finds something.
-Conversation happens entirely on the ISSUE (not the PR) across the whole spec -> plan ->
-merge lifecycle, driven by the owner's comments and reactions - see
-.codex/skills/codex-feature-issue/SKILL.md for the Codex state machine.
 
-A candidate issue (open, labeled `codex`, authored by the owner) is picked up if either:
-  - its `updatedAt` falls inside the lookback window (covers new issues and new comments), or
-  - any reaction from the owner on one of this automation's own comments (identified by the
-    `<!-- codex-automation -->` marker) has a `created_at` inside the window - reactions do
-    NOT bump `updatedAt` on GitHub's side, so this needs its own separate check per open
-    candidate, not just a timestamp filter on the issue list itself.
+The label set is the whole state machine (no local state file, no timestamps):
 
-Single-instance lock: acquires an exclusive OS lock on Logs/handle_codex_feature_issues.lock
-before doing anything else. If a previous run is still in flight when the next cron tick fires,
-this run exits immediately instead of racing it - the lock releases automatically even if a
-prior run crashed, since it's tied to the OS file descriptor, not manually cleared state.
+  codex                  the owner opted an issue/PR in; its description + owner comments
+                         are the prompt to execute
+  codex-in-progress      a run is actively working it (skipped by discovery)
+  codex-needs-attention  waiting on the owner (skipped by discovery)
+  codex-complete         prompt fully done (skipped by discovery)
 
-Skipping a locked-out run must never cost a window of activity: the lookback cutoff is not
-just "now minus --since-hours/--since-minutes", it's also clamped to the timestamp of the
-last run that actually completed discovery (Logs/handle_codex_feature_issues.state.json). A run
-that gets skipped because the lock is held simply never advances that timestamp, so the next
-run that does acquire the lock looks back at least as far as the last successful check -
-covering whatever activity happened during the skipped window - instead of the fixed rolling
-window silently missing anything older than --since-minutes/--since-hours by the time it
-finally runs.
+A candidate is any open, owner-authored, `codex`-labeled issue/PR carrying none of the three
+status labels. The owner resumes a needs-attention/complete item by replying and removing that
+label. See .codex/skills/codex-issue/SKILL.md for the per-item lifecycle the CLI run follows.
 
-Requires `gh` authenticated as the repo owner (`gh auth login`), the `codex` label already
-created in the repo (`gh label create codex`), and `codex login status` succeeding. It uses
-gpt-5.6-sol at high reasoning effort by default; override those values on the command line.
+Each candidate gets its own `codex exec` invocation, started from a guaranteed-clean checkout
+of its valid branch: `main` for an issue (force-reset to origin/main, untracked files
+removed), the PR's head branch for a PR. The script prepares that checkout itself, so the CLI
+run never starts from a stale or dirty tree - and a batch of candidates needing different
+branches can't contaminate each other.
 
-Logs to Logs/handle_codex_feature_issues.log (gitignored, same as Unity's own Logs/ folder) with
+Single-instance lock: acquires an exclusive OS lock on Logs/handle_issues_codex.lock before
+doing anything else. If a previous run is still in flight when the next cron tick fires, this
+run exits immediately instead of racing it - the lock releases automatically even if a prior
+run crashed, since it's tied to the OS file descriptor, not manually cleared state.
+
+Stale-run reclaim: because the lock guarantees no other run is active, any item still labeled
+`codex-in-progress` at startup is leftover from a crashed/interrupted run. It's re-queued (the
+label removed, a `<!-- codex-automation:reclaim -->` comment posted as the attempt counter) up
+to twice; a third consecutive crash parks it with `codex-needs-attention` instead of retrying
+forever. A real owner comment resets the counter.
+
+Usage limits are NOT crashes: when the run's error output reports a usage/rate limit, this
+script records a retry time (now + --limit-backoff-minutes; Codex reports no machine-readable
+reset time) as an aware-UTC timestamp in Logs/handle_issues_codex.limit.json, silently removes
+the `codex-in-progress` labels the interrupted run left behind (no reclaim comment, no
+crash-retry consumed, no error noise on the item), and exits 0. Every later run compares that
+timestamp against the current time - both aware UTC, so the machine's local timezone never
+skews it - and skips entirely (before any GitHub call) until the window has passed.
+
+Requires `gh` authenticated as the repo owner (`gh auth login`), the labels above already
+created in the repo (see handle_issues.sh for the `gh label create` commands), and
+`codex login status` succeeding. It uses gpt-5.6-sol at high reasoning effort by default;
+override those values on the command line.
+
+Logs to Logs/handle_issues_codex.log (gitignored, same as Unity's own Logs/ folder) with
 size-based auto-rotation - no unbounded append, no manual cleanup needed. Override with
 --log-file/--log-max-bytes/--log-backup-count if you want it elsewhere.
 
@@ -45,12 +60,11 @@ Codex runs with `exec --json`; every event is written to the rotating log for di
 
 Usage (from project root):
   python scripts/automation/codex/handle_issues.py
-  python scripts/automation/codex/handle_issues.py --since-hours 2
-  python scripts/automation/codex/handle_issues.py --since-minutes 15 --model gpt-5.6-sol --effort high
+  python scripts/automation/codex/handle_issues.py --model gpt-5.6-sol --effort high
 
-Shared discovery/locking/state logic lives in scripts/automation/common/issue_handler.py - this
-file only supplies what's specific to driving Codex: CLI invocation, exec --json event parsing,
-and prompt text.
+Shared discovery/locking/reclaim logic lives in scripts/automation/common/issue_handler.py -
+this file only supplies what's specific to driving Codex: CLI invocation, exec --json event
+parsing, and prompt text.
 """
 
 import argparse
@@ -61,18 +75,15 @@ import re
 import shutil
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from common.issue_handler import (  # noqa: E402
-    acquire_lock, compute_cutoff, find_candidates, reset_to_main_unless_in_progress,
-    save_last_check, setup_logging,
+    acquire_lock, candidate_branch, checkout_clean, find_candidates, limit_active,
+    reclaim_stale_in_progress, release_in_progress_silently, save_limit_retry_at,
+    setup_logging,
 )
-from scripts.stats.collect_usage import record_usage_row_codex  # noqa: E402
-
-USAGE_STAGE_RE = re.compile(r"^USAGE_STAGE:\s*(\S+)\s+(spec|plan)\s*$", re.MULTILINE)
 
 MODEL = "gpt-5.6-sol"
 EFFORT = "high"
@@ -81,14 +92,25 @@ SANDBOX_CHOICES = ["read-only", "workspace-write", "danger-full-access"]
 LABEL = "codex"
 MARKER = "<!-- codex-automation -->"
 
-DEFAULT_LOG_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_codex_feature_issues.log"
+DEFAULT_LOG_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_issues_codex.log"
 DEFAULT_LOG_MAX_BYTES = 5 * 1024 * 1024  # 5 MB per file
 DEFAULT_LOG_BACKUP_COUNT = 5  # + the active file = 30 MB max on disk
-DEFAULT_LOCK_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_codex_feature_issues.lock"
-DEFAULT_STATE_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_codex_feature_issues.state.json"
+DEFAULT_LOCK_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_issues_codex.lock"
 DEFAULT_GH_CONFIG_DIR = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "codex-gh-config"
+DEFAULT_LIMIT_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_issues_codex.limit.json"
+DEFAULT_LIMIT_BACKOFF_MINUTES = 60
 
-logger = logging.getLogger("handle_codex_feature_issues")
+logger = logging.getLogger("handle_issues_codex")
+
+# Codex reports subscription/usage limits in error/failed events or plain-text output (no
+# machine-readable reset time). Detection deliberately looks ONLY at error output (non-JSON
+# lines and error/failed events), never at agent/tool text - an issue whose prompt merely
+# talks about usage limits must not trigger a false positive.
+LIMIT_TEXT_RE = re.compile(r"(usage limit|rate limit|quota exceeded)", re.IGNORECASE)
+
+
+def detect_session_limit(error_texts):
+    return bool(LIMIT_TEXT_RE.search("\n".join(error_texts)))
 
 
 def find_codex_executable():
@@ -121,23 +143,24 @@ def build_codex_environment():
     return environment
 
 
-def build_prompt(candidates):
-    sections = [
-        f"[ISSUE #{c['number']}] {c['url']} (reason: {c['reason']})\n"
-        f"{c['title']}\n\n{c['body'] or '(empty body)'}"
-        for c in candidates
-    ]
-    joined = "\n\n---\n\n".join(sections)
+def build_prompt(candidate):
+    if candidate["kind"] == "pr":
+        kind = "PR"
+        header = f"[PR #{candidate['number']}] {candidate['url']} (head branch: {candidate['headRefName']})"
+        checkout = f"the PR's head branch '{candidate['headRefName']}'"
+    else:
+        kind = "ISSUE"
+        header = f"[ISSUE #{candidate['number']}] {candidate['url']}"
+        checkout = "'main'"
     return (
-        "Read and follow .codex/skills/codex-feature-issue/SKILL.md.\n\n"
-        "The following GitHub issues are labeled 'codex', authored by the repo owner, and "
-        "have new activity. Process each one per that skill - investigate its full "
-        "comment/reaction history yourself, this list only tells you WHICH issues need "
-        "attention, not WHAT changed. Do not re-scan the repo for other candidates, this list "
-        "is already the full set. In your final agent message, end with exactly one line: "
-        "AUTOMATION_RESULT: COMPLETED if every candidate reached its intended stopping point, "
-        "or AUTOMATION_RESULT: BLOCKED if a missing prerequisite prevented that transition:\n\n"
-        f"{joined}"
+        "Read and follow .codex/skills/codex-issue/SKILL.md.\n\n"
+        f"The following GitHub {kind.lower()} is labeled 'codex', authored by the repo owner, "
+        "and carries no automation status label. Process it per that skill. The working tree "
+        f"is already a guaranteed-clean, up-to-date checkout of {checkout}. The description "
+        "shown here may be stale - re-read the item's live description and comment thread "
+        "yourself. Do not process any other issues or PRs, this item is this run's only "
+        "candidate:\n\n"
+        f"{header}\n{candidate['title']}\n\n{candidate['body'] or '(empty body)'}"
     )
 
 
@@ -150,20 +173,16 @@ def main():
                         help="Codex sandbox mode. Use danger-full-access only on an isolated automation host.")
     parser.add_argument("--dangerously-skip-permissions", action="store_true",
                         help="Deprecated alias for --sandbox danger-full-access.")
-    parser.add_argument("--since-hours", type=float, default=0.0,
-                         help="Lookback window, hours component. Combines with --since-minutes; "
-                              "if both are 0 (the default), falls back to a 1-hour window.")
-    parser.add_argument("--since-minutes", type=float, default=0.0,
-                         help="Lookback window, minutes component - use this alone for sub-hour "
-                              "cron intervals, e.g. --since-minutes 15.")
     parser.add_argument("--log-file", type=Path, default=DEFAULT_LOG_FILE)
     parser.add_argument("--log-max-bytes", type=int, default=DEFAULT_LOG_MAX_BYTES)
     parser.add_argument("--log-backup-count", type=int, default=DEFAULT_LOG_BACKUP_COUNT)
     parser.add_argument("--lock-file", type=Path, default=DEFAULT_LOCK_FILE)
-    parser.add_argument("--state-file", type=Path, default=DEFAULT_STATE_FILE,
-                         help="Tracks the last completed discovery check, so a run skipped due "
-                              "to lock contention doesn't shrink the effective lookback window "
-                              "for the run after it.")
+    parser.add_argument("--limit-file", type=Path, default=DEFAULT_LIMIT_FILE,
+                        help="Stores the aware-UTC timestamp until which runs are skipped "
+                             "after a usage-limit hit.")
+    parser.add_argument("--limit-backoff-minutes", type=int, default=DEFAULT_LIMIT_BACKOFF_MINUTES,
+                        help="How long to pause after a usage-limit hit (Codex reports no "
+                             "machine-readable reset time).")
     args = parser.parse_args()
     if args.dangerously_skip_permissions:
         args.sandbox = "danger-full-access"
@@ -172,24 +191,45 @@ def main():
 
     lock = acquire_lock(logger, args.lock_file)
     if lock is None:
-        logger.info("Another instance is already running - exiting. Not updating the last-check "
-                     "timestamp, so the next run that acquires the lock still covers this window.")
+        logger.info("Another instance is already running - exiting.")
         return
 
-    reset_to_main_unless_in_progress(logger)
+    if limit_active(logger, args.limit_file):
+        return
 
-    now, cutoff = compute_cutoff(logger, args.state_file, args.since_hours, args.since_minutes)
-    candidates = find_candidates(LABEL, MARKER, cutoff)
+    reclaim_stale_in_progress(logger, LABEL, MARKER)
+    candidates = find_candidates(LABEL)
 
     if not candidates:
-        logger.info(f"No '{LABEL}'-labeled issues with new activity since {cutoff.isoformat()} - nothing to do.")
-        save_last_check(args.state_file, now)
+        logger.info(f"No '{LABEL}'-labeled items without a status label - nothing to do.")
         return
 
-    prompt = build_prompt(candidates)
-    logger.info(f"Found {len(candidates)} candidate(s) - invoking codex exec.")
+    logger.info(f"Found {len(candidates)} candidate(s).")
+    exit_code = 0
+    for candidate in candidates:
+        branch = candidate_branch(candidate)
+        checkout_clean(logger, branch)
+        logger.info(f"Processing {candidate['kind']} #{candidate['number']} from clean "
+                    f"'{branch}' - invoking codex exec.")
+        returncode, error_texts = run_codex(build_prompt(candidate), args)
+        if returncode != 0:
+            exit_code = returncode
+        if detect_session_limit(error_texts):
+            retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
+            save_limit_retry_at(args.limit_file, retry_at)
+            release_in_progress_silently(logger, LABEL)
+            logger.warning(f"Usage limit hit - pausing runs until {retry_at.isoformat()}. This "
+                           "is a planned pause, not a failure (exit 0); interrupted and "
+                           "remaining items stay in the candidate pool without consuming a "
+                           "crash retry.")
+            sys.exit(0)
+    sys.exit(exit_code)
 
-    run_start = datetime.now(timezone.utc).isoformat()
+
+def run_codex(prompt, args):
+    """Runs one codex exec invocation to completion, streaming its events into the log.
+    Returns (returncode, error_texts) - error_texts is the CLI's error output only (non-JSON
+    lines plus error/failed events), the input for usage-limit detection."""
     codex_args = build_codex_arguments(args.model, args.effort, args.sandbox)
     process = subprocess.Popen(
         codex_args,
@@ -204,8 +244,7 @@ def main():
     )
     process.stdin.write(prompt)
     process.stdin.close()
-    automation_result = None
-    agent_messages = []
+    error_texts = []
     for line in process.stdout:
         line = line.rstrip()
         if not line:
@@ -213,49 +252,21 @@ def main():
         try:
             event = json.loads(line)
         except json.JSONDecodeError:
+            error_texts.append(line)  # non-JSON output = CLI error text, e.g. a limit message
             logger.info(f"[codex exec] {line}")
             continue
-        item = event.get("item", {})
-        if event.get("type") == "item.completed" and item.get("type") == "agent_message":
-            text = item.get("text", "")
-            agent_messages.append(text)
-            match = re.search(r"^AUTOMATION_RESULT:\s*(COMPLETED|BLOCKED)\s*$", text, re.MULTILINE)
-            if match:
-                automation_result = match.group(1)
+        event_type = str(event.get("type", ""))
+        if "error" in event_type or "failed" in event_type:
+            error_texts.append(json.dumps(event, ensure_ascii=False))
         logger.info("[codex exec] %s", json.dumps(event, ensure_ascii=False))
     process.wait()
     logger.info(f"codex exec exited with code {process.returncode}.")
-
-    record_usage_stats_rows(agent_messages, run_start)
-
-    if process.returncode != 0:
-        sys.exit(process.returncode)
-    if automation_result != "COMPLETED":
-        logger.error("Codex did not complete the automation transition (result: %s). "
-                     "Leaving the last-check timestamp unchanged for retry.", automation_result or "missing")
-        sys.exit(1)
-    save_last_check(args.state_file, now)
-    sys.exit(0)
-
-
-def record_usage_stats_rows(agent_messages, run_start):
-    """Scans the run's agent messages for USAGE_STAGE markers (see
-    .codex/skills/codex-feature-issue/SKILL.md) and records one usage.csv row per
-    match, via the newest rollout file for this repo written since run_start - the
-    wrapper has no finer-grained per-issue breakdown available, matching the
-    acceptance of imprecision already accepted for multi-spec transcript segments
-    elsewhere in this feature."""
-    matches = USAGE_STAGE_RE.findall("\n".join(agent_messages))
-    for spec_dir, stage in matches:
-        try:
-            record_usage_row_codex(spec_dir=spec_dir, stage=stage, mode="automated", since_iso=run_start)
-        except Exception as error:  # usage-stats recording must never abort/fail the run
-            logger.warning(f"failed to record usage stats row for {spec_dir}/{stage}: {error}")
+    return process.returncode, error_texts
 
 
 if __name__ == "__main__":
     try:
         main()
     except Exception:
-        logger.exception("handle_codex_feature_issues.py failed")
+        logger.exception("handle_issues.py failed")
         sys.exit(1)
