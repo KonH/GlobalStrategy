@@ -14,7 +14,7 @@ This repository is both a game and a case study in **structured AI-driven softwa
 
 - **Secret organization gameplay** — pick an organization (not a country), operating from its HQ nation, and expand control over the world map.
 - **Historical 1880 map** — 160+ countries reconstructed from historical GeoJSON, subdivided into provinces with mutable runtime ownership; four map lenses (Political, Organization, Geographic, Province).
-- **Card-driven actions** — per-country action card hands with costs, success rolls, cooldowns, and deck-building rules; discover countries, gain control, sway characters' opinions.
+- **Card-driven actions** — per-country action card hands with costs, success rolls, and deck-building rules; discover countries, gain control, sway characters' opinions.
 - **Characters & opinion** — each country has AI-generated character portraits (rulers, generals, diplomats) whose opinion of your organization you can influence.
 - **Living simulation** — game time with speed controls, monthly income, resource effects, autosaves, full save/load; localized in English and Russian.
 

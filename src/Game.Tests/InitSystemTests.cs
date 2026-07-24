@@ -47,7 +47,9 @@ namespace GS.Game.Tests {
 			public WorldSnapshot Deserialize(string json) => _store[json];
 		}
 
-		static GameLogic BuildLogic(IPersistentStorage? storage = null, ISnapshotSerializer? serializer = null, GameSettings? gameSettingsOverride = null) {
+		static GameLogic BuildLogic(
+			IPersistentStorage? storage = null, ISnapshotSerializer? serializer = null, GameSettings? gameSettingsOverride = null,
+			ActionConfig? actionConfigOverride = null, CharacterConfig? characterConfigOverride = null) {
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
 					new CountryEntry { CountryId = "Great_Britain", DisplayName = "Great Britain", IsAvailable = true },
@@ -98,7 +100,9 @@ namespace GS.Game.Tests {
 				storage: storage,
 				serializer: serializer,
 				initialOrganizationId: "Illuminati",
-				province: new StaticConfig<ProvinceConfig>(provinceConfig));
+				province: new StaticConfig<ProvinceConfig>(provinceConfig),
+				action: actionConfigOverride != null ? new StaticConfig<ActionConfig>(actionConfigOverride) : null,
+				character: characterConfigOverride != null ? new StaticConfig<CharacterConfig>(characterConfigOverride) : null);
 			return new GameLogic(ctx);
 		}
 
@@ -403,6 +407,81 @@ namespace GS.Game.Tests {
 
 			Assert.Equal(recruitsBeforeSave, GetResourceValue(loadedLogic.World, "Great_Britain", "recruits"));
 			Assert.Equal(lastDeltaBeforeSave, GetEffectValue(loadedLogic.World, "Great_Britain", "recruits"));
+		}
+
+		[Fact]
+		void make_friend_and_make_rival_never_populate_initial_hand_since_opinion_starts_at_zero() {
+			const string targetRole = "diplomacy_advisor";
+			var characterConfig = new CharacterConfig {
+				Roles = new List<CharacterRoleDefinition> { new CharacterRoleDefinition { RoleId = targetRole } },
+				CountryPools = new List<CountryCharacterPool> {
+					new CountryCharacterPool {
+						CountryId = "Great_Britain",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[targetRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "advisor_gb" } }
+						}
+					},
+					new CountryCharacterPool {
+						CountryId = "France",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[targetRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "advisor_fr" } }
+						}
+					}
+				}
+			};
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 3 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
+						ActionId = "make_friend",
+						OwnerType = "country",
+						TargetRole = targetRole,
+						DeckCopies = 3,
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "opinion" },
+									new ExpressionNode { Type = "value", Value = 30 }
+								}
+							}
+						},
+						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } }
+					},
+					new ActionDefinition {
+						ActionId = "make_rival",
+						OwnerType = "country",
+						TargetRole = targetRole,
+						DeckCopies = 3,
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "opinion" },
+									new ExpressionNode { Type = "value", Value = 30 }
+								}
+							}
+						},
+						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } }
+					}
+				}
+			};
+
+			// Must not throw now that ExpressionContext.Opinion/.HasSuitableRelationTarget are
+			// wired into CreateCountryActionEntities.
+			var logic = BuildLogic(actionConfigOverride: actionConfig, characterConfigOverride: characterConfig);
+			logic.Update(0f);
+
+			int[] handReq = { TypeId<GameAction>.Value, TypeId<CardInHand>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(handReq, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				for (int i = 0; i < arch.Count; i++) {
+					Assert.NotEqual("make_friend", actions[i].ActionId);
+					Assert.NotEqual("make_rival", actions[i].ActionId);
+				}
+			}
 		}
 	}
 }

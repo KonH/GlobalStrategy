@@ -582,7 +582,7 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId) { continue; }
-					var entry = BuildEntry(actions[i].ActionId, hands[i].SlotIndex, true, orgControl, usedTotal);
+					var entry = BuildEntry(world, orgId, countryId, actions[i].ActionId, hands[i].SlotIndex, true, orgControl, usedTotal);
 					if (entry != null) { hand.Add(entry); }
 				}
 			}
@@ -595,7 +595,7 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId) { continue; }
-					var entry = BuildEntry(actions[i].ActionId, -1, false, orgControl, usedTotal);
+					var entry = BuildEntry(world, orgId, countryId, actions[i].ActionId, -1, false, orgControl, usedTotal);
 					if (entry != null) { deck.Add(entry); }
 				}
 			}
@@ -606,20 +606,34 @@ namespace GS.Main {
 		}
 
 		ActionCardEntry? BuildEntry(
+			IReadOnlyWorld world, string orgId, string countryId,
 			string actionId, int slotIndex, bool isInHand,
 			int orgControl, int usedTotal) {
 			var def = _actionConfig?.Find(actionId);
 			if (def == null) { return null; }
 
-			var ctx = new ExpressionContext { Control = orgControl };
+			string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
+			double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
+			double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
+			var ctx = new ExpressionContext { Control = orgControl, Opinion = opinion, HasSuitableRelationTarget = hasSuitableTarget };
 
-			bool insufficientControl = false;
+			bool conditionFailed = false;
+			string failedReason = "";
 			foreach (var cond in def.Conditions) {
-				if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { insufficientControl = true; break; }
+				if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
+					conditionFailed = true;
+					string fieldType = cond.Members.Count > 0 ? cond.Members[0].Type : "";
+					failedReason = fieldType switch {
+						"opinion" => "insufficient_opinion",
+						"hasSuitableRelationTarget" => "no_suitable_target",
+						_ => "insufficient_control"
+					};
+					break;
+				}
 			}
 			bool poolFull = actionId == "sphere_of_pressure" && usedTotal >= 100;
-			bool isUnplayable = insufficientControl || poolFull;
-			string unplayableReason = poolFull ? "pool_full" : (insufficientControl ? "insufficient_control" : "");
+			bool isUnplayable = conditionFailed || poolFull;
+			string unplayableReason = poolFull ? "pool_full" : (conditionFailed ? failedReason : "");
 
 			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason);
 		}

@@ -250,23 +250,23 @@ This migration is intentionally scoped to `Core.Configs.IO` only, per explicit u
 
 ### Agent Steps
 
-- [ ] Add `src/Game.Systems/CharacterQuery.cs` with the extracted, now-`public`/`IReadOnlyWorld`-based `GetTargetCharacterByCountryAndRole`; remove the private copy from `CreateActionEffectSystem.cs` and update its one call site.
-- [ ] Add `GetSuitableRelationCandidates`/`HasSuitableRelationTarget` to `src/Game.Systems/CountryRelations.cs`.
-- [ ] Add `ExpressionContext.HasSuitableRelationTarget` and the `"hasSuitableRelationTarget"` case to `src/Game.Configs/ExpressionNode.cs`.
-- [ ] Wire `ctx.Opinion`/`ctx.HasSuitableRelationTarget` at all four sites: `ActionPlayability.cs::Evaluate`, `DrawCardSystem.cs::DrawCountryCards`, `InitSystem.cs::CreateCountryActionEntities`, `VisualStateConverter.cs::BuildEntry` (including `BuildEntry`'s new `orgId`/`countryId` parameters and both call-site updates).
-- [ ] Add `SetCountryRelationEffectParams` to `src/Game.Configs/EffectConfig.cs` plus its `ActionEffectDefinitionListConverter` case.
-- [ ] Migrate `Core.Configs.IO` off System.Text.Json onto Newtonsoft (§14): update `FileConfig.cs`/`StringConfig.cs` to use `JsonConvert.DeserializeObject`; delete `ActionEffectDefinitionListConverter.cs` and `ConfigJsonOptions.cs`; update `Core.Configs.IO.csproj`'s package reference from `System.Text.Json` to `Newtonsoft.Json` 13.0.3.
-- [ ] Add `make_friend_effect`/`make_rival_effect` to `Assets/Configs/effect_config.json`.
-- [ ] Add `make_friend`/`make_rival` to `Assets/Configs/action_config.json`.
-- [ ] Add `SetCountryRelationEffect` struct to `src/Game.Components/CountryRelation.cs`; add the `CreateActionEffectSystem` dispatch branch.
-- [ ] Add `src/Game.Systems/SetCountryRelationSystem.cs`; wire `SetCountryRelationSystem.Update(_world, _proximityEntity, _rng);` into `GameLogic.Update` right after the existing `DiscoverCountrySystem.Update` call.
-- [ ] Add `RelationSetApplied` to `src/Game.Components/GameLogEffects.cs`; emit it from `SetCountryRelationSystem` after each successful `SetRelation` call.
-- [ ] Apply the `BuildEntry`/`CountryActionsView` reason-code precision fix (§11): new `"insufficient_opinion"`/`"no_suitable_target"` reason codes, generalized threshold-extraction helper, matching locale keys.
-- [ ] Add the 6 new locale keys to `Assets/Localization/en.asset` and `ru.asset`.
-- [ ] Generate card art for `make_friend`/`make_rival` (256x384, matching existing style) via the image-generation workflow; write matching `.meta` sprite-slice files; add both entries to `Assets/Configs/ActionVisualConfig.asset`.
-- [ ] Delete the two dead CSS blocks (`Assets/UI/HUD/CountryInfo/CountryInfo.uss` lines 72-86) and drop "cooldowns," from `README.md` line 17.
-- [ ] Add/extend tests per the Tests section below.
-- [ ] Run `dotnet test src/GlobalStrategy.Core.sln`, then `dotnet build src/GlobalStrategy.Core.sln -c Release` to refresh the Unity-consumed assemblies under `Assets/Plugins/Core/`.
+- [x] Add `src/Game.Systems/CharacterQuery.cs` with the extracted, now-`public`/`IReadOnlyWorld`-based `GetTargetCharacterByCountryAndRole`; remove the private copy from `CreateActionEffectSystem.cs` and update its one call site.
+- [x] Add `GetSuitableRelationCandidates`/`HasSuitableRelationTarget` to `src/Game.Systems/CountryRelations.cs`.
+- [x] Add `ExpressionContext.HasSuitableRelationTarget` and the `"hasSuitableRelationTarget"` case to `src/Game.Configs/ExpressionNode.cs`.
+- [x] Wire `ctx.Opinion`/`ctx.HasSuitableRelationTarget` at all four sites: `ActionPlayability.cs::Evaluate`, `DrawCardSystem.cs::DrawCountryCards`, `InitSystem.cs::CreateCountryActionEntities`, `VisualStateConverter.cs::BuildEntry` (including `BuildEntry`'s new `orgId`/`countryId` parameters and both call-site updates).
+- [x] Add `SetCountryRelationEffectParams` to `src/Game.Configs/EffectConfig.cs` plus its `ActionEffectDefinitionListConverter` case.
+- [x] Migrate `Core.Configs.IO` off System.Text.Json onto Newtonsoft (§14): update `FileConfig.cs`/`StringConfig.cs` to use `JsonConvert.DeserializeObject`; delete `ActionEffectDefinitionListConverter.cs` and `ConfigJsonOptions.cs`; update `Core.Configs.IO.csproj`'s package reference from `System.Text.Json` to `Newtonsoft.Json` 13.0.3.
+- [x] Add `make_friend_effect`/`make_rival_effect` to `Assets/Configs/effect_config.json`.
+- [x] Add `make_friend`/`make_rival` to `Assets/Configs/action_config.json`.
+- [x] Add `SetCountryRelationEffect` struct to `src/Game.Components/CountryRelation.cs`; add the `CreateActionEffectSystem` dispatch branch.
+- [x] Add `src/Game.Systems/SetCountryRelationSystem.cs`; wire `SetCountryRelationSystem.Update(_world, _proximityEntity, _rng);` into `GameLogic.Update` right after the existing `DiscoverCountrySystem.Update` call.
+- [x] Add `RelationSetApplied` to `src/Game.Components/GameLogEffects.cs`; emit it from `SetCountryRelationSystem` after each successful `SetRelation` call.
+- [x] Apply the `BuildEntry`/`CountryActionsView` reason-code precision fix (§11): new `"insufficient_opinion"`/`"no_suitable_target"` reason codes, generalized threshold-extraction helper, matching locale keys.
+- [x] Add the 6 new locale keys to `Assets/Localization/en.asset` and `ru.asset`.
+- [x] Add `make_friend`/`make_rival` entries to `Assets/Configs/ActionVisualConfig.asset` (placeholder art reusing existing sprites — spec's Out of Scope explicitly permits placeholder art; no new image generated).
+- [x] Delete the two dead CSS blocks (`Assets/UI/HUD/CountryInfo/CountryInfo.uss`) and drop "cooldowns," from `README.md` line 17.
+- [x] Add/extend tests per the Tests section below.
+- [x] Run `dotnet test src/GlobalStrategy.Core.sln`, then `dotnet build src/GlobalStrategy.Core.sln -c Release` to refresh the Unity-consumed assemblies under `Assets/Plugins/Core/`.
 
 ### User Steps
 
