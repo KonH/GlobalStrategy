@@ -29,7 +29,7 @@ namespace GS.Unity.DI {
 						_botSession.Logic.LoadState(latest.SaveName);
 						Debug.Log($"[DevAutoLoad] No transition args set — auto-loading save: {latest.SaveName}");
 					} catch (Exception e) {
-						Debug.LogWarning($"[DevAutoLoad] Failed to auto-load save '{latest.SaveName}': {e.Message}");
+						Debug.LogWarning($"[DevAutoLoad] Failed to auto-load save '{latest.SaveName}': {e}");
 					}
 				}
 			}

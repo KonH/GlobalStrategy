@@ -38,15 +38,18 @@ namespace GS.Game.Systems {
 				ResourceLink[] links = arch.GetColumn<ResourceLink>();
 				ResourceEffect[] effects = arch.GetColumn<ResourceEffect>();
 				ResourceCollector[] collectors = arch.GetColumn<ResourceCollector>();
+				int[] entities = arch.Entities;
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (links[i].ResourceId != resourceId) {
 						continue;
 					}
 					var effect = effects[i];
+					bool forced = world.Has<ForceResourceRecompute>(entities[i]);
 					bool shouldApply = effect.PayType == PayType.Instant
 						|| (effect.PayType == PayType.Monthly && isMonthBoundary)
-						|| (effect.PayType == PayType.Daily && isDayBoundary);
+						|| (effect.PayType == PayType.Daily && isDayBoundary)
+						|| forced;
 					if (!shouldApply) {
 						continue;
 					}
@@ -71,6 +74,7 @@ namespace GS.Game.Systems {
 
 			var toApply = new List<(string OwnerId, string ResourceId, double Value, bool ClampToZero, int EffectEntity)>();
 			var toDestroy = new List<int>();
+			var toUnmark = new List<int>();
 
 			foreach (Archetype arch in world.GetMatchingArchetypes(effectRequired, null)) {
 				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
@@ -84,9 +88,14 @@ namespace GS.Game.Systems {
 					}
 
 					var effect = effects[i];
+					bool forced = world.Has<ForceResourceRecompute>(entities[i]);
+					if (forced) {
+						toUnmark.Add(entities[i]);
+					}
 					bool shouldApply = effect.PayType == PayType.Instant
 						|| (effect.PayType == PayType.Monthly && isMonthBoundary)
-						|| (effect.PayType == PayType.Daily && isDayBoundary);
+						|| (effect.PayType == PayType.Daily && isDayBoundary)
+						|| forced;
 					if (!shouldApply) {
 						continue;
 					}
@@ -146,6 +155,13 @@ namespace GS.Game.Systems {
 
 			foreach (int e in toDestroy) {
 				world.Destroy(e);
+			}
+			foreach (int e in toUnmark) {
+				// An Instant effect entity may be in both toDestroy and toUnmark — skip it if
+				// toDestroy already removed it from the world.
+				if (world.IsAlive(e) && world.Has<ForceResourceRecompute>(e)) {
+					world.Remove<ForceResourceRecompute>(e);
+				}
 			}
 		}
 	}

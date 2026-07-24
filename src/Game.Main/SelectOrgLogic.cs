@@ -20,14 +20,19 @@ namespace GS.Main {
 		public SelectOrgLogic(
 			IConfigSource<GS.Game.Configs.CountryConfig> countryConfig,
 			IConfigSource<OrganizationConfig> orgConfig,
-			ResourceConfig resourceConfig) {
+			ResourceConfig resourceConfig,
+			IConfigSource<GameSettings> gameSettingsConfig) {
 			Commands = (IWriteOnlyCommandAccessor)_commandAccessor;
 			_resourceConfig = resourceConfig;
 
 			var config = countryConfig.Load();
+			int availableCountryCount = 0;
 			foreach (var entry in config.Countries) {
 				int entity = _world.Create();
 				_world.Add(entity, new Country(entry.CountryId));
+				if (entry.IsAvailable) {
+					availableCountryCount++;
+				}
 			}
 
 			var orgs = orgConfig.Load();
@@ -37,6 +42,11 @@ namespace GS.Main {
 				hqIds.Add(org.HqCountryId);
 			}
 			HqCountryIds = hqIds;
+
+			var gameSettings = gameSettingsConfig.Load();
+			var (isAvailable, isAlternativeGroup, rows) = WinConditionHintProjector.Build(
+				gameSettings.CompletionCondition, availableCountryCount);
+			VisualState.WinConditionHint.Set(isAvailable, isAlternativeGroup, rows);
 		}
 
 		public string GetOrgIdForHq(string hqCountryId) {

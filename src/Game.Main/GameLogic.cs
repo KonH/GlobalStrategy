@@ -42,6 +42,7 @@ namespace GS.Main {
 		public ActionConfig ActionConfig { get; private set; } = null!;
 		public EffectConfig EffectConfig { get; private set; } = null!;
 		public ProvinceConfig ProvinceConfig { get; private set; } = null!;
+		public GameSettings GameSettings { get; private set; } = null!;
 		public IReadOnlyList<BotFeatureConfigEntry> BotFeatures { get; private set; } = null!;
 		public int MaxControlPool { get; private set; }
 		public bool IsCompleted => _gameCompletionEntity >= 0
@@ -66,6 +67,7 @@ namespace GS.Main {
 			EffectConfig = _effectConfig;
 			ProvinceConfig = context.Province.Load();
 			var settings = context.GameSettings.Load();
+			GameSettings = settings;
 			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId,
 				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig);
 			_speedMultipliers = settings.SpeedMultipliers;
@@ -145,6 +147,9 @@ namespace GS.Main {
 			}
 			if (_commandAccessor.ReadDebugDiscoverAllCountriesCommand().Count > 0) {
 				ApplyDebugDiscoverAllCountries();
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugForceCompletionConditionCommand().AsSpan()) {
+				ApplyDebugForceCompletionCondition(cmd.TargetOrgId, cmd.ConditionType, cmd.Value);
 			}
 			foreach (var cmd in _commandAccessor.ReadSelectProvinceCommand().AsSpan()) {
 				ApplySelectProvince(cmd.ProvinceId);
@@ -593,6 +598,227 @@ namespace GS.Main {
 				int entity = _world.Create();
 				_world.Add(entity, new DiscoveredCountry { OrgId = viewOrgId, CountryId = countryId });
 			}
+		}
+
+		// Debug-only completion forcer: pushes a target org over a single flattened
+		// completion-condition leaf (see WinConditionHintProjector for the same flattening
+		// used to label these debug buttons). Reduces the most-control opponent(s) in a
+		// country first to free room before granting the target org control there, so it
+		// never silently no-ops when opponents already occupy the country's control pool.
+		void ApplyDebugForceCompletionCondition(string targetOrgId, string conditionType, double value) {
+			_context.Logger?.LogDebug($"[DebugForceCompletion] received: target='{targetOrgId}' conditionType='{conditionType}' value={value}");
+			if (string.IsNullOrEmpty(targetOrgId) || !CompletionConditionTypeParser.TryParse(conditionType, out var type)) {
+				_context.Logger?.LogDebug($"[DebugForceCompletion] aborted: invalid target or conditionType='{conditionType}'");
+				return;
+			}
+
+			var countryIds = new List<string>(GameCompletionSystem.GetAvailableCountryIds(_world));
+			if (countryIds.Count == 0) {
+				_context.Logger?.LogDebug("[DebugForceCompletion] aborted: no available countries");
+				return;
+			}
+			countryIds.Sort(StringComparer.Ordinal);
+
+			switch (type) {
+				case CompletionConditionType.TotalControl:
+					ForceTotalControl(targetOrgId, value, countryIds);
+					break;
+				case CompletionConditionType.FullControlCountries:
+					ForceFullControlCountries(targetOrgId, (int)value, countryIds);
+					break;
+			}
+
+			SettleOrgScores($"target='{targetOrgId}' conditionType='{conditionType}' value={value}");
+			_context.Logger?.LogDebug($"[DebugForceCompletion] done: target='{targetOrgId}' IsCompleted={IsCompleted}");
+		}
+
+		void ForceTotalControl(string targetOrgId, double threshold, List<string> countryIds) {
+			int totalCapacity = countryIds.Count * MaxControlPool;
+			int requiredTotal = (int)Math.Ceiling(threshold * totalCapacity - 1e-9);
+
+			Dictionary<string, int> controlByCountry = OrgMetrics.GetControlByCountry(_world, targetOrgId, countryIds);
+			int currentTotal = 0;
+			foreach (int v in controlByCountry.Values) { currentTotal += v; }
+			int remaining = requiredTotal - currentTotal;
+			_context.Logger?.LogDebug($"[DebugForceCompletion] total_control: threshold={threshold} requiredTotal={requiredTotal} currentTotal={currentTotal} remaining={remaining}");
+			if (remaining <= 0) {
+				_context.Logger?.LogDebug("[DebugForceCompletion] total_control: already satisfied, no-op");
+				return;
+			}
+
+			foreach (string countryId in countryIds) {
+				if (remaining <= 0) { break; }
+				controlByCountry.TryGetValue(countryId, out int targetHere);
+				int addHere = Math.Min(remaining, MaxControlPool - targetHere);
+				if (addHere <= 0) { continue; }
+				ForceControlInCountry(targetOrgId, countryId, addHere);
+				remaining -= addHere;
+			}
+		}
+
+		void ForceFullControlCountries(string targetOrgId, int requiredCountryCount, List<string> countryIds) {
+			Dictionary<string, int> controlByCountry = OrgMetrics.GetControlByCountry(_world, targetOrgId, countryIds);
+			int currentFullCount = 0;
+			foreach (int v in controlByCountry.Values) {
+				if (v >= MaxControlPool) { currentFullCount++; }
+			}
+			int neededCountries = requiredCountryCount - currentFullCount;
+			_context.Logger?.LogDebug($"[DebugForceCompletion] full_control_countries: required={requiredCountryCount} currentFullCount={currentFullCount} neededCountries={neededCountries}");
+			if (neededCountries <= 0) {
+				_context.Logger?.LogDebug("[DebugForceCompletion] full_control_countries: already satisfied, no-op");
+				return;
+			}
+
+			foreach (string countryId in countryIds) {
+				if (neededCountries <= 0) { break; }
+				controlByCountry.TryGetValue(countryId, out int targetHere);
+				if (targetHere >= MaxControlPool) { continue; }
+				ForceControlInCountry(targetOrgId, countryId, MaxControlPool - targetHere);
+				neededCountries--;
+			}
+		}
+
+		// Frees room by deducting from the most-control opponent(s) in the country first
+		// (ties broken ordinally for determinism), then grants the target org's increment.
+		void ForceControlInCountry(string targetOrgId, string countryId, int needed) {
+			if (needed <= 0) { return; }
+			int freeRoom = MaxControlPool - GetTotalControlInCountry(countryId);
+			if (freeRoom < needed) {
+				int deficit = needed - freeRoom;
+				foreach (var (opponentOrgId, opponentValue) in GetOtherOrgsControlDescending(countryId, targetOrgId)) {
+					if (deficit <= 0) { break; }
+					int reduceBy = Math.Min(opponentValue, deficit);
+					// Not ApplyChangeControl: an org's control in a country can span multiple
+					// ControlEffect entities (e.g. its own HQ's "base_{orgId}" seed effect
+					// alongside a "permanent_{orgId}_{countryId}" one from prior gameplay).
+					// ApplyChangeControl only ever touches the "permanent_" one, which would
+					// silently under-evict — this reduces across all of the org's effects here.
+					ReduceOrgControlInCountry(opponentOrgId, countryId, reduceBy);
+					deficit -= reduceBy;
+					_context.Logger?.LogDebug($"[DebugForceCompletion] evicted '{opponentOrgId}' by {reduceBy} in '{countryId}' to make room for '{targetOrgId}'");
+				}
+			}
+			ApplyChangeControl(targetOrgId, countryId, needed);
+			_context.Logger?.LogDebug($"[DebugForceCompletion] granted '{targetOrgId}' +{needed} control in '{countryId}'");
+		}
+
+		// Reduces total ControlEffect value across ALL of orgId's effect entities in
+		// countryId (not just the "permanent_" one) by `amount`, deterministically ordered
+		// by EffectId. Entries are collected before mutating — Destroy/Get are structural or
+		// row-level changes that must not run while GetMatchingArchetypes is still enumerating.
+		void ReduceOrgControlInCountry(string orgId, string countryId, int amount) {
+			if (amount <= 0) { return; }
+			var entries = new List<(int Entity, string EffectId, int Value)>();
+			int[] req = { TypeId<ControlEffect>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
+				int[] entities = arch.Entities;
+				for (int i = 0; i < arch.Count; i++) {
+					if (effects[i].OrgId == orgId && effects[i].CountryId == countryId) {
+						entries.Add((entities[i], effects[i].EffectId, effects[i].Value));
+					}
+				}
+			}
+			entries.Sort((a, b) => string.CompareOrdinal(a.EffectId, b.EffectId));
+
+			int remaining = amount;
+			foreach (var (entity, _, value) in entries) {
+				if (remaining <= 0) { break; }
+				int reduceBy = Math.Min(value, remaining);
+				int newVal = value - reduceBy;
+				if (newVal <= 0) {
+					_world.Destroy(entity);
+				} else {
+					ref ControlEffect fx = ref _world.Get<ControlEffect>(entity);
+					fx.Value = newVal;
+				}
+				remaining -= reduceBy;
+			}
+		}
+
+		// Debug-only score settle: org_score is a Daily-gated collector-driven resource
+		// (OrgScoreCollector), so it only recomputes from live ControlEffect state on a real
+		// day-boundary tick. A debug-forced control change doesn't advance GameTime, and once
+		// GameCompletionSystem completes the game this same tick, GameLogic.Update never runs
+		// again — so without this, org_score would stay permanently stale at its pre-force
+		// value. Marks every org_score effect entity for an out-of-band recompute (bypassing
+		// the Daily gate via ForceResourceRecompute) and re-runs ResourceSystem.Update with
+		// previousTime == currentTime so no other Monthly/Daily effect double-applies.
+		void SettleOrgScores(string logContext) {
+			var orgIds = new List<string>();
+			int[] orgReq = { TypeId<Organization>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(orgReq, null)) {
+				Organization[] orgs = arch.GetColumn<Organization>();
+				for (int i = 0; i < arch.Count; i++) { orgIds.Add(orgs[i].OrganizationId); }
+			}
+
+			var before = new Dictionary<string, double>();
+			foreach (string orgId in orgIds) {
+				before[orgId] = ResourceQuery.GetValue(_world, orgId, ResourceDefinitions.OrgScore);
+			}
+
+			MarkResourceEffectsForRecompute(ResourceDefinitions.OrgScore);
+
+			DateTime now = _gameTimeEntity >= 0 ? _world.Get<GameTime>(_gameTimeEntity).CurrentTime : _previousTime;
+			ResourceSystem.Update(_world, now, now, _resourceCollectorRegistry, _resourceIdUpdateOrder);
+
+			foreach (string orgId in orgIds) {
+				double after = ResourceQuery.GetValue(_world, orgId, ResourceDefinitions.OrgScore);
+				_context.Logger?.LogDebug($"[DebugForceCompletion] {logContext}: org_score settled for '{orgId}': {before[orgId]:0.###} -> {after:0.###}");
+			}
+		}
+
+		void MarkResourceEffectsForRecompute(string resourceId) {
+			// Collect matching entities first: World.Add is a structural change (moves the
+			// entity to a different archetype) and must not run while GetMatchingArchetypes'
+			// enumerator is still walking the archetype list it would mutate.
+			var toMark = new List<int>();
+			int[] req = { TypeId<ResourceLink>.Value, TypeId<ResourceEffect>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
+				ResourceLink[] links = arch.GetColumn<ResourceLink>();
+				int[] entities = arch.Entities;
+				for (int i = 0; i < arch.Count; i++) {
+					if (links[i].ResourceId != resourceId) { continue; }
+					if (!_world.Has<ForceResourceRecompute>(entities[i])) {
+						toMark.Add(entities[i]);
+					}
+				}
+			}
+			foreach (int entity in toMark) {
+				_world.Add(entity, new ForceResourceRecompute());
+			}
+		}
+
+		int GetTotalControlInCountry(string countryId) {
+			int total = 0;
+			int[] req = { TypeId<ControlEffect>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (effects[i].CountryId == countryId) { total += effects[i].Value; }
+				}
+			}
+			return total;
+		}
+
+		List<(string OrgId, int Value)> GetOtherOrgsControlDescending(string countryId, string excludeOrgId) {
+			var byOrg = new Dictionary<string, int>();
+			int[] req = { TypeId<ControlEffect>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (effects[i].CountryId != countryId || effects[i].OrgId == excludeOrgId) { continue; }
+					byOrg.TryGetValue(effects[i].OrgId, out int existing);
+					byOrg[effects[i].OrgId] = existing + effects[i].Value;
+				}
+			}
+			var list = new List<(string OrgId, int Value)>();
+			foreach (var kv in byOrg) { list.Add((kv.Key, kv.Value)); }
+			list.Sort((a, b) => {
+				int cmp = b.Value.CompareTo(a.Value);
+				return cmp != 0 ? cmp : string.CompareOrdinal(a.OrgId, b.OrgId);
+			});
+			return list;
 		}
 
 		bool IsOrgOwner(string ownerId) {

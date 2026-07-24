@@ -25,6 +25,7 @@ namespace GS.Game.Configs {
 			}
 		};
 		public GameLogSettings GameLog { get; set; } = new GameLogSettings();
+		public List<EndGameComparisonEntry> EndGameComparisons { get; set; } = new List<EndGameComparisonEntry>();
 
 		// discoveredCountriesAvailableControl: 0 is the eval-validated threshold (see
 		// Docs/BotFeatures/discoverAndControl/eval_summary.md) - it beats the feature's
@@ -43,5 +44,10 @@ namespace GS.Game.Configs {
 		public string FeatureId { get; set; } = "";
 		public bool Enabled { get; set; } = true;
 		public Dictionary<string, double> Parameters { get; set; } = new Dictionary<string, double>();
+	}
+
+	public class EndGameComparisonEntry {
+		public string ComparisonElementId { get; set; } = "";
+		public double Score { get; set; }
 	}
 }

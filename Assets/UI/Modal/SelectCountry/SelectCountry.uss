@@ -39,3 +39,37 @@
     height: 60px;
     font-size: 28px;
 }
+
+.goal-hint-panel {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    padding: 16px 20px;
+    width: 320px;
+    align-items: flex-start;
+}
+
+.goal-hint-header {
+    margin-bottom: 8px;
+    font-size: 24px;
+}
+
+.goal-hint-rows {
+    width: 100%;
+}
+
+.goal-hint-row {
+    white-space: normal;
+    -unity-text-align: middle-left;
+    margin-bottom: 4px;
+    width: 100%;
+}
+
+.goal-hint-alternative-cue {
+    margin-top: 4px;
+    white-space: normal;
+}
+
+.goal-hint-empty {
+    white-space: normal;
+}

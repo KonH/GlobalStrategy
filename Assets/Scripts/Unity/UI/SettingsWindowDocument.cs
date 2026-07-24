@@ -139,6 +139,9 @@ namespace GS.Unity.UI {
 		}
 
 		void RefreshButtons() {
+			if (_btnLangEn == null) {
+				return;
+			}
 			SetActive(_btnLangEn, _currentLocale == "en");
 			SetActive(_btnLangRu, _currentLocale == "ru");
 			SetActive(_btnSaveDaily, _currentInterval == AutoSaveInterval.Daily);
