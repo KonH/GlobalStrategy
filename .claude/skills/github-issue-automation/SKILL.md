@@ -18,6 +18,8 @@ There is no local state file, no timestamp bookkeeping, no comment-heading parsi
 
 **A candidate is any open, owner-authored issue or PR carrying `claude` and none of the three status labels.** That single rule is all of discovery — one `gh issue list` plus one `gh pr list`, filtered locally.
 
+**Each candidate gets its own CLI invocation from a guaranteed-clean checkout of its valid branch** — `main` for an issue, the PR's head branch for a PR. The wrapper prepares it itself before every invocation (`git fetch` + `git checkout -f -B <branch> origin/<branch>` + `git clean -fd`, which keeps ignored files like `Logs/` intact), so the CLI run never starts from a stale or dirty tree, and candidates needing different branches can't contaminate each other. The CLI run must never do its own reset/clean at the start.
+
 **Resume semantics:** the owner resumes a `needs-attention`/`complete` item by replying in a comment and removing that status label. Removing the label is the explicit "go again" signal — the automation never guesses whether a comment was new instructions. The trade-off (forgetting to remove the label leaves the item parked, visibly) is accepted for the predictability.
 
 ## Per-item lifecycle (the command side)
@@ -84,7 +86,7 @@ gh label create claude-complete --color 0E8A16 --description "Automation finishe
   1. On any machine with normal browser access (doesn't have to be the automation host), run `claude setup-token`. It opens the browser OAuth flow and prints a token to the terminal after approval — it does not save the token anywhere itself.
   2. On the automation host, `export CLAUDE_CODE_OAUTH_TOKEN=<that token>` (in the cron job's environment, e.g. the crontab's own env or a sourced profile — cron doesn't inherit an interactive shell's exports).
   3. Do **not** also set `ANTHROPIC_API_KEY` — its presence makes the CLI bill the API instead of the subscription.
-- A **dedicated clone** of this repo for the automation to run against — `handle_issues.py` does `git reset --hard origin/main` before every CLI invocation, which would blow away uncommitted work in a normal dev checkout.
+- A **dedicated clone** of this repo for the automation to run against — `handle_issues.py` force-resets to the candidate's start branch (and removes untracked files) before every CLI invocation, which would blow away uncommitted work in a normal dev checkout.
 - A cron entry (Linux/macOS/WSL) or Scheduled Task (Windows) calling `scripts/automation/claude/handle_issues.sh` / `.ps1` from that dedicated clone's root, on whatever interval the user wants (this is real polling, not a webhook — the interval is simply the latency until a new label/reply is noticed; an empty poll costs a few `gh` calls and zero LLM usage).
 
 ### Interactive testing (not the cron path)

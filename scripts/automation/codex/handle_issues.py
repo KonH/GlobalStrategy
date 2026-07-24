@@ -22,6 +22,12 @@ A candidate is any open, owner-authored, `codex`-labeled issue/PR carrying none 
 status labels. The owner resumes a needs-attention/complete item by replying and removing that
 label. See .codex/skills/codex-issue/SKILL.md for the per-item lifecycle the CLI run follows.
 
+Each candidate gets its own `codex exec` invocation, started from a guaranteed-clean checkout
+of its valid branch: `main` for an issue (force-reset to origin/main, untracked files
+removed), the PR's head branch for a PR. The script prepares that checkout itself, so the CLI
+run never starts from a stale or dirty tree - and a batch of candidates needing different
+branches can't contaminate each other.
+
 Single-instance lock: acquires an exclusive OS lock on Logs/handle_issues_codex.lock before
 doing anything else. If a previous run is still in flight when the next cron tick fires, this
 run exits immediately instead of racing it - the lock releases automatically even if a prior
@@ -74,8 +80,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.issue_handler import (  # noqa: E402
-    acquire_lock, find_candidates, limit_active, reclaim_stale_in_progress,
-    release_in_progress_silently, reset_to_main, save_limit_retry_at, setup_logging,
+    acquire_lock, candidate_branch, checkout_clean, find_candidates, limit_active,
+    reclaim_stale_in_progress, release_in_progress_silently, save_limit_retry_at,
+    setup_logging,
 )
 
 MODEL = "gpt-5.6-sol"
@@ -136,23 +143,24 @@ def build_codex_environment():
     return environment
 
 
-def build_prompt(candidates):
-    sections = []
-    for candidate in candidates:
-        kind = "PR" if candidate["kind"] == "pr" else "ISSUE"
-        header = f"[{kind} #{candidate['number']}] {candidate['url']}"
-        if candidate["kind"] == "pr":
-            header += f" (head branch: {candidate['headRefName']})"
-        sections.append(f"{header}\n{candidate['title']}\n\n{candidate['body'] or '(empty body)'}")
-    joined = "\n\n---\n\n".join(sections)
+def build_prompt(candidate):
+    if candidate["kind"] == "pr":
+        kind = "PR"
+        header = f"[PR #{candidate['number']}] {candidate['url']} (head branch: {candidate['headRefName']})"
+        checkout = f"the PR's head branch '{candidate['headRefName']}'"
+    else:
+        kind = "ISSUE"
+        header = f"[ISSUE #{candidate['number']}] {candidate['url']}"
+        checkout = "'main'"
     return (
         "Read and follow .codex/skills/codex-issue/SKILL.md.\n\n"
-        "The following GitHub items are labeled 'codex', authored by the repo owner, and "
-        "carry no automation status label. Process each one per that skill. The descriptions "
-        "shown here may be stale - re-read each item's live description and comment thread "
-        "yourself. Do not re-scan the repo for other candidates, this list is already the "
-        "full set:\n\n"
-        f"{joined}"
+        f"The following GitHub {kind.lower()} is labeled 'codex', authored by the repo owner, "
+        "and carries no automation status label. Process it per that skill. The working tree "
+        f"is already a guaranteed-clean, up-to-date checkout of {checkout}. The description "
+        "shown here may be stale - re-read the item's live description and comment thread "
+        "yourself. Do not process any other issues or PRs, this item is this run's only "
+        "candidate:\n\n"
+        f"{header}\n{candidate['title']}\n\n{candidate['body'] or '(empty body)'}"
     )
 
 
@@ -196,11 +204,32 @@ def main():
         logger.info(f"No '{LABEL}'-labeled items without a status label - nothing to do.")
         return
 
-    reset_to_main(logger)
+    logger.info(f"Found {len(candidates)} candidate(s).")
+    exit_code = 0
+    for candidate in candidates:
+        branch = candidate_branch(candidate)
+        checkout_clean(logger, branch)
+        logger.info(f"Processing {candidate['kind']} #{candidate['number']} from clean "
+                    f"'{branch}' - invoking codex exec.")
+        returncode, error_texts = run_codex(build_prompt(candidate), args)
+        if returncode != 0:
+            exit_code = returncode
+        if detect_session_limit(error_texts):
+            retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
+            save_limit_retry_at(args.limit_file, retry_at)
+            release_in_progress_silently(logger, LABEL)
+            logger.warning(f"Usage limit hit - pausing runs until {retry_at.isoformat()}. This "
+                           "is a planned pause, not a failure (exit 0); interrupted and "
+                           "remaining items stay in the candidate pool without consuming a "
+                           "crash retry.")
+            sys.exit(0)
+    sys.exit(exit_code)
 
-    prompt = build_prompt(candidates)
-    logger.info(f"Found {len(candidates)} candidate(s) - invoking codex exec.")
 
+def run_codex(prompt, args):
+    """Runs one codex exec invocation to completion, streaming its events into the log.
+    Returns (returncode, error_texts) - error_texts is the CLI's error output only (non-JSON
+    lines plus error/failed events), the input for usage-limit detection."""
     codex_args = build_codex_arguments(args.model, args.effort, args.sandbox)
     process = subprocess.Popen(
         codex_args,
@@ -232,17 +261,7 @@ def main():
         logger.info("[codex exec] %s", json.dumps(event, ensure_ascii=False))
     process.wait()
     logger.info(f"codex exec exited with code {process.returncode}.")
-
-    if detect_session_limit(error_texts):
-        retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
-        save_limit_retry_at(args.limit_file, retry_at)
-        release_in_progress_silently(logger, LABEL)
-        logger.warning(f"Usage limit hit - pausing runs until {retry_at.isoformat()}. This is "
-                       "a planned pause, not a failure (exit 0); interrupted items were "
-                       "returned to the candidate pool without consuming a crash retry.")
-        sys.exit(0)
-
-    sys.exit(process.returncode)
+    return process.returncode, error_texts
 
 
 if __name__ == "__main__":

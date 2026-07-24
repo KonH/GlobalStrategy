@@ -17,6 +17,11 @@ An item is a candidate iff it carries `<label>` and none of the three status lab
 resumes a needs-attention/complete item by replying and removing that status label - discovery
 then selects it again with no further machinery.
 
+Each candidate gets its own CLI invocation, started from a guaranteed-clean checkout of its
+valid branch (`candidate_branch` + `checkout_clean`): main for an issue, the PR's head branch
+for a PR. A batch can't share one checkout when items need different branches, so the wrapper
+loops candidates rather than sending one combined prompt.
+
 Stale-run reclaim: the wrapper holds an exclusive process lock, so at run start no other run
 can be active - any `<label>-in-progress` still on GitHub is by definition leftover from a
 crashed/interrupted run. `reclaim_stale_in_progress` re-queues such items (removes the label)
@@ -103,16 +108,23 @@ def acquire_lock(logger, lock_file):
     return lock_fp
 
 
-def reset_to_main(logger):
-    """Hard-resets the dedicated automation clone to origin/main so the CLI run always starts
-    from the current command/skill files, never a stale checkout. Local leftovers from a crashed
-    run are deliberately discarded - the new-design rule is that every run commits and pushes
-    even partial work, so anything only present locally was mid-crash churn the reclaimed retry
-    will redo from the pushed branch state."""
-    logger.info("Resetting checkout to origin/main.")
-    run_git(["checkout", "main"])
-    run_git(["fetch", "origin", "main"])
-    run_git(["reset", "--hard", "origin/main"])
+def candidate_branch(candidate):
+    """The branch a candidate's CLI run must start from: a PR is worked on its existing head
+    branch; an issue starts from main (the run creates/reuses its own feature branch from
+    there)."""
+    return candidate["headRefName"] if candidate["kind"] == "pr" else "main"
+
+
+def checkout_clean(logger, branch):
+    """Guarantees a clean, up-to-date checkout of `branch` before a CLI run: the local branch
+    is force-reset to its origin counterpart and untracked files are removed (`git clean -fd`
+    keeps ignored files - Logs/, .venv/ - intact). Local leftovers from a previous run are
+    deliberately discarded - every run pushes what matters, so anything only present locally
+    was mid-crash churn a retry will redo from the pushed state."""
+    logger.info(f"Preparing clean checkout of '{branch}'.")
+    run_git(["fetch", "origin", branch])
+    run_git(["checkout", "-f", "-B", branch, f"origin/{branch}"])
+    run_git(["clean", "-fd"])
 
 
 def run_git(args):
