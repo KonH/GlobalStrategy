@@ -64,6 +64,14 @@ namespace GS.Game.ConsoleRunner {
 				if ((tickCount & 0xFF) == 0 && stopwatch.Elapsed.TotalSeconds >= options.TimeoutSeconds) { break; }
 			}
 
+			// GameCompletionSystem (last in GameLogic.Update) can complete the game the same tick
+			// ChangeControlCommand is applied, one step after ResourceSystem.Update already ran with
+			// the pre-command control state — ResourceQuery.GetValue would then read a stale, one-tick-
+			// lagged org_score forever, since Update short-circuits once IsCompleted. Settle it directly
+			// via the same collector formula ResourceSystem would apply on the next (never-run) tick.
+			double currentScore = ResourceQuery.GetValue(logic.World, options.OrgId, ResourceDefinitions.OrgScore);
+			double scoreDelta = new OrgScoreCollector().Compute(options.OrgId, currentScore, logic.World);
+
 			var result = new CalibrationResult {
 				Scenario = options.Scenario,
 				OrgId = options.OrgId,
@@ -72,7 +80,7 @@ namespace GS.Game.ConsoleRunner {
 				Completed = logic.IsCompleted,
 				TickCount = tickCount,
 				FinalDate = logic.VisualState.Time.CurrentTime.ToString("yyyy-MM-dd"),
-				Score = ResourceQuery.GetValue(logic.World, options.OrgId, ResourceDefinitions.OrgScore)
+				Score = currentScore + scoreDelta
 			};
 
 			string json = JsonSerializer.Serialize(result, s_jsonOptions);

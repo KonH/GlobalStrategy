@@ -98,7 +98,7 @@ see `## Automation Notes` in the plan file for the verbatim list of what a human
 			"Record the calibration maximum (the higher of the two scenarios' scores) and both scenarios' full inputs/outputs (command lines, seeds, final scores, tick counts) under .claude/skills/end-game-score-calibration/references/calibration_results.md (or .json + short .md summary)."
 		],
 		"gate": ".venv\\Scripts\\python.exe .tmp/verify_calibration.py",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "threshold-formula-test",
