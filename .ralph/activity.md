@@ -274,3 +274,45 @@ constructor signature. Do not touch
 `dotnet test src/GlobalStrategy.Core.sln`.
 
 ---
+
+## 2026-07-24 — select-org-logic
+
+Task: Wire `WinConditionHintProjector` into `SelectOrgLogic`'s one-time construction.
+
+Changes:
+- `src/Game.Main/SelectOrgLogic.cs`: constructor now takes an added
+  `IConfigSource<GameSettings> gameSettingsConfig` parameter. Country availability is now
+  tallied while creating country entities (`entry.IsAvailable` from `CountryConfig`), then
+  after HQ/org setup the constructor loads `gameSettingsConfig`, calls
+  `WinConditionHintProjector.Build(gameSettings.CompletionCondition, availableCountryCount)`
+  once, and sets `VisualState.WinConditionHint.Set(isAvailable, isAlternativeGroup, rows)` —
+  matching the existing one-time-build pattern already used for `HqCountryIds`. No change to
+  `Update`/`UpdateVisualState` (hint state is static per game session, not per-tick).
+- Did not touch `Assets/Scripts/Unity/DI/SelectCountryLifetimeScope.cs` — its
+  `new SelectOrgLogic(countryConfigSource, orgConfigSource, resourceConfig)` call site is now
+  a 3-arg call against a 4-arg constructor and will need a `GameSettings` config source and
+  updated call added there; that edit requires Unity and stays out of scope for this headless
+  run (left for the human pass alongside the other excluded Unity wiring in plan.md's
+  Automation Notes).
+- `src/Game.Tests/SelectOrgLogicTests.cs`: `BuildLogic()` now constructs a plain
+  `new GameSettings()` (its default `CompletionCondition` is the real config's "any" group of
+  `total_control`/`full_control_countries`) and passes it via a new
+  `StaticConfig<GameSettings>`. Added
+  `win_condition_hint_is_built_once_from_game_settings`, asserting
+  `VisualState.WinConditionHint.IsAvailable` and `.IsAlternativeGroup` are both true and
+  `.Rows.Count == 2` for the default two-leaf "any" condition — exercises the new wiring
+  without duplicating `WinConditionHintProjectorTests`' own leaf-by-leaf coverage.
+
+Gate: `dotnet test src/GlobalStrategy.Core.sln -c Debug` — `Passed! - Failed: 0, Passed: 374,
+Skipped: 0, Total: 374` (Game.Tests.dll), plus ECS.Tests (34/34) and ECS.Viewer.Tests (16/16)
+all green.
+
+Next iteration: pick up `localization-keys` task — add `end_game.*` and
+`select_org.win_conditions.*` keys (excluding the nine `end_game.comparison.<id>` identity
+keys, which need the Google Trends research) to both `Assets/Localization/en.asset` and
+`Assets/Localization/ru.asset`; verify with a throwaway
+`.tmp/verify_localization_keys.py` (run via system `python3`, same as the
+`calibration-run` task — this container has no Windows-style `.venv`), then delete it per
+`.claude/rules/temp_scripts.md`. Gate: `python3 .tmp/verify_localization_keys.py`.
+
+---

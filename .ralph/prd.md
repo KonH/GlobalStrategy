@@ -119,7 +119,7 @@ see `## Automation Notes` in the plan file for the verbatim list of what a human
 			"Update or add to src/Game.Tests SelectOrgLogicTests as needed so the extended constructor signature is covered without breaking existing passing tests."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	},
 	{
 		"category": "localization-keys",
