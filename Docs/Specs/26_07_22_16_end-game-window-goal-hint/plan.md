@@ -540,3 +540,53 @@ Checked against `Docs/Constitution.md`.
   skip rather than a silent generic catch).
 
 Use the implement skill to start working on the plan or request changes.
+
+## Automation Notes
+
+A `full-env-headless` Ralph run (`.ralph/prd.md`) has no Unity Editor/MCP connection and cannot
+research Google Trends data with automated verification, so the following plan steps were left
+out of `.ralph/prd.md` entirely and still need a human/interactive pass:
+
+- Extract `Assets/Scripts/Unity/UI/ScoreFormat.cs` from `LeaderboardWindowView.FormatScore`/
+  `s_scoreFormat` and update `LeaderboardWindowView` to use it (Approach Step 3) — Unity-side
+  script with no `src/` counterpart, no headless gate.
+- Register `builder.Register(c => c.Resolve<GameLogic>().GameSettings, Lifetime.Singleton);` in
+  `Assets/Scripts/Unity/DI/GameLifetimeScope.cs` (Approach Step 2, second half) — Unity-side DI
+  registration, no headless gate.
+- Research nine conspiracy-folklore figures/organizations' worldwide Google Trends popularity via
+  `WebSearch` and commit the dated, cited ranking under
+  `.claude/skills/end-game-score-calibration/references/trends_research.md` (Approach Step 9) —
+  no code/config gate can verify research correctness.
+- Populate the real `endGameComparisons` `comparisonElementId`/`score` values in
+  `Assets/Configs/game_settings.json` using the calibration maximum and researched rank order
+  (Approach Step 10) — blocked on the trends research above; only the threshold-formula
+  arithmetic itself was covered by a headless test using a synthetic calibration maximum.
+- Add `Assets/UI/Modal/EndGameWindow/EndGameWindow.uxml`/`.uss`,
+  `Assets/Scripts/Unity/UI/EndGameWindowView.cs`, and
+  `Assets/Scripts/Unity/UI/EndGameWindowDocument.cs` (Approach Step 11) — Unity assets and
+  Unity-side scripts with no `src/` counterpart, no headless gate.
+- Register `EndGameWindowDocument` in `GameLifetimeScope`, add its `UIDocument` to
+  `Assets/Scenes/Map.unity` via Unity MCP, save, refresh, check console (Approach Step 11
+  scene-wiring half) — requires Unity MCP.
+- Add the top-right goal-hint panel markup to
+  `Assets/UI/Modal/SelectCountry/SelectCountry.uxml`/`.uss` (Approach Step 12) — Unity asset, no
+  headless gate.
+- Extend `Assets/Scripts/Unity/DI/SelectCountryLifetimeScope.cs` with the new
+  `game_settings.json` `TextAsset` field and updated `SelectOrgLogic` constructor call (Approach
+  Step 13, second half) — Unity-side script with no `src/` counterpart, no headless gate.
+- Extend `Assets/Scripts/Unity/UI/SelectOrgDocument.cs` to render goal-hint rows/alternative
+  cue/empty state and replace its `btn-back.clicked`/`_btnStart.clicked` handlers with bounded
+  `PointerUpEvent` handlers (Approach Step 14) — Unity-side script with no `src/` counterpart, no
+  headless gate.
+- Wire the new `game_settings.json` `TextAsset` field onto `SelectCountryLifetimeScope` in
+  `Assets/Scenes/CountrySelection.unity` via Unity MCP, save, refresh, check console (Approach
+  Step 15) — requires Unity MCP.
+- Add the nine `end_game.comparison.<comparisonElementId>` localization keys (and any
+  description/framing text) to `Assets/Localization/en.asset`/`ru.asset` (part of Approach Step
+  16) — blocked on the trends research above; the other `end_game.*`/`select_org.win_conditions.*`
+  keys not tied to the nine identities were added headlessly.
+- Unity import/refresh/console verification of all new/changed UXML/USS/scripts (Approach Step
+  17, Unity half) — requires the Unity Editor.
+- All six **User Steps** (visual QA in English and Russian, restored completed save, empty/
+  fallback config, pointer-blocking and Exit behavior, goal-hint panel layout review) — require
+  Play mode and human visual judgment.

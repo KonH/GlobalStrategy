@@ -1,0 +1,58 @@
+phase: loop
+iteration: 6
+exit_code: 1
+prompt: # Ralph Iteration Instructions
+
+You are one iteration of an autonomous Ralph loop. Every iteration starts with fresh context —
+everything you need to know about prior progress lives in the files below, not in memory.
+
+## Steps
+
+1. Read `.ralph/prd.md` (the task list) and `.ralph/activity.md` (journal of previous iterations).
+2. Pick exactly **ONE** task: the first entry with `"passes": false` whose prerequisites are already
+   done and that is not marked `ENV-BLOCKED` in `.ralph/activity.md` (see the blocked-task rule below).
+3. Implement it. Follow all project rules (`CLAUDE.md` and `.claude/rules/`).
+4. Run the task's verification gate (the `gate` field on the task). Typical gates:
+   - `dotnet build src/GlobalStrategy.Core.sln -c Release`
+   - `dotnet test src/GlobalStrategy.Core.sln`
+   - a validation script via `.venv\Scripts\python.exe`
+   - Unity-side changes: Unity MCP - `refresh_unity`, then `read_console(types=["error"])` must report no errors
+5. Only if the gate passes: set that task's `"passes"` to `true` in `.ralph/prd.md`.
+6. Append an entry to `.ralph/activity.md`: date, task description, what you changed (files),
+   gate command + result, and anything the NEXT iteration must know (decisions, gotchas, blockers).
+7. Commit everything: `git add` the changed files (including `.ralph/prd.md` and `.ralph/activity.md`),
+   commit message `ralph: <short task description>`.
+
+## Rules
+
+- One task per iteration. Never start a second task, even if the first was quick.
+- Never set `"passes": true` without its gate actually passing — paste the gate output evidence into `activity.md`.
+- If blocked: write the blocker and what you attempted into `.ralph/activity.md`, leave `"passes": false`, and end your turn normally.
+- If the block is because the task's gate needs a tool that is structurally unavailable in this run
+  (e.g. Unity MCP in a `full-env-headless` run), do not just repeat the same attempt every iteration —
+  journal it as `ENV-BLOCKED: <task description> - <reason>` in `.ralph/activity.md` and pick a
+  different eligible task instead. Check `.ralph/activity.md` for an existing `ENV-BLOCKED` entry for
+  a task before picking it again in step 2; if this task's own gate previously failed in this same run
+  because of an unavailable tool (not because you made a mistake worth retrying), it stays `ENV-BLOCKED`
+  and skipped for the rest of this run — do not spend further iterations re-attempting it. This should
+  be rare: `/create-prd` should not have planned a task with an unavailable gate in the first place
+  (see the environment-marker rules in `.claude/commands/create-prd.md`); this is a fallback for a task
+  that slips through anyway.
+- Respect the environment notice supplied by the runner. In `code-only` and `full-env-headless`
+  automation, Unity Editor/MCP and image-generation tools are unavailable: do not probe for or invoke
+  them, and leave excluded asset, scene, and image tasks untouched. With no environment notice, Unity
+  MCP is expected to be available; if it is unreachable, treat the task as blocked and never mark it
+  passed without its gate.
+- Purely visual/UX outcomes cannot be fully verified in this loop: implement them, pass the
+  compile/console gate, and note "needs manual visual check" in `.ralph/activity.md`.
+- If ALL tasks in `.ralph/prd.md` have `"passes": true`, make no changes and output exactly:
+  `<promise>COMPLETE</promise>`
+
+
+Automation environment: full-env-headless. Unity Editor/MCP and image-generation tools are unavailable. Do not probe for or invoke them; leave excluded asset, scene, and image tasks untouched.
+
+--- stdout ---
+{"type":"result","subtype":"success","is_error":true,"api_error_status":429,"duration_ms":260984,"duration_api_ms":236207,"num_turns":47,"result":"You've hit your session limit · resets 9:20pm (UTC)","stop_reason":"stop_sequence","session_id":"f2f5e64a-c747-4f20-8d06-dfc6448b95a9","total_cost_usd":1.5481580000000004,"usage":{"input_tokens":66,"cache_creation_input_tokens":84215,"cache_read_input_tokens":2495110,"output_tokens":19505,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":84215,"ephemeral_5m_input_tokens":0},"inference_geo":"not_available","iterations":[{"input_tokens":2,"output_tokens":174,"cache_read_input_tokens":97828,"cache_creation_input_tokens":890,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":890},"type":"message"}],"speed":"standard"},"modelUsage":{"claude-haiku-4-5-20251001":{"inputTokens":1487,"outputTokens":15,"cacheReadInputTokens":0,"cacheCreationInputTokens":0,"webSearchRequests":0,"costUSD":0.001562,"contextWindow":200000,"maxOutputTokens":32000},"claude-sonnet-5":{"inputTokens":66,"outputTokens":19505,"cacheReadInputTokens":2495110,"cacheCreationInputTokens":84215,"webSearchRequests":0,"costUSD":1.546596,"contextWindow":1000000,"maxOutputTokens":64000}},"permission_denials":[],"terminal_reason":"api_error","fast_mode_state":"off","uuid":"e9990020-eb00-44ed-b5b8-7cde8a711f1d"}
+
+
+--- stderr ---

@@ -12636,3 +12636,21 @@ MonoBehaviour:
     Value: Osh
   - Key: province_name.central_Asian_khanates__Osh_2
     Value: Osh
+  - Key: end_game.result.win
+    Value: '{0} победила в игре!'
+  - Key: end_game.result.lose
+    Value: '{0} победила. Ваша организация не достигла победы.'
+  - Key: end_game.exit
+    Value: Выход
+  - Key: end_game.leaderboard.empty
+    Value: Нет организаций для отображения.
+  - Key: select_org.win_conditions.header
+    Value: Условия победы
+  - Key: select_org.win_conditions.alternative_cue
+    Value: Выполните любое из следующих условий
+  - Key: select_org.win_conditions.empty
+    Value: Условия победы не настроены.
+  - Key: select_org.win_conditions.total_control
+    Value: Достигните {0}% суммарного контроля над всеми странами
+  - Key: select_org.win_conditions.full_control_countries
+    Value: 'Полностью контролируйте {0} из {1} стран'

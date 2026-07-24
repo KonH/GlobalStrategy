@@ -496,10 +496,58 @@ namespace GS.Main {
 		}
 	}
 
+	public class EndGameComparisonRowState {
+		public int Place { get; }
+		public string ComparisonElementId { get; }
+		public bool IsPlayer { get; }
+		public string DisplayName { get; }
+		public double Score { get; }
+
+		public EndGameComparisonRowState(int place, string comparisonElementId, bool isPlayer, string displayName, double score) {
+			Place = place;
+			ComparisonElementId = comparisonElementId;
+			IsPlayer = isPlayer;
+			DisplayName = displayName;
+			Score = score;
+		}
+	}
+
 	public enum GameResult {
 		InProgress,
 		Win,
 		Lose
+	}
+
+	public enum WinConditionHintKind {
+		TotalControl,
+		FullControlCountries
+	}
+
+	public class WinConditionHintRowState {
+		public WinConditionHintKind Kind { get; }
+		public double Value { get; }
+		public int AvailableCountryCount { get; }
+
+		public WinConditionHintRowState(WinConditionHintKind kind, double value, int availableCountryCount) {
+			Kind = kind;
+			Value = value;
+			AvailableCountryCount = availableCountryCount;
+		}
+	}
+
+	public class WinConditionHintState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public bool IsAvailable { get; private set; }
+		public bool IsAlternativeGroup { get; private set; }
+		public IReadOnlyList<WinConditionHintRowState> Rows { get; private set; } = Array.Empty<WinConditionHintRowState>();
+
+		public void Set(bool isAvailable, bool isAlternativeGroup, List<WinConditionHintRowState> rows) {
+			IsAvailable = isAvailable;
+			IsAlternativeGroup = isAlternativeGroup;
+			Rows = rows;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
 	}
 
 	public class GameCompletionState : INotifyPropertyChanged {
@@ -535,5 +583,6 @@ namespace GS.Main {
 		public LeaderboardState Leaderboard { get; } = new LeaderboardState();
 		public GameLogState GameLog { get; } = new GameLogState();
 		public GameCompletionState GameCompletion { get; } = new GameCompletionState();
+		public WinConditionHintState WinConditionHint { get; } = new WinConditionHintState();
 	}
 }
