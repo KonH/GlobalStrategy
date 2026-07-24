@@ -349,3 +349,28 @@ final headless verification pass (Unity-side refresh/console verification is out
 plan.md's Automation Notes). This is the last task in `.ralph/prd.md` for this headless subset.
 
 ---
+
+## 2026-07-24 — final-verification
+
+Task: Run the full core test suite and Release build as the final headless verification pass.
+
+Changes: none (verification-only task, no source changes).
+
+Gate:
+- `dotnet test src/GlobalStrategy.Core.sln -c Debug` — `Passed! - Failed: 0, Passed: 34, Total:
+  34` (ECS.Tests) + `Passed! - Failed: 0, Passed: 16, Total: 16` (ECS.Viewer.Tests) +
+  `Passed! - Failed: 0, Passed: 374, Total: 374` (Game.Tests) — 424/424 total, all green.
+- `dotnet build src/GlobalStrategy.Core.sln -c Release` — `Build succeeded. 0 Warning(s), 0
+  Error(s)`.
+
+Unity-side refresh/console verification (Assets/Scripts/Unity, EndGameWindow UI, SelectCountry
+goal-hint markup, scene wiring) left out of scope per plan.md's Automation Notes — needs a
+human/Unity-available pass.
+
+All tasks in `.ralph/prd.md` now have `"passes": true`. This headless subset of the
+end-game-window-goal-hint plan is complete; remaining work (Unity assets/scenes/prefabs,
+Google-Trends comparison identities, `end_game.comparison.<id>` localization keys,
+`GameLifetimeScope.cs`/`SelectCountryLifetimeScope.cs` DI wiring) is documented in plan.md's
+Automation Notes for a human/Unity-available follow-up.
+
+---

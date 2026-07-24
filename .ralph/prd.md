@@ -142,7 +142,7 @@ see `## Automation Notes` in the plan file for the verbatim list of what a human
 			"Unity-side refresh/console verification (Assets/Scripts/Unity, EndGameWindow UI, SelectCountry goal-hint markup, scene wiring) is out of scope for this headless run — left for a human pass, see plan.md's Automation Notes."
 		],
 		"gate": "dotnet test src/GlobalStrategy.Core.sln",
-		"passes": false
+		"passes": true
 	}
 ]
 ```
