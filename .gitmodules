@@ -1,0 +1,3 @@
+[submodule ".claude/vendor/claude-tools"]
+	path = .claude/vendor/claude-tools
+	url = https://github.com/KonH/ClaudeTools.git
