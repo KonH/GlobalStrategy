@@ -14,5 +14,11 @@
             <ui:Button name="btn-start" text="Start Game" class="gs-btn gs-btn--primary menu-button"/>
             <ui:Button name="btn-back" text="Back" class="gs-btn gs-btn--secondary menu-button"/>
         </ui:VisualElement>
+        <ui:VisualElement name="goal-hint-panel" class="gs-panel goal-hint-panel" picking-mode="Ignore">
+            <ui:Label name="win_conditions-header" text="Win conditions" class="gs-header goal-hint-header"/>
+            <ui:VisualElement name="goal-hint-rows" class="goal-hint-rows" picking-mode="Ignore"/>
+            <ui:Label name="goal-hint-alternative-cue" text="" class="gs-hint goal-hint-alternative-cue"/>
+            <ui:Label name="goal-hint-empty" text="" class="gs-content goal-hint-empty"/>
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

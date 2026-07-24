@@ -32,7 +32,9 @@ namespace GS.Game.Tests {
 			ISnapshotSerializer? serializer = null,
 			IGameLogger? logger = null,
 			CharacterConfig? characterConfig = null,
-			bool includeCountryCard = false) {
+			bool includeCountryCard = false,
+			CompletionConditionConfig? completionCondition = null,
+			int? maxControlPool = null) {
 
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
@@ -64,6 +66,8 @@ namespace GS.Game.Tests {
 				SpeedMultipliers = new[] { 1, 24, 720 },
 				AutoSaveInterval = "monthly"
 			};
+			if (completionCondition != null) { gameSettings.CompletionCondition = completionCondition; }
+			if (maxControlPool.HasValue) { gameSettings.MaxControlPool = maxControlPool.Value; }
 			var resourceConfig = new ResourceConfig {
 				Resources = new List<ResourceDefinition> {
 					new ResourceDefinition {

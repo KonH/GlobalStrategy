@@ -62,7 +62,7 @@ namespace GS.Game.Systems {
 			completion.IsCompleted = true;
 		}
 
-		static HashSet<string> GetAvailableCountryIds(IReadOnlyWorld world) {
+		public static HashSet<string> GetAvailableCountryIds(IReadOnlyWorld world) {
 			var countryIds = new HashSet<string>(StringComparer.Ordinal);
 			int[] required = { TypeId<Country>.Value };
 			foreach (Archetype archetype in world.GetMatchingArchetypes(required, null)) {

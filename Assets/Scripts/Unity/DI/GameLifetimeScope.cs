@@ -79,6 +79,7 @@ namespace GS.Unity.DI {
 			builder.Register(c => c.Resolve<GameLogic>().ActionConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().EffectConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().ProvinceConfig, Lifetime.Singleton);
+			builder.Register(c => c.Resolve<GameLogic>().GameSettings, Lifetime.Singleton);
 			builder.RegisterInstance(_actionVisualConfig);
 
 			builder.RegisterInstance<IPersistentStorage>(storage);
@@ -106,6 +107,7 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<OrgInfoDocument>();
 			builder.RegisterComponentInHierarchy<CardPlayAnimator>();
 			builder.RegisterComponentInHierarchy<FlyTextNotifierDocument>().As<IFlyTextNotifier>();
+			builder.RegisterComponentInHierarchy<EndGameWindowDocument>();
 		}
 
 		protected override void OnDestroy() {

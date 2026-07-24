@@ -1,3 +1,4 @@
+using System.Globalization;
 using GS.Main;
 using GS.Unity.Common;
 using GS.Unity.Map;
@@ -20,6 +21,9 @@ namespace GS.Unity.UI {
 		Label _estimatedIncomeLabel;
 		Label _hintLabel;
 		Button _btnStart;
+		VisualElement _goalHintRows;
+		Label _goalHintAlternativeCue;
+		Label _goalHintEmpty;
 
 		[Inject]
 		void Construct(SelectOrgLogic logic, SceneLoader sceneLoader, ILocalization localization, OrgVisualConfig orgVisualConfig) {
@@ -43,16 +47,73 @@ namespace GS.Unity.UI {
 			_hintLabel = root.Q<Label>("hint-label");
 			_btnStart = root.Q<Button>("btn-start");
 			var btnBack = root.Q<Button>("btn-back");
-			btnBack.clicked += () => _sceneLoader.LoadMainMenu();
-			_btnStart.clicked += OnStartGame;
+			_goalHintRows = root.Q<VisualElement>("goal-hint-rows");
+			_goalHintAlternativeCue = root.Q<Label>("goal-hint-alternative-cue");
+			_goalHintEmpty = root.Q<Label>("goal-hint-empty");
+
+			btnBack.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button == 0 && btnBack.ContainsPoint(e.localPosition)) {
+					_sceneLoader.LoadMainMenu();
+				}
+			});
+			_btnStart.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button == 0 && _btnStart.ContainsPoint(e.localPosition)) {
+					OnStartGame();
+				}
+			});
 			_btnStart.SetEnabled(false);
 
-			_hintLabel.text = _localization.Get("select_org.hint");
-			_btnStart.text = _localization.Get("select_org.start");
-			btnBack.text = _localization.Get("select_org.back");
+			RefreshTexts();
 
 			_logic.VisualState.SelectedOrganization.PropertyChanged += (_, _) => RefreshUI();
 			RefreshUI();
+		}
+
+		void RefreshTexts() {
+			var root = _doc.rootVisualElement;
+			_hintLabel.text = _localization.Get("select_org.hint");
+			_btnStart.text = _localization.Get("select_org.start");
+			root.Q<Button>("btn-back").text = _localization.Get("select_org.back");
+			root.Q<Label>("win_conditions-header").text = _localization.Get("select_org.win_conditions.header");
+			RefreshGoalHint();
+		}
+
+		void RefreshGoalHint() {
+			if (_goalHintRows == null) {
+				return;
+			}
+			var hint = _logic.VisualState.WinConditionHint;
+			_goalHintRows.Clear();
+			bool showRows = hint.IsAvailable && hint.Rows.Count > 0;
+			foreach (var row in hint.Rows) {
+				var label = new Label(FormatGoalHintRow(row));
+				label.AddToClassList("goal-hint-row");
+				_goalHintRows.Add(label);
+			}
+			if (_goalHintAlternativeCue != null) {
+				_goalHintAlternativeCue.style.display = hint.IsAlternativeGroup ? DisplayStyle.Flex : DisplayStyle.None;
+				_goalHintAlternativeCue.text = _localization.Get("select_org.win_conditions.alternative_cue");
+			}
+			if (_goalHintEmpty != null) {
+				_goalHintEmpty.style.display = showRows ? DisplayStyle.None : DisplayStyle.Flex;
+				_goalHintEmpty.text = _localization.Get("select_org.win_conditions.empty");
+			}
+		}
+
+		string FormatGoalHintRow(WinConditionHintRowState row) {
+			switch (row.Kind) {
+				case WinConditionHintKind.TotalControl:
+					return string.Format(
+						_localization.Get("select_org.win_conditions.total_control"),
+						(row.Value * 100).ToString("0", CultureInfo.InvariantCulture));
+				case WinConditionHintKind.FullControlCountries:
+					return string.Format(
+						_localization.Get("select_org.win_conditions.full_control_countries"),
+						((int)row.Value).ToString(CultureInfo.InvariantCulture),
+						row.AvailableCountryCount.ToString(CultureInfo.InvariantCulture));
+				default:
+					return "";
+			}
 		}
 
 		void Update() {

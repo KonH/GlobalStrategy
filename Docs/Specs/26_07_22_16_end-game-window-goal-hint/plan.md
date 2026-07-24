@@ -405,25 +405,25 @@ Unity import the new/changed UXML/USS/scripts, `refresh_unity`, `read_console(ty
 
 ### Agent Steps
 
-- [ ] Add `EndGameComparisonEntry` + `GameSettings.EndGameComparisons` to `src/Game.Configs/GameSettings.cs`, with an empty `endGameComparisons: []` placeholder in `Assets/Configs/game_settings.json`.
-- [ ] Expose `public GameSettings GameSettings { get; private set; }` from `src/Game.Main/GameLogic.cs` and register it in `Assets/Scripts/Unity/DI/GameLifetimeScope.cs`.
-- [ ] Extract `Assets/Scripts/Unity/UI/ScoreFormat.cs` from `LeaderboardWindowView.FormatScore`/`s_scoreFormat` and update `LeaderboardWindowView` to use it.
-- [ ] Add `EndGameComparisonRowState` to `src/Game.Main/VisualState.cs` and `src/Game.Main/EndGameComparisonProjector.cs` (insertion, descending sort, ordinal tie-break, player-only fallback).
-- [ ] Add `WinConditionHintKind`/`WinConditionHintRowState`/`WinConditionHintState` to `src/Game.Main/VisualState.cs` and `src/Game.Main/WinConditionHintProjector.cs` (recursive `any` flattening, `total_control`/`full_control_countries` mapping, unsupported-leaf skip, empty/null fallback).
-- [ ] Add `src/Game.Tests/EndGameComparisonProjectorTests.cs` and `src/Game.Tests/WinConditionHintProjectorTests.cs` with synthetic fixtures; run `dotnet test src/GlobalStrategy.Core.sln` via the `dotnet-test` skill.
-- [ ] Add `.claude/skills/end-game-score-calibration/SKILL.md` documenting the build command, fixed inputs, debug-command sequence, terminal assertion, score read-out, threshold formula/rounding, output paths, and rerun/update procedure.
-- [ ] Add `src/Game.ConsoleRunner/CalibrationRunner.cs` and a new `Program.cs` `calibrate-end-game` CLI verb that drives win/lose scenarios via `DebugDiscoverAllCountriesCommand`/`ChangeControlCommand`/`GameLogic.Update` against the real committed config and writes a JSON result.
-- [ ] Run the calibration skill for both scenarios against the committed config; commit the calibration maximum and full reproduction inputs/outputs under `.claude/skills/end-game-score-calibration/references/`.
-- [ ] Research the nine conspiracy/mythical comparison identities' worldwide Google Trends popularity via `WebSearch`; commit the dated, cited ranking and methodology under `.claude/skills/end-game-score-calibration/references/trends_research.md`, framed as folklore/claims throughout.
-- [ ] Compute the nine linear thresholds from the calibration maximum and researched rank, and populate `Assets/Configs/game_settings.json`'s `endGameComparisons` with the real `comparisonElementId`/`score` values; add a deterministic-output test asserting the shipped scores match `factor(i) * calibrationMaximum` under the documented rounding policy.
-- [ ] Add `Assets/UI/Modal/EndGameWindow/EndGameWindow.uxml` and `.uss`, `Assets/Scripts/Unity/UI/EndGameWindowView.cs`, and `Assets/Scripts/Unity/UI/EndGameWindowDocument.cs` (sorting order above `1000`, `ModalState` hold, `PointerUpEvent` Exit).
-- [ ] Register `EndGameWindowDocument` in `GameLifetimeScope`, add its `UIDocument` to `Assets/Scenes/Map.unity` via Unity MCP, save, refresh, check console.
-- [ ] Add the top-right goal-hint panel markup to `Assets/UI/Modal/SelectCountry/SelectCountry.uxml`/`.uss`.
-- [ ] Extend `src/Game.Main/SelectOrgLogic.cs` to accept `GameSettings` and build `WinConditionHintState` once at construction; extend `Assets/Scripts/Unity/DI/SelectCountryLifetimeScope.cs` with the new `game_settings.json` `TextAsset` field and updated constructor call.
-- [ ] Extend `Assets/Scripts/Unity/UI/SelectOrgDocument.cs` to render goal-hint rows/alternative cue/empty state with locale-refresh support, and replace its `btn-back.clicked`/`_btnStart.clicked` handlers with bounded `PointerUpEvent` handlers.
-- [ ] Wire the new `game_settings.json` `TextAsset` field onto `SelectCountryLifetimeScope` in `Assets/Scenes/CountrySelection.unity` via Unity MCP, save, refresh, check console.
-- [ ] Add `end_game.*` and `select_org.win_conditions.*` localization keys (including the nine researched comparison names) to `Assets/Localization/en.asset` and `Assets/Localization/ru.asset`.
-- [ ] Run `dotnet test src/GlobalStrategy.Core.sln`, then `dotnet build src/GlobalStrategy.Core.sln -c Release`; refresh Unity and confirm a clean console.
+- [x] Add `EndGameComparisonEntry` + `GameSettings.EndGameComparisons` to `src/Game.Configs/GameSettings.cs`, with an empty `endGameComparisons: []` placeholder in `Assets/Configs/game_settings.json`.
+- [x] Expose `public GameSettings GameSettings { get; private set; }` from `src/Game.Main/GameLogic.cs` and register it in `Assets/Scripts/Unity/DI/GameLifetimeScope.cs`.
+- [x] Extract `Assets/Scripts/Unity/UI/ScoreFormat.cs` from `LeaderboardWindowView.FormatScore`/`s_scoreFormat` and update `LeaderboardWindowView` to use it.
+- [x] Add `EndGameComparisonRowState` to `src/Game.Main/VisualState.cs` and `src/Game.Main/EndGameComparisonProjector.cs` (insertion, descending sort, ordinal tie-break, player-only fallback).
+- [x] Add `WinConditionHintKind`/`WinConditionHintRowState`/`WinConditionHintState` to `src/Game.Main/VisualState.cs` and `src/Game.Main/WinConditionHintProjector.cs` (recursive `any` flattening, `total_control`/`full_control_countries` mapping, unsupported-leaf skip, empty/null fallback).
+- [x] Add `src/Game.Tests/EndGameComparisonProjectorTests.cs` and `src/Game.Tests/WinConditionHintProjectorTests.cs` with synthetic fixtures; run `dotnet test src/GlobalStrategy.Core.sln` via the `dotnet-test` skill.
+- [x] Add `.claude/skills/end-game-score-calibration/SKILL.md` documenting the build command, fixed inputs, debug-command sequence, terminal assertion, score read-out, threshold formula/rounding, output paths, and rerun/update procedure.
+- [x] Add `src/Game.ConsoleRunner/CalibrationRunner.cs` and a new `Program.cs` `calibrate-end-game` CLI verb that drives win/lose scenarios via `DebugDiscoverAllCountriesCommand`/`ChangeControlCommand`/`GameLogic.Update` against the real committed config and writes a JSON result.
+- [x] Run the calibration skill for both scenarios against the committed config; commit the calibration maximum and full reproduction inputs/outputs under `.claude/skills/end-game-score-calibration/references/`.
+- [x] Research the nine conspiracy/mythical comparison identities' worldwide Google Trends popularity via `WebSearch`; commit the dated, cited ranking and methodology under `.claude/skills/end-game-score-calibration/references/trends_research.md`, framed as folklore/claims throughout. (Direct Google Trends access returned HTTP 429 to every automated fetch; per explicit user decision, substituted the Wikimedia pageviews API as a documented, dated, citable proxy — see the methodology note at the top of `trends_research.md`.)
+- [x] Compute the nine linear thresholds from the calibration maximum and researched rank, and populate `Assets/Configs/game_settings.json`'s `endGameComparisons` with the real `comparisonElementId`/`score` values; add a deterministic-output test asserting the shipped scores match `factor(i) * calibrationMaximum` under the documented rounding policy.
+- [x] Add `Assets/UI/Modal/EndGameWindow/EndGameWindow.uxml` and `.uss`, `Assets/Scripts/Unity/UI/EndGameWindowView.cs`, and `Assets/Scripts/Unity/UI/EndGameWindowDocument.cs` (sorting order above `1000`, `ModalState` hold, `PointerUpEvent` Exit).
+- [x] Register `EndGameWindowDocument` in `GameLifetimeScope`, add its `UIDocument` to `Assets/Scenes/Map.unity` via Unity MCP, save, refresh, check console.
+- [x] Add the top-right goal-hint panel markup to `Assets/UI/Modal/SelectCountry/SelectCountry.uxml`/`.uss`.
+- [x] Extend `src/Game.Main/SelectOrgLogic.cs` to accept `GameSettings` and build `WinConditionHintState` once at construction; extend `Assets/Scripts/Unity/DI/SelectCountryLifetimeScope.cs` with the new `game_settings.json` `TextAsset` field and updated constructor call.
+- [x] Extend `Assets/Scripts/Unity/UI/SelectOrgDocument.cs` to render goal-hint rows/alternative cue/empty state with locale-refresh support, and replace its `btn-back.clicked`/`_btnStart.clicked` handlers with bounded `PointerUpEvent` handlers.
+- [x] Wire the new `game_settings.json` `TextAsset` field onto `SelectCountryLifetimeScope` in `Assets/Scenes/CountrySelection.unity` via Unity MCP, save, refresh, check console.
+- [x] Add `end_game.*` and `select_org.win_conditions.*` localization keys (including the nine researched comparison names) to `Assets/Localization/en.asset` and `Assets/Localization/ru.asset`.
+- [x] Run `dotnet test src/GlobalStrategy.Core.sln`, then `dotnet build src/GlobalStrategy.Core.sln -c Release`; refresh Unity and confirm a clean console.
 
 ### User Steps
 
@@ -540,3 +540,53 @@ Checked against `Docs/Constitution.md`.
   skip rather than a silent generic catch).
 
 Use the implement skill to start working on the plan or request changes.
+
+## Automation Notes
+
+A `full-env-headless` Ralph run (`.ralph/prd.md`) has no Unity Editor/MCP connection and cannot
+research Google Trends data with automated verification, so the following plan steps were left
+out of `.ralph/prd.md` entirely and still need a human/interactive pass:
+
+- Extract `Assets/Scripts/Unity/UI/ScoreFormat.cs` from `LeaderboardWindowView.FormatScore`/
+  `s_scoreFormat` and update `LeaderboardWindowView` to use it (Approach Step 3) — Unity-side
+  script with no `src/` counterpart, no headless gate.
+- Register `builder.Register(c => c.Resolve<GameLogic>().GameSettings, Lifetime.Singleton);` in
+  `Assets/Scripts/Unity/DI/GameLifetimeScope.cs` (Approach Step 2, second half) — Unity-side DI
+  registration, no headless gate.
+- Research nine conspiracy-folklore figures/organizations' worldwide Google Trends popularity via
+  `WebSearch` and commit the dated, cited ranking under
+  `.claude/skills/end-game-score-calibration/references/trends_research.md` (Approach Step 9) —
+  no code/config gate can verify research correctness.
+- Populate the real `endGameComparisons` `comparisonElementId`/`score` values in
+  `Assets/Configs/game_settings.json` using the calibration maximum and researched rank order
+  (Approach Step 10) — blocked on the trends research above; only the threshold-formula
+  arithmetic itself was covered by a headless test using a synthetic calibration maximum.
+- Add `Assets/UI/Modal/EndGameWindow/EndGameWindow.uxml`/`.uss`,
+  `Assets/Scripts/Unity/UI/EndGameWindowView.cs`, and
+  `Assets/Scripts/Unity/UI/EndGameWindowDocument.cs` (Approach Step 11) — Unity assets and
+  Unity-side scripts with no `src/` counterpart, no headless gate.
+- Register `EndGameWindowDocument` in `GameLifetimeScope`, add its `UIDocument` to
+  `Assets/Scenes/Map.unity` via Unity MCP, save, refresh, check console (Approach Step 11
+  scene-wiring half) — requires Unity MCP.
+- Add the top-right goal-hint panel markup to
+  `Assets/UI/Modal/SelectCountry/SelectCountry.uxml`/`.uss` (Approach Step 12) — Unity asset, no
+  headless gate.
+- Extend `Assets/Scripts/Unity/DI/SelectCountryLifetimeScope.cs` with the new
+  `game_settings.json` `TextAsset` field and updated `SelectOrgLogic` constructor call (Approach
+  Step 13, second half) — Unity-side script with no `src/` counterpart, no headless gate.
+- Extend `Assets/Scripts/Unity/UI/SelectOrgDocument.cs` to render goal-hint rows/alternative
+  cue/empty state and replace its `btn-back.clicked`/`_btnStart.clicked` handlers with bounded
+  `PointerUpEvent` handlers (Approach Step 14) — Unity-side script with no `src/` counterpart, no
+  headless gate.
+- Wire the new `game_settings.json` `TextAsset` field onto `SelectCountryLifetimeScope` in
+  `Assets/Scenes/CountrySelection.unity` via Unity MCP, save, refresh, check console (Approach
+  Step 15) — requires Unity MCP.
+- Add the nine `end_game.comparison.<comparisonElementId>` localization keys (and any
+  description/framing text) to `Assets/Localization/en.asset`/`ru.asset` (part of Approach Step
+  16) — blocked on the trends research above; the other `end_game.*`/`select_org.win_conditions.*`
+  keys not tied to the nine identities were added headlessly.
+- Unity import/refresh/console verification of all new/changed UXML/USS/scripts (Approach Step
+  17, Unity half) — requires the Unity Editor.
+- All six **User Steps** (visual QA in English and Russian, restored completed save, empty/
+  fallback config, pointer-blocking and Exit behavior, goal-hint panel layout review) — require
+  Play mode and human visual judgment.

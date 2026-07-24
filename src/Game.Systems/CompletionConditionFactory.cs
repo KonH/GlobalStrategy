@@ -17,8 +17,12 @@ namespace GS.Game.Systems {
 				throw new ArgumentException($"Completion condition at '{path}' cannot be null.");
 			}
 
-			switch (config.Type) {
-				case "any":
+			if (!CompletionConditionTypeParser.TryParse(config.Type, out var type)) {
+				throw new ArgumentException($"Unknown completion condition type '{config.Type}' at '{path}'.");
+			}
+
+			switch (type) {
+				case CompletionConditionType.Any:
 					if (config.Members == null || config.Members.Count == 0) {
 						throw new ArgumentException($"Completion condition at '{path}' of type 'any' must contain at least one member.");
 					}
@@ -27,9 +31,9 @@ namespace GS.Game.Systems {
 						members.Add(Create(config.Members[i], $"{path}.members[{i}]"));
 					}
 					return new AnyCompletionCondition(members);
-				case "total_control":
+				case CompletionConditionType.TotalControl:
 					return CreateTotalControl(config.Value, path);
-				case "full_control_countries":
+				case CompletionConditionType.FullControlCountries:
 					return CreateFullControl(config.Value, path);
 				default:
 					throw new ArgumentException($"Unknown completion condition type '{config.Type}' at '{path}'.");

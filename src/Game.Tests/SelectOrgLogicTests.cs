@@ -31,10 +31,12 @@ namespace GS.Game.Tests {
 				}
 			};
 			var resourceConfig = new ResourceConfig();
+			var gameSettings = new GameSettings();
 			return new SelectOrgLogic(
 				new StaticConfig<CountryConfig>(countryConfig),
 				new StaticConfig<OrganizationConfig>(orgConfig),
-				resourceConfig);
+				resourceConfig,
+				new StaticConfig<GameSettings>(gameSettings));
 		}
 
 		[Fact]
@@ -65,6 +67,14 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic();
 			Assert.Contains("Great_Britain", logic.HqCountryIds);
 			Assert.DoesNotContain("France", logic.HqCountryIds);
+		}
+
+		[Fact]
+		void win_condition_hint_is_built_once_from_game_settings() {
+			var logic = BuildLogic();
+			Assert.True(logic.VisualState.WinConditionHint.IsAvailable);
+			Assert.True(logic.VisualState.WinConditionHint.IsAlternativeGroup);
+			Assert.Equal(2, logic.VisualState.WinConditionHint.Rows.Count);
 		}
 	}
 }

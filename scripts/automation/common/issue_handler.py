@@ -166,6 +166,14 @@ def list_open_issues(label):
     ])
 
 
+def list_open_issues_with_labels(label):
+    return run_gh_json([
+        "issue", "list", "--repo", f"{OWNER}/{REPO}",
+        "--label", label, "--author", OWNER, "--state", "open",
+        "--json", f"{FIELDS},labels",
+    ])
+
+
 def has_recent_owner_reaction(marker, issue_number, cutoff):
     comments = run_gh_json(["api", f"repos/{OWNER}/{REPO}/issues/{issue_number}/comments"])
     for comment in comments:
@@ -178,10 +186,65 @@ def has_recent_owner_reaction(marker, issue_number, cutoff):
     return False
 
 
+def has_new_owner_activity(bot_comment_prefix, bot_status_labels, issue_number, cutoff):
+    """Timeline-based replacement for a blunt `updatedAt >= cutoff` check. `updatedAt` also
+    moves on events the automation caused itself in its own previous run - adding/removing its
+    `<label>-in-progress`/`<label>-needs-attention` status labels, posting a marker-prefixed
+    summary/checklist comment - which would otherwise make every run re-trigger itself on the
+    very next cycle even with no real owner activity. Only a comment that isn't one of the
+    automation's own marker comments, or a labeled/unlabeled event for a label outside its own
+    status labels, is filtered out - the automation never renames issues itself, so `renamed`
+    (and any other event type) still counts as real activity, same as before this filtering was
+    added."""
+    events = run_gh_json([
+        "api", f"repos/{OWNER}/{REPO}/issues/{issue_number}/timeline", "--paginate",
+    ])
+    for event in events:
+        timestamp = event.get("created_at")
+        if not timestamp or parse_timestamp(timestamp) < cutoff:
+            continue
+        event_type = event.get("event")
+        if event_type == "commented":
+            if not event.get("body", "").startswith(bot_comment_prefix):
+                return True
+        elif event_type in ("labeled", "unlabeled"):
+            label_name = (event.get("label") or {}).get("name", "")
+            if label_name not in bot_status_labels:
+                return True
+        else:
+            return True
+    return False
+
+
 def find_candidates(label, marker, cutoff):
+    bot_status_labels = {f"{label}-in-progress", f"{label}-needs-attention"}
+    bot_comment_prefix = marker.rsplit(" -->", 1)[0]
     candidates = []
+    resumed_numbers = set()
+    # A `<label>-in-progress` issue means a prior run started handling it but never reached the
+    # point of clearing the label (e.g. it crashed, or a background Ralph loop from section 4b
+    # was still running when the process/session ended). Nothing about that state bumps
+    # `updatedAt` or produces a fresh owner reaction, so the normal activity-based checks below
+    # would never re-select it and the issue would be stuck in-progress forever. Always resume
+    # these regardless of the lookback cutoff - except one still carrying `<label>-needs-attention`
+    # too, which per handle-feature-issue.md's labeling rule shouldn't normally happen (in-progress
+    # is always cleared when a run stops to wait on the owner), but is excluded defensively anyway:
+    # that state means the automation is genuinely waiting on the owner, not stuck mid-run.
+    needs_attention_label = f"{label}-needs-attention"
+    for issue in list_open_issues_with_labels(f"{label}-in-progress"):
+        label_names = {issue_label["name"] for issue_label in issue.get("labels", [])}
+        if needs_attention_label in label_names:
+            continue
+        candidates.append({**issue, "reason": "still labeled in-progress - resuming interrupted run"})
+        resumed_numbers.add(issue["number"])
     for issue in list_open_issues(label):
-        if parse_timestamp(issue["updatedAt"]) >= cutoff:
+        if issue["number"] in resumed_numbers:
+            continue
+        if parse_timestamp(issue["updatedAt"]) < cutoff:
+            if has_recent_owner_reaction(marker, issue["number"], cutoff):
+                candidates.append({**issue, "reason": "new reaction on a summary/conclusion comment"})
+            continue
+        if has_new_owner_activity(bot_comment_prefix, bot_status_labels, issue["number"], cutoff):
             candidates.append({**issue, "reason": "issue/comment updated"})
         elif has_recent_owner_reaction(marker, issue["number"], cutoff):
             candidates.append({**issue, "reason": "new reaction on a summary/conclusion comment"})
