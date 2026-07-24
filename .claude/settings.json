@@ -36,8 +36,8 @@
   "extraKnownMarketplaces": {
     "claude-tools": {
       "source": {
-        "source": "github",
-        "repo": "KonH/ClaudeTools"
+        "source": "directory",
+        "path": "./.claude/vendor/claude-tools"
       }
     }
   }
