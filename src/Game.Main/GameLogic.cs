@@ -148,6 +148,9 @@ namespace GS.Main {
 			if (_commandAccessor.ReadDebugDiscoverAllCountriesCommand().Count > 0) {
 				ApplyDebugDiscoverAllCountries();
 			}
+			foreach (var cmd in _commandAccessor.ReadDebugForceCompletionConditionCommand().AsSpan()) {
+				ApplyDebugForceCompletionCondition(cmd.TargetOrgId, cmd.ConditionType, cmd.Value);
+			}
 			foreach (var cmd in _commandAccessor.ReadSelectProvinceCommand().AsSpan()) {
 				ApplySelectProvince(cmd.ProvinceId);
 			}
@@ -595,6 +598,119 @@ namespace GS.Main {
 				int entity = _world.Create();
 				_world.Add(entity, new DiscoveredCountry { OrgId = viewOrgId, CountryId = countryId });
 			}
+		}
+
+		// Debug-only completion forcer: pushes a target org over a single flattened
+		// completion-condition leaf (see WinConditionHintProjector for the same flattening
+		// used to label these debug buttons). Reduces the most-control opponent(s) in a
+		// country first to free room before granting the target org control there, so it
+		// never silently no-ops when opponents already occupy the country's control pool.
+		void ApplyDebugForceCompletionCondition(string targetOrgId, string conditionType, double value) {
+			if (string.IsNullOrEmpty(targetOrgId) || !CompletionConditionTypeParser.TryParse(conditionType, out var type)) {
+				return;
+			}
+
+			var countryIds = new List<string>(GameCompletionSystem.GetAvailableCountryIds(_world));
+			if (countryIds.Count == 0) {
+				return;
+			}
+			countryIds.Sort(StringComparer.Ordinal);
+
+			switch (type) {
+				case CompletionConditionType.TotalControl:
+					ForceTotalControl(targetOrgId, value, countryIds);
+					break;
+				case CompletionConditionType.FullControlCountries:
+					ForceFullControlCountries(targetOrgId, (int)value, countryIds);
+					break;
+			}
+		}
+
+		void ForceTotalControl(string targetOrgId, double threshold, List<string> countryIds) {
+			int totalCapacity = countryIds.Count * MaxControlPool;
+			int requiredTotal = (int)Math.Ceiling(threshold * totalCapacity - 1e-9);
+
+			Dictionary<string, int> controlByCountry = OrgMetrics.GetControlByCountry(_world, targetOrgId, countryIds);
+			int currentTotal = 0;
+			foreach (int v in controlByCountry.Values) { currentTotal += v; }
+			int remaining = requiredTotal - currentTotal;
+			if (remaining <= 0) { return; }
+
+			foreach (string countryId in countryIds) {
+				if (remaining <= 0) { break; }
+				controlByCountry.TryGetValue(countryId, out int targetHere);
+				int addHere = Math.Min(remaining, MaxControlPool - targetHere);
+				if (addHere <= 0) { continue; }
+				ForceControlInCountry(targetOrgId, countryId, addHere);
+				remaining -= addHere;
+			}
+		}
+
+		void ForceFullControlCountries(string targetOrgId, int requiredCountryCount, List<string> countryIds) {
+			Dictionary<string, int> controlByCountry = OrgMetrics.GetControlByCountry(_world, targetOrgId, countryIds);
+			int currentFullCount = 0;
+			foreach (int v in controlByCountry.Values) {
+				if (v >= MaxControlPool) { currentFullCount++; }
+			}
+			int neededCountries = requiredCountryCount - currentFullCount;
+			if (neededCountries <= 0) { return; }
+
+			foreach (string countryId in countryIds) {
+				if (neededCountries <= 0) { break; }
+				controlByCountry.TryGetValue(countryId, out int targetHere);
+				if (targetHere >= MaxControlPool) { continue; }
+				ForceControlInCountry(targetOrgId, countryId, MaxControlPool - targetHere);
+				neededCountries--;
+			}
+		}
+
+		// Frees room by deducting from the most-control opponent(s) in the country first
+		// (ties broken ordinally for determinism), then grants the target org's increment.
+		void ForceControlInCountry(string targetOrgId, string countryId, int needed) {
+			if (needed <= 0) { return; }
+			int freeRoom = MaxControlPool - GetTotalControlInCountry(countryId);
+			if (freeRoom < needed) {
+				int deficit = needed - freeRoom;
+				foreach (var (opponentOrgId, opponentValue) in GetOtherOrgsControlDescending(countryId, targetOrgId)) {
+					if (deficit <= 0) { break; }
+					int reduceBy = Math.Min(opponentValue, deficit);
+					ApplyChangeControl(opponentOrgId, countryId, -reduceBy);
+					deficit -= reduceBy;
+				}
+			}
+			ApplyChangeControl(targetOrgId, countryId, needed);
+		}
+
+		int GetTotalControlInCountry(string countryId) {
+			int total = 0;
+			int[] req = { TypeId<ControlEffect>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (effects[i].CountryId == countryId) { total += effects[i].Value; }
+				}
+			}
+			return total;
+		}
+
+		List<(string OrgId, int Value)> GetOtherOrgsControlDescending(string countryId, string excludeOrgId) {
+			var byOrg = new Dictionary<string, int>();
+			int[] req = { TypeId<ControlEffect>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
+				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (effects[i].CountryId != countryId || effects[i].OrgId == excludeOrgId) { continue; }
+					byOrg.TryGetValue(effects[i].OrgId, out int existing);
+					byOrg[effects[i].OrgId] = existing + effects[i].Value;
+				}
+			}
+			var list = new List<(string OrgId, int Value)>();
+			foreach (var kv in byOrg) { list.Add((kv.Key, kv.Value)); }
+			list.Sort((a, b) => {
+				int cmp = b.Value.CompareTo(a.Value);
+				return cmp != 0 ? cmp : string.CompareOrdinal(a.OrgId, b.OrgId);
+			});
+			return list;
 		}
 
 		bool IsOrgOwner(string ownerId) {
