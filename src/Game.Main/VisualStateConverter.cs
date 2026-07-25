@@ -582,7 +582,7 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId) { continue; }
-					var entry = BuildEntry(world, orgId, countryId, actions[i].ActionId, hands[i].SlotIndex, true, orgControl, usedTotal);
+					var entry = BuildEntry(world, orgId, countryId, arch.Entities[i], actions[i].ActionId, hands[i].SlotIndex, true, orgControl, usedTotal);
 					if (entry != null) { hand.Add(entry); }
 				}
 			}
@@ -595,7 +595,7 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId) { continue; }
-					var entry = BuildEntry(world, orgId, countryId, actions[i].ActionId, -1, false, orgControl, usedTotal);
+					var entry = BuildEntry(world, orgId, countryId, arch.Entities[i], actions[i].ActionId, -1, false, orgControl, usedTotal);
 					if (entry != null) { deck.Add(entry); }
 				}
 			}
@@ -606,7 +606,7 @@ namespace GS.Main {
 		}
 
 		ActionCardEntry? BuildEntry(
-			IReadOnlyWorld world, string orgId, string countryId,
+			IReadOnlyWorld world, string orgId, string countryId, int entity,
 			string actionId, int slotIndex, bool isInHand,
 			int orgControl, int usedTotal) {
 			var def = _actionConfig?.Find(actionId);
@@ -615,7 +615,12 @@ namespace GS.Main {
 			string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
 			double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
 			double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
-			var ctx = new ExpressionContext { Control = orgControl, Opinion = opinion, HasSuitableRelationTarget = hasSuitableTarget };
+			double relationStillExists = 1.0;
+			if (world.Has<RelationCardTarget>(entity)) {
+				var target = world.Get<RelationCardTarget>(entity);
+				relationStillExists = CountryRelations.GetRelation(world, countryId, target.TargetCountryId) == target.Kind ? 1.0 : 0.0;
+			}
+			var ctx = new ExpressionContext { Control = orgControl, Opinion = opinion, HasSuitableRelationTarget = hasSuitableTarget, RelationStillExists = relationStillExists };
 
 			bool conditionFailed = false;
 			string failedReason = "";
@@ -626,6 +631,7 @@ namespace GS.Main {
 					failedReason = fieldType switch {
 						"opinion" => "insufficient_opinion",
 						"hasSuitableRelationTarget" => "no_suitable_target",
+						"relationStillExists" => "relation_no_longer_exists",
 						_ => "insufficient_control"
 					};
 					break;
@@ -634,8 +640,9 @@ namespace GS.Main {
 			bool poolFull = actionId == "sphere_of_pressure" && usedTotal >= 100;
 			bool isUnplayable = conditionFailed || poolFull;
 			string unplayableReason = poolFull ? "pool_full" : (conditionFailed ? failedReason : "");
+			string targetCountryId = world.Has<RelationCardTarget>(entity) ? world.Get<RelationCardTarget>(entity).TargetCountryId : "";
 
-			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason);
+			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason, targetCountryId);
 		}
 
 		void UpdateCountryRelations(IReadOnlyWorld world) {

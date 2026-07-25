@@ -156,7 +156,7 @@ namespace GS.Game.Tests {
 
 			var obsBefore = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA);
 			var spendCard = obsBefore.OrgHand.First(c => c.ActionId == MultiOrgTestSupport.SpendGoldActionId);
-			bool expectedSpendPlayable = ActionPlayability.Evaluate(logic.World, logic.ActionConfig, MultiOrgTestSupport.SpendGoldActionId, MultiOrgTestSupport.OrgA, null);
+			bool expectedSpendPlayable = ActionPlayability.Evaluate(logic.World, logic.ActionConfig, -1, MultiOrgTestSupport.SpendGoldActionId, MultiOrgTestSupport.OrgA, null);
 			Assert.Equal(expectedSpendPlayable, spendCard.IsPlayable);
 			Assert.True(spendCard.IsPlayable);
 
@@ -165,7 +165,7 @@ namespace GS.Game.Tests {
 
 			var obsAfter = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA);
 			var countryCard = obsAfter.GetCountry(MultiOrgTestSupport.HqA)!.Hand.First(c => c.ActionId == MultiOrgTestSupport.CountryCardActionId);
-			bool expectedCountryPlayable = ActionPlayability.Evaluate(logic.World, logic.ActionConfig, MultiOrgTestSupport.CountryCardActionId, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.HqA);
+			bool expectedCountryPlayable = ActionPlayability.Evaluate(logic.World, logic.ActionConfig, -1, MultiOrgTestSupport.CountryCardActionId, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.HqA);
 			Assert.Equal(expectedCountryPlayable, countryCard.IsPlayable);
 			Assert.False(countryCard.IsPlayable);
 		}

@@ -107,11 +107,15 @@ namespace GS.Game.Systems {
 					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId) { continue; }
 					var def = config.Find(actions[i].ActionId);
 					if (def == null) { continue; }
+					int candidateEntity = arch.Entities[i];
+					ctx.RelationStillExists = world.Has<RelationCardTarget>(candidateEntity)
+						? (CountryRelations.GetRelation(world, countryId, world.Get<RelationCardTarget>(candidateEntity).TargetCountryId) == world.Get<RelationCardTarget>(candidateEntity).Kind ? 1.0 : 0.0)
+						: 1.0;
 					bool ok = true;
 					foreach (var cond in def.Conditions) {
 						if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { ok = false; break; }
 					}
-					if (ok) { eligible.Add(arch.Entities[i]); }
+					if (ok) { eligible.Add(candidateEntity); }
 				}
 			}
 

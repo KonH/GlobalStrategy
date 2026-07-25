@@ -46,7 +46,14 @@ namespace GS.Unity.UI {
 			wrapper.AddToClassList("card-lift-wrapper");
 
 			var def = _config?.Find(card.ActionId);
-			string name = def != null ? _loc.Get(def.NameKey) : card.ActionId;
+			string name;
+			if (def == null) {
+				name = card.ActionId;
+			} else if (!string.IsNullOrEmpty(card.TargetCountryId)) {
+				name = string.Format(_loc.Get(def.NameKey), _loc.Get($"country_name.{card.TargetCountryId}"));
+			} else {
+				name = _loc.Get(def.NameKey);
+			}
 			string descText = def != null ? _loc.Get(def.DescKey) : "";
 			string goldCostText = GetGoldCostText(def);
 			var sprite = _visualConfig?.FindFront(card.ActionId);
@@ -70,6 +77,7 @@ namespace GS.Unity.UI {
 						_loc.Get("action.country.unplayable.insufficient_opinion"),
 						def != null ? ExtractConditionThreshold(def, "opinion") : 0),
 					"no_suitable_target" => _loc.Get("action.country.unplayable.no_suitable_target"),
+					"relation_no_longer_exists" => _loc.Get("action.country.unplayable.relation_no_longer_exists"),
 					_ => string.Format(
 						_loc.Get("action.country.unplayable.insufficient_control"),
 						def != null ? ExtractConditionThreshold(def, "control") : 0)
@@ -83,7 +91,7 @@ namespace GS.Unity.UI {
 				string capturedAction = card.ActionId;
 				cardEl.RegisterCallback<PointerUpEvent>(e => {
 					if (e.button == 0 && cardEl.ContainsPoint(e.localPosition)) {
-						OnCardClicked?.Invoke(capturedAction, null, cardEl);
+						OnCardClicked?.Invoke(capturedAction, card.TargetCountryId, cardEl);
 					}
 				});
 			}

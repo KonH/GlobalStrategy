@@ -5,7 +5,7 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class ActionPlayability {
-		public static bool Evaluate(IReadOnlyWorld world, ActionConfig config, string actionId, string orgId, string? countryId) {
+		public static bool Evaluate(IReadOnlyWorld world, ActionConfig config, int entity, string actionId, string orgId, string? countryId) {
 			var def = config.Find(actionId);
 			if (def == null) { return false; }
 
@@ -18,7 +18,12 @@ namespace GS.Game.Systems {
 				opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
 				hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
 			}
-			var ctx = new ExpressionContext { Control = orgControl, Opinion = opinion, HasSuitableRelationTarget = hasSuitableTarget };
+			double relationStillExists = 1.0;
+			if (entity >= 0 && !string.IsNullOrEmpty(countryId) && world.Has<RelationCardTarget>(entity)) {
+				var target = world.Get<RelationCardTarget>(entity);
+				relationStillExists = CountryRelations.GetRelation(world, countryId, target.TargetCountryId) == target.Kind ? 1.0 : 0.0;
+			}
+			var ctx = new ExpressionContext { Control = orgControl, Opinion = opinion, HasSuitableRelationTarget = hasSuitableTarget, RelationStillExists = relationStillExists };
 
 			foreach (var cond in def.Conditions) {
 				if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { return false; }

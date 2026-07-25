@@ -254,9 +254,11 @@ namespace GS.Main {
 		public bool   IsInHand        { get; }
 		public bool   IsUnplayable    { get; }
 		public string UnplayableReason { get; }
-		public ActionCardEntry(string actionId, int slotIndex, bool isInHand, bool isUnplayable = false, string unplayableReason = "") {
+		public string TargetCountryId { get; }
+		public ActionCardEntry(string actionId, int slotIndex, bool isInHand, bool isUnplayable = false, string unplayableReason = "", string targetCountryId = "") {
 			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
 			IsUnplayable = isUnplayable; UnplayableReason = unplayableReason;
+			TargetCountryId = targetCountryId;
 		}
 	}
 

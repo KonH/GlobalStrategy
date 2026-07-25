@@ -1,0 +1,4 @@
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,plan_size_kb,prd_size_kb,diff_lines,session_id
+26_07_24_13_stop-friendship-rivalry-cards,1.77,spec_user_input_2,interactive,fresh,2026-07-24T13:20:12.013Z,2026-07-24T13:23:17.871Z,claude,claude-sonnet-5,high,1.8747707999999998,90,4788086,29205,23.79,30.59,0.03,7471,799eba77-7b7b-51c1-acb4-22dc5a3594f6
+26_07_24_13_stop-friendship-rivalry-cards,1.77,plan_user_input_3,interactive,continued,2026-07-24T17:55:16.069Z,2026-07-24T17:56:18.325Z,claude,claude-sonnet-5,high,1.2820722,38,3707344,11317,23.79,30.59,0.03,7471,799eba77-7b7b-51c1-acb4-22dc5a3594f6
+26_07_24_13_stop-friendship-rivalry-cards,1.85,implement,interactive,fresh,2026-07-24T18:30:16.696Z,2026-07-24T18:56:04.208Z,claude,claude-sonnet-5,medium,3.8759784,188,9550748,67346,23.87,31.43,0.03,1598,8af1066c-60a1-47ca-8057-9ad0c2baeb16

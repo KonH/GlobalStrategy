@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using ECS;
 using GS.Configs;
 using GS.Game.Commands;
+using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
+using GS.Game.Systems;
 using GS.Main;
 using Xunit;
 
@@ -19,14 +21,16 @@ namespace GS.Game.Tests {
 		const string HqCountryId = "Great_Britain";
 		const string OtherCountryId = "France";
 
-		static GameLogic BuildLogic(ActionConfig actionConfig, EffectConfig effectConfig, CharacterConfig? characterConfig = null) {
-			var countryConfig = new CountryConfig {
+		static GameLogic BuildLogic(
+			ActionConfig actionConfig, EffectConfig effectConfig, CharacterConfig? characterConfig = null,
+			CountryConfig? countryConfig = null, OrganizationConfig? orgConfig = null) {
+			countryConfig ??= new CountryConfig {
 				Countries = new List<CountryEntry> {
 					new CountryEntry { CountryId = HqCountryId, DisplayName = "Great Britain", IsAvailable = true },
 					new CountryEntry { CountryId = OtherCountryId, DisplayName = "France", IsAvailable = true }
 				}
 			};
-			var orgConfig = new OrganizationConfig {
+			orgConfig ??= new OrganizationConfig {
 				Organizations = new List<OrganizationEntry> {
 					new OrganizationEntry {
 						OrganizationId = OrgId,
@@ -352,6 +356,128 @@ namespace GS.Game.Tests {
 			int discoverCount = 0;
 			foreach (var arch in logic.World.GetMatchingArchetypes(discoverReq, null)) { discoverCount += arch.Count; }
 			Assert.Equal(0, discoverCount);
+		}
+
+		// Covers Docs/Specs/26_07_24_13_stop-friendship-rivalry-cards/plan.md's Tests-section
+		// end-to-end acceptance case: two simultaneous stop_friendship instances (naming France and
+		// Germany) sit in the same country's hand at once. Playing the France instance must clear
+		// only the France relation, leaving the Germany instance's own relation and playability
+		// completely untouched — proving InitActionFromPlayCardSystem's TargetCountryId
+		// disambiguation (not just "first same-ActionId match wins") actually drives which entity
+		// gets used/cleared.
+		[Fact]
+		void playing_one_of_two_simultaneous_stop_friendship_instances_clears_only_its_own_named_relation() {
+			const string SelectedCountryId = "Prussia";
+			const string GermanyId = "Germany";
+			const string DiplomacyAdvisorId = "prussia_diplomat";
+			const string TargetRole = "diplomacy_advisor";
+
+			var countryConfig = new CountryConfig {
+				Countries = new List<CountryEntry> {
+					new CountryEntry { CountryId = HqCountryId, DisplayName = "Great Britain", IsAvailable = true },
+					new CountryEntry { CountryId = SelectedCountryId, DisplayName = "Prussia", IsAvailable = true },
+					new CountryEntry { CountryId = OtherCountryId, DisplayName = "France", IsAvailable = true },
+					new CountryEntry { CountryId = GermanyId, DisplayName = "Germany", IsAvailable = true }
+				}
+			};
+			var characterConfig = new CharacterConfig {
+				Roles = new List<CharacterRoleDefinition> {
+					new CharacterRoleDefinition { RoleId = TargetRole }
+				},
+				CountryPools = new List<CountryCharacterPool> {
+					new CountryCharacterPool {
+						CountryId = SelectedCountryId,
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[TargetRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = DiplomacyAdvisorId } }
+						}
+					}
+				}
+			};
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 2 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
+						ActionId = "stop_friendship",
+						OwnerType = "country",
+						TargetRole = TargetRole,
+						DeckCopies = 0,
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> { new ExpressionNode { Type = "opinion" }, new ExpressionNode { Type = "value", Value = 80 } }
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> { new ExpressionNode { Type = "relationStillExists" }, new ExpressionNode { Type = "value", Value = 1 } }
+							}
+						},
+						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 100.0 } },
+						EffectIds = new List<string> { "clear_friendship_effect" }
+					}
+				}
+			};
+			var effectConfig = new EffectConfig {
+				Effects = new List<ActionEffectDefinition> {
+					new ClearCountryRelationEffectParams { EffectId = "clear_friendship_effect", EffectType = "ClearCountryRelation", Kind = RelationKind.Friend }
+				}
+			};
+
+			var logic = BuildLogic(actionConfig, effectConfig, characterConfig, countryConfig);
+			logic.Update(0f);
+
+			// Opinion gate: seed the diplomacy advisor's opinion resource straight to the >=80 threshold.
+			int opinionEntity = logic.World.Create();
+			logic.World.Add(opinionEntity, new ResourceOwner(DiplomacyAdvisorId, OwnerType.Character));
+			logic.World.Add(opinionEntity, new Resource { ResourceId = $"opinion_{OrgId}", Value = 80.0 });
+
+			CountryRelations.SetRelation(logic.World, SelectedCountryId, OtherCountryId, RelationKind.Friend);
+			CountryRelations.SetRelation(logic.World, SelectedCountryId, GermanyId, RelationKind.Friend);
+
+			// Seed both instances directly into hand rather than relying on RelationCardSyncSystem +
+			// random draw luck — see plan Tests section / spec.md acceptance criterion.
+			int franceCard = logic.World.Create();
+			logic.World.Add(franceCard, new GameAction { ActionId = "stop_friendship" });
+			logic.World.Add(franceCard, new OrgContext { OrgId = OrgId });
+			logic.World.Add(franceCard, new CountryContext { CountryId = SelectedCountryId });
+			logic.World.Add(franceCard, new CardInHand { SlotIndex = 0 });
+			logic.World.Add(franceCard, new RelationCardTarget { TargetCountryId = OtherCountryId, Kind = RelationKind.Friend });
+
+			int germanyCard = logic.World.Create();
+			logic.World.Add(germanyCard, new GameAction { ActionId = "stop_friendship" });
+			logic.World.Add(germanyCard, new OrgContext { OrgId = OrgId });
+			logic.World.Add(germanyCard, new CountryContext { CountryId = SelectedCountryId });
+			logic.World.Add(germanyCard, new CardInHand { SlotIndex = 1 });
+			logic.World.Add(germanyCard, new RelationCardTarget { TargetCountryId = GermanyId, Kind = RelationKind.Friend });
+
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId, CountryId = SelectedCountryId, ActionId = "stop_friendship", TargetCountryId = OtherCountryId
+			});
+			logic.Update(0f);
+
+			// The France instance played and succeeded; only the France relation was cleared.
+			Assert.True(logic.World.Has<ActionSucceeded>(franceCard));
+			Assert.Null(CountryRelations.GetRelation(logic.World, SelectedCountryId, OtherCountryId));
+			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(logic.World, SelectedCountryId, GermanyId));
+
+			// The Germany instance was never touched by InitActionFromPlayCardSystem's matching —
+			// it must not have been marked used, must still be in hand, and must still evaluate as
+			// playable (proves this isn't a false-positive from a fixture that merely never looked
+			// at the Germany entity).
+			Assert.False(logic.World.Has<CardUse>(germanyCard));
+			Assert.True(logic.World.Has<CardInHand>(germanyCard));
+			Assert.True(ActionPlayability.Evaluate(logic.World, actionConfig, germanyCard, "stop_friendship", OrgId, SelectedCountryId));
+
+			// Exactly one RelationClearedApplied event, naming France — not a second one for Germany.
+			var clearedEvents = new List<RelationClearedApplied>();
+			int[] clearedReq = { TypeId<RelationClearedApplied>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(clearedReq, null)) {
+				RelationClearedApplied[] events = arch.GetColumn<RelationClearedApplied>();
+				for (int i = 0; i < arch.Count; i++) { clearedEvents.Add(events[i]); }
+			}
+			Assert.Single(clearedEvents);
+			Assert.Equal(OtherCountryId, clearedEvents[0].TargetCountryId);
 		}
 	}
 }

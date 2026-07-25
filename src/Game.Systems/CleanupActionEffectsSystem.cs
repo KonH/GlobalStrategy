@@ -11,6 +11,7 @@ namespace GS.Game.Systems {
 			RemoveComponent<ActionFailed>(world);
 			RemoveComponent<CardUse>(world);
 			RemoveComponent<DiscoverCountryEffect>(world);
+			RemoveComponent<ClearCountryRelationEffect>(world);
 			RemoveComponent<ResourceChange>(world);
 		}
 

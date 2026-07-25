@@ -6,6 +6,7 @@ namespace GS.Game.Configs {
 		public double Control { get; set; }
 		public double Opinion { get; set; }
 		public double HasSuitableRelationTarget { get; set; }
+		public double RelationStillExists { get; set; }
 	}
 
 	public class ExpressionNode {
@@ -56,6 +57,9 @@ namespace GS.Game.Configs {
 				}
 				case "hasSuitableRelationTarget": {
 					return ctx.HasSuitableRelationTarget;
+				}
+				case "relationStillExists": {
+					return ctx.RelationStillExists;
 				}
 				case "gte": {
 					if (node.Members == null || node.Members.Count < 2) { return 0; }

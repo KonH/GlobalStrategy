@@ -23,6 +23,10 @@ namespace GS.Game.Configs {
 		public RelationKind Kind { get; set; }
 	}
 
+	public class ClearCountryRelationEffectParams : ActionEffectDefinition {
+		public RelationKind Kind { get; set; }
+	}
+
 	// Converter sits on the Effects LIST property, not on ActionEffectDefinition itself.
 	// Putting [JsonConverter] on the base class causes infinite recursion because the
 	// attribute is inherited by all subclasses and Newtonsoft re-enters the converter
@@ -40,6 +44,7 @@ namespace GS.Game.Configs {
 					case "ControlChange": item = obj.ToObject<ControlChangeEffectParams>(serializer)!; break;
 					case "OpinionModifier": item = obj.ToObject<OpinionModifierEffectParams>(serializer)!; break;
 					case "SetCountryRelation": item = obj.ToObject<SetCountryRelationEffectParams>(serializer)!; break;
+					case "ClearCountryRelation": item = obj.ToObject<ClearCountryRelationEffectParams>(serializer)!; break;
 					default:                item = obj.ToObject<ActionEffectDefinition>(serializer)!;      break;
 				}
 				result.Add(item);

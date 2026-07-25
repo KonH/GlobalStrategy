@@ -123,9 +123,9 @@ namespace GS.Unity.UI {
 			_countryActionsView = view;
 		}
 
-		public void StartCountryCardPlay(string orgId, string countryId, string actionId, VisualElement clickedCard) {
+		public void StartCountryCardPlay(string orgId, string countryId, string actionId, VisualElement clickedCard, string targetCountryId = "") {
 			if (_isPlaying) { return; }
-			PlayCountrySequence(orgId, countryId, actionId, clickedCard).Forget();
+			PlayCountrySequence(orgId, countryId, actionId, clickedCard, targetCountryId).Forget();
 		}
 
 		async UniTaskVoid PlaySequence(string orgId, string actionId, VisualElement clickedCard) {
@@ -252,7 +252,7 @@ namespace GS.Unity.UI {
 			OnCardPlayComplete?.Invoke();
 		}
 
-		async UniTaskVoid PlayCountrySequence(string orgId, string countryId, string actionId, VisualElement clickedCard) {
+		async UniTaskVoid PlayCountrySequence(string orgId, string countryId, string actionId, VisualElement clickedCard, string targetCountryId = "") {
 			_isPlaying = true;
 			_resultReady = false;
 			_lastActionSuccess = false;
@@ -261,7 +261,7 @@ namespace GS.Unity.UI {
 
 			if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = true; }
 
-			_commands.Push(new PlayCardActionCommand { OrgId = orgId, CountryId = countryId, ActionId = actionId });
+			_commands.Push(new PlayCardActionCommand { OrgId = orgId, CountryId = countryId, ActionId = actionId, TargetCountryId = targetCountryId });
 			_commands.Push(new PauseCommand());
 
 			var root = _hudDocument.rootVisualElement;
@@ -269,7 +269,7 @@ namespace GS.Unity.UI {
 			var cardTestCard = root.Q("card-test-card");
 
 			if (overlay != null) {
-				PopulateCountryTestCard(cardTestCard, actionId);
+				PopulateCountryTestCard(cardTestCard, actionId, targetCountryId);
 				overlay.style.display = DisplayStyle.Flex;
 				overlay.style.opacity = 0f;
 				if (cardTestCard != null) { cardTestCard.style.opacity = 0f; }
@@ -279,7 +279,7 @@ namespace GS.Unity.UI {
 			clickedCard.style.opacity = 0f;
 			var deckRect = _countryActionsView?.DeckPileElement?.worldBound ?? Rect.zero;
 
-			await _transitionView.ShowCountry(actionId, fromRect, cardTestCard, 0.7f, _actionConfig, _visualConfig, _loc);
+			await _transitionView.ShowCountry(actionId, fromRect, cardTestCard, 0.7f, _actionConfig, _visualConfig, _loc, targetCountryId);
 
 			if (overlay != null) { overlay.style.opacity = 1f; }
 			if (cardTestCard != null) { cardTestCard.style.opacity = 1f; }
@@ -299,7 +299,7 @@ namespace GS.Unity.UI {
 			// Start card-to-deck transition, then hide overlay concurrently before awaiting
 			var fromTestRect = cardTestCard != null ? cardTestCard.worldBound : Rect.zero;
 			var deckElement = _countryActionsView?.DeckPileElement;
-			var deckTransitionTask = _transitionView.ShowCountry(actionId, fromTestRect, deckElement ?? cardTestCard, 0.77f, _actionConfig, _visualConfig, _loc);
+			var deckTransitionTask = _transitionView.ShowCountry(actionId, fromTestRect, deckElement ?? cardTestCard, 0.77f, _actionConfig, _visualConfig, _loc, targetCountryId);
 			if (overlay != null) { overlay.style.display = DisplayStyle.None; }
 			await deckTransitionTask;
 			_transitionView.Hide();
@@ -339,10 +339,13 @@ namespace GS.Unity.UI {
 
 			if (newHandCard != null) {
 				string newActionId = "";
+				string newTargetCountryId = "";
 				if (_state.SelectedCountry.CountryActions.Hand.Count > 0) {
-					newActionId = _state.SelectedCountry.CountryActions.Hand[_state.SelectedCountry.CountryActions.Hand.Count - 1].ActionId;
+					var newCard = _state.SelectedCountry.CountryActions.Hand[_state.SelectedCountry.CountryActions.Hand.Count - 1];
+					newActionId = newCard.ActionId;
+					newTargetCountryId = newCard.TargetCountryId;
 				}
-				await _transitionView.ShowCountry(newActionId, deckRect, newHandCard, 0.5f, _actionConfig, _visualConfig, _loc);
+				await _transitionView.ShowCountry(newActionId, deckRect, newHandCard, 0.5f, _actionConfig, _visualConfig, _loc, newTargetCountryId);
 				newHandCard.style.opacity = 1f;
 				_transitionView.Hide();
 			}
@@ -356,10 +359,17 @@ namespace GS.Unity.UI {
 			OnCardPlayComplete?.Invoke();
 		}
 
-		void PopulateCountryTestCard(VisualElement cardSlot, string actionId) {
+		void PopulateCountryTestCard(VisualElement cardSlot, string actionId, string targetCountryId = "") {
 			if (cardSlot == null) { return; }
 			var def = _actionConfig?.Find(actionId);
-			string name = def != null ? _loc.Get(def.NameKey) : actionId;
+			string name;
+			if (def == null) {
+				name = actionId;
+			} else if (!string.IsNullOrEmpty(targetCountryId)) {
+				name = string.Format(_loc.Get(def.NameKey), _loc.Get($"country_name.{targetCountryId}"));
+			} else {
+				name = _loc.Get(def.NameKey);
+			}
 			string desc = def != null ? _loc.Get(def.DescKey) : "";
 			string goldCostText = GetGoldCostText(def);
 			ActionCardBuilder.PopulateSlot(cardSlot, name, desc, goldCostText, _visualConfig?.FindFront(actionId));

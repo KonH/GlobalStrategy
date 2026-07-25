@@ -203,8 +203,10 @@ namespace GS.Main {
 			CreateActionEffectSystem.Update(_world, _actionConfig, _effectConfig, currentTime);
 			DiscoverCountrySystem.Update(_world, _proximityEntity, _rng, _hqCountryByOrgId);
 			SetCountryRelationSystem.Update(_world, _proximityEntity, _rng);
+			ClearCountryRelationSystem.Update(_world);
 			RemoveCardFromHandSystem.Update(_world);
 			CheckHandSizeSystem.Update(_world);
+			RelationCardSyncSystem.Update(_world, _actionConfig);
 			DrawCardSystem.Update(_world, _actionConfig, _rng);
 			CleanupCardDiscardSystem.Update(_world);
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool);

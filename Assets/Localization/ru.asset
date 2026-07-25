@@ -1644,6 +1644,14 @@ MonoBehaviour:
     Value: Declaration of Rivalry
   - Key: action.make_rival.desc
     Value: Mark new country as rival.
+  - Key: action.stop_friendship.name
+    Value: '{0} нам не друг!'
+  - Key: action.stop_friendship.desc
+    Value: Мы больше не друзья.
+  - Key: action.stop_rivalry.name
+    Value: '{0} нам не враг!'
+  - Key: action.stop_rivalry.desc
+    Value: Мы больше не враги.
   - Key: action.country.unplayable.pool_full
     Value: Пул контроля переполнен
   - Key: action.country.unplayable.insufficient_control
@@ -1652,6 +1660,8 @@ MonoBehaviour:
     Value: Requires {0} opinion with the diplomacy advisor
   - Key: action.country.unplayable.no_suitable_target
     Value: No suitable target country available
+  - Key: action.country.unplayable.relation_no_longer_exists
+    Value: Указанные отношения больше не существуют
   - Key: hud.actions
     Value: Действия
   - Key: hud.friends

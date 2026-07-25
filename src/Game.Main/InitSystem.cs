@@ -34,6 +34,12 @@ namespace GS.Main {
 
 			SeedCountryRelations(world, countryConfig);
 
+			int countryRelationsVersionEntity = world.Create();
+			world.Add(countryRelationsVersionEntity, new CountryRelationsVersion { Value = 0 });
+
+			int relationCardSyncStateEntity = world.Create();
+			world.Add(relationCardSyncStateEntity, new RelationCardSyncState { LastSyncedVersion = -1 });
+
 			// ProvinceOwnership is not seeded here — InitSystem only creates raw entity data,
 			// it does not call into other systems. GameLogic.Update seeds it via
 			// ProvinceOwnershipSystem.Seed once, gated by this same Update()'s IsInitialized
