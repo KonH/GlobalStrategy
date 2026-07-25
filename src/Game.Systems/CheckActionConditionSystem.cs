@@ -31,7 +31,7 @@ namespace GS.Game.Systems {
 			var toAdd = new List<int>();
 			foreach (var (entity, actionId, orgId) in toValidate) {
 				entityCountry.TryGetValue(entity, out string countryId);
-				if (ActionPlayability.Evaluate(world, config, actionId, orgId, countryId)) {
+				if (ActionPlayability.Evaluate(world, config, entity, actionId, orgId, countryId)) {
 					toAdd.Add(entity);
 				}
 			}

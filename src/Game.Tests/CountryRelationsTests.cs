@@ -138,6 +138,54 @@ namespace GS.Game.Tests {
 			Assert.Contains("Germany", rivals);
 		}
 
+		static int SeedVersionEntity(World world, int initialValue) {
+			int e = world.Create();
+			world.Add(e, new CountryRelationsVersion { Value = initialValue });
+			return e;
+		}
+
+		[Fact]
+		void set_relation_bumps_country_relations_version() {
+			var world = new World();
+			int versionEntity = SeedVersionEntity(world, 0);
+
+			CountryRelations.SetRelation(world, "Great_Britain", "France", RelationKind.Friend);
+
+			Assert.Equal(1, world.Get<CountryRelationsVersion>(versionEntity).Value);
+		}
+
+		[Fact]
+		void remove_relation_bumps_country_relations_version() {
+			var world = new World();
+			CountryRelations.SetRelation(world, "Great_Britain", "France", RelationKind.Friend);
+			int versionEntity = SeedVersionEntity(world, 5);
+
+			bool removed = CountryRelations.RemoveRelation(world, "Great_Britain", "France");
+
+			Assert.True(removed);
+			Assert.Equal(6, world.Get<CountryRelationsVersion>(versionEntity).Value);
+		}
+
+		[Fact]
+		void remove_relation_without_match_does_not_bump_version() {
+			var world = new World();
+			int versionEntity = SeedVersionEntity(world, 3);
+
+			bool removed = CountryRelations.RemoveRelation(world, "Great_Britain", "France");
+
+			Assert.False(removed);
+			Assert.Equal(3, world.Get<CountryRelationsVersion>(versionEntity).Value);
+		}
+
+		[Fact]
+		void set_relation_without_seeded_version_singleton_does_not_throw() {
+			var world = new World();
+
+			bool result = CountryRelations.SetRelation(world, "Great_Britain", "France", RelationKind.Friend);
+
+			Assert.True(result);
+		}
+
 		[Fact]
 		void debug_commands_set_and_clear_relation_through_game_logic() {
 			var logic = BuildLogic();

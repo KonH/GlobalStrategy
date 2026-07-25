@@ -91,7 +91,8 @@ namespace GS.Main {
 				&& a.SlotIndex == b.SlotIndex
 				&& a.IsInHand == b.IsInHand
 				&& a.IsUnplayable == b.IsUnplayable
-				&& a.UnplayableReason == b.UnplayableReason;
+				&& a.UnplayableReason == b.UnplayableReason
+				&& a.TargetCountryId == b.TargetCountryId;
 		}
 
 		public static bool VisualResourceChangeEffectEquals(VisualResourceChangeEffect a, VisualResourceChangeEffect b) {

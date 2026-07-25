@@ -11,7 +11,7 @@ namespace GS.Game.Systems {
 				if (string.IsNullOrEmpty(cmd.CountryId)) {
 					InitOrgCard(world, cmd.OrgId, cmd.ActionId);
 				} else {
-					InitCountryCard(world, cmd.OrgId, cmd.CountryId, cmd.ActionId);
+					InitCountryCard(world, cmd.OrgId, cmd.CountryId, cmd.ActionId, cmd.TargetCountryId);
 				}
 			}
 		}
@@ -35,7 +35,7 @@ namespace GS.Game.Systems {
 			}
 		}
 
-		static void InitCountryCard(World world, string orgId, string countryId, string actionId) {
+		static void InitCountryCard(World world, string orgId, string countryId, string actionId, string targetCountryId) {
 			int[] required = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<CardInHand>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
@@ -45,6 +45,12 @@ namespace GS.Game.Systems {
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId || actions[i].ActionId != actionId) { continue; }
 					int entity = arch.Entities[i];
+					bool hasTarget = world.Has<RelationCardTarget>(entity);
+					if (hasTarget) {
+						if (string.IsNullOrEmpty(targetCountryId) || world.Get<RelationCardTarget>(entity).TargetCountryId != targetCountryId) { continue; }
+					} else if (!string.IsNullOrEmpty(targetCountryId)) {
+						continue;
+					}
 					if (world.Has<CardUse>(entity)) {
 						throw new InvalidOperationException($"Duplicate PlayCardActionCommand for org={orgId} country={countryId} action={actionId}");
 					}

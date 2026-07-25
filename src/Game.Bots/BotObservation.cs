@@ -133,7 +133,7 @@ namespace GS.Game.Bots {
 						}
 					}
 
-					bool isPlayable = ActionPlayability.Evaluate(world, actionConfig, actionId, orgId, countryId);
+					bool isPlayable = ActionPlayability.Evaluate(world, actionConfig, entity, actionId, orgId, countryId);
 					var (discoversCountry, raisesControl) = ClassifyCard(def, effectConfigResolved);
 
 					if (countryId == null) {

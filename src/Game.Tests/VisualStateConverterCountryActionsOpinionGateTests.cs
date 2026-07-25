@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using ECS;
+using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
+using GS.Game.Systems;
 using GS.Main;
 using Xunit;
 
@@ -70,6 +72,27 @@ namespace GS.Game.Tests {
 								Members = new List<ExpressionNode> {
 									new ExpressionNode { Type = "control" },
 									new ExpressionNode { Type = "value", Value = 50 }
+								}
+							}
+						}
+					},
+					new ActionDefinition {
+						ActionId = "stop_friendship",
+						OwnerType = "country",
+						TargetRole = "diplomacy_advisor",
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "opinion" },
+									new ExpressionNode { Type = "value", Value = 80 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "relationStillExists" },
+									new ExpressionNode { Type = "value", Value = 1 }
 								}
 							}
 						}
@@ -216,6 +239,71 @@ namespace GS.Game.Tests {
 			Assert.NotNull(entry);
 			Assert.True(entry!.IsUnplayable);
 			Assert.Equal("insufficient_control", entry.UnplayableReason);
+		}
+
+		static World BuildWorldWithStopFriendshipCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, bool relationStillHolds) {
+			var world = new World();
+			int countryEntity = world.Create();
+			world.Add(countryEntity, new Country("Prussia"));
+			world.Add(countryEntity, new IsSelected());
+			world.Add(world.Create(), new Country("Austria"));
+
+			orgEntity = world.Create();
+			world.Add(orgEntity, new Organization { OrganizationId = "OrgA", DisplayName = "OrgA" });
+
+			gameTimeEntity = world.Create();
+			world.Add(gameTimeEntity, new GameTime { CurrentTime = new DateTime(1880, 1, 1), IsPaused = false, MultiplierIndex = 0 });
+
+			localeEntity = world.Create();
+			world.Add(localeEntity, new Locale { Value = "en" });
+
+			int charEntity = world.Create();
+			world.Add(charEntity, new Character {
+				CharacterId = "char1", CountryId = "Prussia", OrgId = "", RoleId = "diplomacy_advisor",
+				NamePartKeys = Array.Empty<string>()
+			});
+			int resEntity = world.Create();
+			world.Add(resEntity, new ResourceOwner("char1", OwnerType.Character));
+			world.Add(resEntity, new Resource { ResourceId = "opinion_OrgA", Value = 80 });
+
+			if (relationStillHolds) {
+				CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+			}
+
+			int cardEntity = world.Create();
+			world.Add(cardEntity, new GameAction { ActionId = "stop_friendship" });
+			world.Add(cardEntity, new OrgContext { OrgId = "OrgA" });
+			world.Add(cardEntity, new CountryContext { CountryId = "Prussia" });
+			world.Add(cardEntity, new CardInHand { SlotIndex = 0 });
+			world.Add(cardEntity, new RelationCardTarget { TargetCountryId = "Austria", Kind = RelationKind.Friend });
+
+			return world;
+		}
+
+		[Fact]
+		void stop_friendship_reports_unplayable_when_named_relation_no_longer_holds() {
+			var world = BuildWorldWithStopFriendshipCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, relationStillHolds: false);
+			var state = new VisualState();
+			var converter = new VisualStateConverter(state, BuildActionConfig());
+
+			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
+
+			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "stop_friendship");
+			Assert.NotNull(entry);
+			Assert.True(entry!.IsUnplayable);
+		}
+
+		[Fact]
+		void stop_friendship_reports_playable_when_named_relation_still_holds() {
+			var world = BuildWorldWithStopFriendshipCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, relationStillHolds: true);
+			var state = new VisualState();
+			var converter = new VisualStateConverter(state, BuildActionConfig());
+
+			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
+
+			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "stop_friendship");
+			Assert.NotNull(entry);
+			Assert.False(entry!.IsUnplayable);
 		}
 
 		static ActionCardEntry? FindEntry(IReadOnlyList<ActionCardEntry> entries, string actionId) {

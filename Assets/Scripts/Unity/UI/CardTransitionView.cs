@@ -45,13 +45,21 @@ namespace GS.Unity.UI {
 			float duration,
 			ActionConfig actionConfig,
 			ActionVisualConfig visualConfig,
-			ILocalization loc) {
+			ILocalization loc,
+			string targetCountryId = "") {
 			if (_cardCopy != null) {
 				_overlay.Remove(_cardCopy);
 			}
 
 			var def = actionConfig?.Find(actionId);
-			string nameText = def != null ? loc.Get(def.NameKey) : actionId;
+			string nameText;
+			if (def == null) {
+				nameText = actionId;
+			} else if (!string.IsNullOrEmpty(targetCountryId)) {
+				nameText = string.Format(loc.Get(def.NameKey), loc.Get($"country_name.{targetCountryId}"));
+			} else {
+				nameText = loc.Get(def.NameKey);
+			}
 			string descText = def != null ? loc.Get(def.DescKey) : "";
 			string goldCostText = GetGoldCostText(def);
 			var sprite = visualConfig?.FindFront(actionId);

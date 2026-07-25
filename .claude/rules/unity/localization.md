@@ -46,6 +46,10 @@ Namespacing convention:
 - `resource.{id}.name/description` — resource names
 - `effect.{id}.name/description` — effect names
 
+## Card/Action Description Text (`action.*.desc`, `effect.*.desc`)
+
+Keep `desc` values short, practical, one plain sentence — e.g. `Mark new country as friend.`, `We're not friends anymore.` Do **not** write flavor/narrative text (no "A pointed dismissal, delivered through official channels..."). This applies even to plans/specs that propose placeholder description text — treat any such text as non-binding and write the short practical form instead when implementing.
+
 ## Click Blocking for Modal Dialogs
 
 `EventSystem.IsPointerOverGameObject()` does not reliably detect UI Toolkit panels with the new Input System (Unity 6). Use `ModalState` instead:

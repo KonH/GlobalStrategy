@@ -157,6 +157,36 @@
       ],
       "cost": [{ "resourceId": "gold", "amount": 50.0 }],
       "effectIds": ["make_rival_effect"]
+    },
+    {
+      "actionId": "stop_friendship",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.stop_friendship.name",
+      "descKey": "action.stop_friendship.desc",
+      "targetRole": "diplomacy_advisor",
+      "deckCopies": 0,
+      "conditions": [
+        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] },
+        { "type": "gte", "members": [ { "type": "relationStillExists" }, { "type": "value", "value": 1 } ] }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 100.0 }],
+      "effectIds": ["clear_friendship_effect"]
+    },
+    {
+      "actionId": "stop_rivalry",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.stop_rivalry.name",
+      "descKey": "action.stop_rivalry.desc",
+      "targetRole": "diplomacy_advisor",
+      "deckCopies": 0,
+      "conditions": [
+        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] },
+        { "type": "gte", "members": [ { "type": "relationStillExists" }, { "type": "value", "value": 1 } ] }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 100.0 }],
+      "effectIds": ["clear_rivalry_effect"]
     }
   ],
   "orgPools": [

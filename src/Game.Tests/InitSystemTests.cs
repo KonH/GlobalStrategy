@@ -196,6 +196,35 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void init_creates_country_relations_version_and_relation_card_sync_state_singletons() {
+			var logic = BuildLogic();
+			logic.Update(0f);
+
+			Assert.Equal(1, CountEntities<CountryRelationsVersion>(logic.World));
+			int[] versionReq = { TypeId<CountryRelationsVersion>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(versionReq, null)) {
+				CountryRelationsVersion[] versions = arch.GetColumn<CountryRelationsVersion>();
+				for (int i = 0; i < arch.Count; i++) {
+					Assert.Equal(0, versions[i].Value);
+				}
+			}
+
+			// LastSyncedVersion starts at -1 in InitSystem's raw seed, but RelationCardSyncSystem
+			// runs later in this same GameLogic.Update tick (before DrawCardSystem, per
+			// Docs/Specs/26_07_24_13_stop-friendship-rivalry-cards/plan.md Step 12) and immediately
+			// catches it up to the current CountryRelationsVersion.Value (0, since no relation
+			// exists yet) so newly-synced cards are eligible for this same tick's draw.
+			Assert.Equal(1, CountEntities<RelationCardSyncState>(logic.World));
+			int[] syncReq = { TypeId<RelationCardSyncState>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(syncReq, null)) {
+				RelationCardSyncState[] states = arch.GetColumn<RelationCardSyncState>();
+				for (int i = 0; i < arch.Count; i++) {
+					Assert.Equal(0, states[i].LastSyncedVersion);
+				}
+			}
+		}
+
+		[Fact]
 		void init_skipped_after_load() {
 			var storage = new MemoryStorage();
 			var serializer = new CapturingSerializer();

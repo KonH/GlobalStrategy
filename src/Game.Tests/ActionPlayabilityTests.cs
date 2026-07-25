@@ -51,6 +51,28 @@ namespace GS.Game.Tests {
 							}
 						},
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } }
+					},
+					new ActionDefinition {
+						ActionId = "stop_friendship",
+						OwnerType = "country",
+						TargetRole = "diplomacy_advisor",
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "opinion" },
+									new ExpressionNode { Type = "value", Value = 80 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "relationStillExists" },
+									new ExpressionNode { Type = "value", Value = 1 }
+								}
+							}
+						},
+						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 100.0 } }
 					}
 				}
 			};
@@ -98,6 +120,12 @@ namespace GS.Game.Tests {
 			return e;
 		}
 
+		static int AddRelationCard(World world, string orgId, string actionId, string countryId, string targetCountryId, RelationKind kind) {
+			int e = AddCard(world, orgId, actionId, countryId);
+			world.Add(e, new RelationCardTarget { TargetCountryId = targetCountryId, Kind = kind });
+			return e;
+		}
+
 		static bool? RunPipeline(World world, ActionConfig config, int entity) {
 			CheckActionConditionSystem.Update(world, config);
 			DeductActionCostSystem.Update(world, config);
@@ -115,7 +143,7 @@ namespace GS.Game.Tests {
 			var worldA = new World();
 			AddGold(worldA, "OrgA", 100.0);
 			int cardA = AddCard(worldA, "OrgA", "org_card", null);
-			bool expectedA = ActionPlayability.Evaluate(worldA, config, "org_card", "OrgA", null);
+			bool expectedA = ActionPlayability.Evaluate(worldA, config, -1, "org_card", "OrgA", null);
 			Assert.Equal(expectedA, RunPipeline(worldA, config, cardA));
 			Assert.True(expectedA);
 
@@ -123,7 +151,7 @@ namespace GS.Game.Tests {
 			var worldB = new World();
 			AddGold(worldB, "OrgA", 10.0);
 			int cardB = AddCard(worldB, "OrgA", "org_card", null);
-			bool expectedB = ActionPlayability.Evaluate(worldB, config, "org_card", "OrgA", null);
+			bool expectedB = ActionPlayability.Evaluate(worldB, config, -1, "org_card", "OrgA", null);
 			Assert.Equal(expectedB, RunPipeline(worldB, config, cardB));
 			Assert.False(expectedB);
 
@@ -132,7 +160,7 @@ namespace GS.Game.Tests {
 			AddGold(worldC, "OrgA", 100.0);
 			AddControl(worldC, "OrgA", "Prussia", 10);
 			int cardC = AddCard(worldC, "OrgA", "country_card", "Prussia");
-			bool expectedC = ActionPlayability.Evaluate(worldC, config, "country_card", "OrgA", "Prussia");
+			bool expectedC = ActionPlayability.Evaluate(worldC, config, -1, "country_card", "OrgA", "Prussia");
 			Assert.Equal(expectedC, RunPipeline(worldC, config, cardC));
 			Assert.True(expectedC);
 
@@ -141,12 +169,12 @@ namespace GS.Game.Tests {
 			AddGold(worldD, "OrgA", 100.0);
 			AddControl(worldD, "OrgA", "Prussia", 5);
 			int cardD = AddCard(worldD, "OrgA", "country_card", "Prussia");
-			bool expectedD = ActionPlayability.Evaluate(worldD, config, "country_card", "OrgA", "Prussia");
+			bool expectedD = ActionPlayability.Evaluate(worldD, config, -1, "country_card", "OrgA", "Prussia");
 			Assert.Equal(expectedD, RunPipeline(worldD, config, cardD));
 			Assert.False(expectedD);
 
 			// unknown actionId -> false; cannot be represented as a played card at all, direct call only.
-			Assert.False(ActionPlayability.Evaluate(worldD, config, "does_not_exist", "OrgA", null));
+			Assert.False(ActionPlayability.Evaluate(worldD, config, -1, "does_not_exist", "OrgA", null));
 		}
 
 		[Fact]
@@ -157,7 +185,7 @@ namespace GS.Game.Tests {
 			AddControl(world, "OrgA", "Prussia", 10);
 			int card = AddCard(world, "OrgA", "country_card", "Prussia");
 
-			bool expected = ActionPlayability.Evaluate(world, config, "country_card", "OrgA", "Prussia");
+			bool expected = ActionPlayability.Evaluate(world, config, -1, "country_card", "OrgA", "Prussia");
 			Assert.False(expected);
 
 			CheckActionConditionSystem.Update(world, config);
@@ -198,7 +226,7 @@ namespace GS.Game.Tests {
 			AddCountry(world, "Austria");
 			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 29);
 
-			Assert.False(ActionPlayability.Evaluate(world, config, "make_friend", "OrgA", "Prussia"));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "make_friend", "OrgA", "Prussia"));
 		}
 
 		[Fact]
@@ -211,7 +239,7 @@ namespace GS.Game.Tests {
 			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
 			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
 
-			Assert.False(ActionPlayability.Evaluate(world, config, "make_friend", "OrgA", "Prussia"));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "make_friend", "OrgA", "Prussia"));
 		}
 
 		[Fact]
@@ -223,7 +251,7 @@ namespace GS.Game.Tests {
 			AddCountry(world, "Austria");
 			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 30);
 
-			Assert.True(ActionPlayability.Evaluate(world, config, "make_friend", "OrgA", "Prussia"));
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "make_friend", "OrgA", "Prussia"));
 		}
 
 		[Fact]
@@ -235,7 +263,7 @@ namespace GS.Game.Tests {
 			AddCountry(world, "Austria");
 			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
 
-			Assert.False(ActionPlayability.Evaluate(world, config, "make_friend", "OrgA", "Prussia"));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "make_friend", "OrgA", "Prussia"));
 		}
 
 		[Fact]
@@ -247,7 +275,93 @@ namespace GS.Game.Tests {
 
 			// No diplomacy advisor/opinion/relation data seeded at all — control-only card must
 			// still evaluate purely off Control, unaffected by the new Opinion/HasSuitableRelationTarget wiring.
-			Assert.True(ActionPlayability.Evaluate(world, config, "country_card", "OrgA", "Prussia"));
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "country_card", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void stop_friendship_unplayable_when_named_relation_no_longer_holds() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 80);
+			// No Friend relation ever set between Prussia and Austria — the named relation is dead.
+			int card = AddRelationCard(world, "OrgA", "stop_friendship", "Prussia", "Austria", RelationKind.Friend);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, card, "stop_friendship", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void stop_friendship_playable_when_named_relation_still_holds_opinion_and_cost_met() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 80);
+			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+			int card = AddRelationCard(world, "OrgA", "stop_friendship", "Prussia", "Austria", RelationKind.Friend);
+
+			Assert.True(ActionPlayability.Evaluate(world, config, card, "stop_friendship", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void stop_friendship_unplayable_when_opinion_below_threshold_even_if_relation_still_holds() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 79);
+			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+			int card = AddRelationCard(world, "OrgA", "stop_friendship", "Prussia", "Austria", RelationKind.Friend);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, card, "stop_friendship", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void stop_friendship_unplayable_when_unaffordable_even_if_gates_satisfied() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 99.0);
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 80);
+			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+			int card = AddRelationCard(world, "OrgA", "stop_friendship", "Prussia", "Austria", RelationKind.Friend);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, card, "stop_friendship", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void stop_friendship_dead_instance_stays_unplayable_even_when_a_different_relation_of_same_kind_exists() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddCountry(world, "Bavaria");
+			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 80);
+			// A Friend relation with a *different* country exists, but this instance names Austria specifically.
+			CountryRelations.SetRelation(world, "Prussia", "Bavaria", RelationKind.Friend);
+			int card = AddRelationCard(world, "OrgA", "stop_friendship", "Prussia", "Austria", RelationKind.Friend);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, card, "stop_friendship", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void entity_negative_one_with_relation_agnostic_conditions_does_not_throw() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 10);
+
+			// Regression guard: entity == -1 must never attempt World.Has<RelationCardTarget>(-1),
+			// which would throw IndexOutOfRangeException without the entity >= 0 guard.
+			var exception = Record.Exception(() => ActionPlayability.Evaluate(world, config, -1, "country_card", "OrgA", "Prussia"));
+			Assert.Null(exception);
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "country_card", "OrgA", "Prussia"));
 		}
 	}
 }

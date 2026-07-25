@@ -59,6 +59,20 @@
       "nameKey": "effect.make_rival_effect.name",
       "descKey": "effect.make_rival_effect.desc",
       "kind": "Rival"
+    },
+    {
+      "effectId": "clear_friendship_effect",
+      "effectType": "ClearCountryRelation",
+      "nameKey": "effect.clear_friendship_effect.name",
+      "descKey": "effect.clear_friendship_effect.desc",
+      "kind": "Friend"
+    },
+    {
+      "effectId": "clear_rivalry_effect",
+      "effectType": "ClearCountryRelation",
+      "nameKey": "effect.clear_rivalry_effect.name",
+      "descKey": "effect.clear_rivalry_effect.desc",
+      "kind": "Rival"
     }
   ]
 }

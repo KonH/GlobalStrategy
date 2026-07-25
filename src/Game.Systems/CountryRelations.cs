@@ -16,6 +16,7 @@ namespace GS.Game.Systems {
 				LeftCountryId = countryIdA,
 				RightCountryId = countryIdB
 			});
+			BumpVersion(world);
 			return true;
 		}
 
@@ -27,11 +28,23 @@ namespace GS.Game.Systems {
 				for (int i = 0; i < count; i++) {
 					if (Matches(relations[i], countryIdA, countryIdB)) {
 						world.Destroy(arch.Entities[i]);
+						BumpVersion(world);
 						return true;
 					}
 				}
 			}
 			return false;
+		}
+
+		static void BumpVersion(World world) {
+			int[] required = { TypeId<CountryRelationsVersion>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				if (arch.Count > 0) {
+					CountryRelationsVersion[] versions = arch.GetColumn<CountryRelationsVersion>();
+					versions[0].Value++;
+					return;
+				}
+			}
 		}
 
 		public static RelationKind? GetRelation(IReadOnlyWorld world, string countryIdA, string countryIdB) {
