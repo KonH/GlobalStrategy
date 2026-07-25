@@ -50,6 +50,13 @@ Namespacing convention:
 
 Keep `desc` values short, practical, one plain sentence — e.g. `Mark new country as friend.`, `We're not friends anymore.` Do **not** write flavor/narrative text (no "A pointed dismissal, delivered through official channels..."). This applies even to plans/specs that propose placeholder description text — treat any such text as non-binding and write the short practical form instead when implementing.
 
+## Adding New Locale Keys
+
+Do not add the same English text to `ru.asset` as a "placeholder Russian
+translation" — that pattern is deprecated. Use the `localization` skill,
+which spawns a lightweight Haiku subagent to produce a real Russian
+translation for every new key in the same change that introduces it.
+
 ## Click Blocking for Modal Dialogs
 
 `EventSystem.IsPointerOverGameObject()` does not reliably detect UI Toolkit panels with the new Input System (Unity 6). Use `ModalState` instead:
