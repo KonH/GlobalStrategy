@@ -18,6 +18,8 @@ namespace GS.Unity.Map {
 		VisualState _state;
 		bool _pressing;
 		Vector2 _pressScreenPos;
+		bool _pressIsTouch;
+		int _pressTouchId;
 
 		[Inject]
 		void Construct(MapController mapController, IWriteOnlyCommandAccessor commands, VisualState state) {
@@ -32,18 +34,19 @@ namespace GS.Unity.Map {
 
 		void Update() {
 			var mouse = Mouse.current;
-			if (mouse == null) {
-				return;
-			}
-			if (mouse.leftButton.wasPressedThisFrame) {
-				_pressScreenPos = mouse.position.ReadValue();
-				_pressing = !ModalState.IsModalOpen
-					&& !(EventSystem.current != null && EventSystem.current.IsPointerOverGameObject());
-				if (!_pressing) {
-					Debug.Log("[MapClick] Blocked by UI (IsPointerOverGameObject)");
+			var touchscreen = Touchscreen.current;
+
+			if (mouse != null && mouse.leftButton.wasPressedThisFrame) {
+				BeginPress(mouse.position.ReadValue(), isTouch: false, pointerId: -1);
+			} else if (touchscreen != null) {
+				foreach (var touch in touchscreen.touches) {
+					if (!touch.press.wasPressedThisFrame) { continue; }
+					BeginPress(touch.position.ReadValue(), isTouch: true, pointerId: touch.touchId.ReadValue());
+					break;
 				}
 			}
-			if (!mouse.leftButton.wasReleasedThisFrame) {
+
+			if (!TryGetReleaseThisFrame(mouse, touchscreen, out Vector2 releasePos)) {
 				return;
 			}
 			if (!_pressing) {
@@ -54,7 +57,6 @@ namespace GS.Unity.Map {
 				return;
 			}
 
-			var releasePos = mouse.position.ReadValue();
 			if (Vector2.Distance(_pressScreenPos, releasePos) > ClickDragThresholdPixels) {
 				return;
 			}
@@ -85,6 +87,38 @@ namespace GS.Unity.Map {
 			string ownerId = ResolveOwner(id);
 			Debug.Log($"[MapClick] provinceId: '{id.gameObject.name}', ownerId: '{ownerId}'");
 			_commands?.Push(new SelectCountryCommand(ownerId));
+		}
+
+		void BeginPress(Vector2 screenPos, bool isTouch, int pointerId) {
+			_pressScreenPos = screenPos;
+			_pressIsTouch = isTouch;
+			_pressTouchId = pointerId;
+			_pressing = !ModalState.IsModalOpen
+				&& !(EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(pointerId));
+			if (!_pressing) {
+				Debug.Log("[MapClick] Blocked by UI (IsPointerOverGameObject)");
+			}
+		}
+
+		bool TryGetReleaseThisFrame(Mouse mouse, Touchscreen touchscreen, out Vector2 releasePos) {
+			if (!_pressIsTouch) {
+				if (mouse != null && mouse.leftButton.wasReleasedThisFrame) {
+					releasePos = mouse.position.ReadValue();
+					return true;
+				}
+				releasePos = default;
+				return false;
+			}
+			if (touchscreen != null) {
+				foreach (var touch in touchscreen.touches) {
+					if (touch.touchId.ReadValue() != _pressTouchId) { continue; }
+					if (!touch.press.wasReleasedThisFrame) { continue; }
+					releasePos = touch.position.ReadValue();
+					return true;
+				}
+			}
+			releasePos = default;
+			return false;
 		}
 
 		void HandleProvinceClick(Vector2 screenPos) {
