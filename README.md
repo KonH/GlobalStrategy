@@ -1,12 +1,16 @@
 # Global Strategy
 
-**▶ [Play the demo in your browser (Unity WebGL)](https://play.unity.com/en/games/790490b4-2b09-4c1c-8a2e-df23f6b43b47/global-strategy)**
-
-**▶ [Play the simplified web client (mobile-friendly, experimental)](https://konh.github.io/GlobalStrategy/)** — a lightweight Blazor debug build of the same simulation: no map, a text terminal for actions, works on phones. See [Standalone Web Client](#standalone-web-client) below to run it locally.
+## Summary
 
 A grand-strategy game set in the world of 1880, where you don't play a nation — you play a secret organization spreading its influence across 160+ historical countries. Built with Unity 6, a custom C# ECS, and a fully AI-assisted development workflow.
 
 This repository is both a game and a case study in **structured AI-driven software development**: every feature here was specified, planned, implemented, reviewed, and shipped through a custom Claude Code workflow — including fully autonomous multi-hour implementation runs.
+
+## Demos
+
+**▶ [Play the game in your browser (Unity WebGL)](https://play.unity.com/en/games/790490b4-2b09-4c1c-8a2e-df23f6b43b47/global-strategy)**
+
+**▶ [Run the debug web client (experimental)](https://konh.github.io/GlobalStrategy/)**
 
 ---
 
