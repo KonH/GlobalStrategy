@@ -10,10 +10,14 @@ using GS.Unity.Common;
 namespace GS.Unity.Map {
 	[RequireComponent(typeof(Camera))]
 	public class MapClickHandler : MonoBehaviour {
+		const float ClickDragThresholdPixels = 10f;
+
 		Camera _camera;
 		MapController _mapController;
 		IWriteOnlyCommandAccessor _commands;
 		VisualState _state;
+		bool _pressing;
+		Vector2 _pressScreenPos;
 
 		[Inject]
 		void Construct(MapController mapController, IWriteOnlyCommandAccessor commands, VisualState state) {
@@ -31,20 +35,34 @@ namespace GS.Unity.Map {
 			if (mouse == null) {
 				return;
 			}
-			if (!mouse.leftButton.wasPressedThisFrame) {
+			if (mouse.leftButton.wasPressedThisFrame) {
+				_pressScreenPos = mouse.position.ReadValue();
+				_pressing = !ModalState.IsModalOpen
+					&& !(EventSystem.current != null && EventSystem.current.IsPointerOverGameObject());
+				if (!_pressing) {
+					Debug.Log("[MapClick] Blocked by UI (IsPointerOverGameObject)");
+				}
+			}
+			if (!mouse.leftButton.wasReleasedThisFrame) {
 				return;
 			}
+			if (!_pressing) {
+				return;
+			}
+			_pressing = false;
 			if (ModalState.IsModalOpen) {
 				return;
 			}
-			Debug.Log($"[MapClick] Left click at screen {mouse.position.ReadValue()}");
-			if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) {
-				Debug.Log("[MapClick] Blocked by UI (IsPointerOverGameObject)");
+
+			var releasePos = mouse.position.ReadValue();
+			if (Vector2.Distance(_pressScreenPos, releasePos) > ClickDragThresholdPixels) {
 				return;
 			}
 
+			Debug.Log($"[MapClick] Left click at screen {releasePos}");
+
 			if (_state != null && _state.MapLens.Lens == MapLens.Province) {
-				HandleProvinceClick(mouse);
+				HandleProvinceClick(releasePos);
 				return;
 			}
 
@@ -54,8 +72,7 @@ namespace GS.Unity.Map {
 				return;
 			}
 
-			var sp = mouse.position.ReadValue();
-			var world = _camera.ScreenToWorldPoint(new Vector3(sp.x, sp.y, 0f));
+			var world = _camera.ScreenToWorldPoint(new Vector3(releasePos.x, releasePos.y, 0f));
 			Debug.Log($"[MapClick] World pos: {world.x:F2}, {world.y:F2}");
 
 			var id = provinceRenderer.FindFeatureAt(new Vector2(world.x, world.y));
@@ -70,15 +87,14 @@ namespace GS.Unity.Map {
 			_commands?.Push(new SelectCountryCommand(ownerId));
 		}
 
-		void HandleProvinceClick(Mouse mouse) {
+		void HandleProvinceClick(Vector2 screenPos) {
 			var provinceRenderer = _mapController != null ? _mapController.ActiveProvinceRenderer : null;
 			if (provinceRenderer == null) {
 				Debug.LogWarning($"[MapClick] provinceRenderer is null (mapController={_mapController != null})");
 				return;
 			}
 
-			var sp = mouse.position.ReadValue();
-			var world = _camera.ScreenToWorldPoint(new Vector3(sp.x, sp.y, 0f));
+			var world = _camera.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));
 			Debug.Log($"[MapClick] World pos: {world.x:F2}, {world.y:F2}");
 
 			var id = provinceRenderer.FindFeatureAt(new Vector2(world.x, world.y));

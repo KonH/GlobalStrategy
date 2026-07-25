@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 using VContainer;
 using GS.Game.Configs;
 using GS.Unity.Common;
@@ -14,6 +15,7 @@ namespace GS.Unity.Map {
 		MapController _mapController;
 		Vector3? _panTarget;
 		float _panSpeed = 5f;
+		float? _prevPinchDistance;
 
 		[Inject]
 		void Construct(MapCameraConfig config, MapController mapController) {
@@ -28,6 +30,7 @@ namespace GS.Unity.Map {
 		void Update() {
 			HandleKeyboard();
 			HandleZoom();
+			HandlePinchZoom();
 			UpdateDragState();
 			UpdatePan();
 			WrapX();
@@ -71,6 +74,33 @@ namespace GS.Unity.Map {
 				_config.MaxZoom);
 		}
 
+		void HandlePinchZoom() {
+			var touchscreen = Touchscreen.current;
+			if (touchscreen == null || ModalState.IsModalOpen) {
+				_prevPinchDistance = null;
+				return;
+			}
+			TouchControl t0 = null, t1 = null;
+			foreach (var touch in touchscreen.touches) {
+				if (!touch.press.isPressed) { continue; }
+				if (t0 == null) { t0 = touch; }
+				else if (t1 == null) { t1 = touch; break; }
+			}
+			if (t0 == null || t1 == null) {
+				_prevPinchDistance = null;
+				return;
+			}
+			float distance = Vector2.Distance(t0.position.ReadValue(), t1.position.ReadValue());
+			if (_prevPinchDistance.HasValue) {
+				float delta = distance - _prevPinchDistance.Value;
+				_camera.orthographicSize = Mathf.Clamp(
+					_camera.orthographicSize - delta * _config.PinchZoomSpeed,
+					_config.MinZoom,
+					_config.MaxZoom);
+			}
+			_prevPinchDistance = distance;
+		}
+
 		void HandleKeyboard() {
 			var kb = Keyboard.current;
 			if (kb == null) return;
@@ -85,12 +115,13 @@ namespace GS.Unity.Map {
 		void UpdateDragState() {
 			var mouse = Mouse.current;
 			if (mouse == null) return;
-			if (mouse.rightButton.wasPressedThisFrame) {
+			bool panButtonHeld = mouse.leftButton.isPressed || mouse.rightButton.isPressed;
+			if (!_dragging && panButtonHeld) {
 				var sp = mouse.position.ReadValue();
 				_dragOriginWorld = _camera.ScreenToWorldPoint(new Vector3(sp.x, sp.y, 0f));
 				_dragging = true;
 			}
-			if (mouse.rightButton.wasReleasedThisFrame) {
+			if (_dragging && !panButtonHeld) {
 				_dragging = false;
 			}
 			if (!_dragging) return;

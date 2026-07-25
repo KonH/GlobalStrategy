@@ -5,6 +5,7 @@ namespace GS.Unity.Map {
 	public class MapCameraConfig : ScriptableObject {
 		public float PanSpeed = 80f;
 		public float ZoomSpeed = 10f;
+		public float PinchZoomSpeed = 0.05f;
 		public float MinZoom = 20f;
 		public float MaxZoom = 200f;
 	}
