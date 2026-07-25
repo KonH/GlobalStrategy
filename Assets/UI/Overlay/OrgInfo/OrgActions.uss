@@ -134,5 +134,5 @@
     width: 16px;
     height: 16px;
     -unity-background-scale-mode: scale-to-fit;
-    background-image: url("project://database/Assets/UI/Icons/coin.png?fileID=2800000&guid=46e003f67ebde7347a8004dd120d478a&type=3#coin");
+    background-image: url("project://database/Assets/Textures/Icons/CardView/coin.png?fileID=2800000&guid=7fccafa14706457483a5f3c19e7c1746&type=3#coin");
 }

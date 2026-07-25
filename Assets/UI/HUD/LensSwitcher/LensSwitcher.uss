@@ -23,19 +23,19 @@
 }
 
 .lens-icon--political {
-    background-image: url("project://database/Assets/UI/Icons/lens-political.png?fileID=2800000&guid=2b5811c78c710124da711ce9622a6a09&type=3#lens-political");
+    background-image: url("project://database/Assets/Textures/Icons/MapLens/lens-political.png?fileID=2800000&guid=2b5811c78c710124da711ce9622a6a09&type=3#lens-political");
 }
 
 .lens-icon--geographic {
-    background-image: url("project://database/Assets/UI/Icons/lens-geographic.png?fileID=2800000&guid=bd2bf14ea51b8a04e843053f793df393&type=3#lens-geographic");
+    background-image: url("project://database/Assets/Textures/Icons/MapLens/lens-geographic.png?fileID=2800000&guid=bd2bf14ea51b8a04e843053f793df393&type=3#lens-geographic");
 }
 
 .lens-icon--org {
-    background-image: url("project://database/Assets/UI/Icons/lens-org.png?fileID=2800000&guid=221585c1b060f4243ac2370c13c9ec9d&type=3#lens-org");
+    background-image: url("project://database/Assets/Textures/Icons/MapLens/lens-org.png?fileID=2800000&guid=221585c1b060f4243ac2370c13c9ec9d&type=3#lens-org");
 }
 
 .lens-icon--province {
-    background-image: url("project://database/Assets/UI/Icons/lens-province.png?fileID=2800000&guid=07bc271ff4237364fa4f20b64d1b3be0&type=3#lens-province");
+    background-image: url("project://database/Assets/Textures/Icons/MapLens/lens-province.png?fileID=2800000&guid=07bc271ff4237364fa4f20b64d1b3be0&type=3#lens-province");
 }
 
 .lens-btn--active {

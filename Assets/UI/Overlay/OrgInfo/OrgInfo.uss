@@ -88,9 +88,9 @@
 }
 
 .org-toggle-btn-icon--characters {
-    background-image: url("project://database/Assets/UI/Icons/selected-panel-characters.png?fileID=2800000&guid=4f388c1d3414bec42be5d16abdd0ec52&type=3#selected-panel-characters");
+    background-image: url("project://database/Assets/Textures/Icons/SelectedPanel/selected-panel-characters.png?fileID=2800000&guid=4f388c1d3414bec42be5d16abdd0ec52&type=3#selected-panel-characters");
 }
 
 .org-toggle-btn-icon--actions {
-    background-image: url("project://database/Assets/UI/Icons/selected-panel-actions.png?fileID=2800000&guid=0c7047268a1a4174bbc56094fd302142&type=3#selected-panel-actions");
+    background-image: url("project://database/Assets/Textures/Icons/SelectedPanel/selected-panel-actions.png?fileID=2800000&guid=0c7047268a1a4174bbc56094fd302142&type=3#selected-panel-actions");
 }

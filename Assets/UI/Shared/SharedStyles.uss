@@ -162,7 +162,7 @@
 }
 
 .gs-icon--png-coin {
-    background-image: url("project://database/Assets/UI/Icons/coin.png?fileID=2800000&guid=46e003f67ebde7347a8004dd120d478a&type=3#coin");
+    background-image: url("project://database/Assets/Textures/Icons/CardView/coin.png?fileID=2800000&guid=7fccafa14706457483a5f3c19e7c1746&type=3#coin");
 }
 
 /* ===== Colour utility classes =====
@@ -216,19 +216,19 @@
 }
 
 .resource-icon--coin {
-    background-image: url("project://database/Assets/UI/Icons/coin.png?fileID=2800000&guid=46e003f67ebde7347a8004dd120d478a&type=3#coin");
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/coin.png?fileID=2800000&guid=46e003f67ebde7347a8004dd120d478a&type=3#coin");
 }
 
 .resource-icon--country-population {
-    background-image: url("project://database/Assets/UI/Icons/resource-country-population.png?fileID=2800000&guid=638952adcd0f967479900c82a4a49f31&type=3#resource-country-population");
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-country-population.png?fileID=2800000&guid=638952adcd0f967479900c82a4a49f31&type=3#resource-country-population");
 }
 
 .resource-icon--country-score {
-    background-image: url("project://database/Assets/UI/Icons/resource-country-score.png?fileID=2800000&guid=dfb61e9081a07f74196091d5a84be440&type=3#resource-country-score");
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-country-score.png?fileID=2800000&guid=dfb61e9081a07f74196091d5a84be440&type=3#resource-country-score");
 }
 
 .resource-icon--org-score {
-    background-image: url("project://database/Assets/UI/Icons/resource-org-score.png?fileID=2800000&guid=dac01e69bc5754343b6a1e8dfa36e5db&type=3#resource-org-score");
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-org-score.png?fileID=2800000&guid=dac01e69bc5754343b6a1e8dfa36e5db&type=3#resource-org-score");
 }
 
 /* ===== Tooltips ===== */
@@ -394,19 +394,19 @@
 }
 
 .character-skill-icon--power {
-    background-image: url("project://database/Assets/UI/Icons/skill-power.png?fileID=2800000&guid=40c23588446148b4f9983d5aa8b06329&type=3#skill-power");
+    background-image: url("project://database/Assets/Textures/Icons/CharacterSkill/skill-power.png?fileID=2800000&guid=40c23588446148b4f9983d5aa8b06329&type=3#skill-power");
 }
 
 .character-skill-icon--charm {
-    background-image: url("project://database/Assets/UI/Icons/skill-charm.png?fileID=2800000&guid=667b4b5ab5d58bb499594532a3b18924&type=3#skill-charm");
+    background-image: url("project://database/Assets/Textures/Icons/CharacterSkill/skill-charm.png?fileID=2800000&guid=667b4b5ab5d58bb499594532a3b18924&type=3#skill-charm");
 }
 
 .character-skill-icon--stinginess {
-    background-image: url("project://database/Assets/UI/Icons/skill-stinginess.png?fileID=2800000&guid=a37655faf32f1b64aad9cbd422d6fa8f&type=3#skill-stinginess");
+    background-image: url("project://database/Assets/Textures/Icons/CharacterSkill/skill-stinginess.png?fileID=2800000&guid=a37655faf32f1b64aad9cbd422d6fa8f&type=3#skill-stinginess");
 }
 
 .character-skill-icon--intrigue {
-    background-image: url("project://database/Assets/UI/Icons/skill-intrigue.png?fileID=2800000&guid=731e23065e3402841aa8309477c1d971&type=3#skill-intrigue");
+    background-image: url("project://database/Assets/Textures/Icons/CharacterSkill/skill-intrigue.png?fileID=2800000&guid=731e23065e3402841aa8309477c1d971&type=3#skill-intrigue");
 }
 
 /* ===== Compact country character card (.char-card) ===== */

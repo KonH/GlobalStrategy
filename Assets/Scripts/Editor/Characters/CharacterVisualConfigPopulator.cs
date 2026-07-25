@@ -6,7 +6,7 @@ using GS.Unity.Common;
 namespace GS.Editor.Characters {
 	public static class CharacterVisualConfigPopulator {
 		const string ConfigPath = "Assets/Configs/CharacterVisualConfig.asset";
-		const string TexturesFolder = "Assets/Textures/Characters";
+		const string TexturesFolder = "Assets/Textures/Characters/PortraitCard";
 
 		[MenuItem("GS/Tools/Populate Character Visual Config")]
 		static void Populate() {

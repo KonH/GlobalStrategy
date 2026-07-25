@@ -6,7 +6,7 @@ using GS.Unity.Map;
 namespace GS.Editor.Map {
 	public static class MapTextureSplitter {
 		const string DefaultSourcePath = "../MapSource/NE1_LR_LC_SR_W_DR.jpg";
-		const string OutputFolder = "Assets/Map/Tiles";
+		const string OutputFolder = "Assets/Textures/Map/Tiles";
 		const int Cols = 8;
 		const int Rows = 4;
 
