@@ -116,10 +116,10 @@ TextureImporter:
       name: selected-panel-characters_0
       rect:
         serializedVersion: 2
-        x: 2
-        y: 7
-        width: 1249
-        height: 1245
+        x: 0
+        y: 0
+        width: 40
+        height: 40
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

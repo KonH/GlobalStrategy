@@ -116,10 +116,10 @@ TextureImporter:
       name: play_0
       rect:
         serializedVersion: 2
-        x: 31
-        y: 27
-        width: 66
-        height: 74
+        x: 32
+        y: 16
+        width: 39
+        height: 44
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

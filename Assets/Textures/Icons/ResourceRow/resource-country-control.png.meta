@@ -116,10 +116,10 @@ TextureImporter:
       name: resource-country-control_0
       rect:
         serializedVersion: 2
-        x: 101
+        x: 9
         y: 0
-        width: 309
-        height: 512
+        width: 27
+        height: 44
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

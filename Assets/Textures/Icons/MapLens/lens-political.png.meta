@@ -116,10 +116,10 @@ TextureImporter:
       name: lens-political_0
       rect:
         serializedVersion: 2
-        x: 45
+        x: 4
         y: 0
-        width: 422
-        height: 512
+        width: 40
+        height: 48
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
