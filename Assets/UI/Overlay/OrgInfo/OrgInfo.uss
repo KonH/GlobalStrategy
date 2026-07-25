@@ -18,7 +18,7 @@
 .org-name {
     font-size: 24px;
     color: rgb(240, 232, 208);
-    -unity-font: url("project://database/Assets/UI/Fonts/Cinzel-Bold.ttf?fileID=12800000&guid=f580297c1d9f7c74984732caed69c108&type=3#Cinzel-Bold");
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/Cinzel-Bold.ttf?fileID=12800000&guid=f580297c1d9f7c74984732caed69c108&type=3#Cinzel-Bold");
     -unity-text-align: upper-left;
 }
 
