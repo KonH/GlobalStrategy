@@ -105,7 +105,9 @@ in-memory `CountryConfig` already built in the same `Program.cs` run, cross-vali
 every province's `countryId` against `CountryConfig` (per
 `.claude/rules/config_validation.md` — a mismatch throws rather than silently
 proceeding), and writes `Assets/Configs/province_config.json` (lightweight metadata:
-`provinceId`, `countryId`, `generationMethod`, `population` — no `displayName`; province names are
+`provinceId`, `countryId`, `generationMethod`, `population`, `centerLon`, `centerLat` —
+centers are a simple lon/lat average of exterior-ring vertices for Polygon, or across
+all exterior rings for MultiPolygon; no `displayName`; province names are
 localization-only, see `province_name.*` keys above) and `Assets/Configs/provinces_1880.json`
 (passthrough geometry `FeatureCollection`).
 

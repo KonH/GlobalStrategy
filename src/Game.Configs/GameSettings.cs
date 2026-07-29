@@ -12,6 +12,15 @@ namespace GS.Game.Configs {
 		public double RecruitsCapPercent { get; set; } = 15.0;
 		public double RecruitsMonthlyIncreasePercent { get; set; } = 1.0;
 		public double AttackerWarProgressDecayPerMonth { get; set; } = 2.5;
+		public double PeaceMinLoseBand { get; set; } = 20;
+		public double PeaceMinWinBand { get; set; } = 20;
+		public double PeaceChanceMinPercent { get; set; } = 1;
+		public double PeaceChanceMaxPercent { get; set; } = 100;
+		public double PeaceProvinceTransferMinPercent { get; set; } = 10;
+		public double PeaceProvinceTransferMaxPercent { get; set; } = 30;
+		public double PeaceGoldPerMonth { get; set; } = 100;
+		public double PeaceWinnerControlIncreaseFraction { get; set; } = 0.05;
+		public double PeaceLoserControlDecreaseFraction { get; set; } = 0.10;
 		public string[] ResourceIdUpdateOrder { get; set; } = {
 			ResourceDefinitions.Population, ResourceDefinitions.CountryPopulation, ResourceDefinitions.CountryScore,
 			ResourceDefinitions.Recruits, ResourceDefinitions.OrgScore

@@ -18,6 +18,7 @@ namespace GS.Main {
 		readonly string[] _resourceIdUpdateOrder;
 		readonly Random _rng;
 		readonly Dictionary<string, string> _hqCountryByOrgId;
+		readonly Dictionary<string, (double Lon, double Lat)> _provinceCenters;
 		readonly ICompletionCondition _completionCondition;
 		int _gameTimeEntity = -1;
 		int _localeEntity = -1;
@@ -66,6 +67,10 @@ namespace GS.Main {
 			_effectConfig = context.Effect.Load();
 			EffectConfig = _effectConfig;
 			ProvinceConfig = context.Province.Load();
+			_provinceCenters = new Dictionary<string, (double Lon, double Lat)>();
+			foreach (var entry in ProvinceConfig.Provinces) {
+				_provinceCenters[entry.ProvinceId] = (entry.CenterLon, entry.CenterLat);
+			}
 			var settings = context.GameSettings.Load();
 			GameSettings = settings;
 			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId,
@@ -111,6 +116,7 @@ namespace GS.Main {
 			DateTime currentTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
 			ResourceSystem.Update(_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder);
 			ControlSystem.Update(_world, _previousTime, currentTime);
+			Wars.TryResolvePeaceByChance(_world, _previousTime, currentTime, _rng, GameSettings, _provinceCenters, MaxControlPool);
 			WarSystem.Update(_world, _previousTime, currentTime, GameSettings.AttackerWarProgressDecayPerMonth);
 
 			foreach (var cmd in _commandAccessor.ReadChangeControlCommand().AsSpan()) {
@@ -195,7 +201,7 @@ namespace GS.Main {
 				Wars.DeclareWar(_world, cmd.AttackerCountryId, cmd.DefenderCountryId, currentTime);
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugStopWarCommand().AsSpan()) {
-				Wars.StopWar(_world, cmd.CountryId);
+				Wars.StopWar(_world, cmd.CountryId, currentTime, _rng, GameSettings, _provinceCenters, MaxControlPool);
 			}
 
 			CleanupActionEffectsSystem.Update(_world);
