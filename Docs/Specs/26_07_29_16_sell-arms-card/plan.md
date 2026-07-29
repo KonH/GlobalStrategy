@@ -51,7 +51,7 @@ With a country selected, use the debug commands to start/end a war and raise the
 ## Tests
 
 - `src/Game.Tests/ExpressionNodeTests.cs` — assert `"isInWar"` returns its context value and composes with `gte`.
-- New `src/Game.Tests/CountryActionConditionContextTests.cs — cover target-role-specific opinion (including high diplomacy/low military), exact 80, missing advisor/resource as 0, active-advisor replacement, relation-card preservation, attacker/defender `IsInWar == 1`, and a non-participant value of 0.
+- New `src/Game.Tests/CountryActionConditionContextTests.cs` — cover target-role-specific opinion (including high diplomacy/low military), exact 80, missing advisor/resource as 0, active-advisor replacement, relation-card preservation, attacker/defender `IsInWar == 1`, and a non-participant value of 0.
 - `src/Game.Tests/ActionPlayabilityTests.cs` — cover both Sell Arms gates, empty-cost playability, exact threshold, held-card behavior across stop/redeclare war, and parity with `CheckActionConditionSystem`/`ActionSucceededSystem`.
 - `src/Game.Tests/DrawCardSystemTests.cs` and `src/Game.Tests/InitSystemTests.cs` — prove the card is excluded without war or sufficient military-advisor opinion, is not injected merely because conditions change while the hand is full, and becomes eligible on a later requested draw; retain regression coverage for existing diplomacy cards after context consolidation.
 - `src/Game.Tests/VisualStateConverterCountryActionsOpinionGateTests.cs` — assert a held copy reports `war_ended` after `Wars.StopWar`, stays in hand, and produces the same role-aware verdict as the play pipeline.
