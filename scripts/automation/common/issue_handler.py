@@ -30,12 +30,20 @@ itself (GitHub is the counter - no local state); one more crash after that escal
 `<label>-needs-attention` instead of retrying forever. A real owner comment resets the counter.
 
 Session/usage limits are NOT crashes: when a wrapper detects that its CLI run was cut short by
-the provider's session/usage limit, it records an aware-UTC retry timestamp in a small local
-file and silently releases the `-in-progress` labels the interrupted run left behind (no
-reclaim comment, no crash-counter increment - `release_in_progress_silently`). Every later run
-first checks `limit_active` - both sides of the comparison are timezone-aware UTC datetimes,
-so the machine's local timezone never skews it - and exits immediately, before any GitHub
-call, while the window is still in effect.
+the provider's session/usage limit, it first salvages any dirty working-tree changes
+(`salvage_uncommitted_work` - deterministic Python git commit+push, no agent), records an
+aware-UTC retry timestamp in a small local file, and then either silently releases the
+`-in-progress` labels the interrupted run left behind (no reclaim comment, no crash-counter
+increment - `release_in_progress_silently`) on a successful salvage, or parks the item with
+`<label>-needs-attention` when salvage fails. A brief automation note is posted best-effort
+*after* save/release so a failed `post_comment` cannot leave `-in-progress` for reclaim.
+Every later run first checks `limit_active` - both sides of the comparison are timezone-aware
+UTC datetimes, so the machine's local timezone never skews it - and exits immediately, before
+any GitHub call, while the window is still in effect.
+
+`checkout_clean` force-resets to `origin/<branch>`, but if the local branch already exists and
+is ahead of its origin counterpart it pushes that tip first - so unpushed salvage commits are
+not discarded. If that ahead-push fails, the force-reset is skipped (local tip preserved).
 
 Repo: KonH/GlobalStrategy. This is project-specific, not provider-specific, so it lives here
 rather than being duplicated per provider.
@@ -43,6 +51,7 @@ rather than being duplicated per provider.
 
 import json
 import logging
+import os
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -55,6 +64,14 @@ FIELDS = "number,title,body,url,labels"
 # How many times a crashed/interrupted run is silently re-queued before the item is parked
 # with `<label>-needs-attention` instead. 2 reclaims = 3 attempts total.
 MAX_AUTO_RECLAIMS = 2
+
+SALVAGE_COMMIT_MESSAGE = "chore: salvage uncommitted work after session limit"
+SALVAGE_GIT_IDENTITY = {
+    "GIT_AUTHOR_NAME": "GlobalStrategy Automation",
+    "GIT_AUTHOR_EMAIL": "automation@local",
+    "GIT_COMMITTER_NAME": "GlobalStrategy Automation",
+    "GIT_COMMITTER_EMAIL": "automation@local",
+}
 
 
 def setup_logging(logger, log_file, max_bytes, backup_count):
@@ -115,20 +132,45 @@ def candidate_branch(candidate):
     return candidate["headRefName"] if candidate["kind"] == "pr" else "main"
 
 
+def local_branch_exists(branch):
+    """True when `refs/heads/{branch}` exists locally. Does not raise on a missing ref."""
+    result = subprocess.run(
+        ["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch}"],
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0
+
+
 def checkout_clean(logger, branch):
     """Guarantees a clean, up-to-date checkout of `branch` before a CLI run: the local branch
     is force-reset to its origin counterpart and untracked files are removed (`git clean -fd`
-    keeps ignored files - Logs/, .venv/ - intact). Local leftovers from a previous run are
-    deliberately discarded - every run pushes what matters, so anything only present locally
-    was mid-crash churn a retry will redo from the pushed state."""
+    keeps ignored files - Logs/, .venv/ - intact). If the local branch already exists and is
+    ahead of `origin/{branch}`, it is pushed first so unpushed commits (e.g. a limit-pause
+    salvage) are not discarded by the force-reset; a failed ahead-push raises without
+    resetting over the local tip. Otherwise local leftovers from a previous run are
+    deliberately discarded - every healthy run pushes what matters."""
     logger.info(f"Preparing clean checkout of '{branch}'.")
     run_git(["fetch", "origin", branch])
+    if local_branch_exists(branch):
+        ahead_count = int(run_git(["rev-list", "--count", f"origin/{branch}..{branch}"]) or "0")
+        if ahead_count > 0:
+            logger.info(f"Local '{branch}' is ahead of origin/{branch} by {ahead_count} "
+                        "commit(s) - pushing before force-reset.")
+            # If this push fails, do not force-reset over the local tip.
+            run_git(["push", "-u", "origin", branch])
     run_git(["checkout", "-f", "-B", branch, f"origin/{branch}"])
     run_git(["clean", "-fd"])
 
 
-def run_git(args):
-    result = subprocess.run(["git", *args], capture_output=True, text=True)
+def run_git(args, env=None):
+    """Run a git command. Optional `env` is merged onto `os.environ` (e.g. GIT_AUTHOR_* for
+    salvage commits); when omitted, the process environment is inherited unchanged."""
+    run_env = None
+    if env is not None:
+        run_env = os.environ.copy()
+        run_env.update(env)
+    result = subprocess.run(["git", *args], capture_output=True, text=True, env=run_env)
     if result.returncode != 0:
         raise RuntimeError(f"git {' '.join(args)} failed: {result.stderr.strip()}")
     return result.stdout.strip()
@@ -250,6 +292,67 @@ def release_in_progress_silently(logger, label):
         logger.info(f"Releasing {item['kind']} #{item['number']} from {label}-in-progress "
                      "(limit pause, not a crash - no retry counted).")
         remove_label(item["number"], f"{label}-in-progress")
+
+
+def salvage_uncommitted_work(logger):
+    """Commit+push any dirty working-tree changes after a session/usage-limit kill so the next
+    `checkout_clean` cannot wipe them. Deterministic Python git only - fixed message, no agent,
+    no version bump. Returns `(status, detail)` where status is `clean`, `committed`, or
+    `failed`."""
+    try:
+        porcelain = run_git(["status", "--porcelain"])
+        if not porcelain:
+            logger.info("Limit salvage: working tree clean - nothing to commit.")
+            return "clean", "working tree clean"
+        logger.info("Limit salvage: dirty tree - committing and pushing HEAD.")
+        run_git(["add", "-A"])
+        run_git(["commit", "-m", SALVAGE_COMMIT_MESSAGE], env=SALVAGE_GIT_IDENTITY)
+        run_git(["push", "-u", "origin", "HEAD"])
+        logger.info(f"Limit salvage: committed and pushed ({SALVAGE_COMMIT_MESSAGE}).")
+        return "committed", SALVAGE_COMMIT_MESSAGE
+    except Exception as exc:
+        detail = str(exc)
+        logger.warning(f"Limit salvage failed: {detail}")
+        return "failed", detail
+
+
+def handle_limit_pause(logger, label, marker, candidate, limit_file, retry_at):
+    """Shared limit-pause path for Claude and Codex wrappers. Order is intentional: salvage,
+    then always persist `retry_at`, then release-or-escalate labels, then best-effort note -
+    so a failed `post_comment` cannot leave `-in-progress` for reclaim."""
+    status, detail = salvage_uncommitted_work(logger)
+    save_limit_retry_at(limit_file, retry_at)
+    number = candidate["number"]
+    kind = candidate["kind"]
+    retry_iso = retry_at.isoformat()
+
+    if status in ("clean", "committed"):
+        release_in_progress_silently(logger, label)
+        note = (
+            f"{marker}\nAutomation hit a session/usage limit. Salvage: {status}"
+            f"{f' ({detail})' if detail else ''}. Pausing until {retry_iso}."
+        )
+        try:
+            post_comment(number, note)
+        except Exception as exc:
+            logger.warning(f"Failed to post limit-pause note on {kind} #{number}: {exc}")
+    else:
+        add_label(number, f"{label}-needs-attention")
+        remove_label(number, f"{label}-in-progress")
+        note = (
+            f"{marker}\nAutomation hit a session/usage limit but failed to salvage "
+            f"uncommitted work: {detail}. Applied `{label}-needs-attention`. "
+            f"Pausing until {retry_iso}."
+        )
+        try:
+            post_comment(number, note)
+        except Exception as exc:
+            logger.warning(f"Failed to post salvage-failure note on {kind} #{number}: {exc}")
+
+    logger.warning(
+        f"Session/usage limit hit - pausing runs until {retry_iso}. "
+        f"Salvage status={status}. This is a planned pause, not a failure (exit 0)."
+    )
 
 
 def count_reclaims_since_owner_comment(marker_prefix, reclaim_marker, number):

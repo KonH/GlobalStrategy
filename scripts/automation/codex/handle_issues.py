@@ -80,9 +80,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.issue_handler import (  # noqa: E402
-    acquire_lock, candidate_branch, checkout_clean, find_candidates, limit_active,
-    reclaim_stale_in_progress, release_in_progress_silently, save_limit_retry_at,
-    setup_logging,
+    acquire_lock, candidate_branch, checkout_clean, find_candidates, handle_limit_pause,
+    limit_active, reclaim_stale_in_progress, setup_logging,
 )
 
 MODEL = "gpt-5.6-sol"
@@ -216,12 +215,7 @@ def main():
             exit_code = returncode
         if detect_session_limit(error_texts):
             retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
-            save_limit_retry_at(args.limit_file, retry_at)
-            release_in_progress_silently(logger, LABEL)
-            logger.warning(f"Usage limit hit - pausing runs until {retry_at.isoformat()}. This "
-                           "is a planned pause, not a failure (exit 0); interrupted and "
-                           "remaining items stay in the candidate pool without consuming a "
-                           "crash retry.")
+            handle_limit_pause(logger, LABEL, MARKER, candidate, args.limit_file, retry_at)
             sys.exit(0)
     sys.exit(exit_code)
 
