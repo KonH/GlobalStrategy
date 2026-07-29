@@ -1,14 +1,14 @@
 .country-name {
     font-size: 24px;
     color: rgb(240, 232, 208);
-    -unity-font: url("project://database/Assets/UI/Fonts/Cinzel-Bold.ttf?fileID=12800000&guid=f580297c1d9f7c74984732caed69c108&type=3#Cinzel-Bold");
+    -unity-font-definition: url("/Assets/UI/Fonts/Cinzel-Bold SDF.asset");
     -unity-text-align: upper-left;
 }
 
 .control-icon {
     width: 22px;
     height: 22px;
-    background-image: url("project://database/Assets/UI/Icons/resource-country-control.png?fileID=2800000&guid=21487500afe0051408fd79abd94154e3&type=3#resource-country-control");
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-country-control.png?fileID=2800000&guid=21487500afe0051408fd79abd94154e3&type=3#resource-country-control");
     -unity-background-scale-mode: scale-to-fit;
     margin-right: 4px;
 }

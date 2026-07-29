@@ -40,7 +40,7 @@ $env:PYTHONUTF8 = '1'; & ".venv\Scripts\python.exe" "scripts\utils\generate_imag
 
 ## Character portrait recipe
 
-- **Output path:** `Assets/Textures/Characters/{characterId}.png`
+- **Output path:** `Assets/Textures/Characters/PortraitCard/{characterId}.png`
 - **Size:** `512x512`
 - **Prompt template:**
   ```

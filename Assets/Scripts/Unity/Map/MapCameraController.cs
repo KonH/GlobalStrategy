@@ -113,22 +113,42 @@ namespace GS.Unity.Map {
 		}
 
 		void UpdateDragState() {
-			var mouse = Mouse.current;
-			if (mouse == null) return;
-			bool panButtonHeld = mouse.leftButton.isPressed || mouse.rightButton.isPressed;
-			if (!_dragging && panButtonHeld) {
-				var sp = mouse.position.ReadValue();
-				_dragOriginWorld = _camera.ScreenToWorldPoint(new Vector3(sp.x, sp.y, 0f));
+			bool held = TryGetPanPointer(out Vector2 screenPos);
+			if (!_dragging && held) {
+				_dragOriginWorld = _camera.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));
 				_dragging = true;
 			}
-			if (_dragging && !panButtonHeld) {
+			if (_dragging && !held) {
 				_dragging = false;
 			}
 			if (!_dragging) return;
-			var cur = mouse.position.ReadValue();
-			Vector3 current = _camera.ScreenToWorldPoint(new Vector3(cur.x, cur.y, 0f));
+			Vector3 current = _camera.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));
 			Vector3 delta = _dragOriginWorld - current;
 			transform.position += new Vector3(delta.x, delta.y, 0f);
+		}
+
+		bool TryGetPanPointer(out Vector2 screenPos) {
+			var mouse = Mouse.current;
+			if (mouse != null && (mouse.leftButton.isPressed || mouse.rightButton.isPressed)) {
+				screenPos = mouse.position.ReadValue();
+				return true;
+			}
+			var touchscreen = Touchscreen.current;
+			if (touchscreen != null) {
+				TouchControl active = null;
+				int activeCount = 0;
+				foreach (var touch in touchscreen.touches) {
+					if (!touch.press.isPressed) { continue; }
+					activeCount++;
+					if (active == null) { active = touch; }
+				}
+				if (activeCount == 1) {
+					screenPos = active.position.ReadValue();
+					return true;
+				}
+			}
+			screenPos = default;
+			return false;
 		}
 
 		void ClampY() {

@@ -67,7 +67,7 @@
     border-color: rgb(200, 160, 64);
     white-space: nowrap;
     overflow: hidden;
-    -unity-font: url("project://database/Assets/UI/Fonts/Cinzel-Bold.ttf?fileID=12800000&guid=f580297c1d9f7c74984732caed69c108&type=3#Cinzel-Bold");
+    -unity-font-definition: url("/Assets/UI/Fonts/Cinzel-Bold SDF.asset");
 }
 
 /* Art area */
@@ -95,13 +95,13 @@
     flex: 1;
     min-height: 0;
     overflow: hidden;
-    -unity-font: url("project://database/Assets/UI/Fonts/IMFellEnglish-Regular.ttf?fileID=12800000&guid=1130d97d7eaf22b47b5ca1eb6354def6&type=3#IMFellEnglish-Regular");
+    -unity-font-definition: url("/Assets/UI/Fonts/IMFellEnglish-Regular SDF.asset");
 }
 
 .action-card-success-pct {
     font-size: 16px;
     color: rgb(136, 136, 168);
-    -unity-font: url("project://database/Assets/UI/Fonts/IMFellEnglish-Regular.ttf?fileID=12800000&guid=1130d97d7eaf22b47b5ca1eb6354def6&type=3#IMFellEnglish-Regular");
+    -unity-font-definition: url("/Assets/UI/Fonts/IMFellEnglish-Regular SDF.asset");
 }
 
 /* Footer row: chance % on left, cost on right — inline inside body */
@@ -123,7 +123,7 @@
     font-size: 16px;
     color: rgb(42, 26, 8);
     margin-right: 4px;
-    -unity-font: url("project://database/Assets/UI/Fonts/Cinzel-Bold.ttf?fileID=12800000&guid=f580297c1d9f7c74984732caed69c108&type=3#Cinzel-Bold");
+    -unity-font-definition: url("/Assets/UI/Fonts/Cinzel-Bold SDF.asset");
 }
 
 .action-card-cost-label--unaffordable {
@@ -134,5 +134,5 @@
     width: 16px;
     height: 16px;
     -unity-background-scale-mode: scale-to-fit;
-    background-image: url("project://database/Assets/UI/Icons/coin.png?fileID=2800000&guid=46e003f67ebde7347a8004dd120d478a&type=3#coin");
+    background-image: url("project://database/Assets/Textures/Icons/CardView/coin.png?fileID=2800000&guid=7fccafa14706457483a5f3c19e7c1746&type=3#coin");
 }

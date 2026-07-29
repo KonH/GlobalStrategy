@@ -68,5 +68,9 @@
         "*.slnx": "*.csproj"
     },
     "dotnet.defaultSolution": "GlobalStrategy.slnx",
-    "dotnet.enableWorkspaceBasedDevelopment": false
+    "dotnet.enableWorkspaceBasedDevelopment": false,
+    "dotrush.roslyn.projectOrSolutionFiles": [
+        "e:\\Users\\KonH\\Git\\GlobalStrategy\\GlobalStrategy.sln",
+        "e:\\Users\\KonH\\Git\\GlobalStrategy\\GlobalStrategy.slnx"
+    ]
 }
