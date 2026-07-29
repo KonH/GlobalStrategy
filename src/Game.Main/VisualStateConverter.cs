@@ -43,6 +43,7 @@ namespace GS.Main {
 			UpdateTime(world, gameTimeEntity);
 			UpdateLocale(world, localeEntity);
 			UpdatePlayerOrganization(world, orgEntity);
+			UpdateWarIcons(world);
 			UpdateGameCompletion(world, orgEntity);
 			UpdateResources(world);
 			UpdateSelectedControl(world);
@@ -259,6 +260,13 @@ namespace GS.Main {
 			ref Organization org = ref world.Get<Organization>(orgEntity);
 			_hqCountryByOrgId.TryGetValue(org.OrganizationId, out var hqCountryId);
 			_state.PlayerOrganization.Set(true, org.OrganizationId, org.DisplayName, hqCountryId ?? "");
+		}
+
+		void UpdateWarIcons(IReadOnlyWorld world) {
+			string playerOrgId = _state.PlayerOrganization.IsValid
+				? _state.PlayerOrganization.OrgId
+				: "";
+			_state.WarIcons.Set(WarIconsProjector.Build(world, playerOrgId));
 		}
 
 		void UpdateGameCompletion(IReadOnlyWorld world, int orgEntity) {

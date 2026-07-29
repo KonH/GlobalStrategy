@@ -439,6 +439,34 @@ namespace GS.Main {
 		}
 	}
 
+	public class WarIconEntryState {
+		public string WarId { get; }
+		public double Progress { get; }
+		public string AttackerCountryId { get; }
+		public string DefenderCountryId { get; }
+
+		public WarIconEntryState(string warId, double progress, string attackerCountryId, string defenderCountryId) {
+			WarId = warId;
+			Progress = progress;
+			AttackerCountryId = attackerCountryId;
+			DefenderCountryId = defenderCountryId;
+		}
+	}
+
+	public class WarIconsState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyList<WarIconEntryState> Entries { get; private set; } = Array.Empty<WarIconEntryState>();
+
+		public void Set(List<WarIconEntryState> entries) {
+			if (StateEquality.ListEquals(Entries, entries, StateEquality.WarIconEntryStateEquals)) {
+				return;
+			}
+			Entries = entries;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class SelectedProvinceState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -593,6 +621,7 @@ namespace GS.Main {
 		public SelectedProvinceState SelectedProvince { get; } = new SelectedProvinceState();
 		public CountryScoreState CountryScore { get; } = new CountryScoreState();
 		public LeaderboardState Leaderboard { get; } = new LeaderboardState();
+		public WarIconsState WarIcons { get; } = new WarIconsState();
 		public GameLogState GameLog { get; } = new GameLogState();
 		public GameCompletionState GameCompletion { get; } = new GameCompletionState();
 		public WinConditionHintState WinConditionHint { get; } = new WinConditionHintState();

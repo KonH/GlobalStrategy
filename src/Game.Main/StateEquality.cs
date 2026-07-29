@@ -109,6 +109,13 @@ namespace GS.Main {
 				&& a.Score == b.Score;
 		}
 
+		public static bool WarIconEntryStateEquals(WarIconEntryState a, WarIconEntryState b) {
+			return a.WarId == b.WarId
+				&& a.Progress == b.Progress
+				&& a.AttackerCountryId == b.AttackerCountryId
+				&& a.DefenderCountryId == b.DefenderCountryId;
+		}
+
 		public static bool GameLogEntryEquals(GameLogEntry a, GameLogEntry b) {
 			return a.SequenceId == b.SequenceId
 				&& a.Kind == b.Kind

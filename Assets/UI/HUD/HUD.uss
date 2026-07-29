@@ -160,10 +160,16 @@
     display: none;
 }
 
-.lens-switcher-panel {
+.map-controls-panel {
     position: absolute;
     bottom: 280px;
     left: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.war-icons-panel {
+    margin-bottom: 6px;
 }
 
 .card-test-overlay {
