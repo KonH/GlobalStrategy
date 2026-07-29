@@ -18,7 +18,7 @@ The label set is the whole state machine (no local state file, no timestamps):
   claude-needs-attention  waiting on the owner (skipped by discovery)
   claude-complete         prompt fully done (skipped by discovery)
 
-A candidate is any open, owner-authored, `claude`-labeled issue/PR carrying none of the three
+A candidate is any open, configured-contributor-authored, `claude`-labeled issue/PR carrying none of the three
 status labels. The owner resumes a needs-attention/complete item by replying and removing that
 label. See .claude/commands/handle-issue.md for the per-item lifecycle the CLI run follows and
 the `github-issue-automation` skill for the full design writeup.
@@ -41,14 +41,9 @@ to twice; a third consecutive crash parks it with `claude-needs-attention` inste
 forever. A real owner comment resets the counter.
 
 Session/usage limits are NOT crashes: when the run reports the subscription's session/usage
-limit (legacy `… limit reached`, or production assistant text like `You've hit your
-session/weekly limit · resets … (UTC)` on an error-shaped / non-zero exit), this script
-records the window's reset time (epoch when present, else parseable wall-clock `resets … (UTC)`,
-else now + --limit-backoff-minutes) as an aware-UTC timestamp in
-Logs/handle_issues_claude.limit.json, salvages any dirty working tree via the shared
-`handle_limit_pause` helper, and exits 0. Every later run compares that timestamp
-against the current time - both aware UTC, so the machine's local timezone never skews it -
-and skips entirely (before any GitHub call) until the window has passed.
+limit (including production assistant text with a UTC reset time), it salvages any dirty
+working tree, records the limit in `Logs/auto_ai_provider_state.json` under the `claude`
+provider key, and exits 0. Every later run skips until that provider's window has passed.
 
 Requires `gh` authenticated as the repo owner (`gh auth login`), the labels above already
 created in the repo (see handle_issues.sh for the `gh label create` commands), and `claude`
@@ -100,7 +95,7 @@ DEFAULT_LOG_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs"
 DEFAULT_LOG_MAX_BYTES = 5 * 1024 * 1024  # 5 MB per file
 DEFAULT_LOG_BACKUP_COUNT = 5  # + the active file = 30 MB max on disk
 DEFAULT_LOCK_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_issues_claude.lock"
-DEFAULT_LIMIT_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_issues_claude.limit.json"
+DEFAULT_PROVIDER_STATE_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "auto_ai_provider_state.json"
 DEFAULT_LIMIT_BACKOFF_MINUTES = 60
 
 logger = logging.getLogger("handle_issues_claude")
@@ -216,7 +211,7 @@ def build_prompt(candidate):
         checkout = "'main'"
     return (
         "/handle-issue\n\n"
-        f"The following GitHub {kind.lower()} is labeled 'claude', authored by the repo owner, "
+        f"The following GitHub {kind.lower()} is labeled 'claude', authored by a configured contributor, "
         "and carries no automation status label. Process it per the command's rules. The "
         f"working tree is already a guaranteed-clean, up-to-date checkout of {checkout}. The "
         "description shown here may be stale - re-read the item's live description and comment "
@@ -233,9 +228,8 @@ def main():
     parser.add_argument("--log-max-bytes", type=int, default=DEFAULT_LOG_MAX_BYTES)
     parser.add_argument("--log-backup-count", type=int, default=DEFAULT_LOG_BACKUP_COUNT)
     parser.add_argument("--lock-file", type=Path, default=DEFAULT_LOCK_FILE)
-    parser.add_argument("--limit-file", type=Path, default=DEFAULT_LIMIT_FILE,
-                         help="Stores the aware-UTC timestamp until which runs are skipped "
-                              "after a session/usage-limit hit.")
+    parser.add_argument("--provider-state-file", type=Path, default=DEFAULT_PROVIDER_STATE_FILE,
+                         help="Shared provider-keyed state for limit windows and auto-routing.")
     parser.add_argument("--limit-backoff-minutes", type=int, default=DEFAULT_LIMIT_BACKOFF_MINUTES,
                          help="How long to pause after a limit hit when the CLI's error text "
                               "doesn't include the window's reset time.")
@@ -248,7 +242,7 @@ def main():
         logger.info("Another instance is already running - exiting.")
         return
 
-    if limit_active(logger, args.limit_file):
+    if limit_active(logger, args.provider_state_file, LABEL):
         return
 
     reclaim_stale_in_progress(logger, LABEL, MARKER)
@@ -272,7 +266,7 @@ def main():
         if limit_hit:
             if retry_at is None:
                 retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
-            handle_limit_pause(logger, LABEL, MARKER, candidate, args.limit_file, retry_at)
+            handle_limit_pause(logger, LABEL, MARKER, candidate, args.provider_state_file, retry_at)
             sys.exit(0)
     sys.exit(exit_code)
 

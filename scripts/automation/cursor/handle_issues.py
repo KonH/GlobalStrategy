@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run owner-authored `cursor`-labeled GitHub issues and PRs through Cursor CLI.
+"""Run configured-contributor-authored `cursor`-labeled GitHub issues and PRs through Cursor CLI.
 
 Run this from an isolated scheduled-task/cron clone, never the primary working copy: before
 each candidate it force-resets the relevant branch and removes untracked files. The shared
@@ -31,7 +31,7 @@ DEFAULT_SANDBOX = "disabled"
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_LOG_FILE = ROOT / "Logs" / "handle_issues_cursor.log"
 DEFAULT_LOCK_FILE = ROOT / "Logs" / "handle_issues_cursor.lock"
-DEFAULT_LIMIT_FILE = ROOT / "Logs" / "handle_issues_cursor.limit.json"
+DEFAULT_PROVIDER_STATE_FILE = ROOT / "Logs" / "auto_ai_provider_state.json"
 LIMIT_TEXT_RE = re.compile(
 	r"(usage limit|rate limit|too many requests|resource_exhausted|quota exceeded|spend limit)",
 	re.IGNORECASE,
@@ -58,7 +58,7 @@ def build_prompt(candidate):
 		checkout = "main"
 	return (
 		"Read and follow .cursor/commands/cursor-issue.md.\n\n"
-		"Process only this owner-authored `cursor`-labeled GitHub item. The working tree is "
+		"Process only this configured-contributor-authored `cursor`-labeled GitHub item. The working tree is "
 		f"a clean, current checkout of {checkout}; its listing body may be stale, so re-read "
 		"the live description and comments yourself.\n\n"
 		f"{header}\n{candidate['title']}\n\n{candidate['body'] or '(empty body)'}"
@@ -117,12 +117,12 @@ def main():
 	parser.add_argument("--log-max-bytes", type=int, default=5 * 1024 * 1024)
 	parser.add_argument("--log-backup-count", type=int, default=5)
 	parser.add_argument("--lock-file", type=Path, default=DEFAULT_LOCK_FILE)
-	parser.add_argument("--limit-file", type=Path, default=DEFAULT_LIMIT_FILE)
+	parser.add_argument("--provider-state-file", type=Path, default=DEFAULT_PROVIDER_STATE_FILE)
 	parser.add_argument("--limit-backoff-minutes", type=int, default=60)
 	args = parser.parse_args()
 	setup_logging(logger, args.log_file, args.log_max_bytes, args.log_backup_count)
 	lock = acquire_lock(logger, args.lock_file)
-	if lock is None or limit_active(logger, args.limit_file):
+	if lock is None or limit_active(logger, args.provider_state_file, LABEL):
 		return
 	reclaim_stale_in_progress(logger, LABEL, MARKER)
 	candidates = find_candidates(LABEL)
@@ -134,7 +134,7 @@ def main():
 		returncode, errors = run_cursor(build_prompt(candidate), args)
 		if LIMIT_TEXT_RE.search("\n".join(errors)):
 			retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
-			save_limit_retry_at(args.limit_file, retry_at)
+			save_limit_retry_at(args.provider_state_file, LABEL, retry_at)
 			release_in_progress_silently(logger, LABEL)
 			logger.warning("Cursor usage limit hit; pausing until %s.", retry_at.isoformat())
 			return
