@@ -89,18 +89,6 @@ namespace GS.Game.Systems {
 		}
 
 		static void DrawCountryCards(World world, ActionConfig config, Random rng, string orgId, string countryId, int toDraw) {
-			int orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
-			int totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
-			string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
-			double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
-			double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
-			var ctx = new ExpressionContext {
-				Control = orgControl,
-				TotalCountryControl = totalCountryControl,
-				Opinion = opinion,
-				HasSuitableRelationTarget = hasSuitableTarget
-			};
-
 			int[] deckReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
 			int[] excludeInHand = { TypeId<CardInHand>.Value };
 			var eligible = new List<int>();
@@ -114,9 +102,12 @@ namespace GS.Game.Systems {
 					var def = config.Find(actions[i].ActionId);
 					if (def == null) { continue; }
 					int candidateEntity = arch.Entities[i];
-					ctx.RelationStillExists = world.Has<RelationCardTarget>(candidateEntity)
-						? (CountryRelations.GetRelation(world, countryId, world.Get<RelationCardTarget>(candidateEntity).TargetCountryId) == world.Get<RelationCardTarget>(candidateEntity).Kind ? 1.0 : 0.0)
-						: 1.0;
+					var ctx = CountryActionConditionContext.Build(
+						world,
+						def,
+						orgId,
+						countryId,
+						candidateEntity);
 					bool ok = true;
 					foreach (var cond in def.Conditions) {
 						if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { ok = false; break; }

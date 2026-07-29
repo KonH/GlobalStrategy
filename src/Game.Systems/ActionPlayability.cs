@@ -9,30 +9,12 @@ namespace GS.Game.Systems {
 			var def = config.Find(actionId);
 			if (def == null) { return false; }
 
-			int orgControl = 0;
-			int totalCountryControl = 0;
-
-			double opinion = 0.0;
-			double hasSuitableTarget = 0.0;
-			if (!string.IsNullOrEmpty(countryId)) {
-				orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
-				totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
-				string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
-				opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
-				hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
-			}
-			double relationStillExists = 1.0;
-			if (entity >= 0 && !string.IsNullOrEmpty(countryId) && world.Has<RelationCardTarget>(entity)) {
-				var target = world.Get<RelationCardTarget>(entity);
-				relationStillExists = CountryRelations.GetRelation(world, countryId, target.TargetCountryId) == target.Kind ? 1.0 : 0.0;
-			}
-			var ctx = new ExpressionContext {
-				Control = orgControl,
-				TotalCountryControl = totalCountryControl,
-				Opinion = opinion,
-				HasSuitableRelationTarget = hasSuitableTarget,
-				RelationStillExists = relationStillExists
-			};
+			var ctx = CountryActionConditionContext.Build(
+				world,
+				def,
+				orgId,
+				countryId ?? "",
+				entity);
 
 			foreach (var cond in def.Conditions) {
 				if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { return false; }

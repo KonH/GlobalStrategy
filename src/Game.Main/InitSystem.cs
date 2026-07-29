@@ -328,7 +328,8 @@ namespace GS.Main {
 					resourceDef.ResourceId == ResourceDefinitions.CountryScore ||
 					resourceDef.ResourceId == ResourceDefinitions.Recruits) {
 					initialValue = 0;
-				} else if (resourceDef.ResourceId != ResourceDefinitions.Gold) {
+				} else if (resourceDef.ResourceId != ResourceDefinitions.Gold &&
+					resourceDef.ResourceId != ResourceDefinitions.TroopsDamageBonusPercent) {
 					ThrowUnsupportedResource(resourceDef);
 				}
 				foreach (var init in entry.InitialResources) {
@@ -661,22 +662,17 @@ namespace GS.Main {
 
 					// Populate initial hand
 					if (handSize > 0 && createdEntities.Count > 0) {
-						int orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, entry.CountryId);
-						int totalCountryControl = ControlQuery.GetTotalControlInCountry(world, entry.CountryId);
-						string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, entry.CountryId, "diplomacy_advisor");
-						double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
-						double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, entry.CountryId) ? 1.0 : 0.0;
 						var eligibleEntities = new List<int>();
 						foreach (var (e, actionId) in createdEntities) {
 							var d = actionConfig.Find(actionId);
 							if (d == null) { continue; }
 							bool eligible = true;
-							var ctx = new ExpressionContext {
-								Control = orgControl,
-								TotalCountryControl = totalCountryControl,
-								Opinion = opinion,
-								HasSuitableRelationTarget = hasSuitableTarget
-							};
+							ExpressionContext ctx = CountryActionConditionContext.Build(
+								world,
+								d,
+								orgId,
+								entry.CountryId,
+								e);
 							foreach (var cond in d.Conditions) {
 								if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
 									eligible = false;

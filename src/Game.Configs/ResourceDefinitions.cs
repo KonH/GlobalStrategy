@@ -10,5 +10,6 @@ namespace GS.Game.Configs {
 		public const string CountryScore = "country_score";
 		public const string OrgScore = "org_score";
 		public const string Recruits = "recruits";
+		public const string TroopsDamageBonusPercent = "troops_damage_bonus_percent";
 	}
 }

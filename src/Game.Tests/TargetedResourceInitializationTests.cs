@@ -35,6 +35,10 @@ namespace GS.Game.Tests {
 					new ResourceDefinition { ResourceId = ResourceDefinitions.CountryPopulation },
 					new ResourceDefinition { ResourceId = ResourceDefinitions.CountryScore },
 					new ResourceDefinition { ResourceId = ResourceDefinitions.Recruits },
+					new ResourceDefinition {
+						ResourceId = ResourceDefinitions.TroopsDamageBonusPercent,
+						DefaultInitialValue = 0
+					},
 					new ResourceDefinition { ResourceId = ResourceDefinitions.Population, SeedTarget = ResourceSeedTarget.Province },
 					new ResourceDefinition { ResourceId = ResourceDefinitions.OrgScore, SeedTarget = ResourceSeedTarget.Org },
 					new ResourceDefinition { ResourceId = "power", SeedTarget = ResourceSeedTarget.Character },
@@ -186,11 +190,19 @@ namespace GS.Game.Tests {
 				.Select(resource => resource.ResourceId)
 				.OrderBy(resourceId => resourceId)
 				.ToArray();
-			Assert.Equal(new[] { "country_population", "country_score", "gold", "recruits" }, countryResourceIds);
+			Assert.Equal(new[] {
+				"country_population",
+				"country_score",
+				"gold",
+				"recruits",
+				"troops_damage_bonus_percent"
+			}, countryResourceIds);
 			Assert.Equal(250, AssertSingleResource(resources, "country_a", OwnerType.Country, ResourceDefinitions.Gold).Value);
 			Assert.Equal(1000, AssertSingleResource(resources, "country_a", OwnerType.Country, ResourceDefinitions.CountryPopulation).Value);
 			Assert.Equal(1000, AssertSingleResource(resources, "country_a", OwnerType.Country, ResourceDefinitions.CountryScore).Value);
 			Assert.Equal(50, AssertSingleResource(resources, "country_a", OwnerType.Country, ResourceDefinitions.Recruits).Value);
+			Assert.Equal(0, AssertSingleResource(
+				resources, "country_a", OwnerType.Country, ResourceDefinitions.TroopsDamageBonusPercent).Value);
 
 			Assert.Equal(1000, AssertSingleResource(resources, "province_a", OwnerType.Province, ResourceDefinitions.Population).Value);
 			Assert.Equal(777, AssertSingleResource(resources, "org_a", OwnerType.Org, ResourceDefinitions.Gold).Value);
@@ -209,6 +221,22 @@ namespace GS.Game.Tests {
 				resource.OwnerId == "org_a" && resource.ResourceId != ResourceDefinitions.Gold && resource.ResourceId != ResourceDefinitions.OrgScore);
 			Assert.DoesNotContain(resources, resource =>
 				resource.OwnerId == "province_a" && resource.ResourceId != ResourceDefinitions.Population);
+		}
+
+		[Fact]
+		void troops_damage_bonus_keeps_its_configured_default_value() {
+			ResourceConfig resourceConfig = BuildResourceConfig();
+			ResourceDefinition resourceDefinition = Assert.Single(resourceConfig.Resources,
+				resource => resource.ResourceId == ResourceDefinitions.TroopsDamageBonusPercent);
+			resourceDefinition.DefaultInitialValue = 7.5;
+			var logic = BuildLogic(resourceConfig);
+
+			logic.Update(0f);
+
+			ResourceEntry bonus = AssertSingleResource(
+				GetResources(logic.World), "country_a", OwnerType.Country,
+				ResourceDefinitions.TroopsDamageBonusPercent);
+			Assert.Equal(7.5, bonus.Value);
 		}
 
 		[Fact]
