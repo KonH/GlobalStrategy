@@ -111,6 +111,7 @@ namespace GS.Main {
 			DateTime currentTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
 			ResourceSystem.Update(_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder);
 			ControlSystem.Update(_world, _previousTime, currentTime);
+			WarSystem.Update(_world, _previousTime, currentTime, GameSettings.AttackerWarProgressDecayPerMonth);
 
 			foreach (var cmd in _commandAccessor.ReadChangeControlCommand().AsSpan()) {
 				ApplyChangeControl(cmd.OrgId, cmd.CountryId, cmd.Delta);
@@ -189,6 +190,12 @@ namespace GS.Main {
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugClearCountryRelationCommand().AsSpan()) {
 				CountryRelations.RemoveRelation(_world, cmd.CountryIdA, cmd.CountryIdB);
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugDeclareWarCommand().AsSpan()) {
+				Wars.DeclareWar(_world, cmd.AttackerCountryId, cmd.DefenderCountryId, currentTime);
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugStopWarCommand().AsSpan()) {
+				Wars.StopWar(_world, cmd.CountryId);
 			}
 
 			CleanupActionEffectsSystem.Update(_world);
