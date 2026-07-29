@@ -89,11 +89,17 @@ namespace GS.Game.Systems {
 		}
 
 		static void DrawCountryCards(World world, ActionConfig config, Random rng, string orgId, string countryId, int toDraw) {
-			int orgControl = GetOrgControlInCountry(world, orgId, countryId);
+			int orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
+			int totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
 			string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
 			double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
 			double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
-			var ctx = new ExpressionContext { Control = orgControl, Opinion = opinion, HasSuitableRelationTarget = hasSuitableTarget };
+			var ctx = new ExpressionContext {
+				Control = orgControl,
+				TotalCountryControl = totalCountryControl,
+				Opinion = opinion,
+				HasSuitableRelationTarget = hasSuitableTarget
+			};
 
 			int[] deckReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
 			int[] excludeInHand = { TypeId<CardInHand>.Value };
@@ -146,19 +152,6 @@ namespace GS.Game.Systems {
 					drawIdx++;
 				}
 			}
-		}
-
-		static int GetOrgControlInCountry(World world, string orgId, string countryId) {
-			int total = 0;
-			int[] req = { TypeId<ControlEffect>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (effects[i].OrgId == orgId && effects[i].CountryId == countryId) { total += effects[i].Value; }
-				}
-			}
-			return total;
 		}
 	}
 }

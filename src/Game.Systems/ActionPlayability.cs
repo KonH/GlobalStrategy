@@ -9,11 +9,14 @@ namespace GS.Game.Systems {
 			var def = config.Find(actionId);
 			if (def == null) { return false; }
 
-			int orgControl = GetOrgControl(world, orgId, countryId);
+			int orgControl = 0;
+			int totalCountryControl = 0;
 
 			double opinion = 0.0;
 			double hasSuitableTarget = 0.0;
 			if (!string.IsNullOrEmpty(countryId)) {
+				orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
+				totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
 				string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
 				opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
 				hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
@@ -23,7 +26,13 @@ namespace GS.Game.Systems {
 				var target = world.Get<RelationCardTarget>(entity);
 				relationStillExists = CountryRelations.GetRelation(world, countryId, target.TargetCountryId) == target.Kind ? 1.0 : 0.0;
 			}
-			var ctx = new ExpressionContext { Control = orgControl, Opinion = opinion, HasSuitableRelationTarget = hasSuitableTarget, RelationStillExists = relationStillExists };
+			var ctx = new ExpressionContext {
+				Control = orgControl,
+				TotalCountryControl = totalCountryControl,
+				Opinion = opinion,
+				HasSuitableRelationTarget = hasSuitableTarget,
+				RelationStillExists = relationStillExists
+			};
 
 			foreach (var cond in def.Conditions) {
 				if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { return false; }
@@ -32,22 +41,6 @@ namespace GS.Game.Systems {
 			if (!CanAfford(world, orgId, def.Cost)) { return false; }
 
 			return true;
-		}
-
-		public static int GetOrgControl(IReadOnlyWorld world, string orgId, string? countryId) {
-			if (string.IsNullOrEmpty(countryId)) { return 0; }
-			int total = 0;
-			int[] req = { TypeId<ControlEffect>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (effects[i].OrgId == orgId && effects[i].CountryId == countryId) {
-						total += effects[i].Value;
-					}
-				}
-			}
-			return total;
 		}
 
 		public static bool CanAfford(IReadOnlyWorld world, string orgId, List<ActionCost> costs) {

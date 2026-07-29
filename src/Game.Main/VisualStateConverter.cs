@@ -615,12 +615,19 @@ namespace GS.Main {
 			string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
 			double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
 			double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
+			int totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
 			double relationStillExists = 1.0;
 			if (world.Has<RelationCardTarget>(entity)) {
 				var target = world.Get<RelationCardTarget>(entity);
 				relationStillExists = CountryRelations.GetRelation(world, countryId, target.TargetCountryId) == target.Kind ? 1.0 : 0.0;
 			}
-			var ctx = new ExpressionContext { Control = orgControl, Opinion = opinion, HasSuitableRelationTarget = hasSuitableTarget, RelationStillExists = relationStillExists };
+			var ctx = new ExpressionContext {
+				Control = orgControl,
+				TotalCountryControl = totalCountryControl,
+				Opinion = opinion,
+				HasSuitableRelationTarget = hasSuitableTarget,
+				RelationStillExists = relationStillExists
+			};
 
 			bool conditionFailed = false;
 			string failedReason = "";
@@ -628,12 +635,14 @@ namespace GS.Main {
 				if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
 					conditionFailed = true;
 					string fieldType = cond.Members.Count > 0 ? cond.Members[0].Type : "";
-					failedReason = fieldType switch {
-						"opinion" => "insufficient_opinion",
-						"hasSuitableRelationTarget" => "no_suitable_target",
-						"relationStillExists" => "relation_no_longer_exists",
-						_ => "insufficient_control"
-					};
+					failedReason = ContainsExpressionType(cond, "totalCountryControl")
+						? "no_enemy_control"
+						: fieldType switch {
+							"opinion" => "insufficient_opinion",
+							"hasSuitableRelationTarget" => "no_suitable_target",
+							"relationStillExists" => "relation_no_longer_exists",
+							_ => "insufficient_control"
+						};
 					break;
 				}
 			}
@@ -643,6 +652,21 @@ namespace GS.Main {
 			string targetCountryId = world.Has<RelationCardTarget>(entity) ? world.Get<RelationCardTarget>(entity).TargetCountryId : "";
 
 			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason, targetCountryId);
+		}
+
+		static bool ContainsExpressionType(ExpressionNode node, string type) {
+			if (node.Type == type) {
+				return true;
+			}
+			if (node.Members == null) {
+				return false;
+			}
+			foreach (var member in node.Members) {
+				if (ContainsExpressionType(member, type)) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		void UpdateCountryRelations(IReadOnlyWorld world) {

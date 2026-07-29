@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ECS;
@@ -23,6 +24,7 @@ namespace GS.Game.Tests {
 
 		const string OrgId = "Illuminati";
 		const string OrgBId = "Masons";
+		const string OrgCId = "Rosicrucians";
 		const string HqCountryId = "Great_Britain";
 		const string OtherCountryId = "France";
 		const string CountryA = "Austria";
@@ -187,6 +189,95 @@ namespace GS.Game.Tests {
 			}
 		};
 
+		static ActionConfig DecreaseEnemyControlActionConfig() => new ActionConfig {
+			Defaults = new List<ActionOwnerDefaults> {
+				new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
+			},
+			Actions = new List<ActionDefinition> {
+				new ActionDefinition {
+					ActionId = "decrease_enemy_control",
+					OwnerType = "country",
+					DeckCopies = 1,
+					Conditions = new List<ExpressionNode> {
+						new ExpressionNode {
+							Type = "gt",
+							Members = new List<ExpressionNode> {
+								new ExpressionNode {
+									Type = "sub",
+									Members = new List<ExpressionNode> {
+										new ExpressionNode { Type = "totalCountryControl" },
+										new ExpressionNode { Type = "control" }
+									}
+								},
+								new ExpressionNode { Type = "value", Value = 0 }
+							}
+						}
+					},
+					Cost = new List<ActionCost> {
+						new ActionCost { ResourceId = "gold", Amount = 250.0 }
+					},
+					EffectIds = new List<string> { "enemy_drain", "control_gain" }
+				}
+			}
+		};
+
+		static EffectConfig DecreaseEnemyControlEffectConfig() => new EffectConfig {
+			Effects = new List<ActionEffectDefinition> {
+				new EnemyControlDrainEffectParams { EffectId = "enemy_drain", EffectType = "EnemyControlDrain", Amount = 20 },
+				new ControlChangeEffectParams { EffectId = "control_gain", EffectType = "ControlChange", Amount = 10 }
+			}
+		};
+
+		static int AddControl(World world, string orgId, string countryId, int value, string effectId) {
+			int entity = world.Create();
+			world.Add(entity, new ControlEffect {
+				OrgId = orgId,
+				CountryId = countryId,
+				Value = value,
+				EffectId = effectId
+			});
+			return entity;
+		}
+
+		static int GetControl(World world, string orgId, string countryId) {
+			int total = 0;
+			int[] required = { TypeId<ControlEffect>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
+				ControlEffect[] controls = arch.GetColumn<ControlEffect>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (controls[i].OrgId == orgId && controls[i].CountryId == countryId) {
+						total += controls[i].Value;
+					}
+				}
+			}
+			return total;
+		}
+
+		static void PutCountryCardInHand(World world, string orgId, string countryId, string actionId) {
+			int[] required = {
+				TypeId<GameAction>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CountryContext>.Value
+			};
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				CountryContext[] countries = arch.GetColumn<CountryContext>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (actions[i].ActionId == actionId
+						&& orgs[i].OrgId == orgId
+						&& countries[i].CountryId == countryId) {
+						int entity = arch.Entities[i];
+						if (!world.Has<CardInHand>(entity)) {
+							world.Add(entity, new CardInHand { SlotIndex = 0 });
+						}
+						return;
+					}
+				}
+			}
+			throw new InvalidOperationException($"Card not found: org={orgId} country={countryId} action={actionId}");
+		}
+
 		[Fact]
 		void control_entries_carry_independent_delta_and_running_total() {
 			var logic = BuildLogic(ControlActionConfig(2), ControlEffectConfig(5));
@@ -244,6 +335,76 @@ namespace GS.Game.Tests {
 			Assert.NotNull(orgAEntry);
 			// Must equal only OrgId's own contribution (5), not the combined pool (10).
 			Assert.Equal(5, orgAEntry!.Total);
+		}
+
+		[Fact]
+		void decrease_enemy_control_logs_clamped_drain_and_gain() {
+			var logic = BuildLogic(DecreaseEnemyControlActionConfig(), DecreaseEnemyControlEffectConfig());
+			logic.Update(0f);
+			AddControl(logic.World, OrgBId, OtherCountryId, 15, "enemy");
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "decrease_enemy_control");
+
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId,
+				CountryId = OtherCountryId,
+				ActionId = "decrease_enemy_control"
+			});
+			logic.Update(0f);
+
+			var controls = Entries(logic).Where(e => e.Kind == GameLogEntryKind.Control).ToList();
+			Assert.Equal(2, controls.Count);
+			var drain = controls.Single(e => e.OrgId == OrgBId);
+			var gain = controls.Single(e => e.OrgId == OrgId);
+			Assert.Equal(-15, drain.Delta);
+			Assert.Equal(0, drain.Total);
+			Assert.Equal(10, gain.Delta);
+			Assert.Equal(10, gain.Total);
+			Assert.Equal(0, GetControl(logic.World, OrgBId, OtherCountryId));
+			Assert.Equal(10, GetControl(logic.World, OrgId, OtherCountryId));
+		}
+
+		[Fact]
+		void decrease_enemy_control_targets_only_ordinally_first_org_on_a_tie() {
+			var logic = BuildLogic(DecreaseEnemyControlActionConfig(), DecreaseEnemyControlEffectConfig());
+			logic.Update(0f);
+			AddControl(logic.World, OrgCId, OtherCountryId, 30, "enemy_c");
+			AddControl(logic.World, OrgBId, OtherCountryId, 30, "enemy_b");
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "decrease_enemy_control");
+
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId,
+				CountryId = OtherCountryId,
+				ActionId = "decrease_enemy_control"
+			});
+			logic.Update(0f);
+
+			Assert.Equal(10, GetControl(logic.World, OrgBId, OtherCountryId));
+			Assert.Equal(30, GetControl(logic.World, OrgCId, OtherCountryId));
+			var controls = Entries(logic).Where(e => e.Kind == GameLogEntryKind.Control).ToList();
+			Assert.Single(controls.Where(e => e.OrgId == OrgBId && e.Delta == -20));
+			Assert.Empty(controls.Where(e => e.OrgId == OrgCId));
+		}
+
+		[Fact]
+		void decrease_enemy_control_gain_uses_post_drain_pool_capacity() {
+			var logic = BuildLogic(DecreaseEnemyControlActionConfig(), DecreaseEnemyControlEffectConfig());
+			logic.Update(0f);
+			AddControl(logic.World, OrgId, OtherCountryId, 95, "own");
+			AddControl(logic.World, OrgBId, OtherCountryId, 5, "enemy");
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "decrease_enemy_control");
+
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId,
+				CountryId = OtherCountryId,
+				ActionId = "decrease_enemy_control"
+			});
+			logic.Update(0f);
+
+			Assert.Equal(0, GetControl(logic.World, OrgBId, OtherCountryId));
+			Assert.Equal(100, GetControl(logic.World, OrgId, OtherCountryId));
+			var controls = Entries(logic).Where(e => e.Kind == GameLogEntryKind.Control).ToList();
+			Assert.Single(controls.Where(e => e.OrgId == OrgBId && e.Delta == -5 && e.Total == 0));
+			Assert.Single(controls.Where(e => e.OrgId == OrgId && e.Delta == 5 && e.Total == 100));
 		}
 
 		static CharacterConfig OpinionCharacterConfig(string charId, string countryId) => new CharacterConfig {

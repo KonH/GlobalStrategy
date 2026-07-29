@@ -78,6 +78,7 @@ namespace GS.Unity.UI {
 						def != null ? ExtractConditionThreshold(def, "opinion") : 0),
 					"no_suitable_target" => _loc.Get("action.country.unplayable.no_suitable_target"),
 					"relation_no_longer_exists" => _loc.Get("action.country.unplayable.relation_no_longer_exists"),
+					"no_enemy_control" => _loc.Get("action.country.unplayable.no_enemy_control"),
 					_ => string.Format(
 						_loc.Get("action.country.unplayable.insufficient_control"),
 						def != null ? ExtractConditionThreshold(def, "control") : 0)

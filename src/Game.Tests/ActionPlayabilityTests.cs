@@ -73,6 +73,26 @@ namespace GS.Game.Tests {
 							}
 						},
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 100.0 } }
+					},
+					new ActionDefinition {
+						ActionId = "decrease_enemy_control",
+						OwnerType = "country",
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gt",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode {
+										Type = "sub",
+										Members = new List<ExpressionNode> {
+											new ExpressionNode { Type = "totalCountryControl" },
+											new ExpressionNode { Type = "control" }
+										}
+									},
+									new ExpressionNode { Type = "value", Value = 0 }
+								}
+							}
+						},
+						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 250.0 } }
 					}
 				}
 			};
@@ -362,6 +382,36 @@ namespace GS.Game.Tests {
 			var exception = Record.Exception(() => ActionPlayability.Evaluate(world, config, -1, "country_card", "OrgA", "Prussia"));
 			Assert.Null(exception);
 			Assert.True(ActionPlayability.Evaluate(world, config, -1, "country_card", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void decrease_enemy_control_unplayable_when_no_other_org_holds_control() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 250.0);
+			AddControl(world, "OrgA", "Prussia", 50);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "decrease_enemy_control", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void decrease_enemy_control_playable_when_another_org_holds_control_and_affordable() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 250.0);
+			AddControl(world, "OrgB", "Prussia", 10);
+
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "decrease_enemy_control", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void decrease_enemy_control_unplayable_when_unaffordable_even_with_enemy_control_present() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 249.0);
+			AddControl(world, "OrgB", "Prussia", 10);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "decrease_enemy_control", "OrgA", "Prussia"));
 		}
 	}
 }

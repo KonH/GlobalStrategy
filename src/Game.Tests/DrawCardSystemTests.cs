@@ -53,6 +53,25 @@ namespace GS.Game.Tests {
 								}
 							}
 						}
+					},
+					new ActionDefinition {
+						ActionId = "decrease_enemy_control",
+						OwnerType = "country",
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gt",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode {
+										Type = "sub",
+										Members = new List<ExpressionNode> {
+											new ExpressionNode { Type = "totalCountryControl" },
+											new ExpressionNode { Type = "control" }
+										}
+									},
+									new ExpressionNode { Type = "value", Value = 0 }
+								}
+							}
+						}
 					}
 				}
 			};
@@ -87,6 +106,16 @@ namespace GS.Game.Tests {
 			int e = AddDeckCard(world, orgId, countryId, actionId);
 			world.Add(e, new RelationCardTarget { TargetCountryId = targetCountryId, Kind = kind });
 			return e;
+		}
+
+		static void AddControl(World world, string orgId, string countryId, int value) {
+			int e = world.Create();
+			world.Add(e, new ControlEffect {
+				OrgId = orgId,
+				CountryId = countryId,
+				Value = value,
+				EffectId = $"test_{orgId}_{countryId}"
+			});
 		}
 
 		static bool IsInHand(World world, int entity) {
@@ -172,6 +201,36 @@ namespace GS.Game.Tests {
 			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 80);
 			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
 			int card = AddRelationDeckCard(world, "OrgA", "Prussia", "stop_friendship", "Austria", RelationKind.Friend);
+
+			int deckEntity = world.Create();
+			world.Add(deckEntity, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
+			world.Add(deckEntity, new CardDraw { Count = 1 });
+			DrawCardSystem.Update(world, config, new Random(1));
+
+			Assert.True(IsInHand(world, card));
+		}
+
+		[Fact]
+		void draw_excludes_decrease_enemy_control_when_no_other_org_holds_control() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddControl(world, "OrgA", "Prussia", 10);
+			int card = AddDeckCard(world, "OrgA", "Prussia", "decrease_enemy_control");
+
+			int deckEntity = world.Create();
+			world.Add(deckEntity, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
+			world.Add(deckEntity, new CardDraw { Count = 1 });
+			DrawCardSystem.Update(world, config, new Random(1));
+
+			Assert.False(IsInHand(world, card));
+		}
+
+		[Fact]
+		void draw_includes_decrease_enemy_control_when_another_org_holds_control() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddControl(world, "OrgB", "Prussia", 10);
+			int card = AddDeckCard(world, "OrgA", "Prussia", "decrease_enemy_control");
 
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
