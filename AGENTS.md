@@ -40,3 +40,4 @@
 - **Temporary scripts:** `.claude/rules/temp_scripts.md`
 - **Learning workflow:** `.claude/commands/learn.md`
 - **Codex issue automation:** `.codex/skills/codex-issue/SKILL.md`
+- **Cursor issue automation:** `.cursor/commands/cursor-issue.md` — executes owner prompts from `cursor`-labeled GitHub issues and PRs through `scripts/automation/cursor/handle_issues.py`

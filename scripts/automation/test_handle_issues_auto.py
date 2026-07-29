@@ -1,0 +1,71 @@
+import tempfile
+import unittest
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+from scripts.automation.common.issue_handler import (
+    record_auto_selection, save_limit_retry_at, select_auto_provider,
+)
+from scripts.automation.handle_issues_auto import auto_candidates, route_candidates, run_provider_handlers
+
+
+def item(number, labels, **extra):
+    return {"number": number, "labels": [{"name": label} for label in labels], **extra}
+
+
+class ProviderSelectionTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.state_file = Path(self.temp.name) / "provider-state.json"
+        self.logger = MagicMock()
+        self.providers = ("claude", "codex", "cursor")
+
+    def test_never_selected_provider_is_preferred_then_persisted_for_next_choice(self):
+        record_auto_selection(self.state_file, "claude", datetime.now(timezone.utc) - timedelta(hours=1))
+        self.assertEqual("codex", select_auto_provider(self.logger, self.state_file, self.providers))
+        record_auto_selection(self.state_file, "codex")
+        self.assertEqual("cursor", select_auto_provider(self.logger, self.state_file, self.providers))
+
+    def test_limited_provider_is_excluded(self):
+        save_limit_retry_at(self.state_file, "claude", datetime.now(timezone.utc) + timedelta(hours=1))
+        self.assertEqual("codex", select_auto_provider(self.logger, self.state_file, self.providers))
+
+    def test_all_limited_providers_leave_item_unassigned(self):
+        for provider in self.providers:
+            save_limit_retry_at(self.state_file, provider, datetime.now(timezone.utc) + timedelta(hours=1))
+        self.assertIsNone(select_auto_provider(self.logger, self.state_file, self.providers))
+
+
+class RoutingTests(unittest.TestCase):
+    def test_auto_candidates_exclude_any_provider_or_provider_status_label(self):
+        with patch("scripts.automation.handle_issues_auto.list_labeled_items", return_value=[
+            item(1, ["auto-ai"]),
+            item(2, ["auto-ai", "claude"]),
+            item(3, ["auto-ai", "codex-in-progress"]),
+            item(4, ["auto-ai", "bug"]),
+        ]):
+            self.assertEqual([1, 4], [candidate["number"] for candidate in auto_candidates()])
+
+    def test_route_assigns_once_and_persists_before_next_candidate(self):
+        candidates = [item(1, ["auto-ai"]), item(2, ["auto-ai"])]
+        with patch("scripts.automation.handle_issues_auto.select_auto_provider",
+                   side_effect=["claude", "codex"]), \
+             patch("scripts.automation.handle_issues_auto.add_label") as add, \
+             patch("scripts.automation.handle_issues_auto.record_auto_selection") as record:
+            routed = route_candidates(MagicMock(), Path("state.json"), candidates)
+        self.assertEqual([(1, "claude"), (2, "codex")], routed)
+        self.assertEqual([(1, "claude"), (2, "codex")], [call.args for call in add.call_args_list])
+        self.assertEqual(["claude", "codex"], [call.args[1] for call in record.call_args_list])
+
+    def test_provider_handlers_run_in_provider_order_after_routing(self):
+        with patch("scripts.automation.handle_issues_auto.subprocess.run",
+                   side_effect=[MagicMock(returncode=0), MagicMock(returncode=3), MagicMock(returncode=0)]) as run:
+            self.assertEqual(3, run_provider_handlers())
+        self.assertEqual(["claude", "codex", "cursor"],
+                         [Path(call.args[0][1]).parent.name for call in run.call_args_list])
+
+
+if __name__ == "__main__":
+    unittest.main()
