@@ -45,6 +45,12 @@ limit (including production assistant text with a UTC reset time), it salvages a
 working tree, records the limit in `Logs/auto_ai_provider_state.json` under the `claude`
 provider key, and exits 0. Every later run skips until that provider's window has passed.
 
+Exhausting `--max-turns` (result subtype `error_max_turns`) gets the same dirty-tree salvage
+(commit + push HEAD with a fixed message) so partial progress survives the next run's
+`checkout_clean` - but, unlike a session limit, it is NOT a paused/skip state: the item stays
+`claude-in-progress` and is picked up again next run (or reclaimed as stale) to continue from
+where it left off.
+
 Requires `gh` authenticated as the repo owner (`gh auth login`), the labels above already
 created in the repo (see handle_issues.sh for the `gh label create` commands), and `claude`
 logged into a subscription (`claude` with no ANTHROPIC_API_KEY set). Runs explicitly on
@@ -83,7 +89,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.issue_handler import (  # noqa: E402
     acquire_lock, candidate_branch, checkout_clean, find_candidates, handle_limit_pause,
-    limit_active, reclaim_stale_in_progress, setup_logging,
+    limit_active, reclaim_stale_in_progress, salvage_uncommitted_work, setup_logging,
 )
 
 MODEL = "claude-sonnet-5"
@@ -223,7 +229,7 @@ def build_prompt(candidate):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--max-turns", type=int, default=40)
+    parser.add_argument("--max-turns", type=int, default=80)
     parser.add_argument("--log-file", type=Path, default=DEFAULT_LOG_FILE)
     parser.add_argument("--log-max-bytes", type=int, default=DEFAULT_LOG_MAX_BYTES)
     parser.add_argument("--log-backup-count", type=int, default=DEFAULT_LOG_BACKUP_COUNT)
@@ -259,7 +265,7 @@ def main():
         checkout_clean(logger, branch)
         logger.info(f"Processing {candidate['kind']} #{candidate['number']} from clean "
                      f"'{branch}' - invoking claude -p.")
-        returncode, detection_texts = run_claude(build_prompt(candidate), args.max_turns)
+        returncode, detection_texts, max_turns_hit = run_claude(build_prompt(candidate), args.max_turns)
         if returncode != 0:
             exit_code = returncode
         limit_hit, retry_at = detect_session_limit(detection_texts)
@@ -268,14 +274,26 @@ def main():
                 retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
             handle_limit_pause(logger, LABEL, MARKER, candidate, args.provider_state_file, retry_at)
             sys.exit(0)
+        elif max_turns_hit:
+            # Same failure mode as a session limit - the run was cut off mid-work, not crashed -
+            # so salvage the dirty tree the same way, or checkout_clean on the next run (this
+            # candidate's stale-in-progress reclaim, or the next scheduled pass) would wipe it.
+            status, detail = salvage_uncommitted_work(logger)
+            logger.warning(
+                f"{candidate['kind']} #{candidate['number']} exhausted --max-turns "
+                f"({args.max_turns}). Salvage status={status}"
+                f"{f' ({detail})' if detail else ''}."
+            )
     sys.exit(exit_code)
 
 
 def run_claude(prompt, max_turns):
     """Runs one claude -p invocation to completion, streaming its events into the log.
-    Returns (returncode, detection_texts) - the text corpus for session-limit detection
-    (non-JSON lines, error-result text, and - when the run ended non-zero or error-shaped -
-    assistant stream-json text blocks)."""
+    Returns (returncode, detection_texts, max_turns_hit). detection_texts is the text corpus
+    for session-limit detection (non-JSON lines, error-result text, and - when the run ended
+    non-zero or error-shaped - assistant stream-json text blocks). max_turns_hit is True when
+    the CLI's own result event reports subtype `error_max_turns` - the run was cut off mid-work
+    by the --max-turns budget, not crashed."""
     process = subprocess.Popen(
         [
             find_claude_executable(), "-p", prompt,
@@ -323,7 +341,8 @@ def run_claude(prompt, max_turns):
     detection_texts = limit_detection_texts(
         process.returncode, result_event, error_texts, assistant_texts,
     )
-    return process.returncode, detection_texts
+    max_turns_hit = bool(result_event and result_event.get("subtype") == "error_max_turns")
+    return process.returncode, detection_texts, max_turns_hit
 
 
 if __name__ == "__main__":
