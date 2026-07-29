@@ -1600,6 +1600,8 @@ MonoBehaviour:
     Value: Пусто
   - Key: hud.slot_available
     Value: Доступно
+  - Key: hud.character.card_hint
+    Value: При мнении {0} - {1}
   - Key: action.discover_country.name
     Value: Разведать страну
   - Key: action.discover_country.desc

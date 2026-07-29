@@ -1600,6 +1600,8 @@ MonoBehaviour:
     Value: Empty
   - Key: hud.slot_available
     Value: Available
+  - Key: hud.character.card_hint
+    Value: At opinion {0} - {1}
   - Key: action.discover_country.name
     Value: Discover Country
   - Key: action.discover_country.desc

@@ -13,13 +13,17 @@ namespace GS.Unity.UI {
 		readonly CharacterConfig _characterConfig;
 		readonly TooltipSystem _tooltip;
 		readonly CharacterVisualConfig? _visualConfig;
+		readonly ActionConfig _actionConfig;
+		readonly ActionVisualConfig _actionVisualConfig;
 
-		public CharactersView(VisualElement container, ILocalization loc, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig visualConfig) {
+		public CharactersView(VisualElement container, ILocalization loc, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig visualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig) {
 			_container = container;
 			_loc = loc;
 			_characterConfig = characterConfig;
 			_tooltip = tooltip;
 			_visualConfig = visualConfig;
+			_actionConfig = actionConfig;
+			_actionVisualConfig = actionVisualConfig;
 			if (_visualConfig == null) {
 				Debug.LogError("[CharactersView] CharacterVisualConfig is null — portraits will not display. Assign the asset in GameLifetimeScope.");
 			}
@@ -115,12 +119,74 @@ namespace GS.Unity.UI {
 			info.Add(statsBlock);
 			card.Add(info);
 
-			if (!string.IsNullOrEmpty(roleDesc)) {
+			var hintRows = CharacterCardHintProjector.Build(_actionConfig, entry.RoleId);
+			foreach (var row in hintRows) {
+				row.IsMet = entry.Opinion.Display >= row.Threshold;
+			}
+
+			if (!string.IsNullOrEmpty(roleDesc) || hintRows.Count > 0) {
 				string capturedDesc = roleDesc;
-				_tooltip.RegisterTrigger(card, $"role-{entry.RoleId}-{entry.CharacterId}", _ => BuildSimpleTooltip(roleName, capturedDesc), new System.Collections.Generic.HashSet<string>());
+				string capturedRoleName = roleName;
+				string capturedCharacterId = entry.CharacterId;
+				_tooltip.RegisterTrigger(card, $"role-{entry.RoleId}-{entry.CharacterId}",
+					context => BuildRoleTooltip(context, capturedRoleName, capturedDesc, capturedCharacterId, hintRows),
+					new System.Collections.Generic.HashSet<string>());
 			}
 
 			return card;
+		}
+
+		VisualElement BuildRoleTooltip(TooltipContext context, string roleName, string roleDesc, string characterId, List<CharacterCardHintRowState> hintRows) {
+			var root = BuildSimpleTooltip(roleName, roleDesc);
+			if (hintRows.Count == 0) {
+				return root;
+			}
+
+			var rowsContainer = new VisualElement();
+			rowsContainer.AddToClassList("character-hint-rows");
+			foreach (var row in hintRows) {
+				var def = _actionConfig.Find(row.ActionId);
+				string cardName = def != null ? _loc.Get(def.NameKey) : row.ActionId;
+				string rowText = string.Format(_loc.Get("hud.character.card_hint"), row.Threshold, cardName);
+
+				var rowLabel = new Label(rowText);
+				rowLabel.AddToClassList("tooltip-effect-name");
+				rowLabel.AddToClassList("tooltip-inner-trigger");
+				rowLabel.EnableInClassList("gs-color-positive", row.IsMet);
+				rowLabel.EnableInClassList("gs-color-hint", !row.IsMet);
+				rowsContainer.Add(rowLabel);
+
+				string capturedActionId = row.ActionId;
+				context.RegisterInnerTrigger(rowLabel, $"card-hint-{characterId}-{capturedActionId}", _ => BuildCardPreview(capturedActionId));
+			}
+			root.Add(rowsContainer);
+			return root;
+		}
+
+		VisualElement BuildCardPreview(string actionId) {
+			var def = _actionConfig.Find(actionId);
+			string name = def != null ? _loc.Get(def.NameKey) : actionId;
+			string desc = def != null ? _loc.Get(def.DescKey) : "";
+			string? goldCostText = GetGoldCostText(def);
+			var sprite = _actionVisualConfig?.FindFront(actionId);
+
+			var result = ActionCardBuilder.Build(name, desc, goldCostText, sprite);
+			result.Card.AddToClassList("action-card--available");
+			return result.Card;
+		}
+
+		static double GetGoldCost(ActionDefinition? def) {
+			if (def == null) { return 0; }
+			foreach (var c in def.Cost) {
+				if (c.ResourceId == "gold") { return c.Amount; }
+			}
+			return 0;
+		}
+
+		static string? GetGoldCostText(ActionDefinition? def) {
+			double gold = GetGoldCost(def);
+			if (gold == 0) { return null; }
+			return gold == System.Math.Floor(gold) ? $"{(int)gold}" : $"{gold:F1}";
 		}
 
 		static string GetSkillTintClass(string skillId) {
