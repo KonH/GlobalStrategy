@@ -16,9 +16,13 @@ namespace GS.Unity.UI {
 		public static string BuildControlLine(GameLogEntry entry, ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig) {
 			string orgName = WrapColored(loc.Get($"organization_name.{entry.OrgId}"), orgVisualConfig.Find(entry.OrgId)?.color);
 			string countryName = WrapColored(loc.Get($"country_name.{entry.CountryId}"), countryVisualConfig.Find(entry.CountryId)?.color);
-			string deltaText = "+" + FormatNumber(entry.Delta);
 			string totalText = FormatNumber(entry.Total);
-			return string.Format(loc.Get("game_log.control_increased_format"), orgName, countryName, deltaText, totalText);
+			if (entry.Delta >= 0) {
+				string deltaText = "+" + FormatNumber(entry.Delta);
+				return string.Format(loc.Get("game_log.control_increased_format"), orgName, countryName, deltaText, totalText);
+			}
+			string decreaseText = "-" + FormatNumber(System.Math.Abs(entry.Delta));
+			return string.Format(loc.Get("game_log.control_decreased_format"), orgName, countryName, decreaseText, totalText);
 		}
 
 		public static string BuildOpinionLine(GameLogEntry entry, ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig) {

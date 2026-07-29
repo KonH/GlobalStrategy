@@ -661,7 +661,8 @@ namespace GS.Main {
 
 					// Populate initial hand
 					if (handSize > 0 && createdEntities.Count > 0) {
-						int orgControl = GetOrgControlInCountry(world, orgId, entry.CountryId);
+						int orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, entry.CountryId);
+						int totalCountryControl = ControlQuery.GetTotalControlInCountry(world, entry.CountryId);
 						string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, entry.CountryId, "diplomacy_advisor");
 						double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
 						double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, entry.CountryId) ? 1.0 : 0.0;
@@ -670,7 +671,12 @@ namespace GS.Main {
 							var d = actionConfig.Find(actionId);
 							if (d == null) { continue; }
 							bool eligible = true;
-							var ctx = new ExpressionContext { Control = orgControl, Opinion = opinion, HasSuitableRelationTarget = hasSuitableTarget };
+							var ctx = new ExpressionContext {
+								Control = orgControl,
+								TotalCountryControl = totalCountryControl,
+								Opinion = opinion,
+								HasSuitableRelationTarget = hasSuitableTarget
+							};
 							foreach (var cond in d.Conditions) {
 								if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
 									eligible = false;
@@ -692,21 +698,6 @@ namespace GS.Main {
 					}
 				}
 			}
-		}
-
-		static int GetOrgControlInCountry(World world, string orgId, string countryId) {
-			int total = 0;
-			int[] req = { TypeId<ControlEffect>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (effects[i].OrgId == orgId && effects[i].CountryId == countryId) {
-						total += effects[i].Value;
-					}
-				}
-			}
-			return total;
 		}
 
 		static void DiscoverInitialCountries(World world, List<OrganizationEntry> participating) {

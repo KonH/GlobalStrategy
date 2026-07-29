@@ -1652,6 +1652,18 @@ MonoBehaviour:
     Value: '{0} is not our enemy!'
   - Key: action.stop_rivalry.desc
     Value: We're not enemies anymore.
+  - Key: action.decrease_enemy_control.name
+    Value: Undermine Influence
+  - Key: action.decrease_enemy_control.desc
+    Value: Weaken a rival's control and strengthen your own.
+  - Key: effect.decrease_enemy_control_drain.name
+    Value: Weaken Rival Control
+  - Key: effect.decrease_enemy_control_drain.desc
+    Value: Decrease a rival organization's control.
+  - Key: effect.decrease_enemy_control_gain.name
+    Value: Strengthen Control
+  - Key: effect.decrease_enemy_control_gain.desc
+    Value: Increase your organization's control.
   - Key: action.country.unplayable.pool_full
     Value: No control pool space remaining
   - Key: action.country.unplayable.insufficient_control
@@ -1662,6 +1674,8 @@ MonoBehaviour:
     Value: No suitable target country available
   - Key: action.country.unplayable.relation_no_longer_exists
     Value: The named relation no longer exists
+  - Key: action.country.unplayable.no_enemy_control
+    Value: No organization with control available to target
   - Key: hud.actions
     Value: Actions
   - Key: hud.friends
@@ -1674,6 +1688,8 @@ MonoBehaviour:
     Value: "{0} discovered {1}"
   - Key: game_log.control_increased_format
     Value: "{0} increased control in {1} by {2} ({3})"
+  - Key: game_log.control_decreased_format
+    Value: "{0} decreased control in {1} by {2} ({3})"
   - Key: game_log.opinion_increased_format
     Value: "{0} increased {1} {2} opinion in {3} by {4} ({5})"
   - Key: game_log.new_character_format

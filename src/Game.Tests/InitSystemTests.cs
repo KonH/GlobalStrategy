@@ -49,14 +49,15 @@ namespace GS.Game.Tests {
 
 		static GameLogic BuildLogic(
 			IPersistentStorage? storage = null, ISnapshotSerializer? serializer = null, GameSettings? gameSettingsOverride = null,
-			ActionConfig? actionConfigOverride = null, CharacterConfig? characterConfigOverride = null) {
+			ActionConfig? actionConfigOverride = null, CharacterConfig? characterConfigOverride = null,
+			OrganizationConfig? organizationConfigOverride = null, IReadOnlyList<string>? participatingOrganizationIds = null) {
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
 					new CountryEntry { CountryId = "Great_Britain", DisplayName = "Great Britain", IsAvailable = true },
 					new CountryEntry { CountryId = "France", DisplayName = "France", IsAvailable = true }
 				}
 			};
-			var orgConfig = new OrganizationConfig {
+			var orgConfig = organizationConfigOverride ?? new OrganizationConfig {
 				Organizations = new List<OrganizationEntry> {
 					new OrganizationEntry {
 						OrganizationId = "Illuminati",
@@ -102,7 +103,8 @@ namespace GS.Game.Tests {
 				initialOrganizationId: "Illuminati",
 				province: new StaticConfig<ProvinceConfig>(provinceConfig),
 				action: actionConfigOverride != null ? new StaticConfig<ActionConfig>(actionConfigOverride) : null,
-				character: characterConfigOverride != null ? new StaticConfig<CharacterConfig>(characterConfigOverride) : null);
+				character: characterConfigOverride != null ? new StaticConfig<CharacterConfig>(characterConfigOverride) : null,
+				participatingOrganizationIds: participatingOrganizationIds);
 			return new GameLogic(ctx);
 		}
 
@@ -511,6 +513,81 @@ namespace GS.Game.Tests {
 					Assert.NotEqual("make_rival", actions[i].ActionId);
 				}
 			}
+		}
+
+		[Fact]
+		void decrease_enemy_control_can_populate_initial_hand_when_another_org_has_control() {
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
+						ActionId = "decrease_enemy_control",
+						OwnerType = "country",
+						DeckCopies = 1,
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gt",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode {
+										Type = "sub",
+										Members = new List<ExpressionNode> {
+											new ExpressionNode { Type = "totalCountryControl" },
+											new ExpressionNode { Type = "control" }
+										}
+									},
+									new ExpressionNode { Type = "value", Value = 0 }
+								}
+							}
+						}
+					}
+				}
+			};
+			var organizationConfig = new OrganizationConfig {
+				Organizations = new List<OrganizationEntry> {
+					new OrganizationEntry {
+						OrganizationId = "Illuminati",
+						DisplayName = "Illuminati",
+						HqCountryId = "Great_Britain",
+						InitialGold = 1000.0
+					},
+					new OrganizationEntry {
+						OrganizationId = "Masons",
+						DisplayName = "Masons",
+						HqCountryId = "Great_Britain",
+						InitialGold = 1000.0
+					}
+				}
+			};
+			var logic = BuildLogic(
+				actionConfigOverride: actionConfig,
+				organizationConfigOverride: organizationConfig,
+				participatingOrganizationIds: new[] { "Illuminati", "Masons" });
+
+			logic.Update(0f);
+
+			int[] required = {
+				TypeId<GameAction>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CountryContext>.Value,
+				TypeId<CardInHand>.Value
+			};
+			bool found = false;
+			foreach (var arch in logic.World.GetMatchingArchetypes(required, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				CountryContext[] countries = arch.GetColumn<CountryContext>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (actions[i].ActionId == "decrease_enemy_control"
+						&& orgs[i].OrgId == "Illuminati"
+						&& countries[i].CountryId == "Great_Britain") {
+						found = true;
+					}
+				}
+			}
+
+			Assert.True(found);
 		}
 	}
 }
