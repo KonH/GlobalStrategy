@@ -86,7 +86,7 @@ from common.issue_handler import (  # noqa: E402
 
 MODEL = "gpt-5.6-sol"
 EFFORT = "high"
-DEFAULT_SANDBOX = "workspace-write"
+DEFAULT_SANDBOX = "danger-full-access"
 SANDBOX_CHOICES = ["read-only", "workspace-write", "danger-full-access"]
 LABEL = "codex"
 MARKER = "<!-- codex-automation -->"
@@ -169,7 +169,8 @@ def main():
     parser.add_argument("--effort", default=EFFORT,
                         choices=["minimal", "low", "medium", "high", "xhigh"])
     parser.add_argument("--sandbox", default=DEFAULT_SANDBOX, choices=SANDBOX_CHOICES,
-                        help="Codex sandbox mode. Use danger-full-access only on an isolated automation host.")
+                        help="Codex sandbox mode. Defaults to danger-full-access because this runner "
+                             "is intended for an isolated, dedicated automation clone.")
     parser.add_argument("--dangerously-skip-permissions", action="store_true",
                         help="Deprecated alias for --sandbox danger-full-access.")
     parser.add_argument("--log-file", type=Path, default=DEFAULT_LOG_FILE)
