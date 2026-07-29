@@ -9,7 +9,7 @@ As a player, I want wars to advance through recurring province battles that cons
 Legend: `Precondition => Action => Outcome`, grouped under a shared precondition where one applies to several rows.
 
 - A war starts between its attacker and defender.
-  - The war starts => its maximum concurrent battle count is calculated once as `1 + shared-border-provinces / 5`, using the configured values for the additive base and provinces-per-slot divisor.
+  - The war starts => each attacker-province/defender-province pair that shares a generated boundary segment is counted once; point-only contacts are excluded, and the maximum concurrent battle count is calculated once as `1 + floor(shared-border-pair-count / 5)`, using the configured values for the additive base and provinces-per-slot divisor.
   - The war starts => it has no active battles before battle initiation is processed.
   - The war starts => the attacker country's initiative is 1.0 and the defender country's initiative is 0.0, using the configured initial values.
 - A war has fewer active battles than its maximum concurrent battle count.
@@ -20,7 +20,7 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
   - An enemy province is already occupied by the initiator, or already has an active battle => that province is excluded as a target.
   - An otherwise eligible enemy province borders a province owned by the initiator or occupied by the initiator => it is a primary target candidate.
   - One or more primary candidates exist => the target province is chosen randomly from those candidates.
-  - No primary candidate exists => the target is chosen randomly from the configured top three nearest enemy provinces that do not already have an active battle.
+  - No primary candidate exists => eligible enemy provinces are ranked by straight-line centroid distance to the closest province currently owned or occupied by the initiator, and the target is chosen randomly from the configured top three nearest provinces.
   - Fewer than three fallback candidates exist => every eligible fallback candidate participates in the random selection.
   - No target province is eligible => no targetless battle is created and the free battle slot remains empty until targeting is processed again.
 - A target province has been selected for a new battle.
@@ -66,6 +66,8 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
   - `Wars.DeclareWar` in `src/Game.Systems/Wars.cs` must initialize the two country initiative values and the persisted maximum battle count as part of the successful declaration transaction.
 - **Province borders, shared-border counting, and nearest-target fallback**:
   - `ProvinceConfig` / `ProvinceEntry` in `src/Game.Configs/ProvinceConfig.cs` and the generated `Assets/Configs/province_config.json` currently carry no adjacency, centroid, or distance data. Add deterministic province topology and distance inputs through the province generation path (`scripts/utils/generate_provinces.py` and `src/Game.Configs.Loader/ProvinceProcessor.cs`) rather than using `ProximityMapData`.
+  - Count each unordered attacker-owned/defender-owned neighboring province pair once when declaring the war. Generated adjacency exists only when the final simplified province boundaries share a non-zero-length segment; a point-only contact is not adjacency. Apply integer floor division by the configured provinces-per-slot divisor before adding the configured base count.
+  - For fallback targeting, rank an eligible enemy province by the minimum straight-line distance from its generated centroid to the centroid of any province currently owned or occupied by the initiator. Break equal-distance ranks by ordinal province id, take up to the configured candidate count, then use the seeded RNG to select within that set.
   - `ProximityMapData` is country-level, is built from legacy country feature geometry in `src/Game.Main/InitSystem.cs`, and cannot answer province-border or province-nearness queries for this feature.
   - Static topology/distance data that is rebuilt from config at startup must be held in a non-`[Savable]` ECS component or plain immutable lookup. Runtime `ProvinceOwnership` and `ProvinceOccupation` components remain the authority for determining friendly/enemy territory, occupied approach provinces, and target occupation.
 - **Country initiative and combat attributes**:
@@ -115,12 +117,4 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 
 ## Ambiguities
 
-- [NEEDS CLARIFICATION: Choose one shared-border rule.]
-  - **A (recommended): neighboring-pair count.** Count each attacker-province/defender-province adjacency once, floor the configured division, and derive adjacency from generated province geometry where sharing a boundary segment counts but touching only at a point does not. This most directly matches "by border count" and lets one province contribute multiple distinct fronts.
-  - **B: distinct frontline provinces on both sides.** Count each attacker or defender province that has at least one neighbor across the war border once, floor the division, and use the same generated shared-segment adjacency. This measures how much territory participates in the front without letting a dense local mesh multiply slots.
-  - **C: distinct frontline provinces on the smaller side.** Calculate the distinct frontline count separately for attacker and defender, use the smaller count, floor the division, and use the same generated shared-segment adjacency. This limits concurrency by the narrower side of the front.
-- [NEEDS CLARIFICATION: Choose one nearest-province origin/metric.]
-  - **A (recommended): closest territorial centroid.** Rank each eligible enemy province by the straight-line map distance from its centroid to the closest province centroid currently owned or occupied by the initiator. This models the shortest deployment route, works across water, and remains stable from generated config data.
-  - **B: adjacency hop count from initiator territory.** Rank by the fewest province-neighbor hops from any province currently owned or occupied by the initiator, then break equal-hop ties by centroid distance. This follows land topology but requires an explicit rule for disconnected islands.
-  - **C: initiator-capital distance.** Rank by straight-line map distance from the initiator's capital province centroid. This is simple and stable but may select targets far from the current front.
-  - For every option, fewer than three eligible provinces means selecting among all remaining provinces, and zero means leaving the battle slot empty.
+None — the owner selected neighboring attacker/defender province pairs for shared-border counting and closest owned-or-occupied territorial centroid distance for fallback targeting. Fewer than the configured three eligible fallback provinces means selecting among all remaining candidates; zero leaves the battle slot empty.
