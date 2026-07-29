@@ -10,9 +10,9 @@ from scripts.automation.claude.handle_issues import (
 )
 from scripts.automation.common.issue_handler import (
     SALVAGE_COMMIT_MESSAGE, SALVAGE_GIT_IDENTITY, candidate_branch, checkout_clean,
-    count_reclaims_since_owner_comment, find_candidates, handle_limit_pause, limit_active,
-    reclaim_stale_in_progress, release_in_progress_silently, salvage_uncommitted_work,
-    save_limit_retry_at,
+    configured_contributors, count_reclaims_since_owner_comment, find_candidates,
+    handle_limit_pause, limit_active, reclaim_stale_in_progress,
+    release_in_progress_silently, salvage_uncommitted_work, save_limit_retry_at,
 )
 
 MARKER = "<!-- claude-automation -->"
@@ -62,6 +62,15 @@ class FindCandidatesTests(unittest.TestCase):
                    side_effect=[[item(1, ["claude", "bug", "codex-in-progress"])], []]):
             self.assertEqual(1, len(find_candidates("claude")))
 
+    def test_discovery_queries_every_configured_contributor_for_issues_and_prs(self):
+        with patch("scripts.automation.common.issue_handler.configured_contributors",
+                   return_value=("KonH", "collaborator")), \
+             patch("scripts.automation.common.issue_handler.run_gh_json",
+                   side_effect=[[item(1, ["claude"])], [item(2, ["claude"])], [], []]) as run:
+            self.assertEqual([1, 2], [candidate["number"] for candidate in find_candidates("claude")])
+        authors = [call.args[0][call.args[0].index("--author") + 1] for call in run.call_args_list]
+        self.assertEqual(["KonH", "collaborator", "KonH", "collaborator"], authors)
+
 
 class CountReclaimsTests(unittest.TestCase):
     def count(self):
@@ -74,13 +83,14 @@ class CountReclaimsTests(unittest.TestCase):
         ]):
             self.assertEqual(2, self.count())
 
-    def test_owner_comment_resets_the_counter(self):
+    def test_configured_contributor_comment_resets_the_counter(self):
         with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
             comment(f"{RECLAIM_MARKER}\nretry 1"),
             comment(f"{RECLAIM_MARKER}\nretry 2"),
-            comment("here is more guidance, try again"),
+            comment("here is more guidance, try again", author="collaborator"),
             comment(f"{RECLAIM_MARKER}\nretry 1"),
-        ]):
+        ]), patch("scripts.automation.common.issue_handler.configured_contributors",
+                  return_value=("KonH", "collaborator")):
             self.assertEqual(1, self.count())
 
     def test_bot_marker_comment_does_not_reset(self):
@@ -204,34 +214,42 @@ class LimitFileTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
-        self.limit_file = Path(self.tmp.name) / "limit.json"
+        self.state_file = Path(self.tmp.name) / "provider-state.json"
         self.logger = MagicMock()
 
     def test_no_file_means_no_active_limit(self):
-        self.assertFalse(limit_active(self.logger, self.limit_file))
+        self.assertFalse(limit_active(self.logger, self.state_file, "claude"))
 
     def test_future_retry_at_skips_the_run(self):
-        save_limit_retry_at(self.limit_file, datetime.now(timezone.utc) + timedelta(hours=1))
-        self.assertTrue(limit_active(self.logger, self.limit_file))
-        self.assertTrue(self.limit_file.exists())
+        save_limit_retry_at(self.state_file, "claude", datetime.now(timezone.utc) + timedelta(hours=1))
+        self.assertTrue(limit_active(self.logger, self.state_file, "claude"))
+        self.assertTrue(self.state_file.exists())
 
     def test_expired_retry_at_resumes_and_deletes_the_file(self):
-        save_limit_retry_at(self.limit_file, datetime.now(timezone.utc) - timedelta(minutes=1))
-        self.assertFalse(limit_active(self.logger, self.limit_file))
-        self.assertFalse(self.limit_file.exists())
+        save_limit_retry_at(self.state_file, "claude", datetime.now(timezone.utc) - timedelta(minutes=1))
+        self.assertFalse(limit_active(self.logger, self.state_file, "claude"))
+        state = json.loads(self.state_file.read_text(encoding="utf-8"))
+        self.assertNotIn("claude", state["providers"])
 
     def test_retry_at_is_stored_as_aware_utc_even_from_another_timezone(self):
         # +03:00 wall-clock one hour in the future - must still count as active after the
         # round-trip through the file, regardless of the machine's local timezone.
         offset = timezone(timedelta(hours=3))
-        save_limit_retry_at(self.limit_file, datetime.now(offset) + timedelta(hours=1))
-        stored = json.loads(self.limit_file.read_text(encoding="utf-8"))["retry_at"]
+        save_limit_retry_at(self.state_file, "claude", datetime.now(offset) + timedelta(hours=1))
+        stored = json.loads(self.state_file.read_text(encoding="utf-8"))["providers"]["claude"]["limit_retry_at"]
         self.assertTrue(stored.endswith("+00:00"))
-        self.assertTrue(limit_active(self.logger, self.limit_file))
+        self.assertTrue(limit_active(self.logger, self.state_file, "claude"))
 
     def test_corrupt_file_is_ignored(self):
-        self.limit_file.write_text("not json", encoding="utf-8")
-        self.assertFalse(limit_active(self.logger, self.limit_file))
+        self.state_file.write_text("not json", encoding="utf-8")
+        self.assertFalse(limit_active(self.logger, self.state_file, "claude"))
+
+    def test_provider_limits_are_independent(self):
+        save_limit_retry_at(self.state_file, "claude", datetime.now(timezone.utc) + timedelta(hours=1))
+        save_limit_retry_at(self.state_file, "codex", datetime.now(timezone.utc) + timedelta(hours=2))
+        self.assertTrue(limit_active(self.logger, self.state_file, "claude"))
+        self.assertTrue(limit_active(self.logger, self.state_file, "codex"))
+        self.assertFalse(limit_active(self.logger, self.state_file, "cursor"))
 
 
 class DetectSessionLimitTests(unittest.TestCase):
