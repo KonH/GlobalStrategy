@@ -18,7 +18,7 @@ The label set is the whole state machine (no local state file, no timestamps):
   codex-needs-attention  waiting on the owner (skipped by discovery)
   codex-complete         prompt fully done (skipped by discovery)
 
-A candidate is any open, owner-authored, `codex`-labeled issue/PR carrying none of the three
+A candidate is any open, configured-contributor-authored, `codex`-labeled issue/PR carrying none of the three
 status labels. The owner resumes a needs-attention/complete item by replying and removing that
 label. See .codex/skills/codex-issue/SKILL.md for the per-item lifecycle the CLI run follows.
 
@@ -41,7 +41,7 @@ forever. A real owner comment resets the counter.
 
 Usage limits are NOT crashes: when the run's error output reports a usage/rate limit, this
 script records a retry time (now + --limit-backoff-minutes; Codex reports no machine-readable
-reset time) as an aware-UTC timestamp in Logs/handle_issues_codex.limit.json, silently removes
+reset time) as an aware-UTC timestamp in Logs/auto_ai_provider_state.json under the `codex` provider key, silently removes
 the `codex-in-progress` labels the interrupted run left behind (no reclaim comment, no
 crash-retry consumed, no error noise on the item), and exits 0. Every later run compares that
 timestamp against the current time - both aware UTC, so the machine's local timezone never
@@ -80,9 +80,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.issue_handler import (  # noqa: E402
-    acquire_lock, candidate_branch, checkout_clean, find_candidates, limit_active,
-    reclaim_stale_in_progress, release_in_progress_silently, save_limit_retry_at,
-    setup_logging,
+    acquire_lock, candidate_branch, checkout_clean, find_candidates, handle_limit_pause,
+    limit_active, reclaim_stale_in_progress, setup_logging,
 )
 
 MODEL = "gpt-5.6-sol"
@@ -97,7 +96,7 @@ DEFAULT_LOG_MAX_BYTES = 5 * 1024 * 1024  # 5 MB per file
 DEFAULT_LOG_BACKUP_COUNT = 5  # + the active file = 30 MB max on disk
 DEFAULT_LOCK_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_issues_codex.lock"
 DEFAULT_GH_CONFIG_DIR = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "codex-gh-config"
-DEFAULT_LIMIT_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "handle_issues_codex.limit.json"
+DEFAULT_PROVIDER_STATE_FILE = Path(__file__).resolve().parent.parent.parent.parent / "Logs" / "auto_ai_provider_state.json"
 DEFAULT_LIMIT_BACKOFF_MINUTES = 60
 
 logger = logging.getLogger("handle_issues_codex")
@@ -154,7 +153,7 @@ def build_prompt(candidate):
         checkout = "'main'"
     return (
         "Read and follow .codex/skills/codex-issue/SKILL.md.\n\n"
-        f"The following GitHub {kind.lower()} is labeled 'codex', authored by the repo owner, "
+        f"The following GitHub {kind.lower()} is labeled 'codex', authored by a configured contributor, "
         "and carries no automation status label. Process it per that skill. The working tree "
         f"is already a guaranteed-clean, up-to-date checkout of {checkout}. The description "
         "shown here may be stale - re-read the item's live description and comment thread "
@@ -177,9 +176,8 @@ def main():
     parser.add_argument("--log-max-bytes", type=int, default=DEFAULT_LOG_MAX_BYTES)
     parser.add_argument("--log-backup-count", type=int, default=DEFAULT_LOG_BACKUP_COUNT)
     parser.add_argument("--lock-file", type=Path, default=DEFAULT_LOCK_FILE)
-    parser.add_argument("--limit-file", type=Path, default=DEFAULT_LIMIT_FILE,
-                        help="Stores the aware-UTC timestamp until which runs are skipped "
-                             "after a usage-limit hit.")
+    parser.add_argument("--provider-state-file", type=Path, default=DEFAULT_PROVIDER_STATE_FILE,
+                         help="Shared provider-keyed state for limit windows and auto-routing.")
     parser.add_argument("--limit-backoff-minutes", type=int, default=DEFAULT_LIMIT_BACKOFF_MINUTES,
                         help="How long to pause after a usage-limit hit (Codex reports no "
                              "machine-readable reset time).")
@@ -194,7 +192,7 @@ def main():
         logger.info("Another instance is already running - exiting.")
         return
 
-    if limit_active(logger, args.limit_file):
+    if limit_active(logger, args.provider_state_file, LABEL):
         return
 
     reclaim_stale_in_progress(logger, LABEL, MARKER)
@@ -216,12 +214,7 @@ def main():
             exit_code = returncode
         if detect_session_limit(error_texts):
             retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
-            save_limit_retry_at(args.limit_file, retry_at)
-            release_in_progress_silently(logger, LABEL)
-            logger.warning(f"Usage limit hit - pausing runs until {retry_at.isoformat()}. This "
-                           "is a planned pause, not a failure (exit 0); interrupted and "
-                           "remaining items stay in the candidate pool without consuming a "
-                           "crash retry.")
+            handle_limit_pause(logger, LABEL, MARKER, candidate, args.provider_state_file, retry_at)
             sys.exit(0)
     sys.exit(exit_code)
 
