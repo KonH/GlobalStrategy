@@ -40,14 +40,15 @@ label removed, a `<!-- claude-automation:reclaim -->` comment posted as the atte
 to twice; a third consecutive crash parks it with `claude-needs-attention` instead of retrying
 forever. A real owner comment resets the counter.
 
-Session/usage limits are NOT crashes: when the run's error output reports the subscription's
-session/usage limit, this script records the window's reset time (from the CLI's reported
-epoch when present, else now + --limit-backoff-minutes) as an aware-UTC timestamp in
-Logs/handle_issues_claude.limit.json, silently removes the `claude-in-progress` labels the
-interrupted run left behind (no reclaim comment, no crash-retry consumed, no error noise on
-the item), and exits 0. Every later run compares that timestamp against the current time -
-both aware UTC, so the machine's local timezone never skews it - and skips entirely (before
-any GitHub call) until the window has passed.
+Session/usage limits are NOT crashes: when the run reports the subscription's session/usage
+limit (legacy `… limit reached`, or production assistant text like `You've hit your
+session/weekly limit · resets … (UTC)` on an error-shaped / non-zero exit), this script
+records the window's reset time (epoch when present, else parseable wall-clock `resets … (UTC)`,
+else now + --limit-backoff-minutes) as an aware-UTC timestamp in
+Logs/handle_issues_claude.limit.json, salvages any dirty working tree via the shared
+`handle_limit_pause` helper, and exits 0. Every later run compares that timestamp
+against the current time - both aware UTC, so the machine's local timezone never skews it -
+and skips entirely (before any GitHub call) until the window has passed.
 
 Requires `gh` authenticated as the repo owner (`gh auth login`), the labels above already
 created in the repo (see handle_issues.sh for the `gh label create` commands), and `claude`
@@ -86,9 +87,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.issue_handler import (  # noqa: E402
-    acquire_lock, candidate_branch, checkout_clean, find_candidates, limit_active,
-    reclaim_stale_in_progress, release_in_progress_silently, save_limit_retry_at,
-    setup_logging,
+    acquire_lock, candidate_branch, checkout_clean, find_candidates, handle_limit_pause,
+    limit_active, reclaim_stale_in_progress, setup_logging,
 )
 
 MODEL = "claude-sonnet-5"
@@ -105,24 +105,73 @@ DEFAULT_LIMIT_BACKOFF_MINUTES = 60
 
 logger = logging.getLogger("handle_issues_claude")
 
-# Subscription session/usage limits surface either as a plain-text output line (e.g.
-# "Claude AI usage limit reached|1735689600" - epoch seconds of the window reset) or inside
-# the final result event's error text. Detection deliberately looks ONLY at error output
-# (non-JSON lines and the error result), never at assistant/tool text - an issue whose prompt
-# merely talks about usage limits must not trigger a false positive.
-LIMIT_TEXT_RE = re.compile(r"(usage|session) limit reached", re.IGNORECASE)
+# Subscription session/usage limits surface as a plain-text output line (e.g.
+# "Claude AI usage limit reached|1735689600" - epoch seconds of the window reset), inside
+# the final result event's error text, or - on error-shaped / non-zero exits - as assistant
+# stream-json text (production: "You've hit your session/weekly limit · resets … (UTC)").
+# Detection looks at error output always, and at assistant text only when the run already
+# ended error-shaped / non-zero (`limit_detection_texts`), so an issue whose prompt merely
+# talks about usage limits on a successful run must not trigger a false positive.
+# The hit/reached alternative requires adjacent wording (`hit your session limit`) so distant
+# narration like "I hit a snag … session limit" cannot false-positive on crashed runs.
+LIMIT_TEXT_RE = re.compile(
+    r"(?:(?:hit|reached)\s+(?:your\s+)?(?:session|usage|weekly)\s+limit|"
+    r"(?:session|usage|weekly)\s+limit\s+(?:hit|reached))",
+    re.IGNORECASE,
+)
 LIMIT_EPOCH_RE = re.compile(r"limit reached\|(\d{10,})")
+LIMIT_RESETS_RE = re.compile(
+    r"resets\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)\s*\(\s*UTC\s*\)",
+    re.IGNORECASE,
+)
+
+
+def parse_resets_wall_clock(text):
+    """Parse `resets 2:10pm (UTC)` / `resets 12am (UTC)` into the next aware-UTC occurrence.
+    If that clock time is already past today UTC, returns tomorrow's. Returns None when no
+    parseable resets suffix is present."""
+    match = LIMIT_RESETS_RE.search(text)
+    if not match:
+        return None
+    hour = int(match.group(1))
+    minute = int(match.group(2) or 0)
+    ampm = match.group(3).lower()
+    if ampm == "am":
+        if hour == 12:
+            hour = 0
+    elif hour != 12:
+        hour += 12
+    now = datetime.now(timezone.utc)
+    candidate = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    if candidate <= now:
+        candidate += timedelta(days=1)
+    return candidate
+
+
+def limit_detection_texts(returncode, result_event, error_texts, assistant_texts):
+    """Build the text corpus for `detect_session_limit`. Assistant stream text is included
+    only when the run already ended non-zero or error-shaped (`is_error` or subtype starts
+    with `error`), so successful narrations about limits cannot false-positive."""
+    texts = list(error_texts)
+    error_shaped = bool(
+        result_event
+        and (result_event.get("is_error")
+             or str(result_event.get("subtype", "")).startswith("error"))
+    )
+    if returncode != 0 or error_shaped:
+        texts.extend(assistant_texts)
+    return texts
 
 
 def detect_session_limit(error_texts):
-    """Returns (limit_hit, retry_at). retry_at is an aware-UTC datetime when the CLI reported
-    the window's reset epoch, else None (caller falls back to a fixed backoff)."""
+    """Returns (limit_hit, retry_at). retry_at preference: embedded `|epoch` → parseable
+    `resets … (UTC)` wall-clock → None (caller falls back to a fixed backoff)."""
     joined = "\n".join(error_texts)
     match = LIMIT_EPOCH_RE.search(joined)
     if match:
         return True, datetime.fromtimestamp(int(match.group(1)), tz=timezone.utc)
     if LIMIT_TEXT_RE.search(joined):
-        return True, None
+        return True, parse_resets_wall_clock(joined)
     return False, None
 
 
@@ -216,28 +265,23 @@ def main():
         checkout_clean(logger, branch)
         logger.info(f"Processing {candidate['kind']} #{candidate['number']} from clean "
                      f"'{branch}' - invoking claude -p.")
-        returncode, error_texts = run_claude(build_prompt(candidate), args.max_turns)
+        returncode, detection_texts = run_claude(build_prompt(candidate), args.max_turns)
         if returncode != 0:
             exit_code = returncode
-        limit_hit, retry_at = detect_session_limit(error_texts)
+        limit_hit, retry_at = detect_session_limit(detection_texts)
         if limit_hit:
             if retry_at is None:
                 retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
-            save_limit_retry_at(args.limit_file, retry_at)
-            release_in_progress_silently(logger, LABEL)
-            logger.warning(f"Session/usage limit hit - pausing runs until {retry_at.isoformat()}. "
-                            "This is a planned pause, not a failure (exit 0); interrupted and "
-                            "remaining items stay in the candidate pool without consuming a "
-                            "crash retry.")
+            handle_limit_pause(logger, LABEL, MARKER, candidate, args.limit_file, retry_at)
             sys.exit(0)
     sys.exit(exit_code)
 
 
 def run_claude(prompt, max_turns):
     """Runs one claude -p invocation to completion, streaming its events into the log.
-    Returns (returncode, error_texts) - error_texts is the CLI's error output only (non-JSON
-    lines plus the final result event's text when it reports an error), the input for
-    session-limit detection."""
+    Returns (returncode, detection_texts) - the text corpus for session-limit detection
+    (non-JSON lines, error-result text, and - when the run ended non-zero or error-shaped -
+    assistant stream-json text blocks)."""
     process = subprocess.Popen(
         [
             find_claude_executable(), "-p", prompt,
@@ -254,6 +298,7 @@ def run_claude(prompt, max_turns):
         bufsize=1,
     )
     error_texts = []
+    assistant_texts = []
     result_event = None
     for line in process.stdout:
         line = line.rstrip()
@@ -267,6 +312,11 @@ def run_claude(prompt, max_turns):
             continue
         if event.get("type") == "result":
             result_event = event
+        if event.get("type") == "assistant":
+            message = event.get("message", {})
+            for block in message.get("content") or []:
+                if block.get("type") == "text" and block.get("text", "").strip():
+                    assistant_texts.append(block["text"].strip())
         summary = summarize_stream_event(event)
         if summary:
             logger.info(f"[claude -p] {summary}")
@@ -276,7 +326,10 @@ def run_claude(prompt, max_turns):
     if result_event and (result_event.get("is_error")
                          or str(result_event.get("subtype", "")).startswith("error")):
         error_texts.append(str(result_event.get("result", "")))
-    return process.returncode, error_texts
+    detection_texts = limit_detection_texts(
+        process.returncode, result_event, error_texts, assistant_texts,
+    )
+    return process.returncode, detection_texts
 
 
 if __name__ == "__main__":
