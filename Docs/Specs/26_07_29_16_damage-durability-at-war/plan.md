@@ -153,6 +153,8 @@ public static ResourceCollectorRegistry CreateDefault(
 
 `GameLogic` constructor builds the dictionaries from loaded `CountryConfig` (every entry's `BaseDamage` / `BaseDurability`) and passes them in. Still plain C# construction inside `GameLogic` — no new VContainer registration (matches recruits / org_score).
 
+**Also update `Game.Benchmarks/GameWorldFixture.cs`** — it calls `CreateDefault` for benchmarks; pass empty or config-derived base dictionaries so the fixture still compiles/runs.
+
 ### 5. `resourceIdUpdateOrder`
 
 - **`GameSettings.ResourceIdUpdateOrder` default** and **`Assets/Configs/game_settings.json`**: append `"damage"`, `"durability"` after `"org_score"`:
@@ -168,8 +170,8 @@ Keep `Wars` as a non-system helper. Entity create/destroy for wartime resources 
 
 For each of `ResourceDefinitions.Damage` / `Durability`:
 1. `Resource` entity: `ResourceOwner(countryId, OwnerType.Country)`, `Resource { ResourceId, Value = 0 }` (`[Savable]` via existing `Resource` component).
-2. Instant effect: `ResourceOwner` + `ResourceLink(resourceId)` + `ResourceEffect { EffectId = $"{resourceId}_seed_{countryId}", PayType = Instant }` + `ResourceCollector { CollectorId = DamageCollector.Id | DurabilityCollector.Id }`.
-3. Daily effect (org_score dual-effect pattern — **not** Monthly): same owner/link/collector, `EffectId = $"{resourceId}_daily_{countryId}", PayType = Daily`.
+2. Instant effect: `ResourceOwner(countryId, OwnerType.Country)` — **must** pass `OwnerType.Country` (do not copy org_score's single-arg Org default or destroy will miss orphans) — plus `ResourceLink(resourceId)` + `ResourceEffect { EffectId = $"{resourceId}_seed_{countryId}", PayType = Instant }` + `ResourceCollector { CollectorId = DamageCollector.Id | DurabilityCollector.Id }`.
+3. Daily effect (org_score dual-effect pattern — **not** Monthly): same owner/link/collector with explicit `OwnerType.Country`, `EffectId = $"{resourceId}_daily_{countryId}", PayType = Daily`.
 
 **Why Daily not Monthly:** skill / character changes must not wait a month. Instant self-destructs after first resolve; Daily + `ForceResourceRecompute` keep mid-war values correct (same contract as `AttachOrgScoreEffects`).
 
@@ -194,21 +196,23 @@ Idempotent: if somehow absent, no-op. `DeclareWar` already refuses when either s
 6. … later …
 7. **`Wars.DeclareWar` / `Wars.StopWar`** command loops — **also after** ResourceSystem
 
-Therefore: marking effects for recompute *during* cycle/declare in the same tick does **not** reach this tick's already-finished `ResourceSystem.Update`. The org_score precedent (`SettleOrgScores`) is the correct pattern: mark + **second** `ResourceSystem.Update(_world, now, now, registry, order)` so Instant/forced Daily resolve without advancing day/month boundaries (no double-apply of unrelated Monthly/Daily effects).
+Therefore: marking effects for recompute *during* cycle/declare in the same tick does **not** reach this tick's already-finished `ResourceSystem.Update`. Absolute Instant+Daily collectors cannot share one settle `Update` while Instant still exists: `ResolveCollectors` reads the same pre-apply `currentValue` for both, then `GatherAndApply` sums both deltas (2× target). Do **not** copy `SettleOrgScores`' mark-then-single-Update shape for declare (there Instant is already consumed).
 
 **Wiring:**
 
 - After the declare-war command loop: if any `DeclareWar` returned `true` (track a local `bool`), call a private `SettleWartimeResources()` that:
-  - `MarkResourceEffectsForRecompute(ResourceDefinitions.Damage)`
-  - `MarkResourceEffectsForRecompute(ResourceDefinitions.Durability)`
-  - `ResourceSystem.Update(_world, now, now, _resourceCollectorRegistry, _resourceIdUpdateOrder)`
-  (Marking is harmless for peacetime countries with no such effects; Instant on newly created wartime effects also applies under `PayType.Instant` even without the mark — the mark covers the Daily sibling and keeps one code path.)
+  - `ResourceSystem.Update(_world, now, now, …)` — Instant seed applies and self-destroys
+  - `MarkResourceEffectsForRecompute(Damage)` / `Durability` — Daily only (`MarkResourceEffectsForRecompute` skips Instant)
+  - `ResourceSystem.Update(_world, now, now, …)` — forced Daily absolute-sets against the post-Instant value
+  (Cycle/drop/load settles use the same helper; Instant is usually already gone, so pass 1 is a no-op for wartime and pass 2 still refreshes Daily.)
 
 - After `CycleCountryCharacter` returns (inside `ApplyDebugCycleCharacter` country branch, or at end of cycle method): if `Wars.IsInWar(_world, countryId)` and `roleId` is one of `ruler` / `military_advisor` / `economic_advisor`, call the same `SettleWartimeResources()` (or mark only the affected resourceId: ruler→both; military_advisor→damage only; economic_advisor→durability only — optional optimization; marking both is fine and simpler).
 
+- **Also after country `DebugDropCharacter`** while at war: if the dropped role is war-relevant (`ruler` / `military_advisor` / `economic_advisor`) and `Wars.IsInWar`, call `SettleWartimeResources()` so missing skill contributes `0` immediately.
+
 - **In-place skill mutation:** no current gameplay path mutates character skill `Resource.Value` mid-war except character replace via cycle. Document that future mutations should call the same mark+settle (or wait for the next real Daily boundary). Prefer Instant+Daily over Instant+Monthly so a natural day tick also refreshes without a forced settle.
 
-- **`LoadState`:** after `RefreshSingletonEntities` / completion reconcile (and `_previousTime` refresh), if any `WarParticipant` exists, `SettleWartimeResources()` so persisted Daily effects re-sync absolute values from current bases + live skills even when the Instant seed was destroyed before save. Resources themselves load via `[Savable]`; this settle prevents stale totals if characters/skills diverged from the saved resource Value (or config bases changed between builds — best-effort).
+- **`LoadState`:** after `RefreshSingletonEntities` / completion reconcile (and `_previousTime` refresh), **before** `_visualStateConverter.Update`, if any `WarParticipant` exists, `SettleWartimeResources()` so the first post-load VisualState is not stale. Persisted Daily effects re-sync absolute values from current bases + live skills even when the Instant seed was destroyed before save. Resources themselves load via `[Savable]`.
 
 - **Stop-war:** destroy path inside `Wars.StopWar` is enough; no ResourceSystem settle required (entities gone).
 
@@ -229,17 +233,17 @@ See Tests section. After Core changes: `dotnet build src/GlobalStrategy.Core.sln
 
 ## Agent Steps
 
-- [ ] **Confirm war-mechanics-core on tree** — `Wars.IsInWar` / `DeclareWar` / `StopWar` and `WarParticipant` exist (PR #79 merged). Proceed; no extra merge step.
-- [ ] **Add `CountryEntry.BaseDamage` / `BaseDurability`** — defaults `40`; preserve in `ApplyPreservedFields`; author `country_config.json` per spec table + 40/40 for unavailable; extend `LoaderCountryPreservationTests`.
-- [ ] **Add `ResourceSeedTarget.None` + catalog entries** — `ResourceDefinitions.Damage`/`Durability`; `resource_config.json` with `seedTarget: "None"` and name/description keys; **do not** Country-seed or InitSystem-create them.
-- [ ] **Append `resourceIdUpdateOrder`** — `GameSettings` default + `game_settings.json`: `damage`, `durability`.
-- [ ] **Add `WartimeSkillQuery` + `DamageCollector` + `DurabilityCollector`** — absolute `target - currentValue`; missing skill/character → 0; bases from constructor dictionaries.
-- [ ] **Extend `ResourceCollectorRegistry.CreateDefault`** — two `IReadOnlyDictionary<string, int>` params; register both collectors; update `GameLogic` constructor call site to build dicts from `CountryConfig`.
-- [ ] **Extend `Wars.DeclareWar` / `Wars.StopWar`** — create Instant+Daily resource/effect/collector pairs for both participants on declare; destroy those entities for both countries on stop (sibling helper OK if kept non-system and called only from `Wars`).
-- [ ] **Wire `GameLogic` settle path** — private `SettleWartimeResources` using existing `MarkResourceEffectsForRecompute` + `ResourceSystem.Update(now, now, …)`; call after successful declare-war, after war-relevant `CycleCountryCharacter` while `IsInWar`, and after `LoadState` when any war participant exists. Document tick-order rationale in a short comment (cycle/declare run after the first ResourceSystem pass).
-- [ ] **Add localization keys** — en + real ru via localization skill for the four resource name/description keys.
-- [ ] **Add/extend tests** — per Tests section below.
-- [ ] **Rebuild Core DLLs** — `dotnet build src/GlobalStrategy.Core.sln -c Release`.
+- [x] **Confirm war-mechanics-core on tree** — `Wars.IsInWar` / `DeclareWar` / `StopWar` and `WarParticipant` exist (PR #79 merged). Proceed; no extra merge step.
+- [x] **Add `CountryEntry.BaseDamage` / `BaseDurability`** — defaults `40`; preserve in `ApplyPreservedFields`; author `country_config.json` per spec table + 40/40 for unavailable; extend `LoaderCountryPreservationTests`.
+- [x] **Add `ResourceSeedTarget.None` + catalog entries** — `ResourceDefinitions.Damage`/`Durability`; `resource_config.json` with `seedTarget: "None"` and name/description keys; **do not** Country-seed or InitSystem-create them.
+- [x] **Append `resourceIdUpdateOrder`** — `GameSettings` default + `game_settings.json`: `damage`, `durability`.
+- [x] **Add `WartimeSkillQuery` + `DamageCollector` + `DurabilityCollector`** — absolute `target - currentValue`; missing skill/character → 0; bases from constructor dictionaries.
+- [x] **Extend `ResourceCollectorRegistry.CreateDefault`** — two `IReadOnlyDictionary<string, int>` params; register both collectors; update `GameLogic` constructor call site to build dicts from `CountryConfig`.
+- [x] **Extend `Wars.DeclareWar` / `Wars.StopWar`** — create Instant+Daily resource/effect/collector pairs for both participants on declare; destroy those entities for both countries on stop (sibling helper OK if kept non-system and called only from `Wars`).
+- [x] **Wire `GameLogic` settle path** — private `SettleWartimeResources` using existing `MarkResourceEffectsForRecompute` + `ResourceSystem.Update(now, now, …)`; call after successful declare-war, after war-relevant `CycleCountryCharacter` / `DebugDropCharacter` while `IsInWar`, and after `LoadState` (before VisualState update) when any war participant exists. Document tick-order rationale in a short comment (cycle/declare run after the first ResourceSystem pass). Update `GameWorldFixture.CreateDefault` call site.
+- [x] **Add localization keys** — en + real ru via localization skill for the four resource name/description keys.
+- [x] **Add/extend tests** — per Tests section below (richer GameLogic fixture; OwnerType.Country on effects).
+- [x] **Rebuild Core DLLs** — `dotnet build src/GlobalStrategy.Core.sln -c Release`.
 
 ## User Steps
 
@@ -249,7 +253,7 @@ After the DLL rebuild, let Unity finish domain reload and check the console for 
 
 ### 2. Play-mode wartime smoke (optional)
 
-Enter Play mode, `DebugDeclareWar` between two available countries, select one, confirm `damage`/`durability` appear in selected-country resources with values ≈ base + live skills; cycle ruler/military/economic advisor and confirm immediate update; `DebugStopWar` and confirm both resources disappear.
+Enter Play mode, `DebugDeclareWar` between two available countries, select one, confirm `damage`/`durability` via VisualState / ResourceQuery (not ResourcesView HUD — `displayWhitelist` stays unchanged); cycle ruler/military/economic advisor and confirm immediate update; `DebugStopWar` and confirm both resources disappear.
 
 ## Tests
 
@@ -267,10 +271,11 @@ Test project: `src/Game.Tests/` (xUnit, snake_case names, matching existing file
   - `stop_war_destroys_damage_and_durability_for_both_former_participants` — after `StopWar`, zero matching resources/effects; peacetime query returns `0` via `ResourceQuery` and no entities.
   - `declare_war_no_op_does_not_duplicate_wartime_resources` — second declare while at war leaves entity counts unchanged.
 
-- **GameLogic integration** (extend `WarsTests` debug-command style or new file):
+- **GameLogic integration** (prefer a dedicated richer fixture than bare `WarsTests.BuildLogic` — needs characters with skills + authored bases):
   - Push `DebugDeclareWarCommand`, `Update`, assert both sides' `ResourceQuery.GetValue` for damage/durability match collector formula (settle must run same tick or test issues a second `Update` — prefer asserting same-tick settle from Approach §7).
   - While at war, `DebugCycleCharacterCommand` for `ruler` / `military_advisor` / `economic_advisor`, `Update`, assert affected resource(s) match new characters' skills.
-  - Save/load round-trip while at war: values present after `LoadState`; after settle (automatic in `LoadState` or next Update) match live formula; Daily effect still present if Instant was already consumed pre-save.
+  - While at war, `DebugDropCharacterCommand` for a war-relevant role, `Update`, assert missing skill contributes `0`.
+  - Save/load round-trip while at war: values present after `LoadState`; after settle (automatic in `LoadState` before VisualState update) match live formula; Daily effect still present if Instant was already consumed pre-save.
 
 - **Extend `LoaderCountryPreservationTests`** — `baseDamage` / `baseDurability` preserved.
 

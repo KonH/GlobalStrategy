@@ -55,6 +55,28 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void preserves_base_damage_and_base_durability_from_existing_entry() {
+			var rebuilt = new List<CountryEntry> {
+				new CountryEntry { CountryId = "France", DisplayName = "France" }
+			};
+			var existing = new CountryConfig {
+				Countries = new List<CountryEntry> {
+					new CountryEntry {
+						CountryId = "France",
+						DisplayName = "France",
+						BaseDamage = 85,
+						BaseDurability = 82
+					}
+				}
+			};
+
+			Program.ApplyPreservedFields(rebuilt, existing);
+
+			Assert.Equal(85, rebuilt[0].BaseDamage);
+			Assert.Equal(82, rebuilt[0].BaseDurability);
+		}
+
+		[Fact]
 		void leaves_defaults_when_no_matching_existing_entry() {
 			var rebuilt = new List<CountryEntry> {
 				new CountryEntry { CountryId = "Germany", DisplayName = "Germany" }
@@ -71,6 +93,8 @@ namespace GS.Game.Tests {
 			Assert.Empty(rebuilt[0].InitialResources);
 			Assert.Empty(rebuilt[0].HistoricalFriends);
 			Assert.Empty(rebuilt[0].HistoricalRivals);
+			Assert.Equal(40, rebuilt[0].BaseDamage);
+			Assert.Equal(40, rebuilt[0].BaseDurability);
 		}
 
 		[Fact]
@@ -83,6 +107,8 @@ namespace GS.Game.Tests {
 
 			Assert.False(rebuilt[0].IsAvailable);
 			Assert.Empty(rebuilt[0].InitialResources);
+			Assert.Equal(40, rebuilt[0].BaseDamage);
+			Assert.Equal(40, rebuilt[0].BaseDurability);
 		}
 	}
 }

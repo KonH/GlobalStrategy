@@ -48,6 +48,9 @@ namespace GS.Game.Systems {
 				CountryId = defenderCountryId
 			});
 
+			WartimeCountryResources.CreateForCountry(world, attackerCountryId);
+			WartimeCountryResources.CreateForCountry(world, defenderCountryId);
+
 			return true;
 		}
 
@@ -69,14 +72,19 @@ namespace GS.Game.Systems {
 			}
 
 			var matchingParticipants = new List<int>();
+			var participantCountryIds = new List<string>();
 			foreach (Archetype arch in world.GetMatchingArchetypes(participantRequired, null)) {
 				WarParticipant[] participants = arch.GetColumn<WarParticipant>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (participants[i].WarId == warId) {
 						matchingParticipants.Add(arch.Entities[i]);
+						participantCountryIds.Add(participants[i].CountryId);
 					}
 				}
+			}
+			foreach (string participantCountryId in participantCountryIds) {
+				WartimeCountryResources.DestroyForCountry(world, participantCountryId);
 			}
 			foreach (int e in matchingParticipants) {
 				world.Destroy(e);

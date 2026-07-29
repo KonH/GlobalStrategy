@@ -53,5 +53,32 @@ namespace GS.Game.Tests {
 				File.Delete(filePath);
 			}
 		}
+
+		[Fact]
+		void file_config_deserializes_none_seed_target() {
+			string filePath = Path.GetTempFileName();
+			try {
+				File.WriteAllText(filePath, """
+					{
+						"resources": [
+							{ "resourceId": "damage", "seedTarget": "None" },
+							{ "resourceId": "durability", "seedTarget": "None" },
+							{ "resourceId": "gold", "seedTarget": "Country" }
+						]
+					}
+					""");
+
+				ResourceConfig config = new FileConfig<ResourceConfig>(filePath).Load();
+
+				Assert.Equal(ResourceSeedTarget.None, config.FindResource("damage")?.SeedTarget);
+				Assert.Equal(ResourceSeedTarget.None, config.FindResource("durability")?.SeedTarget);
+				Assert.Equal(new[] { "damage", "durability" },
+					config.FindResources(ResourceSeedTarget.None).Select(resource => resource.ResourceId));
+				Assert.Equal(new[] { "gold" },
+					config.FindResources(ResourceSeedTarget.Country).Select(resource => resource.ResourceId));
+			} finally {
+				File.Delete(filePath);
+			}
+		}
 	}
 }

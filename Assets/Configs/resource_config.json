@@ -77,6 +77,24 @@
     {
       "resourceId": "intrigue",
       "seedTarget": "Character"
+    },
+    {
+      "resourceId": "damage",
+      "nameKey": "resource.damage.name",
+      "descriptionKey": "resource.damage.description",
+      "icon": "damage",
+      "seedTarget": "None",
+      "defaultInitialValue": 0.0,
+      "defaultEffects": []
+    },
+    {
+      "resourceId": "durability",
+      "nameKey": "resource.durability.name",
+      "descriptionKey": "resource.durability.description",
+      "icon": "durability",
+      "seedTarget": "None",
+      "defaultInitialValue": 0.0,
+      "defaultEffects": []
     }
   ]
 }
