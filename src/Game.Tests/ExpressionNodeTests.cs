@@ -17,16 +17,16 @@ namespace GS.Game.Tests {
 
 		static ExpressionContext Ctx(
 			double control = 0,
+			double totalCountryControl = 0,
 			double opinion = 0,
 			double hasSuitableRelationTarget = 0,
-			double relationStillExists = 0,
-			double hasEnemyControl = 0) =>
+			double relationStillExists = 0) =>
 			new ExpressionContext {
 				Control = control,
+				TotalCountryControl = totalCountryControl,
 				Opinion = opinion,
 				HasSuitableRelationTarget = hasSuitableRelationTarget,
-				RelationStillExists = relationStillExists,
-				HasEnemyControl = hasEnemyControl
+				RelationStillExists = relationStillExists
 			};
 
 		[Fact]
@@ -74,10 +74,9 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		public void has_enemy_control_node_returns_context_value() {
-			var node = new ExpressionNode { Type = "hasEnemyControl" };
-			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(hasEnemyControl: 1.0)));
-			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx(hasEnemyControl: 0.0)));
+		public void total_country_control_node_returns_context_value() {
+			var node = new ExpressionNode { Type = "totalCountryControl" };
+			Assert.Equal(35.0, ExpressionNode.Evaluate(node, Ctx(totalCountryControl: 35.0)));
 		}
 
 		[Fact]

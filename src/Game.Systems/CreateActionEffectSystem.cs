@@ -40,7 +40,7 @@ namespace GS.Game.Systems {
 						int e = world.Create();
 						world.Add(e, new DiscoverCountryEffect { EffectId = effectId, OrgId = orgId });
 					} else if (effectDef is ControlChangeEffectParams controlParams && controlParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
-						int usedTotal = GetTotalControlInCountry(world, countryId);
+						int usedTotal = ControlQuery.GetTotalControlInCountry(world, countryId);
 						if (usedTotal < 100) {
 							int toAdd = Math.Min(controlParams.Amount, 100 - usedTotal);
 							int ie = world.Create();
@@ -60,7 +60,7 @@ namespace GS.Game.Systems {
 							// Game Log event — computed after ControlEffect above so the sum already
 							// includes this action's own contribution. See
 							// Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
-							int orgTotal = GetOrgControlInCountry(world, orgId, countryId);
+							int orgTotal = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
 							int ge = world.Create();
 							world.Add(ge, new ControlEffectApplied {
 								OrgId = orgId,
@@ -110,7 +110,7 @@ namespace GS.Game.Systems {
 					} else if (effectDef is EnemyControlDrainEffectParams drainParams && drainParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
 						string? targetOrgId = ControlQuery.GetHighestControlOtherOrg(world, orgId, countryId);
 						if (targetOrgId != null) {
-							int targetControlBefore = GetOrgControlInCountry(world, targetOrgId, countryId);
+							int targetControlBefore = ControlQuery.GetOrgControlInCountry(world, targetOrgId, countryId);
 							int actualDrain = Math.Min(drainParams.Amount, targetControlBefore);
 							ControlQuery.ReduceOrgControlInCountry(world, targetOrgId, countryId, actualDrain);
 							if (actualDrain > 0) {
@@ -133,32 +133,6 @@ namespace GS.Game.Systems {
 					}
 				}
 			}
-		}
-
-		static int GetTotalControlInCountry(World world, string countryId) {
-			int total = 0;
-			int[] req = { TypeId<ControlEffect>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (effects[i].CountryId == countryId) { total += effects[i].Value; }
-				}
-			}
-			return total;
-		}
-
-		static int GetOrgControlInCountry(World world, string orgId, string countryId) {
-			int total = 0;
-			int[] req = { TypeId<ControlEffect>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (effects[i].CountryId == countryId && effects[i].OrgId == orgId) { total += effects[i].Value; }
-				}
-			}
-			return total;
 		}
 
 		static double EnsureOpinionResource(World world, string charId, string resourceId, int initialValue) {

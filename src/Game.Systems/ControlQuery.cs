@@ -5,14 +5,34 @@ using GS.Game.Components;
 
 namespace GS.Game.Systems {
 	public static class ControlQuery {
-		public static bool HasOtherOrgControl(IReadOnlyWorld world, string orgId, string countryId) {
-			var totals = GetOtherOrgControlTotals(world, orgId, countryId);
-			foreach (int total in totals.Values) {
-				if (total > 0) {
-					return true;
+		public static int GetOrgControlInCountry(IReadOnlyWorld world, string orgId, string countryId) {
+			int total = 0;
+			int[] required = { TypeId<ControlEffect>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
+				ControlEffect[] controls = arch.GetColumn<ControlEffect>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (controls[i].CountryId == countryId && controls[i].OrgId == orgId) {
+						total += controls[i].Value;
+					}
 				}
 			}
-			return false;
+			return total;
+		}
+
+		public static int GetTotalControlInCountry(IReadOnlyWorld world, string countryId) {
+			int total = 0;
+			int[] required = { TypeId<ControlEffect>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
+				ControlEffect[] controls = arch.GetColumn<ControlEffect>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (controls[i].CountryId == countryId) {
+						total += controls[i].Value;
+					}
+				}
+			}
+			return total;
 		}
 
 		public static string? GetHighestControlOtherOrg(IReadOnlyWorld world, string orgId, string countryId) {

@@ -200,10 +200,16 @@ namespace GS.Game.Tests {
 					DeckCopies = 1,
 					Conditions = new List<ExpressionNode> {
 						new ExpressionNode {
-							Type = "gte",
+							Type = "gt",
 							Members = new List<ExpressionNode> {
-								new ExpressionNode { Type = "hasEnemyControl" },
-								new ExpressionNode { Type = "value", Value = 1 }
+								new ExpressionNode {
+									Type = "sub",
+									Members = new List<ExpressionNode> {
+										new ExpressionNode { Type = "totalCountryControl" },
+										new ExpressionNode { Type = "control" }
+									}
+								},
+								new ExpressionNode { Type = "value", Value = 0 }
 							}
 						}
 					},

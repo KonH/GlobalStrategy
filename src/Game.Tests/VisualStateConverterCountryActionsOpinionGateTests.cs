@@ -77,6 +77,25 @@ namespace GS.Game.Tests {
 						}
 					},
 					new ActionDefinition {
+						ActionId = "decrease_enemy_control",
+						OwnerType = "country",
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gt",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode {
+										Type = "sub",
+										Members = new List<ExpressionNode> {
+											new ExpressionNode { Type = "totalCountryControl" },
+											new ExpressionNode { Type = "control" }
+										}
+									},
+									new ExpressionNode { Type = "value", Value = 0 }
+								}
+							}
+						}
+					},
+					new ActionDefinition {
 						ActionId = "stop_friendship",
 						OwnerType = "country",
 						TargetRole = "diplomacy_advisor",
@@ -150,6 +169,12 @@ namespace GS.Game.Tests {
 			world.Add(highControlCardEntity, new OrgContext { OrgId = "OrgA" });
 			world.Add(highControlCardEntity, new CountryContext { CountryId = "Prussia" });
 			world.Add(highControlCardEntity, new CardInHand { SlotIndex = 3 });
+
+			int decreaseEnemyControlCardEntity = world.Create();
+			world.Add(decreaseEnemyControlCardEntity, new GameAction { ActionId = "decrease_enemy_control" });
+			world.Add(decreaseEnemyControlCardEntity, new OrgContext { OrgId = "OrgA" });
+			world.Add(decreaseEnemyControlCardEntity, new CountryContext { CountryId = "Prussia" });
+			world.Add(decreaseEnemyControlCardEntity, new CardInHand { SlotIndex = 4 });
 
 			return world;
 		}
@@ -239,6 +264,20 @@ namespace GS.Game.Tests {
 			Assert.NotNull(entry);
 			Assert.True(entry!.IsUnplayable);
 			Assert.Equal("insufficient_control", entry.UnplayableReason);
+		}
+
+		[Fact]
+		void decrease_enemy_control_reports_no_enemy_control_for_nested_total_control_condition() {
+			var world = BuildWorldWithSelectedCountry(out int gameTimeEntity, out int localeEntity, out int orgEntity, opinion: 0);
+			var state = new VisualState();
+			var converter = new VisualStateConverter(state, BuildActionConfig());
+
+			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
+
+			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "decrease_enemy_control");
+			Assert.NotNull(entry);
+			Assert.True(entry!.IsUnplayable);
+			Assert.Equal("no_enemy_control", entry.UnplayableReason);
 		}
 
 		static World BuildWorldWithStopFriendshipCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, bool relationStillHolds) {

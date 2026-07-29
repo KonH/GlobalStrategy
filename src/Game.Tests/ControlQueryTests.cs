@@ -31,17 +31,16 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void has_other_org_control_requires_positive_control_in_the_same_country() {
+		void control_totals_are_scoped_by_org_and_country() {
 			var world = new World();
 			AddControl(world, "OrgA", "Prussia", 20, "own");
+			AddControl(world, "OrgA", "Prussia", 5, "own_second");
 			AddControl(world, "OrgB", "Austria", 20, "other_country");
-			AddControl(world, "OrgB", "Prussia", 0, "zero");
+			AddControl(world, "OrgB", "Prussia", 10, "other_org");
 
-			Assert.False(ControlQuery.HasOtherOrgControl(world, "OrgA", "Prussia"));
-
-			AddControl(world, "OrgB", "Prussia", 1, "positive");
-
-			Assert.True(ControlQuery.HasOtherOrgControl(world, "OrgA", "Prussia"));
+			Assert.Equal(25, ControlQuery.GetOrgControlInCountry(world, "OrgA", "Prussia"));
+			Assert.Equal(35, ControlQuery.GetTotalControlInCountry(world, "Prussia"));
+			Assert.Equal(20, ControlQuery.GetTotalControlInCountry(world, "Austria"));
 		}
 
 		[Fact]

@@ -12,9 +12,11 @@ Key acceptance criteria:
 
 ## Approach
 
-**Most of the shared plumbing this spec's Tech Notes describe as "new groundwork" already exists in the current tree** — this branch is built on top of the already-merged `26_07_24_13_stop-friendship-rivalry-cards` feature, which built exactly the `hasSuitableRelationTarget`/`relationStillExists`-shaped condition wiring this card's `hasEnemyControl` needs to mirror. Verified against actual current source:
-- `ExpressionContext` (`src/Game.Configs/ExpressionNode.cs:5-10`) already has `Control`, `Opinion`, `HasSuitableRelationTarget`, `RelationStillExists` — this plan adds a fifth field, `HasEnemyControl`, following the exact same shape.
-- `ExpressionNode.Evaluate`'s switch (lines 52-63) already has `"control"`/`"opinion"`/`"hasSuitableRelationTarget"`/`"relationStillExists"` cases — this plan adds one more, `"hasEnemyControl"`.
+**Owner follow-up after implementation:** the first implementation used a card-specific `hasEnemyControl` boolean. The owner requested a reusable resource-shaped condition instead. Control is stored as `ControlEffect`, not as the generic `Resource` component, so the refinement exposes reusable numeric Control metrics rather than pretending the two storage models are interchangeable: `control` is the acting org's selected-country total and new `totalCountryControl` is the selected country's all-org total. The card composes `gt(sub(totalCountryControl, control), 0)` using the existing arithmetic DSL. This also identified and fixed the initial-hand evaluator, a fourth condition-evaluation site omitted by the original plan.
+
+**Most of the shared plumbing already exists in the current tree:**
+- `ExpressionContext` already has `Control`, `Opinion`, `HasSuitableRelationTarget`, and `RelationStillExists`; this plan adds `TotalCountryControl`.
+- `ExpressionNode.Evaluate` already supports arithmetic/comparison composition, so only the reusable `"totalCountryControl"` scalar node is new.
 - `ActionPlayability.Evaluate` already has the exact signature `Evaluate(IReadOnlyWorld world, ActionConfig config, int entity, string actionId, string orgId, string? countryId)` (`src/Game.Systems/ActionPlayability.cs:8`) — no signature change needed, this card's conditions never read anything per-entity, matching the spec's own "Architecture decision" note.
 - `CharacterQuery.cs` already exists as a plain non-system helper (`src/Game.Systems/CharacterQuery.cs`) — confirms the "no system-to-system call" pattern this plan's new `ControlQuery.cs` follows.
 - `ClearCountryRelationEffectParams`/`SetCountryRelationEffectParams` already exist as siblings in `EffectConfig.cs`'s `ActionEffectDefinitionListConverter` switch (5 existing cases: `DiscoverCountry`, `ControlChange`, `OpinionModifier`, `SetCountryRelation`, `ClearCountryRelation`) — this plan's new `EnemyControlDrain` case is the 6th, following the identical registration pattern.
@@ -24,7 +26,7 @@ Key acceptance criteria:
 - `ActionPlayability.Evaluate`'s `ctx` construction block: exactly lines 14-26.
 - `VisualStateConverter.BuildEntry`'s `ctx` construction: exactly lines 615-623; its `failedReason` switch is lines 631-636 (spec cited 630-636 — one-line drift, immaterial).
 - `CountryActionsView.cs`'s unplayable-reason switch: exactly lines 74-84.
-- `CreateActionEffectSystem.Update`'s `ControlChangeEffectParams` branch: exactly lines 42-71; its `GetOrgControlInCountry` helper: exactly lines 128-139; the `SetCountryRelationEffectParams`/`ClearCountryRelationEffectParams` branches sit at exactly lines 103/106.
+- Before the owner follow-up refactor, `CreateActionEffectSystem.Update` carried private per-org and total-country Control queries; those duplicate scans are now consolidated into `ControlQuery`.
 - `GameLogic.cs`'s `ReduceOrgControlInCountry`: exactly lines 712-740; `GetOtherOrgsControlDescending`: exactly lines 807-825.
 - `GameLogEffects.cs`'s `ControlEffectApplied`: struct body at lines 4-9 (spec cited 3-9, off by the namespace-open line — immaterial).
 - `GameLogLineFormatter.BuildControlLine`: exactly lines 16-22.
@@ -43,20 +45,17 @@ Everything else in the spec's Tech Notes — `ControlQuery.cs` (new file, doesn'
 
 ### Agent Steps
 
-- [x] **Add `HasEnemyControl` to `ExpressionContext` + DSL node** — In `src/Game.Configs/ExpressionNode.cs`: add `public double HasEnemyControl { get; set; }` to `ExpressionContext` (alongside `Control`/`Opinion`/`HasSuitableRelationTarget`/`RelationStillExists`, line 9), and add `case "hasEnemyControl": { return ctx.HasEnemyControl; }` to `ExpressionNode.Evaluate`'s switch (alongside the existing `"relationStillExists"` case, after line 63).
+- [x] **Add a reusable total-country Control metric to the condition DSL** — In `src/Game.Configs/ExpressionNode.cs`, add `TotalCountryControl` to `ExpressionContext` and expose it as `"totalCountryControl"`. Compose the card gate as `gt(sub(totalCountryControl, control), 0)`; do not add a card-specific boolean.
 
 - [x] **New `src/Game.Systems/ControlQuery.cs`** — Plain non-system helper, same file-per-type pattern as `CharacterQuery.cs`/`ResourceQuery.cs`:
-  - `public static bool HasOtherOrgControl(IReadOnlyWorld world, string orgId, string countryId)` — scans `ControlEffect` entities (`TypeId<ControlEffect>.Value`), sums `Value` grouped by `OrgId` for every entity where `CountryId == countryId && OrgId != orgId`, returns `true` if any other org's total is `> 0`.
+  - `GetOrgControlInCountry(...)` and `GetTotalControlInCountry(...)` provide the two reusable numeric values used by the expression context and consolidate duplicate query implementations from condition/effect call sites.
   - `public static string? GetHighestControlOtherOrg(IReadOnlyWorld world, string orgId, string countryId)` — same grouping (`CountryId == countryId && OrgId != orgId`), returns the `OrgId` with the highest positive total, ties broken by `string.CompareOrdinal(OrgId)` ascending (mirrors `GameLogic.cs`'s private `GetOtherOrgsControlDescending`, lines 807-825), or `null` if no other org holds any Control.
   - `public static void ReduceOrgControlInCountry(World world, string orgId, string countryId, int amount)` — collects every `ControlEffect` entity for `(orgId, countryId)` into a list first (avoid mutating while `GetMatchingArchetypes` enumerates, same reasoning as `GameLogic.cs`'s private version), sorts by `EffectId` via `string.CompareOrdinal` for determinism, then reduces/destroys entries front-to-back until `amount` is consumed — this is a near-identical reimplementation of `GameLogic.cs`'s private `ReduceOrgControlInCountry` (lines 712-740); `GameLogic`'s version is private and lives in `Game.Main`, unreachable from `Game.Systems`, so this feature adds its own copy (consolidating the two is out of scope, per spec).
 
-- [x] **Wire `HasEnemyControl` into the three condition evaluators** — unconditionally, once per country-card evaluation, same style as the existing `Control` field (not per-entity like `RelationStillExists`):
-  - `DrawCardSystem.DrawCountryCards` (`src/Game.Systems/DrawCardSystem.cs`, in the `ctx` construction at line 96): add `HasEnemyControl = ControlQuery.HasOtherOrgControl(world, orgId, countryId) ? 1.0 : 0.0` to the `ExpressionContext` initializer.
-  - `ActionPlayability.Evaluate` (`src/Game.Systems/ActionPlayability.cs`, inside the existing `if (!string.IsNullOrEmpty(countryId))` block, lines 16-20): compute `hasEnemyControl` the same way, add it to the `ctx` initializer at line 26.
-  - `VisualStateConverter.BuildEntry` (`src/Game.Main/VisualStateConverter.cs`, alongside the existing `hasSuitableTarget`/`relationStillExists` locals, lines 615-623): compute and add to the `ctx` initializer at line 623.
+- [x] **Wire both Control metrics into all four condition evaluators** — `InitSystem.CreateCountryActionEntities` (initial-hand fill), `DrawCardSystem.DrawCountryCards`, `ActionPlayability.Evaluate`, and `VisualStateConverter.BuildEntry`.
 
-- [x] **Unplayable-reason plumbing** — following the existing per-condition-field switch exactly:
-  - `VisualStateConverter.BuildEntry`'s `failedReason` switch (`src/Game.Main/VisualStateConverter.cs:631-636`): add `"hasEnemyControl" => "no_enemy_control",` as a new case (alongside `"opinion"`/`"hasSuitableRelationTarget"`/`"relationStillExists"`).
+- [x] **Unplayable-reason plumbing**:
+  - `VisualStateConverter.BuildEntry` recursively detects `"totalCountryControl"` in the failed composed condition and maps it to `"no_enemy_control"`.
   - `CountryActionsView.cs`'s reason-text switch (`Assets/Scripts/Unity/UI/CountryActionsView.cs:74-84`): add `"no_enemy_control" => _loc.Get("action.country.unplayable.no_enemy_control"),` as a new case (alongside `"no_suitable_target"`/`"relation_no_longer_exists"`).
 
 - [x] **New effect type: `EnemyControlDrainEffectParams`** — In `src/Game.Configs/EffectConfig.cs`: add `public class EnemyControlDrainEffectParams : ActionEffectDefinition { public int Amount { get; set; } }` (alongside `ClearCountryRelationEffectParams`), and register `case "EnemyControlDrain": item = obj.ToObject<EnemyControlDrainEffectParams>(serializer)!; break;` in `ActionEffectDefinitionListConverter`'s switch (alongside the existing five cases, after the `"ClearCountryRelation"` case).
@@ -66,7 +65,7 @@ Everything else in the spec's Tech Notes — `ControlQuery.cs` (new file, doesn'
   else if (effectDef is EnemyControlDrainEffectParams drainParams && drainParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
       string? targetOrgId = ControlQuery.GetHighestControlOtherOrg(world, orgId, countryId);
       if (targetOrgId != null) {
-          int targetControlBefore = GetOrgControlInCountry(world, targetOrgId, countryId);
+          int targetControlBefore = ControlQuery.GetOrgControlInCountry(world, targetOrgId, countryId);
           int actualDrain = Math.Min(drainParams.Amount, targetControlBefore);
           ControlQuery.ReduceOrgControlInCountry(world, targetOrgId, countryId, actualDrain);
           if (actualDrain > 0) {
@@ -88,7 +87,7 @@ Everything else in the spec's Tech Notes — `ControlQuery.cs` (new file, doesn'
       }
   }
   ```
-  Reuses the file's own existing private `GetOrgControlInCountry(world, orgId, countryId)` helper (lines 128-139) as-is — no signature change needed. No new marker component, no new system, no `GameLogic.cs` wiring: this resolves synchronously inline, exactly like the existing `ControlChangeEffectParams`/`OpinionModifierEffectParams` branches, because (unlike `SetCountryRelationEffectParams`/`ClearCountryRelationEffectParams`) it needs no `Random`/`ProximityMapData` unavailable inside this system.
+  Uses the shared `ControlQuery.GetOrgControlInCountry(...)`; no new marker component, system, or `GameLogic.cs` wiring is needed.
   The new `ResourceChange` mirrors the existing gain branch's shape exactly (`ControlChangeEffectParams`'s own `ResourceChange` at lines 53-59), except `Amount` is negative and `OwnerId` is the *target* org, not the playing org — this is what feeds the country's `UsedControl` pool-gauge animation barrier on the drain side (see Approach and Step 7 below; without both this and Step 7, the gauge would silently misrepresent the drain).
 
 - [x] **Fix `CardPlayBarriersHolder` to support multiple simultaneous barriers per key** — In `Assets/Scripts/Unity/UI/CardPlayBarriersHolder.cs`: change `_doubles`/`_ints` from `Dictionary<string, EntryDouble/EntryInt>` to `Dictionary<string, List<EntryDouble>>`/`Dictionary<string, List<EntryInt>>`. `AddDouble`/`AddInt` append a new entry to the key's list (creating the list if absent) instead of overwriting. `Has` checks for a non-empty list. `Animate` releases every entry in the key's list and awaits all of them (`UniTask.WhenAll`) instead of just one. `CancelAll` iterates every entry in every list. This is required because this feature is the first to ever call `AddInt("control", ...)` twice in one play (once for the gain's `ResourceChange`, once for the drain's, added in the previous step) — without this fix the second `AddInt` call silently discards the first barrier, which is then never released, permanently offsetting `SelectedCountry.Control.UsedControl`'s `Display` value. `AnimatableInt`/`AnimationBarrierInt` (`src/Game.Main/`) already support multiple concurrent barriers correctly (summed into `Display`) — no change needed there, this fix is entirely local to `CardPlayBarriersHolder`.
@@ -121,10 +120,16 @@ Everything else in the spec's Tech Notes — `ControlQuery.cs` (new file, doesn'
     "deckCopies": 3,
     "conditions": [
       {
-        "type": "gte",
+        "type": "gt",
         "members": [
-          { "type": "hasEnemyControl" },
-          { "type": "value", "value": 1 }
+          {
+            "type": "sub",
+            "members": [
+              { "type": "totalCountryControl" },
+              { "type": "control" }
+            ]
+          },
+          { "type": "value", "value": 0 }
         ]
       }
     ],
@@ -178,9 +183,9 @@ None — every change in this plan is a code, config, or asset-YAML file edit (i
 
 ## Tests
 
-- **`src/Game.Tests/ExpressionNodeTests.cs`**: extend the `Ctx(...)` helper with a `hasEnemyControl` parameter (defaulting to `0`), and add a `has_enemy_control_node_returns_context_value` case mirroring `has_suitable_relation_target_node_returns_context_value` (asserts `1.0`/`0.0` round-trip through `ExpressionNode.Evaluate`).
+- **`src/Game.Tests/ExpressionNodeTests.cs`**: cover `"totalCountryControl"` round-tripping its numeric context value.
 
-- **`src/Game.Tests/ActionPlayabilityTests.cs`**: add a `"decrease_enemy_control"` entry to `BuildActionConfig()` (condition: `gte(hasEnemyControl, 1)`, cost 250 gold), following the existing `country_card`/`make_friend` entries' shape. Add cases:
+- **`src/Game.Tests/ActionPlayabilityTests.cs`**: add a `"decrease_enemy_control"` entry using `gt(sub(totalCountryControl, control), 0)` and cost 250 gold. Add cases:
   - `decrease_enemy_control_unplayable_when_no_other_org_holds_control` — no `ControlEffect` for any other org in the country → `Evaluate` returns `false`.
   - `decrease_enemy_control_playable_when_another_org_holds_control_and_affordable` — seed `AddControl(world, "OrgB", "Prussia", 10)` plus gold for `OrgA` → `Evaluate` returns `true`.
   - `decrease_enemy_control_unplayable_when_unaffordable_even_with_enemy_control_present` — same `ControlEffect` seed, insufficient gold → `false`.
@@ -190,8 +195,10 @@ None — every change in this plan is a code, config, or asset-YAML file edit (i
   - a candidate `decrease_enemy_control` deck entity is **not** drawn into hand when no other org holds Control in the country.
   - it **is** drawn once another org's `ControlEffect` in that country is `> 0`.
 
+- **`src/Game.Tests/InitSystemTests.cs`**: seed two participating orgs with the same HQ country and assert the card can populate the initial hand, covering the fourth condition-evaluation call site.
+
 - **New `src/Game.Tests/ControlQueryTests.cs`** (no existing precedent — new query type, follow `CharacterQuery`'s absence of a dedicated test file as informing that this can be a small, focused new file):
-  - `HasOtherOrgControl` returns `false` with zero other-org `ControlEffect` entities in the country, `true` once one exists with `Value > 0`, and ignores the querying org's own `ControlEffect` entities.
+  - `GetOrgControlInCountry` and `GetTotalControlInCountry` sum multiple effects and remain correctly scoped by org/country.
   - `GetHighestControlOtherOrg` returns `null` when no other org holds Control; returns the single other org when exactly one qualifies; returns the org with the strictly higher total when two qualify; returns the ordinally-lower `OrgId` when two other orgs are tied (mirroring `GameLogic.cs`'s existing `GetOtherOrgsControlDescending` tie-break convention — no direct test of that private method exists today, so this is the first explicit tie-break assertion for this domain).
   - `ReduceOrgControlInCountry` reduces a single `ControlEffect` entity's `Value` without destroying it when `amount < Value`; destroys it and consumes only what's needed when `amount >= Value` and a second entity exists to continue draining; clamps at zero total drain when `amount` exceeds the org's total Control in the country (no negative `Value`, no over-drain into other countries/orgs).
 

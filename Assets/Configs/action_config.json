@@ -198,10 +198,16 @@
       "deckCopies": 3,
       "conditions": [
         {
-          "type": "gte",
+          "type": "gt",
           "members": [
-            { "type": "hasEnemyControl" },
-            { "type": "value", "value": 1 }
+            {
+              "type": "sub",
+              "members": [
+                { "type": "totalCountryControl" },
+                { "type": "control" }
+              ]
+            },
+            { "type": "value", "value": 0 }
           ]
         }
       ],

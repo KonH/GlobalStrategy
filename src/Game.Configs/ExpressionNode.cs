@@ -4,10 +4,10 @@ using System.Collections.Generic;
 namespace GS.Game.Configs {
 	public class ExpressionContext {
 		public double Control { get; set; }
+		public double TotalCountryControl { get; set; }
 		public double Opinion { get; set; }
 		public double HasSuitableRelationTarget { get; set; }
 		public double RelationStillExists { get; set; }
-		public double HasEnemyControl { get; set; }
 	}
 
 	public class ExpressionNode {
@@ -53,6 +53,9 @@ namespace GS.Game.Configs {
 				case "control": {
 					return ctx.Control;
 				}
+				case "totalCountryControl": {
+					return ctx.TotalCountryControl;
+				}
 				case "opinion": {
 					return ctx.Opinion;
 				}
@@ -61,9 +64,6 @@ namespace GS.Game.Configs {
 				}
 				case "relationStillExists": {
 					return ctx.RelationStillExists;
-				}
-				case "hasEnemyControl": {
-					return ctx.HasEnemyControl;
 				}
 				case "gte": {
 					if (node.Members == null || node.Members.Count < 2) { return 0; }
