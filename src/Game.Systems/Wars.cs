@@ -54,20 +54,21 @@ namespace GS.Game.Systems {
 		public static bool StopWar(World world, string countryId) {
 			string? warId = null;
 			int[] participantRequired = { TypeId<WarParticipant>.Value };
-			var matchingParticipants = new List<int>();
 			foreach (Archetype arch in world.GetMatchingArchetypes(participantRequired, null)) {
 				WarParticipant[] participants = arch.GetColumn<WarParticipant>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
+				for (int i = 0; i < arch.Count; i++) {
 					if (participants[i].CountryId == countryId) {
 						warId = participants[i].WarId;
+						break;
 					}
 				}
+				if (warId != null) { break; }
 			}
 			if (warId == null) {
 				return false;
 			}
 
+			var matchingParticipants = new List<int>();
 			foreach (Archetype arch in world.GetMatchingArchetypes(participantRequired, null)) {
 				WarParticipant[] participants = arch.GetColumn<WarParticipant>();
 				int count = arch.Count;
