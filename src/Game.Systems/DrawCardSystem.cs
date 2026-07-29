@@ -93,7 +93,13 @@ namespace GS.Game.Systems {
 			string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
 			double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
 			double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
-			var ctx = new ExpressionContext { Control = orgControl, Opinion = opinion, HasSuitableRelationTarget = hasSuitableTarget };
+			double hasEnemyControl = ControlQuery.HasOtherOrgControl(world, orgId, countryId) ? 1.0 : 0.0;
+			var ctx = new ExpressionContext {
+				Control = orgControl,
+				Opinion = opinion,
+				HasSuitableRelationTarget = hasSuitableTarget,
+				HasEnemyControl = hasEnemyControl
+			};
 
 			int[] deckReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
 			int[] excludeInHand = { TypeId<CardInHand>.Value };

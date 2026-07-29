@@ -187,6 +187,26 @@
       ],
       "cost": [{ "resourceId": "gold", "amount": 100.0 }],
       "effectIds": ["clear_rivalry_effect"]
+    },
+    {
+      "actionId": "decrease_enemy_control",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.decrease_enemy_control.name",
+      "descKey": "action.decrease_enemy_control.desc",
+      "targetRole": "",
+      "deckCopies": 3,
+      "conditions": [
+        {
+          "type": "gte",
+          "members": [
+            { "type": "hasEnemyControl" },
+            { "type": "value", "value": 1 }
+          ]
+        }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 250.0 }],
+      "effectIds": ["decrease_enemy_control_drain_effect", "decrease_enemy_control_gain_effect"]
     }
   ],
   "orgPools": [

@@ -1652,6 +1652,18 @@ MonoBehaviour:
     Value: '{0} нам не враг!'
   - Key: action.stop_rivalry.desc
     Value: Мы больше не враги.
+  - Key: action.decrease_enemy_control.name
+    Value: Подрыв влияния
+  - Key: action.decrease_enemy_control.desc
+    Value: Ослабить контроль соперника и усилить свой.
+  - Key: effect.decrease_enemy_control_drain.name
+    Value: Ослабление контроля соперника
+  - Key: effect.decrease_enemy_control_drain.desc
+    Value: Уменьшить контроль организации-соперника.
+  - Key: effect.decrease_enemy_control_gain.name
+    Value: Укрепление контроля
+  - Key: effect.decrease_enemy_control_gain.desc
+    Value: Увеличить контроль своей организации.
   - Key: action.country.unplayable.pool_full
     Value: Пул контроля переполнен
   - Key: action.country.unplayable.insufficient_control
@@ -1662,6 +1674,8 @@ MonoBehaviour:
     Value: No suitable target country available
   - Key: action.country.unplayable.relation_no_longer_exists
     Value: Указанные отношения больше не существуют
+  - Key: action.country.unplayable.no_enemy_control
+    Value: Нет организации с контролем, которую можно выбрать целью
   - Key: hud.actions
     Value: Действия
   - Key: hud.friends
@@ -1674,6 +1688,8 @@ MonoBehaviour:
     Value: "{0} разведал {1}"
   - Key: game_log.control_increased_format
     Value: "{0} увеличил контроль в {1} на {2} ({3})"
+  - Key: game_log.control_decreased_format
+    Value: "{0} уменьшил контроль в {1} на {2} ({3})"
   - Key: game_log.opinion_increased_format
     Value: "{0} увеличил мнение {1} {2} в {3} на {4} ({5})"
   - Key: game_log.new_character_format

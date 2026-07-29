@@ -43,25 +43,25 @@ Everything else in the spec's Tech Notes — `ControlQuery.cs` (new file, doesn'
 
 ### Agent Steps
 
-- [ ] **Add `HasEnemyControl` to `ExpressionContext` + DSL node** — In `src/Game.Configs/ExpressionNode.cs`: add `public double HasEnemyControl { get; set; }` to `ExpressionContext` (alongside `Control`/`Opinion`/`HasSuitableRelationTarget`/`RelationStillExists`, line 9), and add `case "hasEnemyControl": { return ctx.HasEnemyControl; }` to `ExpressionNode.Evaluate`'s switch (alongside the existing `"relationStillExists"` case, after line 63).
+- [x] **Add `HasEnemyControl` to `ExpressionContext` + DSL node** — In `src/Game.Configs/ExpressionNode.cs`: add `public double HasEnemyControl { get; set; }` to `ExpressionContext` (alongside `Control`/`Opinion`/`HasSuitableRelationTarget`/`RelationStillExists`, line 9), and add `case "hasEnemyControl": { return ctx.HasEnemyControl; }` to `ExpressionNode.Evaluate`'s switch (alongside the existing `"relationStillExists"` case, after line 63).
 
-- [ ] **New `src/Game.Systems/ControlQuery.cs`** — Plain non-system helper, same file-per-type pattern as `CharacterQuery.cs`/`ResourceQuery.cs`:
+- [x] **New `src/Game.Systems/ControlQuery.cs`** — Plain non-system helper, same file-per-type pattern as `CharacterQuery.cs`/`ResourceQuery.cs`:
   - `public static bool HasOtherOrgControl(IReadOnlyWorld world, string orgId, string countryId)` — scans `ControlEffect` entities (`TypeId<ControlEffect>.Value`), sums `Value` grouped by `OrgId` for every entity where `CountryId == countryId && OrgId != orgId`, returns `true` if any other org's total is `> 0`.
   - `public static string? GetHighestControlOtherOrg(IReadOnlyWorld world, string orgId, string countryId)` — same grouping (`CountryId == countryId && OrgId != orgId`), returns the `OrgId` with the highest positive total, ties broken by `string.CompareOrdinal(OrgId)` ascending (mirrors `GameLogic.cs`'s private `GetOtherOrgsControlDescending`, lines 807-825), or `null` if no other org holds any Control.
   - `public static void ReduceOrgControlInCountry(World world, string orgId, string countryId, int amount)` — collects every `ControlEffect` entity for `(orgId, countryId)` into a list first (avoid mutating while `GetMatchingArchetypes` enumerates, same reasoning as `GameLogic.cs`'s private version), sorts by `EffectId` via `string.CompareOrdinal` for determinism, then reduces/destroys entries front-to-back until `amount` is consumed — this is a near-identical reimplementation of `GameLogic.cs`'s private `ReduceOrgControlInCountry` (lines 712-740); `GameLogic`'s version is private and lives in `Game.Main`, unreachable from `Game.Systems`, so this feature adds its own copy (consolidating the two is out of scope, per spec).
 
-- [ ] **Wire `HasEnemyControl` into the three condition evaluators** — unconditionally, once per country-card evaluation, same style as the existing `Control` field (not per-entity like `RelationStillExists`):
+- [x] **Wire `HasEnemyControl` into the three condition evaluators** — unconditionally, once per country-card evaluation, same style as the existing `Control` field (not per-entity like `RelationStillExists`):
   - `DrawCardSystem.DrawCountryCards` (`src/Game.Systems/DrawCardSystem.cs`, in the `ctx` construction at line 96): add `HasEnemyControl = ControlQuery.HasOtherOrgControl(world, orgId, countryId) ? 1.0 : 0.0` to the `ExpressionContext` initializer.
   - `ActionPlayability.Evaluate` (`src/Game.Systems/ActionPlayability.cs`, inside the existing `if (!string.IsNullOrEmpty(countryId))` block, lines 16-20): compute `hasEnemyControl` the same way, add it to the `ctx` initializer at line 26.
   - `VisualStateConverter.BuildEntry` (`src/Game.Main/VisualStateConverter.cs`, alongside the existing `hasSuitableTarget`/`relationStillExists` locals, lines 615-623): compute and add to the `ctx` initializer at line 623.
 
-- [ ] **Unplayable-reason plumbing** — following the existing per-condition-field switch exactly:
+- [x] **Unplayable-reason plumbing** — following the existing per-condition-field switch exactly:
   - `VisualStateConverter.BuildEntry`'s `failedReason` switch (`src/Game.Main/VisualStateConverter.cs:631-636`): add `"hasEnemyControl" => "no_enemy_control",` as a new case (alongside `"opinion"`/`"hasSuitableRelationTarget"`/`"relationStillExists"`).
   - `CountryActionsView.cs`'s reason-text switch (`Assets/Scripts/Unity/UI/CountryActionsView.cs:74-84`): add `"no_enemy_control" => _loc.Get("action.country.unplayable.no_enemy_control"),` as a new case (alongside `"no_suitable_target"`/`"relation_no_longer_exists"`).
 
-- [ ] **New effect type: `EnemyControlDrainEffectParams`** — In `src/Game.Configs/EffectConfig.cs`: add `public class EnemyControlDrainEffectParams : ActionEffectDefinition { public int Amount { get; set; } }` (alongside `ClearCountryRelationEffectParams`), and register `case "EnemyControlDrain": item = obj.ToObject<EnemyControlDrainEffectParams>(serializer)!; break;` in `ActionEffectDefinitionListConverter`'s switch (alongside the existing five cases, after the `"ClearCountryRelation"` case).
+- [x] **New effect type: `EnemyControlDrainEffectParams`** — In `src/Game.Configs/EffectConfig.cs`: add `public class EnemyControlDrainEffectParams : ActionEffectDefinition { public int Amount { get; set; } }` (alongside `ClearCountryRelationEffectParams`), and register `case "EnemyControlDrain": item = obj.ToObject<EnemyControlDrainEffectParams>(serializer)!; break;` in `ActionEffectDefinitionListConverter`'s switch (alongside the existing five cases, after the `"ClearCountryRelation"` case).
 
-- [ ] **Dispatch the drain effect in `CreateActionEffectSystem`** — In `src/Game.Systems/CreateActionEffectSystem.cs`'s `foreach (var effectId in def.EffectIds)` loop (after the `ClearCountryRelationEffectParams` branch at line 106): add
+- [x] **Dispatch the drain effect in `CreateActionEffectSystem`** — In `src/Game.Systems/CreateActionEffectSystem.cs`'s `foreach (var effectId in def.EffectIds)` loop (after the `ClearCountryRelationEffectParams` branch at line 106): add
   ```
   else if (effectDef is EnemyControlDrainEffectParams drainParams && drainParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
       string? targetOrgId = ControlQuery.GetHighestControlOtherOrg(world, orgId, countryId);
@@ -91,9 +91,9 @@ Everything else in the spec's Tech Notes — `ControlQuery.cs` (new file, doesn'
   Reuses the file's own existing private `GetOrgControlInCountry(world, orgId, countryId)` helper (lines 128-139) as-is — no signature change needed. No new marker component, no new system, no `GameLogic.cs` wiring: this resolves synchronously inline, exactly like the existing `ControlChangeEffectParams`/`OpinionModifierEffectParams` branches, because (unlike `SetCountryRelationEffectParams`/`ClearCountryRelationEffectParams`) it needs no `Random`/`ProximityMapData` unavailable inside this system.
   The new `ResourceChange` mirrors the existing gain branch's shape exactly (`ControlChangeEffectParams`'s own `ResourceChange` at lines 53-59), except `Amount` is negative and `OwnerId` is the *target* org, not the playing org — this is what feeds the country's `UsedControl` pool-gauge animation barrier on the drain side (see Approach and Step 7 below; without both this and Step 7, the gauge would silently misrepresent the drain).
 
-- [ ] **Fix `CardPlayBarriersHolder` to support multiple simultaneous barriers per key** — In `Assets/Scripts/Unity/UI/CardPlayBarriersHolder.cs`: change `_doubles`/`_ints` from `Dictionary<string, EntryDouble/EntryInt>` to `Dictionary<string, List<EntryDouble>>`/`Dictionary<string, List<EntryInt>>`. `AddDouble`/`AddInt` append a new entry to the key's list (creating the list if absent) instead of overwriting. `Has` checks for a non-empty list. `Animate` releases every entry in the key's list and awaits all of them (`UniTask.WhenAll`) instead of just one. `CancelAll` iterates every entry in every list. This is required because this feature is the first to ever call `AddInt("control", ...)` twice in one play (once for the gain's `ResourceChange`, once for the drain's, added in the previous step) — without this fix the second `AddInt` call silently discards the first barrier, which is then never released, permanently offsetting `SelectedCountry.Control.UsedControl`'s `Display` value. `AnimatableInt`/`AnimationBarrierInt` (`src/Game.Main/`) already support multiple concurrent barriers correctly (summed into `Display`) — no change needed there, this fix is entirely local to `CardPlayBarriersHolder`.
+- [x] **Fix `CardPlayBarriersHolder` to support multiple simultaneous barriers per key** — In `Assets/Scripts/Unity/UI/CardPlayBarriersHolder.cs`: change `_doubles`/`_ints` from `Dictionary<string, EntryDouble/EntryInt>` to `Dictionary<string, List<EntryDouble>>`/`Dictionary<string, List<EntryInt>>`. `AddDouble`/`AddInt` append a new entry to the key's list (creating the list if absent) instead of overwriting. `Has` checks for a non-empty list. `Animate` releases every entry in the key's list and awaits all of them (`UniTask.WhenAll`) instead of just one. `CancelAll` iterates every entry in every list. This is required because this feature is the first to ever call `AddInt("control", ...)` twice in one play (once for the gain's `ResourceChange`, once for the drain's, added in the previous step) — without this fix the second `AddInt` call silently discards the first barrier, which is then never released, permanently offsetting `SelectedCountry.Control.UsedControl`'s `Display` value. `AnimatableInt`/`AnimationBarrierInt` (`src/Game.Main/`) already support multiple concurrent barriers correctly (summed into `Display`) — no change needed there, this fix is entirely local to `CardPlayBarriersHolder`.
 
-- [ ] **Fix `GameLogLineFormatter.BuildControlLine` for negative `Delta`** — In `Assets/Scripts/Unity/UI/GameLogLineFormatter.cs` (lines 16-22): replace the hardcoded `string deltaText = "+" + FormatNumber(entry.Delta);` / fixed `game_log.control_increased_format` lookup with a branch on `entry.Delta >= 0`:
+- [x] **Fix `GameLogLineFormatter.BuildControlLine` for negative `Delta`** — In `Assets/Scripts/Unity/UI/GameLogLineFormatter.cs` (lines 16-22): replace the hardcoded `string deltaText = "+" + FormatNumber(entry.Delta);` / fixed `game_log.control_increased_format` lookup with a branch on `entry.Delta >= 0`:
   ```csharp
   public static string BuildControlLine(GameLogEntry entry, ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig) {
       string orgName = WrapColored(loc.Get($"organization_name.{entry.OrgId}"), orgVisualConfig.Find(entry.OrgId)?.color);
@@ -109,7 +109,7 @@ Everything else in the spec's Tech Notes — `ControlQuery.cs` (new file, doesn'
   ```
   The increase branch keeps byte-identical wording/format-key to today. `VisualStateConverter.UpdateGameLog` (`src/Game.Main/VisualStateConverter.cs:798`) and `CleanupEffectNotificationsSystem` need no change — both already forward/sweep `ControlEffectApplied` regardless of sign (confirmed: `CleanupEffectNotificationsSystem` already sweeps `ControlEffectApplied` generically).
 
-- [ ] **`Assets/Configs/action_config.json`: new action row** — append, following the existing `sphere_of_pressure`-shape entries:
+- [x] **`Assets/Configs/action_config.json`: new action row** — append, following the existing `sphere_of_pressure`-shape entries:
   ```json
   {
     "actionId": "decrease_enemy_control",
@@ -134,7 +134,7 @@ Everything else in the spec's Tech Notes — `ControlQuery.cs` (new file, doesn'
   ```
   `effectIds` order is load-bearing — the drain must run first so the reused `ControlChangeEffectParams` branch's `usedTotal < 100` pool-cap check sees the post-drain total.
 
-- [ ] **`Assets/Configs/effect_config.json`: two new effect rows** — append, following the existing `sphere_of_pressure_control`/`clear_friendship_effect`-shape entries:
+- [x] **`Assets/Configs/effect_config.json`: two new effect rows** — append, following the existing `sphere_of_pressure_control`/`clear_friendship_effect`-shape entries:
   ```json
   {
     "effectId": "decrease_enemy_control_drain_effect",
@@ -153,7 +153,7 @@ Everything else in the spec's Tech Notes — `ControlQuery.cs` (new file, doesn'
   ```
   The gain effect needs no new C# — reuses the existing, unmodified `ControlChangeEffectParams`/`"ControlChange"` branch.
 
-- [ ] **New `ActionVisualConfig` entry** — `Assets/Configs/ActionVisualConfig.asset` is a plain YAML `ScriptableObject` asset, directly editable (confirmed: `stop_friendship`/`stop_rivalry` already have hand-added entries in this exact file reusing another action's `guid`+`fileID` sprite reference as placeholder art — e.g. `stop_friendship` reuses `letter_of_commendation_diplomacy_advisor`'s `frontImage: {fileID: -6234567890123456789, guid: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7, type: 3}`). Append a new entry following the same list-item format:
+- [x] **New `ActionVisualConfig` entry** — `Assets/Configs/ActionVisualConfig.asset` is a plain YAML `ScriptableObject` asset, directly editable (confirmed: `stop_friendship`/`stop_rivalry` already have hand-added entries in this exact file reusing another action's `guid`+`fileID` sprite reference as placeholder art — e.g. `stop_friendship` reuses `letter_of_commendation_diplomacy_advisor`'s `frontImage: {fileID: -6234567890123456789, guid: b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7, type: 3}`). Append a new entry following the same list-item format:
   ```yaml
   - actionId: decrease_enemy_control
     frontImage: {fileID: -7234567890123456789, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6, type: 3}
@@ -161,7 +161,7 @@ Everything else in the spec's Tech Notes — `ControlQuery.cs` (new file, doesn'
   ```
   (reusing `sphere_of_pressure`'s `frontImage` guid/fileID as placeholder — same domain, a Control-granting country card — real card art generation is out of scope per spec). This is a direct file edit, not a Unity Inspector step — see User Steps below.
 
-- [ ] **Locale keys** — Add to both `Assets/Localization/en.asset` and `Assets/Localization/ru.asset`, matching the existing `- Key: ... / Value: ...` format (use the `localization` skill for the Russian translations, per `.claude/rules/unity/localization.md`):
+- [x] **Locale keys** — Add to both `Assets/Localization/en.asset` and `Assets/Localization/ru.asset`, matching the existing `- Key: ... / Value: ...` format (use the `localization` skill for the Russian translations, per `.claude/rules/unity/localization.md`):
   - `action.decrease_enemy_control.name` → `"Undermine Influence"` (placeholder, non-binding per spec).
   - `action.decrease_enemy_control.desc` → `"Weaken a rival's control and strengthen your own."` (short practical form per the Card/Action Description Text rule).
   - `effect.decrease_enemy_control_drain.name` / `.desc` — short name/desc for the drain half.

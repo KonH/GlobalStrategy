@@ -107,6 +107,29 @@ namespace GS.Game.Systems {
 						string targetCountryId = world.Get<RelationCardTarget>(entity).TargetCountryId;
 						int e = world.Create();
 						world.Add(e, new ClearCountryRelationEffect { EffectId = effectId, OrgId = orgId, CountryId = countryId, TargetCountryId = targetCountryId });
+					} else if (effectDef is EnemyControlDrainEffectParams drainParams && drainParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
+						string? targetOrgId = ControlQuery.GetHighestControlOtherOrg(world, orgId, countryId);
+						if (targetOrgId != null) {
+							int targetControlBefore = GetOrgControlInCountry(world, targetOrgId, countryId);
+							int actualDrain = Math.Min(drainParams.Amount, targetControlBefore);
+							ControlQuery.ReduceOrgControlInCountry(world, targetOrgId, countryId, actualDrain);
+							if (actualDrain > 0) {
+								int rc = world.Create();
+								world.Add(rc, new ResourceChange {
+									EffectId = $"control_{targetOrgId}_{countryId}_{currentTime.Ticks}",
+									ResourceId = $"control_{countryId}",
+									OwnerId = targetOrgId,
+									Amount = -actualDrain
+								});
+								int ge = world.Create();
+								world.Add(ge, new ControlEffectApplied {
+									OrgId = targetOrgId,
+									CountryId = countryId,
+									Delta = -actualDrain,
+									Total = targetControlBefore - actualDrain
+								});
+							}
+						}
 					}
 				}
 			}

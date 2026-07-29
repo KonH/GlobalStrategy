@@ -73,6 +73,20 @@
       "nameKey": "effect.clear_rivalry_effect.name",
       "descKey": "effect.clear_rivalry_effect.desc",
       "kind": "Rival"
+    },
+    {
+      "effectId": "decrease_enemy_control_drain_effect",
+      "effectType": "EnemyControlDrain",
+      "nameKey": "effect.decrease_enemy_control_drain.name",
+      "descKey": "effect.decrease_enemy_control_drain.desc",
+      "amount": 20
+    },
+    {
+      "effectId": "decrease_enemy_control_gain_effect",
+      "effectType": "ControlChange",
+      "nameKey": "effect.decrease_enemy_control_gain.name",
+      "descKey": "effect.decrease_enemy_control_gain.desc",
+      "amount": 10
     }
   ]
 }

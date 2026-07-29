@@ -13,17 +13,25 @@ namespace GS.Game.Systems {
 
 			double opinion = 0.0;
 			double hasSuitableTarget = 0.0;
+			double hasEnemyControl = 0.0;
 			if (!string.IsNullOrEmpty(countryId)) {
 				string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
 				opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
 				hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
+				hasEnemyControl = ControlQuery.HasOtherOrgControl(world, orgId, countryId) ? 1.0 : 0.0;
 			}
 			double relationStillExists = 1.0;
 			if (entity >= 0 && !string.IsNullOrEmpty(countryId) && world.Has<RelationCardTarget>(entity)) {
 				var target = world.Get<RelationCardTarget>(entity);
 				relationStillExists = CountryRelations.GetRelation(world, countryId, target.TargetCountryId) == target.Kind ? 1.0 : 0.0;
 			}
-			var ctx = new ExpressionContext { Control = orgControl, Opinion = opinion, HasSuitableRelationTarget = hasSuitableTarget, RelationStillExists = relationStillExists };
+			var ctx = new ExpressionContext {
+				Control = orgControl,
+				Opinion = opinion,
+				HasSuitableRelationTarget = hasSuitableTarget,
+				RelationStillExists = relationStillExists,
+				HasEnemyControl = hasEnemyControl
+			};
 
 			foreach (var cond in def.Conditions) {
 				if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { return false; }

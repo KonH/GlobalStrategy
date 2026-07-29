@@ -615,12 +615,19 @@ namespace GS.Main {
 			string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
 			double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
 			double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
+			double hasEnemyControl = ControlQuery.HasOtherOrgControl(world, orgId, countryId) ? 1.0 : 0.0;
 			double relationStillExists = 1.0;
 			if (world.Has<RelationCardTarget>(entity)) {
 				var target = world.Get<RelationCardTarget>(entity);
 				relationStillExists = CountryRelations.GetRelation(world, countryId, target.TargetCountryId) == target.Kind ? 1.0 : 0.0;
 			}
-			var ctx = new ExpressionContext { Control = orgControl, Opinion = opinion, HasSuitableRelationTarget = hasSuitableTarget, RelationStillExists = relationStillExists };
+			var ctx = new ExpressionContext {
+				Control = orgControl,
+				Opinion = opinion,
+				HasSuitableRelationTarget = hasSuitableTarget,
+				RelationStillExists = relationStillExists,
+				HasEnemyControl = hasEnemyControl
+			};
 
 			bool conditionFailed = false;
 			string failedReason = "";
@@ -632,6 +639,7 @@ namespace GS.Main {
 						"opinion" => "insufficient_opinion",
 						"hasSuitableRelationTarget" => "no_suitable_target",
 						"relationStillExists" => "relation_no_longer_exists",
+						"hasEnemyControl" => "no_enemy_control",
 						_ => "insufficient_control"
 					};
 					break;
