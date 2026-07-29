@@ -31,7 +31,7 @@
 #   .\scripts\automation\claude\handle_issues.ps1 -MaxTurns 60
 
 param(
-    [int]$MaxTurns = 40
+    [int]$MaxTurns = 80
 )
 
 $ErrorActionPreference = "Stop"
