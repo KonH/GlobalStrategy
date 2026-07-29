@@ -12,6 +12,8 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
   - Hover the character card => the existing tooltip (role name + role description) appears, followed by a list of hint rows, one per opinion-gated card, each row reading "At opinion `<threshold>` - `<card name>`"
   - The tooltip has more than one hint row => rows are ordered by ascending opinion threshold
   - Two cards share the same opinion threshold => both rows are shown, in a stable order (not merged or deduplicated)
+  - The character's current opinion (`Resource{opinion_<orgId>}`) is greater than or equal to a row's threshold => that row is styled in the "met" (green) label style
+  - The character's current opinion is below a row's threshold => that row is styled in the "not met" (gray) label style
 - The player hovers a character card whose role has no opinion-gated cards at all (either the role unlocks no cards, or its cards have no opinion condition)
   - Hover the character card => the tooltip shows only the existing role name/description content; no empty "cards" heading or list appears
 - The card unlock data changes in config (a designer edits the opinion threshold on an existing card's condition, or adds/removes an opinion-gated card for a role) without any tooltip text being touched
@@ -40,6 +42,7 @@ Maps each product-facing behaviour above to its concrete implementation — spec
   - After building the nested tooltip content, call `SetPickingIgnoreRecursive`-equivalent handling if/as required by `TooltipController.cs`'s existing pattern (per `.claude/rules/unity/uitoolkit.md`, "PickingMode.Ignore is not recursive") — confirm whether `TooltipContext`/`TooltipSystem` already applies this for nested panels before adding a second pass.
 - New locale keys for the hint row template text ("At opinion {0} - {1}") and any list heading go through the `localization` skill (`Assets/Localization/en.asset` + `ru.asset` with a real Russian translation), namespaced under `hud.*` per `.claude/rules/unity/localization.md` (e.g. `hud.character.card_hint`); no threshold/card-name values are hardcoded into the key's English text — those are interpolated at format time.
 - Row container and row styling: new dynamically created elements get USS classes added in `Assets/UI/HUD/HUD.uss` (tooltip content is parented under `hud-root`, not the CountryInfo template — see the USS-scope rule in `.claude/rules/unity/uitoolkit.md`), reusing `tooltip-header`/`tooltip-effect-name` where applicable and shared typography classes (`.gs-content`/`.gs-hint`) from `SharedStyles.uss` rather than introducing new one-off font/colour rules.
+- Met/not-met styling: `CharacterCardHintRowState` (the projector's row struct) carries the threshold, actionId, and a `bool IsMet` computed by the projector caller (`CharactersView`) by comparing the character's current `Resource{opinion_<orgId>}` value against the row's threshold — the projector itself stays pure/config-only and does not read live resource state. `CharactersView` applies one of two new USS classes to each row label (e.g. `character-hint-met` = green, `character-hint-unmet` = gray) added to `HUD.uss`, toggled via `EnableInClassList`, consistent with how other met/unmet or state-driven styling toggles classes elsewhere in the HUD views rather than setting inline colours.
 - No system-to-system call is introduced: `CharacterCardHintProjector` is a plain helper class called from UI code (`CharactersView`), the same shape as `CharacterQuery`/`WinConditionHintProjector`, per `.claude/rules/unity/ecs_patterns.md`.
 
 ## Out of Scope
@@ -50,7 +53,7 @@ Maps each product-facing behaviour above to its concrete implementation — spec
 - No authoring/editing tool for opinion thresholds — designers continue to edit `Assets/Configs/action_config.json` directly; the hint list is a pure read/display of that data.
 - Cards whose only unlock gate is something other than opinion (e.g. `control`-only conditions) are not shown in this hint list at all, not even without a threshold number.
 
-## Ambiguities
+## Resolved Clarifications
 
-- [NEEDS CLARIFICATION: Should hint rows visually distinguish thresholds the character has already met (current opinion >= threshold) from ones not yet met — e.g. a "met" vs "locked" style — or should all opinion-gated cards for the role be listed uniformly regardless of current opinion? The issue's mockup and title ("what cards become available at each opinion level") reads as purely informational, so this spec defaults to showing all rows uniformly with no met/unmet distinction; flagging in case a visual distinction is actually wanted.]
-- [NEEDS CLARIFICATION: Exact locale string format for a hint row. The issue mockup shows `At opinion 30 - Some card 1` (space-hyphen-space). Confirm this literal format (including whether "opinion" needs the actual localized resource label, e.g. "Opinion" capitalized) before wiring the locale key.]
+- Hint rows visually distinguish met vs. not-met thresholds: green label style when the character's current opinion is >= the row's threshold, gray label style otherwise. Owner confirmed 2026-07-29 (issue #77 comment).
+- Locale string format confirmed literal: `At opinion {0} - {1}` (space-hyphen-space), per the issue mockup. Owner confirmed 2026-07-29 (issue #77 comment).
