@@ -1,0 +1,2 @@
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,plan_size_kb,prd_size_kb,diff_lines,session_id
+26_07_29_00_character-hints,1.95,implement,interactive,fresh,2026-07-29T15:44:52.164Z,2026-07-29T15:54:20.211Z,claude,claude-sonnet-5,high,8.164887899999998,355,21747293,109309,10.13,20.11,0.03,500,7315bcc3-d272-47e2-bee2-d0ad4e44b887

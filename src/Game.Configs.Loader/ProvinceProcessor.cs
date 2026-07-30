@@ -20,6 +20,9 @@ namespace GS.Game.Loader {
 				string countryId = GetStringProp(props, "countryId") ?? "";
 				string generationMethod = GetStringProp(props, "generationMethod") ?? "";
 				double population = GetDoubleProp(props, "population") ?? 0.0;
+				double centroidX = GetDoubleProp(props, "centroidX") ?? 0.0;
+				double centroidY = GetDoubleProp(props, "centroidY") ?? 0.0;
+				var neighborProvinceIds = GetStringArrayProp(props, "neighborProvinceIds");
 
 				if (countryConfig.FindByCountryId(countryId) == null && seenMismatches.Add(countryId)) {
 					validationErrors.Add(countryId);
@@ -30,6 +33,9 @@ namespace GS.Game.Loader {
 					CountryId = countryId,
 					GenerationMethod = generationMethod,
 					Population = population,
+					CentroidX = centroidX,
+					CentroidY = centroidY,
+					NeighborProvinceIds = neighborProvinceIds,
 				});
 			}
 
@@ -51,6 +57,19 @@ namespace GS.Game.Loader {
 			}
 			var val = props[key];
 			return val != null ? val.GetValue<double>() : null;
+		}
+
+		static List<string> GetStringArrayProp(JsonNode? props, string key) {
+			var result = new List<string>();
+			if (props?[key] is not JsonArray values) {
+				return result;
+			}
+			foreach (JsonNode? value in values) {
+				if (value != null) {
+					result.Add(value.GetValue<string>());
+				}
+			}
+			return result;
 		}
 	}
 }

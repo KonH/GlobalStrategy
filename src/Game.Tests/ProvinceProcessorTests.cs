@@ -107,5 +107,28 @@ namespace GS.Game.Tests {
 			Assert.NotNull(vaticanCity);
 			Assert.Equal(0.0, vaticanCity!.Population);
 		}
+
+		[Fact]
+		void process_extracts_topology_fields_and_defaults_missing_values() {
+			var doc = BuildFeatureCollection(
+				("France__Normandy", "France", "OptionA"),
+				("Vatican__Vatican_City", "Vatican", "Micro"));
+			var normandyProps = doc["features"]![0]!["properties"]!;
+			normandyProps["centroidX"] = 1.25;
+			normandyProps["centroidY"] = -2.5;
+			normandyProps["neighborProvinceIds"] = new JsonArray("France__Brittany", "France__Paris");
+
+			var (metadata, _, errors) = ProvinceProcessor.Process(doc, BuildCountryConfig());
+
+			Assert.Empty(errors);
+			var normandy = metadata.FindByProvinceId("France__Normandy")!;
+			Assert.Equal(1.25, normandy.CentroidX);
+			Assert.Equal(-2.5, normandy.CentroidY);
+			Assert.Equal(new[] { "France__Brittany", "France__Paris" }, normandy.NeighborProvinceIds);
+			var vatican = metadata.FindByProvinceId("Vatican__Vatican_City")!;
+			Assert.Equal(0, vatican.CentroidX);
+			Assert.Equal(0, vatican.CentroidY);
+			Assert.Empty(vatican.NeighborProvinceIds);
+		}
 	}
 }

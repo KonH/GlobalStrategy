@@ -49,7 +49,14 @@ namespace GS.Game.Tests {
 				new StaticConfig<MapEntryConfig>(new MapEntryConfig()),
 				new StaticConfig<CountryConfig>(countryConfig),
 				new StaticConfig<GameSettings>(gameSettings),
-				new StaticConfig<ResourceConfig>(new ResourceConfig { Resources = new List<ResourceDefinition>() }),
+				new StaticConfig<ResourceConfig>(new ResourceConfig {
+					Resources = new List<ResourceDefinition> {
+						new ResourceDefinition {
+							ResourceId = ResourceDefinitions.WarInitiative,
+							SeedTarget = ResourceSeedTarget.Country
+						}
+					}
+				}),
 				new StaticConfig<OrganizationConfig>(orgConfig),
 				initialOrganizationId: "Illuminati",
 				province: new StaticConfig<ProvinceConfig>(new ProvinceConfig()));
@@ -146,6 +153,54 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void stop_war_releases_active_survivors_and_removes_battle_history() {
+			var world = new World();
+			int recruitsEntity = world.Create();
+			world.Add(recruitsEntity, new ResourceOwner("Great_Britain", OwnerType.Country));
+			world.Add(recruitsEntity, new Resource {
+				ResourceId = ResourceDefinitions.Recruits,
+				Value = 5
+			});
+			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			string warId = GetSingle<War>(world).WarId;
+			int activeBattle = world.Create();
+			world.Add(activeBattle, new Battle {
+				BattleId = "active",
+				WarId = warId,
+				State = BattleState.Active
+			});
+			int activeForce = world.Create();
+			world.Add(activeForce, new BattleForce {
+				BattleId = "active",
+				CountryId = "Great_Britain",
+				Side = WarParticipantKind.Attacker,
+				Troops = 7,
+				Casualties = 3
+			});
+			int finishedBattle = world.Create();
+			world.Add(finishedBattle, new Battle {
+				BattleId = "finished",
+				WarId = warId,
+				State = BattleState.Finished,
+				Winner = WarParticipantKind.Attacker
+			});
+			int finishedForce = world.Create();
+			world.Add(finishedForce, new BattleForce {
+				BattleId = "finished",
+				CountryId = "Great_Britain",
+				Side = WarParticipantKind.Attacker,
+				Troops = 9
+			});
+
+			Assert.True(Wars.StopWar(world, "Great_Britain"));
+
+			Assert.Equal(12, ResourceQuery.GetValue(world, "Great_Britain", ResourceDefinitions.Recruits));
+			Assert.Equal(0, CountEntities<Battle>(world));
+			Assert.Equal(0, CountEntities<BattleForce>(world));
+			Assert.False(Wars.StopWar(world, "Great_Britain"));
+		}
+
+		[Fact]
 		void debug_commands_declare_and_stop_war_through_game_logic() {
 			var logic = BuildLogic();
 			logic.Update(0f);
@@ -161,6 +216,16 @@ namespace GS.Game.Tests {
 
 			Assert.False(Wars.IsInWar(logic.World, "Great_Britain"));
 			Assert.False(Wars.IsInWar(logic.World, "France"));
+		}
+
+		static T GetSingle<T>(World world) {
+			int[] required = { TypeId<T>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				if (arch.Count > 0) {
+					return arch.GetColumn<T>()[0];
+				}
+			}
+			throw new InvalidOperationException($"No {typeof(T).Name} entity found.");
 		}
 	}
 }

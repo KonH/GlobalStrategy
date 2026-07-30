@@ -548,6 +548,17 @@ namespace GS.Main {
 		}
 	}
 
+	public class CharacterCardHintRowState {
+		public string ActionId { get; }
+		public int Threshold { get; }
+		public bool IsMet { get; set; }
+
+		public CharacterCardHintRowState(string actionId, int threshold) {
+			ActionId = actionId;
+			Threshold = threshold;
+		}
+	}
+
 	public class WinConditionHintState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 

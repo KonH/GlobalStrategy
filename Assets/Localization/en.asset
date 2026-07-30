@@ -1608,6 +1608,10 @@ MonoBehaviour:
     Value: Empty
   - Key: hud.slot_available
     Value: Available
+  - Key: hud.character.card_hint
+    Value: At opinion {0} - {1}
+  - Key: hud.character.card_country_placeholder
+    Value: Country
   - Key: action.discover_country.name
     Value: Discover Country
   - Key: action.discover_country.desc
@@ -1720,6 +1724,50 @@ MonoBehaviour:
     Value: "{0} made {1} and {2} rivals"
   - Key: game_log.war_declared_format
     Value: "{0}: {1} declares war on {2}!"
+  - Key: web.header.warning
+    Value: This is an experimental web version of the game; it may be unstable and lose data.
+  - Key: web.header.full_client_link_text
+    Value: Play the full client
+  - Key: web.footer.copyright
+    Value: © 2026 KonH · MIT License
+  - Key: web.footer.github_link_text
+    Value: View source on GitHub
+  - Key: end_game.result.win
+    Value: '{0} has won the game!'
+  - Key: end_game.result.lose
+    Value: '{0} has won. Your organization did not achieve victory.'
+  - Key: end_game.exit
+    Value: Exit
+  - Key: end_game.leaderboard.empty
+    Value: No organizations to display.
+  - Key: select_org.win_conditions.header
+    Value: Victory Conditions
+  - Key: select_org.win_conditions.alternative_cue
+    Value: Achieve any one of the following
+  - Key: select_org.win_conditions.empty
+    Value: No victory conditions configured.
+  - Key: select_org.win_conditions.total_control
+    Value: Reach {0}% total control across all countries
+  - Key: select_org.win_conditions.full_control_countries
+    Value: 'Fully control {0} of {1} countries'
+  - Key: end_game.comparison.CommitteeOf300
+    Value: The Committee of 300
+  - Key: end_game.comparison.TrilateralCommission
+    Value: The Trilateral Commission
+  - Key: end_game.comparison.BilderbergGroup
+    Value: The Bilderberg Group
+  - Key: end_game.comparison.DeepState
+    Value: The Deep State
+  - Key: end_game.comparison.Reptilians
+    Value: The Reptilians
+  - Key: end_game.comparison.SkullAndBones
+    Value: Skull and Bones
+  - Key: end_game.comparison.NewWorldOrder
+    Value: The New World Order
+  - Key: end_game.comparison.KnightsTemplar
+    Value: The Knights Templar
+  - Key: end_game.comparison.BohemianGrove
+    Value: The Bohemian Grove
   - Key: province_name.Afghanistan__Andkhvoy
     Value: Andkhvoy
   - Key: province_name.Afghanistan__Asadabad
@@ -12704,47 +12752,3 @@ MonoBehaviour:
     Value: Osh
   - Key: province_name.central_Asian_khanates__Osh_2
     Value: Osh
-  - Key: web.header.warning
-    Value: This is an experimental web version of the game; it may be unstable and lose data.
-  - Key: web.header.full_client_link_text
-    Value: Play the full client
-  - Key: web.footer.copyright
-    Value: © 2026 KonH · MIT License
-  - Key: web.footer.github_link_text
-    Value: View source on GitHub
-  - Key: end_game.result.win
-    Value: '{0} has won the game!'
-  - Key: end_game.result.lose
-    Value: '{0} has won. Your organization did not achieve victory.'
-  - Key: end_game.exit
-    Value: Exit
-  - Key: end_game.leaderboard.empty
-    Value: No organizations to display.
-  - Key: select_org.win_conditions.header
-    Value: Victory Conditions
-  - Key: select_org.win_conditions.alternative_cue
-    Value: Achieve any one of the following
-  - Key: select_org.win_conditions.empty
-    Value: No victory conditions configured.
-  - Key: select_org.win_conditions.total_control
-    Value: Reach {0}% total control across all countries
-  - Key: select_org.win_conditions.full_control_countries
-    Value: 'Fully control {0} of {1} countries'
-  - Key: end_game.comparison.CommitteeOf300
-    Value: The Committee of 300
-  - Key: end_game.comparison.TrilateralCommission
-    Value: The Trilateral Commission
-  - Key: end_game.comparison.BilderbergGroup
-    Value: The Bilderberg Group
-  - Key: end_game.comparison.DeepState
-    Value: The Deep State
-  - Key: end_game.comparison.Reptilians
-    Value: The Reptilians
-  - Key: end_game.comparison.SkullAndBones
-    Value: Skull and Bones
-  - Key: end_game.comparison.NewWorldOrder
-    Value: The New World Order
-  - Key: end_game.comparison.KnightsTemplar
-    Value: The Knights Templar
-  - Key: end_game.comparison.BohemianGrove
-    Value: The Bohemian Grove
