@@ -348,7 +348,8 @@ namespace GS.Main {
 					resourceDef.ResourceId == ResourceDefinitions.CountryScore ||
 					resourceDef.ResourceId == ResourceDefinitions.Recruits ||
 					resourceDef.ResourceId == ResourceDefinitions.Damage ||
-					resourceDef.ResourceId == ResourceDefinitions.Durability) {
+					resourceDef.ResourceId == ResourceDefinitions.Durability ||
+					resourceDef.ResourceId == ResourceDefinitions.WarInitiative) {
 					initialValue = 0;
 				} else if (resourceDef.ResourceId != ResourceDefinitions.Gold) {
 					ThrowUnsupportedResource(resourceDef);

@@ -13,33 +13,15 @@ namespace GS.Game.Systems {
 					OccupierId = ""
 				});
 			}
-			BumpVersion(world);
+			ProvinceOccupationMutations.BumpVersion(world);
 		}
 
 		public static (bool Changed, string OldOccupierId) SetOccupier(World world, string provinceId, string occupierId) {
-			string normalizedOccupierId = occupierId ?? "";
-			int[] required = { TypeId<ProvinceOccupation>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
-				ProvinceOccupation[] occupations = arch.GetColumn<ProvinceOccupation>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (occupations[i].ProvinceId != provinceId) {
-						continue;
-					}
-					string oldOccupierId = occupations[i].OccupierId ?? "";
-					if (oldOccupierId == normalizedOccupierId) {
-						return (false, "");
-					}
-					occupations[i].OccupierId = normalizedOccupierId;
-					BumpVersion(world);
-					return (true, oldOccupierId);
-				}
-			}
-			return (false, "");
+			return ProvinceOccupationMutations.Set(world, provinceId, occupierId);
 		}
 
 		public static (bool Changed, string OldOccupierId) ClearOccupier(World world, string provinceId) {
-			return SetOccupier(world, provinceId, "");
+			return ProvinceOccupationMutations.Clear(world, provinceId);
 		}
 
 		public static (bool Changed, string OldOccupierId, string NewOccupierId) ToggleOccupier(World world, string provinceId, string occupierId) {
@@ -91,16 +73,5 @@ namespace GS.Game.Systems {
 			return 0;
 		}
 
-		static void BumpVersion(World world) {
-			int[] required = { TypeId<ProvinceOccupationVersion>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
-				if (arch.Count > 0) {
-					arch.GetColumn<ProvinceOccupationVersion>()[0].Value++;
-					return;
-				}
-			}
-			int entity = world.Create();
-			world.Add(entity, new ProvinceOccupationVersion { Value = 1 });
-		}
 	}
 }

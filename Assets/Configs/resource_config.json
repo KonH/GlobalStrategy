@@ -95,6 +95,12 @@
       "seedTarget": "Country",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
+    },
+    {
+      "resourceId": "war_initiative",
+      "seedTarget": "Country",
+      "defaultInitialValue": 0.0,
+      "defaultEffects": []
     }
   ]
 }
