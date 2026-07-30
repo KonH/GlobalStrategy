@@ -7,15 +7,17 @@ stale-run reclaim.
 
 The label set IS the state machine - there is no local state file and no timestamp bookkeeping:
 
-- `<label>` (e.g. `claude`)      - the owner opted this issue/PR in; its description (plus the
-                                   owner's comments) is the prompt to execute.
-- `<label>-in-progress`          - a run is actively working it; skipped by discovery.
-- `<label>-needs-attention`      - the automation is waiting on the owner; skipped.
-- `<label>-complete`             - the prompt is fully done; skipped.
+- `<provider>` (e.g. `claude`)   - the owner (or auto-router) opted this issue/PR in; its
+                                   description (plus trusted comments) is the prompt to execute.
+- `ai-in-progress`               - a run is actively working it; skipped by discovery.
+- `ai-need-attention`            - the automation is waiting on the owner; skipped.
+- `ai-complete`                  - the prompt is fully done; skipped.
 
-An item is a candidate iff it carries `<label>` and none of the three status labels. The owner
-resumes a needs-attention/complete item by replying and removing that status label - discovery
-then selects it again with no further machinery.
+Status labels are shared across providers. An item is a candidate iff it carries the provider
+opt-in label and none of the three `ai-*` status labels. Reclaim/release only touch items that
+also carry the calling provider's opt-in label, so one provider's lock cannot clear another's
+in-flight work. The owner resumes a need-attention/complete item by replying and removing that
+status label - discovery then selects it again with no further machinery.
 
 Each candidate gets its own CLI invocation, started from a guaranteed-clean checkout of its
 valid branch (`candidate_branch` + `checkout_clean`): main for an issue, the PR's head branch
@@ -23,20 +25,21 @@ for a PR. A batch can't share one checkout when items need different branches, s
 loops candidates rather than sending one combined prompt.
 
 Stale-run reclaim: the wrapper holds an exclusive process lock, so at run start no other run
-can be active - any `<label>-in-progress` still on GitHub is by definition leftover from a
-crashed/interrupted run. `reclaim_stale_in_progress` re-queues such items (removes the label)
-up to MAX_AUTO_RECLAIMS times, counting attempts via `<marker>:reclaim` comments on the item
-itself (GitHub is the counter - no local state); one more crash after that escalates to
-`<label>-needs-attention` instead of retrying forever. A real owner comment resets the counter.
+of *this* provider can be active - any `ai-in-progress` still on that provider's items is by
+definition leftover from a crashed/interrupted run. `reclaim_stale_in_progress` re-queues such
+items (removes the label) up to MAX_AUTO_RECLAIMS times, counting attempts via
+`<marker>:reclaim` comments on the item itself (GitHub is the counter - no local state); one
+more crash after that escalates to `ai-need-attention` instead of retrying forever. A real
+owner comment resets the counter.
 
 Session/usage limits are NOT crashes: when a wrapper detects that its CLI run was cut short by
 the provider's session/usage limit, it first salvages any dirty working-tree changes
 (`salvage_uncommitted_work` - deterministic Python git commit+push, no agent), records an
 aware-UTC retry timestamp in a small local file, and then either silently releases the
-`-in-progress` labels the interrupted run left behind (no reclaim comment, no crash-counter
+`ai-in-progress` labels the interrupted run left behind (no reclaim comment, no crash-counter
 increment - `release_in_progress_silently`) on a successful salvage, or parks the item with
-`<label>-needs-attention` when salvage fails. A brief automation note is posted best-effort
-*after* save/release so a failed `post_comment` cannot leave `-in-progress` for reclaim.
+`ai-need-attention` when salvage fails. A brief automation note is posted best-effort
+*after* save/release so a failed `post_comment` cannot leave `ai-in-progress` for reclaim.
 Every later run first checks `limit_active` - both sides of the comparison are timezone-aware
 UTC datetimes, so the machine's local timezone never skews it - and exits immediately, before
 any GitHub call, while the window is still in effect.
@@ -54,6 +57,7 @@ import logging
 import os
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from functools import lru_cache
 from logging.handlers import RotatingFileHandler
@@ -65,8 +69,13 @@ FIELDS = "number,title,body,url,labels"
 AUTOMATION_ROOT = Path(__file__).resolve().parent.parent
 CONTRIBUTORS_FILE = AUTOMATION_ROOT / "contributors.json"
 
+AI_IN_PROGRESS = "ai-in-progress"
+AI_NEED_ATTENTION = "ai-need-attention"
+AI_COMPLETE = "ai-complete"
+AI_STATUS_LABELS = frozenset({AI_IN_PROGRESS, AI_NEED_ATTENTION, AI_COMPLETE})
+
 # How many times a crashed/interrupted run is silently re-queued before the item is parked
-# with `<label>-needs-attention` instead. 2 reclaims = 3 attempts total.
+# with `ai-need-attention` instead. 2 reclaims = 3 attempts total.
 MAX_AUTO_RECLAIMS = 2
 
 SALVAGE_COMMIT_MESSAGE = "chore: salvage uncommitted work after session limit"
@@ -208,6 +217,40 @@ def label_names(item):
     return {item_label["name"] for item_label in item.get("labels", [])}
 
 
+def get_item_label_names(number):
+    """Live label set for one issue/PR (issues API covers both)."""
+    labels = run_gh_json(["api", f"repos/{OWNER}/{REPO}/issues/{number}/labels", "--paginate"])
+    return {entry["name"] for entry in labels}
+
+
+def verify_label_present(logger, number, name, attempts=3, initial_delay_seconds=1.0):
+    """Wait briefly for `name` to show on the item after an add_label write.
+
+    Up to `attempts` reads with exponential backoff between failures. Never raises for a
+    missing label - logs and returns False so the caller can continue (next cron tick will
+    rediscover). Used by auto-routing before provider handlers re-list by label.
+    """
+    delay = initial_delay_seconds
+    for attempt in range(1, attempts + 1):
+        try:
+            if name in get_item_label_names(number):
+                if attempt > 1:
+                    logger.info("Verified label '%s' on #%s after %s attempt(s).",
+                                name, number, attempt)
+                return True
+        except Exception as exc:
+            logger.warning("Label verify read failed for #%s (%s) on attempt %s/%s: %s",
+                           number, name, attempt, attempts, exc)
+        if attempt < attempts:
+            logger.info("Label '%s' not yet visible on #%s (attempt %s/%s); retrying in %ss.",
+                        name, number, attempt, attempts, delay)
+            time.sleep(delay)
+            delay *= 2
+    logger.warning("Label '%s' still not visible on #%s after %s attempts; continuing without "
+                   "blocking the run.", name, number, attempts)
+    return False
+
+
 @lru_cache(maxsize=1)
 def configured_contributors():
     """The GitHub accounts permitted to originate or refine automation work.
@@ -245,9 +288,10 @@ def list_labeled_items(label):
 
 
 def find_candidates(label):
-    """An item is a candidate iff it carries `label` and none of the three status labels."""
-    status_labels = {f"{label}-in-progress", f"{label}-needs-attention", f"{label}-complete"}
-    return [item for item in list_labeled_items(label) if not (label_names(item) & status_labels)]
+    """An item is a candidate iff it carries the provider `label` and none of the shared
+    `ai-*` status labels."""
+    return [item for item in list_labeled_items(label)
+            if not (label_names(item) & AI_STATUS_LABELS)]
 
 
 def _load_provider_state(logger, state_file):
@@ -352,18 +396,22 @@ def record_auto_selection(state_file, provider, selected_at=None):
 
 
 def release_in_progress_silently(logger, label):
-    """Removes `<label>-in-progress` from items a limit-interrupted run left behind, WITHOUT
-    posting a reclaim marker comment: hitting the provider's session/usage limit is a planned
-    pause, not a crash, so it must neither consume the crash-retry budget nor add error noise
-    to the item's thread. The items return to plain candidates and are picked up again once
-    the limit window passes. Items also carrying `<label>-needs-attention` stay untouched,
-    same as in reclaim_stale_in_progress."""
-    for item in list_labeled_items(f"{label}-in-progress"):
-        if f"{label}-needs-attention" in label_names(item):
+    """Removes `ai-in-progress` from this provider's items a limit-interrupted run left behind,
+    WITHOUT posting a reclaim marker comment: hitting the provider's session/usage limit is a
+    planned pause, not a crash, so it must neither consume the crash-retry budget nor add error
+    noise to the item's thread. The items return to plain candidates and are picked up again
+    once the limit window passes. Items also carrying `ai-need-attention` stay untouched, same
+    as in reclaim_stale_in_progress. Only items that also carry the provider opt-in `label` are
+    touched, so shared status labels cannot clear another provider's in-flight work."""
+    for item in list_labeled_items(label):
+        names = label_names(item)
+        if AI_IN_PROGRESS not in names:
             continue
-        logger.info(f"Releasing {item['kind']} #{item['number']} from {label}-in-progress "
+        if AI_NEED_ATTENTION in names:
+            continue
+        logger.info(f"Releasing {item['kind']} #{item['number']} from {AI_IN_PROGRESS} "
                      "(limit pause, not a crash - no retry counted).")
-        remove_label(item["number"], f"{label}-in-progress")
+        remove_label(item["number"], AI_IN_PROGRESS)
 
 
 def salvage_uncommitted_work(logger):
@@ -389,9 +437,9 @@ def salvage_uncommitted_work(logger):
 
 
 def handle_limit_pause(logger, label, marker, candidate, state_file, retry_at):
-    """Shared limit-pause path for Claude and Codex wrappers. Order is intentional: salvage,
+    """Shared limit-pause path for provider wrappers. Order is intentional: salvage,
     then always persist `retry_at`, then release-or-escalate labels, then best-effort note -
-    so a failed `post_comment` cannot leave `-in-progress` for reclaim."""
+    so a failed `post_comment` cannot leave `ai-in-progress` for reclaim."""
     status, detail = salvage_uncommitted_work(logger)
     save_limit_retry_at(state_file, label, retry_at)
     number = candidate["number"]
@@ -409,11 +457,11 @@ def handle_limit_pause(logger, label, marker, candidate, state_file, retry_at):
         except Exception as exc:
             logger.warning(f"Failed to post limit-pause note on {kind} #{number}: {exc}")
     else:
-        add_label(number, f"{label}-needs-attention")
-        remove_label(number, f"{label}-in-progress")
+        add_label(number, AI_NEED_ATTENTION)
+        remove_label(number, AI_IN_PROGRESS)
         note = (
             f"{marker}\nAutomation hit a session/usage limit but failed to salvage "
-            f"uncommitted work: {detail}. Applied `{label}-needs-attention`. "
+            f"uncommitted work: {detail}. Applied `{AI_NEED_ATTENTION}`. "
             f"Pausing until {retry_iso}."
         )
         try:
@@ -446,37 +494,40 @@ def count_reclaims_since_owner_comment(marker_prefix, reclaim_marker, number):
 
 
 def reclaim_stale_in_progress(logger, label, marker):
-    """Called at run start, after the process lock is held: no other run can be active, so any
-    `<label>-in-progress` still on GitHub is leftover from a crashed/interrupted run. Re-queues
-    it (removes the label so normal discovery selects it again) up to MAX_AUTO_RECLAIMS times;
-    the crash after that escalates to `<label>-needs-attention` so repeated crashes never burn
-    usage forever. Items already carrying `<label>-needs-attention` are genuinely waiting on
-    the owner and are left untouched."""
+    """Called at run start, after the process lock is held: no other run of this provider can
+    be active, so any `ai-in-progress` still on this provider's items is leftover from a
+    crashed/interrupted run. Re-queues it (removes the label so normal discovery selects it
+    again) up to MAX_AUTO_RECLAIMS times; the crash after that escalates to
+    `ai-need-attention` so repeated crashes never burn usage forever. Items already carrying
+    `ai-need-attention` are genuinely waiting on the owner and are left untouched. Items that
+    lack this provider's opt-in `label` are ignored so shared status labels stay provider-scoped
+    under reclaim."""
     marker_prefix = marker.rsplit(" -->", 1)[0]
     reclaim_marker = f"{marker_prefix}:reclaim -->"
-    in_progress_label = f"{label}-in-progress"
-    needs_attention_label = f"{label}-needs-attention"
-    for item in list_labeled_items(in_progress_label):
+    for item in list_labeled_items(label):
         number = item["number"]
-        if needs_attention_label in label_names(item):
+        names = label_names(item)
+        if AI_IN_PROGRESS not in names:
+            continue
+        if AI_NEED_ATTENTION in names:
             continue
         reclaims = count_reclaims_since_owner_comment(marker_prefix, reclaim_marker, number)
         if reclaims >= MAX_AUTO_RECLAIMS:
             logger.warning(
                 f"{item['kind']} #{number} still in-progress after {reclaims} automatic retries "
-                f"- escalating to {needs_attention_label} instead of retrying again."
+                f"- escalating to {AI_NEED_ATTENTION} instead of retrying again."
             )
             post_comment(number, (
                 f"{marker}\nAutomated runs on this {item['kind']} were interrupted "
                 f"{reclaims + 1} times in a row without finishing. Stopping automatic retries - "
                 f"check the run logs, then reply with guidance and remove the "
-                f"`{needs_attention_label}` label to try again."
+                f"`{AI_NEED_ATTENTION}` label to try again."
             ))
-            add_label(number, needs_attention_label)
-            remove_label(number, in_progress_label)
+            add_label(number, AI_NEED_ATTENTION)
+            remove_label(number, AI_IN_PROGRESS)
         else:
             logger.warning(
-                f"{item['kind']} #{number} still labeled {in_progress_label} - previous run "
+                f"{item['kind']} #{number} still labeled {AI_IN_PROGRESS} - previous run "
                 f"crashed or was interrupted; re-queuing (automatic retry {reclaims + 1} of "
                 f"{MAX_AUTO_RECLAIMS})."
             )
@@ -485,4 +536,4 @@ def reclaim_stale_in_progress(logger, label, marker):
                 f"re-queuing this {item['kind']} (automatic retry {reclaims + 1} of "
                 f"{MAX_AUTO_RECLAIMS})."
             ))
-            remove_label(number, in_progress_label)
+            remove_label(number, AI_IN_PROGRESS)
