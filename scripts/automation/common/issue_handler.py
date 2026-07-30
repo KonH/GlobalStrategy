@@ -316,12 +316,20 @@ def _save_provider_state(state_file, state):
 
 def load_limit_retry_at(logger, state_file, provider):
     """Returns the stored retry timestamp as an aware-UTC datetime, or None if the file is
-    absent or unreadable. A stored naive timestamp (shouldn't happen - save always writes an
-    aware one) is defensively interpreted as UTC rather than local time."""
+    absent, the provider has no `limit_retry_at`, or the value is unreadable. A stored naive
+    timestamp (shouldn't happen - save always writes an aware one) is defensively interpreted
+    as UTC rather than local time. Missing keys are normal (provider may only have
+    `last_auto_selection_at`) and must not warn; only a present but unparseable value warns."""
+    data = _load_provider_state(logger, state_file)
+    record = data["providers"].get(provider, {})
+    if not isinstance(record, dict) or "limit_retry_at" not in record:
+        return None
+    value = record["limit_retry_at"]
+    if value is None:
+        return None
     try:
-        data = _load_provider_state(logger, state_file)
-        retry_at = datetime.fromisoformat(data["providers"].get(provider, {})["limit_retry_at"])
-    except (ValueError, KeyError, TypeError, json.JSONDecodeError):
+        retry_at = datetime.fromisoformat(value)
+    except (ValueError, TypeError):
         logger.warning("Could not parse stored %s limit-retry time - ignoring it.", provider)
         return None
     if retry_at.tzinfo is None:

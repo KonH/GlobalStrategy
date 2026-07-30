@@ -8,10 +8,16 @@ from unittest.mock import MagicMock, patch
 from scripts.automation.claude.handle_issues import (
     detect_session_limit, limit_detection_texts,
 )
+from scripts.automation.codex.handle_issues import (
+    detect_session_limit as detect_codex_session_limit,
+)
+from scripts.automation.cursor.handle_issues import (
+    detect_session_limit as detect_cursor_session_limit,
+)
 from scripts.automation.common.issue_handler import (
     SALVAGE_COMMIT_MESSAGE, SALVAGE_GIT_IDENTITY, candidate_branch, checkout_clean,
     configured_contributors, count_reclaims_since_owner_comment, find_candidates,
-    handle_limit_pause, limit_active, reclaim_stale_in_progress,
+    handle_limit_pause, limit_active, load_limit_retry_at, reclaim_stale_in_progress,
     release_in_progress_silently, salvage_uncommitted_work, save_limit_retry_at,
 )
 
@@ -257,6 +263,102 @@ class LimitFileTests(unittest.TestCase):
         self.assertTrue(limit_active(self.logger, self.state_file, "claude"))
         self.assertTrue(limit_active(self.logger, self.state_file, "codex"))
         self.assertFalse(limit_active(self.logger, self.state_file, "cursor"))
+
+    def test_missing_limit_retry_at_is_silent_none(self):
+        # Provider records with only last_auto_selection_at are normal after auto-routing;
+        # that must not look like a corrupt limit-retry timestamp.
+        self.state_file.write_text(json.dumps({
+            "providers": {
+                "cursor": {"last_auto_selection_at": "2026-07-30T10:15:18.164620+00:00"},
+            }
+        }), encoding="utf-8")
+        self.assertIsNone(load_limit_retry_at(self.logger, self.state_file, "cursor"))
+        self.assertFalse(limit_active(self.logger, self.state_file, "cursor"))
+        self.logger.warning.assert_not_called()
+
+    def test_unparseable_limit_retry_at_warns_and_ignores(self):
+        self.state_file.write_text(json.dumps({
+            "providers": {"cursor": {"limit_retry_at": "not-a-timestamp"}}
+        }), encoding="utf-8")
+        self.assertIsNone(load_limit_retry_at(self.logger, self.state_file, "cursor"))
+        self.logger.warning.assert_called_once()
+        self.assertEqual(
+            ("Could not parse stored %s limit-retry time - ignoring it.", "cursor"),
+            self.logger.warning.call_args.args,
+        )
+
+
+class DetectCodexSessionLimitTests(unittest.TestCase):
+    PRODUCTION_LIMIT = (
+        "You've hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), "
+        "visit https://chatgpt.com/codex/settings/usage to purchase more credits or "
+        "try again at Aug 5th, 2026 9:31 AM."
+    )
+
+    def test_production_usage_limit_parses_try_again_at(self):
+        # error/failed events are json-dumped into error_texts by run_codex
+        error_event = json.dumps({"type": "error", "message": self.PRODUCTION_LIMIT})
+        limit_hit, retry_at = detect_codex_session_limit([error_event])
+        self.assertTrue(limit_hit)
+        self.assertEqual(datetime(2026, 8, 5, 9, 31, tzinfo=timezone.utc), retry_at)
+
+    def test_plain_usage_limit_without_try_again_at(self):
+        limit_hit, retry_at = detect_codex_session_limit(["usage limit exceeded"])
+        self.assertTrue(limit_hit)
+        self.assertIsNone(retry_at)
+
+    def test_unrelated_error_is_not_a_limit(self):
+        self.assertEqual((False, None), detect_codex_session_limit(["fatal: repository not found"]))
+
+
+class DetectCursorSessionLimitTests(unittest.TestCase):
+    # Production cursor-agent CLI wording from forum.cursor.com/t/cursor-agent-cli-limit-hit
+    PRODUCTION_LIMIT = (
+        "Error: You've hit your usage limit You've saved xx on API model usage this month "
+        "with Pro. Switch to Auto for more usage or set a Spend Limit to continue with Sonnet. "
+        "Your usage limits will reset when your monthly cycle ends on 8/14/2025. "
+        "fallbackModel: default spendLimitHit: false"
+    )
+    FREE_REQUESTS_LIMIT = (
+        "You've hit your free requests limit. Upgrade to Pro for more usage, frontier models, "
+        "Background Agents, and more. Your usage limits will reset when your monthly cycle "
+        "ends on 8/21/2025."
+    )
+
+    def test_production_usage_limit_parses_cycle_ends_on(self):
+        fixed_now = datetime(2025, 8, 10, 12, 0, tzinfo=timezone.utc)
+        with patch("scripts.automation.cursor.handle_issues.datetime") as mock_dt:
+            mock_dt.now.return_value = fixed_now
+            mock_dt.side_effect = lambda *a, **k: datetime(*a, **k)
+            limit_hit, retry_at = detect_cursor_session_limit([self.PRODUCTION_LIMIT])
+        self.assertTrue(limit_hit)
+        self.assertEqual(datetime(2025, 8, 14, tzinfo=timezone.utc), retry_at)
+
+    def test_cycle_ends_on_today_rolls_to_tomorrow(self):
+        fixed_now = datetime(2025, 8, 14, 11, 0, tzinfo=timezone.utc)
+        with patch("scripts.automation.cursor.handle_issues.datetime") as mock_dt:
+            mock_dt.now.return_value = fixed_now
+            mock_dt.side_effect = lambda *a, **k: datetime(*a, **k)
+            limit_hit, retry_at = detect_cursor_session_limit([self.PRODUCTION_LIMIT])
+        self.assertTrue(limit_hit)
+        self.assertEqual(datetime(2025, 8, 15, tzinfo=timezone.utc), retry_at)
+
+    def test_free_requests_limit_parses_cycle_ends_on(self):
+        fixed_now = datetime(2025, 8, 10, 12, 0, tzinfo=timezone.utc)
+        with patch("scripts.automation.cursor.handle_issues.datetime") as mock_dt:
+            mock_dt.now.return_value = fixed_now
+            mock_dt.side_effect = lambda *a, **k: datetime(*a, **k)
+            limit_hit, retry_at = detect_cursor_session_limit([self.FREE_REQUESTS_LIMIT])
+        self.assertTrue(limit_hit)
+        self.assertEqual(datetime(2025, 8, 21, tzinfo=timezone.utc), retry_at)
+
+    def test_plain_usage_limit_without_cycle_ends(self):
+        limit_hit, retry_at = detect_cursor_session_limit(["You've hit your usage limit."])
+        self.assertTrue(limit_hit)
+        self.assertIsNone(retry_at)
+
+    def test_unrelated_error_is_not_a_limit(self):
+        self.assertEqual((False, None), detect_cursor_session_limit(["fatal: repository not found"]))
 
 
 class DetectSessionLimitTests(unittest.TestCase):
