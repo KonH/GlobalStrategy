@@ -450,6 +450,10 @@ MonoBehaviour:
     Value: Organizations
   - Key: hud.lens.province
     Value: Province
+  - Key: hud.war.title_format
+    Value: '{0} - {1} War'
+  - Key: hud.war.progress_format
+    Value: 'Progress: {0}'
   - Key: select_org.base_control
     Value: "Base Control:"
   - Key: select_org.estimated_income

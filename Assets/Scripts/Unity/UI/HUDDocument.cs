@@ -33,6 +33,8 @@ namespace GS.Unity.UI {
 		OrgVisualConfig _orgVisualConfig;
 		GameMenuDocument _gameMenu;
 		LeaderboardWindowDocument _leaderboardWindow;
+		WarProgressWindowDocument _warProgressWindow;
+		WarIconsView _warIconsView;
 		Button _btnMenu;
 		Button _btnLeaderboard;
 		Button _btnDebugToggle;
@@ -79,7 +81,7 @@ namespace GS.Unity.UI {
 		DebugCardAvailabilityView _selectedOrgCardDebug;
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig, IFlyTextNotifier flyText, GameSettings gameSettings) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, WarProgressWindowDocument warProgressWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig, IFlyTextNotifier flyText, GameSettings gameSettings) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
@@ -91,6 +93,7 @@ namespace GS.Unity.UI {
 			_orgVisualConfig = orgVisualConfig;
 			_gameMenu = gameMenu;
 			_leaderboardWindow = leaderboardWindow;
+			_warProgressWindow = warProgressWindow;
 			_orgInfoDocument = orgInfoDocument;
 			_actionConfig = actionConfig;
 			_actionVisualConfig = actionVisualConfig;
@@ -133,6 +136,13 @@ namespace GS.Unity.UI {
 			_playerOrgView = new PlayerOrgView(_root.Q("player-country"), _loc, _resourceConfig, _tooltip, _orgVisualConfig);
 			_lensSwitcher = new LensSwitcherView(_root.Q("lens-switcher"), _tooltip, _loc);
 			_lensSwitcher.OnLensSelected = OnLensSelected;
+			_warIconsView = new WarIconsView(
+				_root.Q("war-icons"),
+				_loc,
+				_countryVisualConfig,
+				_tooltip,
+				warId => _warProgressWindow?.Open(warId));
+			_warIconsView.Refresh(_state.WarIcons);
 			_actionLog = new ActionLogView(_root, _root.Q("action-log"), _root.Q("top-right-panel"), _loc, _countryVisualConfig, _orgVisualConfig);
 			if (_orgInfoDocument != null) {
 				_orgInfoDocument.OnSubPanelOpened += HandleOrgSubPanelOpened;
@@ -239,12 +249,16 @@ namespace GS.Unity.UI {
 				root.Q("selected-country-deck"),
 				root.Q("selected-country-hand"),
 				_loc,
-				_actionConfig);
+				_actionConfig,
+				PushDebugDrawCountryCardCommand,
+				PushDebugDiscardCountryCardCommand);
 			_selectedOrgCardDebug = new DebugCardAvailabilityView(
 				root.Q("selected-org-deck"),
 				root.Q("selected-org-hand"),
 				_loc,
-				_actionConfig);
+				_actionConfig,
+				PushDebugDrawOrgCardCommand,
+				PushDebugDiscardOrgCardCommand);
 
 			int availableCountryCount = _countryConfig != null ? CountAvailableCountries(_countryConfig) : 0;
 			var (_, _, winConditionRows) = WinConditionHintProjector.Build(_gameSettings?.CompletionCondition, availableCountryCount);
@@ -371,7 +385,9 @@ namespace GS.Unity.UI {
 			_state.ProvinceOwnership.PropertyChanged += HandleProvinceOwnershipChanged;
 			_state.ProvinceOccupation.PropertyChanged += HandleProvinceOccupationChanged;
 			_state.GameLog.PropertyChanged += HandleGameLogChanged;
+			_state.WarIcons.PropertyChanged += HandleWarIconsChanged;
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
+			_warIconsView?.Refresh(_state.WarIcons);
 			RefreshCountryViews();
 			RefreshProvinceInfoView();
 			RefreshControlDebugRow();
@@ -407,6 +423,7 @@ namespace GS.Unity.UI {
 			_state.ProvinceOwnership.PropertyChanged -= HandleProvinceOwnershipChanged;
 			_state.ProvinceOccupation.PropertyChanged -= HandleProvinceOccupationChanged;
 			_state.GameLog.PropertyChanged -= HandleGameLogChanged;
+			_state.WarIcons.PropertyChanged -= HandleWarIconsChanged;
 			_lastOrgAgentSlotCount = -1;
 			if (_orgInfoDocument != null) {
 				_orgInfoDocument.OnSubPanelOpened -= HandleOrgSubPanelOpened;
@@ -474,6 +491,68 @@ namespace GS.Unity.UI {
 				_selectedOrgCardDebug.RefreshDeck(orgActions.Deck);
 				_selectedOrgCardDebug.RefreshHand(orgActions.Hand, gold);
 			}
+		}
+
+		void PushDebugDrawCountryCardCommand(string actionId, string targetCountryId) {
+			if (_state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) {
+				return;
+			}
+			if (string.IsNullOrEmpty(actionId)) {
+				return;
+			}
+			_commands.Push(new DebugDrawCardCommand {
+				OrgId = _state.PlayerOrganization.OrgId,
+				CountryId = _state.SelectedCountry.CountryId,
+				ActionId = actionId,
+				TargetCountryId = targetCountryId ?? ""
+			});
+		}
+
+		void PushDebugDrawOrgCardCommand(string actionId, string targetCountryId) {
+			if (_state == null || !_state.PlayerOrganization.IsValid) {
+				return;
+			}
+			if (string.IsNullOrEmpty(actionId)) {
+				return;
+			}
+			_commands.Push(new DebugDrawCardCommand {
+				OrgId = _state.PlayerOrganization.OrgId,
+				CountryId = "",
+				ActionId = actionId,
+				TargetCountryId = targetCountryId ?? ""
+			});
+		}
+
+		void PushDebugDiscardCountryCardCommand(string actionId, string targetCountryId, int slotIndex) {
+			if (_state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) {
+				return;
+			}
+			if (string.IsNullOrEmpty(actionId)) {
+				return;
+			}
+			_commands.Push(new DebugDiscardCardCommand {
+				OrgId = _state.PlayerOrganization.OrgId,
+				CountryId = _state.SelectedCountry.CountryId,
+				ActionId = actionId,
+				TargetCountryId = targetCountryId ?? "",
+				SlotIndex = slotIndex
+			});
+		}
+
+		void PushDebugDiscardOrgCardCommand(string actionId, string targetCountryId, int slotIndex) {
+			if (_state == null || !_state.PlayerOrganization.IsValid) {
+				return;
+			}
+			if (string.IsNullOrEmpty(actionId)) {
+				return;
+			}
+			_commands.Push(new DebugDiscardCardCommand {
+				OrgId = _state.PlayerOrganization.OrgId,
+				CountryId = "",
+				ActionId = actionId,
+				TargetCountryId = targetCountryId ?? "",
+				SlotIndex = slotIndex
+			});
 		}
 
 		double GetPlayerGold() {
@@ -614,6 +693,8 @@ namespace GS.Unity.UI {
 
 		void HandleLocaleChanged(object sender, PropertyChangedEventArgs e) {
 			_loc.SetLocale(_state.Locale.Locale);
+			_tooltip?.HideAll();
+			_warIconsView?.Refresh(_state.WarIcons);
 			RefreshLeaderboardButtonText();
 			RefreshCountryViews();
 			RefreshProvinceInfoView();
@@ -690,6 +771,10 @@ namespace GS.Unity.UI {
 		void HandleGameLogChanged(object sender, PropertyChangedEventArgs e) {
 			_actionLog?.Refresh(_state.GameLog);
 			NotifyNewLogEntries();
+		}
+
+		void HandleWarIconsChanged(object sender, PropertyChangedEventArgs e) {
+			_warIconsView?.Refresh(_state.WarIcons);
 		}
 
 		void NotifyNewLogEntries() {

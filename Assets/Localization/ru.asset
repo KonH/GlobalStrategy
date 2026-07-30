@@ -450,6 +450,10 @@ MonoBehaviour:
     Value: Организации
   - Key: hud.lens.province
     Value: Провинция
+  - Key: hud.war.title_format
+    Value: 'Война {0} — {1}'
+  - Key: hud.war.progress_format
+    Value: 'Ход войны: {0}'
   - Key: select_org.base_control
     Value: 'Базовый контроль:'
   - Key: select_org.estimated_income
