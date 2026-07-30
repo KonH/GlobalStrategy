@@ -325,6 +325,9 @@ namespace GS.Game.Tests {
 			Assert.False(Wars.IsInWar(logic.World, HqCountryId));
 			Assert.False(Wars.IsInWar(logic.World, OtherCountryId));
 			Assert.Equal(500, ResourceQuery.GetValue(logic.World, OrgId, "gold"));
+
+			logic.Update(0f);
+			Assert.Single(Entries(logic).Where(e => e.Kind == GameLogEntryKind.WarResolved));
 		}
 
 		static ActionConfig ControlActionConfig(int deckCopies) => new ActionConfig {

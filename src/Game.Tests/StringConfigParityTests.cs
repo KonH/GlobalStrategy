@@ -124,6 +124,23 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void effect_config_resolve_war_entries_deserialize_with_correct_outcome_through_both_sources() {
+			string path = FindRepoRootConfigPath("effect_config.json");
+			var fromFile = new FileConfig<EffectConfig>(path).Load();
+			var fromString = new StringConfig<EffectConfig>(File.ReadAllText(path)).Load();
+
+			var ultimatumFromFile = Assert.IsType<ResolveWarEffectParams>(fromFile.Find("ultimatum_effect"));
+			var ultimatumFromString = Assert.IsType<ResolveWarEffectParams>(fromString.Find("ultimatum_effect"));
+			Assert.Equal(WarOutcome.Win, ultimatumFromFile.Outcome);
+			Assert.Equal(WarOutcome.Win, ultimatumFromString.Outcome);
+
+			var surrenderFromFile = Assert.IsType<ResolveWarEffectParams>(fromFile.Find("surrender_effect"));
+			var surrenderFromString = Assert.IsType<ResolveWarEffectParams>(fromString.Find("surrender_effect"));
+			Assert.Equal(WarOutcome.Lose, surrenderFromFile.Outcome);
+			Assert.Equal(WarOutcome.Lose, surrenderFromString.Outcome);
+		}
+
+		[Fact]
 		void province_config_parity() {
 			string path = FindRepoRootConfigPath("province_config.json");
 			var fromFile = new FileConfig<ProvinceConfig>(path).Load();

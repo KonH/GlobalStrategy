@@ -125,7 +125,7 @@ namespace GS.Main {
 			// Resource/ResourceEffect/ResourceCollector entities above. GameLogic.Update calls
 			// ResourceSystem.Update unconditionally on every tick, including this same tick right
 			// after InitSystem.Update returns, which seeds every collector-driven resource
-			// (country_population/country_score/recruits/org_score) via their Instant effects.
+			// (country_population/country_score/recruits/org_score/damage/durability) via their Instant effects.
 			// Instant effects apply regardless of month/day-boundary state and self-destroy after
 			// firing once, so they are their own "already initialized" marker — no separate
 			// bootstrap call or flag is needed. See ecs_patterns.md's "no system-to-system calls"
@@ -279,6 +279,26 @@ namespace GS.Main {
 			world.Add(monthlyEffectEntity, new ResourceCollector { CollectorId = collectorId });
 		}
 
+		static void AttachInstantDailyCountryEffects(World world, string countryId, string resourceId, string collectorId) {
+			int instantEffectEntity = world.Create();
+			world.Add(instantEffectEntity, new ResourceOwner(countryId, OwnerType.Country));
+			world.Add(instantEffectEntity, new ResourceLink(resourceId));
+			world.Add(instantEffectEntity, new ResourceEffect {
+				EffectId = $"{resourceId}_seed_{countryId}",
+				PayType = PayType.Instant
+			});
+			world.Add(instantEffectEntity, new ResourceCollector { CollectorId = collectorId });
+
+			int dailyEffectEntity = world.Create();
+			world.Add(dailyEffectEntity, new ResourceOwner(countryId, OwnerType.Country));
+			world.Add(dailyEffectEntity, new ResourceLink(resourceId));
+			world.Add(dailyEffectEntity, new ResourceEffect {
+				EffectId = $"{resourceId}_daily_{countryId}",
+				PayType = PayType.Daily
+			});
+			world.Add(dailyEffectEntity, new ResourceCollector { CollectorId = collectorId });
+		}
+
 		static void AttachOrgScoreEffects(World world, string orgId) {
 			int instantEffectEntity = world.Create();
 			world.Add(instantEffectEntity, new ResourceOwner(orgId));
@@ -326,7 +346,9 @@ namespace GS.Main {
 				double initialValue = resourceDef.DefaultInitialValue;
 				if (resourceDef.ResourceId == ResourceDefinitions.CountryPopulation ||
 					resourceDef.ResourceId == ResourceDefinitions.CountryScore ||
-					resourceDef.ResourceId == ResourceDefinitions.Recruits) {
+					resourceDef.ResourceId == ResourceDefinitions.Recruits ||
+					resourceDef.ResourceId == ResourceDefinitions.Damage ||
+					resourceDef.ResourceId == ResourceDefinitions.Durability) {
 					initialValue = 0;
 				} else if (resourceDef.ResourceId != ResourceDefinitions.Gold) {
 					ThrowUnsupportedResource(resourceDef);
@@ -348,6 +370,10 @@ namespace GS.Main {
 					AttachCollectorDrivenCountryEffects(world, entry.CountryId, resourceDef.ResourceId, CountryScoreCollector.Id);
 				} else if (resourceDef.ResourceId == ResourceDefinitions.Recruits) {
 					AttachRecruitsEffects(world, entry);
+				} else if (resourceDef.ResourceId == ResourceDefinitions.Damage) {
+					AttachInstantDailyCountryEffects(world, entry.CountryId, resourceDef.ResourceId, DamageCollector.Id);
+				} else if (resourceDef.ResourceId == ResourceDefinitions.Durability) {
+					AttachInstantDailyCountryEffects(world, entry.CountryId, resourceDef.ResourceId, DurabilityCollector.Id);
 				}
 
 				foreach (var effectDef in resourceDef.DefaultEffects) {

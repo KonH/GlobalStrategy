@@ -8,14 +8,14 @@
 #
 # Only issues/PRs labeled 'claude' are ever considered - create the labels once per repo:
 #   gh label create claude --color 5319E7 --description "Execute this item's prompt via the Claude automation"
-#   gh label create claude-in-progress --color FBCA04 --description "Automation actively working this item"
-#   gh label create claude-needs-attention --color D93F0B --description "Automation waiting on the owner"
-#   gh label create claude-complete --color 0E8A16 --description "Automation finished this item's prompt"
+#   gh label create ai-in-progress --color FBCA04 --description "Automation actively working this item"
+#   gh label create ai-need-attention --color D93F0B --description "Automation waiting on the owner"
+#   gh label create ai-complete --color 0E8A16 --description "Automation finished this item's prompt"
 #
 # The labels are the whole state machine: an item is picked up iff it carries 'claude' and
-# none of the three status labels. Resume a needs-attention/complete item by replying in a
-# comment and removing that status label. claude -p is only invoked (and only then spends
-# subscription usage) when discovery finds at least one candidate.
+# none of the three shared ai-* status labels. Resume a need-attention/complete item by
+# replying in a comment and removing that status label. claude -p is only invoked (and only
+# then spends subscription usage) when discovery finds at least one candidate.
 #
 # The Python script writes its own auto-rotating log (Logs/handle_issues_claude.log,
 # 5MB x 5 backups by default) - don't also pipe stdout to a separate `>> file.log`, that
