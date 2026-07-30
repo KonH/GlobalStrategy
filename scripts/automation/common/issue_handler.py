@@ -44,6 +44,13 @@ Every later run first checks `limit_active` - both sides of the comparison are t
 UTC datetimes, so the machine's local timezone never skews it - and exits immediately, before
 any GitHub call, while the window is still in effect.
 
+If the limit-hit item is still auto-routed (carries `auto-ai`), `handle_limit_pause` also calls
+`reroute_auto_item_after_limit` right after a successful release: it drops the current provider
+label and re-runs `select_auto_provider` over the remaining providers immediately, so the item
+moves to a free provider instead of sitting out this provider's own backoff window while
+siblings are idle. If every other provider is limited too, the item is simply left with only
+`auto-ai` for the next scheduled auto-router pass to pick up.
+
 `checkout_clean` force-resets to `origin/<branch>`, but if the local branch already exists and
 is ahead of its origin counterpart it pushes that tip first - so unpushed salvage commits are
 not discarded. If that ahead-push fails, the force-reset is skipped (local tip preserved).
@@ -73,6 +80,12 @@ AI_IN_PROGRESS = "ai-in-progress"
 AI_NEED_ATTENTION = "ai-need-attention"
 AI_COMPLETE = "ai-complete"
 AI_STATUS_LABELS = frozenset({AI_IN_PROGRESS, AI_NEED_ATTENTION, AI_COMPLETE})
+
+# Providers handle_issues_auto.py routes `auto-ai` items between. Defined here rather than in
+# that module so handle_limit_pause (below) can reroute an auto-routed item to a different
+# provider immediately on a limit hit, without an import cycle.
+PROVIDERS = ("claude", "codex", "cursor")
+AUTO_LABEL = "auto-ai"
 
 # How many times a crashed/interrupted run is silently re-queued before the item is parked
 # with `ai-need-attention` instead. 2 reclaims = 3 attempts total.
@@ -436,6 +449,38 @@ def salvage_uncommitted_work(logger):
         return "failed", detail
 
 
+def reroute_auto_item_after_limit(logger, label, candidate, state_file):
+    """After a limit-pause release, if `candidate` is still an auto-routed item (carries
+    `auto-ai`), drop its current provider `label` and immediately pick a different eligible
+    provider via `select_auto_provider` - instead of leaving it stuck until this provider's own
+    backoff window passes while sibling providers sit idle. Uses the candidate's own cached
+    label snapshot (already fetched by discovery this run), matching how `has_provider_label`
+    in handle_issues_auto.py reads labels - no extra live GitHub call. Returns the newly
+    selected provider, or None when the candidate wasn't auto-routed or every other provider is
+    currently limited too (it stays a plain `auto-ai` item for the next scheduled auto-router
+    pass to pick up once one frees)."""
+    if AUTO_LABEL not in label_names(candidate):
+        return None
+    number = candidate["number"]
+    remove_label(number, label)
+    other_providers = [provider for provider in PROVIDERS if provider != label]
+    new_provider = select_auto_provider(logger, state_file, other_providers)
+    if new_provider is None:
+        logger.warning(
+            f"{candidate['kind']} #{number} dropped from '{label}' after a limit hit, but "
+            f"every other provider is limited too - left as a plain '{AUTO_LABEL}' item."
+        )
+        return None
+    add_label(number, new_provider)
+    record_auto_selection(state_file, new_provider)
+    verify_label_present(logger, number, new_provider)
+    logger.info(
+        f"Rerouted {candidate['kind']} #{number} from '{label}' to '{new_provider}' "
+        "immediately after a limit hit."
+    )
+    return new_provider
+
+
 def handle_limit_pause(logger, label, marker, candidate, state_file, retry_at):
     """Shared limit-pause path for provider wrappers. Order is intentional: salvage,
     then always persist `retry_at`, then release-or-escalate labels, then best-effort note -
@@ -448,10 +493,18 @@ def handle_limit_pause(logger, label, marker, candidate, state_file, retry_at):
 
     if status in ("clean", "committed"):
         release_in_progress_silently(logger, label)
-        note = (
-            f"{marker}\nAutomation hit a session/usage limit. Salvage: {status}"
-            f"{f' ({detail})' if detail else ''}. Pausing until {retry_iso}."
-        )
+        new_provider = reroute_auto_item_after_limit(logger, label, candidate, state_file)
+        if new_provider:
+            note = (
+                f"{marker}\nAutomation hit a session/usage limit on `{label}`. Salvage: {status}"
+                f"{f' ({detail})' if detail else ''}. Rerouted to `{new_provider}` immediately "
+                f"instead of waiting until {retry_iso}."
+            )
+        else:
+            note = (
+                f"{marker}\nAutomation hit a session/usage limit. Salvage: {status}"
+                f"{f' ({detail})' if detail else ''}. Pausing until {retry_iso}."
+            )
         try:
             post_comment(number, note)
         except Exception as exc:

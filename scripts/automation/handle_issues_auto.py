@@ -16,11 +16,11 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from scripts.automation.common.issue_handler import (
-    AI_STATUS_LABELS, acquire_lock, add_label, label_names, list_labeled_items,
-    record_auto_selection, select_auto_provider, setup_logging, verify_label_present,
+    AI_STATUS_LABELS, AUTO_LABEL, PROVIDERS, acquire_lock, add_label, label_names,
+    list_labeled_items, record_auto_selection, select_auto_provider, setup_logging,
+    verify_label_present,
 )
 
-PROVIDERS = ("claude", "codex", "cursor")
 DEFAULT_LOG_FILE = ROOT / "Logs" / "handle_issues_auto.log"
 DEFAULT_LOCK_FILE = ROOT / "Logs" / "handle_issues_auto.lock"
 DEFAULT_PROVIDER_STATE_FILE = ROOT / "Logs" / "auto_ai_provider_state.json"
@@ -35,7 +35,7 @@ def has_provider_label(candidate):
 def auto_candidates():
     """Open trusted ``auto-ai`` items not already claimed by a provider workflow."""
     return [
-        candidate for candidate in list_labeled_items("auto-ai")
+        candidate for candidate in list_labeled_items(AUTO_LABEL)
         if not has_provider_label(candidate) and not (label_names(candidate) & AI_STATUS_LABELS)
     ]
 

@@ -12,7 +12,8 @@ from scripts.automation.common.issue_handler import (
     SALVAGE_COMMIT_MESSAGE, SALVAGE_GIT_IDENTITY, candidate_branch, checkout_clean,
     configured_contributors, count_reclaims_since_owner_comment, find_candidates,
     handle_limit_pause, limit_active, reclaim_stale_in_progress,
-    release_in_progress_silently, salvage_uncommitted_work, save_limit_retry_at,
+    release_in_progress_silently, reroute_auto_item_after_limit, salvage_uncommitted_work,
+    save_limit_retry_at,
 )
 
 MARKER = "<!-- claude-automation -->"
@@ -409,26 +410,44 @@ class HandleLimitPauseTests(unittest.TestCase):
         self.candidate = {"number": 84, "kind": "pr"}
         self.retry_at = datetime(2026, 7, 29, 14, 10, tzinfo=timezone.utc)
 
-    def test_success_path_releases_then_posts_note(self):
+    def test_success_path_releases_then_reroutes_then_posts_note(self):
         with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
                    return_value=("committed", SALVAGE_COMMIT_MESSAGE)), \
              patch("scripts.automation.common.issue_handler.release_in_progress_silently") as release, \
+             patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit",
+                   return_value=None) as reroute, \
              patch("scripts.automation.common.issue_handler.post_comment") as post, \
              patch("scripts.automation.common.issue_handler.add_label") as add, \
              patch("scripts.automation.common.issue_handler.remove_label") as remove:
             handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
                                self.limit_file, self.retry_at)
         release.assert_called_once()
+        reroute.assert_called_once_with(self.logger, "claude", self.candidate, self.limit_file)
         add.assert_not_called()
         remove.assert_not_called()
         self.assertTrue(self.limit_file.exists())
         self.assertTrue(post.call_args[0][1].startswith(MARKER))
         self.assertIn("committed", post.call_args[0][1])
+        self.assertIn("Pausing until", post.call_args[0][1])
+
+    def test_success_path_note_mentions_reroute_when_a_new_provider_is_picked(self):
+        with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
+                   return_value=("clean", "working tree clean")), \
+             patch("scripts.automation.common.issue_handler.release_in_progress_silently"), \
+             patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit",
+                   return_value="codex"), \
+             patch("scripts.automation.common.issue_handler.post_comment") as post:
+            handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
+                               self.limit_file, self.retry_at)
+        self.assertIn("Rerouted to `codex`", post.call_args[0][1])
+        self.assertNotIn("Pausing until", post.call_args[0][1])
 
     def test_clean_path_still_releases_and_notes(self):
         with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
                    return_value=("clean", "working tree clean")), \
              patch("scripts.automation.common.issue_handler.release_in_progress_silently") as release, \
+             patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit",
+                   return_value=None), \
              patch("scripts.automation.common.issue_handler.post_comment") as post:
             handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
                                self.limit_file, self.retry_at)
@@ -439,12 +458,14 @@ class HandleLimitPauseTests(unittest.TestCase):
         with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
                    return_value=("failed", "push rejected")), \
              patch("scripts.automation.common.issue_handler.release_in_progress_silently") as release, \
+             patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit") as reroute, \
              patch("scripts.automation.common.issue_handler.post_comment") as post, \
              patch("scripts.automation.common.issue_handler.add_label") as add, \
              patch("scripts.automation.common.issue_handler.remove_label") as remove:
             handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
                                self.limit_file, self.retry_at)
         release.assert_not_called()
+        reroute.assert_not_called()
         add.assert_called_once_with(84, "ai-need-attention")
         remove.assert_called_once_with(84, "ai-in-progress")
         self.assertIn("ai-need-attention", post.call_args[0][1])
@@ -454,6 +475,8 @@ class HandleLimitPauseTests(unittest.TestCase):
         with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
                    return_value=("clean", "working tree clean")), \
              patch("scripts.automation.common.issue_handler.release_in_progress_silently") as release, \
+             patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit",
+                   return_value=None), \
              patch("scripts.automation.common.issue_handler.post_comment",
                    side_effect=RuntimeError("gh failed")):
             handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
@@ -485,6 +508,50 @@ class ReleaseInProgressSilentlyTests(unittest.TestCase):
              patch("scripts.automation.common.issue_handler.remove_label") as remove:
             release_in_progress_silently(MagicMock(), "claude")
         remove.assert_not_called()
+
+
+class RerouteAutoItemAfterLimitTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.state_file = Path(self.tmp.name) / "provider-state.json"
+        self.logger = MagicMock()
+
+    def test_non_auto_item_does_nothing(self):
+        candidate = item(84, ["claude"], kind="pr")
+        with patch("scripts.automation.common.issue_handler.remove_label") as remove, \
+             patch("scripts.automation.common.issue_handler.add_label") as add:
+            result = reroute_auto_item_after_limit(self.logger, "claude", candidate, self.state_file)
+        self.assertIsNone(result)
+        remove.assert_not_called()
+        add.assert_not_called()
+
+    def test_auto_item_drops_current_label_and_routes_to_a_free_provider(self):
+        candidate = item(84, ["claude", "auto-ai"], kind="pr")
+        with patch("scripts.automation.common.issue_handler.select_auto_provider",
+                   return_value="codex") as select, \
+             patch("scripts.automation.common.issue_handler.remove_label") as remove, \
+             patch("scripts.automation.common.issue_handler.add_label") as add, \
+             patch("scripts.automation.common.issue_handler.record_auto_selection") as record, \
+             patch("scripts.automation.common.issue_handler.verify_label_present") as verify:
+            result = reroute_auto_item_after_limit(self.logger, "claude", candidate, self.state_file)
+        self.assertEqual("codex", result)
+        remove.assert_called_once_with(84, "claude")
+        add.assert_called_once_with(84, "codex")
+        record.assert_called_once_with(self.state_file, "codex")
+        verify.assert_called_once_with(self.logger, 84, "codex")
+        self.assertEqual(["codex", "cursor"], select.call_args[0][2])
+
+    def test_all_other_providers_limited_leaves_plain_auto_ai(self):
+        candidate = item(84, ["claude", "auto-ai"], kind="issue")
+        with patch("scripts.automation.common.issue_handler.select_auto_provider",
+                   return_value=None), \
+             patch("scripts.automation.common.issue_handler.remove_label") as remove, \
+             patch("scripts.automation.common.issue_handler.add_label") as add:
+            result = reroute_auto_item_after_limit(self.logger, "claude", candidate, self.state_file)
+        self.assertIsNone(result)
+        remove.assert_called_once_with(84, "claude")
+        add.assert_not_called()
 
 
 class VerifyLabelPresentTests(unittest.TestCase):
