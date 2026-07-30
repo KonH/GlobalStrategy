@@ -17,8 +17,8 @@ sys.path.insert(0, str(ROOT))
 
 from scripts.automation.common.issue_handler import (
     AI_STATUS_LABELS, AUTO_LABEL, PROVIDERS, acquire_lock, add_label, label_names,
-    list_labeled_items, record_auto_selection, select_auto_provider, setup_logging,
-    verify_label_present,
+    list_labeled_items, park_auto_item_unroutable, record_auto_selection,
+    select_auto_provider, setup_logging, verify_label_present,
 )
 
 DEFAULT_LOG_FILE = ROOT / "Logs" / "handle_issues_auto.log"
@@ -45,8 +45,7 @@ def route_candidates(logger, state_file, candidates):
     for candidate in candidates:
         provider = select_auto_provider(logger, state_file, PROVIDERS)
         if provider is None:
-            logger.warning("All providers are limited; leaving %s #%s labeled only auto-ai.",
-                           candidate["kind"], candidate["number"])
+            park_auto_item_unroutable(logger, candidate)
             continue
         add_label(candidate["number"], provider)
         # Persist before evaluating the next candidate: a batch is sequential LRU, not a

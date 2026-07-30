@@ -48,8 +48,8 @@ If the limit-hit item is still auto-routed (carries `auto-ai`), `handle_limit_pa
 `reroute_auto_item_after_limit` right after a successful release: it drops the current provider
 label and re-runs `select_auto_provider` over the remaining providers immediately, so the item
 moves to a free provider instead of sitting out this provider's own backoff window while
-siblings are idle. If every other provider is limited too, the item is simply left with only
-`auto-ai` for the next scheduled auto-router pass to pick up.
+siblings are idle. If every other provider is limited too, `park_auto_item_unroutable` applies
+`ai-need-attention` and posts an automation note.
 
 `checkout_clean` force-resets to `origin/<branch>`, but if the local branch already exists and
 is ahead of its origin counterpart it pushes that tip first - so unpushed salvage commits are
@@ -98,6 +98,7 @@ SALVAGE_GIT_IDENTITY = {
     "GIT_COMMITTER_NAME": "GlobalStrategy Automation",
     "GIT_COMMITTER_EMAIL": "automation@local",
 }
+AUTO_MARKER = "<!-- auto-ai-automation -->"
 
 
 def setup_logging(logger, log_file, max_bytes, backup_count):
@@ -329,12 +330,20 @@ def _save_provider_state(state_file, state):
 
 def load_limit_retry_at(logger, state_file, provider):
     """Returns the stored retry timestamp as an aware-UTC datetime, or None if the file is
-    absent or unreadable. A stored naive timestamp (shouldn't happen - save always writes an
-    aware one) is defensively interpreted as UTC rather than local time."""
+    absent, the provider has no `limit_retry_at`, or the value is unreadable. A stored naive
+    timestamp (shouldn't happen - save always writes an aware one) is defensively interpreted
+    as UTC rather than local time. Missing keys are normal (provider may only have
+    `last_auto_selection_at`) and must not warn; only a present but unparseable value warns."""
+    data = _load_provider_state(logger, state_file)
+    record = data["providers"].get(provider, {})
+    if not isinstance(record, dict) or "limit_retry_at" not in record:
+        return None
+    value = record["limit_retry_at"]
+    if value is None:
+        return None
     try:
-        data = _load_provider_state(logger, state_file)
-        retry_at = datetime.fromisoformat(data["providers"].get(provider, {})["limit_retry_at"])
-    except (ValueError, KeyError, TypeError, json.JSONDecodeError):
+        retry_at = datetime.fromisoformat(value)
+    except (ValueError, TypeError):
         logger.warning("Could not parse stored %s limit-retry time - ignoring it.", provider)
         return None
     if retry_at.tzinfo is None:
@@ -449,6 +458,30 @@ def salvage_uncommitted_work(logger):
         return "failed", detail
 
 
+def park_auto_item_unroutable(logger, candidate):
+    """Park an ``auto-ai`` item when no provider can take it.
+
+    Applies ``ai-need-attention`` first so discovery skips it on the next tick, then posts a
+    best-effort owner note. Keeps ``auto-ai`` so removing the status label resumes routing.
+    """
+    number = candidate["number"]
+    kind = candidate.get("kind", "item")
+    add_label(number, AI_NEED_ATTENTION)
+    note = (
+        f"{AUTO_MARKER}\nAll AI providers ({', '.join(PROVIDERS)}) currently have an active "
+        f"usage/session limit, so this `{AUTO_LABEL}` {kind} could not be routed. Applied "
+        f"`{AI_NEED_ATTENTION}`. Remove that label once a provider is available again to "
+        "resume auto-routing."
+    )
+    try:
+        post_comment(number, note)
+    except Exception as exc:
+        logger.warning("Failed to post all-providers-limited note on %s #%s: %s",
+                       kind, number, exc)
+    logger.warning("All providers are limited; parked %s #%s with %s.",
+                   kind, number, AI_NEED_ATTENTION)
+
+
 def reroute_auto_item_after_limit(logger, label, candidate, state_file):
     """After a limit-pause release, if `candidate` is still an auto-routed item (carries
     `auto-ai`), drop its current provider `label` and immediately pick a different eligible
@@ -457,8 +490,7 @@ def reroute_auto_item_after_limit(logger, label, candidate, state_file):
     label snapshot (already fetched by discovery this run), matching how `has_provider_label`
     in handle_issues_auto.py reads labels - no extra live GitHub call. Returns the newly
     selected provider, or None when the candidate wasn't auto-routed or every other provider is
-    currently limited too (it stays a plain `auto-ai` item for the next scheduled auto-router
-    pass to pick up once one frees)."""
+    currently limited too (in the latter case the item is parked with `ai-need-attention`)."""
     if AUTO_LABEL not in label_names(candidate):
         return None
     number = candidate["number"]
@@ -466,10 +498,7 @@ def reroute_auto_item_after_limit(logger, label, candidate, state_file):
     other_providers = [provider for provider in PROVIDERS if provider != label]
     new_provider = select_auto_provider(logger, state_file, other_providers)
     if new_provider is None:
-        logger.warning(
-            f"{candidate['kind']} #{number} dropped from '{label}' after a limit hit, but "
-            f"every other provider is limited too - left as a plain '{AUTO_LABEL}' item."
-        )
+        park_auto_item_unroutable(logger, candidate)
         return None
     add_label(number, new_provider)
     record_auto_selection(state_file, new_provider)
