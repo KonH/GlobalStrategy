@@ -1672,18 +1672,28 @@ MonoBehaviour:
     Value: Strengthen Control
   - Key: effect.decrease_enemy_control_gain.desc
     Value: Increase your organization's control.
+  - Key: action.revenge.name
+    Value: Revenge
+  - Key: action.revenge.desc
+    Value: Declare war from your home country against this country with temporary combat bonuses.
+  - Key: effect.revenge_declare_war.name
+    Value: Declare Revenge War
+  - Key: effect.revenge_declare_war.desc
+    Value: Start a war with temporary damage and durability bonuses for the attacker.
   - Key: action.country.unplayable.pool_full
     Value: No control pool space remaining
   - Key: action.country.unplayable.insufficient_control
     Value: Requires {0} control
   - Key: action.country.unplayable.insufficient_opinion
-    Value: Requires {0} opinion with the diplomacy advisor
+    Value: Requires {0} opinion with the {1}
   - Key: action.country.unplayable.no_suitable_target
     Value: No suitable target country available
   - Key: action.country.unplayable.relation_no_longer_exists
     Value: The named relation no longer exists
   - Key: action.country.unplayable.no_enemy_control
     Value: No organization with control available to target
+  - Key: action.country.unplayable.at_war
+    Value: Cannot be played while at war
   - Key: hud.actions
     Value: Actions
   - Key: hud.friends

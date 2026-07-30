@@ -689,19 +689,21 @@ namespace GS.Main {
 					if (handSize > 0 && createdEntities.Count > 0) {
 						int orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, entry.CountryId);
 						int totalCountryControl = ControlQuery.GetTotalControlInCountry(world, entry.CountryId);
-						string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, entry.CountryId, "diplomacy_advisor");
-						double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
 						double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, entry.CountryId) ? 1.0 : 0.0;
+						double warFree = Wars.IsWarFree(world, entry.CountryId, orgEntry.HqCountryId) ? 1.0 : 0.0;
 						var eligibleEntities = new List<int>();
 						foreach (var (e, actionId) in createdEntities) {
 							var d = actionConfig.Find(actionId);
 							if (d == null) { continue; }
+							string targetCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, entry.CountryId, d.TargetRole);
+							double opinion = string.IsNullOrEmpty(targetCharId) ? 0.0 : ResourceQuery.GetValue(world, targetCharId, $"opinion_{orgId}");
 							bool eligible = true;
 							var ctx = new ExpressionContext {
 								Control = orgControl,
 								TotalCountryControl = totalCountryControl,
 								Opinion = opinion,
-								HasSuitableRelationTarget = hasSuitableTarget
+								HasSuitableRelationTarget = hasSuitableTarget,
+								WarFree = warFree
 							};
 							foreach (var cond in d.Conditions) {
 								if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {

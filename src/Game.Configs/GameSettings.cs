@@ -12,6 +12,8 @@ namespace GS.Game.Configs {
 		public double RecruitsCapPercent { get; set; } = 15.0;
 		public double RecruitsMonthlyIncreasePercent { get; set; } = 1.0;
 		public double AttackerWarProgressDecayPerMonth { get; set; } = 2.5;
+		public double RevengeDamageBonusDecayPerMonth { get; set; } = 1.0;
+		public double RevengeDurabilityBonusDecayPerMonth { get; set; } = 0.5;
 		public string[] ResourceIdUpdateOrder { get; set; } = {
 			ResourceDefinitions.Population, ResourceDefinitions.CountryPopulation, ResourceDefinitions.CountryScore,
 			ResourceDefinitions.Recruits, ResourceDefinitions.OrgScore,

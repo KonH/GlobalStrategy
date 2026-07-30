@@ -9,6 +9,8 @@
   "recruitsCapPercent": 15,
   "recruitsMonthlyIncreasePercent": 1,
   "attackerWarProgressDecayPerMonth": 2.5,
+  "revengeDamageBonusDecayPerMonth": 1.0,
+  "revengeDurabilityBonusDecayPerMonth": 0.5,
   "resourceIdUpdateOrder": ["population", "country_population", "country_score", "recruits", "org_score", "damage", "durability"],
   "botActionLogRetentionCap": 500,
   "maxControlPool": 100,

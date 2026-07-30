@@ -39,29 +39,29 @@ Add the `revenge` card end-to-end (config, condition gate, declare-war effect, a
 
 ## Agent Steps
 
-- [ ] **`ExpressionContext`/`ExpressionNode`: add `WarFree`** — `src/Game.Configs/ExpressionNode.cs`: add `public double WarFree { get; set; }` to `ExpressionContext`; add `case "warFree": return ctx.WarFree;` to `Evaluate`.
+- [x] **`ExpressionContext`/`ExpressionNode`: add `WarFree`** — `src/Game.Configs/ExpressionNode.cs`: add `public double WarFree { get; set; }` to `ExpressionContext`; add `case "warFree": return ctx.WarFree;` to `Evaluate`.
 
-- [ ] **`Wars.cs`: add `IsWarFree` + out-`warId` `DeclareWar` overload** — `src/Game.Systems/Wars.cs`:
+- [x] **`Wars.cs`: add `IsWarFree` + out-`warId` `DeclareWar` overload** — `src/Game.Systems/Wars.cs`:
   - `public static bool IsWarFree(IReadOnlyWorld world, string countryId, string hqCountryId)` → `false` if either non-empty id is `IsInWar`; else `true`.
   - `public static bool IsWarFree(IReadOnlyWorld world, string countryId, string orgId, IReadOnlyDictionary<string, string>? hqCountryByOrgId)` → resolves `hqCountryId` from the dict (empty string if missing/null) and delegates to the string overload.
   - `public static bool DeclareWar(World world, string attackerCountryId, string defenderCountryId, DateTime currentTime, out string? warId)` — same guards/body as today, sets `warId` to the generated id on success, `null` on no-op; the existing 4-arg `DeclareWar` becomes a one-line delegate (`return DeclareWar(world, attackerCountryId, defenderCountryId, currentTime, out _);`).
 
-- [ ] **Generalize Opinion resolution + add `WarFree` at all 4 context-building sites**:
+- [x] **Generalize Opinion resolution + add `WarFree` at all 4 context-building sites**:
   - `src/Game.Systems/ActionPlayability.cs`: add trailing `IReadOnlyDictionary<string, string>? hqCountryByOrgId = null` param; replace hardcoded `"diplomacy_advisor"` with `def.TargetRole`; add a hoisted `double warFree = 1.0;` local next to the existing `opinion`/`hasSuitableTarget` locals, set it to `Wars.IsWarFree(world, countryId, orgId, hqCountryByOrgId) ? 1.0 : 0.0` inside the existing `!string.IsNullOrEmpty(countryId)` block (same pattern as `opinion`), then add `WarFree = warFree` to the `ctx` object initializer below (`ctx` isn't constructed until after this block, so it can't be mutated from inside it).
   - `src/Game.Systems/CheckActionConditionSystem.cs`: add trailing optional `hqCountryByOrgId` param, forward to `ActionPlayability.Evaluate`.
   - `src/Game.Systems/DrawCardSystem.cs`: add trailing optional `hqCountryByOrgId` param on `Update`, thread through `DrawCards`/`DrawCountryCards`. In `DrawCountryCards`, stop precomputing `opinion` once per country — move `def.TargetRole`-keyed opinion + `RelationStillExists` resolution inside the per-candidate loop (mirroring the existing `RelationStillExists` per-candidate pattern already there); compute `ctx.WarFree` once per draw call via `Wars.IsWarFree(world, countryId, orgId, hqCountryByOrgId)`.
   - `src/Game.Main/InitSystem.cs` (`CreateCountryActionEntities`): move the per-country hoisted `opinion`/`ctx.Opinion` into the per-action loop (`foreach (var (e, actionId) in createdEntities)`), keyed by that action's `TargetRole` via `actionConfig.Find(actionId)` (already resolved as `d` there); compute `ctx.WarFree` once per country/org via `Wars.IsWarFree(world, entry.CountryId, orgEntry.HqCountryId)` (direct string overload — `orgEntry` already in scope).
   - `src/Game.Main/VisualStateConverter.cs` (`BuildEntry`): replace hardcoded `"diplomacy_advisor"` with `def.TargetRole`; add `ctx.WarFree = Wars.IsWarFree(world, countryId, orgId, _hqCountryByOrgId) ? 1.0 : 0.0;` (existing ctor field); add `"warFree" => "at_war",` to the `failedReason` `fieldType` switch.
 
-- [ ] **UI unplayable-reason + role-aware opinion text** — `Assets/Scripts/Unity/UI/CountryActionsView.cs`: add `"at_war" => _loc.Get("action.country.unplayable.at_war"),` case; change the `"insufficient_opinion"` case to `string.Format(_loc.Get("action.country.unplayable.insufficient_opinion"), def != null ? ExtractConditionThreshold(def, "opinion") : 0, def != null ? _loc.Get($"character.role.{def.TargetRole}.name") : "")` — keep the same `def != null` guard the threshold argument already uses, applied to the new role-name argument too.
+- [x] **UI unplayable-reason + role-aware opinion text** — `Assets/Scripts/Unity/UI/CountryActionsView.cs`: add `"at_war" => _loc.Get("action.country.unplayable.at_war"),` case; change the `"insufficient_opinion"` case to `string.Format(_loc.Get("action.country.unplayable.insufficient_opinion"), def != null ? ExtractConditionThreshold(def, "opinion") : 0, def != null ? _loc.Get($"character.role.{def.TargetRole}.name") : "")` — keep the same `def != null` guard the threshold argument already uses, applied to the new role-name argument too.
 
-- [ ] **`RevengeWarBonus` component** — new `src/Game.Components/RevengeWarBonus.cs`: `[Savable] public struct RevengeWarBonus { public string WarId; public string CountryId; public double DamageBonusPercent; public double DurabilityBonusPercent; }`.
+- [x] **`RevengeWarBonus` component** — new `src/Game.Components/RevengeWarBonus.cs`: `[Savable] public struct RevengeWarBonus { public string WarId; public string CountryId; public double DamageBonusPercent; public double DurabilityBonusPercent; }`.
 
-- [ ] **`RevengeWarBonusQuery`** — new `src/Game.Systems/RevengeWarBonusQuery.cs` (plain helper, mirrors `Wars.IsInWar`'s scan shape): `public static double GetBonusPercent(IReadOnlyWorld world, string countryId, string kind)` (`kind` is `"damage"` or `"durability"`) scans `RevengeWarBonus` for a `CountryId` match, returns the matching percent field or `0` if none. Also add `public static void RemoveForCountry(World world, string countryId)` (destroys any existing `RevengeWarBonus` entities for that `countryId`, `Wars.StopWar`-style collect-then-destroy) so `CreateActionEffectSystem` can guarantee at most one `RevengeWarBonus` per country when a new Revenge war is declared for an HQ that still carries a stale, undecayed bonus from an earlier war.
+- [x] **`RevengeWarBonusQuery`** — new `src/Game.Systems/RevengeWarBonusQuery.cs` (plain helper, mirrors `Wars.IsInWar`'s scan shape): `public static double GetBonusPercent(IReadOnlyWorld world, string countryId, string kind)` (`kind` is `"damage"` or `"durability"`) scans `RevengeWarBonus` for a `CountryId` match, returns the matching percent field or `0` if none. Also add `public static void RemoveForCountry(World world, string countryId)` (destroys any existing `RevengeWarBonus` entities for that `countryId`, `Wars.StopWar`-style collect-then-destroy) so `CreateActionEffectSystem` can guarantee at most one `RevengeWarBonus` per country when a new Revenge war is declared for an HQ that still carries a stale, undecayed bonus from an earlier war.
 
-- [ ] **`DeclareRevengeWarEffectParams`** — `src/Game.Configs/EffectConfig.cs`: `public class DeclareRevengeWarEffectParams : ActionEffectDefinition { public double DamageBonusPercent { get; set; } public double DurabilityBonusPercent { get; set; } }`; register `case "DeclareRevengeWar": item = obj.ToObject<DeclareRevengeWarEffectParams>(serializer)!; break;` in `ActionEffectDefinitionListConverter`.
+- [x] **`DeclareRevengeWarEffectParams`** — `src/Game.Configs/EffectConfig.cs`: `public class DeclareRevengeWarEffectParams : ActionEffectDefinition { public double DamageBonusPercent { get; set; } public double DurabilityBonusPercent { get; set; } }`; register `case "DeclareRevengeWar": item = obj.ToObject<DeclareRevengeWarEffectParams>(serializer)!; break;` in `ActionEffectDefinitionListConverter`.
 
-- [ ] **Dispatch declare-war effect in `CreateActionEffectSystem`** — `src/Game.Systems/CreateActionEffectSystem.cs`: change `Update` to `public static bool Update(World world, ActionConfig actionConfig, EffectConfig effectConfig, DateTime currentTime, IReadOnlyDictionary<string, string>? hqCountryByOrgId = null)`; track `bool anyWarDeclared = false;`; add a branch:
+- [x] **Dispatch declare-war effect in `CreateActionEffectSystem`** — `src/Game.Systems/CreateActionEffectSystem.cs`: change `Update` to `public static bool Update(World world, ActionConfig actionConfig, EffectConfig effectConfig, DateTime currentTime, IReadOnlyDictionary<string, string>? hqCountryByOrgId = null)`; track `bool anyWarDeclared = false;`; add a branch:
   ```
   else if (effectDef is DeclareRevengeWarEffectParams revengeParams && !string.IsNullOrEmpty(countryId)
       && hqCountryByOrgId != null && hqCountryByOrgId.TryGetValue(orgId, out string? hqCountryId) && !string.IsNullOrEmpty(hqCountryId)) {
@@ -80,32 +80,32 @@ Add the `revenge` card end-to-end (config, condition gate, declare-war effect, a
   ```
   Return `anyWarDeclared` at the end of `Update`.
 
-- [ ] **`RevengeWarBonusDecaySystem`** — new `src/Game.Systems/RevengeWarBonusDecaySystem.cs` (mirrors `WarSystem.cs`'s month-boundary shape): `Update(World world, DateTime previousTime, DateTime currentTime, double damageDecayPerMonth, double durabilityDecayPerMonth)` — on month boundary, for every `RevengeWarBonus`, `DamageBonusPercent = Math.Max(0, DamageBonusPercent - damageDecayPerMonth)` and same for `DurabilityBonusPercent`.
+- [x] **`RevengeWarBonusDecaySystem`** — new `src/Game.Systems/RevengeWarBonusDecaySystem.cs` (mirrors `WarSystem.cs`'s month-boundary shape): `Update(World world, DateTime previousTime, DateTime currentTime, double damageDecayPerMonth, double durabilityDecayPerMonth)` — on month boundary, for every `RevengeWarBonus`, `DamageBonusPercent = Math.Max(0, DamageBonusPercent - damageDecayPerMonth)` and same for `DurabilityBonusPercent`.
 
-- [ ] **Apply the bonus in the collectors** — `src/Game.Systems/DamageCollector.cs` / `DurabilityCollector.cs`: multiply the existing `base + skillA + skillB` sum by `(1 + RevengeWarBonusQuery.GetBonusPercent(world, ownerId, "damage"|"durability") / 100.0)` before computing `target - currentValue`.
+- [x] **Apply the bonus in the collectors** — `src/Game.Systems/DamageCollector.cs` / `DurabilityCollector.cs`: multiply the existing `base + skillA + skillB` sum by `(1 + RevengeWarBonusQuery.GetBonusPercent(world, ownerId, "damage"|"durability") / 100.0)` before computing `target - currentValue`.
 
-- [ ] **`GameSettings` + config: bonus decay rates** — `src/Game.Configs/GameSettings.cs`: add `public double RevengeDamageBonusDecayPerMonth { get; set; } = 1.0;` and `public double RevengeDurabilityBonusDecayPerMonth { get; set; } = 0.5;`. `Assets/Configs/game_settings.json`: add `"revengeDamageBonusDecayPerMonth": 1.0,` and `"revengeDurabilityBonusDecayPerMonth": 0.5,` siblings to `attackerWarProgressDecayPerMonth`.
+- [x] **`GameSettings` + config: bonus decay rates** — `src/Game.Configs/GameSettings.cs`: add `public double RevengeDamageBonusDecayPerMonth { get; set; } = 1.0;` and `public double RevengeDurabilityBonusDecayPerMonth { get; set; } = 0.5;`. `Assets/Configs/game_settings.json`: add `"revengeDamageBonusDecayPerMonth": 1.0,` and `"revengeDurabilityBonusDecayPerMonth": 0.5,` siblings to `attackerWarProgressDecayPerMonth`.
 
-- [ ] **Wire everything into `GameLogic.cs`**:
+- [x] **Wire everything into `GameLogic.cs`**:
   - After the existing `WarSystem.Update(...)` call (~line 119): `RevengeWarBonusDecaySystem.Update(_world, _previousTime, currentTime, GameSettings.RevengeDamageBonusDecayPerMonth, GameSettings.RevengeDurabilityBonusDecayPerMonth);`.
   - `CheckActionConditionSystem.Update(_world, _actionConfig);` → `CheckActionConditionSystem.Update(_world, _actionConfig, _hqCountryByOrgId);`.
   - `CreateActionEffectSystem.Update(_world, _actionConfig, _effectConfig, currentTime);` → `bool revengeWarDeclared = CreateActionEffectSystem.Update(_world, _actionConfig, _effectConfig, currentTime, _hqCountryByOrgId); if (revengeWarDeclared) { SettleCombatResources(); }`.
   - `DrawCardSystem.Update(_world, _actionConfig, _rng);` → `DrawCardSystem.Update(_world, _actionConfig, _rng, _hqCountryByOrgId);`.
 
-- [ ] **`Assets/Configs/action_config.json`: new `revenge` action** — append, `ownerType: "country"`, `targetRole: "military_advisor"`, `deckCopies: 3`, `cost: [{ "resourceId": "gold", "amount": 50.0 }]`, `conditions: [gte(control,20), gte(opinion,25), gte(warFree,1)]`, `effectIds: ["revenge_declare_war_effect"]`.
+- [x] **`Assets/Configs/action_config.json`: new `revenge` action** — append, `ownerType: "country"`, `targetRole: "military_advisor"`, `deckCopies: 3`, `cost: [{ "resourceId": "gold", "amount": 50.0 }]`, `conditions: [gte(control,20), gte(opinion,25), gte(warFree,1)]`, `effectIds: ["revenge_declare_war_effect"]`.
 
-- [ ] **`Assets/Configs/effect_config.json`: new `revenge_declare_war_effect`** — `effectType: "DeclareRevengeWar"`, `damageBonusPercent: 10.0`, `durabilityBonusPercent: 5.0`, plus `nameKey`/`descKey`.
+- [x] **`Assets/Configs/effect_config.json`: new `revenge_declare_war_effect`** — `effectType: "DeclareRevengeWar"`, `damageBonusPercent: 10.0`, `durabilityBonusPercent: 5.0`, plus `nameKey`/`descKey`.
 
-- [ ] **`Assets/Configs/ActionVisualConfig.asset`: new `revenge` entry** — direct YAML edit, reuse `decrease_enemy_control`'s `frontImage` guid/fileID as placeholder art (same domain, adversarial country card); `backImage: {fileID: 0}`.
+- [x] **`Assets/Configs/ActionVisualConfig.asset`: new `revenge` entry** — direct YAML edit, reuse `decrease_enemy_control`'s `frontImage` guid/fileID as placeholder art (same domain, adversarial country card); `backImage: {fileID: 0}`.
 
-- [ ] **Localization (en + real ru via the `localization` skill)**:
+- [x] **Localization (en + real ru via the `localization` skill)**:
   - `action.revenge.name` → `"Revenge"`; `action.revenge.desc` → short practical description.
   - `effect.revenge_declare_war.name` / `.desc`.
   - `action.country.unplayable.at_war` → `"Cannot be played while at war"`.
   - Update existing `action.country.unplayable.insufficient_opinion` value to add the role placeholder: `"Requires {0} opinion with the {1}"` (en + ru, both existing key values updated, not new keys).
   - Russian translations for all of the above via the `localization` skill (batch one subagent call).
 
-- [ ] **Rebuild Core DLLs** — `dotnet build src/GlobalStrategy.Core.sln -c Release` (per the `dotnet-build` skill) so `Assets/Plugins/Core/*.dll` picks up all `src/` changes.
+- [x] **Rebuild Core DLLs** — `dotnet build src/GlobalStrategy.Core.sln -c Release` (per the `dotnet-build` skill) so `Assets/Plugins/Core/*.dll` picks up all `src/` changes.
 
 ## User Steps
 

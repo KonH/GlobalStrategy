@@ -20,13 +20,15 @@ namespace GS.Game.Tests {
 			double totalCountryControl = 0,
 			double opinion = 0,
 			double hasSuitableRelationTarget = 0,
-			double relationStillExists = 0) =>
+			double relationStillExists = 0,
+			double warFree = 0) =>
 			new ExpressionContext {
 				Control = control,
 				TotalCountryControl = totalCountryControl,
 				Opinion = opinion,
 				HasSuitableRelationTarget = hasSuitableRelationTarget,
-				RelationStillExists = relationStillExists
+				RelationStillExists = relationStillExists,
+				WarFree = warFree
 			};
 
 		[Fact]
@@ -71,6 +73,13 @@ namespace GS.Game.Tests {
 			var node = new ExpressionNode { Type = "relationStillExists" };
 			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(relationStillExists: 1.0)));
 			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx(relationStillExists: 0.0)));
+		}
+
+		[Fact]
+		public void war_free_node_returns_context_value() {
+			var node = new ExpressionNode { Type = "warFree" };
+			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(warFree: 1.0)));
+			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx(warFree: 0.0)));
 		}
 
 		[Fact]

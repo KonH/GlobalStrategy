@@ -117,6 +117,12 @@ namespace GS.Main {
 			ResourceSystem.Update(_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder);
 			ControlSystem.Update(_world, _previousTime, currentTime);
 			WarSystem.Update(_world, _previousTime, currentTime, GameSettings.AttackerWarProgressDecayPerMonth);
+			RevengeWarBonusDecaySystem.Update(
+				_world,
+				_previousTime,
+				currentTime,
+				GameSettings.RevengeDamageBonusDecayPerMonth,
+				GameSettings.RevengeDurabilityBonusDecayPerMonth);
 
 			foreach (var cmd in _commandAccessor.ReadChangeControlCommand().AsSpan()) {
 				ApplyChangeControl(cmd.OrgId, cmd.CountryId, cmd.Delta);
@@ -209,17 +215,20 @@ namespace GS.Main {
 			// See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
 			CleanupEffectNotificationsSystem.UpdateActionEffects(_world);
 			InitActionFromPlayCardSystem.Update(_world, _commandAccessor.ReadPlayCardActionCommand());
-			CheckActionConditionSystem.Update(_world, _actionConfig);
+			CheckActionConditionSystem.Update(_world, _actionConfig, _hqCountryByOrgId);
 			DeductActionCostSystem.Update(_world, _actionConfig);
 			ActionSucceededSystem.Update(_world, _actionConfig);
-			CreateActionEffectSystem.Update(_world, _actionConfig, _effectConfig, currentTime);
+			bool revengeWarDeclared = CreateActionEffectSystem.Update(_world, _actionConfig, _effectConfig, currentTime, _hqCountryByOrgId);
+			if (revengeWarDeclared) {
+				SettleCombatResources();
+			}
 			DiscoverCountrySystem.Update(_world, _proximityEntity, _rng, _hqCountryByOrgId);
 			SetCountryRelationSystem.Update(_world, _proximityEntity, _rng);
 			ClearCountryRelationSystem.Update(_world);
 			RemoveCardFromHandSystem.Update(_world);
 			CheckHandSizeSystem.Update(_world);
 			RelationCardSyncSystem.Update(_world, _actionConfig);
-			DrawCardSystem.Update(_world, _actionConfig, _rng);
+			DrawCardSystem.Update(_world, _actionConfig, _rng, _hqCountryByOrgId);
 			CleanupCardDiscardSystem.Update(_world);
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool);
 

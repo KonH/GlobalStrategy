@@ -115,6 +115,34 @@ namespace GS.Game.Tests {
 								}
 							}
 						}
+					},
+					new ActionDefinition {
+						ActionId = "revenge",
+						OwnerType = "country",
+						TargetRole = "military_advisor",
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "control" },
+									new ExpressionNode { Type = "value", Value = 20 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "opinion" },
+									new ExpressionNode { Type = "value", Value = 25 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "warFree" },
+									new ExpressionNode { Type = "value", Value = 1 }
+								}
+							}
+						}
 					}
 				}
 			};
@@ -278,6 +306,97 @@ namespace GS.Game.Tests {
 			Assert.NotNull(entry);
 			Assert.True(entry!.IsUnplayable);
 			Assert.Equal("no_enemy_control", entry.UnplayableReason);
+		}
+
+		static World BuildWorldWithRevengeCard(
+			out int gameTimeEntity, out int localeEntity, out int orgEntity, bool atWar) {
+			var world = new World();
+			int countryEntity = world.Create();
+			world.Add(countryEntity, new Country("Prussia"));
+			world.Add(countryEntity, new IsSelected());
+
+			orgEntity = world.Create();
+			world.Add(orgEntity, new Organization { OrganizationId = "OrgA", DisplayName = "OrgA" });
+
+			gameTimeEntity = world.Create();
+			world.Add(gameTimeEntity, new GameTime { CurrentTime = new DateTime(1880, 1, 1), IsPaused = false, MultiplierIndex = 0 });
+
+			localeEntity = world.Create();
+			world.Add(localeEntity, new Locale { Value = "en" });
+
+			int charEntity = world.Create();
+			world.Add(charEntity, new Character {
+				CharacterId = "mil1", CountryId = "Prussia", OrgId = "", RoleId = "military_advisor",
+				NamePartKeys = Array.Empty<string>()
+			});
+			int resEntity = world.Create();
+			world.Add(resEntity, new ResourceOwner("mil1", OwnerType.Character));
+			world.Add(resEntity, new Resource { ResourceId = "opinion_OrgA", Value = 25 });
+
+			int controlEntity = world.Create();
+			world.Add(controlEntity, new ControlEffect { OrgId = "OrgA", CountryId = "Prussia", Value = 20, EffectId = "test_control" });
+
+			if (atWar) {
+				Wars.DeclareWar(world, "Prussia", "Austria", new DateTime(1880, 1, 1));
+			}
+
+			int cardEntity = world.Create();
+			world.Add(cardEntity, new GameAction { ActionId = "revenge" });
+			world.Add(cardEntity, new OrgContext { OrgId = "OrgA" });
+			world.Add(cardEntity, new CountryContext { CountryId = "Prussia" });
+			world.Add(cardEntity, new CardInHand { SlotIndex = 0 });
+
+			return world;
+		}
+
+		[Fact]
+		void revenge_reports_at_war_reason_when_war_free_fails() {
+			var world = BuildWorldWithRevengeCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, atWar: true);
+			var state = new VisualState();
+			var converter = new VisualStateConverter(state, BuildActionConfig());
+
+			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
+
+			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "revenge");
+			Assert.NotNull(entry);
+			Assert.True(entry!.IsUnplayable);
+			Assert.Equal("at_war", entry.UnplayableReason);
+		}
+
+		[Fact]
+		void revenge_is_playable_when_control_opinion_and_war_free_all_hold() {
+			var world = BuildWorldWithRevengeCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, atWar: false);
+			var state = new VisualState();
+			var converter = new VisualStateConverter(state, BuildActionConfig());
+
+			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
+
+			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "revenge");
+			Assert.NotNull(entry);
+			Assert.False(entry!.IsUnplayable);
+		}
+
+		// Condition-array order matches config order (control, opinion, warFree): when control
+		// is also below threshold, the earlier "insufficient_control" reason wins even though
+		// warFree would fail too — confirms conditions are evaluated in declared order, not
+		// re-prioritized by failure kind.
+		[Fact]
+		void revenge_reports_insufficient_control_reason_before_war_free_when_both_fail() {
+			var world = BuildWorldWithRevengeCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, atWar: true);
+			int[] req = { TypeId<ControlEffect>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+				ControlEffect[] controls = arch.GetColumn<ControlEffect>();
+				for (int i = 0; i < arch.Count; i++) { controls[i].Value = 5; }
+			}
+			var state = new VisualState();
+			var converter = new VisualStateConverter(state, BuildActionConfig());
+
+			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
+
+			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "revenge");
+			Assert.NotNull(entry);
+			Assert.True(entry!.IsUnplayable);
+			Assert.Equal("insufficient_control", entry.UnplayableReason);
 		}
 
 		static World BuildWorldWithStopFriendshipCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, bool relationStillHolds) {

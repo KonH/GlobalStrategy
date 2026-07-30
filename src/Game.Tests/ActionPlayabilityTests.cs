@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Common;
@@ -93,6 +94,35 @@ namespace GS.Game.Tests {
 							}
 						},
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 250.0 } }
+					},
+					new ActionDefinition {
+						ActionId = "revenge",
+						OwnerType = "country",
+						TargetRole = "military_advisor",
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "control" },
+									new ExpressionNode { Type = "value", Value = 20 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "opinion" },
+									new ExpressionNode { Type = "value", Value = 25 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "warFree" },
+									new ExpressionNode { Type = "value", Value = 1 }
+								}
+							}
+						},
+						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } }
 					}
 				}
 			};
@@ -108,6 +138,18 @@ namespace GS.Game.Tests {
 			int charEntity = world.Create();
 			world.Add(charEntity, new Character {
 				CharacterId = charId, CountryId = countryId, OrgId = "", RoleId = "diplomacy_advisor",
+				NamePartKeys = System.Array.Empty<string>()
+			});
+			int resEntity = world.Create();
+			world.Add(resEntity, new ResourceOwner(charId, OwnerType.Character));
+			world.Add(resEntity, new Resource { ResourceId = $"opinion_{orgId}", Value = opinion });
+			return charEntity;
+		}
+
+		static int AddMilitaryAdvisor(World world, string countryId, string charId, string orgId, int opinion) {
+			int charEntity = world.Create();
+			world.Add(charEntity, new Character {
+				CharacterId = charId, CountryId = countryId, OrgId = "", RoleId = "military_advisor",
 				NamePartKeys = System.Array.Empty<string>()
 			});
 			int resEntity = world.Create();
@@ -412,6 +454,66 @@ namespace GS.Game.Tests {
 			AddControl(world, "OrgB", "Prussia", 10);
 
 			Assert.False(ActionPlayability.Evaluate(world, config, -1, "decrease_enemy_control", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void revenge_unplayable_when_control_below_threshold() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 19);
+			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void revenge_unplayable_when_opinion_below_threshold_at_military_advisor_even_with_high_diplomacy_advisor_opinion() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddDiplomacyAdvisor(world, "Prussia", "diplo1", "OrgA", opinion: 90);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 24);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void revenge_unplayable_when_the_selected_country_is_at_war() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 50);
+			Wars.DeclareWar(world, "Prussia", "Austria", new DateTime(1880, 1, 1));
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void revenge_unplayable_when_the_orgs_hq_country_is_at_war() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 50);
+			Wars.DeclareWar(world, "Great_Britain", "Austria", new DateTime(1880, 1, 1));
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+		}
+
+		[Fact]
+		void revenge_playable_when_all_conditions_hold_and_affordable() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 25);
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
 		}
 	}
 }

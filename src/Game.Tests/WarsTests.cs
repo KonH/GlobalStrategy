@@ -146,6 +146,69 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void declare_war_out_overload_returns_generated_war_id_on_success() {
+			var world = new World();
+
+			bool result = Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime, out string? warId);
+
+			Assert.True(result);
+			Assert.NotNull(warId);
+			Assert.NotEqual("", warId);
+			int[] required = { TypeId<War>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
+				var wars = arch.GetColumn<War>();
+				for (int i = 0; i < arch.Count; i++) {
+					Assert.Equal(warId, wars[i].WarId);
+				}
+			}
+		}
+
+		[Fact]
+		void declare_war_out_overload_returns_null_warid_on_no_op() {
+			var world = new World();
+			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+
+			bool result = Wars.DeclareWar(world, "Germany", "Great_Britain", DeclareTime.AddDays(1), out string? warId);
+
+			Assert.False(result);
+			Assert.Null(warId);
+		}
+
+		[Fact]
+		void is_war_free_true_when_neither_side_at_war() {
+			var world = new World();
+
+			Assert.True(Wars.IsWarFree(world, "France", "Great_Britain"));
+		}
+
+		[Fact]
+		void is_war_free_false_when_country_at_war() {
+			var world = new World();
+			Wars.DeclareWar(world, "France", "Germany", DeclareTime);
+
+			Assert.False(Wars.IsWarFree(world, "France", "Great_Britain"));
+		}
+
+		[Fact]
+		void is_war_free_false_when_hq_country_at_war() {
+			var world = new World();
+			Wars.DeclareWar(world, "Great_Britain", "Germany", DeclareTime);
+
+			Assert.False(Wars.IsWarFree(world, "France", "Great_Britain"));
+		}
+
+		[Fact]
+		void is_war_free_true_when_hq_country_by_org_id_missing_entry() {
+			var world = new World();
+			Wars.DeclareWar(world, "Great_Britain", "Germany", DeclareTime);
+			var hqCountryByOrgId = new Dictionary<string, string>();
+
+			// "Illuminati" isn't in the dict, so the resolved hqCountryId falls back to "" and
+			// only the target country's own war state is checked — Great_Britain's war is invisible here.
+			Assert.True(Wars.IsWarFree(world, "France", "Illuminati", hqCountryByOrgId));
+		}
+
+		[Fact]
 		void debug_commands_declare_and_stop_war_through_game_logic() {
 			var logic = BuildLogic();
 			logic.Update(0f);

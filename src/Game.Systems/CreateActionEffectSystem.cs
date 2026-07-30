@@ -6,7 +6,12 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class CreateActionEffectSystem {
-		public static void Update(World world, ActionConfig actionConfig, EffectConfig effectConfig, DateTime currentTime) {
+		public static bool Update(
+			World world,
+			ActionConfig actionConfig,
+			EffectConfig effectConfig,
+			DateTime currentTime,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null) {
 			int[] required = { TypeId<GameAction>.Value, TypeId<ActionSucceeded>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
 			var toProcess = new List<(int entity, string actionId, string orgId)>();
 
@@ -29,6 +34,7 @@ namespace GS.Game.Systems {
 				}
 			}
 
+			bool anyWarDeclared = false;
 			foreach (var (entity, actionId, orgId) in toProcess) {
 				entityCountry.TryGetValue(entity, out string countryId);
 				var def = actionConfig.Find(actionId);
@@ -130,9 +136,23 @@ namespace GS.Game.Systems {
 								});
 							}
 						}
+					} else if (effectDef is DeclareRevengeWarEffectParams revengeParams && !string.IsNullOrEmpty(countryId)
+						&& hqCountryByOrgId != null && hqCountryByOrgId.TryGetValue(orgId, out string? hqCountryId) && !string.IsNullOrEmpty(hqCountryId)) {
+						if (Wars.DeclareWar(world, hqCountryId, countryId, currentTime, out string? warId)) {
+							anyWarDeclared = true;
+							RevengeWarBonusQuery.RemoveForCountry(world, hqCountryId);
+							int be = world.Create();
+							world.Add(be, new RevengeWarBonus {
+								WarId = warId ?? "",
+								CountryId = hqCountryId,
+								DamageBonusPercent = revengeParams.DamageBonusPercent,
+								DurabilityBonusPercent = revengeParams.DurabilityBonusPercent
+							});
+						}
 					}
 				}
 			}
+			return anyWarDeclared;
 		}
 
 		static double EnsureOpinionResource(World world, string charId, string resourceId, int initialValue) {

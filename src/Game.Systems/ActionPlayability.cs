@@ -5,7 +5,14 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class ActionPlayability {
-		public static bool Evaluate(IReadOnlyWorld world, ActionConfig config, int entity, string actionId, string orgId, string? countryId) {
+		public static bool Evaluate(
+			IReadOnlyWorld world,
+			ActionConfig config,
+			int entity,
+			string actionId,
+			string orgId,
+			string? countryId,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null) {
 			var def = config.Find(actionId);
 			if (def == null) { return false; }
 
@@ -14,12 +21,14 @@ namespace GS.Game.Systems {
 
 			double opinion = 0.0;
 			double hasSuitableTarget = 0.0;
+			double warFree = 1.0;
 			if (!string.IsNullOrEmpty(countryId)) {
 				orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
 				totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
-				string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
-				opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
+				string targetCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, def.TargetRole);
+				opinion = string.IsNullOrEmpty(targetCharId) ? 0.0 : ResourceQuery.GetValue(world, targetCharId, $"opinion_{orgId}");
 				hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
+				warFree = Wars.IsWarFree(world, countryId, orgId, hqCountryByOrgId) ? 1.0 : 0.0;
 			}
 			double relationStillExists = 1.0;
 			if (entity >= 0 && !string.IsNullOrEmpty(countryId) && world.Has<RelationCardTarget>(entity)) {
@@ -31,7 +40,8 @@ namespace GS.Game.Systems {
 				TotalCountryControl = totalCountryControl,
 				Opinion = opinion,
 				HasSuitableRelationTarget = hasSuitableTarget,
-				RelationStillExists = relationStillExists
+				RelationStillExists = relationStillExists,
+				WarFree = warFree
 			};
 
 			foreach (var cond in def.Conditions) {

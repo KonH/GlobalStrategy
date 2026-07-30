@@ -6,7 +6,11 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class DrawCardSystem {
-		public static void Update(World world, ActionConfig config, Random rng) {
+		public static void Update(
+			World world,
+			ActionConfig config,
+			Random rng,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null) {
 			int[] deckDrawReq = { TypeId<CardDeck>.Value, TypeId<CardDraw>.Value };
 			var deckDraws = new List<(int entity, string orgId, string countryId, int count)>();
 			foreach (var arch in world.GetMatchingArchetypes(deckDrawReq, null)) {
@@ -18,7 +22,7 @@ namespace GS.Game.Systems {
 				}
 			}
 			foreach (var (entity, orgId, countryId, count) in deckDraws) {
-				DrawCards(world, config, rng, orgId, countryId, count);
+				DrawCards(world, config, rng, orgId, countryId, count, hqCountryByOrgId);
 				world.Remove<CardDraw>(entity);
 			}
 
@@ -36,17 +40,24 @@ namespace GS.Game.Systems {
 			var toDestroy = new List<int>();
 			foreach (var (entity, orgId, _, count) in syntheticDraws) {
 				string cid = world.Has<CountryContext>(entity) ? world.Get<CountryContext>(entity).CountryId : "";
-				DrawCards(world, config, rng, orgId, cid, count);
+				DrawCards(world, config, rng, orgId, cid, count, hqCountryByOrgId);
 				toDestroy.Add(entity);
 			}
 			foreach (int e in toDestroy) { world.Destroy(e); }
 		}
 
-		static void DrawCards(World world, ActionConfig config, Random rng, string orgId, string countryId, int toDraw) {
+		static void DrawCards(
+			World world,
+			ActionConfig config,
+			Random rng,
+			string orgId,
+			string countryId,
+			int toDraw,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId) {
 			if (string.IsNullOrEmpty(countryId)) {
 				DrawOrgCards(world, rng, orgId, toDraw);
 			} else {
-				DrawCountryCards(world, config, rng, orgId, countryId, toDraw);
+				DrawCountryCards(world, config, rng, orgId, countryId, toDraw, hqCountryByOrgId);
 			}
 		}
 
@@ -88,17 +99,23 @@ namespace GS.Game.Systems {
 			return count;
 		}
 
-		static void DrawCountryCards(World world, ActionConfig config, Random rng, string orgId, string countryId, int toDraw) {
+		static void DrawCountryCards(
+			World world,
+			ActionConfig config,
+			Random rng,
+			string orgId,
+			string countryId,
+			int toDraw,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId) {
 			int orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
 			int totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
-			string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
-			double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
 			double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
+			double warFree = Wars.IsWarFree(world, countryId, orgId, hqCountryByOrgId) ? 1.0 : 0.0;
 			var ctx = new ExpressionContext {
 				Control = orgControl,
 				TotalCountryControl = totalCountryControl,
-				Opinion = opinion,
-				HasSuitableRelationTarget = hasSuitableTarget
+				HasSuitableRelationTarget = hasSuitableTarget,
+				WarFree = warFree
 			};
 
 			int[] deckReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
@@ -114,6 +131,8 @@ namespace GS.Game.Systems {
 					var def = config.Find(actions[i].ActionId);
 					if (def == null) { continue; }
 					int candidateEntity = arch.Entities[i];
+					string targetCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, def.TargetRole);
+					ctx.Opinion = string.IsNullOrEmpty(targetCharId) ? 0.0 : ResourceQuery.GetValue(world, targetCharId, $"opinion_{orgId}");
 					ctx.RelationStillExists = world.Has<RelationCardTarget>(candidateEntity)
 						? (CountryRelations.GetRelation(world, countryId, world.Get<RelationCardTarget>(candidateEntity).TargetCountryId) == world.Get<RelationCardTarget>(candidateEntity).Kind ? 1.0 : 0.0)
 						: 1.0;
