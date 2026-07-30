@@ -8,11 +8,18 @@ from unittest.mock import MagicMock, patch
 from scripts.automation.claude.handle_issues import (
     detect_session_limit, limit_detection_texts,
 )
+from scripts.automation.codex.handle_issues import (
+    detect_session_limit as detect_codex_session_limit,
+)
+from scripts.automation.cursor.handle_issues import (
+    detect_session_limit as detect_cursor_session_limit,
+)
 from scripts.automation.common.issue_handler import (
     SALVAGE_COMMIT_MESSAGE, SALVAGE_GIT_IDENTITY, candidate_branch, checkout_clean,
     configured_contributors, count_reclaims_since_owner_comment, find_candidates,
-    handle_limit_pause, limit_active, reclaim_stale_in_progress,
-    release_in_progress_silently, salvage_uncommitted_work, save_limit_retry_at,
+    handle_limit_pause, limit_active, load_limit_retry_at, reclaim_stale_in_progress,
+    release_in_progress_silently, reroute_auto_item_after_limit, salvage_uncommitted_work,
+    save_limit_retry_at,
 )
 
 MARKER = "<!-- claude-automation -->"
@@ -258,6 +265,102 @@ class LimitFileTests(unittest.TestCase):
         self.assertTrue(limit_active(self.logger, self.state_file, "codex"))
         self.assertFalse(limit_active(self.logger, self.state_file, "cursor"))
 
+    def test_missing_limit_retry_at_is_silent_none(self):
+        # Provider records with only last_auto_selection_at are normal after auto-routing;
+        # that must not look like a corrupt limit-retry timestamp.
+        self.state_file.write_text(json.dumps({
+            "providers": {
+                "cursor": {"last_auto_selection_at": "2026-07-30T10:15:18.164620+00:00"},
+            }
+        }), encoding="utf-8")
+        self.assertIsNone(load_limit_retry_at(self.logger, self.state_file, "cursor"))
+        self.assertFalse(limit_active(self.logger, self.state_file, "cursor"))
+        self.logger.warning.assert_not_called()
+
+    def test_unparseable_limit_retry_at_warns_and_ignores(self):
+        self.state_file.write_text(json.dumps({
+            "providers": {"cursor": {"limit_retry_at": "not-a-timestamp"}}
+        }), encoding="utf-8")
+        self.assertIsNone(load_limit_retry_at(self.logger, self.state_file, "cursor"))
+        self.logger.warning.assert_called_once()
+        self.assertEqual(
+            ("Could not parse stored %s limit-retry time - ignoring it.", "cursor"),
+            self.logger.warning.call_args.args,
+        )
+
+
+class DetectCodexSessionLimitTests(unittest.TestCase):
+    PRODUCTION_LIMIT = (
+        "You've hit your usage limit. Upgrade to Pro (https://chatgpt.com/explore/pro), "
+        "visit https://chatgpt.com/codex/settings/usage to purchase more credits or "
+        "try again at Aug 5th, 2026 9:31 AM."
+    )
+
+    def test_production_usage_limit_parses_try_again_at(self):
+        # error/failed events are json-dumped into error_texts by run_codex
+        error_event = json.dumps({"type": "error", "message": self.PRODUCTION_LIMIT})
+        limit_hit, retry_at = detect_codex_session_limit([error_event])
+        self.assertTrue(limit_hit)
+        self.assertEqual(datetime(2026, 8, 5, 9, 31, tzinfo=timezone.utc), retry_at)
+
+    def test_plain_usage_limit_without_try_again_at(self):
+        limit_hit, retry_at = detect_codex_session_limit(["usage limit exceeded"])
+        self.assertTrue(limit_hit)
+        self.assertIsNone(retry_at)
+
+    def test_unrelated_error_is_not_a_limit(self):
+        self.assertEqual((False, None), detect_codex_session_limit(["fatal: repository not found"]))
+
+
+class DetectCursorSessionLimitTests(unittest.TestCase):
+    # Production cursor-agent CLI wording from forum.cursor.com/t/cursor-agent-cli-limit-hit
+    PRODUCTION_LIMIT = (
+        "Error: You've hit your usage limit You've saved xx on API model usage this month "
+        "with Pro. Switch to Auto for more usage or set a Spend Limit to continue with Sonnet. "
+        "Your usage limits will reset when your monthly cycle ends on 8/14/2025. "
+        "fallbackModel: default spendLimitHit: false"
+    )
+    FREE_REQUESTS_LIMIT = (
+        "You've hit your free requests limit. Upgrade to Pro for more usage, frontier models, "
+        "Background Agents, and more. Your usage limits will reset when your monthly cycle "
+        "ends on 8/21/2025."
+    )
+
+    def test_production_usage_limit_parses_cycle_ends_on(self):
+        fixed_now = datetime(2025, 8, 10, 12, 0, tzinfo=timezone.utc)
+        with patch("scripts.automation.cursor.handle_issues.datetime") as mock_dt:
+            mock_dt.now.return_value = fixed_now
+            mock_dt.side_effect = lambda *a, **k: datetime(*a, **k)
+            limit_hit, retry_at = detect_cursor_session_limit([self.PRODUCTION_LIMIT])
+        self.assertTrue(limit_hit)
+        self.assertEqual(datetime(2025, 8, 14, tzinfo=timezone.utc), retry_at)
+
+    def test_cycle_ends_on_today_rolls_to_tomorrow(self):
+        fixed_now = datetime(2025, 8, 14, 11, 0, tzinfo=timezone.utc)
+        with patch("scripts.automation.cursor.handle_issues.datetime") as mock_dt:
+            mock_dt.now.return_value = fixed_now
+            mock_dt.side_effect = lambda *a, **k: datetime(*a, **k)
+            limit_hit, retry_at = detect_cursor_session_limit([self.PRODUCTION_LIMIT])
+        self.assertTrue(limit_hit)
+        self.assertEqual(datetime(2025, 8, 15, tzinfo=timezone.utc), retry_at)
+
+    def test_free_requests_limit_parses_cycle_ends_on(self):
+        fixed_now = datetime(2025, 8, 10, 12, 0, tzinfo=timezone.utc)
+        with patch("scripts.automation.cursor.handle_issues.datetime") as mock_dt:
+            mock_dt.now.return_value = fixed_now
+            mock_dt.side_effect = lambda *a, **k: datetime(*a, **k)
+            limit_hit, retry_at = detect_cursor_session_limit([self.FREE_REQUESTS_LIMIT])
+        self.assertTrue(limit_hit)
+        self.assertEqual(datetime(2025, 8, 21, tzinfo=timezone.utc), retry_at)
+
+    def test_plain_usage_limit_without_cycle_ends(self):
+        limit_hit, retry_at = detect_cursor_session_limit(["You've hit your usage limit."])
+        self.assertTrue(limit_hit)
+        self.assertIsNone(retry_at)
+
+    def test_unrelated_error_is_not_a_limit(self):
+        self.assertEqual((False, None), detect_cursor_session_limit(["fatal: repository not found"]))
+
 
 class DetectSessionLimitTests(unittest.TestCase):
     def test_epoch_message_yields_aware_utc_retry_at(self):
@@ -409,26 +512,44 @@ class HandleLimitPauseTests(unittest.TestCase):
         self.candidate = {"number": 84, "kind": "pr"}
         self.retry_at = datetime(2026, 7, 29, 14, 10, tzinfo=timezone.utc)
 
-    def test_success_path_releases_then_posts_note(self):
+    def test_success_path_releases_then_reroutes_then_posts_note(self):
         with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
                    return_value=("committed", SALVAGE_COMMIT_MESSAGE)), \
              patch("scripts.automation.common.issue_handler.release_in_progress_silently") as release, \
+             patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit",
+                   return_value=None) as reroute, \
              patch("scripts.automation.common.issue_handler.post_comment") as post, \
              patch("scripts.automation.common.issue_handler.add_label") as add, \
              patch("scripts.automation.common.issue_handler.remove_label") as remove:
             handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
                                self.limit_file, self.retry_at)
         release.assert_called_once()
+        reroute.assert_called_once_with(self.logger, "claude", self.candidate, self.limit_file)
         add.assert_not_called()
         remove.assert_not_called()
         self.assertTrue(self.limit_file.exists())
         self.assertTrue(post.call_args[0][1].startswith(MARKER))
         self.assertIn("committed", post.call_args[0][1])
+        self.assertIn("Pausing until", post.call_args[0][1])
+
+    def test_success_path_note_mentions_reroute_when_a_new_provider_is_picked(self):
+        with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
+                   return_value=("clean", "working tree clean")), \
+             patch("scripts.automation.common.issue_handler.release_in_progress_silently"), \
+             patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit",
+                   return_value="codex"), \
+             patch("scripts.automation.common.issue_handler.post_comment") as post:
+            handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
+                               self.limit_file, self.retry_at)
+        self.assertIn("Rerouted to `codex`", post.call_args[0][1])
+        self.assertNotIn("Pausing until", post.call_args[0][1])
 
     def test_clean_path_still_releases_and_notes(self):
         with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
                    return_value=("clean", "working tree clean")), \
              patch("scripts.automation.common.issue_handler.release_in_progress_silently") as release, \
+             patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit",
+                   return_value=None), \
              patch("scripts.automation.common.issue_handler.post_comment") as post:
             handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
                                self.limit_file, self.retry_at)
@@ -439,12 +560,14 @@ class HandleLimitPauseTests(unittest.TestCase):
         with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
                    return_value=("failed", "push rejected")), \
              patch("scripts.automation.common.issue_handler.release_in_progress_silently") as release, \
+             patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit") as reroute, \
              patch("scripts.automation.common.issue_handler.post_comment") as post, \
              patch("scripts.automation.common.issue_handler.add_label") as add, \
              patch("scripts.automation.common.issue_handler.remove_label") as remove:
             handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
                                self.limit_file, self.retry_at)
         release.assert_not_called()
+        reroute.assert_not_called()
         add.assert_called_once_with(84, "ai-need-attention")
         remove.assert_called_once_with(84, "ai-in-progress")
         self.assertIn("ai-need-attention", post.call_args[0][1])
@@ -454,6 +577,8 @@ class HandleLimitPauseTests(unittest.TestCase):
         with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
                    return_value=("clean", "working tree clean")), \
              patch("scripts.automation.common.issue_handler.release_in_progress_silently") as release, \
+             patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit",
+                   return_value=None), \
              patch("scripts.automation.common.issue_handler.post_comment",
                    side_effect=RuntimeError("gh failed")):
             handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
@@ -485,6 +610,50 @@ class ReleaseInProgressSilentlyTests(unittest.TestCase):
              patch("scripts.automation.common.issue_handler.remove_label") as remove:
             release_in_progress_silently(MagicMock(), "claude")
         remove.assert_not_called()
+
+
+class RerouteAutoItemAfterLimitTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.state_file = Path(self.tmp.name) / "provider-state.json"
+        self.logger = MagicMock()
+
+    def test_non_auto_item_does_nothing(self):
+        candidate = item(84, ["claude"], kind="pr")
+        with patch("scripts.automation.common.issue_handler.remove_label") as remove, \
+             patch("scripts.automation.common.issue_handler.add_label") as add:
+            result = reroute_auto_item_after_limit(self.logger, "claude", candidate, self.state_file)
+        self.assertIsNone(result)
+        remove.assert_not_called()
+        add.assert_not_called()
+
+    def test_auto_item_drops_current_label_and_routes_to_a_free_provider(self):
+        candidate = item(84, ["claude", "auto-ai"], kind="pr")
+        with patch("scripts.automation.common.issue_handler.select_auto_provider",
+                   return_value="codex") as select, \
+             patch("scripts.automation.common.issue_handler.remove_label") as remove, \
+             patch("scripts.automation.common.issue_handler.add_label") as add, \
+             patch("scripts.automation.common.issue_handler.record_auto_selection") as record, \
+             patch("scripts.automation.common.issue_handler.verify_label_present") as verify:
+            result = reroute_auto_item_after_limit(self.logger, "claude", candidate, self.state_file)
+        self.assertEqual("codex", result)
+        remove.assert_called_once_with(84, "claude")
+        add.assert_called_once_with(84, "codex")
+        record.assert_called_once_with(self.state_file, "codex")
+        verify.assert_called_once_with(self.logger, 84, "codex")
+        self.assertEqual(["codex", "cursor"], select.call_args[0][2])
+
+    def test_all_other_providers_limited_parks_with_need_attention(self):
+        candidate = item(84, ["claude", "auto-ai"], kind="issue")
+        with patch("scripts.automation.common.issue_handler.select_auto_provider",
+                   return_value=None), \
+             patch("scripts.automation.common.issue_handler.remove_label") as remove, \
+             patch("scripts.automation.common.issue_handler.park_auto_item_unroutable") as park:
+            result = reroute_auto_item_after_limit(self.logger, "claude", candidate, self.state_file)
+        self.assertIsNone(result)
+        remove.assert_called_once_with(84, "claude")
+        park.assert_called_once_with(self.logger, candidate)
 
 
 class VerifyLabelPresentTests(unittest.TestCase):
