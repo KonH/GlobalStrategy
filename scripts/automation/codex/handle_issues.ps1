@@ -7,14 +7,14 @@
 #
 # Only issues/PRs labeled 'codex' are ever considered - create the labels once per repo:
 #   gh label create codex --color 5319E7 --description "Execute this item's prompt via the Codex automation"
-#   gh label create codex-in-progress --color FBCA04 --description "Automation actively working this item"
-#   gh label create codex-needs-attention --color D93F0B --description "Automation waiting on the owner"
-#   gh label create codex-complete --color 0E8A16 --description "Automation finished this item's prompt"
+#   gh label create ai-in-progress --color FBCA04 --description "Automation actively working this item"
+#   gh label create ai-need-attention --color D93F0B --description "Automation waiting on the owner"
+#   gh label create ai-complete --color 0E8A16 --description "Automation finished this item's prompt"
 #
 # The labels are the whole state machine: an item is picked up iff it carries 'codex' and
-# none of the three status labels. Resume a needs-attention/complete item by replying in a
-# comment and removing that status label. Codex is only invoked when discovery finds at
-# least one candidate.
+# none of the three shared ai-* status labels. Resume a need-attention/complete item by
+# replying in a comment and removing that status label. Codex is only invoked when discovery
+# finds at least one candidate.
 #
 # The Python runner uses an OS-level non-blocking lock on Windows and POSIX. Also set Task
 # Scheduler's "don't start a new instance if already running" option as a second safeguard.

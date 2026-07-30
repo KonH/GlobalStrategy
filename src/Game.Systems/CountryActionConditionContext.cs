@@ -34,6 +34,8 @@ namespace GS.Game.Systems {
 			}
 
 			double relationStillExists = 1.0;
+			double targetRulerOrMilitaryOpinion = 0.0;
+			double neitherSideAtWar = 1.0;
 			if (cardEntity >= 0
 				&& !string.IsNullOrEmpty(countryId)
 				&& world.Has<RelationCardTarget>(cardEntity)) {
@@ -41,6 +43,12 @@ namespace GS.Game.Systems {
 				relationStillExists = CountryRelations.GetRelation(world, countryId, target.TargetCountryId) == target.Kind
 					? 1.0
 					: 0.0;
+				string rulerId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "ruler");
+				string militaryAdvisorId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "military_advisor");
+				double rulerOpinion = string.IsNullOrEmpty(rulerId) ? 0.0 : ResourceQuery.GetValue(world, rulerId, $"opinion_{orgId}");
+				double militaryAdvisorOpinion = string.IsNullOrEmpty(militaryAdvisorId) ? 0.0 : ResourceQuery.GetValue(world, militaryAdvisorId, $"opinion_{orgId}");
+				targetRulerOrMilitaryOpinion = System.Math.Max(rulerOpinion, militaryAdvisorOpinion);
+				neitherSideAtWar = !Wars.IsInWar(world, countryId) && !Wars.IsInWar(world, target.TargetCountryId) ? 1.0 : 0.0;
 			}
 
 			return new ExpressionContext {
@@ -49,7 +57,9 @@ namespace GS.Game.Systems {
 				Opinion = opinion,
 				HasSuitableRelationTarget = hasSuitableRelationTarget,
 				RelationStillExists = relationStillExists,
-				IsInWar = isInWar
+				IsInWar = isInWar,
+				TargetRulerOrMilitaryOpinion = targetRulerOrMilitaryOpinion,
+				NeitherSideAtWar = neitherSideAtWar
 			};
 		}
 	}

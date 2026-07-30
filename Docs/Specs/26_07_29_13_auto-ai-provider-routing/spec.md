@@ -15,7 +15,7 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
   - A provider is selected => the persistent routing record records that provider as most recently selected => its selection order is retained for later runs.
 - A provider has an active usage or session limit.
   - The auto-AI automation considers pending `auto-ai` work => it does not select that provider => limited capacity is not assigned new work.
-  - Every selectable provider has an active limit => the automation leaves pending `auto-ai` work without a provider label => it can be considered again after capacity returns.
+  - Every selectable provider has an active limit => the automation applies `ai-need-attention` and posts an automation comment explaining that no provider was available => the item is parked for the owner instead of being silently re-polled every tick; removing `ai-need-attention` resumes auto-routing once capacity returns.
 - The auto-AI automation is scheduled.
   - It has completed routing eligible `auto-ai` items => it runs each existing provider-specific issue handler => newly assigned and previously provider-labeled work continues to use the established provider workflows.
   - An item already has any provider label => it is not reassigned by auto-AI routing => a provider-specific workflow remains the sole owner of that item's execution.

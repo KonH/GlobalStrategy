@@ -75,6 +75,12 @@
       "kind": "Rival"
     },
     {
+      "effectId": "declare_war_effect",
+      "effectType": "DeclareWar",
+      "nameKey": "effect.declare_war_effect.name",
+      "descKey": "effect.declare_war_effect.desc"
+    },
+    {
       "effectId": "decrease_enemy_control_drain_effect",
       "effectType": "EnemyControlDrain",
       "nameKey": "effect.decrease_enemy_control_drain.name",

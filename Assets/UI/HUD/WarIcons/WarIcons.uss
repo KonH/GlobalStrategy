@@ -1,0 +1,29 @@
+.war-icons-row {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.war-icon-button {
+    width: 112px;
+    height: 40px;
+    padding: 4px 6px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.war-icon-flag {
+    width: 32px;
+    height: 22px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.war-icon-swords {
+    width: 24px;
+    height: 24px;
+    margin-left: 5px;
+    margin-right: 5px;
+    background-image: url("project://database/Assets/Textures/Buttons/War/crossed_swords.png?fileID=2800000&guid=a984aa391a24448e643056ae64edb58b&type=3#crossed_swords");
+    -unity-background-scale-mode: scale-to-fit;
+}

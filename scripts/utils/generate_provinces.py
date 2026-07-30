@@ -53,6 +53,7 @@ import zipfile
 import requests
 from shapely.geometry import shape, mapping, Point
 from shapely.ops import unary_union
+from shapely.strtree import STRtree
 from shapely.validation import make_valid
 import geopandas as gpd
 import numpy as np
@@ -577,6 +578,45 @@ def try_option_c(country_id, display_name, country_polygon, area_km2, places_gdf
 
 
 # ---------------------------------------------------------------------------
+# Final-geometry topology
+# ---------------------------------------------------------------------------
+def add_topology_properties(features):
+    """Add stable centroid and shared-segment adjacency metadata in place."""
+    geometries = [shape(feature["geometry"]) for feature in features]
+    tree = STRtree(geometries)
+    geometry_index_by_identity = {
+        id(geometry): index for index, geometry in enumerate(geometries)
+    }
+    neighbors = [set() for _ in geometries]
+
+    for index, geometry in enumerate(geometries):
+        for candidate in tree.query(geometry):
+            if isinstance(candidate, (int, np.integer)):
+                candidate_index = int(candidate)
+            else:
+                candidate_index = geometry_index_by_identity[id(candidate)]
+            if candidate_index <= index:
+                continue
+            intersection = geometry.boundary.intersection(
+                geometries[candidate_index].boundary)
+            if intersection.length <= 0:
+                continue
+            neighbors[index].add(candidate_index)
+            neighbors[candidate_index].add(index)
+
+    province_ids = [
+        feature["properties"]["provinceId"] for feature in features
+    ]
+    for index, feature in enumerate(features):
+        centroid = geometries[index].centroid
+        feature["properties"]["centroidX"] = centroid.x
+        feature["properties"]["centroidY"] = centroid.y
+        feature["properties"]["neighborProvinceIds"] = sorted(
+            province_ids[neighbor_index]
+            for neighbor_index in neighbors[index])
+
+
+# ---------------------------------------------------------------------------
 # Step 5: provinceId assignment with collision handling
 # ---------------------------------------------------------------------------
 def assign_province_ids(country_id, provinces):
@@ -882,6 +922,8 @@ def run(force_download=False):
         gs = gpd.GeoSeries([geom], crs=WGS84_CRS).to_crs(EQUAL_AREA_CRS)
         area_km2 = gs.area.iloc[0] / 1_000_000.0
         feature["properties"]["population"] = density * area_km2
+    print("Computing province centroids and shared-border adjacency ...")
+    add_topology_properties(simplified["features"])
     with open(INTERMEDIATE_PATH, "w", encoding="utf-8") as f:
         json.dump(simplified, f)
     all_features = simplified["features"]

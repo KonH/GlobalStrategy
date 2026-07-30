@@ -15,7 +15,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Algeria",
@@ -32,7 +34,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "American_Samoa",
@@ -49,7 +53,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Anguilla",
@@ -66,7 +72,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Annam",
@@ -83,7 +91,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Antigua_and_Barbuda",
@@ -100,7 +110,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Arabia",
@@ -117,7 +129,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Argentina",
@@ -138,7 +152,9 @@
       ],
       "historicalRivals": [
         "Kingdom_of_Brazil"
-      ]
+      ],
+      "baseDamage": 44,
+      "baseDurability": 42
     },
     {
       "countryId": "Asante",
@@ -155,7 +171,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Ato_trading_confederacy",
@@ -172,7 +190,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Austria_Hungary",
@@ -195,7 +215,9 @@
       "historicalRivals": [
         "Italy",
         "Ottoman_Empire"
-      ]
+      ],
+      "baseDamage": 72,
+      "baseDurability": 70
     },
     {
       "countryId": "Barotse",
@@ -212,7 +234,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Basutoland",
@@ -229,7 +253,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Belgium",
@@ -246,7 +272,9 @@
       ],
       "historicalRivals": [
         "Netherlands"
-      ]
+      ],
+      "baseDamage": 48,
+      "baseDurability": 58
     },
     {
       "countryId": "Belize",
@@ -263,7 +291,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Benin",
@@ -280,7 +310,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Bhutan",
@@ -297,7 +329,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Bokhara_Khanate",
@@ -314,7 +348,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Bolivia",
@@ -331,7 +367,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Borgu_States",
@@ -348,7 +386,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Bosnia_Herzegovina",
@@ -365,7 +405,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "British_Guiana",
@@ -382,7 +424,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "British_Raj",
@@ -399,7 +443,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Brunei",
@@ -416,7 +462,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Buganda",
@@ -433,7 +481,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Bulgaria",
@@ -450,7 +500,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Bunyoro",
@@ -467,7 +519,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Burundi",
@@ -484,7 +538,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Calabar",
@@ -501,7 +557,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Canada",
@@ -513,7 +571,9 @@
       "initialResources": [],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Cape_Colony",
@@ -530,7 +590,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Ceylon",
@@ -547,7 +609,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Chile",
@@ -564,7 +628,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Colombia",
@@ -581,7 +647,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Congo",
@@ -598,7 +666,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Costa_Rica",
@@ -615,7 +685,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Cotonou",
@@ -632,7 +704,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Dahomey",
@@ -649,7 +723,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Dendi_Kingdom",
@@ -666,7 +742,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Denmark",
@@ -686,7 +764,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Dominica",
@@ -703,7 +783,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Dominican_Republic",
@@ -720,7 +802,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Dutch_Guiana",
@@ -737,7 +821,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Ecuador",
@@ -754,7 +840,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Egypt",
@@ -775,7 +863,9 @@
       ],
       "historicalRivals": [
         "Ethiopia"
-      ]
+      ],
+      "baseDamage": 40,
+      "baseDurability": 38
     },
     {
       "countryId": "El_Salvador",
@@ -792,7 +882,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Ethiopia",
@@ -813,7 +905,9 @@
       ],
       "historicalRivals": [
         "Egypt"
-      ]
+      ],
+      "baseDamage": 36,
+      "baseDurability": 55
     },
     {
       "countryId": "Fiji",
@@ -830,7 +924,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "France",
@@ -857,7 +953,9 @@
       "historicalRivals": [
         "Germany",
         "United_Kingdom_of_Great_Britain_and_Ireland"
-      ]
+      ],
+      "baseDamage": 85,
+      "baseDurability": 82
     },
     {
       "countryId": "French_Guiana",
@@ -874,7 +972,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "French_Indochina",
@@ -891,7 +991,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Futa_Jalon",
@@ -908,7 +1010,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Futa_Toro",
@@ -925,7 +1029,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Gabon",
@@ -942,7 +1048,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Gambia",
@@ -959,7 +1067,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Germany",
@@ -984,7 +1094,9 @@
       "historicalRivals": [
         "France",
         "Portugal"
-      ]
+      ],
+      "baseDamage": 93,
+      "baseDurability": 88
     },
     {
       "countryId": "Greece",
@@ -1001,7 +1113,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Griqualand_West",
@@ -1018,7 +1132,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Guadeloupe",
@@ -1035,7 +1151,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Guatemala",
@@ -1052,7 +1170,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Haiti",
@@ -1069,7 +1189,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Harer_Egypt",
@@ -1086,7 +1208,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Honduras",
@@ -1103,7 +1227,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Ibadan",
@@ -1120,7 +1246,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Imerina",
@@ -1137,7 +1265,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Imperial_Japan",
@@ -1158,7 +1288,9 @@
       ],
       "historicalRivals": [
         "Manchu_Empire"
-      ]
+      ],
+      "baseDamage": 52,
+      "baseDurability": 58
     },
     {
       "countryId": "Italy",
@@ -1179,7 +1311,9 @@
       ],
       "historicalRivals": [
         "Austria_Hungary"
-      ]
+      ],
+      "baseDamage": 58,
+      "baseDurability": 55
     },
     {
       "countryId": "Ivory_Coast",
@@ -1196,7 +1330,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Kanem_Bornu",
@@ -1213,7 +1349,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Kingdom_of_Brazil",
@@ -1234,7 +1372,9 @@
       ],
       "historicalRivals": [
         "Argentina"
-      ]
+      ],
+      "baseDamage": 42,
+      "baseDurability": 48
     },
     {
       "countryId": "Kingdom_of_Hawaii",
@@ -1251,7 +1391,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Kong_Empire",
@@ -1268,7 +1410,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Korea",
@@ -1285,7 +1429,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Kuba",
@@ -1302,7 +1448,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Lagos",
@@ -1319,7 +1467,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Liberia",
@@ -1336,7 +1486,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Lozi",
@@ -1353,7 +1505,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Luba",
@@ -1370,7 +1524,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Lunda",
@@ -1387,7 +1543,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Luxembourg",
@@ -1404,7 +1562,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "M_ori",
@@ -1421,7 +1581,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Madagascar",
@@ -1438,7 +1600,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Malaya",
@@ -1455,7 +1619,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Malta",
@@ -1472,7 +1638,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Manchu_Empire",
@@ -1494,7 +1662,9 @@
       "historicalRivals": [
         "Russian_Empire",
         "Imperial_Japan"
-      ]
+      ],
+      "baseDamage": 32,
+      "baseDurability": 58
     },
     {
       "countryId": "Mbailundu",
@@ -1511,7 +1681,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Mexico",
@@ -1528,7 +1700,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Mirambo_Unyanyembe_Ukimbu",
@@ -1545,7 +1719,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Montenegro",
@@ -1562,7 +1738,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Montserrat",
@@ -1579,7 +1757,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Morocco",
@@ -1596,7 +1776,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Mossi_States",
@@ -1613,7 +1795,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Mozambique",
@@ -1630,7 +1814,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Natal",
@@ -1647,7 +1833,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Ndebele",
@@ -1664,7 +1852,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Nepal",
@@ -1681,7 +1871,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Netherlands",
@@ -1700,7 +1892,9 @@
       ],
       "historicalRivals": [
         "Belgium"
-      ]
+      ],
+      "baseDamage": 50,
+      "baseDurability": 55
     },
     {
       "countryId": "Netherlands_Antilles",
@@ -1717,7 +1911,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Nguni",
@@ -1734,7 +1930,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Ngwato",
@@ -1751,7 +1949,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Nicaragua",
@@ -1768,7 +1968,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Niue",
@@ -1785,7 +1987,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Oman",
@@ -1802,7 +2006,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Opobo",
@@ -1819,7 +2025,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Orange_Free_State",
@@ -1836,7 +2044,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Ottoman_Empire",
@@ -1859,7 +2069,9 @@
         "Russian_Empire",
         "Austria_Hungary",
         "Persia"
-      ]
+      ],
+      "baseDamage": 48,
+      "baseDurability": 52
     },
     {
       "countryId": "Ovimbundu",
@@ -1876,7 +2088,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Oyo",
@@ -1893,7 +2107,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Papua_New_Guinea",
@@ -1910,7 +2126,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Paraguay",
@@ -1927,7 +2145,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Persia",
@@ -1948,7 +2168,9 @@
       ],
       "historicalRivals": [
         "Ottoman_Empire"
-      ]
+      ],
+      "baseDamage": 28,
+      "baseDurability": 35
     },
     {
       "countryId": "Peru",
@@ -1965,7 +2187,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Philippines",
@@ -1982,7 +2206,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Polynesians",
@@ -1999,7 +2225,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Portugal",
@@ -2024,7 +2252,9 @@
       ],
       "historicalRivals": [
         "Germany"
-      ]
+      ],
+      "baseDamage": 38,
+      "baseDurability": 42
     },
     {
       "countryId": "Portuguese_Guinea",
@@ -2041,7 +2271,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Qatar",
@@ -2058,7 +2290,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Rabih_az_Zubayr",
@@ -2075,7 +2309,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Rattanakosin_Kingdom",
@@ -2092,7 +2328,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Romania",
@@ -2109,7 +2347,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Russian_Empire",
@@ -2135,7 +2375,9 @@
         "Ottoman_Empire",
         "Manchu_Empire",
         "SwedenNorway"
-      ]
+      ],
+      "baseDamage": 68,
+      "baseDurability": 86
     },
     {
       "countryId": "Rwanda",
@@ -2152,7 +2394,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Saint_Barthelemy",
@@ -2169,7 +2413,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Saint_Kitts_and_Nevis",
@@ -2186,7 +2432,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Saint_Martin",
@@ -2203,7 +2451,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Samoa",
@@ -2220,7 +2470,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Serbia",
@@ -2237,7 +2489,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Shona",
@@ -2254,7 +2508,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Sierra_Leone",
@@ -2271,7 +2527,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Sokoto_Caliphate",
@@ -2288,7 +2546,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Spain",
@@ -2311,7 +2571,9 @@
       ],
       "historicalRivals": [
         "United_States_of_America"
-      ]
+      ],
+      "baseDamage": 45,
+      "baseDurability": 48
     },
     {
       "countryId": "Spanish_Guinea",
@@ -2328,7 +2590,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Sultanate_of_Damagaram",
@@ -2345,7 +2609,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Sultanate_of_Utetera",
@@ -2362,7 +2628,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Sultinate_of_Zanzibar",
@@ -2379,7 +2647,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Swaziland",
@@ -2396,7 +2666,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "SwedenNorway",
@@ -2412,7 +2684,9 @@
       ],
       "historicalRivals": [
         "Russian_Empire"
-      ]
+      ],
+      "baseDamage": 46,
+      "baseDurability": 52
     },
     {
       "countryId": "Switzerland",
@@ -2424,7 +2698,9 @@
       "initialResources": [],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Taiwan",
@@ -2441,7 +2717,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Teke",
@@ -2458,7 +2736,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Tonga",
@@ -2475,7 +2755,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Transvaal",
@@ -2492,7 +2774,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Trucial_Oman",
@@ -2509,7 +2793,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Tukular_Caliphate",
@@ -2526,7 +2812,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "United_Kingdom_of_Great_Britain_and_Ireland",
@@ -2558,7 +2846,9 @@
       ],
       "historicalRivals": [
         "France"
-      ]
+      ],
+      "baseDamage": 95,
+      "baseDurability": 92
     },
     {
       "countryId": "United_States_of_America",
@@ -2582,7 +2872,9 @@
       ],
       "historicalRivals": [
         "Spain"
-      ]
+      ],
+      "baseDamage": 78,
+      "baseDurability": 90
     },
     {
       "countryId": "Uruguay",
@@ -2599,7 +2891,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Venezuela",
@@ -2616,7 +2910,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Wadai_Empire",
@@ -2633,7 +2929,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Wassoulou_Empire",
@@ -2650,7 +2948,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Yaka",
@@ -2667,7 +2967,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Yeke",
@@ -2684,7 +2986,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "Zululand",
@@ -2701,7 +3005,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     },
     {
       "countryId": "central_Asian_khanates",
@@ -2718,7 +3024,9 @@
       ],
       "isAvailable": false,
       "historicalFriends": [],
-      "historicalRivals": []
+      "historicalRivals": [],
+      "baseDamage": 40,
+      "baseDurability": 40
     }
   ]
 }

@@ -16,11 +16,11 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from scripts.automation.common.issue_handler import (
-    acquire_lock, add_label, label_names, list_labeled_items, record_auto_selection,
-    select_auto_provider, setup_logging,
+    AI_STATUS_LABELS, AUTO_LABEL, PROVIDERS, acquire_lock, add_label, label_names,
+    list_labeled_items, park_auto_item_unroutable, record_auto_selection,
+    select_auto_provider, setup_logging, verify_label_present,
 )
 
-PROVIDERS = ("claude", "codex", "cursor")
 DEFAULT_LOG_FILE = ROOT / "Logs" / "handle_issues_auto.log"
 DEFAULT_LOCK_FILE = ROOT / "Logs" / "handle_issues_auto.lock"
 DEFAULT_PROVIDER_STATE_FILE = ROOT / "Logs" / "auto_ai_provider_state.json"
@@ -29,13 +29,15 @@ logger = logging.getLogger("handle_issues_auto")
 
 def has_provider_label(candidate):
     labels = label_names(candidate)
-    return any(label == provider or label.startswith(f"{provider}-")
-               for label in labels for provider in PROVIDERS)
+    return any(provider in labels for provider in PROVIDERS)
 
 
 def auto_candidates():
     """Open trusted ``auto-ai`` items not already claimed by a provider workflow."""
-    return [candidate for candidate in list_labeled_items("auto-ai") if not has_provider_label(candidate)]
+    return [
+        candidate for candidate in list_labeled_items(AUTO_LABEL)
+        if not has_provider_label(candidate) and not (label_names(candidate) & AI_STATUS_LABELS)
+    ]
 
 
 def route_candidates(logger, state_file, candidates):
@@ -43,13 +45,13 @@ def route_candidates(logger, state_file, candidates):
     for candidate in candidates:
         provider = select_auto_provider(logger, state_file, PROVIDERS)
         if provider is None:
-            logger.warning("All providers are limited; leaving %s #%s labeled only auto-ai.",
-                           candidate["kind"], candidate["number"])
+            park_auto_item_unroutable(logger, candidate)
             continue
         add_label(candidate["number"], provider)
         # Persist before evaluating the next candidate: a batch is sequential LRU, not a
         # snapshot of one initial ordering.
         record_auto_selection(state_file, provider)
+        verify_label_present(logger, candidate["number"], provider)
         routed.append((candidate["number"], provider))
         logger.info("Routed %s #%s to %s.", candidate.get("kind", "item"), candidate["number"], provider)
     return routed

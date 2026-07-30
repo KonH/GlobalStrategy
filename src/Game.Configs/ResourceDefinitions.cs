@@ -11,5 +11,8 @@ namespace GS.Game.Configs {
 		public const string OrgScore = "org_score";
 		public const string Recruits = "recruits";
 		public const string TroopsDamageBonusPercent = "troops_damage_bonus_percent";
+		public const string Damage = "damage";
+		public const string Durability = "durability";
+		public const string WarInitiative = "war_initiative";
 	}
 }

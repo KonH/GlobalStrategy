@@ -43,6 +43,7 @@ namespace GS.Main {
 			UpdateTime(world, gameTimeEntity);
 			UpdateLocale(world, localeEntity);
 			UpdatePlayerOrganization(world, orgEntity);
+			UpdateWarIcons(world);
 			UpdateGameCompletion(world, orgEntity);
 			UpdateResources(world);
 			UpdateSelectedControl(world);
@@ -259,6 +260,13 @@ namespace GS.Main {
 			ref Organization org = ref world.Get<Organization>(orgEntity);
 			_hqCountryByOrgId.TryGetValue(org.OrganizationId, out var hqCountryId);
 			_state.PlayerOrganization.Set(true, org.OrganizationId, org.DisplayName, hqCountryId ?? "");
+		}
+
+		void UpdateWarIcons(IReadOnlyWorld world) {
+			string playerOrgId = _state.PlayerOrganization.IsValid
+				? _state.PlayerOrganization.OrgId
+				: "";
+			_state.WarIcons.Set(WarIconsProjector.Build(world, playerOrgId));
 		}
 
 		void UpdateGameCompletion(IReadOnlyWorld world, int orgEntity) {
@@ -619,11 +627,13 @@ namespace GS.Main {
 				countryId,
 				entity);
 
+			var conditionResults = ActionConditionDebug.EvaluateAll(def.Conditions, ctx);
 			bool conditionFailed = false;
 			string failedReason = "";
-			foreach (var cond in def.Conditions) {
-				if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
+			for (int i = 0; i < def.Conditions.Count; i++) {
+				if (!conditionResults[i].Passed) {
 					conditionFailed = true;
+					var cond = def.Conditions[i];
 					string fieldType = cond.Members.Count > 0 ? cond.Members[0].Type : "";
 					failedReason = ContainsExpressionType(cond, "isInWar")
 						? "war_ended"
@@ -633,17 +643,24 @@ namespace GS.Main {
 							"opinion" => "insufficient_opinion",
 							"hasSuitableRelationTarget" => "no_suitable_target",
 							"relationStillExists" => "relation_no_longer_exists",
+							"targetRulerOrMilitaryOpinion" => "insufficient_target_opinion",
+							"neitherSideAtWar" => "already_at_war",
 							_ => "insufficient_control"
 						};
 					break;
 				}
 			}
 			bool poolFull = actionId == "sphere_of_pressure" && usedTotal >= 100;
+			if (actionId == "sphere_of_pressure") {
+				conditionResults.Add(new ActionConditionDebugEntry(
+					$"control pool not full (used {usedTotal}/100)",
+					!poolFull));
+			}
 			bool isUnplayable = conditionFailed || poolFull;
 			string unplayableReason = poolFull ? "pool_full" : (conditionFailed ? failedReason : "");
 			string targetCountryId = world.Has<RelationCardTarget>(entity) ? world.Get<RelationCardTarget>(entity).TargetCountryId : "";
 
-			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason, targetCountryId);
+			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason, targetCountryId, conditionResults);
 		}
 
 		static bool ContainsExpressionType(ExpressionNode node, string type) {
@@ -807,7 +824,7 @@ namespace GS.Main {
 
 		// Collection pass, not a diff pass — modeled on UpdateLastFrameEffects above, which already
 		// scans a transient one-shot component archetype (ResourceChange) every tick the same way.
-		// No baseline/init-guard needed: the four source components are only ever created at the
+		// No baseline/init-guard needed: the source components are only ever created at the
 		// exact point their underlying effect is applied, never during InitSystem seeding, so there
 		// is structurally nothing to collect on a fresh/loaded game. See
 		// Docs/Specs/26_07_18_07_action-log-ui/plan.md "Collection logic" section.
@@ -883,6 +900,17 @@ namespace GS.Main {
 					if (!_gameLogIncludePlayerActions && applied[i].OrgId == playerOrgId) { continue; }
 					newEntries.Add(new GameLogEntry(0, GameLogEntryKind.Relation, applied[i].OrgId, applied[i].CountryId,
 						"", "", Array.Empty<string>(), 0, 0, false, applied[i].TargetCountryId, applied[i].Kind));
+				}
+			}
+
+			int[] warReq = { TypeId<WarDeclaredApplied>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(warReq, null)) {
+				WarDeclaredApplied[] applied = arch.GetColumn<WarDeclaredApplied>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (!_gameLogIncludePlayerActions && applied[i].OrgId == playerOrgId) { continue; }
+					newEntries.Add(new GameLogEntry(0, GameLogEntryKind.War, applied[i].OrgId, applied[i].CountryId,
+						"", "", Array.Empty<string>(), 0, 0, false, applied[i].DefenderCountryId));
 				}
 			}
 

@@ -19,6 +19,7 @@ namespace GS.Main {
 		readonly Random _rng;
 		readonly Dictionary<string, string> _hqCountryByOrgId;
 		readonly ICompletionCondition _completionCondition;
+		readonly ProvinceTopology _provinceTopology;
 		int _gameTimeEntity = -1;
 		int _localeEntity = -1;
 		int _settingsEntity = -1;
@@ -66,14 +67,21 @@ namespace GS.Main {
 			_effectConfig = context.Effect.Load();
 			EffectConfig = _effectConfig;
 			ProvinceConfig = context.Province.Load();
+			_provinceTopology = new ProvinceTopology(ProvinceConfig);
 			var settings = context.GameSettings.Load();
 			GameSettings = settings;
+			settings.WarBattles.Validate();
 			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId,
 				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig);
 			_speedMultipliers = settings.SpeedMultipliers;
+			var combatBasesByCountryId = new Dictionary<string, CountryCombatBases>();
+			foreach (var entry in CountryConfig.Countries) {
+				combatBasesByCountryId[entry.CountryId] = new CountryCombatBases(entry.BaseDamage, entry.BaseDurability);
+			}
 			_resourceCollectorRegistry = ResourceCollectorRegistry.CreateDefault(
 				settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient,
-				settings.RecruitsInitialPercent, settings.RecruitsCapPercent, settings.RecruitsMonthlyIncreasePercent);
+				settings.RecruitsInitialPercent, settings.RecruitsCapPercent, settings.RecruitsMonthlyIncreasePercent,
+				combatBasesByCountryId);
 			_resourceIdUpdateOrder = settings.ResourceIdUpdateOrder;
 			_botActionLogRetentionCap = settings.BotActionLogRetentionCap;
 			BotFeatures = settings.BotFeatures;
@@ -192,13 +200,27 @@ namespace GS.Main {
 				CountryRelations.RemoveRelation(_world, cmd.CountryIdA, cmd.CountryIdB);
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugDeclareWarCommand().AsSpan()) {
-				Wars.DeclareWar(_world, cmd.AttackerCountryId, cmd.DefenderCountryId, currentTime);
+				Wars.DeclareWar(
+					_world, cmd.AttackerCountryId, cmd.DefenderCountryId, currentTime,
+					_provinceTopology, GameSettings.WarBattles);
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugStopWarCommand().AsSpan()) {
 				Wars.StopWar(_world, cmd.CountryId);
 			}
-
+			foreach (var cmd in _commandAccessor.ReadDebugDrawCardCommand().AsSpan()) {
+				DrawCardSystem.ForceDrawCard(_world, cmd.OrgId, cmd.CountryId, cmd.ActionId, cmd.TargetCountryId);
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugDiscardCardCommand().AsSpan()) {
+				RemoveCardFromHandSystem.ForceDiscard(
+					_world, cmd.OrgId, cmd.CountryId, cmd.ActionId, cmd.TargetCountryId, cmd.SlotIndex);
+			}
 			CleanupActionEffectsSystem.Update(_world);
+			// War battles: sweep last tick's ResourceChange before WarBattleSystem creates this
+			// tick's battle-caused ResourceChange, so VisualStateConverter (below) sees it once,
+			// same as the card pipeline's DeductActionCostSystem/CreateActionEffectSystem.
+			WarBattleSystem.Update(
+				_world, _previousTime, currentTime, _rng, _provinceTopology, GameSettings.WarBattles);
+
 			// Game Log: sweep last tick's Control/Opinion/Discovery events before
 			// CreateActionEffectSystem/DiscoverCountrySystem create this tick's batch below.
 			// See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
@@ -238,6 +260,7 @@ namespace GS.Main {
 			RefreshSingletonEntities();
 			_previousTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool);
+			SettleCombatResources();
 			_visualStateConverter.Update(0f, _world, _gameTimeEntity, _localeEntity, _orgEntity);
 		}
 
@@ -497,6 +520,9 @@ namespace GS.Main {
 			}
 			// Game Log event — see Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
 			_world.Add(_world.Create(), new RoleChangeApplied { OrgId = "", CountryId = countryId, RoleId = roleId, CharacterId = nextEntry.CharacterId });
+			if (IsWarRelevantRole(roleId)) {
+				SettleCombatResources();
+			}
 		}
 
 		void ApplyDebugDropCharacter(string ownerId, string roleId, int slotIndex) {
@@ -518,6 +544,9 @@ namespace GS.Main {
 				string charId = FindCountryCharacterId(ownerId, roleId);
 				if (!string.IsNullOrEmpty(charId)) {
 					RemoveCharacterEntity(charId);
+					if (IsWarRelevantRole(roleId)) {
+						SettleCombatResources();
+					}
 				}
 			}
 		}
@@ -746,6 +775,22 @@ namespace GS.Main {
 			}
 		}
 
+		static bool IsWarRelevantRole(string roleId) {
+			return roleId == "ruler" || roleId == "military_advisor" || roleId == "economic_advisor";
+		}
+
+		// Cycle runs after the first ResourceSystem pass, so a same-tick settle is required.
+		// Instant seed applies without ForceResourceRecompute. Resolve Instant first, then mark
+		// Daily and re-run: Absolute collectors compute target - currentValue, so forcing Daily in
+		// the same ResolveCollectors pass as Instant (both seeing currentValue 0) would double.
+		void SettleCombatResources() {
+			DateTime now = _gameTimeEntity >= 0 ? _world.Get<GameTime>(_gameTimeEntity).CurrentTime : _previousTime;
+			ResourceSystem.Update(_world, now, now, _resourceCollectorRegistry, _resourceIdUpdateOrder);
+			MarkResourceEffectsForRecompute(ResourceDefinitions.Damage);
+			MarkResourceEffectsForRecompute(ResourceDefinitions.Durability);
+			ResourceSystem.Update(_world, now, now, _resourceCollectorRegistry, _resourceIdUpdateOrder);
+		}
+
 		// Debug-only score settle: org_score is a Daily-gated collector-driven resource
 		// (OrgScoreCollector), so it only recomputes from live ControlEffect state on a real
 		// day-boundary tick. A debug-forced control change doesn't advance GameTime, and once
@@ -782,13 +827,20 @@ namespace GS.Main {
 			// Collect matching entities first: World.Add is a structural change (moves the
 			// entity to a different archetype) and must not run while GetMatchingArchetypes'
 			// enumerator is still walking the archetype list it would mutate.
+			// Skip Instant: ForceResourceRecompute is redundant for Instant (it always applies).
+			// Skipping Instant here does **not** prevent Instant+Daily doubling — Instant still
+			// applies in the same ResolveCollectors pass as a forced Daily. Absolute Instant+Daily
+			// pairs (damage/durability) must use SettleCombatResources' two-pass
+			// Update (Instant first, then mark Daily, then Update again).
 			var toMark = new List<int>();
 			int[] req = { TypeId<ResourceLink>.Value, TypeId<ResourceEffect>.Value };
 			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
 				ResourceLink[] links = arch.GetColumn<ResourceLink>();
+				ResourceEffect[] effects = arch.GetColumn<ResourceEffect>();
 				int[] entities = arch.Entities;
 				for (int i = 0; i < arch.Count; i++) {
 					if (links[i].ResourceId != resourceId) { continue; }
+					if (effects[i].PayType == PayType.Instant) { continue; }
 					if (!_world.Has<ForceResourceRecompute>(entities[i])) {
 						toMark.Add(entities[i]);
 					}

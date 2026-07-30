@@ -11,7 +11,7 @@ As the automation owner, I want the Claude (and Codex, for shared salvage) issue
 - Dirty tree on limit → deterministic Python commit+push (`chore: salvage uncommitted work after session limit`, automation git identity, `git push -u origin HEAD`) before limit-file write / release.
 - Clean tree → no salvage commit; planned pause still runs.
 - Success/clean: automation note (best-effort after save/release) + silent in-progress release + candidate pool; no reclaim.
-- Salvage fail: marker comment + `<label>-needs-attention` + direct remove in-progress (never via `release_in_progress_silently`); no backup branches.
+- Salvage fail: marker comment + `ai-need-attention` + direct remove `ai-in-progress` (never via `release_in_progress_silently`); no backup branches.
 - `checkout_clean`: if local branch exists and is ahead of origin, push first then force-reset; push fail → do not reset over local tip.
 - No false positives on successful runs that merely mention limits; distant "hit … session limit" narration must not match.
 

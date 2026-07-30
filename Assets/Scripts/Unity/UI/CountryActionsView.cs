@@ -75,14 +75,18 @@ namespace GS.Unity.UI {
 					"pool_full" => _loc.Get("action.country.unplayable.pool_full"),
 					"insufficient_opinion" => string.Format(
 						_loc.Get("action.country.unplayable.insufficient_opinion"),
-						def != null ? ExtractConditionThreshold(def, "opinion") : 0),
+						def != null && ActionConditionHelper.TryExtractConditionThreshold(def, "opinion", out int opinionThreshold) ? opinionThreshold : 0),
+					"insufficient_target_opinion" => string.Format(
+						_loc.Get("action.country.unplayable.insufficient_target_opinion"),
+						def != null && ActionConditionHelper.TryExtractConditionThreshold(def, "targetRulerOrMilitaryOpinion", out int targetOpinionThreshold) ? targetOpinionThreshold : 0),
 					"no_suitable_target" => _loc.Get("action.country.unplayable.no_suitable_target"),
 					"relation_no_longer_exists" => _loc.Get("action.country.unplayable.relation_no_longer_exists"),
 					"war_ended" => _loc.Get("action.country.unplayable.war_ended"),
+					"already_at_war" => _loc.Get("action.country.unplayable.already_at_war"),
 					"no_enemy_control" => _loc.Get("action.country.unplayable.no_enemy_control"),
 					_ => string.Format(
 						_loc.Get("action.country.unplayable.insufficient_control"),
-						def != null ? ExtractConditionThreshold(def, "control") : 0)
+						def != null && ActionConditionHelper.TryExtractConditionThreshold(def, "control", out int controlThreshold) ? controlThreshold : 0)
 				};
 				var reasonLabel = new Label(reasonText);
 				reasonLabel.AddToClassList("action-card-unplayable-reason");
@@ -149,17 +153,6 @@ namespace GS.Unity.UI {
 			wrapper.Add(front);
 
 			return wrapper;
-		}
-
-		static int ExtractConditionThreshold(ActionDefinition def, string fieldType) {
-			foreach (var cond in def.Conditions) {
-				if (cond.Type == "gte" && cond.Members != null && cond.Members.Count >= 2) {
-					if (cond.Members[0].Type == fieldType && cond.Members[1].Type == "value") {
-						return (int)cond.Members[1].Value;
-					}
-				}
-			}
-			return 0;
 		}
 
 		static double GetGoldCost(ActionDefinition def) {
