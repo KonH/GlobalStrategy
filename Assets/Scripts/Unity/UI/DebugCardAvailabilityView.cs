@@ -11,16 +11,22 @@ namespace GS.Unity.UI {
 		readonly VisualElement _handContainer;
 		readonly ILocalization _loc;
 		readonly ActionConfig _actionConfig;
+		readonly Action<string, string> _onDrawDeckCard;
+		readonly Action<string, string, int> _onDiscardHandCard;
 
 		public DebugCardAvailabilityView(
 			VisualElement deckContainer,
 			VisualElement handContainer,
 			ILocalization loc,
-			ActionConfig actionConfig) {
+			ActionConfig actionConfig,
+			Action<string, string> onDrawDeckCard = null,
+			Action<string, string, int> onDiscardHandCard = null) {
 			_deckContainer = deckContainer;
 			_handContainer = handContainer;
 			_loc = loc;
 			_actionConfig = actionConfig;
+			_onDrawDeckCard = onDrawDeckCard;
+			_onDiscardHandCard = onDiscardHandCard;
 		}
 
 		public void RefreshDeck(IReadOnlyList<ActionCardEntry> deck) {
@@ -55,7 +61,16 @@ namespace GS.Unity.UI {
 					: 0;
 				string title = $"{ResolveCardName(group.Representative)} x{group.TotalCount} ({chancePercent}%)";
 				bool available = group.EligibleCount > 0;
-				_deckContainer.Add(BuildExpandableCard(title, available, group.Representative.Conditions, includeCost: false, goldCost: 0, canAffordGold: true));
+				string actionId = group.Representative.ActionId;
+				string targetCountryId = group.Representative.TargetCountryId ?? "";
+				_deckContainer.Add(BuildExpandableCard(
+					title,
+					available,
+					group.Representative.Conditions,
+					includeCost: false,
+					goldCost: 0,
+					canAffordGold: true,
+					onDraw: _onDrawDeckCard == null ? null : () => _onDrawDeckCard(actionId, targetCountryId)));
 			}
 		}
 
@@ -72,7 +87,19 @@ namespace GS.Unity.UI {
 				bool canAffordGold = goldCost <= 0 || availableGold >= goldCost;
 				bool available = !card.IsUnplayable && canAffordGold;
 				string title = ResolveCardName(card);
-				_handContainer.Add(BuildExpandableCard(title, available, card.Conditions, includeCost: goldCost > 0, goldCost: goldCost, canAffordGold: canAffordGold));
+				string actionId = card.ActionId;
+				string targetCountryId = card.TargetCountryId ?? "";
+				int slotIndex = card.SlotIndex;
+				_handContainer.Add(BuildExpandableCard(
+					title,
+					available,
+					card.Conditions,
+					includeCost: goldCost > 0,
+					goldCost: goldCost,
+					canAffordGold: canAffordGold,
+					onDiscard: _onDiscardHandCard == null
+						? null
+						: () => _onDiscardHandCard(actionId, targetCountryId, slotIndex)));
 			}
 		}
 
@@ -82,7 +109,9 @@ namespace GS.Unity.UI {
 			IReadOnlyList<ActionConditionDebugEntry> conditions,
 			bool includeCost,
 			double goldCost,
-			bool canAffordGold) {
+			bool canAffordGold,
+			Action onDraw = null,
+			Action onDiscard = null) {
 			var block = new VisualElement();
 			block.AddToClassList("debug-card-block");
 
@@ -97,6 +126,13 @@ namespace GS.Unity.UI {
 			details.AddToClassList("debug-card-details");
 			details.style.display = DisplayStyle.None;
 
+			if (onDraw != null) {
+				details.Add(CreateActionButton("Draw", onDraw));
+			}
+			if (onDiscard != null) {
+				details.Add(CreateActionButton("Discard", onDiscard));
+			}
+
 			bool hasRows = false;
 			if (conditions != null) {
 				foreach (var condition in conditions) {
@@ -108,7 +144,7 @@ namespace GS.Unity.UI {
 				details.Add(CreateConditionLabel($"gold >= {FormatNumber(goldCost)}", canAffordGold));
 				hasRows = true;
 			}
-			if (!hasRows) {
+			if (!hasRows && onDraw == null && onDiscard == null) {
 				details.Add(CreateMutedLabel("(no conditions)"));
 			}
 
@@ -124,6 +160,14 @@ namespace GS.Unity.UI {
 			block.Add(header);
 			block.Add(details);
 			return block;
+		}
+
+		static Button CreateActionButton(string text, Action onClick) {
+			var button = new Button(onClick) { text = text };
+			button.AddToClassList("gs-btn");
+			button.AddToClassList("gs-btn--small");
+			button.AddToClassList("debug-panel-button");
+			return button;
 		}
 
 		string ResolveCardName(ActionCardEntry card) {

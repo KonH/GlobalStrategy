@@ -249,12 +249,16 @@ namespace GS.Unity.UI {
 				root.Q("selected-country-deck"),
 				root.Q("selected-country-hand"),
 				_loc,
-				_actionConfig);
+				_actionConfig,
+				PushDebugDrawCountryCardCommand,
+				PushDebugDiscardCountryCardCommand);
 			_selectedOrgCardDebug = new DebugCardAvailabilityView(
 				root.Q("selected-org-deck"),
 				root.Q("selected-org-hand"),
 				_loc,
-				_actionConfig);
+				_actionConfig,
+				PushDebugDrawOrgCardCommand,
+				PushDebugDiscardOrgCardCommand);
 
 			int availableCountryCount = _countryConfig != null ? CountAvailableCountries(_countryConfig) : 0;
 			var (_, _, winConditionRows) = WinConditionHintProjector.Build(_gameSettings?.CompletionCondition, availableCountryCount);
@@ -487,6 +491,68 @@ namespace GS.Unity.UI {
 				_selectedOrgCardDebug.RefreshDeck(orgActions.Deck);
 				_selectedOrgCardDebug.RefreshHand(orgActions.Hand, gold);
 			}
+		}
+
+		void PushDebugDrawCountryCardCommand(string actionId, string targetCountryId) {
+			if (_state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) {
+				return;
+			}
+			if (string.IsNullOrEmpty(actionId)) {
+				return;
+			}
+			_commands.Push(new DebugDrawCardCommand {
+				OrgId = _state.PlayerOrganization.OrgId,
+				CountryId = _state.SelectedCountry.CountryId,
+				ActionId = actionId,
+				TargetCountryId = targetCountryId ?? ""
+			});
+		}
+
+		void PushDebugDrawOrgCardCommand(string actionId, string targetCountryId) {
+			if (_state == null || !_state.PlayerOrganization.IsValid) {
+				return;
+			}
+			if (string.IsNullOrEmpty(actionId)) {
+				return;
+			}
+			_commands.Push(new DebugDrawCardCommand {
+				OrgId = _state.PlayerOrganization.OrgId,
+				CountryId = "",
+				ActionId = actionId,
+				TargetCountryId = targetCountryId ?? ""
+			});
+		}
+
+		void PushDebugDiscardCountryCardCommand(string actionId, string targetCountryId, int slotIndex) {
+			if (_state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) {
+				return;
+			}
+			if (string.IsNullOrEmpty(actionId)) {
+				return;
+			}
+			_commands.Push(new DebugDiscardCardCommand {
+				OrgId = _state.PlayerOrganization.OrgId,
+				CountryId = _state.SelectedCountry.CountryId,
+				ActionId = actionId,
+				TargetCountryId = targetCountryId ?? "",
+				SlotIndex = slotIndex
+			});
+		}
+
+		void PushDebugDiscardOrgCardCommand(string actionId, string targetCountryId, int slotIndex) {
+			if (_state == null || !_state.PlayerOrganization.IsValid) {
+				return;
+			}
+			if (string.IsNullOrEmpty(actionId)) {
+				return;
+			}
+			_commands.Push(new DebugDiscardCardCommand {
+				OrgId = _state.PlayerOrganization.OrgId,
+				CountryId = "",
+				ActionId = actionId,
+				TargetCountryId = targetCountryId ?? "",
+				SlotIndex = slotIndex
+			});
 		}
 
 		double GetPlayerGold() {
