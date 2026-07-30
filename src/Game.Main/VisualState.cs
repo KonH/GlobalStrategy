@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using GS.Game.Common;
+using GS.Game.Configs;
 
 namespace GS.Main {
 	public class SelectedCountryState : INotifyPropertyChanged {
@@ -255,10 +256,19 @@ namespace GS.Main {
 		public bool   IsUnplayable    { get; }
 		public string UnplayableReason { get; }
 		public string TargetCountryId { get; }
-		public ActionCardEntry(string actionId, int slotIndex, bool isInHand, bool isUnplayable = false, string unplayableReason = "", string targetCountryId = "") {
+		public IReadOnlyList<ActionConditionDebugEntry> Conditions { get; }
+		public ActionCardEntry(
+			string actionId,
+			int slotIndex,
+			bool isInHand,
+			bool isUnplayable = false,
+			string unplayableReason = "",
+			string targetCountryId = "",
+			IReadOnlyList<ActionConditionDebugEntry>? conditions = null) {
 			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
 			IsUnplayable = isUnplayable; UnplayableReason = unplayableReason;
 			TargetCountryId = targetCountryId;
+			Conditions = conditions ?? Array.Empty<ActionConditionDebugEntry>();
 		}
 	}
 
@@ -461,7 +471,8 @@ namespace GS.Main {
 		Control,
 		Opinion,
 		NewCharacter,
-		Relation
+		Relation,
+		War
 	}
 
 	public class GameLogEntry {
@@ -475,7 +486,7 @@ namespace GS.Main {
 		public double Delta { get; }             // Control/Opinion only; amount just applied
 		public double Total { get; }             // Control/Opinion only; new resulting total (Opinion: clamped to [-100,100])
 		public bool IsOrgRole { get; }           // NewCharacter only: true = OrgId set/CountryId empty
-		public string TargetCountryId { get; }   // Relation only: the country picked as the new friend/rival
+		public string TargetCountryId { get; }   // Relation/War only: the other country involved
 		public RelationKind RelationKind { get; } // Relation only
 
 		public GameLogEntry(long sequenceId, GameLogEntryKind kind, string orgId, string countryId,
