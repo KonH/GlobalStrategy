@@ -7,7 +7,7 @@ using GS.Main;
 using GS.Unity.Map;
 
 namespace GS.Unity.UI {
-	public class WarIconsView {
+	class WarIconsView {
 		sealed class RenderedButton {
 			public Button Button { get; }
 			public VisualElement AttackerFlag { get; }
