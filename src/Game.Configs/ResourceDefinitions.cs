@@ -12,5 +12,6 @@ namespace GS.Game.Configs {
 		public const string Recruits = "recruits";
 		public const string Damage = "damage";
 		public const string Durability = "durability";
+		public const string WarInitiative = "war_initiative";
 	}
 }
