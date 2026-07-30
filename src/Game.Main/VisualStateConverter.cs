@@ -645,6 +645,7 @@ namespace GS.Main {
 							"opinion" => "insufficient_opinion",
 							"hasSuitableRelationTarget" => "no_suitable_target",
 							"relationStillExists" => "relation_no_longer_exists",
+							"isInWar" => "not_at_war",
 							_ => "insufficient_control"
 						};
 					break;
@@ -912,6 +913,16 @@ namespace GS.Main {
 						newEntries.Add(new GameLogEntry(0, GameLogEntryKind.NewCharacter, applied[i].OrgId, applied[i].CountryId,
 							applied[i].CharacterId, applied[i].RoleId, namePartKeys, 0, 0, isOrgRole));
 					}
+				}
+			}
+
+			int[] warResolvedReq = { TypeId<WarResolvedApplied>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(warResolvedReq, null)) {
+				WarResolvedApplied[] applied = arch.GetColumn<WarResolvedApplied>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					newEntries.Add(new GameLogEntry(0, GameLogEntryKind.WarResolved, "", applied[i].WinnerCountryId,
+						"", "", Array.Empty<string>(), 0, 0, false, applied[i].LoserCountryId));
 				}
 			}
 

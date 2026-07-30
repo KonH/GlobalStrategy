@@ -87,6 +87,20 @@
       "nameKey": "effect.decrease_enemy_control_gain.name",
       "descKey": "effect.decrease_enemy_control_gain.desc",
       "amount": 10
+    },
+    {
+      "effectId": "ultimatum_effect",
+      "effectType": "ResolveWar",
+      "nameKey": "effect.ultimatum_effect.name",
+      "descKey": "effect.ultimatum_effect.desc",
+      "outcome": "Win"
+    },
+    {
+      "effectId": "surrender_effect",
+      "effectType": "ResolveWar",
+      "nameKey": "effect.surrender_effect.name",
+      "descKey": "effect.surrender_effect.desc",
+      "outcome": "Lose"
     }
   ]
 }

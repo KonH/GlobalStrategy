@@ -1664,6 +1664,22 @@ MonoBehaviour:
     Value: Укрепление контроля
   - Key: effect.decrease_enemy_control_gain.desc
     Value: Увеличить контроль своей организации.
+  - Key: action.ultimatum.name
+    Value: Ультиматум
+  - Key: action.ultimatum.desc
+    Value: Заставить страну выиграть её текущую войну.
+  - Key: action.surrender.name
+    Value: Капитуляция
+  - Key: action.surrender.desc
+    Value: Заставить страну проиграть её текущую войну.
+  - Key: effect.ultimatum_effect.name
+    Value: Принудительная победа
+  - Key: effect.ultimatum_effect.desc
+    Value: Завершить текущую войну страны, сделав её победителем.
+  - Key: effect.surrender_effect.name
+    Value: Принудительное поражение
+  - Key: effect.surrender_effect.desc
+    Value: Завершить текущую войну страны, сделав её побежденной.
   - Key: action.country.unplayable.pool_full
     Value: Пул контроля переполнен
   - Key: action.country.unplayable.insufficient_control
@@ -1676,6 +1692,8 @@ MonoBehaviour:
     Value: Указанные отношения больше не существуют
   - Key: action.country.unplayable.no_enemy_control
     Value: Нет организации с контролем, которую можно выбрать целью
+  - Key: action.country.unplayable.not_at_war
+    Value: Эта страна не в войне.
   - Key: hud.actions
     Value: Действия
   - Key: hud.friends
@@ -1698,6 +1716,8 @@ MonoBehaviour:
     Value: "{0} made {1} and {2} friends"
   - Key: game_log.relation_rival_format
     Value: "{0} made {1} and {2} rivals"
+  - Key: game_log.war_resolved_format
+    Value: "{0} одержал победу над {1}"
   - Key: province_name.Afghanistan__Andkhvoy
     Value: Andkhvoy
   - Key: province_name.Afghanistan__Asadabad

@@ -461,7 +461,8 @@ namespace GS.Main {
 		Control,
 		Opinion,
 		NewCharacter,
-		Relation
+		Relation,
+		WarResolved
 	}
 
 	public class GameLogEntry {

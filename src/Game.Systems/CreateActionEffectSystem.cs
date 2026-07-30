@@ -130,6 +130,8 @@ namespace GS.Game.Systems {
 								});
 							}
 						}
+					} else if (effectDef is ResolveWarEffectParams resolveWarParams && !string.IsNullOrEmpty(countryId)) {
+						Wars.ResolveWar(world, countryId, resolveWarParams.Outcome);
 					}
 				}
 			}
