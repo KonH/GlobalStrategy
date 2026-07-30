@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using VContainer;
@@ -66,6 +67,7 @@ namespace GS.Unity.Map {
 			var mouse = Mouse.current;
 			if (mouse == null) return;
 			if (ModalState.IsModalOpen) return;
+			if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
 			float scroll = mouse.scroll.ReadValue().y;
 			if (scroll == 0f) return;
 			_camera.orthographicSize = Mathf.Clamp(

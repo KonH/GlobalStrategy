@@ -21,6 +21,7 @@ namespace GS.Game.Configs {
 		public double PeaceGoldPerMonth { get; set; } = 100;
 		public double PeaceWinnerControlIncreaseFraction { get; set; } = 0.05;
 		public double PeaceLoserControlDecreaseFraction { get; set; } = 0.10;
+		public WarBattleSettings WarBattles { get; set; } = new WarBattleSettings();
 		public string[] ResourceIdUpdateOrder { get; set; } = {
 			ResourceDefinitions.Population, ResourceDefinitions.CountryPopulation, ResourceDefinitions.CountryScore,
 			ResourceDefinitions.Recruits, ResourceDefinitions.OrgScore,
@@ -49,6 +50,54 @@ namespace GS.Game.Configs {
 				Parameters = new Dictionary<string, double> { ["discoveredCountriesAvailableControl"] = 0 }
 			}
 		};
+	}
+
+	public class WarBattleSettings {
+		public int BaseConcurrentBattleCount { get; set; } = 1;
+		public int SharedBorderPairsPerAdditionalBattle { get; set; } = 5;
+		public double AttackerInitialInitiative { get; set; } = 1.0;
+		public double DefenderInitialInitiative { get; set; } = 0.0;
+		public double InitiationCost { get; set; } = 1.0;
+		public double RoundWinnerInitiativeGain { get; set; } = 0.5;
+		public double BattleProgressGain { get; set; } = 10;
+		public int FallbackCandidateCount { get; set; } = 3;
+		public double TroopDenominatorOffset { get; set; } = 1;
+		public double TroopRandomMin { get; set; } = 0.9;
+		public double TroopRandomMax { get; set; } = 1.1;
+		public double RoundIntervalHours { get; set; } = 1;
+		public double DamageDivisor { get; set; } = 300;
+		public double DurabilityDivisor { get; set; } = 300;
+		public double CasualtyRandomMin { get; set; } = 0.9;
+		public double CasualtyRandomMax { get; set; } = 1.1;
+		public double MinimumCasualtyFraction { get; set; } = 0.01;
+		public double MinimumAbsoluteCasualties { get; set; } = 1;
+
+		public void Validate() {
+			if (BaseConcurrentBattleCount <= 0) {
+				throw new System.InvalidOperationException("WarBattles.BaseConcurrentBattleCount must be positive.");
+			}
+			if (SharedBorderPairsPerAdditionalBattle <= 0) {
+				throw new System.InvalidOperationException("WarBattles.SharedBorderPairsPerAdditionalBattle must be positive.");
+			}
+			if (FallbackCandidateCount <= 0) {
+				throw new System.InvalidOperationException("WarBattles.FallbackCandidateCount must be positive.");
+			}
+			if (TroopDenominatorOffset <= 0) {
+				throw new System.InvalidOperationException("WarBattles.TroopDenominatorOffset must be positive.");
+			}
+			if (RoundIntervalHours <= 0 || DamageDivisor <= 0 || DurabilityDivisor <= 0) {
+				throw new System.InvalidOperationException("War battle intervals and combat divisors must be positive.");
+			}
+			if (TroopRandomMin <= 0 || TroopRandomMin > TroopRandomMax) {
+				throw new System.InvalidOperationException("War battle troop random bounds must be positive and ordered.");
+			}
+			if (CasualtyRandomMin <= 0 || CasualtyRandomMin > CasualtyRandomMax) {
+				throw new System.InvalidOperationException("War battle casualty random bounds must be positive and ordered.");
+			}
+			if (MinimumCasualtyFraction < 0 || MinimumAbsoluteCasualties < 0) {
+				throw new System.InvalidOperationException("War battle casualty minimums cannot be negative.");
+			}
+		}
 	}
 
 	public class BotFeatureConfigEntry {

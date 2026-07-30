@@ -76,8 +76,11 @@ re-run this script.
    (`MAPSHAPER_SIMPLIFY_PCT`) in the script, currently `10`. Afterward, each
    province's final `population` is computed from this simplified geometry's area
    (`COUNTRY_REGION`/`REGION_DENSITY_RANGES`-derived density × simplified polygon
-   area) and written back into `.tmp/provinces_intermediate.geojson`, so the
-   persisted figure matches the geometry actually shipped to Stage 2.
+   area). The final geometry also supplies `centroidX`/`centroidY` and an ordinal
+   `neighborProvinceIds` list. Adjacency uses a Shapely spatial index and requires a
+   non-zero shared boundary-segment length, so point-only contacts are excluded.
+   These properties are written back into `.tmp/provinces_intermediate.geojson`, so
+   persisted population and topology match the geometry actually shipped to Stage 2.
 8. Writes `province_name.{provinceId}` locale entries into
    `Assets/Localization/en.asset` (the generated name verbatim) and
    `Assets/Localization/ru.asset` — settlement/admin-1 proper nouns are run through
@@ -105,10 +108,9 @@ in-memory `CountryConfig` already built in the same `Program.cs` run, cross-vali
 every province's `countryId` against `CountryConfig` (per
 `.claude/rules/config_validation.md` — a mismatch throws rather than silently
 proceeding), and writes `Assets/Configs/province_config.json` (lightweight metadata:
-`provinceId`, `countryId`, `generationMethod`, `population`, `centerLon`, `centerLat` —
-centers are a simple lon/lat average of exterior-ring vertices for Polygon, or across
-all exterior rings for MultiPolygon; no `displayName`; province names are
-localization-only, see `province_name.*` keys above) and `Assets/Configs/provinces_1880.json`
+`provinceId`, `countryId`, `generationMethod`, `population`, `centroidX`, `centroidY`,
+and `neighborProvinceIds` — no `displayName`; province names are localization-only,
+see `province_name.*` keys above) and `Assets/Configs/provinces_1880.json`
 (passthrough geometry `FeatureCollection`).
 
 Re-run order: Stage 1 (Python) must be run before Stage 2 (C# loader), since Stage 2

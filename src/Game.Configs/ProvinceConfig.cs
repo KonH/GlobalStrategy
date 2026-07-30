@@ -25,7 +25,8 @@ namespace GS.Game.Configs {
 		public string CountryId { get; set; } = "";
 		public string GenerationMethod { get; set; } = "";
 		public double Population { get; set; }
-		public double CenterLon { get; set; }
-		public double CenterLat { get; set; }
+		public double CentroidX { get; set; }
+		public double CentroidY { get; set; }
+		public List<string> NeighborProvinceIds { get; set; } = new List<string>();
 	}
 }

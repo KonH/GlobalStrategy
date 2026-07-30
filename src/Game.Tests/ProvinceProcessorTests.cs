@@ -58,8 +58,6 @@ namespace GS.Game.Tests {
 			};
 		}
 
-		static JsonArray LonLat(double lon, double lat) => new JsonArray { lon, lat };
-
 		[Fact]
 		void process_extracts_correct_province_entries() {
 			var countryConfig = BuildCountryConfig();
@@ -111,89 +109,26 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void process_computes_center_for_polygon_exterior_ring() {
-			var countryConfig = BuildCountryConfig();
-			var doc = new JsonObject {
-				["type"] = "FeatureCollection",
-				["features"] = new JsonArray {
-					new JsonObject {
-						["type"] = "Feature",
-						["properties"] = new JsonObject {
-							["provinceId"] = "France__Normandy",
-							["countryId"] = "France",
-							["generationMethod"] = "OptionA",
-						},
-						["geometry"] = new JsonObject {
-							["type"] = "Polygon",
-							["coordinates"] = new JsonArray {
-								new JsonArray {
-									LonLat(0.0, 0.0),
-									LonLat(4.0, 0.0),
-									LonLat(4.0, 2.0),
-									LonLat(0.0, 2.0),
-									LonLat(0.0, 0.0),
-								}
-							}
-						}
-					}
-				}
-			};
+		void process_extracts_topology_fields_and_defaults_missing_values() {
+			var doc = BuildFeatureCollection(
+				("France__Normandy", "France", "OptionA"),
+				("Vatican__Vatican_City", "Vatican", "Micro"));
+			var normandyProps = doc["features"]![0]!["properties"]!;
+			normandyProps["centroidX"] = 1.25;
+			normandyProps["centroidY"] = -2.5;
+			normandyProps["neighborProvinceIds"] = new JsonArray("France__Brittany", "France__Paris");
 
-			var (metadata, _, errors) = ProvinceProcessor.Process(doc, countryConfig);
+			var (metadata, _, errors) = ProvinceProcessor.Process(doc, BuildCountryConfig());
 
 			Assert.Empty(errors);
-			var normandy = metadata.FindByProvinceId("France__Normandy");
-			Assert.NotNull(normandy);
-			Assert.Equal(1.6, normandy!.CenterLon, precision: 10);
-			Assert.Equal(0.8, normandy.CenterLat, precision: 10);
-		}
-
-		[Fact]
-		void process_computes_center_for_multipolygon_across_all_exteriors() {
-			var countryConfig = BuildCountryConfig();
-			var doc = new JsonObject {
-				["type"] = "FeatureCollection",
-				["features"] = new JsonArray {
-					new JsonObject {
-						["type"] = "Feature",
-						["properties"] = new JsonObject {
-							["provinceId"] = "France__Normandy",
-							["countryId"] = "France",
-							["generationMethod"] = "OptionA",
-						},
-						["geometry"] = new JsonObject {
-							["type"] = "MultiPolygon",
-							["coordinates"] = new JsonArray {
-								new JsonArray {
-									new JsonArray {
-										LonLat(0.0, 0.0),
-										LonLat(2.0, 0.0),
-										LonLat(2.0, 2.0),
-										LonLat(0.0, 0.0),
-									}
-								},
-								new JsonArray {
-									new JsonArray {
-										LonLat(10.0, 10.0),
-										LonLat(12.0, 10.0),
-										LonLat(12.0, 12.0),
-										LonLat(10.0, 10.0),
-									}
-								}
-							}
-						}
-					}
-				}
-			};
-
-			var (metadata, _, errors) = ProvinceProcessor.Process(doc, countryConfig);
-
-			Assert.Empty(errors);
-			var normandy = metadata.FindByProvinceId("France__Normandy");
-			Assert.NotNull(normandy);
-			// Average of all exterior vertices across both polygons (including closed-ring duplicates).
-			Assert.Equal(6.0, normandy!.CenterLon, precision: 10);
-			Assert.Equal(5.5, normandy.CenterLat, precision: 10);
+			var normandy = metadata.FindByProvinceId("France__Normandy")!;
+			Assert.Equal(1.25, normandy.CentroidX);
+			Assert.Equal(-2.5, normandy.CentroidY);
+			Assert.Equal(new[] { "France__Brittany", "France__Paris" }, normandy.NeighborProvinceIds);
+			var vatican = metadata.FindByProvinceId("Vatican__Vatican_City")!;
+			Assert.Equal(0, vatican.CentroidX);
+			Assert.Equal(0, vatican.CentroidY);
+			Assert.Empty(vatican.NeighborProvinceIds);
 		}
 	}
 }

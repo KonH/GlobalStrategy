@@ -109,6 +109,11 @@ namespace GS.Game.Tests {
 						ResourceId = ResourceDefinitions.Durability,
 						SeedTarget = ResourceSeedTarget.Country,
 						DefaultInitialValue = 0.0
+					},
+					new ResourceDefinition {
+						ResourceId = ResourceDefinitions.WarInitiative,
+						SeedTarget = ResourceSeedTarget.Country,
+						DefaultInitialValue = 0.0
 					}
 				}
 			};
