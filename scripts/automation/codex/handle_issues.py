@@ -12,14 +12,14 @@ when discovery actually finds something.
 
 The label set is the whole state machine (no local state file, no timestamps):
 
-  codex                  the owner opted an issue/PR in; its description + owner comments
-                         are the prompt to execute
-  codex-in-progress      a run is actively working it (skipped by discovery)
-  codex-needs-attention  waiting on the owner (skipped by discovery)
-  codex-complete         prompt fully done (skipped by discovery)
+  codex                  the owner (or auto-router) opted an issue/PR in; its description +
+                         owner comments are the prompt to execute
+  ai-in-progress         a run is actively working it (skipped by discovery; shared)
+  ai-need-attention      waiting on the owner (skipped by discovery; shared)
+  ai-complete            prompt fully done (skipped by discovery; shared)
 
 A candidate is any open, configured-contributor-authored, `codex`-labeled issue/PR carrying none of the three
-status labels. The owner resumes a needs-attention/complete item by replying and removing that
+shared `ai-*` status labels. The owner resumes a need-attention/complete item by replying and removing that
 label. See .codex/skills/codex-issue/SKILL.md for the per-item lifecycle the CLI run follows.
 
 Each candidate gets its own `codex exec` invocation, started from a guaranteed-clean checkout
@@ -33,19 +33,20 @@ doing anything else. If a previous run is still in flight when the next cron tic
 run exits immediately instead of racing it - the lock releases automatically even if a prior
 run crashed, since it's tied to the OS file descriptor, not manually cleared state.
 
-Stale-run reclaim: because the lock guarantees no other run is active, any item still labeled
-`codex-in-progress` at startup is leftover from a crashed/interrupted run. It's re-queued (the
-label removed, a `<!-- codex-automation:reclaim -->` comment posted as the attempt counter) up
-to twice; a third consecutive crash parks it with `codex-needs-attention` instead of retrying
-forever. A real owner comment resets the counter.
+Stale-run reclaim: because the lock guarantees no other run of this provider is active, any of
+this provider's items still labeled `ai-in-progress` at startup is leftover from a
+crashed/interrupted run. It's re-queued (the label removed, a `<!-- codex-automation:reclaim -->`
+comment posted as the attempt counter) up to twice; a third consecutive crash parks it with
+`ai-need-attention` instead of retrying forever. A real owner comment resets the counter.
 
 Usage limits are NOT crashes: when the run's error output reports a usage/rate limit, this
-script records a retry time (now + --limit-backoff-minutes; Codex reports no machine-readable
-reset time) as an aware-UTC timestamp in Logs/auto_ai_provider_state.json under the `codex` provider key, silently removes
-the `codex-in-progress` labels the interrupted run left behind (no reclaim comment, no
-crash-retry consumed, no error noise on the item), and exits 0. Every later run compares that
-timestamp against the current time - both aware UTC, so the machine's local timezone never
-skews it - and skips entirely (before any GitHub call) until the window has passed.
+script records a retry time (prefer parseable `try again at Aug 5th, 2026 9:31 AM` from the
+production message, else now + --limit-backoff-minutes) as an aware-UTC timestamp in
+Logs/auto_ai_provider_state.json under the `codex` provider key, silently removes the
+`ai-in-progress` labels the interrupted run left behind (no reclaim comment, no crash-retry
+consumed, no error noise on the item), and exits 0. Every later run compares that timestamp
+against the current time - both aware UTC, so the machine's local timezone never skews it -
+and skips entirely (before any GitHub call) until the window has passed.
 
 Requires `gh` authenticated as the repo owner (`gh auth login`), the labels above already
 created in the repo (see handle_issues.sh for the `gh label create` commands), and
@@ -101,15 +102,55 @@ DEFAULT_LIMIT_BACKOFF_MINUTES = 60
 
 logger = logging.getLogger("handle_issues_codex")
 
-# Codex reports subscription/usage limits in error/failed events or plain-text output (no
-# machine-readable reset time). Detection deliberately looks ONLY at error output (non-JSON
-# lines and error/failed events), never at agent/tool text - an issue whose prompt merely
-# talks about usage limits must not trigger a false positive.
+# Codex reports subscription/usage limits in error/failed events or plain-text output.
+# Production phrasing includes a wall-clock retry: "You've hit your usage limit. … try again
+# at Aug 5th, 2026 9:31 AM." Detection looks ONLY at error output (non-JSON lines and
+# error/failed events), never at agent/tool text - an issue whose prompt merely talks about
+# usage limits must not trigger a false positive. The message has no timezone; treat the
+# parsed clock as UTC (same convention as Claude's resets and stored limit_retry_at).
 LIMIT_TEXT_RE = re.compile(r"(usage limit|rate limit|quota exceeded)", re.IGNORECASE)
+LIMIT_TRY_AGAIN_RE = re.compile(
+    r"try again at\s+([A-Za-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})\s+"
+    r"(\d{1,2})(?::(\d{2}))?\s*(AM|PM)",
+    re.IGNORECASE,
+)
+
+
+def parse_try_again_at(text):
+    """Parse `try again at Aug 5th, 2026 9:31 AM` into an aware-UTC datetime, or None."""
+    match = LIMIT_TRY_AGAIN_RE.search(text)
+    if not match:
+        return None
+    month_name, day_text, year_text, hour_text, minute_text, ampm = match.groups()
+    month = None
+    for fmt in ("%b", "%B"):
+        try:
+            month = datetime.strptime(month_name, fmt).month
+            break
+        except ValueError:
+            continue
+    if month is None:
+        return None
+    hour = int(hour_text)
+    minute = int(minute_text or 0)
+    if ampm.upper() == "AM":
+        if hour == 12:
+            hour = 0
+    elif hour != 12:
+        hour += 12
+    try:
+        return datetime(int(year_text), month, int(day_text), hour, minute, tzinfo=timezone.utc)
+    except ValueError:
+        return None
 
 
 def detect_session_limit(error_texts):
-    return bool(LIMIT_TEXT_RE.search("\n".join(error_texts)))
+    """Returns (limit_hit, retry_at). retry_at is a parseable `try again at …` wall-clock
+    (aware UTC) when present, else None (caller falls back to a fixed backoff)."""
+    joined = "\n".join(error_texts)
+    if not LIMIT_TEXT_RE.search(joined):
+        return False, None
+    return True, parse_try_again_at(joined)
 
 
 def find_codex_executable():
@@ -180,8 +221,8 @@ def main():
     parser.add_argument("--provider-state-file", type=Path, default=DEFAULT_PROVIDER_STATE_FILE,
                          help="Shared provider-keyed state for limit windows and auto-routing.")
     parser.add_argument("--limit-backoff-minutes", type=int, default=DEFAULT_LIMIT_BACKOFF_MINUTES,
-                        help="How long to pause after a usage-limit hit (Codex reports no "
-                             "machine-readable reset time).")
+                        help="How long to pause after a usage-limit hit when the error text "
+                             "has no parseable `try again at …` wall-clock.")
     args = parser.parse_args()
     if args.dangerously_skip_permissions:
         args.sandbox = "danger-full-access"
@@ -213,8 +254,10 @@ def main():
         returncode, error_texts = run_codex(build_prompt(candidate), args)
         if returncode != 0:
             exit_code = returncode
-        if detect_session_limit(error_texts):
-            retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
+        limit_hit, retry_at = detect_session_limit(error_texts)
+        if limit_hit:
+            if retry_at is None:
+                retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
             handle_limit_pause(logger, LABEL, MARKER, candidate, args.provider_state_file, retry_at)
             sys.exit(0)
     sys.exit(exit_code)
