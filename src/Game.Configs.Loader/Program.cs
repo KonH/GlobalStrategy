@@ -105,6 +105,8 @@ namespace GS.Game.Loader {
 				entry.InitialResources = existingEntry.InitialResources;
 				entry.HistoricalFriends = existingEntry.HistoricalFriends;
 				entry.HistoricalRivals = existingEntry.HistoricalRivals;
+				entry.BaseDamage = existingEntry.BaseDamage;
+				entry.BaseDurability = existingEntry.BaseDurability;
 			}
 		}
 

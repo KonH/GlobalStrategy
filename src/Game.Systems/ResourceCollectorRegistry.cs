@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public sealed class ResourceCollectorRegistry {
@@ -16,7 +17,8 @@ namespace GS.Game.Systems {
 
 		public static ResourceCollectorRegistry CreateDefault(
 			double populationGrowthPercentPerMonth, double countryScoreCoefficient,
-			double recruitsInitialPercent, double recruitsCapPercent, double recruitsMonthlyIncreasePercent) {
+			double recruitsInitialPercent, double recruitsCapPercent, double recruitsMonthlyIncreasePercent,
+			IReadOnlyDictionary<string, CountryCombatBases> combatBasesByCountryId) {
 			var registry = new ResourceCollectorRegistry();
 			registry.Register(PopulationGrowthCollector.Id, new PopulationGrowthCollector(populationGrowthPercentPerMonth));
 			registry.Register(CountryPopulationCollector.Id, new CountryPopulationCollector());
@@ -24,6 +26,8 @@ namespace GS.Game.Systems {
 			registry.Register(RecruitsSeedCollector.Id, new RecruitsSeedCollector(recruitsInitialPercent));
 			registry.Register(RecruitsGrowthCollector.Id, new RecruitsGrowthCollector(recruitsMonthlyIncreasePercent, recruitsCapPercent));
 			registry.Register(OrgScoreCollector.Id, new OrgScoreCollector());
+			registry.Register(DamageCollector.Id, new DamageCollector(combatBasesByCountryId));
+			registry.Register(DurabilityCollector.Id, new DurabilityCollector(combatBasesByCountryId));
 			return registry;
 		}
 	}

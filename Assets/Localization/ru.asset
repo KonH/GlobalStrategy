@@ -414,6 +414,14 @@ MonoBehaviour:
     Value: Очки организации
   - Key: resource.org_score.description
     Value: Комбинированная мера влияния этой организации.
+  - Key: resource.damage.name
+    Value: Урон
+  - Key: resource.damage.description
+    Value: Наступательная сила страны во время войны.
+  - Key: resource.durability.name
+    Value: Стойкость
+  - Key: resource.durability.description
+    Value: Оборонительная устойчивость страны во время войны.
   - Key: effect.base_income.name
     Value: Базовый доход
   - Key: effect.base_income.description
