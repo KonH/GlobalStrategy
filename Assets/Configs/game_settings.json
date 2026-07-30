@@ -9,7 +9,7 @@
   "recruitsCapPercent": 15,
   "recruitsMonthlyIncreasePercent": 1,
   "attackerWarProgressDecayPerMonth": 2.5,
-  "resourceIdUpdateOrder": ["population", "country_population", "country_score", "recruits", "org_score"],
+  "resourceIdUpdateOrder": ["population", "country_population", "country_score", "recruits", "org_score", "damage", "durability"],
   "botActionLogRetentionCap": 500,
   "maxControlPool": 100,
   "completionCondition": {
