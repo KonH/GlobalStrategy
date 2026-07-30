@@ -38,9 +38,9 @@ class FindCandidatesTests(unittest.TestCase):
 
     def test_any_status_label_excludes_the_item(self):
         issues = [
-            item(1, ["claude", "claude-in-progress"]),
-            item(2, ["claude", "claude-needs-attention"]),
-            item(3, ["claude", "claude-complete"]),
+            item(1, ["claude", "ai-in-progress"]),
+            item(2, ["claude", "ai-need-attention"]),
+            item(3, ["claude", "ai-complete"]),
             item(4, ["claude"]),
         ]
         with patch("scripts.automation.common.issue_handler.run_gh_json",
@@ -59,7 +59,7 @@ class FindCandidatesTests(unittest.TestCase):
 
     def test_unrelated_labels_do_not_exclude(self):
         with patch("scripts.automation.common.issue_handler.run_gh_json",
-                   side_effect=[[item(1, ["claude", "bug", "codex-in-progress"])], []]):
+                   side_effect=[[item(1, ["claude", "bug", "enhancement"])], []]):
             self.assertEqual(1, len(find_candidates("claude")))
 
     def test_discovery_queries_every_configured_contributor_for_issues_and_prs(self):
@@ -123,22 +123,29 @@ class ReclaimStaleInProgressTests(unittest.TestCase):
         return post, add, remove
 
     def test_first_crash_requeues_with_a_reclaim_comment(self):
-        stale = item(5, ["claude", "claude-in-progress"], kind="issue")
+        stale = item(5, ["claude", "ai-in-progress"], kind="issue")
         post, add, remove = self.reclaim([stale], reclaims=0)
         self.assertTrue(post.call_args[0][1].startswith(RECLAIM_MARKER))
         add.assert_not_called()
-        remove.assert_called_once_with(5, "claude-in-progress")
+        remove.assert_called_once_with(5, "ai-in-progress")
 
     def test_third_crash_escalates_to_needs_attention(self):
-        stale = item(5, ["claude", "claude-in-progress"], kind="issue")
+        stale = item(5, ["claude", "ai-in-progress"], kind="issue")
         post, add, remove = self.reclaim([stale], reclaims=2)
         self.assertTrue(post.call_args[0][1].startswith(MARKER))
-        add.assert_called_once_with(5, "claude-needs-attention")
-        remove.assert_called_once_with(5, "claude-in-progress")
+        add.assert_called_once_with(5, "ai-need-attention")
+        remove.assert_called_once_with(5, "ai-in-progress")
 
     def test_needs_attention_items_are_left_untouched(self):
-        parked = item(5, ["claude", "claude-in-progress", "claude-needs-attention"], kind="issue")
+        parked = item(5, ["claude", "ai-in-progress", "ai-need-attention"], kind="issue")
         post, add, remove = self.reclaim([parked], reclaims=2)
+        post.assert_not_called()
+        add.assert_not_called()
+        remove.assert_not_called()
+
+    def test_provider_items_without_in_progress_are_skipped(self):
+        idle = item(5, ["claude", "ai-complete"], kind="issue")
+        post, add, remove = self.reclaim([idle], reclaims=0)
         post.assert_not_called()
         add.assert_not_called()
         remove.assert_not_called()
@@ -438,9 +445,9 @@ class HandleLimitPauseTests(unittest.TestCase):
             handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
                                self.limit_file, self.retry_at)
         release.assert_not_called()
-        add.assert_called_once_with(84, "claude-needs-attention")
-        remove.assert_called_once_with(84, "claude-in-progress")
-        self.assertIn("needs-attention", post.call_args[0][1])
+        add.assert_called_once_with(84, "ai-need-attention")
+        remove.assert_called_once_with(84, "ai-in-progress")
+        self.assertIn("ai-need-attention", post.call_args[0][1])
         self.assertTrue(self.limit_file.exists())
 
     def test_post_comment_failure_after_release_does_not_raise(self):
@@ -457,20 +464,57 @@ class HandleLimitPauseTests(unittest.TestCase):
 
 class ReleaseInProgressSilentlyTests(unittest.TestCase):
     def test_releases_without_any_comment(self):
-        stale = item(5, ["claude", "claude-in-progress"], kind="issue")
+        stale = item(5, ["claude", "ai-in-progress"], kind="issue")
         with patch("scripts.automation.common.issue_handler.list_labeled_items", return_value=[stale]), \
              patch("scripts.automation.common.issue_handler.post_comment") as post, \
              patch("scripts.automation.common.issue_handler.remove_label") as remove:
             release_in_progress_silently(MagicMock(), "claude")
         post.assert_not_called()
-        remove.assert_called_once_with(5, "claude-in-progress")
+        remove.assert_called_once_with(5, "ai-in-progress")
 
     def test_needs_attention_items_are_left_untouched(self):
-        parked = item(5, ["claude", "claude-in-progress", "claude-needs-attention"], kind="issue")
+        parked = item(5, ["claude", "ai-in-progress", "ai-need-attention"], kind="issue")
         with patch("scripts.automation.common.issue_handler.list_labeled_items", return_value=[parked]), \
              patch("scripts.automation.common.issue_handler.remove_label") as remove:
             release_in_progress_silently(MagicMock(), "claude")
         remove.assert_not_called()
+
+    def test_skips_items_without_in_progress(self):
+        idle = item(5, ["claude"], kind="issue")
+        with patch("scripts.automation.common.issue_handler.list_labeled_items", return_value=[idle]), \
+             patch("scripts.automation.common.issue_handler.remove_label") as remove:
+            release_in_progress_silently(MagicMock(), "claude")
+        remove.assert_not_called()
+
+
+class VerifyLabelPresentTests(unittest.TestCase):
+    def test_returns_true_on_first_visible_read(self):
+        logger = MagicMock()
+        with patch("scripts.automation.common.issue_handler.get_item_label_names",
+                   return_value={"auto-ai", "claude"}), \
+             patch("scripts.automation.common.issue_handler.time.sleep") as sleep:
+            from scripts.automation.common.issue_handler import verify_label_present
+            self.assertTrue(verify_label_present(logger, 9, "claude"))
+        sleep.assert_not_called()
+
+    def test_retries_with_backoff_then_succeeds(self):
+        logger = MagicMock()
+        with patch("scripts.automation.common.issue_handler.get_item_label_names",
+                   side_effect=[{"auto-ai"}, {"auto-ai"}, {"auto-ai", "claude"}]), \
+             patch("scripts.automation.common.issue_handler.time.sleep") as sleep:
+            from scripts.automation.common.issue_handler import verify_label_present
+            self.assertTrue(verify_label_present(logger, 9, "claude"))
+        self.assertEqual([1.0, 2.0], [call.args[0] for call in sleep.call_args_list])
+
+    def test_missing_label_logs_and_returns_false_without_raising(self):
+        logger = MagicMock()
+        with patch("scripts.automation.common.issue_handler.get_item_label_names",
+                   return_value={"auto-ai"}), \
+             patch("scripts.automation.common.issue_handler.time.sleep") as sleep:
+            from scripts.automation.common.issue_handler import verify_label_present
+            self.assertFalse(verify_label_present(logger, 9, "claude"))
+        self.assertEqual(2, sleep.call_count)
+        logger.warning.assert_called()
 
 
 if __name__ == "__main__":
