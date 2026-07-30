@@ -29,6 +29,8 @@ namespace GS.Game.Configs {
 		public bool IsAvailable { get; set; } = false;
 		public List<string> HistoricalFriends { get; set; } = new List<string>();
 		public List<string> HistoricalRivals { get; set; } = new List<string>();
+		public int BaseDamage { get; set; } = 40;
+		public int BaseDurability { get; set; } = 40;
 	}
 
 	public class CountryResourceInit {

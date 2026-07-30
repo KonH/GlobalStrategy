@@ -12,14 +12,14 @@ when discovery actually finds something.
 
 The label set is the whole state machine (no local state file, no timestamps):
 
-  codex                  the owner opted an issue/PR in; its description + owner comments
-                         are the prompt to execute
-  codex-in-progress      a run is actively working it (skipped by discovery)
-  codex-needs-attention  waiting on the owner (skipped by discovery)
-  codex-complete         prompt fully done (skipped by discovery)
+  codex                  the owner (or auto-router) opted an issue/PR in; its description +
+                         owner comments are the prompt to execute
+  ai-in-progress         a run is actively working it (skipped by discovery; shared)
+  ai-need-attention      waiting on the owner (skipped by discovery; shared)
+  ai-complete            prompt fully done (skipped by discovery; shared)
 
 A candidate is any open, configured-contributor-authored, `codex`-labeled issue/PR carrying none of the three
-status labels. The owner resumes a needs-attention/complete item by replying and removing that
+shared `ai-*` status labels. The owner resumes a need-attention/complete item by replying and removing that
 label. See .codex/skills/codex-issue/SKILL.md for the per-item lifecycle the CLI run follows.
 
 Each candidate gets its own `codex exec` invocation, started from a guaranteed-clean checkout
@@ -33,16 +33,16 @@ doing anything else. If a previous run is still in flight when the next cron tic
 run exits immediately instead of racing it - the lock releases automatically even if a prior
 run crashed, since it's tied to the OS file descriptor, not manually cleared state.
 
-Stale-run reclaim: because the lock guarantees no other run is active, any item still labeled
-`codex-in-progress` at startup is leftover from a crashed/interrupted run. It's re-queued (the
-label removed, a `<!-- codex-automation:reclaim -->` comment posted as the attempt counter) up
-to twice; a third consecutive crash parks it with `codex-needs-attention` instead of retrying
-forever. A real owner comment resets the counter.
+Stale-run reclaim: because the lock guarantees no other run of this provider is active, any of
+this provider's items still labeled `ai-in-progress` at startup is leftover from a
+crashed/interrupted run. It's re-queued (the label removed, a `<!-- codex-automation:reclaim -->`
+comment posted as the attempt counter) up to twice; a third consecutive crash parks it with
+`ai-need-attention` instead of retrying forever. A real owner comment resets the counter.
 
 Usage limits are NOT crashes: when the run's error output reports a usage/rate limit, this
 script records a retry time (now + --limit-backoff-minutes; Codex reports no machine-readable
 reset time) as an aware-UTC timestamp in Logs/auto_ai_provider_state.json under the `codex` provider key, silently removes
-the `codex-in-progress` labels the interrupted run left behind (no reclaim comment, no
+the `ai-in-progress` labels the interrupted run left behind (no reclaim comment, no
 crash-retry consumed, no error noise on the item), and exits 0. Every later run compares that
 timestamp against the current time - both aware UTC, so the machine's local timezone never
 skews it - and skips entirely (before any GitHub call) until the window has passed.
