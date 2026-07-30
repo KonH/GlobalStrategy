@@ -310,6 +310,11 @@ namespace GS.Game.Tests {
 
 			ActionCardEntry entry = Assert.Single(state.SelectedCountry.CountryActions.Hand.Where(e => e.ActionId == "declare_war"));
 			Assert.Equal("insufficient_target_opinion", entry.UnplayableReason);
+			Assert.Equal(3, entry.Conditions.Count);
+			Assert.False(entry.Conditions[0].Passed);
+			Assert.Contains("targetRulerOrMilitaryOpinion", entry.Conditions[0].Label);
+			Assert.True(entry.Conditions[1].Passed);
+			Assert.True(entry.Conditions[2].Passed);
 
 			int opinionResource = ActionPlayability.FindResourceEntity(world, $"{AttackerId}_ruler", $"opinion_{OrgId}");
 			world.Get<Resource>(opinionResource).Value = 50;
@@ -319,6 +324,9 @@ namespace GS.Game.Tests {
 			entry = Assert.Single(state.SelectedCountry.CountryActions.Hand.Where(e => e.ActionId == "declare_war"));
 			Assert.Equal("already_at_war", entry.UnplayableReason);
 			Assert.Equal(DefenderId, entry.TargetCountryId);
+			Assert.True(entry.Conditions[0].Passed);
+			Assert.True(entry.Conditions[1].Passed);
+			Assert.False(entry.Conditions[2].Passed);
 			Assert.True(world.Has<CardInHand>(card));
 		}
 

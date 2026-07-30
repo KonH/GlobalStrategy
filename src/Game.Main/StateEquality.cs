@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using GS.Game.Configs;
 
 namespace GS.Main {
 	public static class StateEquality {
@@ -92,7 +93,12 @@ namespace GS.Main {
 				&& a.IsInHand == b.IsInHand
 				&& a.IsUnplayable == b.IsUnplayable
 				&& a.UnplayableReason == b.UnplayableReason
-				&& a.TargetCountryId == b.TargetCountryId;
+				&& a.TargetCountryId == b.TargetCountryId
+				&& ListEquals(a.Conditions, b.Conditions, ActionConditionDebugEntryEquals);
+		}
+
+		public static bool ActionConditionDebugEntryEquals(ActionConditionDebugEntry a, ActionConditionDebugEntry b) {
+			return a.Label == b.Label && a.Passed == b.Passed;
 		}
 
 		public static bool VisualResourceChangeEffectEquals(VisualResourceChangeEffect a, VisualResourceChangeEffect b) {
