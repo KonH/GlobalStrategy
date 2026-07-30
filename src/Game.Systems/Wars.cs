@@ -52,22 +52,89 @@ namespace GS.Game.Systems {
 		}
 
 		public static bool StopWar(World world, string countryId) {
-			string? warId = null;
+			if (!TryGetWarId(world, countryId, out string warId, out _)) {
+				return false;
+			}
+			DestroyWarAndParticipants(world, warId);
+			return true;
+		}
+
+		public static bool ResolveWar(World world, string countryId, WarOutcome outcomeForCountry) {
+			if (!TryGetWarId(world, countryId, out string warId, out _)) {
+				return false;
+			}
+			string? opponentCountryId = FindOpponentCountryId(world, warId, countryId);
+			if (opponentCountryId == null) {
+				return false;
+			}
+			string winnerCountryId = outcomeForCountry == WarOutcome.Win ? countryId : opponentCountryId;
+			string loserCountryId = outcomeForCountry == WarOutcome.Win ? opponentCountryId : countryId;
+			DestroyWarAndParticipants(world, warId);
+
+			int appliedEntity = world.Create();
+			world.Add(appliedEntity, new WarResolvedApplied {
+				WarId = warId,
+				WinnerCountryId = winnerCountryId,
+				LoserCountryId = loserCountryId
+			});
+
+			return true;
+		}
+
+		public static double GetOwnWarProgress(IReadOnlyWorld world, string countryId) {
+			if (!TryGetWarId(world, countryId, out string warId, out WarParticipantKind kind)) {
+				return 0;
+			}
+			double rawValue = FindWarProgressValue(world, warId);
+			return kind == WarParticipantKind.Attacker ? rawValue : -rawValue;
+		}
+
+		static bool TryGetWarId(IReadOnlyWorld world, string countryId, out string warId, out WarParticipantKind kind) {
 			int[] participantRequired = { TypeId<WarParticipant>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(participantRequired, null)) {
 				WarParticipant[] participants = arch.GetColumn<WarParticipant>();
 				for (int i = 0; i < arch.Count; i++) {
 					if (participants[i].CountryId == countryId) {
 						warId = participants[i].WarId;
-						break;
+						kind = participants[i].Kind;
+						return true;
 					}
 				}
-				if (warId != null) { break; }
 			}
-			if (warId == null) {
-				return false;
-			}
+			warId = "";
+			kind = default;
+			return false;
+		}
 
+		static string? FindOpponentCountryId(IReadOnlyWorld world, string warId, string countryId) {
+			int[] participantRequired = { TypeId<WarParticipant>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(participantRequired, null)) {
+				WarParticipant[] participants = arch.GetColumn<WarParticipant>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (participants[i].WarId == warId && participants[i].CountryId != countryId) {
+						return participants[i].CountryId;
+					}
+				}
+			}
+			return null;
+		}
+
+		static double FindWarProgressValue(IReadOnlyWorld world, string warId) {
+			int[] warRequired = { TypeId<War>.Value, TypeId<WarProgress>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(warRequired, null)) {
+				War[] wars = arch.GetColumn<War>();
+				WarProgress[] progresses = arch.GetColumn<WarProgress>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (wars[i].WarId == warId) {
+						return progresses[i].Value;
+					}
+				}
+			}
+			return 0;
+		}
+
+		static void DestroyWarAndParticipants(World world, string warId) {
+			int[] participantRequired = { TypeId<WarParticipant>.Value };
 			var matchingParticipants = new List<int>();
 			foreach (Archetype arch in world.GetMatchingArchetypes(participantRequired, null)) {
 				WarParticipant[] participants = arch.GetColumn<WarParticipant>();
@@ -96,8 +163,6 @@ namespace GS.Game.Systems {
 			foreach (int e in matchingWars) {
 				world.Destroy(e);
 			}
-
-			return true;
 		}
 	}
 }

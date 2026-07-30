@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Configs;
@@ -588,6 +589,127 @@ namespace GS.Game.Tests {
 			}
 
 			Assert.True(found);
+		}
+
+		[Fact]
+		void diplomacy_and_military_gated_cards_resolve_opinion_independently_per_role_at_initial_hand_fill() {
+			const string diplomacyRole = "diplomacy_advisor";
+			const string militaryRole = "military_advisor";
+			var characterConfig = new CharacterConfig {
+				Roles = new List<CharacterRoleDefinition> {
+					new CharacterRoleDefinition { RoleId = diplomacyRole },
+					new CharacterRoleDefinition { RoleId = militaryRole }
+				},
+				CountryPools = new List<CountryCharacterPool> {
+					new CountryCharacterPool {
+						CountryId = "Great_Britain",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[diplomacyRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "diplo_gb" } },
+							[militaryRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "mil_gb" } }
+						}
+					},
+					new CountryCharacterPool {
+						CountryId = "France",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[diplomacyRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "diplo_fr" } },
+							[militaryRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "mil_fr" } }
+						}
+					}
+				}
+			};
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 3 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
+						ActionId = "make_friend",
+						OwnerType = "country",
+						TargetRole = diplomacyRole,
+						DeckCopies = 1,
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "opinion" },
+									new ExpressionNode { Type = "value", Value = 30 }
+								}
+							}
+						}
+					},
+					new ActionDefinition {
+						ActionId = "ultimatum",
+						OwnerType = "country",
+						TargetRole = militaryRole,
+						DeckCopies = 1,
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "control" },
+									new ExpressionNode { Type = "value", Value = 10 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "opinion" },
+									new ExpressionNode { Type = "value", Value = 50 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "isInWar" },
+									new ExpressionNode { Type = "value", Value = 1 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "warProgress" },
+									new ExpressionNode { Type = "value", Value = 50 }
+								}
+							}
+						}
+					}
+				}
+			};
+			var logic = BuildLogic(actionConfigOverride: actionConfig, characterConfigOverride: characterConfig);
+
+			// Seed both advisors' opinion before init runs: diplomacy advisor satisfies make_friend's
+			// gate, military advisor does not satisfy ultimatum's — proving the two cards' own-role
+			// opinion is resolved independently rather than off one shared value.
+			int diploResEntity = logic.World.Create();
+			logic.World.Add(diploResEntity, new ResourceOwner("diplo_gb", OwnerType.Character));
+			logic.World.Add(diploResEntity, new Resource { ResourceId = "opinion_Illuminati", Value = 50 });
+			int milResEntity = logic.World.Create();
+			logic.World.Add(milResEntity, new ResourceOwner("mil_gb", OwnerType.Character));
+			logic.World.Add(milResEntity, new Resource { ResourceId = "opinion_Illuminati", Value = 10 });
+			Wars.DeclareWar(logic.World, "Great_Britain", "France", new DateTime(1880, 1, 1));
+			int[] warProgressReq = { TypeId<WarProgress>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(warProgressReq, null)) {
+				var progresses = arch.GetColumn<WarProgress>();
+				for (int i = 0; i < arch.Count; i++) { progresses[i].Value = 50; }
+			}
+
+			logic.Update(0f);
+
+			bool foundMakeFriend = false;
+			bool foundUltimatum = false;
+			int[] handReq = { TypeId<GameAction>.Value, TypeId<CountryContext>.Value, TypeId<CardInHand>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(handReq, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				CountryContext[] countries = arch.GetColumn<CountryContext>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (countries[i].CountryId != "Great_Britain") { continue; }
+					if (actions[i].ActionId == "make_friend") { foundMakeFriend = true; }
+					if (actions[i].ActionId == "ultimatum") { foundUltimatum = true; }
+				}
+			}
+
+			Assert.True(foundMakeFriend);
+			Assert.False(foundUltimatum);
 		}
 	}
 }

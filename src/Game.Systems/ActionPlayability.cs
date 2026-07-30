@@ -14,12 +14,16 @@ namespace GS.Game.Systems {
 
 			double opinion = 0.0;
 			double hasSuitableTarget = 0.0;
+			double isInWar = 0.0;
+			double warProgress = 0.0;
 			if (!string.IsNullOrEmpty(countryId)) {
 				orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
 				totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
-				string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
-				opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
+				string advisorCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, def.TargetRole);
+				opinion = string.IsNullOrEmpty(advisorCharId) ? 0.0 : ResourceQuery.GetValue(world, advisorCharId, $"opinion_{orgId}");
 				hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
+				isInWar = Wars.IsInWar(world, countryId) ? 1.0 : 0.0;
+				warProgress = Wars.GetOwnWarProgress(world, countryId);
 			}
 			double relationStillExists = 1.0;
 			if (entity >= 0 && !string.IsNullOrEmpty(countryId) && world.Has<RelationCardTarget>(entity)) {
@@ -31,7 +35,9 @@ namespace GS.Game.Systems {
 				TotalCountryControl = totalCountryControl,
 				Opinion = opinion,
 				HasSuitableRelationTarget = hasSuitableTarget,
-				RelationStillExists = relationStillExists
+				RelationStillExists = relationStillExists,
+				IsInWar = isInWar,
+				WarProgress = warProgress
 			};
 
 			foreach (var cond in def.Conditions) {

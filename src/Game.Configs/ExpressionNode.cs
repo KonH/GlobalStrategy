@@ -8,6 +8,8 @@ namespace GS.Game.Configs {
 		public double Opinion { get; set; }
 		public double HasSuitableRelationTarget { get; set; }
 		public double RelationStillExists { get; set; }
+		public double IsInWar { get; set; }
+		public double WarProgress { get; set; }
 	}
 
 	public class ExpressionNode {
@@ -64,6 +66,12 @@ namespace GS.Game.Configs {
 				}
 				case "relationStillExists": {
 					return ctx.RelationStillExists;
+				}
+				case "isInWar": {
+					return ctx.IsInWar;
+				}
+				case "warProgress": {
+					return ctx.WarProgress;
 				}
 				case "gte": {
 					if (node.Members == null || node.Members.Count < 2) { return 0; }

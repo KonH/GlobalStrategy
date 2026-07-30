@@ -91,14 +91,15 @@ namespace GS.Game.Systems {
 		static void DrawCountryCards(World world, ActionConfig config, Random rng, string orgId, string countryId, int toDraw) {
 			int orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
 			int totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
-			string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
-			double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
 			double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
+			double isInWar = Wars.IsInWar(world, countryId) ? 1.0 : 0.0;
+			double warProgress = Wars.GetOwnWarProgress(world, countryId);
 			var ctx = new ExpressionContext {
 				Control = orgControl,
 				TotalCountryControl = totalCountryControl,
-				Opinion = opinion,
-				HasSuitableRelationTarget = hasSuitableTarget
+				HasSuitableRelationTarget = hasSuitableTarget,
+				IsInWar = isInWar,
+				WarProgress = warProgress
 			};
 
 			int[] deckReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
@@ -114,6 +115,8 @@ namespace GS.Game.Systems {
 					var def = config.Find(actions[i].ActionId);
 					if (def == null) { continue; }
 					int candidateEntity = arch.Entities[i];
+					string advisorCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, def.TargetRole);
+					ctx.Opinion = string.IsNullOrEmpty(advisorCharId) ? 0.0 : ResourceQuery.GetValue(world, advisorCharId, $"opinion_{orgId}");
 					ctx.RelationStillExists = world.Has<RelationCardTarget>(candidateEntity)
 						? (CountryRelations.GetRelation(world, countryId, world.Get<RelationCardTarget>(candidateEntity).TargetCountryId) == world.Get<RelationCardTarget>(candidateEntity).Kind ? 1.0 : 0.0)
 						: 1.0;

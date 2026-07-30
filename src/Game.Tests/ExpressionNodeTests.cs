@@ -20,13 +20,17 @@ namespace GS.Game.Tests {
 			double totalCountryControl = 0,
 			double opinion = 0,
 			double hasSuitableRelationTarget = 0,
-			double relationStillExists = 0) =>
+			double relationStillExists = 0,
+			double isInWar = 0,
+			double warProgress = 0) =>
 			new ExpressionContext {
 				Control = control,
 				TotalCountryControl = totalCountryControl,
 				Opinion = opinion,
 				HasSuitableRelationTarget = hasSuitableRelationTarget,
-				RelationStillExists = relationStillExists
+				RelationStillExists = relationStillExists,
+				IsInWar = isInWar,
+				WarProgress = warProgress
 			};
 
 		[Fact]
@@ -77,6 +81,26 @@ namespace GS.Game.Tests {
 		public void total_country_control_node_returns_context_value() {
 			var node = new ExpressionNode { Type = "totalCountryControl" };
 			Assert.Equal(35.0, ExpressionNode.Evaluate(node, Ctx(totalCountryControl: 35.0)));
+		}
+
+		[Fact]
+		public void is_in_war_node_returns_context_value() {
+			var node = new ExpressionNode { Type = "isInWar" };
+			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(isInWar: 1.0)));
+			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx(isInWar: 0.0)));
+		}
+
+		[Fact]
+		public void war_progress_node_returns_context_value() {
+			var node = new ExpressionNode { Type = "warProgress" };
+			Assert.Equal(-60.0, ExpressionNode.Evaluate(node, Ctx(warProgress: -60.0)));
+		}
+
+		[Fact]
+		public void war_progress_gte_boundary_composition() {
+			var node = Node("gte", new ExpressionNode { Type = "warProgress" }, Value(50));
+			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(warProgress: 50)));
+			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx(warProgress: 49)));
 		}
 
 		[Fact]

@@ -612,10 +612,12 @@ namespace GS.Main {
 			var def = _actionConfig?.Find(actionId);
 			if (def == null) { return null; }
 
-			string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
-			double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
+			string advisorCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, def.TargetRole);
+			double opinion = string.IsNullOrEmpty(advisorCharId) ? 0.0 : ResourceQuery.GetValue(world, advisorCharId, $"opinion_{orgId}");
 			double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
 			int totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
+			double isInWar = Wars.IsInWar(world, countryId) ? 1.0 : 0.0;
+			double warProgress = Wars.GetOwnWarProgress(world, countryId);
 			double relationStillExists = 1.0;
 			if (world.Has<RelationCardTarget>(entity)) {
 				var target = world.Get<RelationCardTarget>(entity);
@@ -626,7 +628,9 @@ namespace GS.Main {
 				TotalCountryControl = totalCountryControl,
 				Opinion = opinion,
 				HasSuitableRelationTarget = hasSuitableTarget,
-				RelationStillExists = relationStillExists
+				RelationStillExists = relationStillExists,
+				IsInWar = isInWar,
+				WarProgress = warProgress
 			};
 
 			bool conditionFailed = false;

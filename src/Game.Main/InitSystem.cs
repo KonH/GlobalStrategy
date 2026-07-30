@@ -663,19 +663,23 @@ namespace GS.Main {
 					if (handSize > 0 && createdEntities.Count > 0) {
 						int orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, entry.CountryId);
 						int totalCountryControl = ControlQuery.GetTotalControlInCountry(world, entry.CountryId);
-						string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, entry.CountryId, "diplomacy_advisor");
-						double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
 						double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, entry.CountryId) ? 1.0 : 0.0;
+						double isInWar = Wars.IsInWar(world, entry.CountryId) ? 1.0 : 0.0;
+						double warProgress = Wars.GetOwnWarProgress(world, entry.CountryId);
 						var eligibleEntities = new List<int>();
 						foreach (var (e, actionId) in createdEntities) {
 							var d = actionConfig.Find(actionId);
 							if (d == null) { continue; }
 							bool eligible = true;
+							string advisorCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, entry.CountryId, d.TargetRole);
+							double opinion = string.IsNullOrEmpty(advisorCharId) ? 0.0 : ResourceQuery.GetValue(world, advisorCharId, $"opinion_{orgId}");
 							var ctx = new ExpressionContext {
 								Control = orgControl,
 								TotalCountryControl = totalCountryControl,
 								Opinion = opinion,
-								HasSuitableRelationTarget = hasSuitableTarget
+								HasSuitableRelationTarget = hasSuitableTarget,
+								IsInWar = isInWar,
+								WarProgress = warProgress
 							};
 							foreach (var cond in d.Conditions) {
 								if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
