@@ -12,14 +12,14 @@ and only then does it spend subscription usage - when discovery actually finds s
 
 The label set is the whole state machine (no local state file, no timestamps):
 
-  claude                  the owner opted an issue/PR in; its description + owner comments
-                          are the prompt to execute
-  claude-in-progress      a run is actively working it (skipped by discovery)
-  claude-needs-attention  waiting on the owner (skipped by discovery)
-  claude-complete         prompt fully done (skipped by discovery)
+  claude                  the owner (or auto-router) opted an issue/PR in; its description +
+                          owner comments are the prompt to execute
+  ai-in-progress          a run is actively working it (skipped by discovery; shared)
+  ai-need-attention       waiting on the owner (skipped by discovery; shared)
+  ai-complete             prompt fully done (skipped by discovery; shared)
 
 A candidate is any open, configured-contributor-authored, `claude`-labeled issue/PR carrying none of the three
-status labels. The owner resumes a needs-attention/complete item by replying and removing that
+shared `ai-*` status labels. The owner resumes a need-attention/complete item by replying and removing that
 label. See .claude/commands/handle-issue.md for the per-item lifecycle the CLI run follows and
 the `github-issue-automation` skill for the full design writeup.
 
@@ -34,11 +34,11 @@ doing anything else. If a previous run is still in flight when the next cron tic
 run exits immediately instead of racing it - the lock releases automatically even if a prior
 run crashed, since it's tied to the OS file descriptor, not manually cleared state.
 
-Stale-run reclaim: because the lock guarantees no other run is active, any item still labeled
-`claude-in-progress` at startup is leftover from a crashed/interrupted run. It's re-queued (the
-label removed, a `<!-- claude-automation:reclaim -->` comment posted as the attempt counter) up
-to twice; a third consecutive crash parks it with `claude-needs-attention` instead of retrying
-forever. A real owner comment resets the counter.
+Stale-run reclaim: because the lock guarantees no other run of this provider is active, any of
+this provider's items still labeled `ai-in-progress` at startup is leftover from a
+crashed/interrupted run. It's re-queued (the label removed, a `<!-- claude-automation:reclaim -->`
+comment posted as the attempt counter) up to twice; a third consecutive crash parks it with
+`ai-need-attention` instead of retrying forever. A real owner comment resets the counter.
 
 Session/usage limits are NOT crashes: when the run reports the subscription's session/usage
 limit (including production assistant text with a UTC reset time), it salvages any dirty
@@ -48,7 +48,7 @@ provider key, and exits 0. Every later run skips until that provider's window ha
 Exhausting `--max-turns` (result subtype `error_max_turns`) gets the same dirty-tree salvage
 (commit + push HEAD with a fixed message) so partial progress survives the next run's
 `checkout_clean` - but, unlike a session limit, it is NOT a paused/skip state: the item stays
-`claude-in-progress` and is picked up again next run (or reclaimed as stale) to continue from
+`ai-in-progress` and is picked up again next run (or reclaimed as stale) to continue from
 where it left off.
 
 Requires `gh` authenticated as the repo owner (`gh auth login`), the labels above already
