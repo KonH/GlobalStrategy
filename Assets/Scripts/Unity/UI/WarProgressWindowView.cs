@@ -193,10 +193,10 @@ namespace GS.Unity.UI {
 			string provinceName = GetProvinceName(row.ProvinceId);
 			if (row.IsFinished) {
 				string winnerName = WrapSideColored(row.WinnerCountryId, row.WinnerSide);
-				string attackerCasualties = WrapColored(FormatNumber(row.AttackerCasualties), AttackerColor);
-				string defenderCasualties = WrapColored(FormatNumber(row.DefenderCasualties), DefenderColor);
+				string attackerCasualties = WrapColored($"-{FormatNumber(row.AttackerCasualties)}", AttackerColor);
+				string defenderCasualties = WrapColored($"-{FormatNumber(row.DefenderCasualties)}", DefenderColor);
 				return string.Format(
-					GetLoc("war_progress.battle_finished_format", "Battle at {0} ({1}, -{2} / -{3})"),
+					GetLoc("war_progress.battle_finished_format", "Battle at {0} ({1}, {2} / {3})"),
 					provinceName,
 					winnerName,
 					attackerCasualties,

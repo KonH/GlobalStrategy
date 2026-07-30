@@ -477,7 +477,7 @@ MonoBehaviour:
   - Key: war_progress.effect_battle_format
     Value: 'Итог сражения: {0}'
   - Key: war_progress.battle_finished_format
-    Value: 'Сражение у {0} ({1}, -{2} / -{3})'
+    Value: 'Сражение у {0} ({1}, {2} / {3})'
   - Key: war_progress.battle_active_format
     Value: 'Сражение у {0} [{1}] ({2} против {3})'
   - Key: war_progress.attacker_label

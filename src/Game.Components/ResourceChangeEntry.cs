@@ -32,6 +32,10 @@ namespace GS.Game.Components {
 			var result = new List<ResourceChangeEntry>();
 			foreach (string part in encoded.Split('\x1F')) {
 				string[] fields = part.Split('\x1E');
+				if (fields.Length != 3) {
+					throw new FormatException(
+						$"Malformed ResourceChangeEntry segment '{part}' (expected 3 fields, got {fields.Length}).");
+				}
 				result.Add(new ResourceChangeEntry {
 					EffectId = fields[0],
 					AppliedDelta = double.Parse(fields[1], CultureInfo.InvariantCulture),
