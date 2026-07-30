@@ -150,6 +150,115 @@ namespace GS.Game.Tests {
 			}
 		};
 
+		const string MilitaryAdvisorId = "france_military_advisor";
+
+		static ExpressionNode Gte(string type, double value) => new ExpressionNode {
+			Type = "gte",
+			Members = new List<ExpressionNode> {
+				new ExpressionNode { Type = type },
+				new ExpressionNode { Type = "value", Value = value }
+			}
+		};
+
+		static ActionConfig WarResolutionActionConfig() => new ActionConfig {
+			Defaults = new List<ActionOwnerDefaults> {
+				new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
+			},
+			Actions = new List<ActionDefinition> {
+				new ActionDefinition {
+					ActionId = "ultimatum",
+					OwnerType = "country",
+					TargetRole = "military_advisor",
+					DeckCopies = 1,
+					Conditions = new List<ExpressionNode> {
+						Gte("control", 10),
+						Gte("opinion", 50),
+						Gte("isInWar", 1),
+						Gte("warProgress", 50)
+					},
+					Cost = new List<ActionCost> {
+						new ActionCost { ResourceId = "gold", Amount = 300.0 }
+					},
+					EffectIds = new List<string> { "ultimatum_effect" }
+				},
+				new ActionDefinition {
+					ActionId = "surrender",
+					OwnerType = "country",
+					TargetRole = "military_advisor",
+					DeckCopies = 1,
+					Conditions = new List<ExpressionNode> {
+						Gte("control", 20),
+						Gte("opinion", 80),
+						Gte("isInWar", 1),
+						Gte("warProgress", 0)
+					},
+					Cost = new List<ActionCost> {
+						new ActionCost { ResourceId = "gold", Amount = 500.0 }
+					},
+					EffectIds = new List<string> { "surrender_effect" }
+				}
+			}
+		};
+
+		static EffectConfig WarResolutionEffectConfig() => new EffectConfig {
+			Effects = new List<ActionEffectDefinition> {
+				new ResolveWarEffectParams {
+					EffectId = "ultimatum_effect",
+					EffectType = "ResolveWar",
+					Outcome = WarOutcome.Win
+				},
+				new ResolveWarEffectParams {
+					EffectId = "surrender_effect",
+					EffectType = "ResolveWar",
+					Outcome = WarOutcome.Lose
+				}
+			}
+		};
+
+		static CharacterConfig WarResolutionCharacterConfig() => new CharacterConfig {
+			Roles = new List<CharacterRoleDefinition> {
+				new CharacterRoleDefinition { RoleId = "military_advisor" }
+			},
+			CountryPools = new List<CountryCharacterPool> {
+				new CountryCharacterPool {
+					CountryId = OtherCountryId,
+					Slots = new Dictionary<string, List<CharacterEntry>> {
+						["military_advisor"] = new List<CharacterEntry> {
+							new CharacterEntry { CharacterId = MilitaryAdvisorId }
+						}
+					}
+				}
+			}
+		};
+
+		static GameLogic BuildWarResolutionLogic() {
+			var logic = BuildLogic(
+				WarResolutionActionConfig(),
+				WarResolutionEffectConfig(),
+				WarResolutionCharacterConfig());
+			logic.Update(0f);
+
+			AddControl(logic.World, OrgId, OtherCountryId, 20, "war_resolution_control");
+
+			int opinionEntity = logic.World.Create();
+			logic.World.Add(opinionEntity, new ResourceOwner(MilitaryAdvisorId, OwnerType.Character));
+			logic.World.Add(opinionEntity, new Resource {
+				ResourceId = $"opinion_{OrgId}",
+				Value = 80
+			});
+
+			Assert.True(Wars.DeclareWar(logic.World, HqCountryId, OtherCountryId, new DateTime(1880, 1, 1)));
+			int[] warProgressRequired = { TypeId<WarProgress>.Value };
+			foreach (Archetype archetype in logic.World.GetMatchingArchetypes(warProgressRequired, null)) {
+				WarProgress[] progress = archetype.GetColumn<WarProgress>();
+				for (int i = 0; i < archetype.Count; i++) {
+					progress[i].Value = -60;
+				}
+			}
+
+			return logic;
+		}
+
 		// Covers the Relation game-log/fly-text wiring: RelationSetApplied -> GameLogEntryKind.Relation.
 		// Only two available countries exist in the default CountryConfig (HqCountryId, OtherCountryId),
 		// so the candidate pool for a relation played from OtherCountryId is exactly {HqCountryId} —
@@ -173,6 +282,49 @@ namespace GS.Game.Tests {
 			// RelationSetApplied was swept by CleanupEffectNotificationsSystem like the other *Applied events.
 			logic.Update(0f);
 			Assert.Single(Entries(logic).Where(e => e.Kind == GameLogEntryKind.Relation));
+		}
+
+		[Fact]
+		void ultimatum_resolves_war_with_selected_country_as_winner_and_logs_exactly_once() {
+			var logic = BuildWarResolutionLogic();
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "ultimatum");
+
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId,
+				CountryId = OtherCountryId,
+				ActionId = "ultimatum"
+			});
+			logic.Update(0f);
+
+			GameLogEntry warResolution = Assert.Single(Entries(logic).Where(e => e.Kind == GameLogEntryKind.WarResolved));
+			Assert.Equal(OtherCountryId, warResolution.CountryId);
+			Assert.Equal(HqCountryId, warResolution.TargetCountryId);
+			Assert.False(Wars.IsInWar(logic.World, HqCountryId));
+			Assert.False(Wars.IsInWar(logic.World, OtherCountryId));
+			Assert.Equal(700, ResourceQuery.GetValue(logic.World, OrgId, "gold"));
+
+			logic.Update(0f);
+			Assert.Single(Entries(logic).Where(e => e.Kind == GameLogEntryKind.WarResolved));
+		}
+
+		[Fact]
+		void surrender_resolves_war_with_selected_country_as_loser_and_logs_swapped_outcome() {
+			var logic = BuildWarResolutionLogic();
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "surrender");
+
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId,
+				CountryId = OtherCountryId,
+				ActionId = "surrender"
+			});
+			logic.Update(0f);
+
+			GameLogEntry warResolution = Assert.Single(Entries(logic).Where(e => e.Kind == GameLogEntryKind.WarResolved));
+			Assert.Equal(HqCountryId, warResolution.CountryId);
+			Assert.Equal(OtherCountryId, warResolution.TargetCountryId);
+			Assert.False(Wars.IsInWar(logic.World, HqCountryId));
+			Assert.False(Wars.IsInWar(logic.World, OtherCountryId));
+			Assert.Equal(500, ResourceQuery.GetValue(logic.World, OrgId, "gold"));
 		}
 
 		static ActionConfig ControlActionConfig(int deckCopies) => new ActionConfig {
