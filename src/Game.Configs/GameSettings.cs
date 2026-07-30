@@ -23,7 +23,8 @@ namespace GS.Game.Configs {
 		public double PeaceLoserControlDecreaseFraction { get; set; } = 0.10;
 		public string[] ResourceIdUpdateOrder { get; set; } = {
 			ResourceDefinitions.Population, ResourceDefinitions.CountryPopulation, ResourceDefinitions.CountryScore,
-			ResourceDefinitions.Recruits, ResourceDefinitions.OrgScore
+			ResourceDefinitions.Recruits, ResourceDefinitions.OrgScore,
+			ResourceDefinitions.Damage, ResourceDefinitions.Durability
 		};
 		public int BotActionLogRetentionCap { get; set; } = 500;
 		public int MaxControlPool { get; set; } = 100;

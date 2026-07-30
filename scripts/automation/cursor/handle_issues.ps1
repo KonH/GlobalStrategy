@@ -1,5 +1,5 @@
 # Run from a dedicated automation clone, not the primary working copy.
-# Create the `cursor`, `cursor-in-progress`, `cursor-needs-attention`, and `cursor-complete`
+# Create the `cursor`, `ai-in-progress`, `ai-need-attention`, and `ai-complete`
 # labels in KonH/GlobalStrategy before scheduling this script.
 param([string]$Model = "cursor-grok-4.5-high")
 

@@ -18,7 +18,7 @@
   "peaceGoldPerMonth": 100,
   "peaceWinnerControlIncreaseFraction": 0.05,
   "peaceLoserControlDecreaseFraction": 0.10,
-  "resourceIdUpdateOrder": ["population", "country_population", "country_score", "recruits", "org_score"],
+  "resourceIdUpdateOrder": ["population", "country_population", "country_score", "recruits", "org_score", "damage", "durability"],
   "botActionLogRetentionCap": 500,
   "maxControlPool": 100,
   "completionCondition": {
