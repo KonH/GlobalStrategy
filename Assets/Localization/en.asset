@@ -414,6 +414,14 @@ MonoBehaviour:
     Value: Organization Score
   - Key: resource.org_score.description
     Value: A combined measure of this organization's influence.
+  - Key: resource.damage.name
+    Value: Damage
+  - Key: resource.damage.description
+    Value: Offensive wartime strength derived from military technology and leadership.
+  - Key: resource.durability.name
+    Value: Durability
+  - Key: resource.durability.description
+    Value: Defensive wartime resilience derived from military technology and leadership.
   - Key: effect.base_income.name
     Value: Base Income
   - Key: effect.base_income.description

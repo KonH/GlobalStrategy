@@ -39,25 +39,31 @@ class ProviderSelectionTests(unittest.TestCase):
 
 
 class RoutingTests(unittest.TestCase):
-    def test_auto_candidates_exclude_any_provider_or_provider_status_label(self):
+    def test_auto_candidates_exclude_provider_and_ai_status_labels(self):
         with patch("scripts.automation.handle_issues_auto.list_labeled_items", return_value=[
             item(1, ["auto-ai"]),
             item(2, ["auto-ai", "claude"]),
-            item(3, ["auto-ai", "codex-in-progress"]),
+            item(3, ["auto-ai", "ai-in-progress"]),
             item(4, ["auto-ai", "bug"]),
+            item(5, ["auto-ai", "ai-need-attention"]),
+            item(6, ["auto-ai", "ai-complete"]),
         ]):
             self.assertEqual([1, 4], [candidate["number"] for candidate in auto_candidates()])
 
-    def test_route_assigns_once_and_persists_before_next_candidate(self):
+    def test_route_assigns_once_verifies_and_persists_before_next_candidate(self):
         candidates = [item(1, ["auto-ai"]), item(2, ["auto-ai"])]
         with patch("scripts.automation.handle_issues_auto.select_auto_provider",
                    side_effect=["claude", "codex"]), \
              patch("scripts.automation.handle_issues_auto.add_label") as add, \
-             patch("scripts.automation.handle_issues_auto.record_auto_selection") as record:
+             patch("scripts.automation.handle_issues_auto.record_auto_selection") as record, \
+             patch("scripts.automation.handle_issues_auto.verify_label_present",
+                   return_value=True) as verify:
             routed = route_candidates(MagicMock(), Path("state.json"), candidates)
         self.assertEqual([(1, "claude"), (2, "codex")], routed)
         self.assertEqual([(1, "claude"), (2, "codex")], [call.args for call in add.call_args_list])
         self.assertEqual(["claude", "codex"], [call.args[1] for call in record.call_args_list])
+        self.assertEqual([(1, "claude"), (2, "codex")],
+                         [(call.args[1], call.args[2]) for call in verify.call_args_list])
 
     def test_provider_handlers_run_in_provider_order_after_routing(self):
         with patch("scripts.automation.handle_issues_auto.subprocess.run",

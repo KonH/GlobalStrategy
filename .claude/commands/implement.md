@@ -1,8 +1,9 @@
-Implement the plan, using the shared `k:implement` skill. The project-specific addition is that any plan touching Unity assets/scenes needs a live Unity Editor MCP connection.
+Implement the plan, using the shared `k:implement` skill. The project-specific addition is that interactive implementation of a plan touching Unity assets/scenes needs a live Unity Editor MCP connection.
 
 ## Unity MCP pre-flight override
 
-- If the plan touches Unity assets or scenes: verify Unity Editor is connected via MCP (`mcpforunity://instances`) before starting. If not available, stop and ask the user to open Unity Editor and reconnect MCP.
+- In an interactive session, if the plan touches Unity assets or scenes: verify Unity Editor is connected via MCP (`mcpforunity://instances`) before starting. If not available, stop and ask the user to open Unity Editor and reconnect MCP.
+- In an unattended automation run (including issue automation and Ralph runs carrying an automation environment marker): skip the Unity MCP connection check and never block the implementation stage waiting for it. Follow that automation's existing headless rules for excluding, skipping, or reporting Editor-only work.
 - If the plan only touches `src/` (plain C# project): skip the MCP check entirely.
 - Brief each developer sub-agent on Unity MCP usage and `asmdef` format alongside the general code-style rules the skill already asks for.
 - For steps touching `src/`: write the test for the new behavior first so it fails against the current code, then implement until it passes — never disable or weaken an existing test to force a pass, fix the underlying code instead.
