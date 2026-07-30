@@ -107,13 +107,54 @@
     margin-top: 8px;
 }
 
+.debug-panel-two-col {
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.debug-panel-col {
+    flex-direction: column;
+    flex-grow: 1;
+    min-width: 220px;
+    margin-right: 8px;
+}
+
+.debug-panel-inner-section {
+    flex-direction: column;
+    margin-left: 8px;
+    margin-bottom: 4px;
+}
+
+.debug-card-block {
+    flex-direction: column;
+    margin-top: 2px;
+}
+
+.debug-card-details {
+    flex-direction: column;
+    margin-left: 12px;
+}
+
+.debug-condition-label {
+    margin-top: 2px;
+    font-size: 14px;
+}
+
+.debug-card-available {
+    color: rgb(80, 200, 80);
+}
+
+.debug-card-unavailable {
+    color: rgb(220, 70, 70);
+}
+
 .debug-panel-menu-title {
     margin-bottom: 4px;
     align-self: center;
 }
 
 .debug-panel-menu-toggle {
-    min-width: 260px;
+    min-width: 220px;
     margin-top: 8px;
 }
 

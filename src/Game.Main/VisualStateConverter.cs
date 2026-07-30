@@ -639,11 +639,13 @@ namespace GS.Main {
 				NeitherSideAtWar = neitherSideAtWar
 			};
 
+			var conditionResults = ActionConditionDebug.EvaluateAll(def.Conditions, ctx);
 			bool conditionFailed = false;
 			string failedReason = "";
-			foreach (var cond in def.Conditions) {
-				if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
+			for (int i = 0; i < def.Conditions.Count; i++) {
+				if (!conditionResults[i].Passed) {
 					conditionFailed = true;
+					var cond = def.Conditions[i];
 					string fieldType = cond.Members.Count > 0 ? cond.Members[0].Type : "";
 					failedReason = ContainsExpressionType(cond, "totalCountryControl")
 						? "no_enemy_control"
@@ -659,11 +661,16 @@ namespace GS.Main {
 				}
 			}
 			bool poolFull = actionId == "sphere_of_pressure" && usedTotal >= 100;
+			if (actionId == "sphere_of_pressure") {
+				conditionResults.Add(new ActionConditionDebugEntry(
+					$"control pool not full (used {usedTotal}/100)",
+					!poolFull));
+			}
 			bool isUnplayable = conditionFailed || poolFull;
 			string unplayableReason = poolFull ? "pool_full" : (conditionFailed ? failedReason : "");
 			string targetCountryId = world.Has<RelationCardTarget>(entity) ? world.Get<RelationCardTarget>(entity).TargetCountryId : "";
 
-			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason, targetCountryId);
+			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason, targetCountryId, conditionResults);
 		}
 
 		static bool ContainsExpressionType(ExpressionNode node, string type) {
