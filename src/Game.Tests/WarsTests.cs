@@ -206,12 +206,26 @@ namespace GS.Game.Tests {
 				Troops = 9
 			});
 
-			Assert.True(Wars.StopWar(world, "Great_Britain"));
+			Assert.True(Wars.StopWar(
+				world,
+				"Great_Britain",
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100));
 
 			Assert.Equal(12, ResourceQuery.GetValue(world, "Great_Britain", ResourceDefinitions.Recruits));
 			Assert.Equal(0, CountEntities<Battle>(world));
 			Assert.Equal(0, CountEntities<BattleForce>(world));
-			Assert.False(Wars.StopWar(world, "Great_Britain"));
+			Assert.False(Wars.StopWar(
+				world,
+				"Great_Britain",
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100));
 		}
 
 		[Fact]
