@@ -107,6 +107,16 @@ namespace GS.Game.Systems {
 						string targetCountryId = world.Get<RelationCardTarget>(entity).TargetCountryId;
 						int e = world.Create();
 						world.Add(e, new ClearCountryRelationEffect { EffectId = effectId, OrgId = orgId, CountryId = countryId, TargetCountryId = targetCountryId });
+					} else if (effectDef is DeclareWarEffectParams && !string.IsNullOrEmpty(countryId) && world.Has<RelationCardTarget>(entity)) {
+						string targetCountryId = world.Get<RelationCardTarget>(entity).TargetCountryId;
+						if (Wars.DeclareWar(world, countryId, targetCountryId, currentTime)) {
+							int e = world.Create();
+							world.Add(e, new WarDeclaredApplied {
+								OrgId = orgId,
+								CountryId = countryId,
+								DefenderCountryId = targetCountryId
+							});
+						}
 					} else if (effectDef is EnemyControlDrainEffectParams drainParams && drainParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
 						string? targetOrgId = ControlQuery.GetHighestControlOtherOrg(world, orgId, countryId);
 						if (targetOrgId != null) {

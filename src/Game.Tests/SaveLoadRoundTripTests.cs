@@ -151,6 +151,46 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void round_trip_preserves_war_battle_capacity_battle_and_force() {
+			var world = BuildWorld();
+			int warEntity = world.Create();
+			world.Add(warEntity, new War { WarId = "war_1" });
+			world.Add(warEntity, new WarProgress { Value = 10 });
+			world.Add(warEntity, new WarBattleCapacity { MaxConcurrentBattleCount = 2 });
+			int battleEntity = world.Create();
+			world.Add(battleEntity, new Battle {
+				BattleId = "war_1_battle_0",
+				WarId = "war_1",
+				TargetProvinceId = "France__Paris",
+				State = BattleState.Finished,
+				Winner = WarParticipantKind.Attacker
+			});
+			int forceEntity = world.Create();
+			world.Add(forceEntity, new BattleForce {
+				BattleId = "war_1_battle_0",
+				CountryId = "France",
+				Side = WarParticipantKind.Attacker,
+				Troops = 12,
+				Casualties = 3
+			});
+
+			var restored = new World();
+			Restore(Snapshot(world), restored);
+
+			int[] warRequired = { TypeId<War>.Value, TypeId<WarBattleCapacity>.Value };
+			Archetype restoredWar = restored.GetMatchingArchetypes(warRequired, null).Single();
+			Assert.Equal(2, restoredWar.GetColumn<WarBattleCapacity>()[0].MaxConcurrentBattleCount);
+			int[] battleRequired = { TypeId<Battle>.Value };
+			Archetype restoredBattle = restored.GetMatchingArchetypes(battleRequired, null).Single();
+			Assert.Equal(BattleState.Finished, restoredBattle.GetColumn<Battle>()[0].State);
+			Assert.Equal(WarParticipantKind.Attacker, restoredBattle.GetColumn<Battle>()[0].Winner);
+			int[] forceRequired = { TypeId<BattleForce>.Value };
+			Archetype restoredForce = restored.GetMatchingArchetypes(forceRequired, null).Single();
+			Assert.Equal(12, restoredForce.GetColumn<BattleForce>()[0].Troops);
+			Assert.Equal(3, restoredForce.GetColumn<BattleForce>()[0].Casualties);
+		}
+
+		[Fact]
 		void round_trip_preserves_enum_field() {
 			var original = BuildWorld();
 			var snapshot = Snapshot(original);

@@ -37,6 +37,7 @@ namespace GS.Game.Tests {
 						ActionId = "stop_friendship",
 						OwnerType = "country",
 						TargetRole = "diplomacy_advisor",
+						DeckCopies = 1,
 						Conditions = new List<ExpressionNode> {
 							new ExpressionNode {
 								Type = "gte",
@@ -238,6 +239,73 @@ namespace GS.Game.Tests {
 			DrawCardSystem.Update(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
+		}
+
+		[Fact]
+		void draw_skips_relation_card_when_deck_copies_is_zero() {
+			var config = BuildActionConfig();
+			config.Find("stop_friendship")!.DeckCopies = 0;
+			var world = new World();
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 80);
+			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+			int card = AddRelationDeckCard(world, "OrgA", "Prussia", "stop_friendship", "Austria", RelationKind.Friend);
+
+			int deckEntity = world.Create();
+			world.Add(deckEntity, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
+			world.Add(deckEntity, new CardDraw { Count = 1 });
+			DrawCardSystem.Update(world, config, new Random(1));
+
+			Assert.False(IsInHand(world, card));
+		}
+
+		[Fact]
+		void draw_relation_card_weight_does_not_put_same_entity_in_hand_twice() {
+			var config = BuildActionConfig();
+			config.Find("stop_friendship")!.DeckCopies = 5;
+			var world = new World();
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 80);
+			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+			int card = AddRelationDeckCard(world, "OrgA", "Prussia", "stop_friendship", "Austria", RelationKind.Friend);
+
+			int deckEntity = world.Create();
+			world.Add(deckEntity, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
+			world.Add(deckEntity, new CardDraw { Count = 3 });
+			DrawCardSystem.Update(world, config, new Random(1));
+
+			Assert.True(IsInHand(world, card));
+			Assert.Equal(0, world.Get<CardInHand>(card).SlotIndex);
+		}
+
+		[Fact]
+		void draw_relation_card_with_higher_weight_beats_single_copy_static_card() {
+			var config = BuildActionConfig();
+			config.Find("stop_friendship")!.DeckCopies = 100;
+			var world = new World();
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 80);
+			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+			AddControl(world, "OrgB", "Prussia", 10);
+			int relationCard = AddRelationDeckCard(world, "OrgA", "Prussia", "stop_friendship", "Austria", RelationKind.Friend);
+			int staticCard = AddDeckCard(world, "OrgA", "Prussia", "decrease_enemy_control");
+
+			int wins = 0;
+			const int trials = 40;
+			for (int t = 0; t < trials; t++) {
+				if (world.Has<CardInHand>(relationCard)) { world.Remove<CardInHand>(relationCard); }
+				if (world.Has<CardInHand>(staticCard)) { world.Remove<CardInHand>(staticCard); }
+				int deckEntity = world.Create();
+				world.Add(deckEntity, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
+				world.Add(deckEntity, new CardDraw { Count = 1 });
+				DrawCardSystem.Update(world, config, new Random(t + 1));
+				if (IsInHand(world, relationCard)) { wins++; }
+			}
+
+			Assert.True(wins >= 35, $"expected weighted relation card to win most draws, won {wins}/{trials}");
 		}
 	}
 }

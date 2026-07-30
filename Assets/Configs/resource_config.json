@@ -1,7 +1,9 @@
 {
   "displayWhitelist": [
+    "population",
     "gold",
     "country_population",
+    "recruits",
     "country_score",
     "org_score"
   ],
@@ -43,12 +45,18 @@
     },
     {
       "resourceId": "recruits",
+      "nameKey": "resource.recruits.name",
+      "descriptionKey": "resource.recruits.description",
+      "icon": "country-recruits",
       "seedTarget": "Country",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
     },
     {
       "resourceId": "population",
+      "nameKey": "resource.country_population.name",
+      "descriptionKey": "resource.country_population.description",
+      "icon": "country-population",
       "seedTarget": "Province",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
@@ -92,6 +100,12 @@
       "nameKey": "resource.durability.name",
       "descriptionKey": "resource.durability.description",
       "icon": "durability",
+      "seedTarget": "Country",
+      "defaultInitialValue": 0.0,
+      "defaultEffects": []
+    },
+    {
+      "resourceId": "war_initiative",
       "seedTarget": "Country",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
