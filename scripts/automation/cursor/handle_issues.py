@@ -32,12 +32,53 @@ ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_LOG_FILE = ROOT / "Logs" / "handle_issues_cursor.log"
 DEFAULT_LOCK_FILE = ROOT / "Logs" / "handle_issues_cursor.lock"
 DEFAULT_PROVIDER_STATE_FILE = ROOT / "Logs" / "auto_ai_provider_state.json"
+# Cursor CLI/agent production limit text (forum + CLI reports), e.g.
+# "Error: You've hit your usage limit … Your usage limits will reset when your monthly
+# cycle ends on 8/14/2025." Free-tier variant uses "free requests limit" with the same
+# cycle-ends suffix. Detection looks ONLY at error output (non-JSON lines and an
+# is_error/error-subtype result), never at assistant/tool text. Date has no timezone;
+# treat as UTC midnight of that day, rolling to the next day if already past (cycle end
+# on "today" often clears later that day / next day).
 LIMIT_TEXT_RE = re.compile(
-	r"(usage limit|rate limit|too many requests|resource_exhausted|quota exceeded|spend limit)",
+	r"(usage limit|rate limit|requests limit|too many requests|resource_exhausted|"
+	r"quota exceeded|spend limit)",
+	re.IGNORECASE,
+)
+LIMIT_CYCLE_ENDS_RE = re.compile(
+	r"monthly cycle ends on\s+(\d{1,2})/(\d{1,2})/(\d{4})",
 	re.IGNORECASE,
 )
 
 logger = logging.getLogger("handle_issues_cursor")
+
+
+def parse_cycle_ends_on(text):
+	"""Parse `monthly cycle ends on 8/14/2025` into aware-UTC midnight, or None.
+
+	If that midnight is already past, returns the next day's midnight so a same-day
+	cycle-end date keeps the pause active until the following UTC day.
+	"""
+	match = LIMIT_CYCLE_ENDS_RE.search(text)
+	if not match:
+		return None
+	month, day, year = (int(match.group(1)), int(match.group(2)), int(match.group(3)))
+	try:
+		candidate = datetime(year, month, day, tzinfo=timezone.utc)
+	except ValueError:
+		return None
+	now = datetime.now(timezone.utc)
+	if candidate <= now:
+		candidate += timedelta(days=1)
+	return candidate
+
+
+def detect_session_limit(error_texts):
+	"""Returns (limit_hit, retry_at). retry_at is a parseable cycle-end date (aware UTC)
+	when present, else None (caller falls back to a fixed backoff)."""
+	joined = "\n".join(error_texts)
+	if not LIMIT_TEXT_RE.search(joined):
+		return False, None
+	return True, parse_cycle_ends_on(joined)
 
 
 def build_environment():
@@ -118,7 +159,9 @@ def main():
 	parser.add_argument("--log-backup-count", type=int, default=5)
 	parser.add_argument("--lock-file", type=Path, default=DEFAULT_LOCK_FILE)
 	parser.add_argument("--provider-state-file", type=Path, default=DEFAULT_PROVIDER_STATE_FILE)
-	parser.add_argument("--limit-backoff-minutes", type=int, default=60)
+	parser.add_argument("--limit-backoff-minutes", type=int, default=60,
+						help="How long to pause after a usage-limit hit when the error text "
+							 "has no parseable `monthly cycle ends on M/D/YYYY`.")
 	args = parser.parse_args()
 	setup_logging(logger, args.log_file, args.log_max_bytes, args.log_backup_count)
 	lock = acquire_lock(logger, args.lock_file)
@@ -132,8 +175,10 @@ def main():
 	for candidate in candidates:
 		checkout_clean(logger, candidate_branch(candidate))
 		returncode, errors = run_cursor(build_prompt(candidate), args)
-		if LIMIT_TEXT_RE.search("\n".join(errors)):
-			retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
+		limit_hit, retry_at = detect_session_limit(errors)
+		if limit_hit:
+			if retry_at is None:
+				retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
 			save_limit_retry_at(args.provider_state_file, LABEL, retry_at)
 			release_in_progress_silently(logger, LABEL)
 			logger.warning("Cursor usage limit hit; pausing until %s.", retry_at.isoformat())

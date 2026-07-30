@@ -5,7 +5,8 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from scripts.automation.common.issue_handler import (
-    record_auto_selection, save_limit_retry_at, select_auto_provider,
+    AUTO_MARKER, park_auto_item_unroutable, record_auto_selection, save_limit_retry_at,
+    select_auto_provider,
 )
 from scripts.automation.handle_issues_auto import auto_candidates, route_candidates, run_provider_handlers
 
@@ -64,6 +65,35 @@ class RoutingTests(unittest.TestCase):
         self.assertEqual(["claude", "codex"], [call.args[1] for call in record.call_args_list])
         self.assertEqual([(1, "claude"), (2, "codex")],
                          [(call.args[1], call.args[2]) for call in verify.call_args_list])
+
+    def test_all_limited_parks_with_need_attention_and_comment(self):
+        candidate = item(7, ["auto-ai"], kind="issue")
+        with patch("scripts.automation.handle_issues_auto.select_auto_provider",
+                   return_value=None), \
+             patch("scripts.automation.handle_issues_auto.park_auto_item_unroutable") as park, \
+             patch("scripts.automation.handle_issues_auto.record_auto_selection") as record:
+            routed = route_candidates(MagicMock(), Path("state.json"), [candidate])
+        self.assertEqual([], routed)
+        park.assert_called_once()
+        record.assert_not_called()
+
+    def test_park_unroutable_comment_failure_still_applies_need_attention(self):
+        candidate = item(8, ["auto-ai"], kind="pr")
+        with patch("scripts.automation.common.issue_handler.add_label") as add, \
+             patch("scripts.automation.common.issue_handler.post_comment",
+                   side_effect=RuntimeError("gh failed")):
+            park_auto_item_unroutable(MagicMock(), candidate)
+        add.assert_called_once_with(8, "ai-need-attention")
+
+    def test_park_unroutable_posts_auto_marker_note(self):
+        candidate = item(9, ["auto-ai"], kind="issue")
+        with patch("scripts.automation.common.issue_handler.add_label") as add, \
+             patch("scripts.automation.common.issue_handler.post_comment") as post:
+            park_auto_item_unroutable(MagicMock(), candidate)
+        add.assert_called_once_with(9, "ai-need-attention")
+        self.assertTrue(post.call_args.args[1].startswith(AUTO_MARKER))
+        self.assertIn("ai-need-attention", post.call_args.args[1])
+        self.assertIn("claude, codex, cursor", post.call_args.args[1])
 
     def test_provider_handlers_run_in_provider_order_after_routing(self):
         with patch("scripts.automation.handle_issues_auto.subprocess.run",
