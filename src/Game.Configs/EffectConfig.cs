@@ -31,6 +31,9 @@ namespace GS.Game.Configs {
 		public int Amount { get; set; }
 	}
 
+	public class DeclareWarEffectParams : ActionEffectDefinition {
+	}
+
 	// Converter sits on the Effects LIST property, not on ActionEffectDefinition itself.
 	// Putting [JsonConverter] on the base class causes infinite recursion because the
 	// attribute is inherited by all subclasses and Newtonsoft re-enters the converter
@@ -50,6 +53,7 @@ namespace GS.Game.Configs {
 					case "SetCountryRelation": item = obj.ToObject<SetCountryRelationEffectParams>(serializer)!; break;
 					case "ClearCountryRelation": item = obj.ToObject<ClearCountryRelationEffectParams>(serializer)!; break;
 					case "EnemyControlDrain": item = obj.ToObject<EnemyControlDrainEffectParams>(serializer)!; break;
+					case "DeclareWar": item = obj.ToObject<DeclareWarEffectParams>(serializer)!; break;
 					default:                item = obj.ToObject<ActionEffectDefinition>(serializer)!;      break;
 				}
 				result.Add(item);

@@ -33,4 +33,10 @@ namespace GS.Game.Components {
 		public string TargetCountryId;
 		public RelationKind Kind;
 	}
+
+	public struct WarDeclaredApplied {
+		public string OrgId;
+		public string CountryId;
+		public string DefenderCountryId;
+	}
 }

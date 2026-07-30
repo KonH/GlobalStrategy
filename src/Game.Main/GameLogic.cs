@@ -207,6 +207,13 @@ namespace GS.Main {
 			foreach (var cmd in _commandAccessor.ReadDebugStopWarCommand().AsSpan()) {
 				Wars.StopWar(_world, cmd.CountryId);
 			}
+			foreach (var cmd in _commandAccessor.ReadDebugDrawCardCommand().AsSpan()) {
+				DrawCardSystem.ForceDrawCard(_world, cmd.OrgId, cmd.CountryId, cmd.ActionId, cmd.TargetCountryId);
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugDiscardCardCommand().AsSpan()) {
+				RemoveCardFromHandSystem.ForceDiscard(
+					_world, cmd.OrgId, cmd.CountryId, cmd.ActionId, cmd.TargetCountryId, cmd.SlotIndex);
+			}
 			CleanupActionEffectsSystem.Update(_world);
 			// War battles: sweep last tick's ResourceChange before WarBattleSystem creates this
 			// tick's battle-caused ResourceChange, so VisualStateConverter (below) sees it once,

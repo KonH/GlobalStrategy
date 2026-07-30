@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using GS.Game.Common;
+using GS.Game.Configs;
 
 namespace GS.Main {
 	public class SelectedCountryState : INotifyPropertyChanged {
@@ -255,10 +256,19 @@ namespace GS.Main {
 		public bool   IsUnplayable    { get; }
 		public string UnplayableReason { get; }
 		public string TargetCountryId { get; }
-		public ActionCardEntry(string actionId, int slotIndex, bool isInHand, bool isUnplayable = false, string unplayableReason = "", string targetCountryId = "") {
+		public IReadOnlyList<ActionConditionDebugEntry> Conditions { get; }
+		public ActionCardEntry(
+			string actionId,
+			int slotIndex,
+			bool isInHand,
+			bool isUnplayable = false,
+			string unplayableReason = "",
+			string targetCountryId = "",
+			IReadOnlyList<ActionConditionDebugEntry>? conditions = null) {
 			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
 			IsUnplayable = isUnplayable; UnplayableReason = unplayableReason;
 			TargetCountryId = targetCountryId;
+			Conditions = conditions ?? Array.Empty<ActionConditionDebugEntry>();
 		}
 	}
 
@@ -439,6 +449,34 @@ namespace GS.Main {
 		}
 	}
 
+	public class WarIconEntryState {
+		public string WarId { get; }
+		public double Progress { get; }
+		public string AttackerCountryId { get; }
+		public string DefenderCountryId { get; }
+
+		public WarIconEntryState(string warId, double progress, string attackerCountryId, string defenderCountryId) {
+			WarId = warId;
+			Progress = progress;
+			AttackerCountryId = attackerCountryId;
+			DefenderCountryId = defenderCountryId;
+		}
+	}
+
+	public class WarIconsState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyList<WarIconEntryState> Entries { get; private set; } = Array.Empty<WarIconEntryState>();
+
+		public void Set(List<WarIconEntryState> entries) {
+			if (StateEquality.ListEquals(Entries, entries, StateEquality.WarIconEntryStateEquals)) {
+				return;
+			}
+			Entries = entries;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class SelectedProvinceState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -461,7 +499,8 @@ namespace GS.Main {
 		Control,
 		Opinion,
 		NewCharacter,
-		Relation
+		Relation,
+		War
 	}
 
 	public class GameLogEntry {
@@ -475,7 +514,7 @@ namespace GS.Main {
 		public double Delta { get; }             // Control/Opinion only; amount just applied
 		public double Total { get; }             // Control/Opinion only; new resulting total (Opinion: clamped to [-100,100])
 		public bool IsOrgRole { get; }           // NewCharacter only: true = OrgId set/CountryId empty
-		public string TargetCountryId { get; }   // Relation only: the country picked as the new friend/rival
+		public string TargetCountryId { get; }   // Relation/War only: the other country involved
 		public RelationKind RelationKind { get; } // Relation only
 
 		public GameLogEntry(long sequenceId, GameLogEntryKind kind, string orgId, string countryId,
@@ -604,6 +643,7 @@ namespace GS.Main {
 		public SelectedProvinceState SelectedProvince { get; } = new SelectedProvinceState();
 		public CountryScoreState CountryScore { get; } = new CountryScoreState();
 		public LeaderboardState Leaderboard { get; } = new LeaderboardState();
+		public WarIconsState WarIcons { get; } = new WarIconsState();
 		public GameLogState GameLog { get; } = new GameLogState();
 		public GameCompletionState GameCompletion { get; } = new GameCompletionState();
 		public WinConditionHintState WinConditionHint { get; } = new WinConditionHintState();

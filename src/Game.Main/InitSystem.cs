@@ -660,6 +660,11 @@ namespace GS.Main {
 					var createdEntities = new List<(int entity, string actionId)>();
 
 					foreach (var def in countryActions) {
+						// Relation-synced cards are created by RelationCardSyncSystem (one per
+						// relation). DeckCopies on those rows is a draw weight, not a static
+						// copy count — skip them here so weight > 0 does not spawn untargeted entities.
+						if (RelationCardSyncSystem.IsSyncedAction(def.ActionId)) { continue; }
+
 						// Determine targets
 						var targets = new List<string>();
 						if (def.TargetRole == "") {

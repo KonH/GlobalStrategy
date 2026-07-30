@@ -410,6 +410,10 @@ MonoBehaviour:
     Value: Очки страны
   - Key: resource.country_score.description
     Value: Комбинированная мера влияния и развития этой страны.
+  - Key: resource.recruits.name
+    Value: Рекруты
+  - Key: resource.recruits.description
+    Value: Доступный людской ресурс, который можно направить в военные кампании.
   - Key: resource.org_score.name
     Value: Очки организации
   - Key: resource.org_score.description
@@ -446,6 +450,10 @@ MonoBehaviour:
     Value: Организации
   - Key: hud.lens.province
     Value: Провинция
+  - Key: hud.war.title_format
+    Value: 'Война {0} — {1}'
+  - Key: hud.war.progress_format
+    Value: 'Ход войны: {0}'
   - Key: select_org.base_control
     Value: 'Базовый контроль:'
   - Key: select_org.estimated_income
@@ -1664,6 +1672,14 @@ MonoBehaviour:
     Value: '{0} нам не враг!'
   - Key: action.stop_rivalry.desc
     Value: Мы больше не враги.
+  - Key: action.declare_war.name
+    Value: 'Объявить войну стране {0}!'
+  - Key: action.declare_war.desc
+    Value: Объявить войну этому сопернику.
+  - Key: effect.declare_war_effect.name
+    Value: Объявление войны
+  - Key: effect.declare_war_effect.desc
+    Value: Начать войну с выбранным соперником.
   - Key: action.decrease_enemy_control.name
     Value: Подрыв влияния
   - Key: action.decrease_enemy_control.desc
@@ -1682,10 +1698,14 @@ MonoBehaviour:
     Value: Requires {0} control
   - Key: action.country.unplayable.insufficient_opinion
     Value: Requires {0} opinion with the diplomacy advisor
+  - Key: action.country.unplayable.insufficient_target_opinion
+    Value: Требуется мнение не ниже {0} у правителя или военного советника страны
   - Key: action.country.unplayable.no_suitable_target
     Value: No suitable target country available
   - Key: action.country.unplayable.relation_no_longer_exists
     Value: Указанные отношения больше не существуют
+  - Key: action.country.unplayable.already_at_war
+    Value: Одна из стран уже участвует в войне
   - Key: action.country.unplayable.no_enemy_control
     Value: Нет организации с контролем, которую можно выбрать целью
   - Key: hud.actions
@@ -1710,6 +1730,8 @@ MonoBehaviour:
     Value: "{0} made {1} and {2} friends"
   - Key: game_log.relation_rival_format
     Value: "{0} made {1} and {2} rivals"
+  - Key: game_log.war_declared_format
+    Value: "{0}: {1} объявляет войну стране {2}!"
   - Key: web.header.warning
     Value: Это экспериментальная веб-версия игры; она может быть нестабильной и терять данные.
   - Key: web.header.full_client_link_text
