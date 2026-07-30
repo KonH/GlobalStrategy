@@ -1,3 +1,6 @@
 namespace GS.Game.Common {
-	public enum WarOutcome { Win, Lose }
+	public enum WarOutcome {
+		Win,
+		Lose
+	}
 }
