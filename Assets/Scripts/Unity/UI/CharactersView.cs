@@ -146,14 +146,16 @@ namespace GS.Unity.UI {
 			rowsContainer.AddToClassList("character-hint-rows");
 			foreach (var row in hintRows) {
 				var def = _actionConfig.Find(row.ActionId);
-				string cardName = def != null ? _loc.Get(def.NameKey) : row.ActionId;
+				string cardName = ResolveActionDisplayName(def, row.ActionId);
 				string rowText = string.Format(_loc.Get("hud.character.card_hint"), row.Threshold, cardName);
 
 				var rowLabel = new Label(rowText);
 				rowLabel.AddToClassList("tooltip-effect-name");
 				rowLabel.AddToClassList("tooltip-inner-trigger");
-				rowLabel.EnableInClassList("gs-color-positive", row.IsMet);
-				rowLabel.EnableInClassList("gs-color-hint", !row.IsMet);
+				// Use tooltip-effect-* (declared after tooltip-effect-name) — gs-color-*
+				// loses to tooltip-effect-name's later color rule.
+				rowLabel.EnableInClassList("tooltip-effect-positive", row.IsMet);
+				rowLabel.EnableInClassList("tooltip-effect-hint", !row.IsMet);
 				rowsContainer.Add(rowLabel);
 
 				string capturedActionId = row.ActionId;
@@ -165,7 +167,7 @@ namespace GS.Unity.UI {
 
 		VisualElement BuildCardPreview(string actionId) {
 			var def = _actionConfig.Find(actionId);
-			string name = def != null ? _loc.Get(def.NameKey) : actionId;
+			string name = ResolveActionDisplayName(def, actionId);
 			string desc = def != null ? _loc.Get(def.DescKey) : "";
 			string? goldCostText = GetGoldCostText(def);
 			var sprite = _actionVisualConfig?.FindFront(actionId);
@@ -173,6 +175,17 @@ namespace GS.Unity.UI {
 			var result = ActionCardBuilder.Build(name, desc, goldCostText, sprite);
 			result.Card.AddToClassList("action-card--available");
 			return result.Card;
+		}
+
+		string ResolveActionDisplayName(ActionDefinition? def, string fallbackId) {
+			if (def == null) {
+				return fallbackId;
+			}
+			string raw = _loc.Get(def.NameKey);
+			if (raw.IndexOf("{0}", System.StringComparison.Ordinal) < 0) {
+				return raw;
+			}
+			return string.Format(raw, _loc.Get("hud.character.card_country_placeholder"));
 		}
 
 		static double GetGoldCost(ActionDefinition? def) {

@@ -276,6 +276,10 @@
     color: rgb(80, 216, 112);
 }
 
+.tooltip-effect-hint {
+    color: rgb(136, 136, 168);
+}
+
 .tooltip-effect-negative {
     color: rgb(224, 64, 64);
 }
