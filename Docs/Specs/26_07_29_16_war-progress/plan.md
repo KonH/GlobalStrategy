@@ -353,3 +353,35 @@ No conflicts found:
 
 Use the implement skill after this plan is approved and issue #71's combat-resource
 contract is available.
+
+## Addendum: post-implementation review (2026-07-30)
+
+Owner code review asked whether the battle code needs its own resource-mutation
+concept given the existing Instant `ResourceEffect`/`ResourceSystem` pipeline, then
+requested splitting the 442-line `WarBattleSystem` for readability and wiring battle
+resource changes into the animation pipeline (option B: keep `ResourceMutations`,
+add `ResourceChange`).
+
+- **`ResourceMutations` is kept.** Instant `ResourceEffect` is not equivalent: it is
+  processed by `ResourceSystem.Update`, which runs once per tick before
+  `WarBattleSystem` and is not called again afterward, so an effect enqueued during
+  slot filling would not be visible to that same tick's later allocations/initiator
+  choices or to the same-boundary round. `ResourceMutations.TryApplyClampedDelta`
+  keeps the required synchronous read-then-write semantics.
+- **Split as C# `partial` files, not separate GameLogic-invoked systems.** The
+  `Update` loop alternates `FillSlots`/`ProcessRound` per crossed hour bucket so a
+  battle finishing mid-loop frees its slot for the same bucket's next fill; if fill
+  and round were independent systems each invoked once per `GameLogic.Update`, this
+  interleaving would break for multi-hour catch-up (e.g. a large time skip). The
+  single `WarBattleSystem.Update` entry point (still the only one `GameLogic` calls)
+  now delegates to `WarBattleFill.cs`, `WarBattleRounds.cs`, `WarBattleSettlement.cs`,
+  `WarBattleSupport.cs` — plain `partial` pieces of the same type, not systems calling
+  systems.
+- **`ResourceChange` wiring.** Every `RequireDelta` call (initiative charge, recruit
+  commit, round-initiative award, survivor return, population casualties) now also
+  emits a `ResourceChange` with a `war_`-prefixed `EffectId`, mirroring
+  `DeductActionCostSystem`'s mutate-then-notify pattern, skipped when the applied
+  delta is zero. `GameLogic.Update` was reordered so `WarBattleSystem.Update` runs
+  after `CleanupActionEffectsSystem.Update` (previously it ran before) — otherwise
+  cleanup would sweep the same tick's newly created battle `ResourceChange` entities
+  before `VisualStateConverter` ever saw them.

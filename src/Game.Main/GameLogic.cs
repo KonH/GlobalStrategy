@@ -207,10 +207,13 @@ namespace GS.Main {
 			foreach (var cmd in _commandAccessor.ReadDebugStopWarCommand().AsSpan()) {
 				Wars.StopWar(_world, cmd.CountryId);
 			}
+			CleanupActionEffectsSystem.Update(_world);
+			// War battles: sweep last tick's ResourceChange before WarBattleSystem creates this
+			// tick's battle-caused ResourceChange, so VisualStateConverter (below) sees it once,
+			// same as the card pipeline's DeductActionCostSystem/CreateActionEffectSystem.
 			WarBattleSystem.Update(
 				_world, _previousTime, currentTime, _rng, _provinceTopology, GameSettings.WarBattles);
 
-			CleanupActionEffectsSystem.Update(_world);
 			// Game Log: sweep last tick's Control/Opinion/Discovery events before
 			// CreateActionEffectSystem/DiscoverCountrySystem create this tick's batch below.
 			// See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.

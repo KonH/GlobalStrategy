@@ -75,6 +75,18 @@ namespace GS.Game.Tests {
 			return result;
 		}
 
+		static List<T> GetAll<T>(World world) {
+			var result = new List<T>();
+			int[] required = { TypeId<T>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				T[] column = arch.GetColumn<T>();
+				for (int i = 0; i < arch.Count; i++) {
+					result.Add(column[i]);
+				}
+			}
+			return result;
+		}
+
 		[Fact]
 		void declaration_captures_border_capacity_and_initializes_initiative() {
 			var world = BuildWorld(100, 100);
@@ -104,6 +116,21 @@ namespace GS.Game.Tests {
 			Assert.Equal(WarParticipantKind.Attacker, battle.Winner);
 			Assert.Equal(10, GetSingle<WarProgress>(world).Value);
 			Assert.Equal("France", ProvinceOccupationSystem.GetOccupier(world, "Germany__east"));
+		}
+
+		[Fact]
+		void elapsed_hour_battle_mutations_emit_resource_change_notifications() {
+			var world = BuildWorld(100, 0);
+			var topology = new ProvinceTopology(BuildProvinceConfig());
+			var settings = new WarBattleSettings();
+			Wars.DeclareWar(world, "France", "Germany", Start, topology, settings);
+
+			WarBattleSystem.Update(world, Start, Start.AddHours(1), new Random(7), topology, settings);
+
+			List<ResourceChange> changes = GetAll<ResourceChange>(world);
+			Assert.NotEmpty(changes);
+			Assert.Contains(changes, c => c.ResourceId == ResourceDefinitions.Recruits && c.OwnerId == "France");
+			Assert.All(changes, c => Assert.StartsWith("war_", c.EffectId));
 		}
 	}
 }
