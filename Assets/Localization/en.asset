@@ -1732,6 +1732,8 @@ MonoBehaviour:
     Value: "{0} made {1} and {2} rivals"
   - Key: game_log.war_declared_format
     Value: "{0}: {1} declares war on {2}!"
+  - Key: game_log.war_resolved_format
+    Value: "{0} wins the war against {1}!"
   - Key: web.header.warning
     Value: This is an experimental web version of the game; it may be unstable and lose data.
   - Key: web.header.full_client_link_text

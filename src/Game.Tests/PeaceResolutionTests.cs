@@ -5,6 +5,7 @@ using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
+using GS.Main;
 using Xunit;
 
 namespace GS.Game.Tests {
@@ -351,6 +352,69 @@ namespace GS.Game.Tests {
 			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyCenters(), 100);
 
 			Assert.Equal(RelationKind.Rival, CountryRelations.GetRelation(world, "A", "B"));
+		}
+
+		[Fact]
+		void resolve_peace_creates_war_resolved_log_event_with_winner_and_loser() {
+			var world = new World();
+			Wars.DeclareWar(world, "Attacker", "Defender", DeclareTime);
+			string warId = GetOnlyWarId(world);
+			SetProgress(world, warId, 50);
+
+			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyCenters(), 100);
+
+			WarResolvedApplied applied = Assert.Single(GetComponents<WarResolvedApplied>(world));
+			Assert.Equal("Attacker", applied.WinnerCountryId);
+			Assert.Equal("Defender", applied.LoserCountryId);
+		}
+
+		[Fact]
+		void progress_zero_stop_war_creates_no_war_resolved_log_event() {
+			var world = new World();
+			Wars.DeclareWar(world, "A", "B", DeclareTime);
+			// progress stays 0
+
+			Wars.StopWar(world, "A", PeaceTime, new Random(1), DefaultSettings(), EmptyCenters(), 100);
+
+			Assert.Empty(GetComponents<WarResolvedApplied>(world));
+		}
+
+		[Fact]
+		void war_resolved_event_produces_one_game_log_entry_with_winner_and_loser() {
+			var world = new World();
+			int gameTimeEntity = world.Create();
+			world.Add(gameTimeEntity, new GameTime { CurrentTime = PeaceTime });
+			int localeEntity = world.Create();
+			world.Add(localeEntity, new Locale { Value = "en" });
+			int orgEntity = world.Create();
+			world.Add(orgEntity, new Organization { OrganizationId = "Org", DisplayName = "Org" });
+			int eventEntity = world.Create();
+			world.Add(eventEntity, new WarResolvedApplied { WinnerCountryId = "Attacker", LoserCountryId = "Defender" });
+			var state = new VisualState();
+			var converter = new VisualStateConverter(state);
+
+			converter.Update(0, world, gameTimeEntity, localeEntity, orgEntity);
+
+			GameLogEntry entry = Assert.Single(state.GameLog.Entries);
+			Assert.Equal(GameLogEntryKind.WarResolved, entry.Kind);
+			Assert.Equal("Attacker", entry.CountryId);
+			Assert.Equal("Defender", entry.TargetCountryId);
+
+			CleanupEffectNotificationsSystem.UpdateWarResolved(world);
+			converter.Update(0, world, gameTimeEntity, localeEntity, orgEntity);
+			Assert.Single(state.GameLog.Entries);
+		}
+
+		static List<T> GetComponents<T>(World world) where T : struct {
+			var result = new List<T>();
+			int[] req = { TypeId<T>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+				T[] column = arch.GetColumn<T>();
+				for (int i = 0; i < arch.Count; i++) {
+					result.Add(column[i]);
+				}
+			}
+			return result;
 		}
 	}
 }

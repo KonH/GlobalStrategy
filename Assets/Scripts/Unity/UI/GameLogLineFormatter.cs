@@ -50,6 +50,12 @@ namespace GS.Unity.UI {
 			return string.Format(loc.Get("game_log.war_declared_format"), orgName, countryName, defenderName);
 		}
 
+		public static string BuildWarResolvedLine(GameLogEntry entry, ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig) {
+			string winnerName = WrapColored(loc.Get($"country_name.{entry.CountryId}"), countryVisualConfig.Find(entry.CountryId)?.color);
+			string loserName = WrapColored(loc.Get($"country_name.{entry.TargetCountryId}"), countryVisualConfig.Find(entry.TargetCountryId)?.color);
+			return string.Format(loc.Get("game_log.war_resolved_format"), winnerName, loserName);
+		}
+
 		public static string BuildNewCharacterLine(GameLogEntry entry, ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig) {
 			string roleName = $"<b>{loc.Get($"character.role.{entry.RoleId}.name")}</b>";
 			string targetName = entry.IsOrgRole

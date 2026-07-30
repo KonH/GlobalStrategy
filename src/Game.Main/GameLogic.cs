@@ -124,6 +124,10 @@ namespace GS.Main {
 			DateTime currentTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
 			ResourceSystem.Update(_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder);
 			ControlSystem.Update(_world, _previousTime, currentTime);
+			// Game Log: sweep last tick's WarResolvedApplied before TryResolvePeaceByChance/the
+			// debug StopWar handler (below) might create a new one this tick. See
+			// Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
+			CleanupEffectNotificationsSystem.UpdateWarResolved(_world);
 			Wars.TryResolvePeaceByChance(_world, _previousTime, currentTime, _rng, GameSettings, _provinceCenters, MaxControlPool);
 			WarSystem.Update(_world, _previousTime, currentTime, GameSettings.AttackerWarProgressDecayPerMonth);
 

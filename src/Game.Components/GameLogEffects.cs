@@ -39,4 +39,9 @@ namespace GS.Game.Components {
 		public string CountryId;
 		public string DefenderCountryId;
 	}
+
+	public struct WarResolvedApplied {
+		public string WinnerCountryId;
+		public string LoserCountryId;
+	}
 }

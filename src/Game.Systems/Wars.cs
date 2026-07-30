@@ -158,6 +158,9 @@ namespace GS.Game.Systems {
 			TransferGoldSpoils(world, winnerId, loserId, declaredAt, currentTime, settings);
 			ApplyControlShifts(world, winnerId, loserId, settings, maxControlPool);
 			DestroyWar(world, warId);
+
+			int ge = world.Create();
+			world.Add(ge, new WarResolvedApplied { WinnerCountryId = winnerId, LoserCountryId = loserId });
 		}
 
 		public static double ComputePeaceChancePercent(double progress, GameSettings settings) {
