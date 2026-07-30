@@ -13,13 +13,17 @@ namespace GS.Unity.UI {
 		readonly CharacterConfig _characterConfig;
 		readonly TooltipSystem _tooltip;
 		readonly CharacterVisualConfig? _visualConfig;
+		readonly ActionConfig _actionConfig;
+		readonly ActionVisualConfig _actionVisualConfig;
 
-		public CharactersView(VisualElement container, ILocalization loc, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig visualConfig) {
+		public CharactersView(VisualElement container, ILocalization loc, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig visualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig) {
 			_container = container;
 			_loc = loc;
 			_characterConfig = characterConfig;
 			_tooltip = tooltip;
 			_visualConfig = visualConfig;
+			_actionConfig = actionConfig;
+			_actionVisualConfig = actionVisualConfig;
 			if (_visualConfig == null) {
 				Debug.LogError("[CharactersView] CharacterVisualConfig is null — portraits will not display. Assign the asset in GameLifetimeScope.");
 			}
@@ -115,12 +119,87 @@ namespace GS.Unity.UI {
 			info.Add(statsBlock);
 			card.Add(info);
 
-			if (!string.IsNullOrEmpty(roleDesc)) {
+			var hintRows = CharacterCardHintProjector.Build(_actionConfig, entry.RoleId);
+			foreach (var row in hintRows) {
+				row.IsMet = entry.Opinion.Display >= row.Threshold;
+			}
+
+			if (!string.IsNullOrEmpty(roleDesc) || hintRows.Count > 0) {
 				string capturedDesc = roleDesc;
-				_tooltip.RegisterTrigger(card, $"role-{entry.RoleId}-{entry.CharacterId}", _ => BuildSimpleTooltip(roleName, capturedDesc), new System.Collections.Generic.HashSet<string>());
+				string capturedRoleName = roleName;
+				string capturedCharacterId = entry.CharacterId;
+				_tooltip.RegisterTrigger(card, $"role-{entry.RoleId}-{entry.CharacterId}",
+					context => BuildRoleTooltip(context, capturedRoleName, capturedDesc, capturedCharacterId, hintRows),
+					new System.Collections.Generic.HashSet<string>());
 			}
 
 			return card;
+		}
+
+		VisualElement BuildRoleTooltip(TooltipContext context, string roleName, string roleDesc, string characterId, List<CharacterCardHintRowState> hintRows) {
+			var root = BuildSimpleTooltip(roleName, roleDesc);
+			if (hintRows.Count == 0) {
+				return root;
+			}
+
+			var rowsContainer = new VisualElement();
+			rowsContainer.AddToClassList("character-hint-rows");
+			foreach (var row in hintRows) {
+				var def = _actionConfig.Find(row.ActionId);
+				string cardName = ResolveActionDisplayName(def, row.ActionId);
+				string rowText = string.Format(_loc.Get("hud.character.card_hint"), row.Threshold, cardName);
+
+				var rowLabel = new Label(rowText);
+				rowLabel.AddToClassList("tooltip-effect-name");
+				rowLabel.AddToClassList("tooltip-inner-trigger");
+				// Use tooltip-effect-* (declared after tooltip-effect-name) — gs-color-*
+				// loses to tooltip-effect-name's later color rule.
+				rowLabel.EnableInClassList("tooltip-effect-positive", row.IsMet);
+				rowLabel.EnableInClassList("tooltip-effect-hint", !row.IsMet);
+				rowsContainer.Add(rowLabel);
+
+				string capturedActionId = row.ActionId;
+				context.RegisterInnerTrigger(rowLabel, $"card-hint-{characterId}-{capturedActionId}", _ => BuildCardPreview(capturedActionId));
+			}
+			root.Add(rowsContainer);
+			return root;
+		}
+
+		VisualElement BuildCardPreview(string actionId) {
+			var def = _actionConfig.Find(actionId);
+			string name = ResolveActionDisplayName(def, actionId);
+			string desc = def != null ? _loc.Get(def.DescKey) : "";
+			string? goldCostText = GetGoldCostText(def);
+			var sprite = _actionVisualConfig?.FindFront(actionId);
+
+			var result = ActionCardBuilder.Build(name, desc, goldCostText, sprite);
+			result.Card.AddToClassList("action-card--available");
+			return result.Card;
+		}
+
+		string ResolveActionDisplayName(ActionDefinition? def, string fallbackId) {
+			if (def == null) {
+				return fallbackId;
+			}
+			string raw = _loc.Get(def.NameKey);
+			if (raw.IndexOf("{0}", System.StringComparison.Ordinal) < 0) {
+				return raw;
+			}
+			return string.Format(raw, _loc.Get("hud.character.card_country_placeholder"));
+		}
+
+		static double GetGoldCost(ActionDefinition? def) {
+			if (def == null) { return 0; }
+			foreach (var c in def.Cost) {
+				if (c.ResourceId == "gold") { return c.Amount; }
+			}
+			return 0;
+		}
+
+		static string? GetGoldCostText(ActionDefinition? def) {
+			double gold = GetGoldCost(def);
+			if (gold == 0) { return null; }
+			return gold == System.Math.Floor(gold) ? $"{(int)gold}" : $"{gold:F1}";
 		}
 
 		static string GetSkillTintClass(string skillId) {

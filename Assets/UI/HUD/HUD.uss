@@ -170,3 +170,8 @@
     transition-property: opacity, scale;
     transition-duration: 0.4s;
 }
+
+.character-hint-rows {
+    flex-direction: column;
+    margin-top: 6px;
+}
