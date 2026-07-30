@@ -1691,7 +1691,7 @@ MonoBehaviour:
   - Key: action.country.unplayable.insufficient_opinion
     Value: Requires {0} opinion with the diplomacy advisor
   - Key: action.country.unplayable.insufficient_target_opinion
-    Value: Требуется мнение не ниже {0} у правителя или военного советника соперника
+    Value: Требуется мнение не ниже {0} у правителя или военного советника страны
   - Key: action.country.unplayable.no_suitable_target
     Value: No suitable target country available
   - Key: action.country.unplayable.relation_no_longer_exists

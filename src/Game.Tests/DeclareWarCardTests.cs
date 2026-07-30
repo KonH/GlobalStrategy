@@ -104,7 +104,7 @@ namespace GS.Game.Tests {
 			AddCountry(world, DefenderId);
 			AddCountry(world, "Germany");
 			AddGold(world, gold);
-			AddRoleOpinion(world, DefenderId, roleId, opinion);
+			AddRoleOpinion(world, AttackerId, roleId, opinion);
 			CountryRelations.SetRelation(world, AttackerId, DefenderId, RelationKind.Rival);
 			return world;
 		}
@@ -171,11 +171,25 @@ namespace GS.Game.Tests {
 		[Theory]
 		[InlineData("ruler")]
 		[InlineData("military_advisor")]
-		void declare_war_is_playable_when_either_target_role_meets_opinion_gate(string roleId) {
+		void declare_war_is_playable_when_either_declaring_country_role_meets_opinion_gate(string roleId) {
 			var world = BuildPlayableWorld(roleId);
 			int card = AddDeclareWarCard(world, inHand: true);
 
 			Assert.True(ActionPlayability.Evaluate(world, BuildActionConfig(), card, "declare_war", OrgId, AttackerId));
+		}
+
+		[Fact]
+		void declare_war_ignores_rival_country_character_opinion() {
+			var world = new World();
+			AddCountry(world, AttackerId);
+			AddCountry(world, DefenderId);
+			AddGold(world, 100);
+			AddRoleOpinion(world, AttackerId, "ruler", 0);
+			AddRoleOpinion(world, DefenderId, "ruler", 100);
+			CountryRelations.SetRelation(world, AttackerId, DefenderId, RelationKind.Rival);
+			int card = AddDeclareWarCard(world, inHand: true);
+
+			Assert.False(ActionPlayability.Evaluate(world, BuildActionConfig(), card, "declare_war", OrgId, AttackerId));
 		}
 
 		[Fact]
@@ -205,9 +219,9 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void draw_rechecks_target_opinion_and_war_gates() {
+		void draw_rechecks_declaring_country_opinion_and_war_gates() {
 			var world = BuildPlayableWorld(opinion: 49);
-			int opinionResource = ActionPlayability.FindResourceEntity(world, $"{DefenderId}_ruler", $"opinion_{OrgId}");
+			int opinionResource = ActionPlayability.FindResourceEntity(world, $"{AttackerId}_ruler", $"opinion_{OrgId}");
 			int card = AddDeclareWarCard(world);
 			int deck = world.Create();
 			world.Add(deck, new CardDeck { OrgId = OrgId, CountryId = AttackerId });
@@ -297,7 +311,7 @@ namespace GS.Game.Tests {
 			ActionCardEntry entry = Assert.Single(state.SelectedCountry.CountryActions.Hand.Where(e => e.ActionId == "declare_war"));
 			Assert.Equal("insufficient_target_opinion", entry.UnplayableReason);
 
-			int opinionResource = ActionPlayability.FindResourceEntity(world, $"{DefenderId}_ruler", $"opinion_{OrgId}");
+			int opinionResource = ActionPlayability.FindResourceEntity(world, $"{AttackerId}_ruler", $"opinion_{OrgId}");
 			world.Get<Resource>(opinionResource).Value = 50;
 			Wars.DeclareWar(world, AttackerId, "Germany", CurrentTime);
 			converter.Update(0, world, gameTimeEntity, localeEntity, orgEntity);

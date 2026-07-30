@@ -622,8 +622,8 @@ namespace GS.Main {
 			if (world.Has<RelationCardTarget>(entity)) {
 				var target = world.Get<RelationCardTarget>(entity);
 				relationStillExists = CountryRelations.GetRelation(world, countryId, target.TargetCountryId) == target.Kind ? 1.0 : 0.0;
-				string rulerId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, target.TargetCountryId, "ruler");
-				string militaryAdvisorId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, target.TargetCountryId, "military_advisor");
+				string rulerId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "ruler");
+				string militaryAdvisorId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "military_advisor");
 				double rulerOpinion = string.IsNullOrEmpty(rulerId) ? 0.0 : ResourceQuery.GetValue(world, rulerId, $"opinion_{orgId}");
 				double militaryAdvisorOpinion = string.IsNullOrEmpty(militaryAdvisorId) ? 0.0 : ResourceQuery.GetValue(world, militaryAdvisorId, $"opinion_{orgId}");
 				targetRulerOrMilitaryOpinion = Math.Max(rulerOpinion, militaryAdvisorOpinion);
