@@ -16,13 +16,11 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from scripts.automation.common.issue_handler import (
-    AI_NEED_ATTENTION, AI_STATUS_LABELS, acquire_lock, add_label, label_names,
-    list_labeled_items, post_comment, record_auto_selection, select_auto_provider,
-    setup_logging, verify_label_present,
+    AI_STATUS_LABELS, AUTO_LABEL, PROVIDERS, acquire_lock, add_label, label_names,
+    list_labeled_items, park_auto_item_unroutable, record_auto_selection,
+    select_auto_provider, setup_logging, verify_label_present,
 )
 
-PROVIDERS = ("claude", "codex", "cursor")
-MARKER = "<!-- auto-ai-automation -->"
 DEFAULT_LOG_FILE = ROOT / "Logs" / "handle_issues_auto.log"
 DEFAULT_LOCK_FILE = ROOT / "Logs" / "handle_issues_auto.lock"
 DEFAULT_PROVIDER_STATE_FILE = ROOT / "Logs" / "auto_ai_provider_state.json"
@@ -37,33 +35,9 @@ def has_provider_label(candidate):
 def auto_candidates():
     """Open trusted ``auto-ai`` items not already claimed by a provider workflow."""
     return [
-        candidate for candidate in list_labeled_items("auto-ai")
+        candidate for candidate in list_labeled_items(AUTO_LABEL)
         if not has_provider_label(candidate) and not (label_names(candidate) & AI_STATUS_LABELS)
     ]
-
-
-def park_unroutable(logger, candidate):
-    """Park an auto-ai item when every provider is usage/session-limited.
-
-    Applies ``ai-need-attention`` first so discovery skips it on the next tick, then posts a
-    best-effort owner note. Keeps ``auto-ai`` so removing the status label resumes routing.
-    """
-    number = candidate["number"]
-    kind = candidate.get("kind", "item")
-    add_label(number, AI_NEED_ATTENTION)
-    note = (
-        f"{MARKER}\nAll AI providers ({', '.join(PROVIDERS)}) currently have an active "
-        f"usage/session limit, so this `auto-ai` {kind} could not be routed. Applied "
-        f"`{AI_NEED_ATTENTION}`. Remove that label once a provider is available again to "
-        "resume auto-routing."
-    )
-    try:
-        post_comment(number, note)
-    except Exception as exc:
-        logger.warning("Failed to post all-providers-limited note on %s #%s: %s",
-                       kind, number, exc)
-    logger.warning("All providers are limited; parked %s #%s with %s.",
-                   kind, number, AI_NEED_ATTENTION)
 
 
 def route_candidates(logger, state_file, candidates):
@@ -71,7 +45,7 @@ def route_candidates(logger, state_file, candidates):
     for candidate in candidates:
         provider = select_auto_provider(logger, state_file, PROVIDERS)
         if provider is None:
-            park_unroutable(logger, candidate)
+            park_auto_item_unroutable(logger, candidate)
             continue
         add_label(candidate["number"], provider)
         # Persist before evaluating the next candidate: a batch is sequential LRU, not a
