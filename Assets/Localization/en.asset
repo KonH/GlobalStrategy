@@ -410,6 +410,10 @@ MonoBehaviour:
     Value: Country Score
   - Key: resource.country_score.description
     Value: A combined measure of this country's influence and development.
+  - Key: resource.recruits.name
+    Value: Recruits
+  - Key: resource.recruits.description
+    Value: Available manpower that can be committed to military campaigns.
   - Key: resource.org_score.name
     Value: Organization Score
   - Key: resource.org_score.description

@@ -410,6 +410,10 @@ MonoBehaviour:
     Value: Очки страны
   - Key: resource.country_score.description
     Value: Комбинированная мера влияния и развития этой страны.
+  - Key: resource.recruits.name
+    Value: Рекруты
+  - Key: resource.recruits.description
+    Value: Доступный людской ресурс, который можно направить в военные кампании.
   - Key: resource.org_score.name
     Value: Очки организации
   - Key: resource.org_score.description
