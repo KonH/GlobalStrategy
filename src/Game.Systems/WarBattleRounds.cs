@@ -9,7 +9,8 @@ using GS.Game.Configs;
 	public static partial class WarBattleSystem {
 		static void ProcessRound(
 			World world, WarInfo war, WarBattles.BattleInfo battle,
-			Random rng, WarBattleSettings settings) {
+			Random rng, WarBattleSettings settings,
+			ResourceConfig? resourceConfig, DateTime currentTime) {
 			WarParticipantKind firstSide = rng.Next(2) == 0
 				? WarParticipantKind.Attacker
 				: WarParticipantKind.Defender;
@@ -21,11 +22,11 @@ using GS.Game.Configs;
 			bool responseExhausted = GetSideTroops(world, battle.Value.BattleId, responseSide) <= 0;
 			bool firstExhausted = GetSideTroops(world, battle.Value.BattleId, firstSide) <= 0;
 			if (responseExhausted) {
-				FinishBattle(world, war, battle, firstSide, settings);
+				FinishBattle(world, war, battle, firstSide, settings, resourceConfig, currentTime);
 				return;
 			}
 			if (firstExhausted) {
-				FinishBattle(world, war, battle, responseSide, settings);
+				FinishBattle(world, war, battle, responseSide, settings, resourceConfig, currentTime);
 				return;
 			}
 

@@ -1,0 +1,144 @@
+.war-progress-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.war-progress-panel {
+    position: relative;
+    width: 78%;
+    height: 82%;
+    padding: 26px 32px;
+}
+
+.war-progress-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.war-progress-title {
+    font-size: 34px;
+}
+
+.war-progress-close {
+    position: absolute;
+    top: 26px;
+    right: 32px;
+    width: 52px;
+    height: 46px;
+    font-size: 24px;
+}
+
+.war-progress-track {
+    flex-direction: row;
+    align-self: stretch;
+    height: 28px;
+    margin-bottom: 18px;
+    background-color: rgba(8, 14, 30, 0.65);
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: rgb(200, 160, 64);
+}
+
+.war-progress-track-half {
+    flex-grow: 1;
+    flex-basis: 0;
+    height: 100%;
+}
+
+.war-progress-track-half--attacker {
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: stretch;
+}
+
+.war-progress-track-half--defender {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+.war-progress-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 2px;
+}
+
+.war-progress-section-title {
+    font-size: 24px;
+    align-self: stretch;
+    margin-bottom: 6px;
+}
+
+.war-progress-effects-list {
+    max-height: 120px;
+    align-self: stretch;
+    margin-bottom: 14px;
+}
+
+.war-progress-effect-row {
+    padding: 4px 8px;
+    margin-bottom: 2px;
+    color: rgb(240, 232, 208);
+    font-size: 18px;
+}
+
+.war-progress-stats-row {
+    flex-direction: row;
+    align-self: stretch;
+    margin-bottom: 14px;
+}
+
+.war-progress-stats-column {
+    flex-grow: 1;
+    flex-basis: 0;
+    padding: 8px 12px;
+    margin-right: 8px;
+    background-color: rgba(8, 14, 30, 0.45);
+    border-radius: 4px;
+}
+
+.war-progress-stats-column:last-child {
+    margin-right: 0;
+}
+
+.war-progress-side-label {
+    font-size: 22px;
+    -unity-font-style: bold;
+    margin-bottom: 6px;
+}
+
+.war-progress-stat {
+    margin-bottom: 2px;
+}
+
+.war-progress-battles-list {
+    flex-grow: 1;
+    align-self: stretch;
+}
+
+.war-progress-battle-row {
+    padding: 6px 10px;
+    margin-bottom: 4px;
+    background-color: rgba(8, 14, 30, 0.45);
+    border-radius: 4px;
+    font-size: 18px;
+    color: rgb(240, 232, 208);
+    white-space: normal;
+}
+
+.war-progress-battles-empty {
+    position: absolute;
+    left: 32px;
+    right: 32px;
+    bottom: 80px;
+    -unity-text-align: middle-center;
+    color: rgb(240, 232, 208);
+    font-size: 22px;
+}

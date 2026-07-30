@@ -31,9 +31,11 @@ source of truth.
 - Add `OwnerType.War` and `ResourceSeedTarget.War`.
 - Add `ResourceDefinitions.WarProgress = "war_progress"` and a
   `resource_config.json` entry: `SeedTarget: War`, `DefaultInitialValue: 0`,
-  `RecordHistory: true`. Add `ResourceDefinition.RecordHistory` (default `false`);
-  only `war_progress` enables it. Do not seed at `InitSystem` time — wars create the
-  entity themselves (`FindResources(War)` is unused by init loops).
+  `RecordHistory: true`, optional `MinValue`/`MaxValue` as `double?` (null = no
+  clamp; war_progress uses `-100`/`100`). Add `ResourceDefinition.RecordHistory`
+  (default `false`); only `war_progress` enables it. Do not seed at `InitSystem`
+  time — wars create the entity themselves (`FindResources(War)` is unused by init
+  loops).
 - Add `[Savable] ResourceHistory` composed on the same entity as `Resource` +
   `ResourceOwner`, holding `List<ResourceChangeEntry> History`. Each entry stores
   `EffectId`, signed `AppliedDelta`, and game `DateTime Timestamp`.
@@ -41,13 +43,17 @@ source of truth.
   support `List<>`. Extend both to handle `List<ResourceChangeEntry>` only: encode
   each entry as `{effectId}\x1E{delta:R}\x1E{timestamp:O}`, join with `\x1F` (same
   separator family as existing `string[]`). Put encode/decode helpers next to
-  `ResourceChangeEntry`. Empty list ↔ empty string. Update
-  `SavableDiscoveryTests` to expect `ResourceHistory`.
+  `ResourceChangeEntry`. Empty list ↔ empty string. Do **not** add
+  `System.Text.Json` to `Game.Main`. Update `SavableDiscoveryTests` to expect
+  `ResourceHistory`.
 - `Wars.DeclareWar`: stop adding `WarProgress`; create a separate resource entity
   `ResourceOwner(warId, OwnerType.War)` + `Resource { war_progress, 0 }` + empty
   `ResourceHistory`. `Wars.StopWar`: destroy that war’s `war_progress` resource
   entity (history goes with it) along with existing war/battle cleanup.
-- Remove `WarProgress` from `War.cs` and every reader/writer.
+- Remove `WarProgress` from `War.cs` and every reader/writer. On load, if a mid-war
+  save still has a `WarProgress` component and no war-owned `war_progress` resource,
+  repair by creating the resource (value from the component) + empty history and
+  dropping the component.
 
 ### 2. Route decay and battle finish through effect-aware mutations + history
 
@@ -75,10 +81,12 @@ source of truth.
 
 ### 3. Battle creation order
 
-- Add savable `DateTime CreatedAt` to `Battle`. Thread `currentTime` into
-  `WarBattleFill.FillSlots` and set `CreatedAt` at creation.
-- Change `WarBattles.GetBattles` sort to `CreatedAt` ascending, then
-  `BattleId` ordinal — not lexical `BattleId` alone.
+- Add savable `int CreationSequence` (primary) and `DateTime CreatedAt` to `Battle`.
+  Thread a monotonic per-war sequence (and `currentTime`) into
+  `WarBattleFill.FillSlots` / battle creation and set both at creation. Prefer
+  `CreationSequence` as the sort key so multi-battle ticks never collide.
+- Change `WarBattles.GetBattles` sort to `CreationSequence` ascending, then
+  `CreatedAt`, then `BattleId` ordinal — not lexical `BattleId` alone.
 
 ### 4. `SelectedWarState` projection (`src/Game.Main`)
 
@@ -96,16 +104,22 @@ source of truth.
 - `WarProgressWindowDocument.Open(warId)` sets selection; `Hide` clears it.
   `VisualStateConverter` refreshes `SelectedWar` every tick while a war is
   selected (Leaderboard-style live refresh; document no-ops when not visible).
+  When `SelectedWar.IsValid` becomes false while the modal is open (war stopped),
+  call `Hide()` / clear selection so the window auto-closes.
 - Update `WarIconsProjector` to read `ResourceQuery.GetValue(world, warId,
   ResourceDefinitions.WarProgress)` instead of the `War`+`WarProgress` archetype
   (OwnerType is ignored by query today; `warId` uniqueness is enough).
+- Battle-row winner/casualty/troop substrings use rich-text `<color=#…>` tokens
+  (same pattern as `GameLogLineFormatter` / `ActionLogView`) with the shared
+  attacker/defender RGB — not a single USS class on the whole row.
 
 ### 5. UI Toolkit modal
 
 - Add `Assets/UI/Modal/WarProgressWindow/WarProgressWindow.uxml` + `.uss`. Progress
   bar = two opposing `VisualElement` fills over `[-100, 100]` (no shared slider).
   Add `.gs-color-attacker` (red) and `.gs-color-defender` (blue) to
-  `SharedStyles.uss`.
+  `SharedStyles.uss`, and document those utility classes in
+  `.claude/rules/unity/uitoolkit.md`.
 - Implement `WarProgressWindowDocument` like `LeaderboardWindowDocument`:
   `[RequireComponent(typeof(UIDocument))]`, `sortingOrder ≈ 510`, `ModalState`,
   `btn-close` via `PointerUpEvent` + `ContainsPoint`, hide on Awake. Add plain
@@ -124,42 +138,42 @@ source of truth.
 
 ## Agent Steps
 
-- [ ] **Add war owner / seed / definition** — `OwnerType.War`,
+- [x] **Add war owner / seed / definition** — `OwnerType.War`,
   `ResourceSeedTarget.War`, `ResourceDefinitions.WarProgress`,
   `ResourceDefinition.RecordHistory` (default false), and `war_progress` in
   `resource_config.json` with `RecordHistory: true`.
 
-- [ ] **Add ResourceHistory + save/load encoding** — `ResourceChangeEntry` +
+- [x] **Add ResourceHistory + save/load encoding** — `ResourceChangeEntry` +
   `[Savable] ResourceHistory`; extend `SaveSystem`/`LoadSystem` for
   `List<ResourceChangeEntry>`; update `SavableDiscoveryTests`.
 
-- [ ] **History-aware ResourceMutations / ResourceSystem** — append clamped
+- [x] **History-aware ResourceMutations / ResourceSystem** — append clamped
   applied deltas when `RecordHistory` is enabled; keep existing overloads
   history-free.
 
-- [ ] **Migrate DeclareWar / StopWar** — create/destroy war-owned
+- [x] **Migrate DeclareWar / StopWar** — create/destroy war-owned
   `war_progress` + `ResourceHistory`; remove `WarProgress` component usage.
 
-- [ ] **Route decay and FinishBattle** — `WarSystem.Update` and
+- [x] **Route decay and FinishBattle** — `WarSystem.Update` and
   `WarBattleSettlement.FinishBattle` apply via effect-id mutations with
   `[-100, 100]` clamp; distinct decay vs battle effect ids.
 
-- [ ] **Battle CreatedAt + sort** — persist `Battle.CreatedAt`; sort
-  `WarBattles.GetBattles` by creation time.
+- [x] **Battle CreationSequence + sort** — persist monotonic per-war
+  `CreationSequence` (+ `CreatedAt`); sort `WarBattles.GetBattles` by sequence.
 
-- [ ] **SelectedWarState + projector** — VisualState types, converter refresh
+- [x] **SelectedWarState + projector** — VisualState types, converter refresh
   while selected, `WarIconsProjector` resource read; equality so identical
   projections do not raise `PropertyChanged`.
 
-- [ ] **Modal UXML/USS/view/document** — WarProgressWindow assets, SharedStyles
+- [x] **Modal UXML/USS/view/document** — WarProgressWindow assets, SharedStyles
   attacker/defender colors, document+view following Leaderboard modal pattern,
   localization keys (EN + real RU).
 
-- [ ] **Scene UIDocument wiring** — add `UIDocument` to `WarProgressWindowUI` in
+- [x] **Scene UIDocument wiring** — add `UIDocument` to `WarProgressWindowUI` in
   `Map.unity` (Unity MCP if available; otherwise documented YAML fallback) and
   require a clean console after import.
 
-- [ ] **Update tests + validate** — migrate/extend tests listed below; run
+- [x] **Update tests + validate** — migrate/extend tests listed below; run
   `dotnet test src/GlobalStrategy.Core.sln` and Release build for plugin DLLs.
 
 ## User Steps

@@ -79,6 +79,9 @@ namespace GS.Main {
 			if (value == null) {
 				return null;
 			}
+			if (targetType == typeof(List<ResourceChangeEntry>)) {
+				return ResourceChangeEntry.Decode(value);
+			}
 			if (targetType == typeof(string[])) {
 				return value.Length == 0 ? Array.Empty<string>() : value.Split('\x1F');
 			}
