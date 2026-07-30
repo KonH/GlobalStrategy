@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Components;
@@ -22,16 +23,26 @@ namespace GS.Game.Systems {
 				hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
 			}
 			double relationStillExists = 1.0;
+			double targetRulerOrMilitaryOpinion = 0.0;
+			double neitherSideAtWar = 1.0;
 			if (entity >= 0 && !string.IsNullOrEmpty(countryId) && world.Has<RelationCardTarget>(entity)) {
 				var target = world.Get<RelationCardTarget>(entity);
 				relationStillExists = CountryRelations.GetRelation(world, countryId, target.TargetCountryId) == target.Kind ? 1.0 : 0.0;
+				string rulerId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, target.TargetCountryId, "ruler");
+				string militaryAdvisorId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, target.TargetCountryId, "military_advisor");
+				double rulerOpinion = string.IsNullOrEmpty(rulerId) ? 0.0 : ResourceQuery.GetValue(world, rulerId, $"opinion_{orgId}");
+				double militaryAdvisorOpinion = string.IsNullOrEmpty(militaryAdvisorId) ? 0.0 : ResourceQuery.GetValue(world, militaryAdvisorId, $"opinion_{orgId}");
+				targetRulerOrMilitaryOpinion = Math.Max(rulerOpinion, militaryAdvisorOpinion);
+				neitherSideAtWar = !Wars.IsInWar(world, countryId) && !Wars.IsInWar(world, target.TargetCountryId) ? 1.0 : 0.0;
 			}
 			var ctx = new ExpressionContext {
 				Control = orgControl,
 				TotalCountryControl = totalCountryControl,
 				Opinion = opinion,
 				HasSuitableRelationTarget = hasSuitableTarget,
-				RelationStillExists = relationStillExists
+				RelationStillExists = relationStillExists,
+				TargetRulerOrMilitaryOpinion = targetRulerOrMilitaryOpinion,
+				NeitherSideAtWar = neitherSideAtWar
 			};
 
 			foreach (var cond in def.Conditions) {

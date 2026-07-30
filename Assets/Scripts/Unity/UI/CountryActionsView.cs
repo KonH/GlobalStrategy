@@ -76,8 +76,12 @@ namespace GS.Unity.UI {
 					"insufficient_opinion" => string.Format(
 						_loc.Get("action.country.unplayable.insufficient_opinion"),
 						def != null ? ExtractConditionThreshold(def, "opinion") : 0),
+					"insufficient_target_opinion" => string.Format(
+						_loc.Get("action.country.unplayable.insufficient_target_opinion"),
+						def != null ? ExtractConditionThreshold(def, "targetRulerOrMilitaryOpinion") : 0),
 					"no_suitable_target" => _loc.Get("action.country.unplayable.no_suitable_target"),
 					"relation_no_longer_exists" => _loc.Get("action.country.unplayable.relation_no_longer_exists"),
+					"already_at_war" => _loc.Get("action.country.unplayable.already_at_war"),
 					"no_enemy_control" => _loc.Get("action.country.unplayable.no_enemy_control"),
 					_ => string.Format(
 						_loc.Get("action.country.unplayable.insufficient_control"),

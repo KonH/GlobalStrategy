@@ -1652,6 +1652,14 @@ MonoBehaviour:
     Value: '{0} is not our enemy!'
   - Key: action.stop_rivalry.desc
     Value: We're not enemies anymore.
+  - Key: action.declare_war.name
+    Value: 'Declare war on {0}!'
+  - Key: action.declare_war.desc
+    Value: Declare war on this rival.
+  - Key: effect.declare_war_effect.name
+    Value: Declare War
+  - Key: effect.declare_war_effect.desc
+    Value: Start a war with the targeted rival.
   - Key: action.decrease_enemy_control.name
     Value: Undermine Influence
   - Key: action.decrease_enemy_control.desc
@@ -1670,10 +1678,14 @@ MonoBehaviour:
     Value: Requires {0} control
   - Key: action.country.unplayable.insufficient_opinion
     Value: Requires {0} opinion with the diplomacy advisor
+  - Key: action.country.unplayable.insufficient_target_opinion
+    Value: Requires {0} opinion from the rival's ruler or military advisor
   - Key: action.country.unplayable.no_suitable_target
     Value: No suitable target country available
   - Key: action.country.unplayable.relation_no_longer_exists
     Value: The named relation no longer exists
+  - Key: action.country.unplayable.already_at_war
+    Value: One of the countries is already at war
   - Key: action.country.unplayable.no_enemy_control
     Value: No organization with control available to target
   - Key: hud.actions
@@ -1698,6 +1710,8 @@ MonoBehaviour:
     Value: "{0} made {1} and {2} friends"
   - Key: game_log.relation_rival_format
     Value: "{0} made {1} and {2} rivals"
+  - Key: game_log.war_declared_format
+    Value: "{0}: {1} declares war on {2}!"
   - Key: province_name.Afghanistan__Andkhvoy
     Value: Andkhvoy
   - Key: province_name.Afghanistan__Asadabad

@@ -617,16 +617,26 @@ namespace GS.Main {
 			double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
 			int totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
 			double relationStillExists = 1.0;
+			double targetRulerOrMilitaryOpinion = 0.0;
+			double neitherSideAtWar = 1.0;
 			if (world.Has<RelationCardTarget>(entity)) {
 				var target = world.Get<RelationCardTarget>(entity);
 				relationStillExists = CountryRelations.GetRelation(world, countryId, target.TargetCountryId) == target.Kind ? 1.0 : 0.0;
+				string rulerId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, target.TargetCountryId, "ruler");
+				string militaryAdvisorId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, target.TargetCountryId, "military_advisor");
+				double rulerOpinion = string.IsNullOrEmpty(rulerId) ? 0.0 : ResourceQuery.GetValue(world, rulerId, $"opinion_{orgId}");
+				double militaryAdvisorOpinion = string.IsNullOrEmpty(militaryAdvisorId) ? 0.0 : ResourceQuery.GetValue(world, militaryAdvisorId, $"opinion_{orgId}");
+				targetRulerOrMilitaryOpinion = Math.Max(rulerOpinion, militaryAdvisorOpinion);
+				neitherSideAtWar = !Wars.IsInWar(world, countryId) && !Wars.IsInWar(world, target.TargetCountryId) ? 1.0 : 0.0;
 			}
 			var ctx = new ExpressionContext {
 				Control = orgControl,
 				TotalCountryControl = totalCountryControl,
 				Opinion = opinion,
 				HasSuitableRelationTarget = hasSuitableTarget,
-				RelationStillExists = relationStillExists
+				RelationStillExists = relationStillExists,
+				TargetRulerOrMilitaryOpinion = targetRulerOrMilitaryOpinion,
+				NeitherSideAtWar = neitherSideAtWar
 			};
 
 			bool conditionFailed = false;
@@ -641,6 +651,8 @@ namespace GS.Main {
 							"opinion" => "insufficient_opinion",
 							"hasSuitableRelationTarget" => "no_suitable_target",
 							"relationStillExists" => "relation_no_longer_exists",
+							"targetRulerOrMilitaryOpinion" => "insufficient_target_opinion",
+							"neitherSideAtWar" => "already_at_war",
 							_ => "insufficient_control"
 						};
 					break;
@@ -815,7 +827,7 @@ namespace GS.Main {
 
 		// Collection pass, not a diff pass — modeled on UpdateLastFrameEffects above, which already
 		// scans a transient one-shot component archetype (ResourceChange) every tick the same way.
-		// No baseline/init-guard needed: the four source components are only ever created at the
+		// No baseline/init-guard needed: the source components are only ever created at the
 		// exact point their underlying effect is applied, never during InitSystem seeding, so there
 		// is structurally nothing to collect on a fresh/loaded game. See
 		// Docs/Specs/26_07_18_07_action-log-ui/plan.md "Collection logic" section.
@@ -891,6 +903,17 @@ namespace GS.Main {
 					if (!_gameLogIncludePlayerActions && applied[i].OrgId == playerOrgId) { continue; }
 					newEntries.Add(new GameLogEntry(0, GameLogEntryKind.Relation, applied[i].OrgId, applied[i].CountryId,
 						"", "", Array.Empty<string>(), 0, 0, false, applied[i].TargetCountryId, applied[i].Kind));
+				}
+			}
+
+			int[] warReq = { TypeId<WarDeclaredApplied>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(warReq, null)) {
+				WarDeclaredApplied[] applied = arch.GetColumn<WarDeclaredApplied>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (!_gameLogIncludePlayerActions && applied[i].OrgId == playerOrgId) { continue; }
+					newEntries.Add(new GameLogEntry(0, GameLogEntryKind.War, applied[i].OrgId, applied[i].CountryId,
+						"", "", Array.Empty<string>(), 0, 0, false, applied[i].DefenderCountryId));
 				}
 			}
 

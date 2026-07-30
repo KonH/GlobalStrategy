@@ -189,6 +189,22 @@
       "effectIds": ["clear_rivalry_effect"]
     },
     {
+      "actionId": "declare_war",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.declare_war.name",
+      "descKey": "action.declare_war.desc",
+      "targetRole": "",
+      "deckCopies": 0,
+      "conditions": [
+        { "type": "gte", "members": [ { "type": "targetRulerOrMilitaryOpinion" }, { "type": "value", "value": 50 } ] },
+        { "type": "gte", "members": [ { "type": "relationStillExists" }, { "type": "value", "value": 1 } ] },
+        { "type": "gte", "members": [ { "type": "neitherSideAtWar" }, { "type": "value", "value": 1 } ] }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 100.0 }],
+      "effectIds": ["declare_war_effect"]
+    },
+    {
       "actionId": "decrease_enemy_control",
       "ownerType": "country",
       "rarity": "Standard",

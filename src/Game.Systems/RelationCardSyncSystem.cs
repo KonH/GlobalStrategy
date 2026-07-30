@@ -32,6 +32,7 @@ namespace GS.Game.Systems {
 				}
 				foreach (string otherCountryId in rivals) {
 					EnsureCardInstance(world, orgId, countryId, otherCountryId, RelationKind.Rival, "stop_rivalry");
+					EnsureCardInstance(world, orgId, countryId, otherCountryId, RelationKind.Rival, "declare_war");
 				}
 			}
 
