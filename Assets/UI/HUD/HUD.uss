@@ -100,10 +100,10 @@
     flex-grow: 1;
     width: 100%;
     max-height: 100%;
-    align-items: center;
 }
 
-.debug-panel-scroll > .unity-scroll-view__content-container {
+.debug-panel-scroll .unity-scroll-view__content-container {
+    width: 100%;
     align-items: center;
     padding-bottom: 16px;
 }
@@ -116,19 +116,23 @@
     padding: 8px 16px;
     flex-direction: column;
     min-width: 260px;
+    max-width: 100%;
     align-items: stretch;
     margin-top: 8px;
 }
 
 .debug-panel-two-col {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: flex-start;
+    max-width: 100%;
 }
 
 .debug-panel-col {
     flex-direction: column;
     flex-grow: 1;
     min-width: 220px;
+    max-width: 100%;
     margin-right: 8px;
 }
 
@@ -168,6 +172,7 @@
 
 .debug-panel-menu-toggle {
     min-width: 220px;
+    max-width: 100%;
     margin-top: 8px;
 }
 

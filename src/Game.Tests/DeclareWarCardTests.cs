@@ -24,9 +24,22 @@ namespace GS.Game.Tests {
 				},
 				Actions = new List<ActionDefinition> {
 					new ActionDefinition {
+						ActionId = "stop_rivalry",
+						OwnerType = "country",
+						DeckCopies = 1,
+						Conditions = new List<ExpressionNode> {
+							Condition("opinion", 80),
+							Condition("relationStillExists", 1)
+						},
+						Cost = new List<ActionCost> {
+							new ActionCost { ResourceId = "gold", Amount = 100 }
+						},
+						EffectIds = new List<string> { "clear_rivalry_effect" }
+					},
+					new ActionDefinition {
 						ActionId = "declare_war",
 						OwnerType = "country",
-						DeckCopies = 0,
+						DeckCopies = 1,
 						Conditions = new List<ExpressionNode> {
 							Condition("targetRulerOrMilitaryOpinion", 50),
 							Condition("relationStillExists", 1),
@@ -259,6 +272,22 @@ namespace GS.Game.Tests {
 			Assert.Equal(1, CountActionInstances(world, "declare_war", DefenderId));
 			Assert.Equal(1, CountActionInstances(world, "stop_rivalry", "Spain"));
 			Assert.Equal(1, CountActionInstances(world, "declare_war", "Spain"));
+		}
+
+		[Fact]
+		void relation_sync_skips_declare_war_when_deck_copies_is_zero() {
+			var world = new World();
+			AddCountry(world, AttackerId);
+			AddCountry(world, DefenderId);
+			int deck = world.Create();
+			world.Add(deck, new CardDeck { OrgId = OrgId, CountryId = AttackerId });
+			CountryRelations.SetRelation(world, AttackerId, DefenderId, RelationKind.Rival);
+
+			var config = BuildActionConfig();
+			config.Find("declare_war")!.DeckCopies = 0;
+			RelationCardSyncSystem.Update(world, config);
+
+			Assert.Equal(0, CountActionInstances(world, "declare_war", DefenderId));
 		}
 
 		[Fact]

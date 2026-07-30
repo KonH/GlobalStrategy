@@ -131,7 +131,14 @@ namespace GS.Game.Systems {
 					foreach (var cond in def.Conditions) {
 						if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { ok = false; break; }
 					}
-					if (ok) { eligible.Add(candidateEntity); }
+					if (!ok) { continue; }
+					// Relation-synced cards exist as one entity per relation; DeckCopies is a draw
+					// weight (0 = never drawn, 1 = standard, 2+ = increased chance). Static cards
+					// already encode weight via multiple InitSystem entities, so add once each.
+					int weight = world.Has<RelationCardTarget>(candidateEntity) ? def.DeckCopies : 1;
+					for (int w = 0; w < weight; w++) {
+						eligible.Add(candidateEntity);
+					}
 				}
 			}
 
@@ -155,12 +162,19 @@ namespace GS.Game.Systems {
 				}
 			}
 
+			var drawnThisPass = new HashSet<int>();
 			int drawIdx = 0;
-			for (int slot = 0; slot < maxHandSize && drawIdx < toDraw && drawIdx < eligible.Count; slot++) {
-				if (!occupiedSlots.Contains(slot)) {
-					world.Add(eligible[drawIdx], new CardInHand { SlotIndex = slot });
+			int drawnCount = 0;
+			for (int slot = 0; slot < maxHandSize && drawnCount < toDraw && drawIdx < eligible.Count; slot++) {
+				if (occupiedSlots.Contains(slot)) { continue; }
+				while (drawIdx < eligible.Count && drawnThisPass.Contains(eligible[drawIdx])) {
 					drawIdx++;
 				}
+				if (drawIdx >= eligible.Count) { break; }
+				int picked = eligible[drawIdx++];
+				world.Add(picked, new CardInHand { SlotIndex = slot });
+				drawnThisPass.Add(picked);
+				drawnCount++;
 			}
 		}
 	}

@@ -135,7 +135,7 @@
       "nameKey": "action.make_friend.name",
       "descKey": "action.make_friend.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 5,
+      "deckCopies": 3,
       "conditions": [
         { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 30 } ] },
         { "type": "gte", "members": [ { "type": "hasSuitableRelationTarget" }, { "type": "value", "value": 1 } ] }
@@ -165,7 +165,7 @@
       "nameKey": "action.stop_friendship.name",
       "descKey": "action.stop_friendship.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 0,
+      "deckCopies": 1,
       "conditions": [
         { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] },
         { "type": "gte", "members": [ { "type": "relationStillExists" }, { "type": "value", "value": 1 } ] }
@@ -180,7 +180,7 @@
       "nameKey": "action.stop_rivalry.name",
       "descKey": "action.stop_rivalry.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 0,
+      "deckCopies": 1,
       "conditions": [
         { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] },
         { "type": "gte", "members": [ { "type": "relationStillExists" }, { "type": "value", "value": 1 } ] }
@@ -195,7 +195,7 @@
       "nameKey": "action.declare_war.name",
       "descKey": "action.declare_war.desc",
       "targetRole": "",
-      "deckCopies": 0,
+      "deckCopies": 6,
       "conditions": [
         { "type": "gte", "members": [ { "type": "targetRulerOrMilitaryOpinion" }, { "type": "value", "value": 50 } ] },
         { "type": "gte", "members": [ { "type": "relationStillExists" }, { "type": "value", "value": 1 } ] },
