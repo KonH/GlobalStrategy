@@ -55,14 +55,14 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void file_config_deserializes_none_seed_target() {
+		void file_config_deserializes_country_seeded_damage_and_durability() {
 			string filePath = Path.GetTempFileName();
 			try {
 				File.WriteAllText(filePath, """
 					{
 						"resources": [
-							{ "resourceId": "damage", "seedTarget": "None" },
-							{ "resourceId": "durability", "seedTarget": "None" },
+							{ "resourceId": "damage", "seedTarget": "Country" },
+							{ "resourceId": "durability", "seedTarget": "Country" },
 							{ "resourceId": "gold", "seedTarget": "Country" }
 						]
 					}
@@ -70,11 +70,9 @@ namespace GS.Game.Tests {
 
 				ResourceConfig config = new FileConfig<ResourceConfig>(filePath).Load();
 
-				Assert.Equal(ResourceSeedTarget.None, config.FindResource("damage")?.SeedTarget);
-				Assert.Equal(ResourceSeedTarget.None, config.FindResource("durability")?.SeedTarget);
-				Assert.Equal(new[] { "damage", "durability" },
-					config.FindResources(ResourceSeedTarget.None).Select(resource => resource.ResourceId));
-				Assert.Equal(new[] { "gold" },
+				Assert.Equal(ResourceSeedTarget.Country, config.FindResource("damage")?.SeedTarget);
+				Assert.Equal(ResourceSeedTarget.Country, config.FindResource("durability")?.SeedTarget);
+				Assert.Equal(new[] { "damage", "durability", "gold" },
 					config.FindResources(ResourceSeedTarget.Country).Select(resource => resource.ResourceId));
 			} finally {
 				File.Delete(filePath);

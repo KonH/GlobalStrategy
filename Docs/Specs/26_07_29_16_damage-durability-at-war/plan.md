@@ -1,5 +1,14 @@
 # Plan: Damage and Durability at War
 
+## Owner amendments (2026-07-30) — applied
+
+1. Bundle version: stay on milestone major — `1.99` → `1.100` (not `2.00`).
+2. `ResourceSeedTarget.None` removed: it was only an escape hatch for wartime-only InitSystem exclusion. Always-on resources use `seedTarget: "Country"` + InitSystem Instant+Daily attachment.
+3. Config bases cached as one `CountryCombatBases` value per country id (`IReadOnlyDictionary<string, CountryCombatBases>`), shared by `DamageCollector` and `DurabilityCollector`.
+4. Lifecycle is always-on for available countries (not create/destroy on war). `Wars` no longer touches these resources. Settle on war-relevant character cycle/drop and on every `LoadState` (before VisualState).
+
+Historical sections below retain the original wartime-only plan for audit; treat the amendments above + updated `spec.md` as authoritative.
+
 ## Spec
 
 Source: `Docs/Specs/26_07_29_16_damage-durability-at-war/spec.md`.

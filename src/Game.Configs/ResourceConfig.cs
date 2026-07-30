@@ -43,7 +43,6 @@ namespace GS.Game.Configs {
 		Province,
 		Country,
 		Org,
-		None,
 	}
 
 	public class EffectDefinition {

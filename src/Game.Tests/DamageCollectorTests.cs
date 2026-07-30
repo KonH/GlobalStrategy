@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Components;
+using GS.Game.Configs;
 using GS.Game.Systems;
 using Xunit;
 
@@ -12,7 +13,9 @@ namespace GS.Game.Tests {
 			var world = new World();
 			AddCharacterWithSkill(world, "ruler_1", "France", "ruler", "power", 20);
 			AddCharacterWithSkill(world, "mil_1", "France", "military_advisor", "power", 15);
-			var bases = new Dictionary<string, int> { ["France"] = 85 };
+			var bases = new Dictionary<string, CountryCombatBases> {
+				["France"] = new CountryCombatBases(85, 40)
+			};
 			var collector = new DamageCollector(bases);
 
 			double delta = collector.Compute("France", 0.0, world);
@@ -24,7 +27,9 @@ namespace GS.Game.Tests {
 		void compute_treats_missing_character_or_skill_as_zero() {
 			var world = new World();
 			AddCharacterWithSkill(world, "ruler_1", "France", "ruler", "power", 20);
-			var bases = new Dictionary<string, int> { ["France"] = 85 };
+			var bases = new Dictionary<string, CountryCombatBases> {
+				["France"] = new CountryCombatBases(85, 40)
+			};
 			var collector = new DamageCollector(bases);
 
 			double delta = collector.Compute("France", 0.0, world);
@@ -37,7 +42,9 @@ namespace GS.Game.Tests {
 			var world = new World();
 			AddCharacterWithSkill(world, "ruler_1", "France", "ruler", "power", 20);
 			AddCharacterWithSkill(world, "mil_1", "France", "military_advisor", "power", 15);
-			var bases = new Dictionary<string, int> { ["France"] = 85 };
+			var bases = new Dictionary<string, CountryCombatBases> {
+				["France"] = new CountryCombatBases(85, 40)
+			};
 			var collector = new DamageCollector(bases);
 
 			double delta = collector.Compute("France", 40.0, world);
@@ -48,7 +55,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void compute_uses_default_base_when_country_missing_from_dict() {
 			var world = new World();
-			var collector = new DamageCollector(new Dictionary<string, int>());
+			var collector = new DamageCollector(new Dictionary<string, CountryCombatBases>());
 
 			double delta = collector.Compute("Unknown", 0.0, world);
 

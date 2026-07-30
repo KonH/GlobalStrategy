@@ -83,7 +83,7 @@
       "nameKey": "resource.damage.name",
       "descriptionKey": "resource.damage.description",
       "icon": "damage",
-      "seedTarget": "None",
+      "seedTarget": "Country",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
     },
@@ -92,7 +92,7 @@
       "nameKey": "resource.durability.name",
       "descriptionKey": "resource.durability.description",
       "icon": "durability",
-      "seedTarget": "None",
+      "seedTarget": "Country",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
     }

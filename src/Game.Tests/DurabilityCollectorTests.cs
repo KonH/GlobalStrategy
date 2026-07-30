@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Components;
+using GS.Game.Configs;
 using GS.Game.Systems;
 using Xunit;
 
@@ -12,7 +13,9 @@ namespace GS.Game.Tests {
 			var world = new World();
 			AddCharacterWithSkill(world, "ruler_1", "France", "ruler", "stinginess", 18);
 			AddCharacterWithSkill(world, "eco_1", "France", "economic_advisor", "stinginess", 12);
-			var bases = new Dictionary<string, int> { ["France"] = 82 };
+			var bases = new Dictionary<string, CountryCombatBases> {
+				["France"] = new CountryCombatBases(40, 82)
+			};
 			var collector = new DurabilityCollector(bases);
 
 			double delta = collector.Compute("France", 0.0, world);
@@ -24,7 +27,9 @@ namespace GS.Game.Tests {
 		void compute_treats_missing_character_or_skill_as_zero() {
 			var world = new World();
 			AddCharacterWithSkill(world, "ruler_1", "France", "ruler", "stinginess", 18);
-			var bases = new Dictionary<string, int> { ["France"] = 82 };
+			var bases = new Dictionary<string, CountryCombatBases> {
+				["France"] = new CountryCombatBases(40, 82)
+			};
 			var collector = new DurabilityCollector(bases);
 
 			double delta = collector.Compute("France", 0.0, world);
@@ -37,7 +42,9 @@ namespace GS.Game.Tests {
 			var world = new World();
 			AddCharacterWithSkill(world, "ruler_1", "France", "ruler", "stinginess", 18);
 			AddCharacterWithSkill(world, "eco_1", "France", "economic_advisor", "stinginess", 12);
-			var bases = new Dictionary<string, int> { ["France"] = 82 };
+			var bases = new Dictionary<string, CountryCombatBases> {
+				["France"] = new CountryCombatBases(40, 82)
+			};
 			var collector = new DurabilityCollector(bases);
 
 			double delta = collector.Compute("France", 50.0, world);
@@ -48,7 +55,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void compute_uses_default_base_when_country_missing_from_dict() {
 			var world = new World();
-			var collector = new DurabilityCollector(new Dictionary<string, int>());
+			var collector = new DurabilityCollector(new Dictionary<string, CountryCombatBases>());
 
 			double delta = collector.Compute("Unknown", 0.0, world);
 

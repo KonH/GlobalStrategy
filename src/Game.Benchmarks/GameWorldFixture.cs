@@ -81,16 +81,14 @@ namespace GS.Game.Benchmarks {
 			// needing any new GameLogic API.
 			var settings = new FileConfig<GameSettings>(Path.Combine(ConfigDir, "game_settings.json")).Load();
 			var countryConfig = new FileConfig<CountryConfig>(Path.Combine(ConfigDir, "country_config.json")).Load();
-			var baseDamageByCountryId = new Dictionary<string, int>();
-			var baseDurabilityByCountryId = new Dictionary<string, int>();
+			var combatBasesByCountryId = new Dictionary<string, CountryCombatBases>();
 			foreach (var entry in countryConfig.Countries) {
-				baseDamageByCountryId[entry.CountryId] = entry.BaseDamage;
-				baseDurabilityByCountryId[entry.CountryId] = entry.BaseDurability;
+				combatBasesByCountryId[entry.CountryId] = new CountryCombatBases(entry.BaseDamage, entry.BaseDurability);
 			}
 			var registry = ResourceCollectorRegistry.CreateDefault(
 				settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient,
 				settings.RecruitsInitialPercent, settings.RecruitsCapPercent, settings.RecruitsMonthlyIncreasePercent,
-				baseDamageByCountryId, baseDurabilityByCountryId);
+				combatBasesByCountryId);
 
 			return new Fixture(logic, gameTimeEntity, registry, settings.ResourceIdUpdateOrder,
 				orgIds.Count > 0 ? orgIds[0] : "", firstCountryId, firstProvinceId, settings.SpeedMultipliers);

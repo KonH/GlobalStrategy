@@ -10,7 +10,7 @@ using GS.Main;
 using Xunit;
 
 namespace GS.Game.Tests {
-	public class WartimeResourcesGameLogicTests {
+	public class DamageDurabilityGameLogicTests {
 		const string Britain = "Great_Britain";
 		const string France = "France";
 		const int BritainBaseDamage = 70;
@@ -132,12 +132,12 @@ namespace GS.Game.Tests {
 					new ResourceDefinition { ResourceId = "stinginess", SeedTarget = ResourceSeedTarget.Character },
 					new ResourceDefinition {
 						ResourceId = ResourceDefinitions.Damage,
-						SeedTarget = ResourceSeedTarget.None,
+						SeedTarget = ResourceSeedTarget.Country,
 						DefaultInitialValue = 0.0
 					},
 					new ResourceDefinition {
 						ResourceId = ResourceDefinitions.Durability,
-						SeedTarget = ResourceSeedTarget.None,
+						SeedTarget = ResourceSeedTarget.Country,
 						DefaultInitialValue = 0.0
 					}
 				}
@@ -206,23 +206,7 @@ namespace GS.Game.Tests {
 				+ WartimeSkillQuery.GetSkill(world, countryId, "economic_advisor", "stinginess");
 		}
 
-		static bool HasCountryResource(World world, string countryId, string resourceId) {
-			int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
-			foreach (var archetype in world.GetMatchingArchetypes(required, null)) {
-				ResourceOwner[] owners = archetype.GetColumn<ResourceOwner>();
-				Resource[] resources = archetype.GetColumn<Resource>();
-				for (int i = 0; i < archetype.Count; i++) {
-					if (owners[i].OwnerId == countryId
-						&& owners[i].OwnerType == OwnerType.Country
-						&& resources[i].ResourceId == resourceId) {
-						return true;
-					}
-				}
-			}
-			return false;
-		}
-
-		static bool HasDailyWartimeCollector(World world, string countryId, string resourceId, string collectorId) {
+		static bool HasDailyCombatCollector(World world, string countryId, string resourceId, string collectorId) {
 			int[] required = {
 				TypeId<ResourceOwner>.Value,
 				TypeId<ResourceLink>.Value,
@@ -263,33 +247,10 @@ namespace GS.Game.Tests {
 			Assert.Fail($"Could not reach military_advisor power {desiredPower} for {countryId}");
 		}
 
-		static void DeclareWar(GameLogic logic) {
-			logic.Commands.Push(new DebugDeclareWarCommand {
-				AttackerCountryId = Britain,
-				DefenderCountryId = France
-			});
-			logic.Update(0f);
-		}
-
 		[Fact]
-		void peacetime_countries_lack_damage_and_durability_after_init() {
+		void peacetime_countries_have_settled_damage_and_durability_after_init() {
 			var logic = BuildLogic();
 			logic.Update(0f);
-
-			Assert.False(HasCountryResource(logic.World, Britain, ResourceDefinitions.Damage));
-			Assert.False(HasCountryResource(logic.World, Britain, ResourceDefinitions.Durability));
-			Assert.False(HasCountryResource(logic.World, France, ResourceDefinitions.Damage));
-			Assert.False(HasCountryResource(logic.World, France, ResourceDefinitions.Durability));
-			Assert.Equal(0, ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
-			Assert.Equal(0, ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Durability));
-		}
-
-		[Fact]
-		void declare_war_settles_damage_and_durability_same_tick() {
-			var logic = BuildLogic();
-			logic.Update(0f);
-
-			DeclareWar(logic);
 
 			Assert.Equal(
 				ExpectedDamage(logic.World, Britain, BritainBaseDamage),
@@ -306,11 +267,10 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void cycle_military_advisor_while_at_war_updates_damage_only() {
+		void cycle_military_advisor_updates_damage_only() {
 			var logic = BuildLogic();
 			logic.Update(0f);
 			EnsureMilitaryPower(logic, Britain, 10);
-			DeclareWar(logic);
 
 			double damageBefore = ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage);
 			double durabilityBefore = ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Durability);
@@ -335,10 +295,9 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void drop_military_advisor_while_at_war_removes_that_skill_from_damage() {
+		void drop_military_advisor_removes_that_skill_from_damage() {
 			var logic = BuildLogic();
 			logic.Update(0f);
-			DeclareWar(logic);
 
 			double militaryPower = WartimeSkillQuery.GetSkill(logic.World, Britain, "military_advisor", "power");
 			double damageBefore = ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage);
@@ -359,19 +318,18 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void save_load_while_at_war_preserves_values_and_daily_effects() {
+		void save_load_preserves_values_and_daily_effects() {
 			var storage = new InMemoryStorage();
 			var serializer = new PassthroughSerializer();
 			var logic = BuildLogic(storage, serializer);
 			logic.Update(0f);
-			DeclareWar(logic);
 
 			double britainDamage = ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage);
 			double britainDurability = ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Durability);
 			Assert.Equal(ExpectedDamage(logic.World, Britain, BritainBaseDamage), britainDamage);
 			Assert.Equal(ExpectedDurability(logic.World, Britain, BritainBaseDurability), britainDurability);
-			Assert.True(HasDailyWartimeCollector(logic.World, Britain, ResourceDefinitions.Damage, DamageCollector.Id));
-			Assert.True(HasDailyWartimeCollector(logic.World, Britain, ResourceDefinitions.Durability, DurabilityCollector.Id));
+			Assert.True(HasDailyCombatCollector(logic.World, Britain, ResourceDefinitions.Damage, DamageCollector.Id));
+			Assert.True(HasDailyCombatCollector(logic.World, Britain, ResourceDefinitions.Durability, DurabilityCollector.Id));
 
 			logic.Commands.Push(new SaveGameCommand());
 			logic.Update(0f);
@@ -380,8 +338,6 @@ namespace GS.Game.Tests {
 			var loaded = BuildLogic(storage, serializer);
 			loaded.LoadState(saveName);
 
-			Assert.True(Wars.IsInWar(loaded.World, Britain));
-			Assert.True(Wars.IsInWar(loaded.World, France));
 			Assert.Equal(
 				ExpectedDamage(loaded.World, Britain, BritainBaseDamage),
 				ResourceQuery.GetValue(loaded.World, Britain, ResourceDefinitions.Damage));
@@ -394,10 +350,10 @@ namespace GS.Game.Tests {
 			Assert.Equal(
 				ExpectedDurability(loaded.World, France, FranceBaseDurability),
 				ResourceQuery.GetValue(loaded.World, France, ResourceDefinitions.Durability));
-			Assert.True(HasDailyWartimeCollector(loaded.World, Britain, ResourceDefinitions.Damage, DamageCollector.Id));
-			Assert.True(HasDailyWartimeCollector(loaded.World, Britain, ResourceDefinitions.Durability, DurabilityCollector.Id));
-			Assert.True(HasDailyWartimeCollector(loaded.World, France, ResourceDefinitions.Damage, DamageCollector.Id));
-			Assert.True(HasDailyWartimeCollector(loaded.World, France, ResourceDefinitions.Durability, DurabilityCollector.Id));
+			Assert.True(HasDailyCombatCollector(loaded.World, Britain, ResourceDefinitions.Damage, DamageCollector.Id));
+			Assert.True(HasDailyCombatCollector(loaded.World, Britain, ResourceDefinitions.Durability, DurabilityCollector.Id));
+			Assert.True(HasDailyCombatCollector(loaded.World, France, ResourceDefinitions.Damage, DamageCollector.Id));
+			Assert.True(HasDailyCombatCollector(loaded.World, France, ResourceDefinitions.Durability, DurabilityCollector.Id));
 		}
 	}
 }
