@@ -176,7 +176,12 @@ namespace GS.Unity.UI {
 			var innerAncestors = new HashSet<string>(ancestors) { id };
 			var context = new TooltipContext(this, innerAncestors);
 			panel.Add(buildContent(context));
+			// Ignore by default so plain tooltip text does not block UI underneath,
+			// then restore Position on the panel (hover-onto-panel tracking) and on
+			// underlined inner triggers so nested tooltips can open.
 			SetPickingIgnoreRecursive(panel);
+			panel.pickingMode = PickingMode.Position;
+			RestoreInnerTriggerPicking(panel);
 
 			_stack.Add(entry);
 			return entry;
@@ -205,6 +210,15 @@ namespace GS.Unity.UI {
 			element.pickingMode = PickingMode.Ignore;
 			foreach (var child in element.Children()) {
 				SetPickingIgnoreRecursive(child);
+			}
+		}
+
+		static void RestoreInnerTriggerPicking(VisualElement element) {
+			if (element.ClassListContains("tooltip-inner-trigger")) {
+				element.pickingMode = PickingMode.Position;
+			}
+			foreach (var child in element.Children()) {
+				RestoreInnerTriggerPicking(child);
 			}
 		}
 
