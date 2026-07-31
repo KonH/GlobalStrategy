@@ -57,12 +57,13 @@
 
 /* Header bar */
 .action-card-header {
+    height: 32px;
     background-color: rgb(26, 42, 72);
     color: rgb(240, 232, 208);
     font-size: 20px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
-    padding: 4px 6px;
+    padding: 0;
     border-bottom-width: 1px;
     border-color: rgb(200, 160, 64);
     white-space: nowrap;
@@ -74,10 +75,13 @@
 .action-card-art {
     width: 100%;
     height: 130px;
+    padding: 0 6px;
     overflow: hidden;
-    background-color: rgb(106, 136, 152);
-    align-items: center;
-    justify-content: center;
+}
+
+.action-card-art-image {
+    width: 100%;
+    height: 100%;
     -unity-background-scale-mode: scale-and-crop;
 }
 

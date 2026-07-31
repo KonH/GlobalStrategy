@@ -135,7 +135,7 @@
       "nameKey": "action.make_friend.name",
       "descKey": "action.make_friend.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 5,
+      "deckCopies": 3,
       "conditions": [
         { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 30 } ] },
         { "type": "gte", "members": [ { "type": "hasSuitableRelationTarget" }, { "type": "value", "value": 1 } ] }
@@ -165,7 +165,7 @@
       "nameKey": "action.stop_friendship.name",
       "descKey": "action.stop_friendship.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 0,
+      "deckCopies": 1,
       "conditions": [
         { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] },
         { "type": "gte", "members": [ { "type": "relationStillExists" }, { "type": "value", "value": 1 } ] }
@@ -180,13 +180,29 @@
       "nameKey": "action.stop_rivalry.name",
       "descKey": "action.stop_rivalry.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 0,
+      "deckCopies": 1,
       "conditions": [
         { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] },
         { "type": "gte", "members": [ { "type": "relationStillExists" }, { "type": "value", "value": 1 } ] }
       ],
       "cost": [{ "resourceId": "gold", "amount": 100.0 }],
       "effectIds": ["clear_rivalry_effect"]
+    },
+    {
+      "actionId": "declare_war",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.declare_war.name",
+      "descKey": "action.declare_war.desc",
+      "targetRole": "",
+      "deckCopies": 6,
+      "conditions": [
+        { "type": "gte", "members": [ { "type": "targetRulerOrMilitaryOpinion" }, { "type": "value", "value": 50 } ] },
+        { "type": "gte", "members": [ { "type": "relationStillExists" }, { "type": "value", "value": 1 } ] },
+        { "type": "gte", "members": [ { "type": "neitherSideAtWar" }, { "type": "value", "value": 1 } ] }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 100.0 }],
+      "effectIds": ["declare_war_effect"]
     },
     {
       "actionId": "decrease_enemy_control",
@@ -213,6 +229,55 @@
       ],
       "cost": [{ "resourceId": "gold", "amount": 250.0 }],
       "effectIds": ["decrease_enemy_control_drain_effect", "decrease_enemy_control_gain_effect"]
+    },
+    {
+      "actionId": "sell_arms",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.sell_arms.name",
+      "descKey": "action.sell_arms.desc",
+      "targetRole": "military_advisor",
+      "deckCopies": 3,
+      "conditions": [
+        { "type": "gte", "members": [ { "type": "isInWar" }, { "type": "value", "value": 1 } ] },
+        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 200.0 }],
+      "effectIds": ["sell_arms_damage_bonus_effect"]
+    },
+    {
+      "actionId": "ultimatum",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.ultimatum.name",
+      "descKey": "action.ultimatum.desc",
+      "targetRole": "military_advisor",
+      "deckCopies": 3,
+      "conditions": [
+        { "type": "gte", "members": [ { "type": "control" }, { "type": "value", "value": 10 } ] },
+        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 50 } ] },
+        { "type": "gte", "members": [ { "type": "isInWar" }, { "type": "value", "value": 1 } ] },
+        { "type": "gte", "members": [ { "type": "warProgress" }, { "type": "value", "value": 50 } ] }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 300.0 }],
+      "effectIds": ["ultimatum_effect"]
+    },
+    {
+      "actionId": "surrender",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.surrender.name",
+      "descKey": "action.surrender.desc",
+      "targetRole": "military_advisor",
+      "deckCopies": 3,
+      "conditions": [
+        { "type": "gte", "members": [ { "type": "control" }, { "type": "value", "value": 20 } ] },
+        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] },
+        { "type": "gte", "members": [ { "type": "isInWar" }, { "type": "value", "value": 1 } ] },
+        { "type": "lte", "members": [ { "type": "warProgress" }, { "type": "value", "value": 0 } ] }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 500.0 }],
+      "effectIds": ["surrender_effect"]
     },
     {
       "actionId": "revenge",

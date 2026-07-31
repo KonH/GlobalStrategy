@@ -126,6 +126,8 @@ All shared visual styles live in `Assets/UI/Shared/SharedStyles.uss`. Every UXML
 - `.gs-bg-panel` / `.gs-bg-button` / `.gs-bg-button-hover` / `.gs-bg-button-active` / `.gs-bg-tooltip`
 - `.gs-border-primary` / `.gs-border-muted`
 - `.gs-color-dark` / `.gs-color-mid` / `.gs-color-hint` / `.gs-color-positive` / `.gs-color-negative` / `.gs-color-light`
+- `.gs-color-attacker` / `.gs-color-defender` — war attacker (red) / defender (blue) text
+- `.gs-bg-attacker` / `.gs-bg-defender` — matching background fills for war progress bars
 
 **Panel:** `.gs-panel` — beige bg, brown border (2 px), 6 px radius, column flex, centered items
 

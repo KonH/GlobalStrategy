@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using GS.Game.Configs;
 
 namespace GS.Main {
 	public static class StateEquality {
@@ -92,7 +93,12 @@ namespace GS.Main {
 				&& a.IsInHand == b.IsInHand
 				&& a.IsUnplayable == b.IsUnplayable
 				&& a.UnplayableReason == b.UnplayableReason
-				&& a.TargetCountryId == b.TargetCountryId;
+				&& a.TargetCountryId == b.TargetCountryId
+				&& ListEquals(a.Conditions, b.Conditions, ActionConditionDebugEntryEquals);
+		}
+
+		public static bool ActionConditionDebugEntryEquals(ActionConditionDebugEntry a, ActionConditionDebugEntry b) {
+			return a.Label == b.Label && a.Passed == b.Passed;
 		}
 
 		public static bool VisualResourceChangeEffectEquals(VisualResourceChangeEffect a, VisualResourceChangeEffect b) {
@@ -107,6 +113,49 @@ namespace GS.Main {
 				&& a.EntityId == b.EntityId
 				&& a.DisplayName == b.DisplayName
 				&& a.Score == b.Score;
+		}
+
+		public static bool WarIconEntryStateEquals(WarIconEntryState a, WarIconEntryState b) {
+			return a.WarId == b.WarId
+				&& a.Progress == b.Progress
+				&& a.AttackerCountryId == b.AttackerCountryId
+				&& a.DefenderCountryId == b.DefenderCountryId;
+		}
+
+		public static bool WarProgressHistoryEntryStateEquals(WarProgressHistoryEntryState a, WarProgressHistoryEntryState b) {
+			return a.EffectId == b.EffectId
+				&& a.AppliedDelta == b.AppliedDelta
+				&& a.Timestamp == b.Timestamp;
+		}
+
+		public static bool WarSideStatsStateEquals(WarSideStatsState a, WarSideStatsState b) {
+			return a.CountryId == b.CountryId
+				&& a.RecruitsAvailable == b.RecruitsAvailable
+				&& a.TroopsInBattles == b.TroopsInBattles
+				&& a.Casualties == b.Casualties
+				&& a.Damage == b.Damage
+				&& a.Durability == b.Durability
+				&& a.DamageBase == b.DamageBase
+				&& a.DamageRulerBonus == b.DamageRulerBonus
+				&& a.DamageAdvisorBonus == b.DamageAdvisorBonus
+				&& a.DamageBonusPercent == b.DamageBonusPercent
+				&& ListEquals(a.DamageBonusEffects, b.DamageBonusEffects, EffectStateEntryEquals)
+				&& a.DurabilityBase == b.DurabilityBase
+				&& a.DurabilityRulerBonus == b.DurabilityRulerBonus
+				&& a.DurabilityAdvisorBonus == b.DurabilityAdvisorBonus;
+		}
+
+		public static bool WarBattleRowStateEquals(WarBattleRowState a, WarBattleRowState b) {
+			return a.BattleId == b.BattleId
+				&& a.ProvinceId == b.ProvinceId
+				&& a.IsFinished == b.IsFinished
+				&& a.WinnerCountryId == b.WinnerCountryId
+				&& a.WinnerSide == b.WinnerSide
+				&& a.AttackerCasualties == b.AttackerCasualties
+				&& a.DefenderCasualties == b.DefenderCasualties
+				&& a.Progress == b.Progress
+				&& a.AttackerTroops == b.AttackerTroops
+				&& a.DefenderTroops == b.DefenderTroops;
 		}
 
 		public static bool GameLogEntryEquals(GameLogEntry a, GameLogEntry b) {
@@ -127,7 +176,9 @@ namespace GS.Main {
 		public static bool EffectStateEntryEquals(EffectStateEntry a, EffectStateEntry b) {
 			return a.EffectId == b.EffectId
 				&& a.Value == b.Value
-				&& a.PayType == b.PayType;
+				&& a.PayType == b.PayType
+				&& a.MaxTotal == b.MaxTotal
+				&& a.OrgDisplayName == b.OrgDisplayName;
 		}
 
 		public static bool ResourceStateEntryEquals(ResourceStateEntry a, ResourceStateEntry b) {

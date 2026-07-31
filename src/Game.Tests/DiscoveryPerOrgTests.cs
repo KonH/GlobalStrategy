@@ -53,7 +53,10 @@ namespace GS.Game.Tests {
 			world.Add(cardEntity, new CardUse());
 			world.Add(cardEntity, new ActionSucceeded());
 
-			CreateActionEffectSystem.Update(world, actionConfig, effectConfig, DateTime.UtcNow);
+			CreateActionEffectSystem.Update(
+				world, actionConfig, effectConfig, DateTime.UtcNow,
+				new Random(1), new GameSettings(), new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(), 100);
 
 			bool found = false;
 			int[] req = { TypeId<DiscoverCountryEffect>.Value };

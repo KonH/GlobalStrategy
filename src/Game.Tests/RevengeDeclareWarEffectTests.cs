@@ -30,6 +30,20 @@ namespace GS.Game.Tests {
 			}
 		};
 
+		static void RunEffect(World world, IReadOnlyDictionary<string, string>? hqCountryByOrgId, DateTime? time = null) {
+			CreateActionEffectSystem.Update(
+				world, BuildActionConfig(), BuildEffectConfig(), time ?? CurrentTime,
+				new Random(1), new GameSettings(), new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(), 100, hqCountryByOrgId);
+		}
+
+		static void StopWar(World world, string countryId) {
+			Wars.StopWar(
+				world, countryId, CurrentTime.AddDays(1), new Random(1), new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(), 100);
+		}
+
 		static int AddSucceededCard(World world, string orgId, string countryId, string actionId) {
 			int e = world.Create();
 			world.Add(e, new GameAction { ActionId = actionId });
@@ -59,14 +73,13 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void declares_war_attaches_bonus_and_returns_true() {
+		void declares_war_and_attaches_bonus() {
 			var world = new World();
 			AddSucceededCard(world, OrgId, TargetCountryId, "revenge");
 			var hqCountryByOrgId = new Dictionary<string, string> { [OrgId] = HqCountryId };
 
-			bool result = CreateActionEffectSystem.Update(world, BuildActionConfig(), BuildEffectConfig(), CurrentTime, hqCountryByOrgId);
+			RunEffect(world, hqCountryByOrgId);
 
-			Assert.True(result);
 			Assert.True(Wars.IsInWar(world, HqCountryId));
 			Assert.True(Wars.IsInWar(world, TargetCountryId));
 			var bonus = FindBonus(world, HqCountryId);
@@ -74,29 +87,28 @@ namespace GS.Game.Tests {
 			Assert.Equal(10.0, bonus!.Value.DamageBonusPercent);
 			Assert.Equal(5.0, bonus.Value.DurabilityBonusPercent);
 			Assert.NotEqual("", bonus.Value.WarId);
+			Assert.True(CountEntities<WarDeclaredApplied>(world) >= 1);
 		}
 
 		[Fact]
-		void returns_false_and_no_war_when_hq_country_by_org_id_is_null() {
+		void no_war_when_hq_country_by_org_id_is_null() {
 			var world = new World();
 			AddSucceededCard(world, OrgId, TargetCountryId, "revenge");
 
-			bool result = CreateActionEffectSystem.Update(world, BuildActionConfig(), BuildEffectConfig(), CurrentTime, null);
+			RunEffect(world, null);
 
-			Assert.False(result);
 			Assert.False(Wars.IsInWar(world, TargetCountryId));
 			Assert.Null(FindBonus(world, HqCountryId));
 		}
 
 		[Fact]
-		void returns_false_and_no_war_when_hq_country_by_org_id_missing_the_org() {
+		void no_war_when_hq_country_by_org_id_missing_the_org() {
 			var world = new World();
 			AddSucceededCard(world, OrgId, TargetCountryId, "revenge");
 			var hqCountryByOrgId = new Dictionary<string, string> { ["SomeOtherOrg"] = HqCountryId };
 
-			bool result = CreateActionEffectSystem.Update(world, BuildActionConfig(), BuildEffectConfig(), CurrentTime, hqCountryByOrgId);
+			RunEffect(world, hqCountryByOrgId);
 
-			Assert.False(result);
 			Assert.False(Wars.IsInWar(world, TargetCountryId));
 			Assert.Null(FindBonus(world, HqCountryId));
 		}
@@ -108,9 +120,8 @@ namespace GS.Game.Tests {
 			AddSucceededCard(world, OrgId, TargetCountryId, "revenge");
 			var hqCountryByOrgId = new Dictionary<string, string> { [OrgId] = HqCountryId };
 
-			bool result = CreateActionEffectSystem.Update(world, BuildActionConfig(), BuildEffectConfig(), CurrentTime, hqCountryByOrgId);
+			RunEffect(world, hqCountryByOrgId);
 
-			Assert.False(result);
 			Assert.False(Wars.IsInWar(world, TargetCountryId));
 			Assert.Null(FindBonus(world, HqCountryId));
 			Assert.Equal(1, CountEntities<War>(world));
@@ -122,18 +133,14 @@ namespace GS.Game.Tests {
 			var hqCountryByOrgId = new Dictionary<string, string> { [OrgId] = HqCountryId };
 
 			AddSucceededCard(world, OrgId, TargetCountryId, "revenge");
-			CreateActionEffectSystem.Update(world, BuildActionConfig(), BuildEffectConfig(), CurrentTime, hqCountryByOrgId);
-			var firstBonus = FindBonus(world, HqCountryId);
-			Assert.NotNull(firstBonus);
+			RunEffect(world, hqCountryByOrgId);
+			Assert.NotNull(FindBonus(world, HqCountryId));
 
-			// War ends by any means (e.g. debug stop-war) but the bonus is not destroyed —
-			// only decay ever touches it, per the spec's "decay never ends the war" precedent.
-			Wars.StopWar(world, HqCountryId);
+			StopWar(world, HqCountryId);
 
 			AddSucceededCard(world, OrgId, "Germany", "revenge");
-			bool result = CreateActionEffectSystem.Update(world, BuildActionConfig(), BuildEffectConfig(), CurrentTime.AddDays(1), hqCountryByOrgId);
+			RunEffect(world, hqCountryByOrgId, CurrentTime.AddDays(1));
 
-			Assert.True(result);
 			Assert.Equal(1, CountEntities<RevengeWarBonus>(world));
 			var secondBonus = FindBonus(world, HqCountryId);
 			Assert.NotNull(secondBonus);

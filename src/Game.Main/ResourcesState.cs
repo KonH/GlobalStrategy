@@ -8,11 +8,16 @@ namespace GS.Main {
 		public string EffectId { get; }
 		public double Value { get; }
 		public PayType PayType { get; }
+		public double MaxTotal { get; }
+		public string OrgDisplayName { get; }
 
-		public EffectStateEntry(string effectId, double value, PayType payType) {
+		public EffectStateEntry(
+			string effectId, double value, PayType payType, double maxTotal = 0, string orgDisplayName = "") {
 			EffectId = effectId;
 			Value = value;
 			PayType = payType;
+			MaxTotal = maxTotal;
+			OrgDisplayName = orgDisplayName;
 		}
 	}
 

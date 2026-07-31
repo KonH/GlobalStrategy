@@ -348,9 +348,11 @@ namespace GS.Main {
 					resourceDef.ResourceId == ResourceDefinitions.CountryScore ||
 					resourceDef.ResourceId == ResourceDefinitions.Recruits ||
 					resourceDef.ResourceId == ResourceDefinitions.Damage ||
-					resourceDef.ResourceId == ResourceDefinitions.Durability) {
+					resourceDef.ResourceId == ResourceDefinitions.Durability ||
+					resourceDef.ResourceId == ResourceDefinitions.WarInitiative) {
 					initialValue = 0;
-				} else if (resourceDef.ResourceId != ResourceDefinitions.Gold) {
+				} else if (resourceDef.ResourceId != ResourceDefinitions.Gold &&
+					resourceDef.ResourceId != ResourceDefinitions.TroopsDamageBonusPercent) {
 					ThrowUnsupportedResource(resourceDef);
 				}
 				foreach (var init in entry.InitialResources) {
@@ -650,6 +652,10 @@ namespace GS.Main {
 			}
 
 			int handSize = actionConfig.GetHandSize("country");
+			var hqCountryByOrgId = new Dictionary<string, string>();
+			foreach (var orgEntry in participating) {
+				hqCountryByOrgId[orgEntry.OrganizationId] = orgEntry.HqCountryId;
+			}
 
 			foreach (var entry in countryConfig.Countries) {
 				if (!entry.IsAvailable) { continue; }
@@ -659,6 +665,11 @@ namespace GS.Main {
 					var createdEntities = new List<(int entity, string actionId)>();
 
 					foreach (var def in countryActions) {
+						// Relation-synced cards are created by RelationCardSyncSystem (one per
+						// relation). DeckCopies on those rows is a draw weight, not a static
+						// copy count — skip them here so weight > 0 does not spawn untargeted entities.
+						if (RelationCardSyncSystem.IsSyncedAction(def.ActionId)) { continue; }
+
 						// Determine targets
 						var targets = new List<string>();
 						if (def.TargetRole == "") {
@@ -687,24 +698,18 @@ namespace GS.Main {
 
 					// Populate initial hand
 					if (handSize > 0 && createdEntities.Count > 0) {
-						int orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, entry.CountryId);
-						int totalCountryControl = ControlQuery.GetTotalControlInCountry(world, entry.CountryId);
-						double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, entry.CountryId) ? 1.0 : 0.0;
-						double warFree = Wars.IsWarFree(world, entry.CountryId, orgEntry.HqCountryId) ? 1.0 : 0.0;
 						var eligibleEntities = new List<int>();
 						foreach (var (e, actionId) in createdEntities) {
 							var d = actionConfig.Find(actionId);
 							if (d == null) { continue; }
-							string targetCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, entry.CountryId, d.TargetRole);
-							double opinion = string.IsNullOrEmpty(targetCharId) ? 0.0 : ResourceQuery.GetValue(world, targetCharId, $"opinion_{orgId}");
 							bool eligible = true;
-							var ctx = new ExpressionContext {
-								Control = orgControl,
-								TotalCountryControl = totalCountryControl,
-								Opinion = opinion,
-								HasSuitableRelationTarget = hasSuitableTarget,
-								WarFree = warFree
-							};
+							ExpressionContext ctx = CountryActionConditionContext.Build(
+								world,
+								d,
+								orgId,
+								entry.CountryId,
+								e,
+								hqCountryByOrgId);
 							foreach (var cond in d.Conditions) {
 								if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
 									eligible = false;

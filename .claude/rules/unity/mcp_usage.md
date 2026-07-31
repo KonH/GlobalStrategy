@@ -45,3 +45,17 @@ When Unity Editor is connected via UnityMCP, prefer MCP tools over file operatio
 ## Console Warnings to Ignore
 
 - "Bridge is not running" and "WebSocket is not initialised" are benign — HTTP transport works fine
+
+## Do not self-test in Play mode
+
+Never enter Play mode (`manage_editor(action="play")`) or use `execute_code` to simulate input (synthetic `PointerDownEvent`/`PointerUpEvent` dispatch, reflection-driven clicks, etc.) to verify a bug fix, unless the user directly asks for that. Synthetic input is an unreliable proxy for real interaction — it's easy to get isPrimary/coordinate-space/event-queue-flushing details subtly wrong and get a misleading pass/fail signal that doesn't match what happens when the user actually plays.
+
+What's fine and expected as a normal edit-verify step:
+- `refresh_unity` + `read_console(types=["error"])` to confirm a change compiles — this is not a Play mode test.
+- Adding targeted `Debug.Log` calls at a suspect code path to help diagnose an issue.
+
+What to avoid unless explicitly asked:
+- `manage_editor(action="play")` to reproduce or confirm a bug/fix.
+- `execute_code` calls that poke at live GameObjects/UI state to "confirm" behavior, or that construct/dispatch synthetic input events.
+
+After a change, describe what changed and ask the user to try it in Play mode themselves; only pull `read_console` logs afterward once they've triggered the scenario. If the user explicitly asks for Play mode testing or a specific simulated input, that overrides this default for that request only.

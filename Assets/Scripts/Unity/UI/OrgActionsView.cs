@@ -65,10 +65,13 @@ namespace GS.Unity.UI {
 
 			var art = new VisualElement();
 			art.AddToClassList("action-card-art");
+			var artImage = new VisualElement();
+			artImage.AddToClassList("action-card-art-image");
 			var sprite = _visualConfig?.FindFront(card.ActionId);
 			if (sprite != null) {
-				art.style.backgroundImage = new StyleBackground(sprite);
+				artImage.style.backgroundImage = new StyleBackground(sprite);
 			}
+			art.Add(artImage);
 			cardEl.Add(art);
 
 			var body = new VisualElement();

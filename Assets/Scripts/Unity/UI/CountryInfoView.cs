@@ -64,7 +64,7 @@ namespace GS.Unity.UI {
 			_loc = loc;
 			_tooltip = tooltip;
 			_resourcesView = new ResourcesView(root.Q("resources-container"), loc, resourceConfig, tooltip);
-			_charactersView = new CharactersView(root.Q("characters-container"), loc, characterConfig, tooltip, characterVisualConfig);
+			_charactersView = new CharactersView(root.Q("characters-container"), loc, characterConfig, tooltip, characterVisualConfig, actionConfig, actionVisualConfig);
 
 			if (_controlRow != null) {
 				tooltip.RegisterTrigger(_controlRow, "country-control", BuildControlTooltip, new HashSet<string>());

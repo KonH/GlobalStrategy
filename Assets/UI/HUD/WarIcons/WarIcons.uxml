@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/HUD/WarIcons/WarIcons.uss"/>
+    <ui:VisualElement name="war-icons-row" class="war-icons-row"/>
+</ui:UXML>

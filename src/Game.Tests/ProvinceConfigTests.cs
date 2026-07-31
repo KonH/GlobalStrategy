@@ -1,4 +1,8 @@
 using System.Collections.Generic;
+using System;
+using System.IO;
+using System.Linq;
+using GS.Configs.IO;
 using GS.Game.Configs;
 using Xunit;
 
@@ -62,6 +66,41 @@ namespace GS.Game.Tests {
 			Assert.NotNull(entry);
 			Assert.Equal("Vatican", entry!.CountryId);
 			Assert.Equal("Micro", entry.GenerationMethod);
+		}
+
+		[Fact]
+		void committed_config_has_finite_symmetric_ordinal_topology() {
+			string path = FindRepositoryFile("Assets/Configs/province_config.json");
+			ProvinceConfig config = new FileConfig<ProvinceConfig>(path).Load();
+			var byId = config.Provinces.ToDictionary(
+				entry => entry.ProvinceId, StringComparer.Ordinal);
+
+			Assert.NotEmpty(config.Provinces);
+			foreach (ProvinceEntry entry in config.Provinces) {
+				Assert.True(double.IsFinite(entry.CentroidX));
+				Assert.True(double.IsFinite(entry.CentroidY));
+				Assert.DoesNotContain(entry.ProvinceId, entry.NeighborProvinceIds);
+				Assert.Equal(
+					entry.NeighborProvinceIds.OrderBy(id => id, StringComparer.Ordinal),
+					entry.NeighborProvinceIds);
+				Assert.Equal(entry.NeighborProvinceIds.Count, entry.NeighborProvinceIds.Distinct().Count());
+				foreach (string neighborId in entry.NeighborProvinceIds) {
+					Assert.True(byId.ContainsKey(neighborId), $"Unknown neighbor '{neighborId}'.");
+					Assert.Contains(entry.ProvinceId, byId[neighborId].NeighborProvinceIds);
+				}
+			}
+		}
+
+		static string FindRepositoryFile(string relativePath) {
+			var directory = new DirectoryInfo(AppContext.BaseDirectory);
+			while (directory != null) {
+				string candidate = Path.Combine(directory.FullName, relativePath);
+				if (File.Exists(candidate)) {
+					return candidate;
+				}
+				directory = directory.Parent;
+			}
+			throw new FileNotFoundException($"Could not locate repository file '{relativePath}'.");
 		}
 	}
 }

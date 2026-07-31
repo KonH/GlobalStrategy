@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using GS.Game.Common;
+using GS.Game.Configs;
 
 namespace GS.Main {
 	public class SelectedCountryState : INotifyPropertyChanged {
@@ -255,10 +256,19 @@ namespace GS.Main {
 		public bool   IsUnplayable    { get; }
 		public string UnplayableReason { get; }
 		public string TargetCountryId { get; }
-		public ActionCardEntry(string actionId, int slotIndex, bool isInHand, bool isUnplayable = false, string unplayableReason = "", string targetCountryId = "") {
+		public IReadOnlyList<ActionConditionDebugEntry> Conditions { get; }
+		public ActionCardEntry(
+			string actionId,
+			int slotIndex,
+			bool isInHand,
+			bool isUnplayable = false,
+			string unplayableReason = "",
+			string targetCountryId = "",
+			IReadOnlyList<ActionConditionDebugEntry>? conditions = null) {
 			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
 			IsUnplayable = isUnplayable; UnplayableReason = unplayableReason;
 			TargetCountryId = targetCountryId;
+			Conditions = conditions ?? Array.Empty<ActionConditionDebugEntry>();
 		}
 	}
 
@@ -439,6 +449,206 @@ namespace GS.Main {
 		}
 	}
 
+	public class WarIconEntryState {
+		public string WarId { get; }
+		public double Progress { get; }
+		public string AttackerCountryId { get; }
+		public string DefenderCountryId { get; }
+
+		public WarIconEntryState(string warId, double progress, string attackerCountryId, string defenderCountryId) {
+			WarId = warId;
+			Progress = progress;
+			AttackerCountryId = attackerCountryId;
+			DefenderCountryId = defenderCountryId;
+		}
+	}
+
+	public class WarIconsState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyList<WarIconEntryState> Entries { get; private set; } = Array.Empty<WarIconEntryState>();
+
+		public void Set(List<WarIconEntryState> entries) {
+			if (StateEquality.ListEquals(Entries, entries, StateEquality.WarIconEntryStateEquals)) {
+				return;
+			}
+			Entries = entries;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
+	public class WarProgressHistoryEntryState {
+		public string EffectId { get; }
+		public double AppliedDelta { get; }
+		public DateTime Timestamp { get; }
+
+		public WarProgressHistoryEntryState(string effectId, double appliedDelta, DateTime timestamp) {
+			EffectId = effectId;
+			AppliedDelta = appliedDelta;
+			Timestamp = timestamp;
+		}
+	}
+
+	public class WarSideStatsState {
+		public string CountryId { get; }
+		public double RecruitsAvailable { get; }
+		public double TroopsInBattles { get; }
+		public double Casualties { get; }
+		public double Damage { get; }
+		public double Durability { get; }
+		public double DamageBase { get; }
+		public double DamageRulerBonus { get; }
+		public double DamageAdvisorBonus { get; }
+		public double DamageBonusPercent { get; }
+		public IReadOnlyList<EffectStateEntry> DamageBonusEffects { get; }
+		public double DurabilityBase { get; }
+		public double DurabilityRulerBonus { get; }
+		public double DurabilityAdvisorBonus { get; }
+
+		public WarSideStatsState(
+			string countryId,
+			double recruitsAvailable,
+			double troopsInBattles,
+			double casualties,
+			double damage,
+			double durability,
+			double damageBase = 0,
+			double damageRulerBonus = 0,
+			double damageAdvisorBonus = 0,
+			double damageBonusPercent = 0,
+			IReadOnlyList<EffectStateEntry>? damageBonusEffects = null,
+			double durabilityBase = 0,
+			double durabilityRulerBonus = 0,
+			double durabilityAdvisorBonus = 0) {
+			CountryId = countryId;
+			RecruitsAvailable = recruitsAvailable;
+			TroopsInBattles = troopsInBattles;
+			Casualties = casualties;
+			Damage = damage;
+			Durability = durability;
+			DamageBase = damageBase;
+			DamageRulerBonus = damageRulerBonus;
+			DamageAdvisorBonus = damageAdvisorBonus;
+			DamageBonusPercent = damageBonusPercent;
+			DamageBonusEffects = damageBonusEffects ?? Array.Empty<EffectStateEntry>();
+			DurabilityBase = durabilityBase;
+			DurabilityRulerBonus = durabilityRulerBonus;
+			DurabilityAdvisorBonus = durabilityAdvisorBonus;
+		}
+
+		public static WarSideStatsState Empty { get; } = new WarSideStatsState("", 0, 0, 0, 0, 0);
+	}
+
+	public class WarBattleRowState {
+		public string BattleId { get; }
+		public string ProvinceId { get; }
+		public bool IsFinished { get; }
+		public string WinnerCountryId { get; }
+		public WarParticipantKind WinnerSide { get; }
+		public double AttackerCasualties { get; }
+		public double DefenderCasualties { get; }
+		public double Progress { get; }
+		public double AttackerTroops { get; }
+		public double DefenderTroops { get; }
+
+		public WarBattleRowState(
+			string battleId,
+			string provinceId,
+			bool isFinished,
+			string winnerCountryId,
+			WarParticipantKind winnerSide,
+			double attackerCasualties,
+			double defenderCasualties,
+			double progress,
+			double attackerTroops,
+			double defenderTroops) {
+			BattleId = battleId;
+			ProvinceId = provinceId;
+			IsFinished = isFinished;
+			WinnerCountryId = winnerCountryId;
+			WinnerSide = winnerSide;
+			AttackerCasualties = attackerCasualties;
+			DefenderCasualties = defenderCasualties;
+			Progress = progress;
+			AttackerTroops = attackerTroops;
+			DefenderTroops = defenderTroops;
+		}
+	}
+
+	public class SelectedWarState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		string _pendingWarId = "";
+
+		public bool IsValid { get; private set; }
+		public string WarId { get; private set; } = "";
+		public double Progress { get; private set; }
+		public IReadOnlyList<WarProgressHistoryEntryState> History { get; private set; } = Array.Empty<WarProgressHistoryEntryState>();
+		public WarSideStatsState Attacker { get; private set; } = WarSideStatsState.Empty;
+		public WarSideStatsState Defender { get; private set; } = WarSideStatsState.Empty;
+		public IReadOnlyList<WarBattleRowState> Battles { get; private set; } = Array.Empty<WarBattleRowState>();
+
+		internal string PendingWarId => _pendingWarId;
+
+		public void RequestOpen(string warId) {
+			_pendingWarId = warId ?? "";
+		}
+
+		public void Clear() {
+			if (string.IsNullOrEmpty(_pendingWarId) && !IsValid && WarId == "") {
+				return;
+			}
+			_pendingWarId = "";
+			SetInvalid();
+		}
+
+		public void SetInvalid() {
+			bool alreadyInvalid = !IsValid
+				&& WarId == ""
+				&& Progress == 0
+				&& History.Count == 0
+				&& StateEquality.WarSideStatsStateEquals(Attacker, WarSideStatsState.Empty)
+				&& StateEquality.WarSideStatsStateEquals(Defender, WarSideStatsState.Empty)
+				&& Battles.Count == 0;
+			if (alreadyInvalid) {
+				// Opening a missing/stopped war while already invalid would otherwise no-op;
+				// notify so the document can Hide when a pending request is outstanding.
+				if (!string.IsNullOrEmpty(_pendingWarId)) {
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+				}
+				return;
+			}
+			Set(false, "", 0, Array.Empty<WarProgressHistoryEntryState>(), WarSideStatsState.Empty, WarSideStatsState.Empty, Array.Empty<WarBattleRowState>());
+		}
+
+		public void Set(
+			bool isValid,
+			string warId,
+			double progress,
+			IReadOnlyList<WarProgressHistoryEntryState> history,
+			WarSideStatsState attacker,
+			WarSideStatsState defender,
+			IReadOnlyList<WarBattleRowState> battles) {
+			if (IsValid == isValid
+				&& WarId == warId
+				&& Progress == progress
+				&& StateEquality.ListEquals(History, history, StateEquality.WarProgressHistoryEntryStateEquals)
+				&& StateEquality.WarSideStatsStateEquals(Attacker, attacker)
+				&& StateEquality.WarSideStatsStateEquals(Defender, defender)
+				&& StateEquality.ListEquals(Battles, battles, StateEquality.WarBattleRowStateEquals)) {
+				return;
+			}
+			IsValid = isValid;
+			WarId = warId;
+			Progress = progress;
+			History = history;
+			Attacker = attacker;
+			Defender = defender;
+			Battles = battles;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class SelectedProvinceState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -461,7 +671,9 @@ namespace GS.Main {
 		Control,
 		Opinion,
 		NewCharacter,
-		Relation
+		Relation,
+		War,
+		WarResolved
 	}
 
 	public class GameLogEntry {
@@ -475,7 +687,7 @@ namespace GS.Main {
 		public double Delta { get; }             // Control/Opinion only; amount just applied
 		public double Total { get; }             // Control/Opinion only; new resulting total (Opinion: clamped to [-100,100])
 		public bool IsOrgRole { get; }           // NewCharacter only: true = OrgId set/CountryId empty
-		public string TargetCountryId { get; }   // Relation only: the country picked as the new friend/rival
+		public string TargetCountryId { get; }   // Relation/War/WarResolved: the other country involved (WarResolved: loser; CountryId is the winner)
 		public RelationKind RelationKind { get; } // Relation only
 
 		public GameLogEntry(long sequenceId, GameLogEntryKind kind, string orgId, string countryId,
@@ -547,6 +759,17 @@ namespace GS.Main {
 		}
 	}
 
+	public class CharacterCardHintRowState {
+		public string ActionId { get; }
+		public int Threshold { get; }
+		public bool IsMet { get; set; }
+
+		public CharacterCardHintRowState(string actionId, int threshold) {
+			ActionId = actionId;
+			Threshold = threshold;
+		}
+	}
+
 	public class WinConditionHintState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -593,6 +816,8 @@ namespace GS.Main {
 		public SelectedProvinceState SelectedProvince { get; } = new SelectedProvinceState();
 		public CountryScoreState CountryScore { get; } = new CountryScoreState();
 		public LeaderboardState Leaderboard { get; } = new LeaderboardState();
+		public WarIconsState WarIcons { get; } = new WarIconsState();
+		public SelectedWarState SelectedWar { get; } = new SelectedWarState();
 		public GameLogState GameLog { get; } = new GameLogState();
 		public GameCompletionState GameCompletion { get; } = new GameCompletionState();
 		public WinConditionHintState WinConditionHint { get; } = new WinConditionHintState();

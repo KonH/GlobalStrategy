@@ -6,11 +6,16 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class CreateActionEffectSystem {
-		public static bool Update(
+		public static void Update(
 			World world,
 			ActionConfig actionConfig,
 			EffectConfig effectConfig,
 			DateTime currentTime,
+			Random rng,
+			GameSettings settings,
+			ProvinceTopology topology,
+			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
+			int maxControlPool,
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null) {
 			int[] required = { TypeId<GameAction>.Value, TypeId<ActionSucceeded>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
 			var toProcess = new List<(int entity, string actionId, string orgId)>();
@@ -34,7 +39,6 @@ namespace GS.Game.Systems {
 				}
 			}
 
-			bool anyWarDeclared = false;
 			foreach (var (entity, actionId, orgId) in toProcess) {
 				entityCountry.TryGetValue(entity, out string countryId);
 				var def = actionConfig.Find(actionId);
@@ -113,6 +117,34 @@ namespace GS.Game.Systems {
 						string targetCountryId = world.Get<RelationCardTarget>(entity).TargetCountryId;
 						int e = world.Create();
 						world.Add(e, new ClearCountryRelationEffect { EffectId = effectId, OrgId = orgId, CountryId = countryId, TargetCountryId = targetCountryId });
+					} else if (effectDef is DeclareWarEffectParams && !string.IsNullOrEmpty(countryId) && world.Has<RelationCardTarget>(entity)) {
+						string targetCountryId = world.Get<RelationCardTarget>(entity).TargetCountryId;
+						if (Wars.DeclareWar(world, countryId, targetCountryId, currentTime)) {
+							int e = world.Create();
+							world.Add(e, new WarDeclaredApplied {
+								OrgId = orgId,
+								CountryId = countryId,
+								DefenderCountryId = targetCountryId
+							});
+						}
+					} else if (effectDef is DeclareRevengeWarEffectParams revengeParams && !string.IsNullOrEmpty(countryId)
+						&& hqCountryByOrgId != null && hqCountryByOrgId.TryGetValue(orgId, out string? hqCountryId) && !string.IsNullOrEmpty(hqCountryId)) {
+						if (Wars.DeclareWar(world, hqCountryId, countryId, currentTime, out string? warId)) {
+							RevengeWarBonusQuery.RemoveForCountry(world, hqCountryId);
+							int be = world.Create();
+							world.Add(be, new RevengeWarBonus {
+								WarId = warId ?? "",
+								CountryId = hqCountryId,
+								DamageBonusPercent = revengeParams.DamageBonusPercent,
+								DurabilityBonusPercent = revengeParams.DurabilityBonusPercent
+							});
+							int e = world.Create();
+							world.Add(e, new WarDeclaredApplied {
+								OrgId = orgId,
+								CountryId = hqCountryId,
+								DefenderCountryId = countryId
+							});
+						}
 					} else if (effectDef is EnemyControlDrainEffectParams drainParams && drainParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
 						string? targetOrgId = ControlQuery.GetHighestControlOtherOrg(world, orgId, countryId);
 						if (targetOrgId != null) {
@@ -136,23 +168,92 @@ namespace GS.Game.Systems {
 								});
 							}
 						}
-					} else if (effectDef is DeclareRevengeWarEffectParams revengeParams && !string.IsNullOrEmpty(countryId)
-						&& hqCountryByOrgId != null && hqCountryByOrgId.TryGetValue(orgId, out string? hqCountryId) && !string.IsNullOrEmpty(hqCountryId)) {
-						if (Wars.DeclareWar(world, hqCountryId, countryId, currentTime, out string? warId)) {
-							anyWarDeclared = true;
-							RevengeWarBonusQuery.RemoveForCountry(world, hqCountryId);
-							int be = world.Create();
-							world.Add(be, new RevengeWarBonus {
-								WarId = warId ?? "",
-								CountryId = hqCountryId,
-								DamageBonusPercent = revengeParams.DamageBonusPercent,
-								DurabilityBonusPercent = revengeParams.DurabilityBonusPercent
-							});
+					} else if (effectDef is ResolveWarEffectParams resolveWarParams && !string.IsNullOrEmpty(countryId)) {
+						Wars.ResolveWar(
+							world, countryId, resolveWarParams.Outcome, currentTime,
+							rng, settings, topology, provinceCenters, maxControlPool);
+					} else if (effectDef is CountryResourceModifierEffectParams resourceModifierParams) {
+						if (string.IsNullOrEmpty(countryId)) {
+							throw new InvalidOperationException(
+								$"Action '{actionId}' effect '{effectId}' requires a country context " +
+								$"for card entity {entity}.");
 						}
+						AddToExistingResource(
+							world,
+							countryId,
+							OwnerType.Country,
+							resourceModifierParams.ResourceId,
+							resourceModifierParams.InitialValue,
+							actionId,
+							effectId,
+							entity);
+						int resourceChangeEntity = world.Create();
+						world.Add(resourceChangeEntity, new ResourceChange {
+							EffectId = $"country_resource_{effectId}_{orgId}_{countryId}_{entity}_{currentTime.Ticks}",
+							ResourceId = resourceModifierParams.ResourceId,
+							OwnerId = countryId,
+							Amount = resourceModifierParams.InitialValue
+						});
+
+						int decayEffectEntity = world.Create();
+						world.Add(decayEffectEntity, new ResourceOwner(countryId, OwnerType.Country));
+						world.Add(decayEffectEntity, new ResourceLink(resourceModifierParams.ResourceId));
+						world.Add(decayEffectEntity, new ResourceEffect {
+							EffectId = $"country_resource_decay_{effectId}_{orgId}_{countryId}_{entity}_{currentTime.Ticks}",
+							Value = -resourceModifierParams.DecayPerMonth,
+							PayType = PayType.Monthly,
+							MaxTotal = resourceModifierParams.InitialValue,
+							ClampToZero = true,
+							OrgId = orgId
+						});
+					} else if (effectDef is OrgResourceGrantEffectParams resourceGrantParams) {
+						AddToExistingResource(
+							world,
+							orgId,
+							OwnerType.Org,
+							resourceGrantParams.ResourceId,
+							resourceGrantParams.Amount,
+							actionId,
+							effectId,
+							entity);
+						int resourceChangeEntity = world.Create();
+						world.Add(resourceChangeEntity, new ResourceChange {
+							EffectId = $"org_resource_{effectId}_{orgId}_{entity}_{currentTime.Ticks}",
+							ResourceId = resourceGrantParams.ResourceId,
+							OwnerId = orgId,
+							Amount = resourceGrantParams.Amount
+						});
 					}
 				}
 			}
-			return anyWarDeclared;
+		}
+
+		static void AddToExistingResource(
+			World world,
+			string ownerId,
+			OwnerType ownerType,
+			string resourceId,
+			double amount,
+			string actionId,
+			string effectId,
+			int cardEntity) {
+			int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (Archetype archetype in world.GetMatchingArchetypes(required, null)) {
+				ResourceOwner[] owners = archetype.GetColumn<ResourceOwner>();
+				Resource[] resources = archetype.GetColumn<Resource>();
+				for (int i = 0; i < archetype.Count; i++) {
+					if (owners[i].OwnerId == ownerId &&
+						owners[i].OwnerType == ownerType &&
+						resources[i].ResourceId == resourceId) {
+						resources[i].Value += amount;
+						return;
+					}
+				}
+			}
+
+			throw new InvalidOperationException(
+				$"Action '{actionId}' effect '{effectId}' could not find resource '{resourceId}' " +
+				$"for {ownerType} '{ownerId}' (card entity {cardEntity}).");
 		}
 
 		static double EnsureOpinionResource(World world, string charId, string resourceId, int initialValue) {

@@ -91,8 +91,21 @@
     top: 36px;
     left: 0;
     right: 0;
+    bottom: 0;
     align-items: center;
     display: none;
+}
+
+.debug-panel-scroll {
+    flex-grow: 1;
+    width: 100%;
+    max-height: 100%;
+}
+
+.debug-panel-scroll .unity-scroll-view__content-container {
+    width: 100%;
+    align-items: center;
+    padding-bottom: 16px;
 }
 
 .debug-panel-inner {
@@ -103,8 +116,53 @@
     padding: 8px 16px;
     flex-direction: column;
     min-width: 260px;
+    max-width: 100%;
     align-items: stretch;
     margin-top: 8px;
+}
+
+.debug-panel-two-col {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    max-width: 100%;
+}
+
+.debug-panel-col {
+    flex-direction: column;
+    flex-grow: 1;
+    min-width: 220px;
+    max-width: 100%;
+    margin-right: 8px;
+}
+
+.debug-panel-inner-section {
+    flex-direction: column;
+    margin-left: 8px;
+    margin-bottom: 4px;
+}
+
+.debug-card-block {
+    flex-direction: column;
+    margin-top: 2px;
+}
+
+.debug-card-details {
+    flex-direction: column;
+    margin-left: 12px;
+}
+
+.debug-condition-label {
+    margin-top: 2px;
+    font-size: 14px;
+}
+
+.debug-card-available {
+    color: rgb(80, 200, 80);
+}
+
+.debug-card-unavailable {
+    color: rgb(220, 70, 70);
 }
 
 .debug-panel-menu-title {
@@ -113,7 +171,8 @@
 }
 
 .debug-panel-menu-toggle {
-    min-width: 260px;
+    min-width: 220px;
+    max-width: 100%;
     margin-top: 8px;
 }
 
@@ -160,13 +219,24 @@
     display: none;
 }
 
-.lens-switcher-panel {
+.map-controls-panel {
     position: absolute;
     bottom: 280px;
     left: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.war-icons-panel {
+    margin-bottom: 6px;
 }
 
 .card-test-overlay {
     transition-property: opacity, scale;
     transition-duration: 0.4s;
+}
+
+.character-hint-rows {
+    flex-direction: column;
+    margin-top: 6px;
 }

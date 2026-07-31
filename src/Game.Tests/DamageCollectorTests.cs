@@ -63,6 +63,24 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void compute_applies_troops_damage_bonus_percent_as_a_multiplier() {
+			var world = new World();
+			AddCharacterWithSkill(world, "ruler_1", "France", "ruler", "power", 20);
+			AddCharacterWithSkill(world, "mil_1", "France", "military_advisor", "power", 15);
+			int bonusEntity = world.Create();
+			world.Add(bonusEntity, new ResourceOwner("France", OwnerType.Country));
+			world.Add(bonusEntity, new Resource { ResourceId = ResourceDefinitions.TroopsDamageBonusPercent, Value = 10.0 });
+			var bases = new Dictionary<string, CountryCombatBases> {
+				["France"] = new CountryCombatBases(85, 40)
+			};
+			var collector = new DamageCollector(bases);
+
+			double delta = collector.Compute("France", 0.0, world);
+
+			Assert.Equal(132.0, delta, 6);
+		}
+
+		[Fact]
 		void compute_applies_revenge_bonus_percent_multiplicatively() {
 			var world = new World();
 			AddCharacterWithSkill(world, "ruler_1", "France", "ruler", "power", 20);
@@ -77,6 +95,26 @@ namespace GS.Game.Tests {
 			double delta = collector.Compute("France", 0.0, world);
 
 			Assert.Equal(120.0 * 1.10, delta, 6);
+		}
+
+		[Fact]
+		void compute_stacks_troops_bonus_and_revenge_bonus_multiplicatively() {
+			var world = new World();
+			AddCharacterWithSkill(world, "ruler_1", "France", "ruler", "power", 20);
+			AddCharacterWithSkill(world, "mil_1", "France", "military_advisor", "power", 15);
+			int troopsBonus = world.Create();
+			world.Add(troopsBonus, new ResourceOwner("France", OwnerType.Country));
+			world.Add(troopsBonus, new Resource { ResourceId = ResourceDefinitions.TroopsDamageBonusPercent, Value = 10.0 });
+			int revengeBonus = world.Create();
+			world.Add(revengeBonus, new RevengeWarBonus { WarId = "war_1", CountryId = "France", DamageBonusPercent = 10.0, DurabilityBonusPercent = 5.0 });
+			var bases = new Dictionary<string, CountryCombatBases> {
+				["France"] = new CountryCombatBases(85, 40)
+			};
+			var collector = new DamageCollector(bases);
+
+			double delta = collector.Compute("France", 0.0, world);
+
+			Assert.Equal(120.0 * 1.10 * 1.10, delta, 6);
 		}
 
 		[Fact]
