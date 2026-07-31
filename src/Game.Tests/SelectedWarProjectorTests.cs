@@ -302,6 +302,68 @@ namespace GS.Game.Tests {
 			Assert.Equal(2, notifications);
 		}
 
+		static void AddCharacterWithSkill(World world, string characterId, string countryId, string roleId, string skillId, double skillValue) {
+			int charEntity = world.Create();
+			world.Add(charEntity, new Character {
+				CharacterId = characterId,
+				CountryId = countryId,
+				OrgId = "",
+				RoleId = roleId,
+				NamePartKeys = Array.Empty<string>()
+			});
+			AddSkill(world, characterId, skillId, skillValue);
+		}
+
+		static void AddSkill(World world, string characterId, string skillId, double skillValue) {
+			int skillEntity = world.Create();
+			world.Add(skillEntity, new ResourceOwner(characterId, OwnerType.Character));
+			world.Add(skillEntity, new Resource { ResourceId = skillId, Value = skillValue });
+		}
+
+		[Fact]
+		void side_stats_include_damage_and_durability_composition() {
+			var world = new World();
+			string warId = DeclareWar(world, "France", "Germany");
+			AddCharacterWithSkill(world, "ruler_1", "France", "ruler", "power", 20);
+			AddCharacterWithSkill(world, "mil_1", "France", "military_advisor", "power", 15);
+			AddSkill(world, "ruler_1", "stinginess", 5);
+			AddCharacterWithSkill(world, "econ_1", "France", "economic_advisor", "stinginess", 8);
+			AddResource(world, "France", OwnerType.Country, ResourceDefinitions.TroopsDamageBonusPercent, 10);
+			int orgEntity = world.Create();
+			world.Add(orgEntity, new Organization { OrganizationId = "org_a", DisplayName = "Illuminati" });
+			int decayEffect = world.Create();
+			world.Add(decayEffect, new ResourceOwner("France", OwnerType.Country));
+			world.Add(decayEffect, new ResourceLink(ResourceDefinitions.TroopsDamageBonusPercent));
+			world.Add(decayEffect, new ResourceEffect {
+				EffectId = "country_resource_decay_sell_arms_damage_bonus_effect_org_a_France_1_1",
+				Value = -1,
+				PayType = PayType.Monthly,
+				MaxTotal = 10,
+				OrgId = "org_a"
+			});
+			var countryConfig = new CountryConfig {
+				Countries = new List<CountryEntry> {
+					new CountryEntry { CountryId = "France", BaseDamage = 85, BaseDurability = 60 }
+				}
+			};
+			var state = new SelectedWarState();
+			state.RequestOpen(warId);
+
+			SelectedWarProjector.Project(world, state, countryConfig);
+
+			Assert.Equal(85, state.Attacker.DamageBase);
+			Assert.Equal(20, state.Attacker.DamageRulerBonus);
+			Assert.Equal(15, state.Attacker.DamageAdvisorBonus);
+			Assert.Equal(10, state.Attacker.DamageBonusPercent);
+			EffectStateEntry bonusEffect = Assert.Single(state.Attacker.DamageBonusEffects);
+			Assert.Equal(10, bonusEffect.MaxTotal);
+			Assert.Equal(-1, bonusEffect.Value);
+			Assert.Equal("Illuminati", bonusEffect.OrgDisplayName);
+			Assert.Equal(60, state.Attacker.DurabilityBase);
+			Assert.Equal(5, state.Attacker.DurabilityRulerBonus);
+			Assert.Equal(8, state.Attacker.DurabilityAdvisorBonus);
+		}
+
 		[Fact]
 		void missing_war_invalidates_pending_selection() {
 			var world = new World();

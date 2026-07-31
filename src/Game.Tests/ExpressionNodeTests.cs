@@ -78,16 +78,23 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		public void total_country_control_node_returns_context_value() {
-			var node = new ExpressionNode { Type = "totalCountryControl" };
-			Assert.Equal(35.0, ExpressionNode.Evaluate(node, Ctx(totalCountryControl: 35.0)));
-		}
-
-		[Fact]
 		public void is_in_war_node_returns_context_value() {
 			var node = new ExpressionNode { Type = "isInWar" };
 			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(isInWar: 1.0)));
 			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx(isInWar: 0.0)));
+		}
+
+		[Fact]
+		public void is_in_war_composes_with_gte() {
+			var node = Node("gte", new ExpressionNode { Type = "isInWar" }, Value(1));
+			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(isInWar: 1.0)));
+			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx(isInWar: 0.0)));
+		}
+
+		[Fact]
+		public void total_country_control_node_returns_context_value() {
+			var node = new ExpressionNode { Type = "totalCountryControl" };
+			Assert.Equal(35.0, ExpressionNode.Evaluate(node, Ctx(totalCountryControl: 35.0)));
 		}
 
 		[Fact]
@@ -101,13 +108,6 @@ namespace GS.Game.Tests {
 			var node = Node("gte", new ExpressionNode { Type = "warProgress" }, Value(50));
 			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(warProgress: 50)));
 			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx(warProgress: 49)));
-		}
-
-		[Fact]
-		public void is_in_war_composes_with_gte() {
-			var node = Node("gte", new ExpressionNode { Type = "isInWar" }, Value(1));
-			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(isInWar: 1.0)));
-			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx(isInWar: 0.0)));
 		}
 
 		[Fact]

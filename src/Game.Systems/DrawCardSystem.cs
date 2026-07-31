@@ -89,19 +89,6 @@ namespace GS.Game.Systems {
 		}
 
 		static void DrawCountryCards(World world, ActionConfig config, Random rng, string orgId, string countryId, int toDraw) {
-			int orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
-			int totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
-			double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
-			double isInWar = Wars.IsInWar(world, countryId) ? 1.0 : 0.0;
-			double warProgress = Wars.GetOwnWarProgress(world, countryId);
-			var ctx = new ExpressionContext {
-				Control = orgControl,
-				TotalCountryControl = totalCountryControl,
-				HasSuitableRelationTarget = hasSuitableTarget,
-				IsInWar = isInWar,
-				WarProgress = warProgress
-			};
-
 			int[] deckReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
 			int[] excludeInHand = { TypeId<CardInHand>.Value };
 			var eligible = new List<int>();
@@ -115,21 +102,12 @@ namespace GS.Game.Systems {
 					var def = config.Find(actions[i].ActionId);
 					if (def == null) { continue; }
 					int candidateEntity = arch.Entities[i];
-					string advisorCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, def.TargetRole);
-					ctx.Opinion = string.IsNullOrEmpty(advisorCharId) ? 0.0 : ResourceQuery.GetValue(world, advisorCharId, $"opinion_{orgId}");
-					ctx.RelationStillExists = 1.0;
-					ctx.TargetRulerOrMilitaryOpinion = 0.0;
-					ctx.NeitherSideAtWar = 1.0;
-					if (world.Has<RelationCardTarget>(candidateEntity)) {
-						var target = world.Get<RelationCardTarget>(candidateEntity);
-						ctx.RelationStillExists = CountryRelations.GetRelation(world, countryId, target.TargetCountryId) == target.Kind ? 1.0 : 0.0;
-						string rulerId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "ruler");
-						string militaryAdvisorId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "military_advisor");
-						double rulerOpinion = string.IsNullOrEmpty(rulerId) ? 0.0 : ResourceQuery.GetValue(world, rulerId, $"opinion_{orgId}");
-						double militaryAdvisorOpinion = string.IsNullOrEmpty(militaryAdvisorId) ? 0.0 : ResourceQuery.GetValue(world, militaryAdvisorId, $"opinion_{orgId}");
-						ctx.TargetRulerOrMilitaryOpinion = Math.Max(rulerOpinion, militaryAdvisorOpinion);
-						ctx.NeitherSideAtWar = !Wars.IsInWar(world, countryId) && !Wars.IsInWar(world, target.TargetCountryId) ? 1.0 : 0.0;
-					}
+					var ctx = CountryActionConditionContext.Build(
+						world,
+						def,
+						orgId,
+						countryId,
+						candidateEntity);
 					bool ok = true;
 					foreach (var cond in def.Conditions) {
 						if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { ok = false; break; }

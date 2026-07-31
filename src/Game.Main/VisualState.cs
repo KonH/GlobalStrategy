@@ -496,6 +496,14 @@ namespace GS.Main {
 		public double Casualties { get; }
 		public double Damage { get; }
 		public double Durability { get; }
+		public double DamageBase { get; }
+		public double DamageRulerBonus { get; }
+		public double DamageAdvisorBonus { get; }
+		public double DamageBonusPercent { get; }
+		public IReadOnlyList<EffectStateEntry> DamageBonusEffects { get; }
+		public double DurabilityBase { get; }
+		public double DurabilityRulerBonus { get; }
+		public double DurabilityAdvisorBonus { get; }
 
 		public WarSideStatsState(
 			string countryId,
@@ -503,13 +511,29 @@ namespace GS.Main {
 			double troopsInBattles,
 			double casualties,
 			double damage,
-			double durability) {
+			double durability,
+			double damageBase = 0,
+			double damageRulerBonus = 0,
+			double damageAdvisorBonus = 0,
+			double damageBonusPercent = 0,
+			IReadOnlyList<EffectStateEntry>? damageBonusEffects = null,
+			double durabilityBase = 0,
+			double durabilityRulerBonus = 0,
+			double durabilityAdvisorBonus = 0) {
 			CountryId = countryId;
 			RecruitsAvailable = recruitsAvailable;
 			TroopsInBattles = troopsInBattles;
 			Casualties = casualties;
 			Damage = damage;
 			Durability = durability;
+			DamageBase = damageBase;
+			DamageRulerBonus = damageRulerBonus;
+			DamageAdvisorBonus = damageAdvisorBonus;
+			DamageBonusPercent = damageBonusPercent;
+			DamageBonusEffects = damageBonusEffects ?? Array.Empty<EffectStateEntry>();
+			DurabilityBase = durabilityBase;
+			DurabilityRulerBonus = durabilityRulerBonus;
+			DurabilityAdvisorBonus = durabilityAdvisorBonus;
 		}
 
 		public static WarSideStatsState Empty { get; } = new WarSideStatsState("", 0, 0, 0, 0, 0);
