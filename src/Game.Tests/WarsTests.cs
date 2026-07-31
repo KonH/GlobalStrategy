@@ -82,16 +82,14 @@ namespace GS.Game.Tests {
 			Assert.True(Wars.IsInWar(world, "Great_Britain"));
 			Assert.True(Wars.IsInWar(world, "France"));
 			Assert.Equal(1, CountEntities<War>(world));
-			Assert.Equal(1, CountEntities<WarProgress>(world));
 			Assert.Equal(2, CountEntities<WarParticipant>(world));
 
-			int[] required = { TypeId<WarProgress>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				var progresses = arch.GetColumn<WarProgress>();
-				for (int i = 0; i < arch.Count; i++) {
-					Assert.Equal(0, progresses[i].Value);
-				}
-			}
+			string warId = GetSingle<War>(world).WarId;
+			Assert.Equal(0, ResourceQuery.GetValue(world, warId, ResourceDefinitions.WarProgress));
+			Assert.Equal(1, CountWarProgressResources(world));
+			ResourceHistory history = GetWarProgressHistory(world, warId);
+			Assert.NotNull(history.History);
+			Assert.Empty(history.History);
 		}
 
 		[Fact]
@@ -137,7 +135,7 @@ namespace GS.Game.Tests {
 
 			Assert.True(result);
 			Assert.Equal(0, CountEntities<War>(world));
-			Assert.Equal(0, CountEntities<WarProgress>(world));
+			Assert.Equal(0, CountWarProgressResources(world));
 			Assert.Equal(0, CountEntities<WarParticipant>(world));
 			Assert.False(Wars.IsInWar(world, "Great_Britain"));
 			Assert.False(Wars.IsInWar(world, "France"));
@@ -216,6 +214,40 @@ namespace GS.Game.Tests {
 
 			Assert.False(Wars.IsInWar(logic.World, "Great_Britain"));
 			Assert.False(Wars.IsInWar(logic.World, "France"));
+		}
+
+		static int CountWarProgressResources(World world) {
+			int count = 0;
+			int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (resources[i].ResourceId == ResourceDefinitions.WarProgress) {
+						count++;
+					}
+				}
+			}
+			return count;
+		}
+
+		static ResourceHistory GetWarProgressHistory(World world, string warId) {
+			int[] required = {
+				TypeId<ResourceOwner>.Value,
+				TypeId<Resource>.Value,
+				TypeId<ResourceHistory>.Value
+			};
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerId == warId
+						&& resources[i].ResourceId == ResourceDefinitions.WarProgress) {
+						return arch.GetColumn<ResourceHistory>()[i];
+					}
+				}
+			}
+			throw new InvalidOperationException("War progress resource not found.");
 		}
 
 		static T GetSingle<T>(World world) {

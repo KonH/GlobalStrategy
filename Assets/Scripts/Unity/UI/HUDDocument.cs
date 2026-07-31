@@ -106,6 +106,7 @@ namespace GS.Unity.UI {
 			_document = GetComponent<UIDocument>();
 			_root = _document.rootVisualElement;
 			var root = _root;
+			UIPointerState.RuntimePanel = root.panel;
 
 			_tooltip = new TooltipSystem(root.Q("hud-root"));
 			_timeView = new TimeView(

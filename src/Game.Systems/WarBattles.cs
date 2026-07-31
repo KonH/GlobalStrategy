@@ -65,7 +65,17 @@ using GS.Game.Components;
 					}
 				}
 			}
-			result.Sort((a, b) => string.CompareOrdinal(a.Value.BattleId, b.Value.BattleId));
+			result.Sort((a, b) => {
+				int sequence = a.Value.CreationSequence.CompareTo(b.Value.CreationSequence);
+				if (sequence != 0) {
+					return sequence;
+				}
+				int created = a.Value.CreatedAt.CompareTo(b.Value.CreatedAt);
+				if (created != 0) {
+					return created;
+				}
+				return string.CompareOrdinal(a.Value.BattleId, b.Value.BattleId);
+			});
 			return result;
 		}
 

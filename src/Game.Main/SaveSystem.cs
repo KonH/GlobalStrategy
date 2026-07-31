@@ -118,6 +118,9 @@ namespace GS.Main {
 			if (value == null) {
 				return null;
 			}
+			if (value is List<ResourceChangeEntry> history) {
+				return ResourceChangeEntry.Encode(history);
+			}
 			if (value is string[] arr) {
 				return string.Join("\x1F", arr);
 			}

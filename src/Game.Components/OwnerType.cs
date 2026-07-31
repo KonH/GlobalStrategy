@@ -3,6 +3,7 @@ namespace GS.Game.Components {
 		Org,
 		Country,
 		Character,
-		Province
+		Province,
+		War
 	}
 }

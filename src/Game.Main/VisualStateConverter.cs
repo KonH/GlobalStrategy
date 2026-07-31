@@ -44,6 +44,7 @@ namespace GS.Main {
 			UpdateLocale(world, localeEntity);
 			UpdatePlayerOrganization(world, orgEntity);
 			UpdateWarIcons(world);
+			UpdateSelectedWar(world);
 			UpdateGameCompletion(world, orgEntity);
 			UpdateResources(world);
 			UpdateSelectedControl(world);
@@ -267,6 +268,10 @@ namespace GS.Main {
 				? _state.PlayerOrganization.OrgId
 				: "";
 			_state.WarIcons.Set(WarIconsProjector.Build(world, playerOrgId));
+		}
+
+		void UpdateSelectedWar(IReadOnlyWorld world) {
+			SelectedWarProjector.Project(world, _state.SelectedWar);
 		}
 
 		void UpdateGameCompletion(IReadOnlyWorld world, int orgEntity) {

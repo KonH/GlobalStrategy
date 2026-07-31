@@ -1,3 +1,4 @@
+using System;
 using GS.Game.Common;
 
 namespace GS.Game.Components {
@@ -13,6 +14,8 @@ namespace GS.Game.Components {
 		public string TargetProvinceId;
 		public BattleState State;
 		public WarParticipantKind Winner;
+		public int CreationSequence;
+		public DateTime CreatedAt;
 	}
 
 	[Savable]

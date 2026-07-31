@@ -454,6 +454,40 @@ MonoBehaviour:
     Value: '{0} - {1} War'
   - Key: hud.war.progress_format
     Value: 'Progress: {0}'
+  - Key: war_progress.effects_title
+    Value: Progress effects
+  - Key: war_progress.stats_title
+    Value: Forces
+  - Key: war_progress.battles_title
+    Value: Battles
+  - Key: war_progress.battles_empty
+    Value: No battles yet
+  - Key: war_progress.recruits
+    Value: Recruits
+  - Key: war_progress.troops_in_battles
+    Value: In battles
+  - Key: war_progress.casualties
+    Value: Casualties
+  - Key: war_progress.damage
+    Value: Damage
+  - Key: war_progress.durability
+    Value: Durability
+  - Key: war_progress.effect_decay_format
+    Value: 'Decay: {0}'
+  - Key: war_progress.effect_battle_format
+    Value: 'Battle result: {0}'
+  - Key: war_progress.effect_battle_tooltip_title
+    Value: Related battles
+  - Key: war_progress.effect_battle_tooltip_row_format
+    Value: '{0}: {1}'
+  - Key: war_progress.battle_finished_format
+    Value: 'Battle at {0} ({1} won, {2} / {3})'
+  - Key: war_progress.battle_active_format
+    Value: 'Battle at {0} [{1}] ({2} vs {3})'
+  - Key: war_progress.attacker_label
+    Value: Attacker
+  - Key: war_progress.defender_label
+    Value: Defender
   - Key: select_org.base_control
     Value: "Base Control:"
   - Key: select_org.estimated_income

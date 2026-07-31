@@ -1,0 +1,51 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/Modal/WarProgressWindow/WarProgressWindow.uss"/>
+    <ui:VisualElement name="war-progress-root" class="war-progress-root">
+        <ui:VisualElement name="blackfade" class="gs-blackfade"/>
+        <ui:VisualElement name="war-progress-panel" class="gs-panel war-progress-panel">
+            <ui:VisualElement class="war-progress-header">
+                <ui:Label name="war-progress-title" text="War" class="gs-title war-progress-title"/>
+            </ui:VisualElement>
+            <ui:Button name="btn-close" text="X" class="gs-btn war-progress-close"/>
+            <ui:Label name="war-progress-value" class="war-progress-value"/>
+            <ui:VisualElement class="war-progress-track">
+                <ui:VisualElement name="progress-attacker-fill" class="war-progress-fill gs-bg-attacker"/>
+                <ui:VisualElement name="progress-defender-fill" class="war-progress-fill gs-bg-defender"/>
+            </ui:VisualElement>
+            <ui:Label name="effects-title" text="Progress effects" class="gs-header war-progress-section-title"/>
+            <ui:VisualElement name="effects-row" class="war-progress-effects-row">
+                <ui:ScrollView name="attacker-effects-list" class="war-progress-effects-column" mode="Vertical" vertical-scroller-visibility="Auto"/>
+                <ui:ScrollView name="defender-effects-list" class="war-progress-effects-column war-progress-effects-column--last" mode="Vertical" vertical-scroller-visibility="Auto"/>
+            </ui:VisualElement>
+            <ui:Label name="stats-title" text="Forces" class="gs-header war-progress-section-title"/>
+            <ui:VisualElement name="stats-row" class="war-progress-stats-row">
+                <ui:VisualElement name="attacker-stats" class="war-progress-stats-column">
+                    <ui:VisualElement class="war-progress-side-header">
+                        <ui:Label name="attacker-label" text="Attacker" class="gs-label gs-color-attacker war-progress-side-label"/>
+                        <ui:VisualElement name="attacker-flag" class="war-progress-side-flag"/>
+                    </ui:VisualElement>
+                    <ui:Label name="attacker-recruits" class="gs-content war-progress-stat"/>
+                    <ui:Label name="attacker-troops-in-battles" class="gs-content war-progress-stat"/>
+                    <ui:Label name="attacker-casualties" class="gs-content war-progress-stat"/>
+                    <ui:Label name="attacker-damage" class="gs-content war-progress-stat"/>
+                    <ui:Label name="attacker-durability" class="gs-content war-progress-stat"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="defender-stats" class="war-progress-stats-column war-progress-stats-column--last">
+                    <ui:VisualElement class="war-progress-side-header">
+                        <ui:Label name="defender-label" text="Defender" class="gs-label gs-color-defender war-progress-side-label"/>
+                        <ui:VisualElement name="defender-flag" class="war-progress-side-flag"/>
+                    </ui:VisualElement>
+                    <ui:Label name="defender-recruits" class="gs-content war-progress-stat"/>
+                    <ui:Label name="defender-troops-in-battles" class="gs-content war-progress-stat"/>
+                    <ui:Label name="defender-casualties" class="gs-content war-progress-stat"/>
+                    <ui:Label name="defender-damage" class="gs-content war-progress-stat"/>
+                    <ui:Label name="defender-durability" class="gs-content war-progress-stat"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:Label name="battles-title" text="Battles" class="gs-header war-progress-section-title"/>
+            <ui:ScrollView name="battles-list" class="war-progress-battles-list" mode="Vertical" vertical-scroller-visibility="AlwaysVisible"/>
+            <ui:Label name="battles-empty" text="No battles yet" class="war-progress-battles-empty"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -41,10 +41,19 @@ namespace GS.Game.Systems {
 
 			int warEntity = world.Create();
 			world.Add(warEntity, new War { WarId = warId });
-			world.Add(warEntity, new WarProgress { Value = 0 });
 			world.Add(warEntity, new WarBattleCapacity {
 				MaxConcurrentBattleCount = CalculateCapacity(
 					world, attackerCountryId, defenderCountryId, topology, settings)
+			});
+
+			int progressEntity = world.Create();
+			world.Add(progressEntity, new ResourceOwner(warId, OwnerType.War));
+			world.Add(progressEntity, new Resource {
+				ResourceId = ResourceDefinitions.WarProgress,
+				Value = 0
+			});
+			world.Add(progressEntity, new ResourceHistory {
+				History = new List<ResourceChangeEntry>()
 			});
 
 			int attackerEntity = world.Create();
@@ -145,6 +154,23 @@ namespace GS.Game.Systems {
 				}
 			}
 			foreach (int e in matchingParticipants) {
+				world.Destroy(e);
+			}
+
+			int[] resourceRequired = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			var matchingResources = new List<int>();
+			foreach (Archetype arch in world.GetMatchingArchetypes(resourceRequired, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (owners[i].OwnerId == warId
+						&& resources[i].ResourceId == ResourceDefinitions.WarProgress) {
+						matchingResources.Add(arch.Entities[i]);
+					}
+				}
+			}
+			foreach (int e in matchingResources) {
 				world.Destroy(e);
 			}
 
