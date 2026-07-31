@@ -9,6 +9,7 @@ namespace GS.Game.Configs {
 		public double HasSuitableRelationTarget { get; set; }
 		public double RelationStillExists { get; set; }
 		public double IsInWar { get; set; }
+		public double WarProgress { get; set; }
 		public double TargetRulerOrMilitaryOpinion { get; set; }
 		public double NeitherSideAtWar { get; set; }
 	}
@@ -70,6 +71,9 @@ namespace GS.Game.Configs {
 				}
 				case "isInWar": {
 					return ctx.IsInWar;
+				}
+				case "warProgress": {
+					return ctx.WarProgress;
 				}
 				case "targetRulerOrMilitaryOpinion": {
 					return ctx.TargetRulerOrMilitaryOpinion;

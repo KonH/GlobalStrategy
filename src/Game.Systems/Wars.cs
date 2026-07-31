@@ -94,6 +94,63 @@ namespace GS.Game.Systems {
 			return true;
 		}
 
+		public static bool ResolveWar(
+			World world,
+			string countryId,
+			WarOutcome outcomeForCountry,
+			DateTime currentTime,
+			Random rng,
+			GameSettings settings,
+			ProvinceTopology topology,
+			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
+			int maxControlPool) {
+			string? warId = FindWarIdForCountry(world, countryId);
+			if (warId == null) {
+				return false;
+			}
+			if (!TryGetWarState(world, warId, out string attackerId, out string defenderId, out _, out DateTime declaredAt)) {
+				return false;
+			}
+			string opponentCountryId = attackerId == countryId ? defenderId : attackerId;
+			string winnerCountryId = outcomeForCountry == WarOutcome.Win ? countryId : opponentCountryId;
+			string loserCountryId = outcomeForCountry == WarOutcome.Win ? opponentCountryId : countryId;
+
+			TransferOccupiedProvinces(world, winnerCountryId, loserCountryId, rng, settings, topology, provinceCenters);
+			ClearOccupationForParticipants(world, attackerId, defenderId);
+			TransferGoldSpoils(world, winnerCountryId, loserCountryId, declaredAt, currentTime, settings);
+			ApplyControlShifts(world, winnerCountryId, loserCountryId, settings, maxControlPool);
+			DestroyWar(world, warId);
+
+			int appliedEntity = world.Create();
+			world.Add(appliedEntity, new WarResolvedApplied {
+				WinnerCountryId = winnerCountryId,
+				LoserCountryId = loserCountryId
+			});
+
+			return true;
+		}
+
+		public static double GetOwnWarProgress(IReadOnlyWorld world, string countryId) {
+			string? warId = FindWarIdForCountry(world, countryId);
+			if (warId == null) {
+				return 0;
+			}
+			if (!TryGetWarProgress(world, warId, out double progress)) {
+				return 0;
+			}
+			bool isAttacker = false;
+			int[] participantRequired = { TypeId<WarParticipant>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(participantRequired, null)) {
+				WarParticipant[] participants = arch.GetColumn<WarParticipant>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (participants[i].WarId == warId && participants[i].CountryId == countryId) {
+						isAttacker = participants[i].Kind == WarParticipantKind.Attacker;
+					}
+				}
+			}
+			return isAttacker ? progress : -progress;
+		}
+
 		public static bool StopWar(
 			World world,
 			string countryId,
