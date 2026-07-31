@@ -476,8 +476,12 @@ MonoBehaviour:
     Value: 'Decay: {0}'
   - Key: war_progress.effect_battle_format
     Value: 'Battle result: {0}'
+  - Key: war_progress.effect_battle_tooltip_title
+    Value: Related battles
+  - Key: war_progress.effect_battle_tooltip_row_format
+    Value: '{0}: {1}'
   - Key: war_progress.battle_finished_format
-    Value: 'Battle at {0} ({1}, {2} / {3})'
+    Value: 'Battle at {0} ({1} won, {2} / {3})'
   - Key: war_progress.battle_active_format
     Value: 'Battle at {0} [{1}] ({2} vs {3})'
   - Key: war_progress.attacker_label

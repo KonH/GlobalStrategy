@@ -1,19 +1,39 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using GS.Game.Common;
 using GS.Main;
+using GS.Unity.Map;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace GS.Unity.UI {
-	public class WarProgressWindowView {
+	class WarProgressWindowView {
 		const string AttackerColor = "#C84040";
 		const string DefenderColor = "#4070C8";
+		const string BattleCategoryKey = "battle";
+		const string DecayCategoryKey = "decay";
+		const string BattleEffectPrefix = "war_progress_battle_";
+		const string DecayEffectId = "war_progress_decay";
+
+		sealed class GroupedEffect {
+			public string CategoryKey;
+			public double Total;
+			public readonly List<(string BattleId, double Delta)> Battles = new();
+		}
 
 		readonly VisualElement _root;
+		readonly ILocalization _loc;
+		readonly CountryVisualConfig _countryVisualConfig;
+		readonly TooltipSystem _tooltip;
 		readonly Label _title;
+		readonly Label _progressValue;
 		readonly VisualElement _attackerFill;
 		readonly VisualElement _defenderFill;
-		readonly ScrollView _effectsList;
+		readonly VisualElement _attackerFlag;
+		readonly VisualElement _defenderFlag;
+		readonly ScrollView _attackerEffectsList;
+		readonly ScrollView _defenderEffectsList;
 		readonly ScrollView _battlesList;
 		readonly Label _battlesEmpty;
 		readonly Label _effectsTitle;
@@ -31,16 +51,22 @@ namespace GS.Unity.UI {
 		readonly Label _defenderCasualties;
 		readonly Label _defenderDamage;
 		readonly Label _defenderDurability;
-		readonly ILocalization _loc;
 		Func<string, string, string> _getText = (_, fallback) => fallback;
 
-		public WarProgressWindowView(VisualElement root, ILocalization loc) {
+		public WarProgressWindowView(
+			VisualElement root, ILocalization loc, CountryVisualConfig countryVisualConfig, TooltipSystem tooltip) {
 			_root = root;
 			_loc = loc;
+			_countryVisualConfig = countryVisualConfig;
+			_tooltip = tooltip;
 			_title = root.Q<Label>("war-progress-title");
+			_progressValue = root.Q<Label>("war-progress-value");
 			_attackerFill = root.Q<VisualElement>("progress-attacker-fill");
 			_defenderFill = root.Q<VisualElement>("progress-defender-fill");
-			_effectsList = root.Q<ScrollView>("effects-list");
+			_attackerFlag = root.Q<VisualElement>("attacker-flag");
+			_defenderFlag = root.Q<VisualElement>("defender-flag");
+			_attackerEffectsList = root.Q<ScrollView>("attacker-effects-list");
+			_defenderEffectsList = root.Q<ScrollView>("defender-effects-list");
 			_battlesList = root.Q<ScrollView>("battles-list");
 			_battlesEmpty = root.Q<Label>("battles-empty");
 			_effectsTitle = root.Q<Label>("effects-title");
@@ -58,6 +84,9 @@ namespace GS.Unity.UI {
 			_defenderCasualties = root.Q<Label>("defender-casualties");
 			_defenderDamage = root.Q<Label>("defender-damage");
 			_defenderDurability = root.Q<Label>("defender-durability");
+			if (_progressValue != null) {
+				_progressValue.enableRichText = true;
+			}
 		}
 
 		public void RefreshStaticTexts(Func<string, string, string> getText) {
@@ -95,6 +124,8 @@ namespace GS.Unity.UI {
 			}
 
 			UpdateProgressBar(state.Progress);
+			UpdateFlag(_attackerFlag, state.Attacker.CountryId);
+			UpdateFlag(_defenderFlag, state.Defender.CountryId);
 			RebuildEffectsList(state);
 			UpdateSideStats(state.Attacker, _attackerRecruits, _attackerTroopsInBattles, _attackerCasualties, _attackerDamage, _attackerDurability);
 			UpdateSideStats(state.Defender, _defenderRecruits, _defenderTroopsInBattles, _defenderCasualties, _defenderDamage, _defenderDurability);
@@ -102,38 +133,130 @@ namespace GS.Unity.UI {
 		}
 
 		void UpdateProgressBar(double progress) {
+			double clampedProgress = Math.Clamp(progress, -100, 100);
+			float attackerPercent = (float)((clampedProgress + 100) / 2);
+			float defenderPercent = 100f - attackerPercent;
 			if (_attackerFill != null) {
-				float attackerPercent = (float)Math.Max(0, progress);
 				_attackerFill.style.width = new Length(attackerPercent, LengthUnit.Percent);
 			}
 			if (_defenderFill != null) {
-				float defenderPercent = (float)Math.Max(0, -progress);
 				_defenderFill.style.width = new Length(defenderPercent, LengthUnit.Percent);
 			}
+			if (_progressValue != null) {
+				string color = progress >= 0 ? AttackerColor : DefenderColor;
+				_progressValue.text = WrapColored(FormatSigned(progress), color);
+			}
+		}
+
+		void UpdateFlag(VisualElement flagElement, string countryId) {
+			if (flagElement == null) {
+				return;
+			}
+			Sprite sprite = _countryVisualConfig?.Find(countryId)?.flag;
+			if (sprite == null) {
+				flagElement.style.display = DisplayStyle.None;
+				return;
+			}
+			flagElement.style.backgroundImage = new StyleBackground(sprite);
+			flagElement.style.display = DisplayStyle.Flex;
 		}
 
 		void RebuildEffectsList(SelectedWarState state) {
-			if (_effectsList == null) {
+			if (_attackerEffectsList == null || _defenderEffectsList == null) {
 				return;
 			}
-			_effectsList.Clear();
+
+			var battlesById = new Dictionary<string, WarBattleRowState>(StringComparer.Ordinal);
+			foreach (WarBattleRowState battle in state.Battles) {
+				battlesById[battle.BattleId] = battle;
+			}
+
+			var attackerGroups = new List<GroupedEffect>();
+			var attackerIndex = new Dictionary<string, int>(StringComparer.Ordinal);
+			var defenderGroups = new List<GroupedEffect>();
+			var defenderIndex = new Dictionary<string, int>(StringComparer.Ordinal);
+
 			foreach (WarProgressHistoryEntryState entry in state.History) {
-				var row = new Label(FormatEffectEntry(entry));
+				if (entry.AppliedDelta == 0) {
+					continue;
+				}
+				bool favorsAttacker = entry.AppliedDelta > 0;
+				List<GroupedEffect> groups = favorsAttacker ? attackerGroups : defenderGroups;
+				Dictionary<string, int> index = favorsAttacker ? attackerIndex : defenderIndex;
+				(string categoryKey, string battleId) = ClassifyEffect(entry.EffectId);
+				if (!index.TryGetValue(categoryKey, out int existingIndex)) {
+					existingIndex = groups.Count;
+					index[categoryKey] = existingIndex;
+					groups.Add(new GroupedEffect { CategoryKey = categoryKey });
+				}
+				GroupedEffect group = groups[existingIndex];
+				group.Total += entry.AppliedDelta;
+				if (battleId != null) {
+					group.Battles.Add((battleId, entry.AppliedDelta));
+				}
+			}
+
+			RenderEffectsColumn(_attackerEffectsList, attackerGroups, battlesById, "attacker");
+			RenderEffectsColumn(_defenderEffectsList, defenderGroups, battlesById, "defender");
+		}
+
+		static (string categoryKey, string battleId) ClassifyEffect(string effectId) {
+			if (effectId == DecayEffectId) {
+				return (DecayCategoryKey, null);
+			}
+			if (effectId.StartsWith(BattleEffectPrefix, StringComparison.Ordinal)) {
+				return (BattleCategoryKey, effectId.Substring(BattleEffectPrefix.Length));
+			}
+			return (effectId, null);
+		}
+
+		void RenderEffectsColumn(
+			ScrollView list, List<GroupedEffect> groups, Dictionary<string, WarBattleRowState> battlesById, string sideKey) {
+			list.Clear();
+			foreach (GroupedEffect group in groups) {
+				var row = new Label(FormatGroupedEffect(group));
 				row.AddToClassList("war-progress-effect-row");
 				row.enableRichText = true;
-				_effectsList.Add(row);
+				if (group.CategoryKey == BattleCategoryKey && group.Battles.Count > 0) {
+					GroupedEffect capturedGroup = group;
+					_tooltip?.RegisterTrigger(
+						row,
+						$"war-progress-effect-{sideKey}-battle",
+						_ => BuildBattleGroupTooltip(capturedGroup, battlesById),
+						new HashSet<string>());
+				}
+				list.Add(row);
 			}
 		}
 
-		string FormatEffectEntry(WarProgressHistoryEntryState entry) {
-			string amount = FormatNumber(entry.AppliedDelta);
-			if (entry.EffectId.StartsWith("war_progress_decay", StringComparison.Ordinal)) {
+		string FormatGroupedEffect(GroupedEffect group) {
+			string amount = FormatSigned(group.Total);
+			if (group.CategoryKey == DecayCategoryKey) {
 				return string.Format(GetLoc("war_progress.effect_decay_format", "Decay: {0}"), amount);
 			}
-			if (entry.EffectId.StartsWith("war_progress_battle_", StringComparison.Ordinal)) {
+			if (group.CategoryKey == BattleCategoryKey) {
 				return string.Format(GetLoc("war_progress.effect_battle_format", "Battle result: {0}"), amount);
 			}
-			return $"{entry.EffectId}: {amount}";
+			return $"{group.CategoryKey}: {amount}";
+		}
+
+		VisualElement BuildBattleGroupTooltip(GroupedEffect group, Dictionary<string, WarBattleRowState> battlesById) {
+			var content = new VisualElement();
+			var titleLabel = new Label(GetLoc("war_progress.effect_battle_tooltip_title", "Related battles"));
+			titleLabel.AddToClassList("tooltip-header");
+			content.Add(titleLabel);
+			foreach ((string battleId, double delta) in group.Battles) {
+				string provinceName = battlesById.TryGetValue(battleId, out WarBattleRowState row)
+					? GetProvinceName(row.ProvinceId)
+					: battleId;
+				var rowLabel = new Label(string.Format(
+					GetLoc("war_progress.effect_battle_tooltip_row_format", "{0}: {1}"),
+					provinceName,
+					FormatSigned(delta)));
+				rowLabel.AddToClassList("tooltip-effect-name");
+				content.Add(rowLabel);
+			}
+			return content;
 		}
 
 		void UpdateSideStats(
@@ -144,19 +267,19 @@ namespace GS.Unity.UI {
 			Label damage,
 			Label durability) {
 			if (recruits != null) {
-				recruits.text = $"{_getText("war_progress.recruits", "Recruits")}: {FormatNumber(stats.RecruitsAvailable)}";
+				recruits.text = $"{_getText("war_progress.recruits", "Recruits")}: {FormatResourceValue(stats.RecruitsAvailable)}";
 			}
 			if (troopsInBattles != null) {
-				troopsInBattles.text = $"{_getText("war_progress.troops_in_battles", "In battles")}: {FormatNumber(stats.TroopsInBattles)}";
+				troopsInBattles.text = $"{_getText("war_progress.troops_in_battles", "In battles")}: {FormatResourceValue(stats.TroopsInBattles)}";
 			}
 			if (casualties != null) {
-				casualties.text = $"{_getText("war_progress.casualties", "Casualties")}: {FormatNumber(stats.Casualties)}";
+				casualties.text = $"{_getText("war_progress.casualties", "Casualties")}: {FormatResourceValue(stats.Casualties)}";
 			}
 			if (damage != null) {
-				damage.text = $"{_getText("war_progress.damage", "Damage")}: {FormatNumber(stats.Damage)}";
+				damage.text = $"{_getText("war_progress.damage", "Damage")}: {FormatResourceValue(stats.Damage)}";
 			}
 			if (durability != null) {
-				durability.text = $"{_getText("war_progress.durability", "Durability")}: {FormatNumber(stats.Durability)}";
+				durability.text = $"{_getText("war_progress.durability", "Durability")}: {FormatResourceValue(stats.Durability)}";
 			}
 		}
 
@@ -193,19 +316,19 @@ namespace GS.Unity.UI {
 			string provinceName = GetProvinceName(row.ProvinceId);
 			if (row.IsFinished) {
 				string winnerName = WrapSideColored(row.WinnerCountryId, row.WinnerSide);
-				string attackerCasualties = WrapColored($"-{FormatNumber(row.AttackerCasualties)}", AttackerColor);
-				string defenderCasualties = WrapColored($"-{FormatNumber(row.DefenderCasualties)}", DefenderColor);
+				string attackerCasualties = WrapColored($"-{FormatResourceValue(row.AttackerCasualties)}", AttackerColor);
+				string defenderCasualties = WrapColored($"-{FormatResourceValue(row.DefenderCasualties)}", DefenderColor);
 				return string.Format(
-					GetLoc("war_progress.battle_finished_format", "Battle at {0} ({1}, {2} / {3})"),
+					GetLoc("war_progress.battle_finished_format", "Battle at {0} ({1} won, {2} / {3})"),
 					provinceName,
 					winnerName,
 					attackerCasualties,
 					defenderCasualties);
 			}
 
-			string progress = FormatNumber(row.Progress);
-			string attackerTroops = WrapColored(FormatNumber(row.AttackerTroops), AttackerColor);
-			string defenderTroops = WrapColored(FormatNumber(row.DefenderTroops), DefenderColor);
+			string progress = FormatSigned(row.Progress);
+			string attackerTroops = WrapColored(FormatResourceValue(row.AttackerTroops), AttackerColor);
+			string defenderTroops = WrapColored(FormatResourceValue(row.DefenderTroops), DefenderColor);
 			return string.Format(
 				GetLoc("war_progress.battle_active_format", "Battle at {0} [{1}] ({2} vs {3})"),
 				provinceName,
@@ -245,8 +368,27 @@ namespace GS.Unity.UI {
 			return _getText(key, fallback);
 		}
 
-		static string FormatNumber(double value) {
-			return value.ToString("0.#", CultureInfo.InvariantCulture);
+		static string FormatResourceValue(double value) {
+			double roundedValue = Math.Round(value, MidpointRounding.AwayFromZero);
+			double magnitude = Math.Abs(roundedValue);
+			if (magnitude < 1_000) {
+				return roundedValue.ToString("0", CultureInfo.InvariantCulture);
+			}
+
+			double divisor = magnitude < 1_000_000 ? 1_000 : 1_000_000;
+			string suffix = magnitude < 1_000_000 ? "K" : "M";
+			double scaledValue = Math.Round(roundedValue / divisor, MidpointRounding.AwayFromZero);
+			if (suffix == "K" && Math.Abs(scaledValue) >= 1_000) {
+				scaledValue = Math.Round(roundedValue / 1_000_000, MidpointRounding.AwayFromZero);
+				suffix = "M";
+			}
+
+			return $"{scaledValue.ToString("0", CultureInfo.InvariantCulture)}{suffix}";
+		}
+
+		static string FormatSigned(double value) {
+			string formatted = FormatResourceValue(value);
+			return value > 0 ? $"+{formatted}" : formatted;
 		}
 	}
 }

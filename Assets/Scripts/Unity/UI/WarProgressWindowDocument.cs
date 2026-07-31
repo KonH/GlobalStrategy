@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using GS.Main;
 using GS.Unity.Common;
+using GS.Unity.Map;
 using UnityEngine;
 using UnityEngine.UIElements;
 using VContainer;
@@ -10,16 +11,19 @@ namespace GS.Unity.UI {
 	public class WarProgressWindowDocument : MonoBehaviour {
 		VisualState _state;
 		ILocalization _loc;
+		CountryVisualConfig _countryVisualConfig;
 		UIDocument _doc;
 		VisualElement _root;
 		WarProgressWindowView _view;
+		TooltipSystem _tooltip;
 		bool _ownsModalState;
 		bool _subscribed;
 
 		[Inject]
-		void Construct(VisualState state, ILocalization loc) {
+		void Construct(VisualState state, ILocalization loc, CountryVisualConfig countryVisualConfig) {
 			_state = state;
 			_loc = loc;
+			_countryVisualConfig = countryVisualConfig;
 		}
 
 		const int SortingOrder = 510;
@@ -28,6 +32,7 @@ namespace GS.Unity.UI {
 			_doc = GetComponent<UIDocument>();
 			_doc.sortingOrder = SortingOrder;
 			_root = _doc.rootVisualElement;
+			_tooltip = new TooltipSystem(_root);
 			Button closeButton = _root.Q<Button>("btn-close");
 			closeButton?.RegisterCallback<PointerUpEvent>(e => {
 				if (e.button == 0 && closeButton.ContainsPoint(e.localPosition)) {
@@ -35,6 +40,10 @@ namespace GS.Unity.UI {
 				}
 			});
 			Hide();
+		}
+
+		void Update() {
+			_tooltip?.Update(Time.deltaTime);
 		}
 
 		void Start() {
@@ -121,7 +130,7 @@ namespace GS.Unity.UI {
 			if (_view != null || _root == null) {
 				return;
 			}
-			_view = new WarProgressWindowView(_root, _loc);
+			_view = new WarProgressWindowView(_root, _loc, _countryVisualConfig, _tooltip);
 		}
 
 		void RefreshTexts() {

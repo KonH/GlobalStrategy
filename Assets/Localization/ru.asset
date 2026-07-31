@@ -476,8 +476,12 @@ MonoBehaviour:
     Value: 'Затухание: {0}'
   - Key: war_progress.effect_battle_format
     Value: 'Итог сражения: {0}'
+  - Key: war_progress.effect_battle_tooltip_title
+    Value: Связанные сражения
+  - Key: war_progress.effect_battle_tooltip_row_format
+    Value: '{0}: {1}'
   - Key: war_progress.battle_finished_format
-    Value: 'Сражение у {0} ({1}, {2} / {3})'
+    Value: 'Сражение у {0} ({1} победила, {2} / {3})'
   - Key: war_progress.battle_active_format
     Value: 'Сражение у {0} [{1}] ({2} против {3})'
   - Key: war_progress.attacker_label
