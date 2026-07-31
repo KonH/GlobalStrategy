@@ -81,6 +81,7 @@ namespace GS.Unity.UI {
 						def != null && ActionConditionHelper.TryExtractConditionThreshold(def, "targetRulerOrMilitaryOpinion", out int targetOpinionThreshold) ? targetOpinionThreshold : 0),
 					"no_suitable_target" => _loc.Get("action.country.unplayable.no_suitable_target"),
 					"relation_no_longer_exists" => _loc.Get("action.country.unplayable.relation_no_longer_exists"),
+					"war_ended" => _loc.Get("action.country.unplayable.war_ended"),
 					"already_at_war" => _loc.Get("action.country.unplayable.already_at_war"),
 					"no_enemy_control" => _loc.Get("action.country.unplayable.no_enemy_control"),
 					_ => string.Format(

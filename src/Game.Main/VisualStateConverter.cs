@@ -271,7 +271,7 @@ namespace GS.Main {
 		}
 
 		void UpdateSelectedWar(IReadOnlyWorld world) {
-			SelectedWarProjector.Project(world, _state.SelectedWar);
+			SelectedWarProjector.Project(world, _state.SelectedWar, _countryConfig);
 		}
 
 		void UpdateGameCompletion(IReadOnlyWorld world, int orgEntity) {
@@ -625,32 +625,12 @@ namespace GS.Main {
 			var def = _actionConfig?.Find(actionId);
 			if (def == null) { return null; }
 
-			string diplomacyCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "diplomacy_advisor");
-			double opinion = string.IsNullOrEmpty(diplomacyCharId) ? 0.0 : ResourceQuery.GetValue(world, diplomacyCharId, $"opinion_{orgId}");
-			double hasSuitableTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
-			int totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
-			double relationStillExists = 1.0;
-			double targetRulerOrMilitaryOpinion = 0.0;
-			double neitherSideAtWar = 1.0;
-			if (world.Has<RelationCardTarget>(entity)) {
-				var target = world.Get<RelationCardTarget>(entity);
-				relationStillExists = CountryRelations.GetRelation(world, countryId, target.TargetCountryId) == target.Kind ? 1.0 : 0.0;
-				string rulerId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "ruler");
-				string militaryAdvisorId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "military_advisor");
-				double rulerOpinion = string.IsNullOrEmpty(rulerId) ? 0.0 : ResourceQuery.GetValue(world, rulerId, $"opinion_{orgId}");
-				double militaryAdvisorOpinion = string.IsNullOrEmpty(militaryAdvisorId) ? 0.0 : ResourceQuery.GetValue(world, militaryAdvisorId, $"opinion_{orgId}");
-				targetRulerOrMilitaryOpinion = Math.Max(rulerOpinion, militaryAdvisorOpinion);
-				neitherSideAtWar = !Wars.IsInWar(world, countryId) && !Wars.IsInWar(world, target.TargetCountryId) ? 1.0 : 0.0;
-			}
-			var ctx = new ExpressionContext {
-				Control = orgControl,
-				TotalCountryControl = totalCountryControl,
-				Opinion = opinion,
-				HasSuitableRelationTarget = hasSuitableTarget,
-				RelationStillExists = relationStillExists,
-				TargetRulerOrMilitaryOpinion = targetRulerOrMilitaryOpinion,
-				NeitherSideAtWar = neitherSideAtWar
-			};
+			var ctx = CountryActionConditionContext.Build(
+				world,
+				def,
+				orgId,
+				countryId,
+				entity);
 
 			var conditionResults = ActionConditionDebug.EvaluateAll(def.Conditions, ctx);
 			bool conditionFailed = false;
@@ -660,8 +640,10 @@ namespace GS.Main {
 					conditionFailed = true;
 					var cond = def.Conditions[i];
 					string fieldType = cond.Members.Count > 0 ? cond.Members[0].Type : "";
-					failedReason = ContainsExpressionType(cond, "totalCountryControl")
-						? "no_enemy_control"
+					failedReason = ContainsExpressionType(cond, "isInWar")
+						? "war_ended"
+						: ContainsExpressionType(cond, "totalCountryControl")
+							? "no_enemy_control"
 						: fieldType switch {
 							"opinion" => "insufficient_opinion",
 							"hasSuitableRelationTarget" => "no_suitable_target",

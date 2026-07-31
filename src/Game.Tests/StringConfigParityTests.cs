@@ -65,6 +65,19 @@ namespace GS.Game.Tests {
 			Assert.Equal(fromFile.Resources.Count, fromString.Resources.Count);
 			Assert.Equal(fromFile.Resources[0].ResourceId, fromString.Resources[0].ResourceId);
 			Assert.Equal(fromFile.Resources[0].SeedTarget, fromString.Resources[0].SeedTarget);
+
+			ResourceDefinition? modifierFromFile = fromFile.FindResource(ResourceDefinitions.TroopsDamageBonusPercent);
+			ResourceDefinition? modifierFromString = fromString.FindResource(ResourceDefinitions.TroopsDamageBonusPercent);
+			Assert.NotNull(modifierFromFile);
+			Assert.NotNull(modifierFromString);
+			Assert.Equal(ResourceSeedTarget.Country, modifierFromFile.SeedTarget);
+			Assert.Equal(ResourceSeedTarget.Country, modifierFromString.SeedTarget);
+			Assert.Equal(0.0, modifierFromFile.DefaultInitialValue);
+			Assert.Equal(0.0, modifierFromString.DefaultInitialValue);
+			Assert.Empty(modifierFromFile.DefaultEffects);
+			Assert.Empty(modifierFromString.DefaultEffects);
+			Assert.DoesNotContain(ResourceDefinitions.TroopsDamageBonusPercent, fromFile.DisplayWhitelist);
+			Assert.DoesNotContain(ResourceDefinitions.TroopsDamageBonusPercent, fromString.DisplayWhitelist);
 		}
 
 		[Fact]
@@ -97,6 +110,38 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void sell_arms_action_deserializes_with_required_conditions_and_effects() {
+			string path = FindRepoRootConfigPath("action_config.json");
+			var fromFile = new FileConfig<ActionConfig>(path).Load();
+			var fromString = new StringConfig<ActionConfig>(File.ReadAllText(path)).Load();
+
+			foreach (ActionConfig config in new[] { fromFile, fromString }) {
+				ActionDefinition action = Assert.IsType<ActionDefinition>(config.Find("sell_arms"));
+				Assert.Equal("country", action.OwnerType);
+				Assert.Equal("military_advisor", action.TargetRole);
+				Assert.Equal(3, action.DeckCopies);
+				ActionCost cost = Assert.Single(action.Cost);
+				Assert.Equal("gold", cost.ResourceId);
+				Assert.Equal(200.0, cost.Amount);
+				Assert.Equal(
+					new[] { "sell_arms_damage_bonus_effect" },
+					action.EffectIds);
+				Assert.Collection(
+					action.Conditions,
+					condition => {
+						Assert.Equal("gte", condition.Type);
+						Assert.Equal("isInWar", condition.Members[0].Type);
+						Assert.Equal(1, condition.Members[1].Value);
+					},
+					condition => {
+						Assert.Equal("gte", condition.Type);
+						Assert.Equal("opinion", condition.Members[0].Type);
+						Assert.Equal(80, condition.Members[1].Value);
+					});
+			}
+		}
+
+		[Fact]
 		void effect_config_parity() {
 			string path = FindRepoRootConfigPath("effect_config.json");
 			var fromFile = new FileConfig<EffectConfig>(path).Load();
@@ -121,6 +166,24 @@ namespace GS.Game.Tests {
 			var rivalFromString = Assert.IsType<SetCountryRelationEffectParams>(fromString.Find("make_rival_effect"));
 			Assert.Equal(RelationKind.Rival, rivalFromFile.Kind);
 			Assert.Equal(RelationKind.Rival, rivalFromString.Kind);
+		}
+
+		[Fact]
+		void sell_arms_effect_entries_deserialize_with_configured_values_through_both_sources() {
+			string path = FindRepoRootConfigPath("effect_config.json");
+			var fromFile = new FileConfig<EffectConfig>(path).Load();
+			var fromString = new StringConfig<EffectConfig>(File.ReadAllText(path)).Load();
+
+			var modifierFromFile = Assert.IsType<CountryResourceModifierEffectParams>(
+				fromFile.Find("sell_arms_damage_bonus_effect"));
+			var modifierFromString = Assert.IsType<CountryResourceModifierEffectParams>(
+				fromString.Find("sell_arms_damage_bonus_effect"));
+			Assert.Equal(ResourceDefinitions.TroopsDamageBonusPercent, modifierFromFile.ResourceId);
+			Assert.Equal(ResourceDefinitions.TroopsDamageBonusPercent, modifierFromString.ResourceId);
+			Assert.Equal(10.0, modifierFromFile.InitialValue);
+			Assert.Equal(10.0, modifierFromString.InitialValue);
+			Assert.Equal(1.0, modifierFromFile.DecayPerMonth);
+			Assert.Equal(1.0, modifierFromString.DecayPerMonth);
 		}
 
 		[Fact]

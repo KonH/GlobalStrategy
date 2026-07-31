@@ -31,6 +31,17 @@ namespace GS.Game.Configs {
 		public int Amount { get; set; }
 	}
 
+	public class CountryResourceModifierEffectParams : ActionEffectDefinition {
+		public string ResourceId { get; set; } = "";
+		public double InitialValue { get; set; }
+		public double DecayPerMonth { get; set; }
+	}
+
+	public class OrgResourceGrantEffectParams : ActionEffectDefinition {
+		public string ResourceId { get; set; } = "";
+		public double Amount { get; set; }
+	}
+
 	public class DeclareWarEffectParams : ActionEffectDefinition {
 	}
 
@@ -53,6 +64,8 @@ namespace GS.Game.Configs {
 					case "SetCountryRelation": item = obj.ToObject<SetCountryRelationEffectParams>(serializer)!; break;
 					case "ClearCountryRelation": item = obj.ToObject<ClearCountryRelationEffectParams>(serializer)!; break;
 					case "EnemyControlDrain": item = obj.ToObject<EnemyControlDrainEffectParams>(serializer)!; break;
+					case "CountryResourceModifier": item = obj.ToObject<CountryResourceModifierEffectParams>(serializer)!; break;
+					case "OrgResourceGrant": item = obj.ToObject<OrgResourceGrantEffectParams>(serializer)!; break;
 					case "DeclareWar": item = obj.ToObject<DeclareWarEffectParams>(serializer)!; break;
 					default:                item = obj.ToObject<ActionEffectDefinition>(serializer)!;      break;
 				}

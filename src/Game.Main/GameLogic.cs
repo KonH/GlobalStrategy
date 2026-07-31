@@ -243,7 +243,15 @@ namespace GS.Main {
 			CheckActionConditionSystem.Update(_world, _actionConfig);
 			DeductActionCostSystem.Update(_world, _actionConfig);
 			ActionSucceededSystem.Update(_world, _actionConfig);
+			bool hasSucceededCardActions = HasSucceededCardActions(_world);
 			CreateActionEffectSystem.Update(_world, _actionConfig, _effectConfig, currentTime);
+			// A succeeded card can grant a CountryResourceModifier effect (e.g. sell_arms'
+			// troops_damage_bonus_percent) that Damage/Durability's daily-gated collectors
+			// won't pick up until the next day boundary — settle immediately so the War
+			// Progress window reflects the change the same tick it was played.
+			if (hasSucceededCardActions) {
+				SettleCombatResources();
+			}
 			DiscoverCountrySystem.Update(_world, _proximityEntity, _rng, _hqCountryByOrgId);
 			SetCountryRelationSystem.Update(_world, _proximityEntity, _rng);
 			ClearCountryRelationSystem.Update(_world);
@@ -791,6 +799,16 @@ namespace GS.Main {
 
 		static bool IsWarRelevantRole(string roleId) {
 			return roleId == "ruler" || roleId == "military_advisor" || roleId == "economic_advisor";
+		}
+
+		static bool HasSucceededCardActions(World world) {
+			int[] required = { TypeId<GameAction>.Value, TypeId<ActionSucceeded>.Value, TypeId<CardUse>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				if (arch.Count > 0) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		// Cycle runs after the first ResourceSystem pass, so a same-tick settle is required.

@@ -53,6 +53,12 @@
       "defaultEffects": []
     },
     {
+      "resourceId": "troops_damage_bonus_percent",
+      "seedTarget": "Country",
+      "defaultInitialValue": 0.0,
+      "defaultEffects": []
+    },
+    {
       "resourceId": "population",
       "nameKey": "resource.country_population.name",
       "descriptionKey": "resource.country_population.description",

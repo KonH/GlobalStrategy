@@ -488,6 +488,24 @@ MonoBehaviour:
     Value: Атакующий
   - Key: war_progress.defender_label
     Value: Защитник
+  - Key: war_progress.stat_tooltip_base
+    Value: 'База страны: {0}'
+  - Key: war_progress.stat_tooltip_ruler
+    Value: 'Навык правителя: {0}'
+  - Key: war_progress.stat_tooltip_military_advisor
+    Value: 'Навык военного советника: {0}'
+  - Key: war_progress.stat_tooltip_economic_advisor
+    Value: 'Навык экономического советника: {0}'
+  - Key: war_progress.stat_tooltip_subtotal
+    Value: 'Промежуточный итог: {0}'
+  - Key: war_progress.stat_tooltip_effect_gain_format
+    Value: '{0} от {1}: +{2}%'
+  - Key: war_progress.stat_tooltip_effect_decay_format
+    Value: 'Ослабление ({0}) от {1}: {2}%/мес.'
+  - Key: war_progress.stat_tooltip_effect_decay_desc
+    Value: Этот бонус постепенно ослабевает со временем.
+  - Key: war_progress.stat_tooltip_total
+    Value: 'Итого: {0}'
   - Key: select_org.base_control
     Value: 'Базовый контроль:'
   - Key: select_org.estimated_income
@@ -1726,6 +1744,14 @@ MonoBehaviour:
     Value: Укрепление контроля
   - Key: effect.decrease_enemy_control_gain.desc
     Value: Увеличить контроль своей организации.
+  - Key: action.sell_arms.name
+    Value: Продажа оружия
+  - Key: action.sell_arms.desc
+    Value: Потратить золото, чтобы увеличить урон войск этой страны.
+  - Key: effect.sell_arms_damage_bonus_effect.name
+    Value: Поставка вооружения
+  - Key: effect.sell_arms_damage_bonus_effect.desc
+    Value: Увеличивает урон войск этой страны, постепенно ослабевая со временем.
   - Key: action.country.unplayable.pool_full
     Value: Пул контроля переполнен
   - Key: action.country.unplayable.insufficient_control
@@ -1742,6 +1768,8 @@ MonoBehaviour:
     Value: Одна из стран уже участвует в войне
   - Key: action.country.unplayable.no_enemy_control
     Value: Нет организации с контролем, которую можно выбрать целью
+  - Key: action.country.unplayable.war_ended
+    Value: Война окончена
   - Key: hud.actions
     Value: Действия
   - Key: hud.friends

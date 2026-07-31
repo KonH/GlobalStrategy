@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using GS.Game.Common;
+using GS.Game.Configs;
 using GS.Main;
 using GS.Unity.Map;
 using UnityEngine;
@@ -25,6 +26,7 @@ namespace GS.Unity.UI {
 		readonly VisualElement _root;
 		readonly ILocalization _loc;
 		readonly CountryVisualConfig _countryVisualConfig;
+		readonly EffectConfig _effectConfig;
 		readonly TooltipSystem _tooltip;
 		readonly Label _title;
 		readonly Label _progressValue;
@@ -54,10 +56,12 @@ namespace GS.Unity.UI {
 		Func<string, string, string> _getText = (_, fallback) => fallback;
 
 		public WarProgressWindowView(
-			VisualElement root, ILocalization loc, CountryVisualConfig countryVisualConfig, TooltipSystem tooltip) {
+			VisualElement root, ILocalization loc, CountryVisualConfig countryVisualConfig,
+			EffectConfig effectConfig, TooltipSystem tooltip) {
 			_root = root;
 			_loc = loc;
 			_countryVisualConfig = countryVisualConfig;
+			_effectConfig = effectConfig;
 			_tooltip = tooltip;
 			_title = root.Q<Label>("war-progress-title");
 			_progressValue = root.Q<Label>("war-progress-value");
@@ -127,8 +131,8 @@ namespace GS.Unity.UI {
 			UpdateFlag(_attackerFlag, state.Attacker.CountryId);
 			UpdateFlag(_defenderFlag, state.Defender.CountryId);
 			RebuildEffectsList(state);
-			UpdateSideStats(state.Attacker, _attackerRecruits, _attackerTroopsInBattles, _attackerCasualties, _attackerDamage, _attackerDurability);
-			UpdateSideStats(state.Defender, _defenderRecruits, _defenderTroopsInBattles, _defenderCasualties, _defenderDamage, _defenderDurability);
+			UpdateSideStats(state.Attacker, _attackerRecruits, _attackerTroopsInBattles, _attackerCasualties, _attackerDamage, _attackerDurability, "attacker");
+			UpdateSideStats(state.Defender, _defenderRecruits, _defenderTroopsInBattles, _defenderCasualties, _defenderDamage, _defenderDurability, "defender");
 			RebuildBattlesList(state);
 		}
 
@@ -265,7 +269,8 @@ namespace GS.Unity.UI {
 			Label troopsInBattles,
 			Label casualties,
 			Label damage,
-			Label durability) {
+			Label durability,
+			string sideKey) {
 			if (recruits != null) {
 				recruits.text = $"{_getText("war_progress.recruits", "Recruits")}: {FormatResourceValue(stats.RecruitsAvailable)}";
 			}
@@ -277,10 +282,115 @@ namespace GS.Unity.UI {
 			}
 			if (damage != null) {
 				damage.text = $"{_getText("war_progress.damage", "Damage")}: {FormatResourceValue(stats.Damage)}";
+				WarSideStatsState capturedStats = stats;
+				_tooltip?.RegisterTrigger(
+					damage, $"war-progress-damage-{sideKey}", _ => BuildDamageTooltip(capturedStats), new HashSet<string>());
 			}
 			if (durability != null) {
 				durability.text = $"{_getText("war_progress.durability", "Durability")}: {FormatResourceValue(stats.Durability)}";
+				WarSideStatsState capturedStats = stats;
+				_tooltip?.RegisterTrigger(
+					durability, $"war-progress-durability-{sideKey}", _ => BuildDurabilityTooltip(capturedStats), new HashSet<string>());
 			}
+		}
+
+		VisualElement BuildDamageTooltip(WarSideStatsState stats) {
+			var root = new VisualElement();
+
+			var header = new Label(_getText("war_progress.damage", "Damage"));
+			header.AddToClassList("tooltip-header");
+			root.Add(header);
+
+			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_base", "Country base: {0}"), FormatResourceValue(stats.DamageBase)));
+			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_ruler", "Ruler skill: {0}"), FormatSigned(stats.DamageRulerBonus)));
+			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_military_advisor", "Military advisor skill: {0}"), FormatSigned(stats.DamageAdvisorBonus)));
+
+			if (stats.DamageBonusEffects.Count > 0) {
+				double subtotal = stats.DamageBase + stats.DamageRulerBonus + stats.DamageAdvisorBonus;
+				AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_subtotal", "Subtotal: {0}"), FormatResourceValue(subtotal)));
+
+				foreach (EffectStateEntry effect in stats.DamageBonusEffects) {
+					AddGainEffectRow(root, effect);
+				}
+				foreach (EffectStateEntry effect in stats.DamageBonusEffects) {
+					AddDecayEffectRow(root, effect);
+				}
+			}
+
+			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_total", "Total: {0}"), FormatResourceValue(stats.Damage)));
+
+			return root;
+		}
+
+		VisualElement BuildDurabilityTooltip(WarSideStatsState stats) {
+			var root = new VisualElement();
+
+			var header = new Label(_getText("war_progress.durability", "Durability"));
+			header.AddToClassList("tooltip-header");
+			root.Add(header);
+
+			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_base", "Country base: {0}"), FormatResourceValue(stats.DurabilityBase)));
+			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_ruler", "Ruler skill: {0}"), FormatSigned(stats.DurabilityRulerBonus)));
+			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_economic_advisor", "Economic advisor skill: {0}"), FormatSigned(stats.DurabilityAdvisorBonus)));
+			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_total", "Total: {0}"), FormatResourceValue(stats.Durability)));
+
+			return root;
+		}
+
+		static void AddTooltipRow(VisualElement root, string text) {
+			var row = new Label(text);
+			row.AddToClassList("tooltip-effect-name");
+			root.Add(row);
+		}
+
+		void AddGainEffectRow(VisualElement root, EffectStateEntry effect) {
+			ActionEffectDefinition effectDef = FindEffectDefinition(effect.EffectId);
+			string effectName = effectDef != null ? _loc.Get(effectDef.NameKey) : effect.EffectId;
+			string text = string.Format(
+				GetLoc("war_progress.stat_tooltip_effect_gain_format", "{0} by {1}: +{2}%"),
+				effectName, effect.OrgDisplayName, FormatResourceValue(effect.MaxTotal));
+			string description = effectDef != null ? _loc.Get(effectDef.DescKey) : null;
+			AddEffectRow(root, text, description, positive: true);
+		}
+
+		void AddDecayEffectRow(VisualElement root, EffectStateEntry effect) {
+			ActionEffectDefinition effectDef = FindEffectDefinition(effect.EffectId);
+			string effectName = effectDef != null ? _loc.Get(effectDef.NameKey) : effect.EffectId;
+			string text = string.Format(
+				GetLoc("war_progress.stat_tooltip_effect_decay_format", "{0} decay by {1}: {2}%/month"),
+				effectName, effect.OrgDisplayName, FormatSigned(effect.Value));
+			string description = GetLoc("war_progress.stat_tooltip_effect_decay_desc", "This bonus fades gradually over time.");
+			AddEffectRow(root, text, description, positive: false);
+		}
+
+		static void AddEffectRow(VisualElement root, string text, string description, bool positive) {
+			var effectRow = new VisualElement();
+			effectRow.AddToClassList("tooltip-effect-row");
+
+			var nameLabel = new Label(text);
+			nameLabel.AddToClassList("tooltip-effect-name");
+			nameLabel.AddToClassList(positive ? "tooltip-effect-positive" : "tooltip-effect-negative");
+			effectRow.Add(nameLabel);
+
+			if (!string.IsNullOrEmpty(description)) {
+				var descLabel = new Label(description);
+				descLabel.AddToClassList("tooltip-description");
+				effectRow.Add(descLabel);
+			}
+
+			root.Add(effectRow);
+		}
+
+		ActionEffectDefinition FindEffectDefinition(string dynamicEffectId) {
+			if (_effectConfig == null) {
+				return null;
+			}
+			foreach (ActionEffectDefinition candidate in _effectConfig.Effects) {
+				if (!string.IsNullOrEmpty(candidate.EffectId) && dynamicEffectId.Contains(candidate.EffectId)) {
+					return candidate;
+				}
+			}
+			return null;
 		}
 
 		void RebuildBattlesList(SelectedWarState state) {

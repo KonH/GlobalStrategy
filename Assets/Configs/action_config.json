@@ -229,6 +229,21 @@
       ],
       "cost": [{ "resourceId": "gold", "amount": 250.0 }],
       "effectIds": ["decrease_enemy_control_drain_effect", "decrease_enemy_control_gain_effect"]
+    },
+    {
+      "actionId": "sell_arms",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.sell_arms.name",
+      "descKey": "action.sell_arms.desc",
+      "targetRole": "military_advisor",
+      "deckCopies": 3,
+      "conditions": [
+        { "type": "gte", "members": [ { "type": "isInWar" }, { "type": "value", "value": 1 } ] },
+        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 200.0 }],
+      "effectIds": ["sell_arms_damage_bonus_effect"]
     }
   ],
   "orgPools": [
