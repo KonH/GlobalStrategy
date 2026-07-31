@@ -122,14 +122,16 @@ namespace GS.Main {
 				_commandAccessor.ReadChangeTimeMultiplierCommand());
 
 			DateTime currentTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
-			ResourceSystem.Update(_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder);
+			ResourceSystem.Update(
+				_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder, ResourceConfig);
 			ControlSystem.Update(_world, _previousTime, currentTime);
 			// Game Log: sweep last tick's WarResolvedApplied before TryResolvePeaceByChance/the
 			// debug StopWar handler (below) might create a new one this tick. See
 			// Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
 			CleanupEffectNotificationsSystem.UpdateWarResolved(_world);
 			Wars.TryResolvePeaceByChance(_world, _previousTime, currentTime, _rng, GameSettings, _provinceCenters, MaxControlPool);
-			WarSystem.Update(_world, _previousTime, currentTime, GameSettings.AttackerWarProgressDecayPerMonth);
+			WarSystem.Update(
+				_world, _previousTime, currentTime, GameSettings.AttackerWarProgressDecayPerMonth, ResourceConfig);
 
 			foreach (var cmd in _commandAccessor.ReadChangeControlCommand().AsSpan()) {
 				ApplyChangeControl(cmd.OrgId, cmd.CountryId, cmd.Delta);
@@ -229,7 +231,7 @@ namespace GS.Main {
 			// tick's battle-caused ResourceChange, so VisualStateConverter (below) sees it once,
 			// same as the card pipeline's DeductActionCostSystem/CreateActionEffectSystem.
 			WarBattleSystem.Update(
-				_world, _previousTime, currentTime, _rng, _provinceTopology, GameSettings.WarBattles);
+				_world, _previousTime, currentTime, _rng, _provinceTopology, GameSettings.WarBattles, ResourceConfig);
 
 			// Game Log: sweep last tick's Control/Opinion/Discovery events before
 			// CreateActionEffectSystem/DiscoverCountrySystem create this tick's batch below.

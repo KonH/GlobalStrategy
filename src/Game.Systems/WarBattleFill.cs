@@ -9,7 +9,7 @@ using GS.Game.Configs;
 	public static partial class WarBattleSystem {
 		static void FillSlots(
 			World world, WarInfo war, Random rng, ProvinceTopology topology,
-			WarBattleSettings settings) {
+			WarBattleSettings settings, DateTime currentTime) {
 			while (WarBattles.GetBattles(world, war.WarId, BattleState.Active).Count < war.Capacity) {
 				List<WarBattles.ParticipantInfo> participants = WarBattles.GetParticipants(world, war.WarId);
 				if (participants.Count == 0) {
@@ -60,9 +60,21 @@ using GS.Game.Configs;
 					WarId = war.WarId,
 					TargetProvinceId = targetProvinceId,
 					State = BattleState.Active,
-					Winner = default
+					Winner = default,
+					CreationSequence = NextCreationSequence(world, war.WarId),
+					CreatedAt = currentTime
 				});
 			}
+		}
+
+		static int NextCreationSequence(IReadOnlyWorld world, string warId) {
+			int max = 0;
+			foreach (WarBattles.BattleInfo battle in WarBattles.GetBattles(world, warId)) {
+				if (battle.Value.CreationSequence > max) {
+					max = battle.Value.CreationSequence;
+				}
+			}
+			return max + 1;
 		}
 
 		static WarBattles.ParticipantInfo ChooseInitiator(

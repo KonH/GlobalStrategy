@@ -13,5 +13,6 @@ namespace GS.Game.Configs {
 		public const string Damage = "damage";
 		public const string Durability = "durability";
 		public const string WarInitiative = "war_initiative";
+		public const string WarProgress = "war_progress";
 	}
 }

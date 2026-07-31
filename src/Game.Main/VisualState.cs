@@ -477,6 +477,154 @@ namespace GS.Main {
 		}
 	}
 
+	public class WarProgressHistoryEntryState {
+		public string EffectId { get; }
+		public double AppliedDelta { get; }
+		public DateTime Timestamp { get; }
+
+		public WarProgressHistoryEntryState(string effectId, double appliedDelta, DateTime timestamp) {
+			EffectId = effectId;
+			AppliedDelta = appliedDelta;
+			Timestamp = timestamp;
+		}
+	}
+
+	public class WarSideStatsState {
+		public string CountryId { get; }
+		public double RecruitsAvailable { get; }
+		public double TroopsInBattles { get; }
+		public double Casualties { get; }
+		public double Damage { get; }
+		public double Durability { get; }
+
+		public WarSideStatsState(
+			string countryId,
+			double recruitsAvailable,
+			double troopsInBattles,
+			double casualties,
+			double damage,
+			double durability) {
+			CountryId = countryId;
+			RecruitsAvailable = recruitsAvailable;
+			TroopsInBattles = troopsInBattles;
+			Casualties = casualties;
+			Damage = damage;
+			Durability = durability;
+		}
+
+		public static WarSideStatsState Empty { get; } = new WarSideStatsState("", 0, 0, 0, 0, 0);
+	}
+
+	public class WarBattleRowState {
+		public string BattleId { get; }
+		public string ProvinceId { get; }
+		public bool IsFinished { get; }
+		public string WinnerCountryId { get; }
+		public WarParticipantKind WinnerSide { get; }
+		public double AttackerCasualties { get; }
+		public double DefenderCasualties { get; }
+		public double Progress { get; }
+		public double AttackerTroops { get; }
+		public double DefenderTroops { get; }
+
+		public WarBattleRowState(
+			string battleId,
+			string provinceId,
+			bool isFinished,
+			string winnerCountryId,
+			WarParticipantKind winnerSide,
+			double attackerCasualties,
+			double defenderCasualties,
+			double progress,
+			double attackerTroops,
+			double defenderTroops) {
+			BattleId = battleId;
+			ProvinceId = provinceId;
+			IsFinished = isFinished;
+			WinnerCountryId = winnerCountryId;
+			WinnerSide = winnerSide;
+			AttackerCasualties = attackerCasualties;
+			DefenderCasualties = defenderCasualties;
+			Progress = progress;
+			AttackerTroops = attackerTroops;
+			DefenderTroops = defenderTroops;
+		}
+	}
+
+	public class SelectedWarState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		string _pendingWarId = "";
+
+		public bool IsValid { get; private set; }
+		public string WarId { get; private set; } = "";
+		public double Progress { get; private set; }
+		public IReadOnlyList<WarProgressHistoryEntryState> History { get; private set; } = Array.Empty<WarProgressHistoryEntryState>();
+		public WarSideStatsState Attacker { get; private set; } = WarSideStatsState.Empty;
+		public WarSideStatsState Defender { get; private set; } = WarSideStatsState.Empty;
+		public IReadOnlyList<WarBattleRowState> Battles { get; private set; } = Array.Empty<WarBattleRowState>();
+
+		internal string PendingWarId => _pendingWarId;
+
+		public void RequestOpen(string warId) {
+			_pendingWarId = warId ?? "";
+		}
+
+		public void Clear() {
+			if (string.IsNullOrEmpty(_pendingWarId) && !IsValid && WarId == "") {
+				return;
+			}
+			_pendingWarId = "";
+			SetInvalid();
+		}
+
+		public void SetInvalid() {
+			bool alreadyInvalid = !IsValid
+				&& WarId == ""
+				&& Progress == 0
+				&& History.Count == 0
+				&& StateEquality.WarSideStatsStateEquals(Attacker, WarSideStatsState.Empty)
+				&& StateEquality.WarSideStatsStateEquals(Defender, WarSideStatsState.Empty)
+				&& Battles.Count == 0;
+			if (alreadyInvalid) {
+				// Opening a missing/stopped war while already invalid would otherwise no-op;
+				// notify so the document can Hide when a pending request is outstanding.
+				if (!string.IsNullOrEmpty(_pendingWarId)) {
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+				}
+				return;
+			}
+			Set(false, "", 0, Array.Empty<WarProgressHistoryEntryState>(), WarSideStatsState.Empty, WarSideStatsState.Empty, Array.Empty<WarBattleRowState>());
+		}
+
+		public void Set(
+			bool isValid,
+			string warId,
+			double progress,
+			IReadOnlyList<WarProgressHistoryEntryState> history,
+			WarSideStatsState attacker,
+			WarSideStatsState defender,
+			IReadOnlyList<WarBattleRowState> battles) {
+			if (IsValid == isValid
+				&& WarId == warId
+				&& Progress == progress
+				&& StateEquality.ListEquals(History, history, StateEquality.WarProgressHistoryEntryStateEquals)
+				&& StateEquality.WarSideStatsStateEquals(Attacker, attacker)
+				&& StateEquality.WarSideStatsStateEquals(Defender, defender)
+				&& StateEquality.ListEquals(Battles, battles, StateEquality.WarBattleRowStateEquals)) {
+				return;
+			}
+			IsValid = isValid;
+			WarId = warId;
+			Progress = progress;
+			History = history;
+			Attacker = attacker;
+			Defender = defender;
+			Battles = battles;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class SelectedProvinceState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -645,6 +793,7 @@ namespace GS.Main {
 		public CountryScoreState CountryScore { get; } = new CountryScoreState();
 		public LeaderboardState Leaderboard { get; } = new LeaderboardState();
 		public WarIconsState WarIcons { get; } = new WarIconsState();
+		public SelectedWarState SelectedWar { get; } = new SelectedWarState();
 		public GameLogState GameLog { get; } = new GameLogState();
 		public GameCompletionState GameCompletion { get; } = new GameCompletionState();
 		public WinConditionHintState WinConditionHint { get; } = new WinConditionHintState();

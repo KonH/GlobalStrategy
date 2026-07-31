@@ -109,6 +109,15 @@
       "seedTarget": "Country",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
+    },
+    {
+      "resourceId": "war_progress",
+      "seedTarget": "War",
+      "defaultInitialValue": 0.0,
+      "recordHistory": true,
+      "minValue": -100.0,
+      "maxValue": 100.0,
+      "defaultEffects": []
     }
   ]
 }

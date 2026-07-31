@@ -10,11 +10,6 @@ namespace GS.Game.Components {
 	}
 
 	[Savable]
-	public struct WarProgress {
-		public double Value;
-	}
-
-	[Savable]
 	public struct WarParticipant {
 		public string WarId;
 		public WarParticipantKind Kind;

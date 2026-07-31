@@ -9,12 +9,17 @@ using GS.Game.Configs;
 	public static partial class WarBattleSystem {
 		static void FinishBattle(
 			World world, WarInfo war, WarBattles.BattleInfo battle,
-			WarParticipantKind winner, WarBattleSettings settings) {
-			ref WarProgress progress = ref world.Get<WarProgress>(war.Entity);
+			WarParticipantKind winner, WarBattleSettings settings,
+			ResourceConfig? resourceConfig, DateTime currentTime) {
+			ResourceDefinition? progressDefinition =
+				resourceConfig?.FindResource(ResourceDefinitions.WarProgress);
 			double progressDelta = winner == WarParticipantKind.Attacker
 				? settings.BattleProgressGain
 				: -settings.BattleProgressGain;
-			progress.Value = Math.Clamp(progress.Value + progressDelta, -100, 100);
+			ResourceMutations.TryApplyClampedDelta(
+				world, war.WarId, ResourceDefinitions.WarProgress, progressDelta,
+				progressDefinition, $"war_progress_battle_{battle.Value.BattleId}", currentTime,
+				-100, 100, out _);
 
 			List<WarBattles.ForceInfo> forces = WarBattles.GetForces(world, battle.Value.BattleId);
 			foreach (WarBattles.ForceInfo forceInfo in forces) {

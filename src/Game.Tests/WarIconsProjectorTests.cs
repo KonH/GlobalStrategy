@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using ECS;
 using GS.Game.Common;
 using GS.Game.Components;
+using GS.Game.Configs;
+using GS.Game.Systems;
 using GS.Main;
 using Xunit;
 
@@ -24,9 +26,30 @@ namespace GS.Game.Tests {
 			int entity = world.Create();
 			world.Add(entity, new War { WarId = warId });
 			if (includeProgress) {
-				world.Add(entity, new WarProgress { Value = progress });
+				int progressEntity = world.Create();
+				world.Add(progressEntity, new ResourceOwner(warId, OwnerType.War));
+				world.Add(progressEntity, new Resource {
+					ResourceId = ResourceDefinitions.WarProgress,
+					Value = progress
+				});
 			}
 			return entity;
+		}
+
+		static void SetWarProgress(World world, string warId, double progress) {
+			int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerId == warId
+						&& resources[i].ResourceId == ResourceDefinitions.WarProgress) {
+						resources[i].Value = progress;
+						return;
+					}
+				}
+			}
+			throw new System.InvalidOperationException($"War progress resource for '{warId}' not found.");
 		}
 
 		static int AddParticipant(World world, string warId, WarParticipantKind kind, string countryId) {
@@ -158,7 +181,7 @@ namespace GS.Game.Tests {
 
 			Assert.Equal(1.5, Assert.Single(WarIconsProjector.Build(world, PlayerOrgId)).Progress);
 
-			world.Get<WarProgress>(warEntity).Value = -7.25;
+			SetWarProgress(world, "war_a", -7.25);
 			Assert.Equal(-7.25, Assert.Single(WarIconsProjector.Build(world, PlayerOrgId)).Progress);
 
 			world.Destroy(controlEntity);

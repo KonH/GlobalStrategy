@@ -28,7 +28,10 @@ namespace GS.Game.Tests {
 		static int SeedWar(World world, string warId, string attacker, string defender, double progress, DateTime declaredAt) {
 			int warEntity = world.Create();
 			world.Add(warEntity, new War { WarId = warId, DeclaredAt = declaredAt });
-			world.Add(warEntity, new WarProgress { Value = progress });
+
+			int progressEntity = world.Create();
+			world.Add(progressEntity, new ResourceOwner(warId, OwnerType.War));
+			world.Add(progressEntity, new Resource { ResourceId = ResourceDefinitions.WarProgress, Value = progress });
 
 			int attackerEntity = world.Create();
 			world.Add(attackerEntity, new WarParticipant {
@@ -81,7 +84,7 @@ namespace GS.Game.Tests {
 
 			Assert.Equal(1, CountWars(world));
 			Assert.True(world.IsAlive(warEntity));
-			Assert.Equal(80 - 2.5, world.Get<WarProgress>(warEntity).Value);
+			Assert.Equal(80 - 2.5, ResourceQuery.GetValue(world, "war_1", ResourceDefinitions.WarProgress));
 		}
 
 		[Fact]
@@ -94,7 +97,7 @@ namespace GS.Game.Tests {
 			WarSystem.Update(world, Jan1, Jan2, settings.AttackerWarProgressDecayPerMonth);
 
 			Assert.Equal(1, CountWars(world));
-			Assert.Equal(100, world.Get<WarProgress>(warEntity).Value);
+			Assert.Equal(100, ResourceQuery.GetValue(world, "war_1", ResourceDefinitions.WarProgress));
 		}
 
 		[Fact]
@@ -107,7 +110,7 @@ namespace GS.Game.Tests {
 			WarSystem.Update(world, Jan31, Feb1, settings.AttackerWarProgressDecayPerMonth);
 
 			Assert.Equal(1, CountWars(world));
-			Assert.Equal(-2.5, world.Get<WarProgress>(warEntity).Value);
+			Assert.Equal(-2.5, ResourceQuery.GetValue(world, "war_1", ResourceDefinitions.WarProgress));
 		}
 	}
 }

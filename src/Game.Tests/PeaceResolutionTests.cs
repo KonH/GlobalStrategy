@@ -25,17 +25,7 @@ namespace GS.Game.Tests {
 			new Dictionary<string, (double Lon, double Lat)>();
 
 		static void SetProgress(World world, string warId, double value) {
-			int[] required = { TypeId<War>.Value, TypeId<WarProgress>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				War[] wars = arch.GetColumn<War>();
-				WarProgress[] progresses = arch.GetColumn<WarProgress>();
-				for (int i = 0; i < arch.Count; i++) {
-					if (wars[i].WarId == warId) {
-						progresses[i].Value = value;
-						return;
-					}
-				}
-			}
+			ResourceMutations.TrySetValue(world, warId, ResourceDefinitions.WarProgress, value, out _);
 		}
 
 		static string GetOnlyWarId(World world) {
