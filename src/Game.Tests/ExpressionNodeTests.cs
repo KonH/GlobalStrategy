@@ -104,6 +104,13 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		public void is_in_war_composes_with_gte() {
+			var node = Node("gte", new ExpressionNode { Type = "isInWar" }, Value(1));
+			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(isInWar: 1.0)));
+			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx(isInWar: 0.0)));
+		}
+
+		[Fact]
 		public void gte_node_true_returns_one() {
 			var node = Node("gte", Control(), Value(10));
 			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(control: 10)));

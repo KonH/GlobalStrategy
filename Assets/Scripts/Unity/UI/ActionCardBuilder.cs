@@ -34,9 +34,12 @@ namespace GS.Unity.UI {
 
 			var artEl = new VisualElement();
 			artEl.AddToClassList("action-card-art");
+			var artImage = new VisualElement();
+			artImage.AddToClassList("action-card-art-image");
 			if (art != null) {
-				artEl.style.backgroundImage = new StyleBackground(art);
+				artImage.style.backgroundImage = new StyleBackground(art);
 			}
+			artEl.Add(artImage);
 			container.Add(artEl);
 
 			var body = new VisualElement();

@@ -6,6 +6,12 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class RelationCardSyncSystem {
+		public static bool IsSyncedAction(string actionId) {
+			return actionId == "stop_friendship"
+				|| actionId == "stop_rivalry"
+				|| actionId == "declare_war";
+		}
+
 		public static void Update(World world, ActionConfig config) {
 			int versionEntity = EnsureSingleton<CountryRelationsVersion>(world, new CountryRelationsVersion { Value = 0 });
 			int syncStateEntity = EnsureSingleton<RelationCardSyncState>(world, new RelationCardSyncState { LastSyncedVersion = -1 });
@@ -28,17 +34,30 @@ namespace GS.Game.Systems {
 			foreach (var (orgId, countryId) in countryDecks) {
 				var (friends, rivals) = CountryRelations.GetRelationsByCountryId(world, countryId);
 				foreach (string otherCountryId in friends) {
-					EnsureCardInstance(world, orgId, countryId, otherCountryId, RelationKind.Friend, "stop_friendship");
+					EnsureCardInstance(world, config, orgId, countryId, otherCountryId, RelationKind.Friend, "stop_friendship");
 				}
 				foreach (string otherCountryId in rivals) {
-					EnsureCardInstance(world, orgId, countryId, otherCountryId, RelationKind.Rival, "stop_rivalry");
+					EnsureCardInstance(world, config, orgId, countryId, otherCountryId, RelationKind.Rival, "stop_rivalry");
+					EnsureCardInstance(world, config, orgId, countryId, otherCountryId, RelationKind.Rival, "declare_war");
 				}
 			}
 
 			syncState.LastSyncedVersion = currentVersion;
 		}
 
-		static void EnsureCardInstance(World world, string orgId, string countryId, string targetCountryId, RelationKind kind, string actionId) {
+		static void EnsureCardInstance(
+			World world,
+			ActionConfig config,
+			string orgId,
+			string countryId,
+			string targetCountryId,
+			RelationKind kind,
+			string actionId
+		) {
+			var def = config.Find(actionId);
+			// DeckCopies == 0 means the card is disabled for draw; skip creating a deck instance.
+			if (def == null || def.DeckCopies <= 0) { return; }
+
 			int[] req = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<RelationCardTarget>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();

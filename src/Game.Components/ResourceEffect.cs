@@ -7,5 +7,6 @@ namespace GS.Game.Components {
 		public double AccumulatedTotal;
 		public double MaxTotal;
 		public bool ClampToZero;
+		public string OrgId;
 	}
 }

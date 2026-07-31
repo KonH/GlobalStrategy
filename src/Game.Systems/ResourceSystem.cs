@@ -2,13 +2,15 @@ using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Components;
+using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class ResourceSystem {
 		public static void Update(
 			World world, DateTime previousTime, DateTime currentTime,
 			ResourceCollectorRegistry? collectorRegistry = null,
-			IReadOnlyList<string>? resourceIdUpdateOrder = null) {
+			IReadOnlyList<string>? resourceIdUpdateOrder = null,
+			ResourceConfig? resourceConfig = null) {
 
 			bool isMonthBoundary = previousTime.Month != currentTime.Month
 				|| previousTime.Year != currentTime.Year;
@@ -18,11 +20,17 @@ namespace GS.Game.Systems {
 				var ordered = new HashSet<string>(resourceIdUpdateOrder);
 				foreach (string resourceId in resourceIdUpdateOrder) {
 					ResolveCollectors(world, resourceId, isMonthBoundary, isDayBoundary, collectorRegistry);
-					GatherAndApply(world, isMonthBoundary, isDayBoundary, linkedResourceId => linkedResourceId == resourceId);
+					GatherAndApply(
+						world, isMonthBoundary, isDayBoundary,
+						linkedResourceId => linkedResourceId == resourceId,
+						resourceConfig, currentTime);
 				}
-				GatherAndApply(world, isMonthBoundary, isDayBoundary, linkedResourceId => !ordered.Contains(linkedResourceId));
+				GatherAndApply(
+					world, isMonthBoundary, isDayBoundary,
+					linkedResourceId => !ordered.Contains(linkedResourceId),
+					resourceConfig, currentTime);
 			} else {
-				GatherAndApply(world, isMonthBoundary, isDayBoundary, null);
+				GatherAndApply(world, isMonthBoundary, isDayBoundary, null, resourceConfig, currentTime);
 			}
 		}
 
@@ -65,14 +73,16 @@ namespace GS.Game.Systems {
 		// NOTE: a ResourceCollector-tagged effect whose ResourceLink.ResourceId is not in
 		// resourceIdUpdateOrder is never resolved — it applies its static (usually zero) Value
 		// forever. Any new collector-driven resourceId must be added to resourceIdUpdateOrder.
-		static void GatherAndApply(World world, bool isMonthBoundary, bool isDayBoundary, Func<string, bool>? resourceIdFilter) {
+		static void GatherAndApply(
+			World world, bool isMonthBoundary, bool isDayBoundary,
+			Func<string, bool>? resourceIdFilter, ResourceConfig? resourceConfig, DateTime currentTime) {
 			int[] effectRequired = {
 				TypeId<ResourceOwner>.Value,
 				TypeId<ResourceLink>.Value,
 				TypeId<ResourceEffect>.Value
 			};
 
-			var toApply = new List<(string OwnerId, string ResourceId, double Value, bool ClampToZero, int EffectEntity)>();
+			var toApply = new List<(string OwnerId, string ResourceId, double Value, bool ClampToZero, int EffectEntity, string EffectId)>();
 			var toDestroy = new List<int>();
 			var toUnmark = new List<int>();
 
@@ -113,7 +123,9 @@ namespace GS.Game.Systems {
 						effects[i] = effect;
 					}
 
-					toApply.Add((owners[i].OwnerId, links[i].ResourceId, valueToApply, effect.ClampToZero, entities[i]));
+					toApply.Add((
+						owners[i].OwnerId, links[i].ResourceId, valueToApply, effect.ClampToZero,
+						entities[i], effect.EffectId));
 
 					if (effect.PayType == PayType.Instant) {
 						toDestroy.Add(entities[i]);
@@ -126,7 +138,7 @@ namespace GS.Game.Systems {
 				TypeId<Resource>.Value
 			};
 
-			foreach ((string ownerId, string resourceId, double value, bool clampToZero, int effectEntity) in toApply) {
+			foreach ((string ownerId, string resourceId, double value, bool clampToZero, int effectEntity, string effectId) in toApply) {
 				foreach (Archetype arch in world.GetMatchingArchetypes(resourceRequired, null)) {
 					ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
 					Resource[] resources = arch.GetColumn<Resource>();
@@ -135,6 +147,7 @@ namespace GS.Game.Systems {
 						if (owners[i].OwnerId != ownerId || resources[i].ResourceId != resourceId) {
 							continue;
 						}
+						double oldValue = resources[i].Value;
 						if (clampToZero) {
 							double current = resources[i].Value;
 							double proposed = current + value;
@@ -148,6 +161,12 @@ namespace GS.Game.Systems {
 							}
 						} else {
 							resources[i].Value += value;
+						}
+						double appliedDelta = resources[i].Value - oldValue;
+						if (resourceConfig != null && appliedDelta != 0) {
+							ResourceMutations.TryAppendHistory(
+								world, arch.Entities[i], resourceConfig.FindResource(resourceId),
+								effectId, appliedDelta, currentTime);
 						}
 					}
 				}

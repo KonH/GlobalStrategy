@@ -115,6 +115,27 @@ namespace GS.Game.Tests {
 								}
 							}
 						}
+					},
+					new ActionDefinition {
+						ActionId = "sell_arms",
+						OwnerType = "country",
+						TargetRole = "military_advisor",
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "isInWar" },
+									new ExpressionNode { Type = "value", Value = 1 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "opinion" },
+									new ExpressionNode { Type = "value", Value = 80 }
+								}
+							}
+						}
 					}
 				}
 			};
@@ -343,6 +364,134 @@ namespace GS.Game.Tests {
 			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "stop_friendship");
 			Assert.NotNull(entry);
 			Assert.False(entry!.IsUnplayable);
+		}
+
+		static World BuildWorldWithSellArmsCard(
+			out int gameTimeEntity,
+			out int localeEntity,
+			out int orgEntity,
+			out int cardEntity,
+			int militaryOpinion,
+			int diplomacyOpinion) {
+			var world = new World();
+			int countryEntity = world.Create();
+			world.Add(countryEntity, new Country("Prussia"));
+			world.Add(countryEntity, new IsSelected());
+
+			orgEntity = world.Create();
+			world.Add(orgEntity, new Organization { OrganizationId = "OrgA", DisplayName = "OrgA" });
+
+			gameTimeEntity = world.Create();
+			world.Add(gameTimeEntity, new GameTime {
+				CurrentTime = new DateTime(1880, 1, 1),
+				IsPaused = false,
+				MultiplierIndex = 0
+			});
+
+			localeEntity = world.Create();
+			world.Add(localeEntity, new Locale { Value = "en" });
+
+			AddCharacterWithOpinion(
+				world,
+				"military",
+				"military_advisor",
+				militaryOpinion);
+			AddCharacterWithOpinion(
+				world,
+				"diplomat",
+				"diplomacy_advisor",
+				diplomacyOpinion);
+
+			cardEntity = world.Create();
+			world.Add(cardEntity, new GameAction { ActionId = "sell_arms" });
+			world.Add(cardEntity, new OrgContext { OrgId = "OrgA" });
+			world.Add(cardEntity, new CountryContext { CountryId = "Prussia" });
+			world.Add(cardEntity, new CardInHand { SlotIndex = 0 });
+
+			Wars.DeclareWar(world, "Prussia", "Austria", new DateTime(1880, 1, 1));
+			return world;
+		}
+
+		static void AddCharacterWithOpinion(
+			World world,
+			string characterId,
+			string roleId,
+			int opinion) {
+			int characterEntity = world.Create();
+			world.Add(characterEntity, new Character {
+				CharacterId = characterId,
+				CountryId = "Prussia",
+				OrgId = "",
+				RoleId = roleId,
+				NamePartKeys = Array.Empty<string>()
+			});
+
+			int resourceEntity = world.Create();
+			world.Add(resourceEntity, new ResourceOwner(characterId, OwnerType.Character));
+			world.Add(resourceEntity, new Resource {
+				ResourceId = "opinion_OrgA",
+				Value = opinion
+			});
+		}
+
+		[Fact]
+		void sell_arms_reports_war_ended_without_removing_held_card() {
+			var world = BuildWorldWithSellArmsCard(
+				out int gameTimeEntity,
+				out int localeEntity,
+				out int orgEntity,
+				out int cardEntity,
+				militaryOpinion: 80,
+				diplomacyOpinion: 100);
+			Wars.StopWar(
+				world,
+				"Prussia",
+				new DateTime(1880, 1, 1),
+				new Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100);
+			var state = new VisualState();
+			var converter = new VisualStateConverter(state, BuildActionConfig());
+
+			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
+
+			ActionCardEntry? entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "sell_arms");
+			Assert.NotNull(entry);
+			Assert.True(entry!.IsUnplayable);
+			Assert.Equal("war_ended", entry.UnplayableReason);
+			Assert.True(world.Has<CardInHand>(cardEntity));
+		}
+
+		[Fact]
+		void sell_arms_visual_and_play_pipeline_use_military_advisor_opinion() {
+			ActionConfig config = BuildActionConfig();
+			var world = BuildWorldWithSellArmsCard(
+				out int gameTimeEntity,
+				out int localeEntity,
+				out int orgEntity,
+				out int cardEntity,
+				militaryOpinion: 79,
+				diplomacyOpinion: 100);
+			var state = new VisualState();
+			var converter = new VisualStateConverter(state, config);
+
+			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
+
+			ActionCardEntry? entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "sell_arms");
+			bool pipelineVerdict = ActionPlayability.Evaluate(
+				world,
+				config,
+				cardEntity,
+				"sell_arms",
+				"OrgA",
+				"Prussia");
+
+			Assert.NotNull(entry);
+			Assert.True(entry!.IsUnplayable);
+			Assert.Equal("insufficient_opinion", entry.UnplayableReason);
+			Assert.False(pipelineVerdict);
 		}
 
 		static ActionCardEntry? FindEntry(IReadOnlyList<ActionCardEntry> entries, string actionId) {

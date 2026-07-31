@@ -16,7 +16,8 @@ namespace GS.Game.Systems {
 			int baseDamage = _basesByCountryId.TryGetValue(ownerId, out var bases) ? bases.BaseDamage : 40;
 			double rulerPower = WartimeSkillQuery.GetSkill(world, ownerId, "ruler", "power");
 			double militaryPower = WartimeSkillQuery.GetSkill(world, ownerId, "military_advisor", "power");
-			double target = baseDamage + rulerPower + militaryPower;
+			double bonusPercent = ResourceQuery.GetValue(world, ownerId, ResourceDefinitions.TroopsDamageBonusPercent);
+			double target = (baseDamage + rulerPower + militaryPower) * (1.0 + bonusPercent / 100.0);
 			return target - currentValue;
 		}
 	}

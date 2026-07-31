@@ -10,6 +10,8 @@ namespace GS.Game.Configs {
 		public double RelationStillExists { get; set; }
 		public double IsInWar { get; set; }
 		public double WarProgress { get; set; }
+		public double TargetRulerOrMilitaryOpinion { get; set; }
+		public double NeitherSideAtWar { get; set; }
 	}
 
 	public class ExpressionNode {
@@ -72,6 +74,12 @@ namespace GS.Game.Configs {
 				}
 				case "warProgress": {
 					return ctx.WarProgress;
+				}
+				case "targetRulerOrMilitaryOpinion": {
+					return ctx.TargetRulerOrMilitaryOpinion;
+				}
+				case "neitherSideAtWar": {
+					return ctx.NeitherSideAtWar;
 				}
 				case "gte": {
 					if (node.Members == null || node.Members.Count < 2) { return 0; }

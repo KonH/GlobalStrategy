@@ -164,11 +164,11 @@ namespace GS.Game.Tests {
 		}
 
 		static void SetWarProgress(World world, double value) {
-			int[] required = { TypeId<WarProgress>.Value };
+			int[] required = { TypeId<War>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				var progresses = arch.GetColumn<WarProgress>();
+				var wars = arch.GetColumn<War>();
 				for (int i = 0; i < arch.Count; i++) {
-					progresses[i].Value = value;
+					ResourceMutations.TrySetValue(world, wars[i].WarId, ResourceDefinitions.WarProgress, value, out _);
 				}
 			}
 		}

@@ -184,6 +184,10 @@
 .gs-color-positive { color: rgb(80, 216, 112); }
 .gs-color-negative { color: rgb(224, 64, 64); }
 .gs-color-light { color: rgb(240, 232, 208); }
+.gs-color-attacker { color: rgb(200, 64, 64); }
+.gs-color-defender { color: rgb(64, 112, 200); }
+.gs-bg-attacker { background-color: rgb(200, 64, 64); }
+.gs-bg-defender { background-color: rgb(64, 112, 200); }
 
 /* ===== Resource row ===== */
 
@@ -216,19 +220,23 @@
 }
 
 .resource-icon--coin {
-    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/coin.png?fileID=2800000&guid=46e003f67ebde7347a8004dd120d478a&type=3#coin");
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/coin.png");
 }
 
 .resource-icon--country-population {
-    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-country-population.png?fileID=2800000&guid=638952adcd0f967479900c82a4a49f31&type=3#resource-country-population");
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-country-population.png");
+}
+
+.resource-icon--country-recruits {
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-country-recruits.png");
 }
 
 .resource-icon--country-score {
-    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-country-score.png?fileID=2800000&guid=dfb61e9081a07f74196091d5a84be440&type=3#resource-country-score");
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-country-score.png");
 }
 
 .resource-icon--org-score {
-    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-org-score.png?fileID=2800000&guid=dac01e69bc5754343b6a1e8dfa36e5db&type=3#resource-org-score");
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-org-score.png");
 }
 
 /* ===== Tooltips ===== */
@@ -274,6 +282,10 @@
 
 .tooltip-effect-positive {
     color: rgb(80, 216, 112);
+}
+
+.tooltip-effect-hint {
+    color: rgb(136, 136, 168);
 }
 
 .tooltip-effect-negative {

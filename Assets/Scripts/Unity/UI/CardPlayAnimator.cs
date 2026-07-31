@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -84,7 +85,7 @@ namespace GS.Unity.UI {
 			_lastActionSuccess = true;
 
 			foreach (var effect in _state.LastFrameEffects.Effects) {
-				if (effect.ResourceId == "gold") {
+				if (effect.ResourceId == "gold" && effect.OwnerId == _state.PlayerOrganization.OrgId) {
 					AnimatableDouble goldAnimatable = null;
 					foreach (var res in _state.PlayerOrganization.Resources.Resources) {
 						if (res.ResourceId == "gold") { goldAnimatable = res.Value; break; }
@@ -304,17 +305,21 @@ namespace GS.Unity.UI {
 			await deckTransitionTask;
 			_transitionView.Hide();
 
-			// Release or cancel control/opinion barriers based on outcome.
+			// Release or cancel gold/control/opinion barriers based on outcome.
 			UniTask barrierTask = UniTask.CompletedTask;
 			if (success && _barrierHolder != null) {
-				bool hasControl = _barrierHolder.Has("control");
-				bool hasOpinion = _barrierHolder.Has("opinion");
-				if (hasControl && hasOpinion) {
-					barrierTask = UniTask.WhenAll(_barrierHolder.Animate("control", 1.0f), _barrierHolder.Animate("opinion", 1.0f));
-				} else if (hasControl) {
-					barrierTask = _barrierHolder.Animate("control", 1.0f);
-				} else if (hasOpinion) {
-					barrierTask = _barrierHolder.Animate("opinion", 1.0f);
+				var barrierTasks = new List<UniTask>();
+				if (_barrierHolder.Has("gold")) {
+					barrierTasks.Add(_barrierHolder.Animate("gold", 0.5f));
+				}
+				if (_barrierHolder.Has("control")) {
+					barrierTasks.Add(_barrierHolder.Animate("control", 1.0f));
+				}
+				if (_barrierHolder.Has("opinion")) {
+					barrierTasks.Add(_barrierHolder.Animate("opinion", 1.0f));
+				}
+				if (barrierTasks.Count > 0) {
+					barrierTask = UniTask.WhenAll(barrierTasks);
 				}
 			} else {
 				_barrierHolder?.CancelAll();

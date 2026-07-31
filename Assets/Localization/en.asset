@@ -410,6 +410,10 @@ MonoBehaviour:
     Value: Country Score
   - Key: resource.country_score.description
     Value: A combined measure of this country's influence and development.
+  - Key: resource.recruits.name
+    Value: Recruits
+  - Key: resource.recruits.description
+    Value: Available manpower that can be committed to military campaigns.
   - Key: resource.org_score.name
     Value: Organization Score
   - Key: resource.org_score.description
@@ -446,6 +450,62 @@ MonoBehaviour:
     Value: Organizations
   - Key: hud.lens.province
     Value: Province
+  - Key: hud.war.title_format
+    Value: '{0} - {1} War'
+  - Key: hud.war.progress_format
+    Value: 'Progress: {0}'
+  - Key: war_progress.effects_title
+    Value: Progress effects
+  - Key: war_progress.stat_tooltip_base
+    Value: 'Country base: {0}'
+  - Key: war_progress.stat_tooltip_ruler
+    Value: 'Ruler skill: {0}'
+  - Key: war_progress.stat_tooltip_military_advisor
+    Value: 'Military advisor skill: {0}'
+  - Key: war_progress.stat_tooltip_economic_advisor
+    Value: 'Economic advisor skill: {0}'
+  - Key: war_progress.stat_tooltip_subtotal
+    Value: 'Subtotal: {0}'
+  - Key: war_progress.stat_tooltip_effect_gain_format
+    Value: '{0} by {1}: +{2}%'
+  - Key: war_progress.stat_tooltip_effect_decay_format
+    Value: '{0} decay by {1}: {2}%/month'
+  - Key: war_progress.stat_tooltip_effect_decay_desc
+    Value: This bonus fades gradually over time.
+  - Key: war_progress.stat_tooltip_total
+    Value: 'Total: {0}'
+  - Key: war_progress.stats_title
+    Value: Forces
+  - Key: war_progress.battles_title
+    Value: Battles
+  - Key: war_progress.battles_empty
+    Value: No battles yet
+  - Key: war_progress.recruits
+    Value: Recruits
+  - Key: war_progress.troops_in_battles
+    Value: In battles
+  - Key: war_progress.casualties
+    Value: Casualties
+  - Key: war_progress.damage
+    Value: Damage
+  - Key: war_progress.durability
+    Value: Durability
+  - Key: war_progress.effect_decay_format
+    Value: 'Decay: {0}'
+  - Key: war_progress.effect_battle_format
+    Value: 'Battle result: {0}'
+  - Key: war_progress.effect_battle_tooltip_title
+    Value: Related battles
+  - Key: war_progress.effect_battle_tooltip_row_format
+    Value: '{0}: {1}'
+  - Key: war_progress.battle_finished_format
+    Value: 'Battle at {0} ({1} won, {2} / {3})'
+  - Key: war_progress.battle_active_format
+    Value: 'Battle at {0} [{1}] ({2} vs {3})'
+  - Key: war_progress.attacker_label
+    Value: Attacker
+  - Key: war_progress.defender_label
+    Value: Defender
   - Key: select_org.base_control
     Value: "Base Control:"
   - Key: select_org.estimated_income
@@ -1608,6 +1668,10 @@ MonoBehaviour:
     Value: Empty
   - Key: hud.slot_available
     Value: Available
+  - Key: hud.character.card_hint
+    Value: At opinion {0} - {1}
+  - Key: hud.character.card_country_placeholder
+    Value: Country
   - Key: action.discover_country.name
     Value: Discover Country
   - Key: action.discover_country.desc
@@ -1660,6 +1724,14 @@ MonoBehaviour:
     Value: '{0} is not our enemy!'
   - Key: action.stop_rivalry.desc
     Value: We're not enemies anymore.
+  - Key: action.declare_war.name
+    Value: 'Declare war on {0}!'
+  - Key: action.declare_war.desc
+    Value: Declare war on this rival.
+  - Key: effect.declare_war_effect.name
+    Value: Declare War
+  - Key: effect.declare_war_effect.desc
+    Value: Start a war with the targeted rival.
   - Key: action.decrease_enemy_control.name
     Value: Undermine Influence
   - Key: action.decrease_enemy_control.desc
@@ -1672,6 +1744,14 @@ MonoBehaviour:
     Value: Strengthen Control
   - Key: effect.decrease_enemy_control_gain.desc
     Value: Increase your organization's control.
+  - Key: action.sell_arms.name
+    Value: Sell Arms
+  - Key: action.sell_arms.desc
+    Value: Spend gold to boost this country's troop damage.
+  - Key: effect.sell_arms_damage_bonus_effect.name
+    Value: Arms Supply Bonus
+  - Key: effect.sell_arms_damage_bonus_effect.desc
+    Value: Boosts this country's troop damage, fading gradually over time.
   - Key: action.ultimatum.name
     Value: Ultimatum
   - Key: action.ultimatum.desc
@@ -1694,14 +1774,20 @@ MonoBehaviour:
     Value: Requires {0} control
   - Key: action.country.unplayable.insufficient_opinion
     Value: Requires {0} opinion with the diplomacy advisor
+  - Key: action.country.unplayable.insufficient_target_opinion
+    Value: Requires {0} opinion from the country's ruler or military advisor
   - Key: action.country.unplayable.no_suitable_target
     Value: No suitable target country available
   - Key: action.country.unplayable.relation_no_longer_exists
     Value: The named relation no longer exists
+  - Key: action.country.unplayable.already_at_war
+    Value: One of the countries is already at war
   - Key: action.country.unplayable.no_enemy_control
     Value: No organization with control available to target
   - Key: action.country.unplayable.not_at_war
     Value: This country is not currently at war
+  - Key: action.country.unplayable.war_ended
+    Value: War has ended
   - Key: hud.actions
     Value: Actions
   - Key: hud.friends
@@ -1724,8 +1810,54 @@ MonoBehaviour:
     Value: "{0} made {1} and {2} friends"
   - Key: game_log.relation_rival_format
     Value: "{0} made {1} and {2} rivals"
+  - Key: game_log.war_declared_format
+    Value: "{0}: {1} declares war on {2}!"
   - Key: game_log.war_resolved_format
-    Value: "{0} won the war against {1}"
+    Value: "{0} wins the war against {1}!"
+  - Key: web.header.warning
+    Value: This is an experimental web version of the game; it may be unstable and lose data.
+  - Key: web.header.full_client_link_text
+    Value: Play the full client
+  - Key: web.footer.copyright
+    Value: © 2026 KonH · MIT License
+  - Key: web.footer.github_link_text
+    Value: View source on GitHub
+  - Key: end_game.result.win
+    Value: '{0} has won the game!'
+  - Key: end_game.result.lose
+    Value: '{0} has won. Your organization did not achieve victory.'
+  - Key: end_game.exit
+    Value: Exit
+  - Key: end_game.leaderboard.empty
+    Value: No organizations to display.
+  - Key: select_org.win_conditions.header
+    Value: Victory Conditions
+  - Key: select_org.win_conditions.alternative_cue
+    Value: Achieve any one of the following
+  - Key: select_org.win_conditions.empty
+    Value: No victory conditions configured.
+  - Key: select_org.win_conditions.total_control
+    Value: Reach {0}% total control across all countries
+  - Key: select_org.win_conditions.full_control_countries
+    Value: 'Fully control {0} of {1} countries'
+  - Key: end_game.comparison.CommitteeOf300
+    Value: The Committee of 300
+  - Key: end_game.comparison.TrilateralCommission
+    Value: The Trilateral Commission
+  - Key: end_game.comparison.BilderbergGroup
+    Value: The Bilderberg Group
+  - Key: end_game.comparison.DeepState
+    Value: The Deep State
+  - Key: end_game.comparison.Reptilians
+    Value: The Reptilians
+  - Key: end_game.comparison.SkullAndBones
+    Value: Skull and Bones
+  - Key: end_game.comparison.NewWorldOrder
+    Value: The New World Order
+  - Key: end_game.comparison.KnightsTemplar
+    Value: The Knights Templar
+  - Key: end_game.comparison.BohemianGrove
+    Value: The Bohemian Grove
   - Key: province_name.Afghanistan__Andkhvoy
     Value: Andkhvoy
   - Key: province_name.Afghanistan__Asadabad
@@ -12710,47 +12842,3 @@ MonoBehaviour:
     Value: Osh
   - Key: province_name.central_Asian_khanates__Osh_2
     Value: Osh
-  - Key: web.header.warning
-    Value: This is an experimental web version of the game; it may be unstable and lose data.
-  - Key: web.header.full_client_link_text
-    Value: Play the full client
-  - Key: web.footer.copyright
-    Value: © 2026 KonH · MIT License
-  - Key: web.footer.github_link_text
-    Value: View source on GitHub
-  - Key: end_game.result.win
-    Value: '{0} has won the game!'
-  - Key: end_game.result.lose
-    Value: '{0} has won. Your organization did not achieve victory.'
-  - Key: end_game.exit
-    Value: Exit
-  - Key: end_game.leaderboard.empty
-    Value: No organizations to display.
-  - Key: select_org.win_conditions.header
-    Value: Victory Conditions
-  - Key: select_org.win_conditions.alternative_cue
-    Value: Achieve any one of the following
-  - Key: select_org.win_conditions.empty
-    Value: No victory conditions configured.
-  - Key: select_org.win_conditions.total_control
-    Value: Reach {0}% total control across all countries
-  - Key: select_org.win_conditions.full_control_countries
-    Value: 'Fully control {0} of {1} countries'
-  - Key: end_game.comparison.CommitteeOf300
-    Value: The Committee of 300
-  - Key: end_game.comparison.TrilateralCommission
-    Value: The Trilateral Commission
-  - Key: end_game.comparison.BilderbergGroup
-    Value: The Bilderberg Group
-  - Key: end_game.comparison.DeepState
-    Value: The Deep State
-  - Key: end_game.comparison.Reptilians
-    Value: The Reptilians
-  - Key: end_game.comparison.SkullAndBones
-    Value: Skull and Bones
-  - Key: end_game.comparison.NewWorldOrder
-    Value: The New World Order
-  - Key: end_game.comparison.KnightsTemplar
-    Value: The Knights Templar
-  - Key: end_game.comparison.BohemianGrove
-    Value: The Bohemian Grove

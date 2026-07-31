@@ -49,7 +49,14 @@ namespace GS.Game.Tests {
 				new StaticConfig<MapEntryConfig>(new MapEntryConfig()),
 				new StaticConfig<CountryConfig>(countryConfig),
 				new StaticConfig<GameSettings>(gameSettings),
-				new StaticConfig<ResourceConfig>(new ResourceConfig { Resources = new List<ResourceDefinition>() }),
+				new StaticConfig<ResourceConfig>(new ResourceConfig {
+					Resources = new List<ResourceDefinition> {
+						new ResourceDefinition {
+							ResourceId = ResourceDefinitions.WarInitiative,
+							SeedTarget = ResourceSeedTarget.Country
+						}
+					}
+				}),
 				new StaticConfig<OrganizationConfig>(orgConfig),
 				initialOrganizationId: "Illuminati",
 				province: new StaticConfig<ProvinceConfig>(new ProvinceConfig()));
@@ -75,16 +82,14 @@ namespace GS.Game.Tests {
 			Assert.True(Wars.IsInWar(world, "Great_Britain"));
 			Assert.True(Wars.IsInWar(world, "France"));
 			Assert.Equal(1, CountEntities<War>(world));
-			Assert.Equal(1, CountEntities<WarProgress>(world));
 			Assert.Equal(2, CountEntities<WarParticipant>(world));
 
-			int[] required = { TypeId<WarProgress>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				var progresses = arch.GetColumn<WarProgress>();
-				for (int i = 0; i < arch.Count; i++) {
-					Assert.Equal(0, progresses[i].Value);
-				}
-			}
+			string warId = GetSingle<War>(world).WarId;
+			Assert.Equal(0, ResourceQuery.GetValue(world, warId, ResourceDefinitions.WarProgress));
+			Assert.Equal(1, CountWarProgressResources(world));
+			ResourceHistory history = GetWarProgressHistory(world, warId);
+			Assert.NotNull(history.History);
+			Assert.Empty(history.History);
 		}
 
 		[Fact]
@@ -126,11 +131,19 @@ namespace GS.Game.Tests {
 			var world = new World();
 			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
 
-			bool result = Wars.StopWar(world, "Great_Britain");
+			bool result = Wars.StopWar(
+				world,
+				"Great_Britain",
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100);
 
 			Assert.True(result);
 			Assert.Equal(0, CountEntities<War>(world));
-			Assert.Equal(0, CountEntities<WarProgress>(world));
+			Assert.Equal(0, CountWarProgressResources(world));
 			Assert.Equal(0, CountEntities<WarParticipant>(world));
 			Assert.False(Wars.IsInWar(world, "Great_Britain"));
 			Assert.False(Wars.IsInWar(world, "France"));
@@ -140,7 +153,15 @@ namespace GS.Game.Tests {
 		void stop_war_on_country_not_in_any_war_is_a_no_op() {
 			var world = new World();
 
-			bool result = Wars.StopWar(world, "Great_Britain");
+			bool result = Wars.StopWar(
+				world,
+				"Great_Britain",
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100);
 
 			Assert.False(result);
 		}
@@ -154,7 +175,7 @@ namespace GS.Game.Tests {
 
 			Assert.True(result);
 			Assert.Equal(0, CountEntities<War>(world));
-			Assert.Equal(0, CountEntities<WarProgress>(world));
+			Assert.Equal(0, CountWarProgressResources(world));
 			Assert.Equal(0, CountEntities<WarParticipant>(world));
 			Assert.False(Wars.IsInWar(world, "Great_Britain"));
 			Assert.False(Wars.IsInWar(world, "France"));
@@ -207,13 +228,8 @@ namespace GS.Game.Tests {
 		void get_own_war_progress_returns_value_directly_for_the_attacker() {
 			var world = new World();
 			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
-			int[] required = { TypeId<WarProgress>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				var column = arch.GetColumn<WarProgress>();
-				for (int i = 0; i < arch.Count; i++) {
-					column[i].Value = -30;
-				}
-			}
+			string warId = GetSingle<War>(world).WarId;
+			ResourceMutations.TrySetValue(world, warId, ResourceDefinitions.WarProgress, -30, out _);
 
 			double progress = Wars.GetOwnWarProgress(world, "Great_Britain");
 
@@ -224,13 +240,8 @@ namespace GS.Game.Tests {
 		void get_own_war_progress_returns_negated_value_for_the_defender() {
 			var world = new World();
 			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
-			int[] required = { TypeId<WarProgress>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				var column = arch.GetColumn<WarProgress>();
-				for (int i = 0; i < arch.Count; i++) {
-					column[i].Value = -30;
-				}
-			}
+			string warId = GetSingle<War>(world).WarId;
+			ResourceMutations.TrySetValue(world, warId, ResourceDefinitions.WarProgress, -30, out _);
 
 			double progress = Wars.GetOwnWarProgress(world, "France");
 
@@ -244,6 +255,70 @@ namespace GS.Game.Tests {
 			double progress = Wars.GetOwnWarProgress(world, "Great_Britain");
 
 			Assert.Equal(0, progress);
+		}
+
+		[Fact]
+		void stop_war_releases_active_survivors_and_removes_battle_history() {
+			var world = new World();
+			int recruitsEntity = world.Create();
+			world.Add(recruitsEntity, new ResourceOwner("Great_Britain", OwnerType.Country));
+			world.Add(recruitsEntity, new Resource {
+				ResourceId = ResourceDefinitions.Recruits,
+				Value = 5
+			});
+			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			string warId = GetSingle<War>(world).WarId;
+			int activeBattle = world.Create();
+			world.Add(activeBattle, new Battle {
+				BattleId = "active",
+				WarId = warId,
+				State = BattleState.Active
+			});
+			int activeForce = world.Create();
+			world.Add(activeForce, new BattleForce {
+				BattleId = "active",
+				CountryId = "Great_Britain",
+				Side = WarParticipantKind.Attacker,
+				Troops = 7,
+				Casualties = 3
+			});
+			int finishedBattle = world.Create();
+			world.Add(finishedBattle, new Battle {
+				BattleId = "finished",
+				WarId = warId,
+				State = BattleState.Finished,
+				Winner = WarParticipantKind.Attacker
+			});
+			int finishedForce = world.Create();
+			world.Add(finishedForce, new BattleForce {
+				BattleId = "finished",
+				CountryId = "Great_Britain",
+				Side = WarParticipantKind.Attacker,
+				Troops = 9
+			});
+
+			Assert.True(Wars.StopWar(
+				world,
+				"Great_Britain",
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100));
+
+			Assert.Equal(12, ResourceQuery.GetValue(world, "Great_Britain", ResourceDefinitions.Recruits));
+			Assert.Equal(0, CountEntities<Battle>(world));
+			Assert.Equal(0, CountEntities<BattleForce>(world));
+			Assert.False(Wars.StopWar(
+				world,
+				"Great_Britain",
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100));
 		}
 
 		[Fact]
@@ -262,6 +337,50 @@ namespace GS.Game.Tests {
 
 			Assert.False(Wars.IsInWar(logic.World, "Great_Britain"));
 			Assert.False(Wars.IsInWar(logic.World, "France"));
+		}
+
+		static int CountWarProgressResources(World world) {
+			int count = 0;
+			int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (resources[i].ResourceId == ResourceDefinitions.WarProgress) {
+						count++;
+					}
+				}
+			}
+			return count;
+		}
+
+		static ResourceHistory GetWarProgressHistory(World world, string warId) {
+			int[] required = {
+				TypeId<ResourceOwner>.Value,
+				TypeId<Resource>.Value,
+				TypeId<ResourceHistory>.Value
+			};
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerId == warId
+						&& resources[i].ResourceId == ResourceDefinitions.WarProgress) {
+						return arch.GetColumn<ResourceHistory>()[i];
+					}
+				}
+			}
+			throw new InvalidOperationException("War progress resource not found.");
+		}
+
+		static T GetSingle<T>(World world) {
+			int[] required = { TypeId<T>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				if (arch.Count > 0) {
+					return arch.GetColumn<T>()[0];
+				}
+			}
+			throw new InvalidOperationException($"No {typeof(T).Name} entity found.");
 		}
 	}
 }

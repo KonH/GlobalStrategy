@@ -62,7 +62,11 @@ namespace GS.Game.Tests {
 				SpeedMultipliers = new[] { 1, 24, 720 },
 				AutoSaveInterval = "monthly"
 			};
-			var resourceConfig = new ResourceConfig { Resources = new List<ResourceDefinition>() };
+			var resourceConfig = new ResourceConfig {
+				Resources = new List<ResourceDefinition> {
+					new ResourceDefinition { ResourceId = ResourceDefinitions.WarInitiative, SeedTarget = ResourceSeedTarget.Country }
+				}
+			};
 
 			return new GameLogicContext(
 				new StaticConfig<GeoJsonConfig>(new GeoJsonConfig()),
@@ -248,11 +252,11 @@ namespace GS.Game.Tests {
 			});
 
 			Assert.True(Wars.DeclareWar(logic.World, HqCountryId, OtherCountryId, new DateTime(1880, 1, 1)));
-			int[] warProgressRequired = { TypeId<WarProgress>.Value };
-			foreach (Archetype archetype in logic.World.GetMatchingArchetypes(warProgressRequired, null)) {
-				WarProgress[] progress = archetype.GetColumn<WarProgress>();
+			int[] warRequired = { TypeId<War>.Value };
+			foreach (Archetype archetype in logic.World.GetMatchingArchetypes(warRequired, null)) {
+				War[] wars = archetype.GetColumn<War>();
 				for (int i = 0; i < archetype.Count; i++) {
-					progress[i].Value = -60;
+					ResourceMutations.TrySetValue(logic.World, wars[i].WarId, ResourceDefinitions.WarProgress, -60, out _);
 				}
 			}
 

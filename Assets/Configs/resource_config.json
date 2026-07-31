@@ -1,7 +1,9 @@
 {
   "displayWhitelist": [
+    "population",
     "gold",
     "country_population",
+    "recruits",
     "country_score",
     "org_score"
   ],
@@ -43,12 +45,24 @@
     },
     {
       "resourceId": "recruits",
+      "nameKey": "resource.recruits.name",
+      "descriptionKey": "resource.recruits.description",
+      "icon": "country-recruits",
+      "seedTarget": "Country",
+      "defaultInitialValue": 0.0,
+      "defaultEffects": []
+    },
+    {
+      "resourceId": "troops_damage_bonus_percent",
       "seedTarget": "Country",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
     },
     {
       "resourceId": "population",
+      "nameKey": "resource.country_population.name",
+      "descriptionKey": "resource.country_population.description",
+      "icon": "country-population",
       "seedTarget": "Province",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
@@ -94,6 +108,21 @@
       "icon": "durability",
       "seedTarget": "Country",
       "defaultInitialValue": 0.0,
+      "defaultEffects": []
+    },
+    {
+      "resourceId": "war_initiative",
+      "seedTarget": "Country",
+      "defaultInitialValue": 0.0,
+      "defaultEffects": []
+    },
+    {
+      "resourceId": "war_progress",
+      "seedTarget": "War",
+      "defaultInitialValue": 0.0,
+      "recordHistory": true,
+      "minValue": -100.0,
+      "maxValue": 100.0,
       "defaultEffects": []
     }
   ]

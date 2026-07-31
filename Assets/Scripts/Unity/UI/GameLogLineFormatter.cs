@@ -43,6 +43,13 @@ namespace GS.Unity.UI {
 			return string.Format(loc.Get(formatKey), orgName, countryName, targetCountryName);
 		}
 
+		public static string BuildWarLine(GameLogEntry entry, ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig) {
+			string orgName = WrapColored(loc.Get($"organization_name.{entry.OrgId}"), orgVisualConfig.Find(entry.OrgId)?.color);
+			string countryName = WrapColored(loc.Get($"country_name.{entry.CountryId}"), countryVisualConfig.Find(entry.CountryId)?.color);
+			string defenderName = WrapColored(loc.Get($"country_name.{entry.TargetCountryId}"), countryVisualConfig.Find(entry.TargetCountryId)?.color);
+			return string.Format(loc.Get("game_log.war_declared_format"), orgName, countryName, defenderName);
+		}
+
 		public static string BuildWarResolvedLine(GameLogEntry entry, ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig) {
 			string winnerName = WrapColored(loc.Get($"country_name.{entry.CountryId}"), countryVisualConfig.Find(entry.CountryId)?.color);
 			string loserName = WrapColored(loc.Get($"country_name.{entry.TargetCountryId}"), countryVisualConfig.Find(entry.TargetCountryId)?.color);

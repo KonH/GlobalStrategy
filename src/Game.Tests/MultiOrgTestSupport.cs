@@ -119,6 +119,22 @@ namespace GS.Game.Tests {
 					},
 					Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = CountryCardGoldCost } }
 				});
+				// Relation-synced cards: DeckCopies is draw weight (InitSystem skips these ids).
+				actionConfig.Actions.Add(new ActionDefinition {
+					ActionId = "stop_friendship",
+					OwnerType = "country",
+					DeckCopies = 1
+				});
+				actionConfig.Actions.Add(new ActionDefinition {
+					ActionId = "stop_rivalry",
+					OwnerType = "country",
+					DeckCopies = 1
+				});
+				actionConfig.Actions.Add(new ActionDefinition {
+					ActionId = "declare_war",
+					OwnerType = "country",
+					DeckCopies = 1
+				});
 			}
 			var effectConfig = new EffectConfig {
 				Effects = new List<ActionEffectDefinition> {

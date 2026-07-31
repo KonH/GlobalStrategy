@@ -66,6 +66,7 @@ namespace GS.Unity.Map {
 			var mouse = Mouse.current;
 			if (mouse == null) return;
 			if (ModalState.IsModalOpen) return;
+			if (UIPointerState.IsPointerOverUI(mouse.position.ReadValue())) return;
 			float scroll = mouse.scroll.ReadValue().y;
 			if (scroll == 0f) return;
 			_camera.orthographicSize = Mathf.Clamp(
@@ -115,6 +116,9 @@ namespace GS.Unity.Map {
 		void UpdateDragState() {
 			bool held = TryGetPanPointer(out Vector2 screenPos);
 			if (!_dragging && held) {
+				if (ModalState.IsModalOpen || UIPointerState.IsPointerOverUI(screenPos)) {
+					return;
+				}
 				_dragOriginWorld = _camera.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));
 				_dragging = true;
 			}

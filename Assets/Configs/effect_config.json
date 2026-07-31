@@ -75,6 +75,12 @@
       "kind": "Rival"
     },
     {
+      "effectId": "declare_war_effect",
+      "effectType": "DeclareWar",
+      "nameKey": "effect.declare_war_effect.name",
+      "descKey": "effect.declare_war_effect.desc"
+    },
+    {
       "effectId": "decrease_enemy_control_drain_effect",
       "effectType": "EnemyControlDrain",
       "nameKey": "effect.decrease_enemy_control_drain.name",
@@ -87,6 +93,15 @@
       "nameKey": "effect.decrease_enemy_control_gain.name",
       "descKey": "effect.decrease_enemy_control_gain.desc",
       "amount": 10
+    },
+    {
+      "effectId": "sell_arms_damage_bonus_effect",
+      "effectType": "CountryResourceModifier",
+      "nameKey": "effect.sell_arms_damage_bonus_effect.name",
+      "descKey": "effect.sell_arms_damage_bonus_effect.desc",
+      "resourceId": "troops_damage_bonus_percent",
+      "initialValue": 10.0,
+      "decayPerMonth": 1.0
     },
     {
       "effectId": "ultimatum_effect",
