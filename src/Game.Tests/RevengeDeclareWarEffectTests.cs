@@ -30,11 +30,26 @@ namespace GS.Game.Tests {
 			}
 		};
 
-		static void RunEffect(World world, IReadOnlyDictionary<string, string>? hqCountryByOrgId, DateTime? time = null) {
+		static void RunEffect(
+			World world,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId,
+			DateTime? time = null,
+			GameSettings? settings = null) {
 			CreateActionEffectSystem.Update(
 				world, BuildActionConfig(), BuildEffectConfig(), time ?? CurrentTime,
-				new Random(1), new GameSettings(), new ProvinceTopology(new ProvinceConfig()),
+				new Random(1), settings ?? new GameSettings(), new ProvinceTopology(new ProvinceConfig()),
 				new Dictionary<string, (double Lon, double Lat)>(), 100, hqCountryByOrgId);
+		}
+
+		static int? FindWarBattleCapacity(World world) {
+			int[] req = { TypeId<WarBattleCapacity>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+				WarBattleCapacity[] capacities = arch.GetColumn<WarBattleCapacity>();
+				if (arch.Count > 0) {
+					return capacities[0].MaxConcurrentBattleCount;
+				}
+			}
+			return null;
 		}
 
 		static void StopWar(World world, string countryId) {
@@ -88,6 +103,20 @@ namespace GS.Game.Tests {
 			Assert.Equal(5.0, bonus.Value.DurabilityBonusPercent);
 			Assert.NotEqual("", bonus.Value.WarId);
 			Assert.True(CountEntities<WarDeclaredApplied>(world) >= 1);
+		}
+
+		[Fact]
+		void declare_uses_passed_war_battle_settings_for_capacity() {
+			var world = new World();
+			AddSucceededCard(world, OrgId, TargetCountryId, "revenge");
+			var hqCountryByOrgId = new Dictionary<string, string> { [OrgId] = HqCountryId };
+			var settings = new GameSettings {
+				WarBattles = new WarBattleSettings { BaseConcurrentBattleCount = 4 }
+			};
+
+			RunEffect(world, hqCountryByOrgId, settings: settings);
+
+			Assert.Equal(4, FindWarBattleCapacity(world));
 		}
 
 		[Fact]

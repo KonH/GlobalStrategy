@@ -129,7 +129,7 @@ namespace GS.Game.Systems {
 						}
 					} else if (effectDef is DeclareRevengeWarEffectParams revengeParams && !string.IsNullOrEmpty(countryId)
 						&& hqCountryByOrgId != null && hqCountryByOrgId.TryGetValue(orgId, out string? hqCountryId) && !string.IsNullOrEmpty(hqCountryId)) {
-						if (Wars.DeclareWar(world, hqCountryId, countryId, currentTime, out string? warId)) {
+						if (Wars.DeclareWar(world, hqCountryId, countryId, currentTime, topology, settings.WarBattles, out string? warId)) {
 							RevengeWarBonusQuery.RemoveForCountry(world, hqCountryId);
 							int be = world.Create();
 							world.Add(be, new RevengeWarBonus {
