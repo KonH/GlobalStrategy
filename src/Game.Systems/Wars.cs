@@ -86,13 +86,14 @@ namespace GS.Game.Systems {
 			DateTime currentTime,
 			Random rng,
 			GameSettings settings,
+			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
 			int maxControlPool) {
 			string? warId = FindWarIdForCountry(world, countryId);
 			if (warId == null) {
 				return false;
 			}
-			ResolvePeace(world, warId, currentTime, rng, settings, provinceCenters, maxControlPool);
+			ResolvePeace(world, warId, currentTime, rng, settings, topology, provinceCenters, maxControlPool);
 			return true;
 		}
 
@@ -102,11 +103,11 @@ namespace GS.Game.Systems {
 			DateTime currentTime,
 			Random rng,
 			GameSettings settings,
+			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
 			int maxControlPool) {
-			bool isMonthBoundary = previousTime.Month != currentTime.Month
-				|| previousTime.Year != currentTime.Year;
-			if (!isMonthBoundary) {
+			bool isDayBoundary = previousTime.Date != currentTime.Date;
+			if (!isDayBoundary) {
 				return;
 			}
 
@@ -136,7 +137,7 @@ namespace GS.Game.Systems {
 
 			foreach (string warId in toResolve) {
 				if (TryGetWarProgress(world, warId, out _)) {
-					ResolvePeace(world, warId, currentTime, rng, settings, provinceCenters, maxControlPool);
+					ResolvePeace(world, warId, currentTime, rng, settings, topology, provinceCenters, maxControlPool);
 				}
 			}
 		}
@@ -147,6 +148,7 @@ namespace GS.Game.Systems {
 			DateTime currentTime,
 			Random rng,
 			GameSettings settings,
+			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
 			int maxControlPool) {
 			if (!TryGetWarState(world, warId, out string attackerId, out string defenderId, out double progress, out DateTime declaredAt)) {
@@ -162,7 +164,7 @@ namespace GS.Game.Systems {
 			string winnerId = progress > 0.0 ? attackerId : defenderId;
 			string loserId = progress > 0.0 ? defenderId : attackerId;
 
-			TransferOccupiedProvinces(world, winnerId, loserId, rng, settings, provinceCenters);
+			TransferOccupiedProvinces(world, winnerId, loserId, rng, settings, topology, provinceCenters);
 			ClearOccupationForParticipants(world, attackerId, defenderId);
 			TransferGoldSpoils(world, winnerId, loserId, declaredAt, currentTime, settings);
 			ApplyControlShifts(world, winnerId, loserId, settings, maxControlPool);
@@ -384,6 +386,7 @@ namespace GS.Game.Systems {
 			string loserId,
 			Random rng,
 			GameSettings settings,
+			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters) {
 			var eligible = new List<string>();
 			int[] ownershipRequired = { TypeId<ProvinceOwnership>.Value };
@@ -418,7 +421,8 @@ namespace GS.Game.Systems {
 				return;
 			}
 
-			bool hasCentroid = TryComputeWinnerCentroid(world, winnerId, provinceCenters, out double centroidLon, out double centroidLat);
+			bool hasCentroid = TryComputeWinnerCentroid(
+				world, winnerId, topology, provinceCenters, out double centroidLon, out double centroidLat);
 			eligible.Sort((a, b) => {
 				if (hasCentroid) {
 					double da = DistanceSquared(a, centroidLon, centroidLat, provinceCenters);
@@ -436,30 +440,56 @@ namespace GS.Game.Systems {
 			}
 		}
 
+		// A winner's overseas colonies (owned provinces generated from the country's
+		// secondaryMapFeatureIds) would otherwise pull the centroid away from its home territory,
+		// making transferred provinces prefer proximity to a colony over the country the winner
+		// actually lives in. Average only owned provinces flagged isMainTerritory (province_config.json,
+		// derived from mainMapFeatureIds at generation time); fall back to every owned province if the
+		// winner holds no main territory at all (e.g. it lost its homeland but kept colonies).
 		static bool TryComputeWinnerCentroid(
 			IReadOnlyWorld world,
 			string winnerId,
+			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
 			out double centroidLon,
 			out double centroidLat) {
 			centroidLon = 0;
 			centroidLat = 0;
-			double sumLon = 0;
-			double sumLat = 0;
-			int n = 0;
+
+			var ownedProvinces = new List<string>();
 			int[] required = { TypeId<ProvinceOwnership>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
 				ProvinceOwnership[] ownerships = arch.GetColumn<ProvinceOwnership>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (ownerships[i].OwnerId != winnerId) {
-						continue;
+					if (ownerships[i].OwnerId == winnerId) {
+						ownedProvinces.Add(ownerships[i].ProvinceId);
 					}
-					if (provinceCenters.TryGetValue(ownerships[i].ProvinceId, out var center)) {
-						sumLon += center.Lon;
-						sumLat += center.Lat;
-						n++;
-					}
+				}
+			}
+			if (ownedProvinces.Count == 0) {
+				return false;
+			}
+
+			bool anyMainTerritory = false;
+			foreach (string provinceId in ownedProvinces) {
+				if (topology.IsMainTerritory(provinceId)) {
+					anyMainTerritory = true;
+					break;
+				}
+			}
+
+			double sumLon = 0;
+			double sumLat = 0;
+			int n = 0;
+			foreach (string provinceId in ownedProvinces) {
+				if (anyMainTerritory && !topology.IsMainTerritory(provinceId)) {
+					continue;
+				}
+				if (provinceCenters.TryGetValue(provinceId, out var center)) {
+					sumLon += center.Lon;
+					sumLat += center.Lat;
+					n++;
 				}
 			}
 			if (n == 0) {

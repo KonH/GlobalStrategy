@@ -24,6 +24,8 @@ namespace GS.Game.Tests {
 		static Dictionary<string, (double Lon, double Lat)> EmptyCenters() =>
 			new Dictionary<string, (double Lon, double Lat)>();
 
+		static ProvinceTopology EmptyTopology() => new ProvinceTopology(new ProvinceConfig());
+
 		static void SetProgress(World world, string warId, double value) {
 			ResourceMutations.TrySetValue(world, warId, ResourceDefinitions.WarProgress, value, out _);
 		}
@@ -111,7 +113,7 @@ namespace GS.Game.Tests {
 			settings.PeaceProvinceTransferMinPercent = 100;
 			settings.PeaceProvinceTransferMaxPercent = 100;
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), settings, centers, 100);
+			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), settings, EmptyTopology(), centers, 100);
 
 			Assert.Equal("Attacker", ProvinceOwnershipSystem.GetOwner(world, "p_lose"));
 			Assert.Equal(0, CountEntities<War>(world));
@@ -137,7 +139,7 @@ namespace GS.Game.Tests {
 			settings.PeaceProvinceTransferMinPercent = 100;
 			settings.PeaceProvinceTransferMaxPercent = 100;
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), settings, centers, 100);
+			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), settings, EmptyTopology(), centers, 100);
 
 			Assert.Equal("Defender", ProvinceOwnershipSystem.GetOwner(world, "p_lose"));
 			Assert.Equal(0, CountEntities<War>(world));
@@ -172,7 +174,7 @@ namespace GS.Game.Tests {
 			settings.PeaceProvinceTransferMinPercent = 30;
 			settings.PeaceProvinceTransferMaxPercent = 30;
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), settings, centers, 100);
+			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), settings, EmptyTopology(), centers, 100);
 
 			Assert.Equal("Winner", ProvinceOwnershipSystem.GetOwner(world, "near"));
 			Assert.Equal("Loser", ProvinceOwnershipSystem.GetOwner(world, "mid"));
@@ -181,6 +183,87 @@ namespace GS.Game.Tests {
 			Assert.Equal("", ProvinceOccupationSystem.GetOccupier(world, "mid"));
 			Assert.Equal("", ProvinceOccupationSystem.GetOccupier(world, "far"));
 			Assert.Equal("", ProvinceOccupationSystem.GetOccupier(world, "w1"));
+		}
+
+		[Fact]
+		void transfer_prefers_province_near_winner_mainland_over_disconnected_colony() {
+			var world = new World();
+			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			string warId = GetOnlyWarId(world);
+			SetProgress(world, warId, 80);
+
+			// Winner mainland: two provinces around x=0-2, flagged isMainTerritory. Winner colony:
+			// a province far away at x=100, generated from a secondaryMapFeatureId (isMainTerritory
+			// false). Averaging over every owned province (mainland + colony) would pull the centroid
+			// to x=34, which is much closer to "near_colony" than to "near_mainland" — the transfer
+			// should still prefer "near_mainland".
+			var topology = new ProvinceTopology(new ProvinceConfig {
+				Provinces = new List<ProvinceEntry> {
+					new ProvinceEntry { ProvinceId = "home1", CentroidX = 0, CentroidY = 0, IsMainTerritory = true },
+					new ProvinceEntry { ProvinceId = "home2", CentroidX = 2, CentroidY = 0, IsMainTerritory = true },
+					new ProvinceEntry { ProvinceId = "colony", CentroidX = 100, CentroidY = 0, IsMainTerritory = false },
+				}
+			});
+			AddOwnership(world, "home1", "Winner");
+			AddOccupation(world, "home1", "");
+			AddOwnership(world, "home2", "Winner");
+			AddOccupation(world, "home2", "");
+			AddOwnership(world, "colony", "Winner");
+			AddOccupation(world, "colony", "");
+
+			AddOwnership(world, "near_mainland", "Loser");
+			AddOccupation(world, "near_mainland", "Winner");
+			AddOwnership(world, "near_colony", "Loser");
+			AddOccupation(world, "near_colony", "Winner");
+
+			var centers = new Dictionary<string, (double Lon, double Lat)> {
+				["home1"] = (0, 0),
+				["home2"] = (2, 0),
+				["colony"] = (100, 0),
+				["near_mainland"] = (3, 0),
+				["near_colony"] = (33, 0),
+			};
+			var settings = DefaultSettings();
+			settings.PeaceProvinceTransferMinPercent = 50;
+			settings.PeaceProvinceTransferMaxPercent = 50;
+
+			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), settings, topology, centers, 100);
+
+			Assert.Equal("Winner", ProvinceOwnershipSystem.GetOwner(world, "near_mainland"));
+			Assert.Equal("Loser", ProvinceOwnershipSystem.GetOwner(world, "near_colony"));
+		}
+
+		[Fact]
+		void centroid_falls_back_to_every_owned_province_when_winner_holds_no_main_territory() {
+			var world = new World();
+			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			string warId = GetOnlyWarId(world);
+			SetProgress(world, warId, 80);
+
+			// Winner holds only colonial provinces (no isMainTerritory=true holdings) — centroid
+			// computation should fall back to averaging every owned province instead of yielding
+			// no centroid at all.
+			var topology = new ProvinceTopology(new ProvinceConfig {
+				Provinces = new List<ProvinceEntry> {
+					new ProvinceEntry { ProvinceId = "colony", CentroidX = 0, CentroidY = 0, IsMainTerritory = false },
+				}
+			});
+			AddOwnership(world, "colony", "Winner");
+			AddOccupation(world, "colony", "");
+			AddOwnership(world, "near", "Loser");
+			AddOccupation(world, "near", "Winner");
+
+			var centers = new Dictionary<string, (double Lon, double Lat)> {
+				["colony"] = (0, 0),
+				["near"] = (1, 0),
+			};
+			var settings = DefaultSettings();
+			settings.PeaceProvinceTransferMinPercent = 100;
+			settings.PeaceProvinceTransferMaxPercent = 100;
+
+			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), settings, topology, centers, 100);
+
+			Assert.Equal("Winner", ProvinceOwnershipSystem.GetOwner(world, "near"));
 		}
 
 		[Fact]
@@ -195,7 +278,7 @@ namespace GS.Game.Tests {
 			AddOwnership(world, "p2", "Winner");
 			AddOccupation(world, "p2", "Loser");
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.Equal("Loser", ProvinceOwnershipSystem.GetOwner(world, "p1"));
 			Assert.Equal("Winner", ProvinceOwnershipSystem.GetOwner(world, "p2"));
@@ -220,7 +303,7 @@ namespace GS.Game.Tests {
 			AddGold(world, "OrgWin", OwnerType.Org, 0);
 			// Winner country gets remainder (no other controlling orgs cover 100% of control... OrgWin has all 40, total 40, so 100% to OrgWin)
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			// Loser: OrgLoseA pays 30%, OrgLoseB 70%
 			Assert.Equal(10 - 90, GetGold(world, "OrgLoseA", OwnerType.Org), precision: 6);
@@ -240,7 +323,7 @@ namespace GS.Game.Tests {
 			AddGold(world, "Loser", OwnerType.Country, 1000);
 			AddGold(world, "Winner", OwnerType.Country, 0);
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.Equal(700, GetGold(world, "Loser", OwnerType.Country), precision: 6);
 			Assert.Equal(300, GetGold(world, "Winner", OwnerType.Country), precision: 6);
@@ -256,7 +339,7 @@ namespace GS.Game.Tests {
 			AddGold(world, "Loser", OwnerType.Country, 1000);
 			AddGold(world, "Winner", OwnerType.Country, 0);
 
-			Wars.ResolvePeace(world, warId, DeclareTime, new Random(1), DefaultSettings(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, warId, DeclareTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.Equal(1000, GetGold(world, "Loser", OwnerType.Country));
 			Assert.Equal(0, GetGold(world, "Winner", OwnerType.Country));
@@ -274,7 +357,7 @@ namespace GS.Game.Tests {
 			AddControl(world, "OrgLoseTop", "Loser", 40);
 			AddControl(world, "OrgLoseLow", "Loser", 20);
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.Equal(42, ControlQuery.GetOrgControlInCountry(world, "OrgWinTop", "Winner"));
 			Assert.Equal(21, ControlQuery.GetOrgControlInCountry(world, "OrgWinLow", "Winner"));
@@ -293,7 +376,7 @@ namespace GS.Game.Tests {
 			AddControl(world, "OrgWin", "Winner", 96, "base_OrgWin");
 			AddControl(world, "OrgLose", "Loser", 10, "base_OrgLose");
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.True(ControlQuery.GetTotalControlInCountry(world, "Winner") <= 100);
 			// desired = Round(96 * 0.05) = 5, room = 4 → +4 → total 100
@@ -317,7 +400,7 @@ namespace GS.Game.Tests {
 			AddGold(world, "A", OwnerType.Country, 500);
 			AddGold(world, "B", OwnerType.Country, 500);
 
-			bool result = Wars.StopWar(world, "A", PeaceTime, new Random(1), DefaultSettings(), EmptyCenters(), 100);
+			bool result = Wars.StopWar(world, "A", PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.True(result);
 			Assert.Equal(0, CountEntities<War>(world));
@@ -339,7 +422,7 @@ namespace GS.Game.Tests {
 			SetProgress(world, warId, 50);
 			CountryRelations.SetRelation(world, "A", "B", RelationKind.Rival);
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.Equal(RelationKind.Rival, CountryRelations.GetRelation(world, "A", "B"));
 		}
@@ -351,7 +434,7 @@ namespace GS.Game.Tests {
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 50);
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			WarResolvedApplied applied = Assert.Single(GetComponents<WarResolvedApplied>(world));
 			Assert.Equal("Attacker", applied.WinnerCountryId);
@@ -364,7 +447,7 @@ namespace GS.Game.Tests {
 			Wars.DeclareWar(world, "A", "B", DeclareTime);
 			// progress stays 0
 
-			Wars.StopWar(world, "A", PeaceTime, new Random(1), DefaultSettings(), EmptyCenters(), 100);
+			Wars.StopWar(world, "A", PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.Empty(GetComponents<WarResolvedApplied>(world));
 		}

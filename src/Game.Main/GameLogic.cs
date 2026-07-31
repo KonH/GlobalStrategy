@@ -129,7 +129,8 @@ namespace GS.Main {
 			// debug StopWar handler (below) might create a new one this tick. See
 			// Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
 			CleanupEffectNotificationsSystem.UpdateWarResolved(_world);
-			Wars.TryResolvePeaceByChance(_world, _previousTime, currentTime, _rng, GameSettings, _provinceCenters, MaxControlPool);
+			Wars.TryResolvePeaceByChance(
+				_world, _previousTime, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool);
 			WarSystem.Update(
 				_world, _previousTime, currentTime, GameSettings.AttackerWarProgressDecayPerMonth, ResourceConfig);
 
@@ -217,7 +218,8 @@ namespace GS.Main {
 					_provinceTopology, GameSettings.WarBattles);
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugStopWarCommand().AsSpan()) {
-				Wars.StopWar(_world, cmd.CountryId, currentTime, _rng, GameSettings, _provinceCenters, MaxControlPool);
+				Wars.StopWar(
+					_world, cmd.CountryId, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool);
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugDrawCardCommand().AsSpan()) {
 				DrawCardSystem.ForceDrawCard(_world, cmd.OrgId, cmd.CountryId, cmd.ActionId, cmd.TargetCountryId);

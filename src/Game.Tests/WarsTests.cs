@@ -137,6 +137,7 @@ namespace GS.Game.Tests {
 				DeclareTime,
 				new Random(1),
 				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
 				new Dictionary<string, (double Lon, double Lat)>(),
 				100);
 
@@ -158,6 +159,7 @@ namespace GS.Game.Tests {
 				DeclareTime,
 				new Random(1),
 				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
 				new Dictionary<string, (double Lon, double Lat)>(),
 				100);
 
@@ -210,6 +212,7 @@ namespace GS.Game.Tests {
 				DeclareTime,
 				new Random(1),
 				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
 				new Dictionary<string, (double Lon, double Lat)>(),
 				100));
 
@@ -222,6 +225,7 @@ namespace GS.Game.Tests {
 				DeclareTime,
 				new Random(1),
 				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
 				new Dictionary<string, (double Lon, double Lat)>(),
 				100));
 		}

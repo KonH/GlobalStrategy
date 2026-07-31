@@ -9,10 +9,11 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class WarPeaceMonthTests {
+		static readonly DateTime Jan1 = new DateTime(1880, 1, 1, 0, 0, 0);
+		static readonly DateTime Jan1Noon = new DateTime(1880, 1, 1, 12, 0, 0);
+		static readonly DateTime Jan2 = new DateTime(1880, 1, 2, 0, 0, 0);
 		static readonly DateTime Jan31 = new DateTime(1880, 1, 31, 23, 0, 0);
 		static readonly DateTime Feb1 = new DateTime(1880, 2, 1, 0, 0, 0);
-		static readonly DateTime Jan1 = new DateTime(1880, 1, 1, 0, 0, 0);
-		static readonly DateTime Jan2 = new DateTime(1880, 1, 2, 0, 0, 0);
 
 		static GameSettings DefaultSettings() => new GameSettings {
 			PeaceMinLoseBand = 20,
@@ -24,6 +25,8 @@ namespace GS.Game.Tests {
 
 		static Dictionary<string, (double Lon, double Lat)> EmptyCenters() =>
 			new Dictionary<string, (double Lon, double Lat)>();
+
+		static ProvinceTopology EmptyTopology() => new ProvinceTopology(new ProvinceConfig());
 
 		static int SeedWar(World world, string warId, string attacker, string defender, double progress, DateTime declaredAt) {
 			int warEntity = world.Create();
@@ -58,14 +61,13 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void successful_roll_on_month_boundary_destroys_war_before_decay() {
+		void successful_roll_on_day_boundary_destroys_war_before_decay() {
 			var world = new World();
 			int warEntity = SeedWar(world, "war_1", "A", "B", 100, Jan1);
 			var settings = DefaultSettings();
 
 			// Progress 100 → 100% chance; any NextDouble() succeeds
-			Wars.TryResolvePeaceByChance(world, Jan31, Feb1, new Random(1), settings, EmptyCenters(), 100);
-			WarSystem.Update(world, Jan31, Feb1, settings.AttackerWarProgressDecayPerMonth);
+			Wars.TryResolvePeaceByChance(world, Jan1, Jan2, new Random(1), settings, EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.Equal(0, CountWars(world));
 			Assert.False(world.IsAlive(warEntity));
@@ -75,11 +77,10 @@ namespace GS.Game.Tests {
 		void failed_roll_leaves_war_then_decay_applies() {
 			var world = new World();
 			int warEntity = SeedWar(world, "war_1", "A", "B", 80, Jan1); // edge → 1% chance
-			var settings = DefaultSettings();
 
-			// Seed chosen so first NextDouble() is >= 0.01 (roll fails)
+			var settings = DefaultSettings();
 			var rng = new Random(0);
-			Wars.TryResolvePeaceByChance(world, Jan31, Feb1, rng, settings, EmptyCenters(), 100);
+			Wars.TryResolvePeaceByChance(world, Jan31, Feb1, rng, settings, EmptyTopology(), EmptyCenters(), 100);
 			WarSystem.Update(world, Jan31, Feb1, settings.AttackerWarProgressDecayPerMonth);
 
 			Assert.Equal(1, CountWars(world));
@@ -93,8 +94,8 @@ namespace GS.Game.Tests {
 			int warEntity = SeedWar(world, "war_1", "A", "B", 100, Jan1);
 			var settings = DefaultSettings();
 
-			Wars.TryResolvePeaceByChance(world, Jan1, Jan2, new Random(1), settings, EmptyCenters(), 100);
-			WarSystem.Update(world, Jan1, Jan2, settings.AttackerWarProgressDecayPerMonth);
+			Wars.TryResolvePeaceByChance(world, Jan1, Jan1Noon, new Random(1), settings, EmptyTopology(), EmptyCenters(), 100);
+			WarSystem.Update(world, Jan1, Jan1Noon, settings.AttackerWarProgressDecayPerMonth);
 
 			Assert.Equal(1, CountWars(world));
 			Assert.Equal(100, ResourceQuery.GetValue(world, "war_1", ResourceDefinitions.WarProgress));
@@ -106,7 +107,7 @@ namespace GS.Game.Tests {
 			int warEntity = SeedWar(world, "war_1", "A", "B", 0, Jan1);
 			var settings = DefaultSettings();
 
-			Wars.TryResolvePeaceByChance(world, Jan31, Feb1, new Random(1), settings, EmptyCenters(), 100);
+			Wars.TryResolvePeaceByChance(world, Jan31, Feb1, new Random(1), settings, EmptyTopology(), EmptyCenters(), 100);
 			WarSystem.Update(world, Jan31, Feb1, settings.AttackerWarProgressDecayPerMonth);
 
 			Assert.Equal(1, CountWars(world));

@@ -69,7 +69,10 @@ re-run this script.
    `.tmp/provinces_intermediate.geojson` (properties: `provinceId`, `countryId`,
    `displayName`, `generationMethod`, `compassKey` — the latter is `null` except
    for the rare compass-direction fallback case above, and only used by the
-   locale step below — plus a `population` placeholder, computed in step 7 below).
+   locale step below — `isMainTerritory` (`True` if the majority of the province's
+   area falls within the country's `mainMapFeatureIds` geometry, `False` for
+   `secondaryMapFeatureIds`/colonial holdings — see `classify_main_territory`),
+   plus a `population` placeholder, computed in step 7 below).
 7. Runs `npx mapshaper -i <file> -simplify keep-shapes <pct>% -o <file>` to reduce
    vertex count for WebGL viability (`keep-shapes` guarantees no polygon degenerates
    to zero area). The simplify percentage is a tunable constant
@@ -109,8 +112,8 @@ every province's `countryId` against `CountryConfig` (per
 `.claude/rules/config_validation.md` — a mismatch throws rather than silently
 proceeding), and writes `Assets/Configs/province_config.json` (lightweight metadata:
 `provinceId`, `countryId`, `generationMethod`, `population`, `centroidX`, `centroidY`,
-and `neighborProvinceIds` — no `displayName`; province names are localization-only,
-see `province_name.*` keys above) and `Assets/Configs/provinces_1880.json`
+`isMainTerritory`, and `neighborProvinceIds` — no `displayName`; province names are
+localization-only, see `province_name.*` keys above) and `Assets/Configs/provinces_1880.json`
 (passthrough geometry `FeatureCollection`).
 
 Re-run order: Stage 1 (Python) must be run before Stage 2 (C# loader), since Stage 2

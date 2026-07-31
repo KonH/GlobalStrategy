@@ -14,7 +14,9 @@ namespace GS.Game.Configs {
 		public double AttackerWarProgressDecayPerMonth { get; set; } = 2.5;
 		public double PeaceMinLoseBand { get; set; } = 20;
 		public double PeaceMinWinBand { get; set; } = 20;
-		public double PeaceChanceMinPercent { get; set; } = 1;
+		// Rolled once per day (Wars.TryResolvePeaceByChance): a low daily floor keeps cumulative
+		// odds over a month close to 1% at the band edge, while +/-100 progress resolves same-day.
+		public double PeaceChanceMinPercent { get; set; } = 0.033;
 		public double PeaceChanceMaxPercent { get; set; } = 100;
 		public double PeaceProvinceTransferMinPercent { get; set; } = 10;
 		public double PeaceProvinceTransferMaxPercent { get; set; } = 30;
@@ -71,6 +73,7 @@ namespace GS.Game.Configs {
 		public double CasualtyRandomMax { get; set; } = 1.1;
 		public double MinimumCasualtyFraction { get; set; } = 0.01;
 		public double MinimumAbsoluteCasualties { get; set; } = 1;
+		public int MaxFinishedBattlesRetained { get; set; } = 30;
 
 		public void Validate() {
 			if (BaseConcurrentBattleCount <= 0) {
@@ -96,6 +99,9 @@ namespace GS.Game.Configs {
 			}
 			if (MinimumCasualtyFraction < 0 || MinimumAbsoluteCasualties < 0) {
 				throw new System.InvalidOperationException("War battle casualty minimums cannot be negative.");
+			}
+			if (MaxFinishedBattlesRetained <= 0) {
+				throw new System.InvalidOperationException("WarBattles.MaxFinishedBattlesRetained must be positive.");
 			}
 		}
 	}
