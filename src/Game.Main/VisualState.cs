@@ -579,6 +579,21 @@ namespace GS.Main {
 		}
 
 		public void SetInvalid() {
+			bool alreadyInvalid = !IsValid
+				&& WarId == ""
+				&& Progress == 0
+				&& History.Count == 0
+				&& StateEquality.WarSideStatsStateEquals(Attacker, WarSideStatsState.Empty)
+				&& StateEquality.WarSideStatsStateEquals(Defender, WarSideStatsState.Empty)
+				&& Battles.Count == 0;
+			if (alreadyInvalid) {
+				// Opening a missing/stopped war while already invalid would otherwise no-op;
+				// notify so the document can Hide when a pending request is outstanding.
+				if (!string.IsNullOrEmpty(_pendingWarId)) {
+					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+				}
+				return;
+			}
 			Set(false, "", 0, Array.Empty<WarProgressHistoryEntryState>(), WarSideStatsState.Empty, WarSideStatsState.Empty, Array.Empty<WarBattleRowState>());
 		}
 
