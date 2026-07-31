@@ -648,7 +648,8 @@ namespace GS.Main {
 		Opinion,
 		NewCharacter,
 		Relation,
-		War
+		War,
+		WarResolved
 	}
 
 	public class GameLogEntry {
@@ -662,7 +663,7 @@ namespace GS.Main {
 		public double Delta { get; }             // Control/Opinion only; amount just applied
 		public double Total { get; }             // Control/Opinion only; new resulting total (Opinion: clamped to [-100,100])
 		public bool IsOrgRole { get; }           // NewCharacter only: true = OrgId set/CountryId empty
-		public string TargetCountryId { get; }   // Relation/War only: the other country involved
+		public string TargetCountryId { get; }   // Relation/War/WarResolved: the other country involved (WarResolved: loser; CountryId is the winner)
 		public RelationKind RelationKind { get; } // Relation only
 
 		public GameLogEntry(long sequenceId, GameLogEntryKind kind, string orgId, string countryId,

@@ -131,7 +131,15 @@ namespace GS.Game.Tests {
 			var world = new World();
 			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
 
-			bool result = Wars.StopWar(world, "Great_Britain");
+			bool result = Wars.StopWar(
+				world,
+				"Great_Britain",
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100);
 
 			Assert.True(result);
 			Assert.Equal(0, CountEntities<War>(world));
@@ -145,7 +153,15 @@ namespace GS.Game.Tests {
 		void stop_war_on_country_not_in_any_war_is_a_no_op() {
 			var world = new World();
 
-			bool result = Wars.StopWar(world, "Great_Britain");
+			bool result = Wars.StopWar(
+				world,
+				"Great_Britain",
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100);
 
 			Assert.False(result);
 		}
@@ -190,12 +206,28 @@ namespace GS.Game.Tests {
 				Troops = 9
 			});
 
-			Assert.True(Wars.StopWar(world, "Great_Britain"));
+			Assert.True(Wars.StopWar(
+				world,
+				"Great_Britain",
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100));
 
 			Assert.Equal(12, ResourceQuery.GetValue(world, "Great_Britain", ResourceDefinitions.Recruits));
 			Assert.Equal(0, CountEntities<Battle>(world));
 			Assert.Equal(0, CountEntities<BattleForce>(world));
-			Assert.False(Wars.StopWar(world, "Great_Britain"));
+			Assert.False(Wars.StopWar(
+				world,
+				"Great_Britain",
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100));
 		}
 
 		[Fact]

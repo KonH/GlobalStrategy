@@ -7,6 +7,7 @@ namespace GS.Game.Systems {
 		readonly Dictionary<string, string[]> _neighbors = new Dictionary<string, string[]>(StringComparer.Ordinal);
 		readonly Dictionary<string, (double X, double Y)> _centroids =
 			new Dictionary<string, (double X, double Y)>(StringComparer.Ordinal);
+		readonly Dictionary<string, bool> _isMainTerritory = new Dictionary<string, bool>(StringComparer.Ordinal);
 
 		public string[] ProvinceIds { get; }
 
@@ -21,6 +22,7 @@ namespace GS.Game.Systems {
 				}
 				ids.Add(entry.ProvinceId);
 				_centroids[entry.ProvinceId] = (entry.CentroidX, entry.CentroidY);
+				_isMainTerritory[entry.ProvinceId] = entry.IsMainTerritory;
 				var neighbors = entry.NeighborProvinceIds?.ToArray() ?? Array.Empty<string>();
 				Array.Sort(neighbors, StringComparer.Ordinal);
 				_neighbors[entry.ProvinceId] = neighbors;
@@ -58,6 +60,10 @@ namespace GS.Game.Systems {
 			return _neighbors.TryGetValue(provinceId, out string[]? neighbors)
 				? neighbors
 				: Array.Empty<string>();
+		}
+
+		public bool IsMainTerritory(string provinceId) {
+			return !_isMainTerritory.TryGetValue(provinceId, out bool isMain) || isMain;
 		}
 
 		public double GetSquaredDistance(string provinceA, string provinceB) {

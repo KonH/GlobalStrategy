@@ -39,6 +39,8 @@ using GS.Game.Configs;
 			ref Battle persisted = ref world.Get<Battle>(battle.Entity);
 			persisted.Winner = winner;
 			persisted.State = BattleState.Finished;
+
+			WarBattles.PruneFinishedBattles(world, war.WarId, settings.MaxFinishedBattlesRetained);
 		}
 
 		static void ApplyPopulationCasualties(World world, string countryId, double casualties) {

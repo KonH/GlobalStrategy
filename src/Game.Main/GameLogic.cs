@@ -18,6 +18,7 @@ namespace GS.Main {
 		readonly string[] _resourceIdUpdateOrder;
 		readonly Random _rng;
 		readonly Dictionary<string, string> _hqCountryByOrgId;
+		readonly Dictionary<string, (double Lon, double Lat)> _provinceCenters;
 		readonly ICompletionCondition _completionCondition;
 		readonly ProvinceTopology _provinceTopology;
 		int _gameTimeEntity = -1;
@@ -67,6 +68,10 @@ namespace GS.Main {
 			_effectConfig = context.Effect.Load();
 			EffectConfig = _effectConfig;
 			ProvinceConfig = context.Province.Load();
+			_provinceCenters = new Dictionary<string, (double Lon, double Lat)>();
+			foreach (var entry in ProvinceConfig.Provinces) {
+				_provinceCenters[entry.ProvinceId] = (entry.CentroidX, entry.CentroidY);
+			}
 			_provinceTopology = new ProvinceTopology(ProvinceConfig);
 			var settings = context.GameSettings.Load();
 			GameSettings = settings;
@@ -120,6 +125,12 @@ namespace GS.Main {
 			ResourceSystem.Update(
 				_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder, ResourceConfig);
 			ControlSystem.Update(_world, _previousTime, currentTime);
+			// Game Log: sweep last tick's WarResolvedApplied before TryResolvePeaceByChance/the
+			// debug StopWar handler (below) might create a new one this tick. See
+			// Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
+			CleanupEffectNotificationsSystem.UpdateWarResolved(_world);
+			Wars.TryResolvePeaceByChance(
+				_world, _previousTime, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool);
 			WarSystem.Update(
 				_world, _previousTime, currentTime, GameSettings.AttackerWarProgressDecayPerMonth, ResourceConfig);
 
@@ -207,7 +218,8 @@ namespace GS.Main {
 					_provinceTopology, GameSettings.WarBattles);
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugStopWarCommand().AsSpan()) {
-				Wars.StopWar(_world, cmd.CountryId);
+				Wars.StopWar(
+					_world, cmd.CountryId, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool);
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugDrawCardCommand().AsSpan()) {
 				DrawCardSystem.ForceDrawCard(_world, cmd.OrgId, cmd.CountryId, cmd.ActionId, cmd.TargetCountryId);

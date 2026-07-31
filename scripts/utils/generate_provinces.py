@@ -32,8 +32,10 @@ Pipeline summary:
 Output:
     .tmp/provinces_intermediate.geojson — FeatureCollection with properties:
         provinceId, countryId, displayName, generationMethod ("Micro" | "OptionA" | "OptionC"),
-        population (density sampled from a per-country deterministic RNG x region density
-        range, multiplied by the province's post-simplify polygon area)
+        isMainTerritory (True if the majority of the province's area falls within the
+        country's mainMapFeatureIds geometry, False for secondaryMapFeatureIds/colonial
+        holdings), population (density sampled from a per-country deterministic RNG x
+        region density range, multiplied by the province's post-simplify polygon area)
 
 See Docs/Specs/26_07_10_18_province-division/plan.md for the full design and
 .claude/rules/unity/province_config_generator.md for the rule-doc summary.
@@ -297,7 +299,8 @@ def load_country_polygons():
     for entry in country_config["countries"]:
         country_id = entry["countryId"]
         display_name = entry["displayName"]
-        feature_ids = list(entry.get("mainMapFeatureIds", [])) + list(entry.get("secondaryMapFeatureIds", []))
+        main_feature_ids = list(entry.get("mainMapFeatureIds", []))
+        feature_ids = main_feature_ids + list(entry.get("secondaryMapFeatureIds", []))
 
         geoms = []
         for fid in feature_ids:
@@ -311,12 +314,20 @@ def load_country_polygons():
         if not polygon.is_valid:
             polygon = make_valid(polygon)
 
+        main_geoms = []
+        for fid in main_feature_ids:
+            main_geoms.extend(feature_geoms.get(fid, []))
+        main_polygon = unary_union(main_geoms) if main_geoms else None
+        if main_polygon is not None and not main_polygon.is_valid:
+            main_polygon = make_valid(main_polygon)
+
         # Area in equal-area CRS
         gs = gpd.GeoSeries([polygon], crs=WGS84_CRS).to_crs(EQUAL_AREA_CRS)
         area_km2 = gs.area.iloc[0] / 1_000_000.0
 
         countries[country_id] = {
             "polygon": polygon,
+            "main_polygon": main_polygon,
             "displayName": display_name,
             "area_km2": area_km2,
         }
@@ -617,6 +628,24 @@ def add_topology_properties(features):
 
 
 # ---------------------------------------------------------------------------
+# isMainTerritory classification — main vs. secondary (colonial) map features
+# ---------------------------------------------------------------------------
+def classify_main_territory(provinces, main_polygon):
+    """Tag each province dict with isMainTerritory: True if the majority of its
+    area falls within the country's mainMapFeatureIds geometry, False otherwise
+    (secondaryMapFeatureIds — colonies/overseas holdings). Provinces are carved
+    from the union of main+secondary geometry, so a piece can straddle both only
+    at a shared border; area-majority resolves that case deterministically."""
+    for prov in provinces:
+        if main_polygon is None:
+            prov["isMainTerritory"] = True
+            continue
+        geometry = prov["geometry"]
+        overlap_area = geometry.intersection(main_polygon).area
+        prov["isMainTerritory"] = overlap_area >= geometry.area * 0.5
+
+
+# ---------------------------------------------------------------------------
 # Step 5: provinceId assignment with collision handling
 # ---------------------------------------------------------------------------
 def assign_province_ids(country_id, provinces):
@@ -842,6 +871,7 @@ def run(force_download=False):
 
     for country_id, data in sorted(countries.items()):
         polygon = data["polygon"]
+        main_polygon = data["main_polygon"]
         display_name = data["displayName"]
         area_km2 = data["area_km2"]
         rng = random.Random(deterministic_seed(country_id))
@@ -869,6 +899,7 @@ def run(force_download=False):
                     method = "Micro"
 
         provinces = assign_province_ids(country_id, provinces)
+        classify_main_territory(provinces, main_polygon)
         counts[method + "_countries"] = counts.get(method + "_countries", 0) + 1
 
         region = COUNTRY_REGION.get(country_id, "Default")
@@ -885,6 +916,7 @@ def run(force_download=False):
                     "displayName": prov["name"],
                     "generationMethod": method,
                     "compassKey": prov.get("compassKey"),
+                    "isMainTerritory": prov["isMainTerritory"],
                     "population": None,
                 },
                 "geometry": mapping(prov["geometry"]),
