@@ -21,6 +21,34 @@ namespace GS.Game.Systems {
 			return false;
 		}
 
+		public static List<string> GetWarOpponents(IReadOnlyWorld world, string countryId) {
+			var result = new List<string>();
+			var warIds = new HashSet<string>(StringComparer.Ordinal);
+			int[] participantRequired = { TypeId<WarParticipant>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(participantRequired, null)) {
+				WarParticipant[] participants = arch.GetColumn<WarParticipant>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (participants[i].CountryId == countryId) {
+						warIds.Add(participants[i].WarId);
+					}
+				}
+			}
+			if (warIds.Count == 0) {
+				return result;
+			}
+			foreach (Archetype arch in world.GetMatchingArchetypes(participantRequired, null)) {
+				WarParticipant[] participants = arch.GetColumn<WarParticipant>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (participants[i].CountryId != countryId && warIds.Contains(participants[i].WarId)) {
+						result.Add(participants[i].CountryId);
+					}
+				}
+			}
+			return result;
+		}
+
 		public static bool DeclareWar(World world, string attackerCountryId, string defenderCountryId, DateTime currentTime) {
 			return DeclareWar(
 				world, attackerCountryId, defenderCountryId, currentTime,

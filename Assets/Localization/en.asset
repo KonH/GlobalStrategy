@@ -1748,6 +1748,8 @@ MonoBehaviour:
     Value: Friends
   - Key: hud.rivals
     Value: Rivals
+  - Key: hud.wars
+    Value: Wars
   - Key: hud.discovery.confirmation
     Value: "Discovered: {0}!"
   - Key: game_log.discovered_format

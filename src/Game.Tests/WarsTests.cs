@@ -248,6 +248,36 @@ namespace GS.Game.Tests {
 			Assert.False(Wars.IsInWar(logic.World, "France"));
 		}
 
+		[Fact]
+		void get_war_opponents_returns_other_side_for_both_participants() {
+			var world = new World();
+			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+
+			Assert.Equal(new[] { "France" }, Wars.GetWarOpponents(world, "Great_Britain"));
+			Assert.Equal(new[] { "Great_Britain" }, Wars.GetWarOpponents(world, "France"));
+		}
+
+		[Fact]
+		void get_war_opponents_returns_empty_for_country_not_at_war() {
+			var world = new World();
+			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+
+			Assert.Empty(Wars.GetWarOpponents(world, "Germany"));
+		}
+
+		[Fact]
+		void visual_state_reflects_war_opponents_for_selected_country() {
+			var logic = BuildLogic();
+			logic.Update(0f);
+			logic.Commands.Push(new SelectCountryCommand { CountryId = "Great_Britain" });
+			logic.Update(0f);
+
+			logic.Commands.Push(new DebugDeclareWarCommand { AttackerCountryId = "Great_Britain", DefenderCountryId = "France" });
+			logic.Update(0f);
+
+			Assert.Contains("France", logic.VisualState.SelectedCountry.Wars.Opponents);
+		}
+
 		static int CountWarProgressResources(World world) {
 			int count = 0;
 			int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };

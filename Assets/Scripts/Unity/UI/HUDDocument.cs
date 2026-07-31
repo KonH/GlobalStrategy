@@ -376,6 +376,7 @@ namespace GS.Unity.UI {
 			_state.SelectedCountry.Characters.PropertyChanged += HandleCharactersChanged;
 			_state.SelectedCountry.CountryActions.PropertyChanged += HandleCountryActionsChanged;
 			_state.SelectedCountry.Relations.PropertyChanged += HandleRelationsChanged;
+			_state.SelectedCountry.Wars.PropertyChanged += HandleCountryWarsChanged;
 			_state.MapLens.PropertyChanged            += HandleLensChanged;
 			_state.OrgMap.PropertyChanged             += HandleOrgMapChanged;
 			_state.PlayerOrganization.Characters.PropertyChanged += HandleOrgCharactersChanged;
@@ -414,6 +415,7 @@ namespace GS.Unity.UI {
 			_state.SelectedCountry.Characters.PropertyChanged -= HandleCharactersChanged;
 			_state.SelectedCountry.CountryActions.PropertyChanged -= HandleCountryActionsChanged;
 			_state.SelectedCountry.Relations.PropertyChanged -= HandleRelationsChanged;
+			_state.SelectedCountry.Wars.PropertyChanged -= HandleCountryWarsChanged;
 			_state.MapLens.PropertyChanged            -= HandleLensChanged;
 			_state.OrgMap.PropertyChanged             -= HandleOrgMapChanged;
 			_state.PlayerOrganization.Characters.PropertyChanged -= HandleOrgCharactersChanged;
@@ -724,6 +726,10 @@ namespace GS.Unity.UI {
 			RefreshCountryViews();
 			RebuildRelationCountryDropdown();
 			RefreshRelationActionButtons();
+		}
+
+		void HandleCountryWarsChanged(object sender, PropertyChangedEventArgs e) {
+			RefreshCountryViews();
 		}
 
 		void HandleCountryActionCardClicked(string actionId, string targetCharId, VisualElement el) {

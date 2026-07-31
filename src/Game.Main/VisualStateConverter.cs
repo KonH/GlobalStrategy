@@ -55,6 +55,7 @@ namespace GS.Main {
 			UpdateOrgActions(world);
 			UpdateCountryActions(world, gameTimeEntity);
 			UpdateCountryRelations(world);
+			UpdateCountryWars(world);
 			UpdateProvinceOwnership(world);
 			UpdateProvinceOccupation(world);
 			UpdateSelectedProvince(world);
@@ -708,6 +709,14 @@ namespace GS.Main {
 			}
 			var (friends, rivals) = CountryRelations.GetRelationsByCountryId(world, _state.SelectedCountry.CountryId);
 			_state.SelectedCountry.Relations.Set(friends, rivals);
+		}
+
+		void UpdateCountryWars(IReadOnlyWorld world) {
+			if (!_state.SelectedCountry.IsValid) {
+				_state.SelectedCountry.Wars.Set(Array.Empty<string>());
+				return;
+			}
+			_state.SelectedCountry.Wars.Set(Wars.GetWarOpponents(world, _state.SelectedCountry.CountryId));
 		}
 
 		void UpdateProvinceOwnership(IReadOnlyWorld world) {

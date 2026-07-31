@@ -25,6 +25,9 @@ namespace GS.Unity.UI {
 		readonly VisualElement? _rivalsRowBlock;
 		readonly Label? _rivalsHeader;
 		readonly VisualElement? _rivalsFlags;
+		readonly VisualElement? _warsRowBlock;
+		readonly Label? _warsHeader;
+		readonly VisualElement? _warsFlags;
 		readonly ILocalization _loc;
 		readonly ResourcesView _resourcesView;
 		readonly CharactersView _charactersView;
@@ -61,6 +64,9 @@ namespace GS.Unity.UI {
 			_rivalsRowBlock = root.Q("rivals-row-block");
 			_rivalsHeader = root.Q<Label>("rivals-header");
 			_rivalsFlags = root.Q("rivals-flags");
+			_warsRowBlock = root.Q("wars-row-block");
+			_warsHeader = root.Q<Label>("wars-header");
+			_warsFlags = root.Q("wars-flags");
 			_loc = loc;
 			_tooltip = tooltip;
 			_resourcesView = new ResourcesView(root.Q("resources-container"), loc, resourceConfig, tooltip);
@@ -110,8 +116,10 @@ namespace GS.Unity.UI {
 				}
 				if (_friendsHeader != null) { _friendsHeader.text = _loc.Get("hud.friends"); }
 				if (_rivalsHeader != null) { _rivalsHeader.text = _loc.Get("hud.rivals"); }
+				if (_warsHeader != null) { _warsHeader.text = _loc.Get("hud.wars"); }
 				BuildRelationsRow(_friendsFlags, _friendsRowBlock, selected.Relations.Friends);
 				BuildRelationsRow(_rivalsFlags, _rivalsRowBlock, selected.Relations.Rivals);
+				BuildRelationsRow(_warsFlags, _warsRowBlock, selected.Wars.Opponents);
 			}
 
 			if (selected.CountryId != _lastCountryId) {
