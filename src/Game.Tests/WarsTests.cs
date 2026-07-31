@@ -93,6 +93,23 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void get_opponent_country_ids_returns_the_other_participant_for_each_side() {
+			var world = new World();
+			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+
+			Assert.Equal(new[] { "France" }, Wars.GetOpponentCountryIds(world, "Great_Britain"));
+			Assert.Equal(new[] { "Great_Britain" }, Wars.GetOpponentCountryIds(world, "France"));
+		}
+
+		[Fact]
+		void get_opponent_country_ids_returns_empty_for_country_not_at_war() {
+			var world = new World();
+			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+
+			Assert.Empty(Wars.GetOpponentCountryIds(world, "Germany"));
+		}
+
+		[Fact]
 		void declare_war_again_for_same_pair_is_a_no_op() {
 			var world = new World();
 			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);

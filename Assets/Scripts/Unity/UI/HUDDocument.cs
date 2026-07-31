@@ -376,6 +376,7 @@ namespace GS.Unity.UI {
 			_state.SelectedCountry.Characters.PropertyChanged += HandleCharactersChanged;
 			_state.SelectedCountry.CountryActions.PropertyChanged += HandleCountryActionsChanged;
 			_state.SelectedCountry.Relations.PropertyChanged += HandleRelationsChanged;
+			_state.SelectedCountry.Wars.PropertyChanged += HandleWarsChanged;
 			_state.MapLens.PropertyChanged            += HandleLensChanged;
 			_state.OrgMap.PropertyChanged             += HandleOrgMapChanged;
 			_state.PlayerOrganization.Characters.PropertyChanged += HandleOrgCharactersChanged;
@@ -414,6 +415,7 @@ namespace GS.Unity.UI {
 			_state.SelectedCountry.Characters.PropertyChanged -= HandleCharactersChanged;
 			_state.SelectedCountry.CountryActions.PropertyChanged -= HandleCountryActionsChanged;
 			_state.SelectedCountry.Relations.PropertyChanged -= HandleRelationsChanged;
+			_state.SelectedCountry.Wars.PropertyChanged -= HandleWarsChanged;
 			_state.MapLens.PropertyChanged            -= HandleLensChanged;
 			_state.OrgMap.PropertyChanged             -= HandleOrgMapChanged;
 			_state.PlayerOrganization.Characters.PropertyChanged -= HandleOrgCharactersChanged;
@@ -725,6 +727,8 @@ namespace GS.Unity.UI {
 			RebuildRelationCountryDropdown();
 			RefreshRelationActionButtons();
 		}
+
+		void HandleWarsChanged(object sender, PropertyChangedEventArgs e) => RefreshCountryViews();
 
 		void HandleCountryActionCardClicked(string actionId, string targetCharId, VisualElement el) {
 			if (_cardPlayAnimator == null || _state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) { return; }

@@ -1776,6 +1776,8 @@ MonoBehaviour:
     Value: Друзья
   - Key: hud.rivals
     Value: Соперники
+  - Key: hud.wars
+    Value: Войны
   - Key: hud.discovery.confirmation
     Value: "Обнаружено: {0}!"
   - Key: game_log.discovered_format

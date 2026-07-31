@@ -15,6 +15,7 @@ namespace GS.Main {
 		public CountryCharactersState Characters { get; } = new CountryCharactersState();
 		public CountryActionsState CountryActions { get; } = new CountryActionsState();
 		public CountryRelationsState Relations { get; } = new CountryRelationsState();
+		public CountryWarsState Wars { get; } = new CountryWarsState();
 
 		public void Set(bool isValid, string countryId) {
 			if (IsValid == isValid && CountryId == countryId) {
@@ -39,6 +40,20 @@ namespace GS.Main {
 			}
 			Friends = friends;
 			Rivals = rivals;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
+	public class CountryWarsState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyList<string> Opponents { get; private set; } = Array.Empty<string>();
+
+		public void Set(IReadOnlyList<string> opponents) {
+			if (new HashSet<string>(Opponents).SetEquals(opponents)) {
+				return;
+			}
+			Opponents = opponents;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
