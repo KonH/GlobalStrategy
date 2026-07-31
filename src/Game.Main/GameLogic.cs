@@ -244,7 +244,9 @@ namespace GS.Main {
 			DeductActionCostSystem.Update(_world, _actionConfig);
 			ActionSucceededSystem.Update(_world, _actionConfig);
 			bool hasSucceededCardActions = HasSucceededCardActions(_world);
-			CreateActionEffectSystem.Update(_world, _actionConfig, _effectConfig, currentTime);
+			CreateActionEffectSystem.Update(
+				_world, _actionConfig, _effectConfig, currentTime,
+				_rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool);
 			// A succeeded card can grant a CountryResourceModifier effect (e.g. sell_arms'
 			// troops_damage_bonus_percent) that Damage/Durability's daily-gated collectors
 			// won't pick up until the next day boundary — settle immediately so the War

@@ -301,7 +301,10 @@ namespace GS.Game.Tests {
 			var world = BuildPlayableWorld();
 			AddDeclareWarCard(world, readyToResolve: true);
 
-			CreateActionEffectSystem.Update(world, actionConfig, effectConfig, CurrentTime);
+			CreateActionEffectSystem.Update(
+				world, actionConfig, effectConfig, CurrentTime,
+				new Random(1), new GameSettings(), new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(), 100);
 
 			Assert.True(Wars.IsInWar(world, AttackerId));
 			Assert.True(Wars.IsInWar(world, DefenderId));
@@ -314,7 +317,10 @@ namespace GS.Game.Tests {
 			Wars.DeclareWar(blockedWorld, DefenderId, "Germany", CurrentTime);
 			AddDeclareWarCard(blockedWorld, readyToResolve: true);
 
-			CreateActionEffectSystem.Update(blockedWorld, actionConfig, effectConfig, CurrentTime.AddDays(1));
+			CreateActionEffectSystem.Update(
+				blockedWorld, actionConfig, effectConfig, CurrentTime.AddDays(1),
+				new Random(1), new GameSettings(), new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(), 100);
 
 			Assert.False(Wars.IsInWar(blockedWorld, AttackerId));
 			Assert.False(HasComponent<WarDeclaredApplied>(blockedWorld));

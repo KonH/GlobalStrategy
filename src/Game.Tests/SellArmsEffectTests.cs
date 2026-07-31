@@ -66,7 +66,10 @@ namespace GS.Game.Tests {
 				world, "country_b", OwnerType.Country, ResourceDefinitions.TroopsDamageBonusPercent, 0);
 			int cardEntity = AddSucceededAction(world);
 
-			CreateActionEffectSystem.Update(world, BuildActionConfig(), BuildEffectConfig(), CurrentTime);
+			CreateActionEffectSystem.Update(
+				world, BuildActionConfig(), BuildEffectConfig(), CurrentTime,
+				new Random(1), new GameSettings(), new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(), 100);
 
 			Assert.Equal(10.0, world.Get<Resource>(countryBonus).Value);
 			Assert.Equal(0.0, world.Get<Resource>(otherCountryBonus).Value);
@@ -176,7 +179,10 @@ namespace GS.Game.Tests {
 			AddSucceededAction(world);
 
 			InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
-				CreateActionEffectSystem.Update(world, BuildActionConfig(), BuildEffectConfig(), CurrentTime));
+				CreateActionEffectSystem.Update(
+					world, BuildActionConfig(), BuildEffectConfig(), CurrentTime,
+					new Random(1), new GameSettings(), new ProvinceTopology(new ProvinceConfig()),
+					new Dictionary<string, (double Lon, double Lat)>(), 100));
 
 			Assert.Contains(ActionId, exception.Message);
 			Assert.Contains(CountryId, exception.Message);

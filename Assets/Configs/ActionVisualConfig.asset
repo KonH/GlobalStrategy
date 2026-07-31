@@ -56,3 +56,9 @@ MonoBehaviour:
   - actionId: declare_war
     frontImage: {fileID: 21300000, guid: 6bf70291f6fdd5f48b51c6e816b200c0, type: 3}
     backImage: {fileID: 0}
+  - actionId: ultimatum
+    frontImage: {fileID: 21300000, guid: 08d59b08199b75c4280b40311eba31d0, type: 3}
+    backImage: {fileID: 0}
+  - actionId: surrender
+    frontImage: {fileID: 21300000, guid: 7188917c53336b34cbbe31421718a3ed, type: 3}
+    backImage: {fileID: 0}

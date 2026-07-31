@@ -84,6 +84,7 @@ namespace GS.Unity.UI {
 					"war_ended" => _loc.Get("action.country.unplayable.war_ended"),
 					"already_at_war" => _loc.Get("action.country.unplayable.already_at_war"),
 					"no_enemy_control" => _loc.Get("action.country.unplayable.no_enemy_control"),
+					"not_at_war" => _loc.Get("action.country.unplayable.not_at_war"),
 					_ => string.Format(
 						_loc.Get("action.country.unplayable.insufficient_control"),
 						def != null && ActionConditionHelper.TryExtractConditionThreshold(def, "control", out int controlThreshold) ? controlThreshold : 0)

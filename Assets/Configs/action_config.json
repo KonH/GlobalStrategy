@@ -244,6 +244,40 @@
       ],
       "cost": [{ "resourceId": "gold", "amount": 200.0 }],
       "effectIds": ["sell_arms_damage_bonus_effect"]
+    },
+    {
+      "actionId": "ultimatum",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.ultimatum.name",
+      "descKey": "action.ultimatum.desc",
+      "targetRole": "military_advisor",
+      "deckCopies": 3,
+      "conditions": [
+        { "type": "gte", "members": [ { "type": "control" }, { "type": "value", "value": 10 } ] },
+        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 50 } ] },
+        { "type": "gte", "members": [ { "type": "isInWar" }, { "type": "value", "value": 1 } ] },
+        { "type": "gte", "members": [ { "type": "warProgress" }, { "type": "value", "value": 50 } ] }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 300.0 }],
+      "effectIds": ["ultimatum_effect"]
+    },
+    {
+      "actionId": "surrender",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.surrender.name",
+      "descKey": "action.surrender.desc",
+      "targetRole": "military_advisor",
+      "deckCopies": 3,
+      "conditions": [
+        { "type": "gte", "members": [ { "type": "control" }, { "type": "value", "value": 20 } ] },
+        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] },
+        { "type": "gte", "members": [ { "type": "isInWar" }, { "type": "value", "value": 1 } ] },
+        { "type": "lte", "members": [ { "type": "warProgress" }, { "type": "value", "value": 0 } ] }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 500.0 }],
+      "effectIds": ["surrender_effect"]
     }
   ],
   "orgPools": [

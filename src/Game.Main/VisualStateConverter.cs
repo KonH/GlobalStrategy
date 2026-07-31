@@ -625,7 +625,7 @@ namespace GS.Main {
 			var def = _actionConfig?.Find(actionId);
 			if (def == null) { return null; }
 
-			var ctx = CountryActionConditionContext.Build(
+			ExpressionContext ctx = CountryActionConditionContext.Build(
 				world,
 				def,
 				orgId,

@@ -15,12 +15,14 @@ namespace GS.Game.Systems {
 			double opinion = 0.0;
 			double hasSuitableRelationTarget = 0.0;
 			double isInWar = 0.0;
+			double warProgress = 0.0;
 
 			if (!string.IsNullOrEmpty(countryId)) {
 				orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
 				totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
 				hasSuitableRelationTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
 				isInWar = Wars.IsInWar(world, countryId) ? 1.0 : 0.0;
+				warProgress = Wars.GetOwnWarProgress(world, countryId);
 
 				if (!string.IsNullOrEmpty(definition.TargetRole)) {
 					string characterId = CharacterQuery.GetTargetCharacterByCountryAndRole(
@@ -58,6 +60,7 @@ namespace GS.Game.Systems {
 				HasSuitableRelationTarget = hasSuitableRelationTarget,
 				RelationStillExists = relationStillExists,
 				IsInWar = isInWar,
+				WarProgress = warProgress,
 				TargetRulerOrMilitaryOpinion = targetRulerOrMilitaryOpinion,
 				NeitherSideAtWar = neitherSideAtWar
 			};
