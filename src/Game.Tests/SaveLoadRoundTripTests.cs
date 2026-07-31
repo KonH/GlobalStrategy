@@ -153,17 +153,35 @@ namespace GS.Game.Tests {
 		[Fact]
 		void round_trip_preserves_war_battle_capacity_battle_and_force() {
 			var world = BuildWorld();
+			const string warId = "war_1";
 			int warEntity = world.Create();
-			world.Add(warEntity, new War { WarId = "war_1" });
-			world.Add(warEntity, new WarProgress { Value = 10 });
+			world.Add(warEntity, new War { WarId = warId });
 			world.Add(warEntity, new WarBattleCapacity { MaxConcurrentBattleCount = 2 });
+			int progressEntity = world.Create();
+			world.Add(progressEntity, new ResourceOwner(warId, OwnerType.War));
+			world.Add(progressEntity, new Resource {
+				ResourceId = ResourceDefinitions.WarProgress,
+				Value = 10
+			});
+			world.Add(progressEntity, new ResourceHistory {
+				History = new System.Collections.Generic.List<ResourceChangeEntry> {
+					new ResourceChangeEntry {
+						EffectId = "war_progress_decay",
+						AppliedDelta = -2.5,
+						Timestamp = new DateTime(1882, 6, 1)
+					}
+				}
+			});
+			var createdAt = new DateTime(1882, 5, 10, 12, 0, 0);
 			int battleEntity = world.Create();
 			world.Add(battleEntity, new Battle {
 				BattleId = "war_1_battle_0",
-				WarId = "war_1",
+				WarId = warId,
 				TargetProvinceId = "France__Paris",
 				State = BattleState.Finished,
-				Winner = WarParticipantKind.Attacker
+				Winner = WarParticipantKind.Attacker,
+				CreationSequence = 3,
+				CreatedAt = createdAt
 			});
 			int forceEntity = world.Create();
 			world.Add(forceEntity, new BattleForce {
@@ -180,10 +198,35 @@ namespace GS.Game.Tests {
 			int[] warRequired = { TypeId<War>.Value, TypeId<WarBattleCapacity>.Value };
 			Archetype restoredWar = restored.GetMatchingArchetypes(warRequired, null).Single();
 			Assert.Equal(2, restoredWar.GetColumn<WarBattleCapacity>()[0].MaxConcurrentBattleCount);
+			Assert.Equal(10, ResourceQuery.GetValue(restored, warId, ResourceDefinitions.WarProgress));
+			int[] historyRequired = {
+				TypeId<ResourceOwner>.Value,
+				TypeId<Resource>.Value,
+				TypeId<ResourceHistory>.Value
+			};
+			ResourceHistory restoredHistory = default;
+			foreach (Archetype arch in restored.GetMatchingArchetypes(historyRequired, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerId == warId
+						&& resources[i].ResourceId == ResourceDefinitions.WarProgress) {
+						restoredHistory = arch.GetColumn<ResourceHistory>()[i];
+						break;
+					}
+				}
+			}
+			Assert.NotNull(restoredHistory.History);
+			Assert.Single(restoredHistory.History);
+			Assert.Equal("war_progress_decay", restoredHistory.History[0].EffectId);
+			Assert.Equal(-2.5, restoredHistory.History[0].AppliedDelta);
 			int[] battleRequired = { TypeId<Battle>.Value };
 			Archetype restoredBattle = restored.GetMatchingArchetypes(battleRequired, null).Single();
-			Assert.Equal(BattleState.Finished, restoredBattle.GetColumn<Battle>()[0].State);
-			Assert.Equal(WarParticipantKind.Attacker, restoredBattle.GetColumn<Battle>()[0].Winner);
+			Battle battle = restoredBattle.GetColumn<Battle>()[0];
+			Assert.Equal(BattleState.Finished, battle.State);
+			Assert.Equal(WarParticipantKind.Attacker, battle.Winner);
+			Assert.Equal(3, battle.CreationSequence);
+			Assert.Equal(createdAt, battle.CreatedAt);
 			int[] forceRequired = { TypeId<BattleForce>.Value };
 			Archetype restoredForce = restored.GetMatchingArchetypes(forceRequired, null).Single();
 			Assert.Equal(12, restoredForce.GetColumn<BattleForce>()[0].Troops);

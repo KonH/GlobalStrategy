@@ -12,7 +12,6 @@ namespace GS.Unity.UI {
 			public Button Button { get; }
 			public VisualElement AttackerFlag { get; }
 			public VisualElement DefenderFlag { get; }
-			public bool IsArmed { get; set; }
 
 			public RenderedButton(Button button, VisualElement attackerFlag, VisualElement defenderFlag) {
 				Button = button;
@@ -57,10 +56,10 @@ namespace GS.Unity.UI {
 				}
 			}
 			foreach (string warId in removedIds) {
+				_buttonsByWarId[warId].Button.RemoveFromHierarchy();
 				_buttonsByWarId.Remove(warId);
 			}
 
-			_row.Clear();
 			for (int i = 0; i < state.Entries.Count; i++) {
 				WarIconEntryState entry = state.Entries[i];
 				if (!_buttonsByWarId.TryGetValue(entry.WarId, out RenderedButton rendered)) {
@@ -70,7 +69,9 @@ namespace GS.Unity.UI {
 				UpdateFlag(rendered.AttackerFlag, entry.AttackerCountryId);
 				UpdateFlag(rendered.DefenderFlag, entry.DefenderCountryId);
 				rendered.Button.style.marginLeft = i == 0 ? 0 : 6;
-				_row.Add(rendered.Button);
+				if (_row.IndexOf(rendered.Button) != i) {
+					_row.Insert(i, rendered.Button);
+				}
 			}
 
 			_root.style.display = state.Entries.Count == 0 ? DisplayStyle.None : DisplayStyle.Flex;
@@ -100,22 +101,11 @@ namespace GS.Unity.UI {
 			button.Add(defenderFlag);
 
 			var rendered = new RenderedButton(button, attackerFlag, defenderFlag);
-			button.RegisterCallback<PointerDownEvent>(e => {
-				rendered.IsArmed = e.isPrimary
-					&& e.button == 0
-					&& button.ContainsPoint(e.localPosition);
-			});
 			button.RegisterCallback<PointerUpEvent>(e => {
-				bool shouldOpen = rendered.IsArmed
-					&& e.isPrimary
-					&& e.button == 0
-					&& button.ContainsPoint(e.localPosition);
-				rendered.IsArmed = false;
-				if (shouldOpen) {
+				if (e.button == 0 && button.ContainsPoint(e.localPosition)) {
 					_openWar?.Invoke(warId);
 				}
 			});
-			button.RegisterCallback<PointerCancelEvent>(_ => rendered.IsArmed = false);
 
 			_tooltip?.RegisterTrigger(
 				button,

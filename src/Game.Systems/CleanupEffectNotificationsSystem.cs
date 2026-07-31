@@ -12,6 +12,15 @@ namespace GS.Game.Systems {
 			RemoveComponent<RoleChangeApplied>(world);
 		}
 
+		// Called before GameLogic's Wars.TryResolvePeaceByChance — WarResolvedApplied is created
+		// there (and by the debug StopWar command handler later in the same tick), both earlier
+		// than UpdateActionEffects' call site, so it cannot share that sweep without being
+		// destroyed the same tick it's created. See Docs/Specs/26_07_18_07_action-log-ui/plan.md
+		// ordering note.
+		public static void UpdateWarResolved(World world) {
+			RemoveComponent<WarResolvedApplied>(world);
+		}
+
 		// Called alongside CleanupActionEffectsSystem.Update, before CreateActionEffectSystem/
 		// DiscoverCountrySystem create this tick's batch. See ordering note above.
 		public static void UpdateActionEffects(World world) {

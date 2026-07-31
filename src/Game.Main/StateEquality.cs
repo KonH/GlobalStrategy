@@ -122,6 +122,34 @@ namespace GS.Main {
 				&& a.DefenderCountryId == b.DefenderCountryId;
 		}
 
+		public static bool WarProgressHistoryEntryStateEquals(WarProgressHistoryEntryState a, WarProgressHistoryEntryState b) {
+			return a.EffectId == b.EffectId
+				&& a.AppliedDelta == b.AppliedDelta
+				&& a.Timestamp == b.Timestamp;
+		}
+
+		public static bool WarSideStatsStateEquals(WarSideStatsState a, WarSideStatsState b) {
+			return a.CountryId == b.CountryId
+				&& a.RecruitsAvailable == b.RecruitsAvailable
+				&& a.TroopsInBattles == b.TroopsInBattles
+				&& a.Casualties == b.Casualties
+				&& a.Damage == b.Damage
+				&& a.Durability == b.Durability;
+		}
+
+		public static bool WarBattleRowStateEquals(WarBattleRowState a, WarBattleRowState b) {
+			return a.BattleId == b.BattleId
+				&& a.ProvinceId == b.ProvinceId
+				&& a.IsFinished == b.IsFinished
+				&& a.WinnerCountryId == b.WinnerCountryId
+				&& a.WinnerSide == b.WinnerSide
+				&& a.AttackerCasualties == b.AttackerCasualties
+				&& a.DefenderCasualties == b.DefenderCasualties
+				&& a.Progress == b.Progress
+				&& a.AttackerTroops == b.AttackerTroops
+				&& a.DefenderTroops == b.DefenderTroops;
+		}
+
 		public static bool GameLogEntryEquals(GameLogEntry a, GameLogEntry b) {
 			return a.SequenceId == b.SequenceId
 				&& a.Kind == b.Kind

@@ -44,6 +44,7 @@ namespace GS.Main {
 			UpdateLocale(world, localeEntity);
 			UpdatePlayerOrganization(world, orgEntity);
 			UpdateWarIcons(world);
+			UpdateSelectedWar(world);
 			UpdateGameCompletion(world, orgEntity);
 			UpdateResources(world);
 			UpdateSelectedControl(world);
@@ -267,6 +268,10 @@ namespace GS.Main {
 				? _state.PlayerOrganization.OrgId
 				: "";
 			_state.WarIcons.Set(WarIconsProjector.Build(world, playerOrgId));
+		}
+
+		void UpdateSelectedWar(IReadOnlyWorld world) {
+			SelectedWarProjector.Project(world, _state.SelectedWar);
 		}
 
 		void UpdateGameCompletion(IReadOnlyWorld world, int orgEntity) {
@@ -911,6 +916,16 @@ namespace GS.Main {
 					if (!_gameLogIncludePlayerActions && applied[i].OrgId == playerOrgId) { continue; }
 					newEntries.Add(new GameLogEntry(0, GameLogEntryKind.War, applied[i].OrgId, applied[i].CountryId,
 						"", "", Array.Empty<string>(), 0, 0, false, applied[i].DefenderCountryId));
+				}
+			}
+
+			int[] warResolvedReq = { TypeId<WarResolvedApplied>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(warResolvedReq, null)) {
+				WarResolvedApplied[] applied = arch.GetColumn<WarResolvedApplied>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					newEntries.Add(new GameLogEntry(0, GameLogEntryKind.WarResolved, "", applied[i].WinnerCountryId,
+						"", "", Array.Empty<string>(), 0, 0, false, applied[i].LoserCountryId));
 				}
 			}
 

@@ -23,7 +23,8 @@ namespace GS.Game.Tests {
 			typeof(ControlEffect),
 			typeof(DiscoveredCountry),
 			typeof(ProvinceOccupation),
-			typeof(CountryRelation)
+			typeof(CountryRelation),
+			typeof(ResourceHistory)
 		};
 
 		static readonly Type[] ExpectedNotSavable = {

@@ -28,6 +28,9 @@ namespace GS.Game.Configs {
 		public string DescriptionKey { get; set; } = "";
 		public string Icon { get; set; } = "";
 		public double DefaultInitialValue { get; set; } = 100.0;
+		public bool RecordHistory { get; set; } = false;
+		public double? MinValue { get; set; }
+		public double? MaxValue { get; set; }
 		public List<EffectDefinition> DefaultEffects { get; set; } = new List<EffectDefinition>();
 
 		public EffectDefinition? FindEffect(string effectId) {
@@ -43,6 +46,7 @@ namespace GS.Game.Configs {
 		Province,
 		Country,
 		Org,
+		War,
 	}
 
 	public class EffectDefinition {

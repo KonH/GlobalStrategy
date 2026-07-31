@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using ECS;
 using GS.Game.Common;
 using GS.Game.Components;
+using GS.Game.Configs;
+using GS.Game.Systems;
 
 namespace GS.Main {
 	public static class WarIconsProjector {
@@ -28,10 +30,9 @@ namespace GS.Main {
 
 			Dictionary<string, ParticipantGroup> participantsByWarId = BuildParticipantGroups(world);
 			var addedWarIds = new HashSet<string>(StringComparer.Ordinal);
-			int[] warRequired = { TypeId<War>.Value, TypeId<WarProgress>.Value };
+			int[] warRequired = { TypeId<War>.Value };
 			foreach (Archetype archetype in world.GetMatchingArchetypes(warRequired, null)) {
 				War[] wars = archetype.GetColumn<War>();
-				WarProgress[] progresses = archetype.GetColumn<WarProgress>();
 				int count = archetype.Count;
 				for (int i = 0; i < count; i++) {
 					string warId = wars[i].WarId;
@@ -40,13 +41,15 @@ namespace GS.Main {
 						|| !participantsByWarId.TryGetValue(warId, out ParticipantGroup? participants)
 						|| participants.Attackers.Count == 0
 						|| participants.Defenders.Count == 0
-						|| !participants.IsRelevant(relevantCountryIds)) {
+						|| !participants.IsRelevant(relevantCountryIds)
+						|| !ResourceQuery.TryGetValue(
+							world, warId, ResourceDefinitions.WarProgress, out double progress)) {
 						continue;
 					}
 
 					result.Add(new WarIconEntryState(
 						warId,
-						progresses[i].Value,
+						progress,
 						GetFirst(participants.Attackers),
 						GetFirst(participants.Defenders)));
 					addedWarIds.Add(warId);

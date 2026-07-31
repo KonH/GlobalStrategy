@@ -454,6 +454,40 @@ MonoBehaviour:
     Value: 'Война {0} — {1}'
   - Key: hud.war.progress_format
     Value: 'Ход войны: {0}'
+  - Key: war_progress.effects_title
+    Value: Изменения хода войны
+  - Key: war_progress.stats_title
+    Value: Силы
+  - Key: war_progress.battles_title
+    Value: Сражения
+  - Key: war_progress.battles_empty
+    Value: Сражений пока нет
+  - Key: war_progress.recruits
+    Value: Рекруты
+  - Key: war_progress.troops_in_battles
+    Value: В боях
+  - Key: war_progress.casualties
+    Value: Потери
+  - Key: war_progress.damage
+    Value: Урон
+  - Key: war_progress.durability
+    Value: Прочность
+  - Key: war_progress.effect_decay_format
+    Value: 'Затухание: {0}'
+  - Key: war_progress.effect_battle_format
+    Value: 'Итог сражения: {0}'
+  - Key: war_progress.effect_battle_tooltip_title
+    Value: Связанные сражения
+  - Key: war_progress.effect_battle_tooltip_row_format
+    Value: '{0}: {1}'
+  - Key: war_progress.battle_finished_format
+    Value: 'Сражение у {0} ({1} победила, {2} / {3})'
+  - Key: war_progress.battle_active_format
+    Value: 'Сражение у {0} [{1}] ({2} против {3})'
+  - Key: war_progress.attacker_label
+    Value: Атакующий
+  - Key: war_progress.defender_label
+    Value: Защитник
   - Key: select_org.base_control
     Value: 'Базовый контроль:'
   - Key: select_org.estimated_income
@@ -1746,6 +1780,8 @@ MonoBehaviour:
     Value: "{0} made {1} and {2} rivals"
   - Key: game_log.war_declared_format
     Value: "{0}: {1} объявляет войну стране {2}!"
+  - Key: game_log.war_resolved_format
+    Value: "{0} выигрывает войну против {1}!"
   - Key: web.header.warning
     Value: Это экспериментальная веб-версия игры; она может быть нестабильной и терять данные.
   - Key: web.header.full_client_link_text

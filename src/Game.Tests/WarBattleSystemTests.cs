@@ -32,6 +32,21 @@ namespace GS.Game.Tests {
 			};
 		}
 
+		static ResourceConfig WarProgressConfig() => new ResourceConfig {
+			Resources = new List<ResourceDefinition> {
+				new ResourceDefinition {
+					ResourceId = ResourceDefinitions.WarProgress,
+					RecordHistory = true,
+					MinValue = -100,
+					MaxValue = 100
+				},
+				new ResourceDefinition {
+					ResourceId = ResourceDefinitions.WarInitiative,
+					SeedTarget = ResourceSeedTarget.Country
+				}
+			}
+		};
+
 		static World BuildWorld(double attackerRecruits, double defenderRecruits) {
 			var world = new World();
 			var provinceConfig = BuildProvinceConfig();
@@ -107,15 +122,52 @@ namespace GS.Game.Tests {
 			var settings = new WarBattleSettings();
 			Wars.DeclareWar(world, "France", "Germany", Start, topology, settings);
 
-			WarBattleSystem.Update(world, Start, Start.AddHours(1), new Random(7), topology, settings);
+			WarBattleSystem.Update(
+				world, Start, Start.AddHours(1), new Random(7), topology, settings, WarProgressConfig());
 
 			Assert.Equal(1, Count<Battle>(world));
 			Assert.Equal(2, Count<BattleForce>(world));
 			Battle battle = GetSingle<Battle>(world);
 			Assert.Equal(BattleState.Finished, battle.State);
 			Assert.Equal(WarParticipantKind.Attacker, battle.Winner);
-			Assert.Equal(10, GetSingle<WarProgress>(world).Value);
+			string warId = GetSingle<War>(world).WarId;
+			Assert.Equal(10, ResourceQuery.GetValue(world, warId, ResourceDefinitions.WarProgress));
 			Assert.Equal("France", ProvinceOccupationSystem.GetOccupier(world, "Germany__east"));
+		}
+
+		[Fact]
+		void finish_battle_appends_war_progress_history() {
+			var world = BuildWorld(100, 0);
+			var topology = new ProvinceTopology(BuildProvinceConfig());
+			var settings = new WarBattleSettings();
+			Wars.DeclareWar(world, "France", "Germany", Start, topology, settings);
+			string warId = GetSingle<War>(world).WarId;
+
+			WarBattleSystem.Update(
+				world, Start, Start.AddHours(1), new Random(7), topology, settings, WarProgressConfig());
+
+			Battle battle = GetSingle<Battle>(world);
+			int[] required = {
+				TypeId<ResourceOwner>.Value,
+				TypeId<Resource>.Value,
+				TypeId<ResourceHistory>.Value
+			};
+			ResourceHistory history = default;
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].OwnerId == warId
+						&& resources[i].ResourceId == ResourceDefinitions.WarProgress) {
+						history = arch.GetColumn<ResourceHistory>()[i];
+						break;
+					}
+				}
+			}
+			Assert.NotNull(history.History);
+			Assert.Single(history.History);
+			Assert.Equal($"war_progress_battle_{battle.BattleId}", history.History[0].EffectId);
+			Assert.Equal(10, history.History[0].AppliedDelta);
 		}
 
 		[Fact]
@@ -125,7 +177,8 @@ namespace GS.Game.Tests {
 			var settings = new WarBattleSettings();
 			Wars.DeclareWar(world, "France", "Germany", Start, topology, settings);
 
-			WarBattleSystem.Update(world, Start, Start.AddHours(1), new Random(7), topology, settings);
+			WarBattleSystem.Update(
+				world, Start, Start.AddHours(1), new Random(7), topology, settings, WarProgressConfig());
 
 			List<ResourceChange> changes = GetAll<ResourceChange>(world);
 			Assert.NotEmpty(changes);

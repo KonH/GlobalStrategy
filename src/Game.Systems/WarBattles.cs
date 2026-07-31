@@ -65,7 +65,17 @@ using GS.Game.Components;
 					}
 				}
 			}
-			result.Sort((a, b) => string.CompareOrdinal(a.Value.BattleId, b.Value.BattleId));
+			result.Sort((a, b) => {
+				int sequence = a.Value.CreationSequence.CompareTo(b.Value.CreationSequence);
+				if (sequence != 0) {
+					return sequence;
+				}
+				int created = a.Value.CreatedAt.CompareTo(b.Value.CreatedAt);
+				if (created != 0) {
+					return created;
+				}
+				return string.CompareOrdinal(a.Value.BattleId, b.Value.BattleId);
+			});
 			return result;
 		}
 
@@ -85,6 +95,25 @@ using GS.Game.Components;
 				return side != 0 ? side : string.CompareOrdinal(a.Value.CountryId, b.Value.CountryId);
 			});
 			return result;
+		}
+
+		// Finished battles are kept only for the war-progress-window's battle history display;
+		// without a cap they accumulate for as long as the war stays unresolved (RoundIntervalHours
+		// can be as low as 1 hour), eventually making every per-frame history rebuild and every
+		// full-world Battle/BattleForce archetype scan slow enough to look like a hang.
+		public static void PruneFinishedBattles(World world, string warId, int maxRetained) {
+			List<BattleInfo> finished = GetBattles(world, warId, BattleState.Finished);
+			int overflow = finished.Count - maxRetained;
+			if (overflow <= 0) {
+				return;
+			}
+			for (int i = 0; i < overflow; i++) {
+				BattleInfo battle = finished[i];
+				foreach (ForceInfo force in GetForces(world, battle.Value.BattleId)) {
+					world.Destroy(force.Entity);
+				}
+				world.Destroy(battle.Entity);
+			}
 		}
 
 		public static HashSet<string> GetActiveTargetIds(IReadOnlyWorld world, string warId) {

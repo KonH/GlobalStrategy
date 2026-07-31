@@ -37,3 +37,15 @@ Map prefabs are instantiated at runtime in `MapController.Start`, after all `Awa
 `FindObjectOfType<ProvinceRenderer>()` in `Awake` will always return null.
 
 Components that need the active renderer must hold a serialized reference to `MapController` and call `MapController.ActiveProvinceRenderer` per-frame — the controller tracks `_current` vs `_forward` and returns the correct one.
+
+## Any new map input handler must gate against UI, not just poll hardware state
+
+`MapCameraController` (zoom/pan) and `MapClickHandler` (clicks) all read `Mouse`/`Touchscreen` input directly every frame — this bypasses UI Toolkit's event system entirely, so nothing stops that input from *also* driving the camera while the player is interacting with a UI panel on top of it. This has recurred as a bug more than once (scrolling/dragging a list inside an open window also zoomed/panned the map underneath).
+
+Two checks, both required for any new hardware-polling input handler in this folder:
+- `GS.Unity.Common.ModalState.IsModalOpen` — cheap bool, true while any full modal window is open.
+- `GS.Unity.Common.UIPointerState.IsPointerOverUI(screenPosition)` — real UI Toolkit hit-test (`IPanel.Pick` via `RuntimePanelUtils.ScreenToPanel`) against the shared runtime panel (set once in `HUDDocument.Awake()`, since the whole project shares one `PanelSettings`). Use this even for **non-modal** UI (HUD panels, tooltips) — `ModalState` alone only covers full modal windows.
+
+**Never use `EventSystem.current.IsPointerOverGameObject()`** for this — it does not reliably detect UI Toolkit panels under the New Input System in this Unity version (see `.claude/rules/unity/uitoolkit.md`'s "Click Blocking for Modal Dialogs").
+
+For a **drag gesture** (e.g. map pan-by-drag), only gate the *start* of the gesture — check once at the down→held transition, the same way `MapClickHandler.BeginPress` does. Don't re-check every frame while already dragging: if the cursor crosses over a UI element mid-drag, a continuous check would abruptly cut the gesture short mid-motion.

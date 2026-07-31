@@ -472,7 +472,15 @@ namespace GS.Game.Tests {
 
 			Assert.True(ActionPlayability.Evaluate(world, config, card, "sell_arms", "OrgA", "Prussia"));
 
-			Wars.StopWar(world, "Prussia");
+			Wars.StopWar(
+				world,
+				"Prussia",
+				new System.DateTime(1880, 1, 1),
+				new System.Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100);
 			Assert.False(ActionPlayability.Evaluate(world, config, card, "sell_arms", "OrgA", "Prussia"));
 			Assert.True(world.Has<CardInHand>(card));
 
