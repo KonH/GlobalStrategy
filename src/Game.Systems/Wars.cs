@@ -80,17 +80,31 @@ namespace GS.Game.Systems {
 			return true;
 		}
 
-		public static bool ResolveWar(World world, string countryId, WarOutcome outcomeForCountry) {
+		public static bool ResolveWar(
+			World world,
+			string countryId,
+			WarOutcome outcomeForCountry,
+			DateTime currentTime,
+			Random rng,
+			GameSettings settings,
+			ProvinceTopology topology,
+			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
+			int maxControlPool) {
 			string? warId = FindWarIdForCountry(world, countryId);
 			if (warId == null) {
 				return false;
 			}
-			if (!TryGetWarState(world, warId, out string attackerId, out string defenderId, out _, out _)) {
+			if (!TryGetWarState(world, warId, out string attackerId, out string defenderId, out _, out DateTime declaredAt)) {
 				return false;
 			}
 			string opponentCountryId = attackerId == countryId ? defenderId : attackerId;
 			string winnerCountryId = outcomeForCountry == WarOutcome.Win ? countryId : opponentCountryId;
 			string loserCountryId = outcomeForCountry == WarOutcome.Win ? opponentCountryId : countryId;
+
+			TransferOccupiedProvinces(world, winnerCountryId, loserCountryId, rng, settings, topology, provinceCenters);
+			ClearOccupationForParticipants(world, attackerId, defenderId);
+			TransferGoldSpoils(world, winnerCountryId, loserCountryId, declaredAt, currentTime, settings);
+			ApplyControlShifts(world, winnerCountryId, loserCountryId, settings, maxControlPool);
 			DestroyWar(world, warId);
 
 			int appliedEntity = world.Create();

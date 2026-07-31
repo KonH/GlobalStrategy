@@ -164,6 +164,14 @@ namespace GS.Game.Tests {
 			}
 		};
 
+		static ExpressionNode Lte(string type, double value) => new ExpressionNode {
+			Type = "lte",
+			Members = new List<ExpressionNode> {
+				new ExpressionNode { Type = type },
+				new ExpressionNode { Type = "value", Value = value }
+			}
+		};
+
 		static ActionConfig WarResolutionActionConfig() => new ActionConfig {
 			Defaults = new List<ActionOwnerDefaults> {
 				new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
@@ -194,7 +202,7 @@ namespace GS.Game.Tests {
 						Gte("control", 20),
 						Gte("opinion", 80),
 						Gte("isInWar", 1),
-						Gte("warProgress", 0)
+						Lte("warProgress", 0)
 					},
 					Cost = new List<ActionCost> {
 						new ActionCost { ResourceId = "gold", Amount = 500.0 }
@@ -235,7 +243,7 @@ namespace GS.Game.Tests {
 			}
 		};
 
-		static GameLogic BuildWarResolutionLogic() {
+		static GameLogic BuildWarResolutionLogic(double rawWarProgress = -60) {
 			var logic = BuildLogic(
 				WarResolutionActionConfig(),
 				WarResolutionEffectConfig(),
@@ -256,7 +264,7 @@ namespace GS.Game.Tests {
 			foreach (Archetype archetype in logic.World.GetMatchingArchetypes(warRequired, null)) {
 				War[] wars = archetype.GetColumn<War>();
 				for (int i = 0; i < archetype.Count; i++) {
-					ResourceMutations.TrySetValue(logic.World, wars[i].WarId, ResourceDefinitions.WarProgress, -60, out _);
+					ResourceMutations.TrySetValue(logic.World, wars[i].WarId, ResourceDefinitions.WarProgress, rawWarProgress, out _);
 				}
 			}
 
@@ -313,7 +321,8 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void surrender_resolves_war_with_selected_country_as_loser_and_logs_swapped_outcome() {
-			var logic = BuildWarResolutionLogic();
+			// OtherCountryId is the defender, so raw +60 means its own war progress is -60 (losing).
+			var logic = BuildWarResolutionLogic(rawWarProgress: 60);
 			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "surrender");
 
 			logic.Commands.Push(new PlayCardActionCommand {

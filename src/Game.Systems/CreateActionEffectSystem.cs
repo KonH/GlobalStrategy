@@ -6,7 +6,16 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class CreateActionEffectSystem {
-		public static void Update(World world, ActionConfig actionConfig, EffectConfig effectConfig, DateTime currentTime) {
+		public static void Update(
+			World world,
+			ActionConfig actionConfig,
+			EffectConfig effectConfig,
+			DateTime currentTime,
+			Random rng,
+			GameSettings settings,
+			ProvinceTopology topology,
+			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
+			int maxControlPool) {
 			int[] required = { TypeId<GameAction>.Value, TypeId<ActionSucceeded>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
 			var toProcess = new List<(int entity, string actionId, string orgId)>();
 
@@ -141,7 +150,9 @@ namespace GS.Game.Systems {
 							}
 						}
 					} else if (effectDef is ResolveWarEffectParams resolveWarParams && !string.IsNullOrEmpty(countryId)) {
-						Wars.ResolveWar(world, countryId, resolveWarParams.Outcome);
+						Wars.ResolveWar(
+							world, countryId, resolveWarParams.Outcome, currentTime,
+							rng, settings, topology, provinceCenters, maxControlPool);
 					} else if (effectDef is CountryResourceModifierEffectParams resourceModifierParams) {
 						if (string.IsNullOrEmpty(countryId)) {
 							throw new InvalidOperationException(

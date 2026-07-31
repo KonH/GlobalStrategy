@@ -171,7 +171,16 @@ namespace GS.Game.Tests {
 			var world = new World();
 			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
 
-			bool result = Wars.ResolveWar(world, "Great_Britain", WarOutcome.Win);
+			bool result = Wars.ResolveWar(
+				world,
+				"Great_Britain",
+				WarOutcome.Win,
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100);
 
 			Assert.True(result);
 			Assert.Equal(0, CountEntities<War>(world));
@@ -198,7 +207,16 @@ namespace GS.Game.Tests {
 			var world = new World();
 			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
 
-			bool result = Wars.ResolveWar(world, "Great_Britain", WarOutcome.Lose);
+			bool result = Wars.ResolveWar(
+				world,
+				"Great_Britain",
+				WarOutcome.Lose,
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100);
 
 			Assert.True(result);
 			int[] required = { TypeId<WarResolvedApplied>.Value };
@@ -218,7 +236,16 @@ namespace GS.Game.Tests {
 		void resolve_war_on_country_not_in_any_war_is_a_no_op_returning_false() {
 			var world = new World();
 
-			bool result = Wars.ResolveWar(world, "Great_Britain", WarOutcome.Win);
+			bool result = Wars.ResolveWar(
+				world,
+				"Great_Britain",
+				WarOutcome.Win,
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100);
 
 			Assert.False(result);
 			Assert.Equal(0, CountEntities<WarResolvedApplied>(world));

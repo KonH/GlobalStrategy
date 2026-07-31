@@ -274,7 +274,7 @@
         { "type": "gte", "members": [ { "type": "control" }, { "type": "value", "value": 20 } ] },
         { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] },
         { "type": "gte", "members": [ { "type": "isInWar" }, { "type": "value", "value": 1 } ] },
-        { "type": "gte", "members": [ { "type": "warProgress" }, { "type": "value", "value": 0 } ] }
+        { "type": "lte", "members": [ { "type": "warProgress" }, { "type": "value", "value": 0 } ] }
       ],
       "cost": [{ "resourceId": "gold", "amount": 500.0 }],
       "effectIds": ["surrender_effect"]

@@ -79,7 +79,6 @@ namespace GS.Unity.UI {
 				GameLogEntryKind.War => GameLogLineFormatter.BuildWarLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
 				GameLogEntryKind.WarResolved => GameLogLineFormatter.BuildWarResolvedLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
 				GameLogEntryKind.NewCharacter => GameLogLineFormatter.BuildNewCharacterLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
-				GameLogEntryKind.WarResolved => GameLogLineFormatter.BuildWarResolvedLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
 				_ => ""
 			};
 			var label = new Label(text) { enableRichText = true };

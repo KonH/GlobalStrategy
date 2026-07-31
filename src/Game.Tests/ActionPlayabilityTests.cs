@@ -115,7 +115,7 @@ namespace GS.Game.Tests {
 							Gte("control", 20),
 							Gte("opinion", 80),
 							Gte("isInWar", 1),
-							Gte("warProgress", 0)
+							Lte("warProgress", 0)
 						},
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 500.0 } }
 					}
@@ -126,6 +126,16 @@ namespace GS.Game.Tests {
 		static ExpressionNode Gte(string fieldType, double value) {
 			return new ExpressionNode {
 				Type = "gte",
+				Members = new List<ExpressionNode> {
+					new ExpressionNode { Type = fieldType },
+					new ExpressionNode { Type = "value", Value = value }
+				}
+			};
+		}
+
+		static ExpressionNode Lte(string fieldType, double value) {
+			return new ExpressionNode {
+				Type = "lte",
 				Members = new List<ExpressionNode> {
 					new ExpressionNode { Type = fieldType },
 					new ExpressionNode { Type = "value", Value = value }
@@ -558,7 +568,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void ultimatum_and_surrender_are_simultaneously_and_independently_playable() {
+		void ultimatum_is_playable_and_surrender_is_not_when_winning() {
 			var config = BuildActionConfig();
 			var world = new World();
 			AddGold(world, "OrgA", 500.0);
@@ -568,6 +578,20 @@ namespace GS.Game.Tests {
 			SetWarProgress(world, 60);
 
 			Assert.True(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "surrender", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void surrender_is_playable_and_ultimatum_is_not_when_losing() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 500.0);
+			AddControl(world, "OrgA", "Prussia", 25);
+			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 90);
+			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
+			SetWarProgress(world, -40);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
 			Assert.True(ActionPlayability.Evaluate(world, config, -1, "surrender", "OrgA", "Prussia"));
 		}
 
