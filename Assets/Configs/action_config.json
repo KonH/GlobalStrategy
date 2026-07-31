@@ -242,8 +242,8 @@
         { "type": "gte", "members": [ { "type": "isInWar" }, { "type": "value", "value": 1 } ] },
         { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] }
       ],
-      "cost": [],
-      "effectIds": ["sell_arms_damage_bonus_effect", "sell_arms_gold_grant_effect"]
+      "cost": [{ "resourceId": "gold", "amount": 200.0 }],
+      "effectIds": ["sell_arms_damage_bonus_effect"]
     }
   ],
   "orgPools": [

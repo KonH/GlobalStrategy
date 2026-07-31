@@ -271,7 +271,7 @@ namespace GS.Main {
 		}
 
 		void UpdateSelectedWar(IReadOnlyWorld world) {
-			SelectedWarProjector.Project(world, _state.SelectedWar);
+			SelectedWarProjector.Project(world, _state.SelectedWar, _countryConfig);
 		}
 
 		void UpdateGameCompletion(IReadOnlyWorld world, int orgEntity) {

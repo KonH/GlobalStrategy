@@ -134,7 +134,15 @@ namespace GS.Main {
 				&& a.TroopsInBattles == b.TroopsInBattles
 				&& a.Casualties == b.Casualties
 				&& a.Damage == b.Damage
-				&& a.Durability == b.Durability;
+				&& a.Durability == b.Durability
+				&& a.DamageBase == b.DamageBase
+				&& a.DamageRulerBonus == b.DamageRulerBonus
+				&& a.DamageAdvisorBonus == b.DamageAdvisorBonus
+				&& a.DamageBonusPercent == b.DamageBonusPercent
+				&& ListEquals(a.DamageBonusEffects, b.DamageBonusEffects, EffectStateEntryEquals)
+				&& a.DurabilityBase == b.DurabilityBase
+				&& a.DurabilityRulerBonus == b.DurabilityRulerBonus
+				&& a.DurabilityAdvisorBonus == b.DurabilityAdvisorBonus;
 		}
 
 		public static bool WarBattleRowStateEquals(WarBattleRowState a, WarBattleRowState b) {
@@ -168,7 +176,9 @@ namespace GS.Main {
 		public static bool EffectStateEntryEquals(EffectStateEntry a, EffectStateEntry b) {
 			return a.EffectId == b.EffectId
 				&& a.Value == b.Value
-				&& a.PayType == b.PayType;
+				&& a.PayType == b.PayType
+				&& a.MaxTotal == b.MaxTotal
+				&& a.OrgDisplayName == b.OrgDisplayName;
 		}
 
 		public static bool ResourceStateEntryEquals(ResourceStateEntry a, ResourceStateEntry b) {

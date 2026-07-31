@@ -488,6 +488,24 @@ MonoBehaviour:
     Value: Attacker
   - Key: war_progress.defender_label
     Value: Defender
+  - Key: war_progress.stat_tooltip_base
+    Value: 'Country base: {0}'
+  - Key: war_progress.stat_tooltip_ruler
+    Value: 'Ruler skill: {0}'
+  - Key: war_progress.stat_tooltip_military_advisor
+    Value: 'Military advisor skill: {0}'
+  - Key: war_progress.stat_tooltip_economic_advisor
+    Value: 'Economic advisor skill: {0}'
+  - Key: war_progress.stat_tooltip_subtotal
+    Value: 'Subtotal: {0}'
+  - Key: war_progress.stat_tooltip_effect_gain_format
+    Value: '{0} by {1}: +{2}%'
+  - Key: war_progress.stat_tooltip_effect_decay_format
+    Value: '{0} decay by {1}: {2}%/month'
+  - Key: war_progress.stat_tooltip_effect_decay_desc
+    Value: This bonus fades gradually over time.
+  - Key: war_progress.stat_tooltip_total
+    Value: 'Total: {0}'
   - Key: select_org.base_control
     Value: "Base Control:"
   - Key: select_org.estimated_income
@@ -1729,15 +1747,11 @@ MonoBehaviour:
   - Key: action.sell_arms.name
     Value: Sell Arms
   - Key: action.sell_arms.desc
-    Value: Boost this country's troop damage and gain gold.
+    Value: Spend gold to boost this country's troop damage.
   - Key: effect.sell_arms_damage_bonus_effect.name
     Value: Arms Supply Bonus
   - Key: effect.sell_arms_damage_bonus_effect.desc
-    Value: Increase troop damage by 10 percentage points, decaying by 1 each month.
-  - Key: effect.sell_arms_gold_grant_effect.name
-    Value: Arms Sale Proceeds
-  - Key: effect.sell_arms_gold_grant_effect.desc
-    Value: Grant 300 gold to the acting organization.
+    Value: Boosts this country's troop damage, fading gradually over time.
   - Key: action.country.unplayable.pool_full
     Value: No control pool space remaining
   - Key: action.country.unplayable.insufficient_control

@@ -120,9 +120,11 @@ namespace GS.Game.Tests {
 				Assert.Equal("country", action.OwnerType);
 				Assert.Equal("military_advisor", action.TargetRole);
 				Assert.Equal(3, action.DeckCopies);
-				Assert.Empty(action.Cost);
+				ActionCost cost = Assert.Single(action.Cost);
+				Assert.Equal("gold", cost.ResourceId);
+				Assert.Equal(200.0, cost.Amount);
 				Assert.Equal(
-					new[] { "sell_arms_damage_bonus_effect", "sell_arms_gold_grant_effect" },
+					new[] { "sell_arms_damage_bonus_effect" },
 					action.EffectIds);
 				Assert.Collection(
 					action.Conditions,
@@ -182,15 +184,6 @@ namespace GS.Game.Tests {
 			Assert.Equal(10.0, modifierFromString.InitialValue);
 			Assert.Equal(1.0, modifierFromFile.DecayPerMonth);
 			Assert.Equal(1.0, modifierFromString.DecayPerMonth);
-
-			var grantFromFile = Assert.IsType<OrgResourceGrantEffectParams>(
-				fromFile.Find("sell_arms_gold_grant_effect"));
-			var grantFromString = Assert.IsType<OrgResourceGrantEffectParams>(
-				fromString.Find("sell_arms_gold_grant_effect"));
-			Assert.Equal(ResourceDefinitions.Gold, grantFromFile.ResourceId);
-			Assert.Equal(ResourceDefinitions.Gold, grantFromString.ResourceId);
-			Assert.Equal(300.0, grantFromFile.Amount);
-			Assert.Equal(300.0, grantFromString.Amount);
 		}
 
 		[Fact]

@@ -171,7 +171,8 @@ namespace GS.Game.Systems {
 							Value = -resourceModifierParams.DecayPerMonth,
 							PayType = PayType.Monthly,
 							MaxTotal = resourceModifierParams.InitialValue,
-							ClampToZero = true
+							ClampToZero = true,
+							OrgId = orgId
 						});
 					} else if (effectDef is OrgResourceGrantEffectParams resourceGrantParams) {
 						AddToExistingResource(

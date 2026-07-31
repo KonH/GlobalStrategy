@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using GS.Game.Configs;
 using GS.Main;
 using GS.Unity.Common;
 using GS.Unity.Map;
@@ -12,6 +13,7 @@ namespace GS.Unity.UI {
 		VisualState _state;
 		ILocalization _loc;
 		CountryVisualConfig _countryVisualConfig;
+		EffectConfig _effectConfig;
 		UIDocument _doc;
 		VisualElement _root;
 		WarProgressWindowView _view;
@@ -20,10 +22,11 @@ namespace GS.Unity.UI {
 		bool _subscribed;
 
 		[Inject]
-		void Construct(VisualState state, ILocalization loc, CountryVisualConfig countryVisualConfig) {
+		void Construct(VisualState state, ILocalization loc, CountryVisualConfig countryVisualConfig, EffectConfig effectConfig) {
 			_state = state;
 			_loc = loc;
 			_countryVisualConfig = countryVisualConfig;
+			_effectConfig = effectConfig;
 		}
 
 		const int SortingOrder = 510;
@@ -130,7 +133,7 @@ namespace GS.Unity.UI {
 			if (_view != null || _root == null) {
 				return;
 			}
-			_view = new WarProgressWindowView(_root, _loc, _countryVisualConfig, _tooltip);
+			_view = new WarProgressWindowView(_root, _loc, _countryVisualConfig, _effectConfig, _tooltip);
 		}
 
 		void RefreshTexts() {

@@ -10,7 +10,6 @@ namespace GS.Game.Tests {
 	public class SellArmsEffectTests {
 		const string ActionId = "sell_arms";
 		const string CountryEffectId = "sell_arms_damage_bonus_effect";
-		const string OrgEffectId = "sell_arms_gold_grant_effect";
 		const string OrgId = "org_a";
 		const string CountryId = "country_a";
 		static readonly DateTime CurrentTime = new DateTime(1880, 1, 15, 12, 0, 0);
@@ -21,7 +20,7 @@ namespace GS.Game.Tests {
 					new ActionDefinition {
 						ActionId = ActionId,
 						OwnerType = "country",
-						EffectIds = new List<string> { CountryEffectId, OrgEffectId }
+						EffectIds = new List<string> { CountryEffectId }
 					}
 				}
 			};
@@ -36,12 +35,6 @@ namespace GS.Game.Tests {
 						ResourceId = ResourceDefinitions.TroopsDamageBonusPercent,
 						InitialValue = 10.0,
 						DecayPerMonth = 1.0
-					},
-					new OrgResourceGrantEffectParams {
-						EffectId = OrgEffectId,
-						EffectType = "OrgResourceGrant",
-						ResourceId = ResourceDefinitions.Gold,
-						Amount = 300.0
 					}
 				}
 			};
@@ -65,22 +58,18 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void sell_arms_mutates_only_selected_owners_and_creates_bounded_monthly_decay() {
+		void sell_arms_mutates_only_selected_owner_and_creates_bounded_monthly_decay() {
 			var world = new World();
 			int countryBonus = AddResource(
 				world, CountryId, OwnerType.Country, ResourceDefinitions.TroopsDamageBonusPercent, 0);
 			int otherCountryBonus = AddResource(
 				world, "country_b", OwnerType.Country, ResourceDefinitions.TroopsDamageBonusPercent, 0);
-			int orgGold = AddResource(world, OrgId, OwnerType.Org, ResourceDefinitions.Gold, 100);
-			int otherOrgGold = AddResource(world, "org_b", OwnerType.Org, ResourceDefinitions.Gold, 100);
 			int cardEntity = AddSucceededAction(world);
 
 			CreateActionEffectSystem.Update(world, BuildActionConfig(), BuildEffectConfig(), CurrentTime);
 
 			Assert.Equal(10.0, world.Get<Resource>(countryBonus).Value);
 			Assert.Equal(0.0, world.Get<Resource>(otherCountryBonus).Value);
-			Assert.Equal(400.0, world.Get<Resource>(orgGold).Value);
-			Assert.Equal(100.0, world.Get<Resource>(otherOrgGold).Value);
 
 			var changes = new List<ResourceChange>();
 			int[] changeRequired = { TypeId<ResourceChange>.Value };
@@ -93,10 +82,7 @@ namespace GS.Game.Tests {
 			Assert.Contains(changes, change =>
 				change.ResourceId == ResourceDefinitions.TroopsDamageBonusPercent &&
 				change.OwnerId == CountryId && change.Amount == 10.0);
-			Assert.Contains(changes, change =>
-				change.ResourceId == ResourceDefinitions.Gold &&
-				change.OwnerId == OrgId && change.Amount == 300.0);
-			Assert.Equal(2, changes.Count);
+			Assert.Single(changes);
 
 			int[] effectRequired = {
 				TypeId<ResourceOwner>.Value,
@@ -187,7 +173,6 @@ namespace GS.Game.Tests {
 		[Fact]
 		void sell_arms_fails_with_context_when_seeded_country_resource_is_missing() {
 			var world = new World();
-			AddResource(world, OrgId, OwnerType.Org, ResourceDefinitions.Gold, 100);
 			AddSucceededAction(world);
 
 			InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>

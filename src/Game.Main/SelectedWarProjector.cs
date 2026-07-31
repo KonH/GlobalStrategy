@@ -16,7 +16,7 @@ namespace GS.Main {
 			return Math.Clamp(100 * (attackerTroops - defenderTroops) / total, -100, 100);
 		}
 
-		public static void Project(IReadOnlyWorld world, SelectedWarState state) {
+		public static void Project(IReadOnlyWorld world, SelectedWarState state, CountryConfig? countryConfig = null) {
 			string warId = state.PendingWarId;
 			if (string.IsNullOrEmpty(warId) || !WarExists(world, warId)) {
 				state.SetInvalid();
@@ -34,16 +34,16 @@ namespace GS.Main {
 			double progress = ResourceQuery.GetValue(world, warId, ResourceDefinitions.WarProgress);
 			List<WarProgressHistoryEntryState> history = BuildHistory(world, warId);
 			WarSideStatsState attacker = BuildSideStats(
-				world, warId, attackerCountryId, WarParticipantKind.Attacker);
+				world, warId, attackerCountryId, WarParticipantKind.Attacker, countryConfig);
 			WarSideStatsState defender = BuildSideStats(
-				world, warId, defenderCountryId, WarParticipantKind.Defender);
+				world, warId, defenderCountryId, WarParticipantKind.Defender, countryConfig);
 			List<WarBattleRowState> battles = BuildBattles(world, warId);
 
 			state.Set(true, warId, progress, history, attacker, defender, battles);
 		}
 
 		static WarSideStatsState BuildSideStats(
-			IReadOnlyWorld world, string warId, string countryId, WarParticipantKind side) {
+			IReadOnlyWorld world, string warId, string countryId, WarParticipantKind side, CountryConfig? countryConfig) {
 			double troopsInBattles = 0;
 			double casualties = 0;
 			foreach (WarBattles.BattleInfo battle in WarBattles.GetBattles(world, warId)) {
@@ -59,13 +59,70 @@ namespace GS.Main {
 				}
 			}
 
+			CountryEntry? countryEntry = countryConfig?.FindByCountryId(countryId);
+			double damageBase = countryEntry?.BaseDamage ?? 40;
+			double damageRulerBonus = WartimeSkillQuery.GetSkill(world, countryId, "ruler", "power");
+			double damageAdvisorBonus = WartimeSkillQuery.GetSkill(world, countryId, "military_advisor", "power");
+			double damageBonusPercent = ResourceQuery.GetValue(world, countryId, ResourceDefinitions.TroopsDamageBonusPercent);
+			double durabilityBase = countryEntry?.BaseDurability ?? 40;
+			double durabilityRulerBonus = WartimeSkillQuery.GetSkill(world, countryId, "ruler", "stinginess");
+			double durabilityAdvisorBonus = WartimeSkillQuery.GetSkill(world, countryId, "economic_advisor", "stinginess");
+
 			return new WarSideStatsState(
 				countryId,
 				ResourceQuery.GetValue(world, countryId, ResourceDefinitions.Recruits),
 				troopsInBattles,
 				casualties,
 				ResourceQuery.GetValue(world, countryId, ResourceDefinitions.Damage),
-				ResourceQuery.GetValue(world, countryId, ResourceDefinitions.Durability));
+				ResourceQuery.GetValue(world, countryId, ResourceDefinitions.Durability),
+				damageBase,
+				damageRulerBonus,
+				damageAdvisorBonus,
+				damageBonusPercent,
+				BuildEffects(world, countryId, ResourceDefinitions.TroopsDamageBonusPercent),
+				durabilityBase,
+				durabilityRulerBonus,
+				durabilityAdvisorBonus);
+		}
+
+		static List<EffectStateEntry> BuildEffects(IReadOnlyWorld world, string ownerId, string resourceId) {
+			var result = new List<EffectStateEntry>();
+			int[] required = {
+				TypeId<ResourceOwner>.Value,
+				TypeId<ResourceLink>.Value,
+				TypeId<ResourceEffect>.Value
+			};
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				ResourceLink[] links = arch.GetColumn<ResourceLink>();
+				ResourceEffect[] effects = arch.GetColumn<ResourceEffect>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (owners[i].OwnerId != ownerId || links[i].ResourceId != resourceId) {
+						continue;
+					}
+					result.Add(new EffectStateEntry(
+						effects[i].EffectId, effects[i].Value, effects[i].PayType,
+						effects[i].MaxTotal, GetOrgDisplayName(world, effects[i].OrgId)));
+				}
+			}
+			return result;
+		}
+
+		static string GetOrgDisplayName(IReadOnlyWorld world, string orgId) {
+			if (string.IsNullOrEmpty(orgId)) {
+				return "";
+			}
+			int[] required = { TypeId<Organization>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				Organization[] orgs = arch.GetColumn<Organization>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (orgs[i].OrganizationId == orgId) {
+						return string.IsNullOrEmpty(orgs[i].DisplayName) ? orgId : orgs[i].DisplayName;
+					}
+				}
+			}
+			return orgId;
 		}
 
 		static List<WarBattleRowState> BuildBattles(IReadOnlyWorld world, string warId) {

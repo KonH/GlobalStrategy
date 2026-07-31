@@ -102,14 +102,6 @@
       "resourceId": "troops_damage_bonus_percent",
       "initialValue": 10.0,
       "decayPerMonth": 1.0
-    },
-    {
-      "effectId": "sell_arms_gold_grant_effect",
-      "effectType": "OrgResourceGrant",
-      "nameKey": "effect.sell_arms_gold_grant_effect.name",
-      "descKey": "effect.sell_arms_gold_grant_effect.desc",
-      "resourceId": "gold",
-      "amount": 300.0
     }
   ]
 }
