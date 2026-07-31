@@ -1,0 +1,53 @@
+.war-result-panel {
+    /* Inherits shared war-progress-panel sizing; results block needs room below battles. */
+}
+
+.war-result-winner {
+    align-self: center;
+    font-size: 28px;
+    margin-bottom: 10px;
+    -unity-text-align: middle-center;
+}
+
+.war-result-battles-list {
+    flex-grow: 0;
+    max-height: 120px;
+    margin-bottom: 8px;
+}
+
+.war-result-battles-empty {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin-bottom: 8px;
+}
+
+.war-result-section-title {
+    margin-top: 4px;
+}
+
+.war-result-results {
+    flex-grow: 1;
+    align-self: stretch;
+    max-height: 220px;
+}
+
+.war-result-subsection-title {
+    align-self: stretch;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    -unity-font-style: bold;
+}
+
+.war-result-list {
+    align-self: stretch;
+    margin-bottom: 4px;
+}
+
+.war-result-row {
+    align-self: stretch;
+    margin-bottom: 2px;
+    font-size: 18px;
+    white-space: normal;
+}

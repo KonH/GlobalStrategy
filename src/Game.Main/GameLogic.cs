@@ -77,7 +77,8 @@ namespace GS.Main {
 			GameSettings = settings;
 			settings.WarBattles.Validate();
 			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId,
-				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig);
+				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig,
+				settings.EventNotifications);
 			_speedMultipliers = settings.SpeedMultipliers;
 			var combatBasesByCountryId = new Dictionary<string, CountryCombatBases>();
 			foreach (var entry in CountryConfig.Countries) {
@@ -130,7 +131,7 @@ namespace GS.Main {
 			// Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
 			CleanupEffectNotificationsSystem.UpdateWarResolved(_world);
 			Wars.TryResolvePeaceByChance(
-				_world, _previousTime, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool);
+				_world, _previousTime, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, CountryConfig);
 			WarSystem.Update(
 				_world, _previousTime, currentTime, GameSettings.AttackerWarProgressDecayPerMonth, ResourceConfig);
 
@@ -219,7 +220,7 @@ namespace GS.Main {
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugStopWarCommand().AsSpan()) {
 				Wars.StopWar(
-					_world, cmd.CountryId, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool);
+					_world, cmd.CountryId, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, CountryConfig);
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugDrawCardCommand().AsSpan()) {
 				DrawCardSystem.ForceDrawCard(_world, cmd.OrgId, cmd.CountryId, cmd.ActionId, cmd.TargetCountryId);

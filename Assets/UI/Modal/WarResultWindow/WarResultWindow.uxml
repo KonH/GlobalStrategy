@@ -1,14 +1,15 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
     <ui:Style src="project://database/Assets/UI/Modal/WarProgressLayout/WarProgressLayout.uss"/>
-    <ui:Style src="project://database/Assets/UI/Modal/WarProgressWindow/WarProgressWindow.uss"/>
-    <ui:VisualElement name="war-progress-root" class="war-progress-root">
+    <ui:Style src="project://database/Assets/UI/Modal/WarResultWindow/WarResultWindow.uss"/>
+    <ui:VisualElement name="war-result-root" class="war-progress-root">
         <ui:VisualElement name="blackfade" class="gs-blackfade"/>
-        <ui:VisualElement name="war-progress-panel" class="gs-panel war-progress-panel">
+        <ui:VisualElement name="war-result-panel" class="gs-panel war-progress-panel war-result-panel">
             <ui:VisualElement class="war-progress-header">
                 <ui:Label name="war-progress-title" text="War" class="gs-title war-progress-title"/>
             </ui:VisualElement>
             <ui:Button name="btn-close" text="X" class="gs-btn war-progress-close"/>
+            <ui:Label name="war-result-winner" text="" class="gs-header war-result-winner gs-color-gold"/>
             <ui:Label name="war-progress-value" class="war-progress-value"/>
             <ui:VisualElement class="war-progress-track">
                 <ui:VisualElement name="progress-attacker-fill" class="war-progress-fill gs-bg-attacker"/>
@@ -45,8 +46,18 @@
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:Label name="battles-title" text="Battles" class="gs-header war-progress-section-title"/>
-            <ui:ScrollView name="battles-list" class="war-progress-battles-list" mode="Vertical" vertical-scroller-visibility="AlwaysVisible"/>
-            <ui:Label name="battles-empty" text="No battles yet" class="war-progress-battles-empty"/>
+            <ui:ScrollView name="battles-list" class="war-progress-battles-list war-result-battles-list" mode="Vertical" vertical-scroller-visibility="AlwaysVisible"/>
+            <ui:Label name="battles-empty" text="No battles yet" class="war-progress-battles-empty war-result-battles-empty"/>
+            <ui:Label name="war-result-results-title" text="Results" class="gs-header war-progress-section-title war-result-section-title"/>
+            <ui:ScrollView name="war-result-results" class="war-result-results" mode="Vertical" vertical-scroller-visibility="Auto">
+                <ui:Label name="war-result-gold-title" text="" class="gs-label war-result-subsection-title"/>
+                <ui:Label name="war-result-gold-taken" text="" class="gs-content war-result-row"/>
+                <ui:VisualElement name="war-result-gold-list" class="war-result-list"/>
+                <ui:Label name="war-result-control-title" text="" class="gs-label war-result-subsection-title"/>
+                <ui:VisualElement name="war-result-control-list" class="war-result-list"/>
+                <ui:Label name="war-result-provinces-title" text="" class="gs-label war-result-subsection-title"/>
+                <ui:VisualElement name="war-result-provinces-list" class="war-result-list"/>
+            </ui:ScrollView>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

@@ -60,6 +60,30 @@
     "includePlayerActions": true,
     "maxLogEntries": 12
   },
+  "eventNotifications": {
+    "events": [
+      {
+        "eventType": "war_resolved",
+        "pause": true,
+        "showWindow": true,
+        "writeActionLog": true,
+        "pauseCondition": {
+          "type": "gt",
+          "members": [
+            { "type": "control" },
+            { "type": "value", "value": 0 }
+          ]
+        },
+        "showWindowCondition": {
+          "type": "gt",
+          "members": [
+            { "type": "control" },
+            { "type": "value", "value": 0 }
+          ]
+        }
+      }
+    ]
+  },
   "endGameComparisons": [
     { "comparisonElementId": "CommitteeOf300", "score": 14349 },
     { "comparisonElementId": "TrilateralCommission", "score": 55601 },

@@ -355,19 +355,19 @@ assert still no `WarResolvedApplied`, no queue enqueue, no pause from this featu
 
 ## Agent Steps
 
-- [ ] **Enrich `WarResolvedApplied` + component snapshot DTOs** — expand
+- [x] **Enrich `WarResolvedApplied` + component snapshot DTOs** — expand
   `src/Game.Components/GameLogEffects.cs` (or sibling file) with identity, gold,
   control, province, and frozen progress/battle/history DTO fields; keep struct
   usable as a one-shot ECS component with managed lists; **no** `GS.Main` types in
   `Game.Components` or `Game.Systems`.
 
-- [ ] **Extract `WarProgressSnapshot` in `Game.Systems`** — move history/side-stats/
+- [x] **Extract `WarProgressSnapshot` in `Game.Systems`** — move history/side-stats/
   battle/effect builders out of `SelectedWarProjector` into `WarProgressSnapshot`;
   accept `CountryConfig` for base damage/durability (same fallbacks as live UI);
   retarget the projector in `Game.Main` to map component DTOs → VisualState types
   only.
 
-- [ ] **Thread `CountryConfig` through peace entry points** — extend
+- [x] **Thread `CountryConfig` through peace entry points** — extend
   `Wars.StopWar` / `TryResolvePeaceByChance` / `ResolvePeace` signatures (keep
   existing `ProvinceTopology` + centers + `maxControlPool`); pass config from
   `GameLogic` debug StopWar + peace-chance call sites; update **every** compile
@@ -375,27 +375,27 @@ assert still no `WarResolvedApplied`, no queue enqueue, no pause from this featu
   `ActionPlayabilityTests`, `VisualStateConverterCountryActionsOpinionGateTests`,
   etc.) so freeze side stats match live progress UI.
 
-- [ ] **Return values from peace mutators** — refactor
+- [x] **Return values from peace mutators** — refactor
   `TransferOccupiedProvinces`, gold collect/payout, and control shift helpers to
   accumulate transferred ids / gold taken + recipients / control deltas; wire into
   `ResolvePeace` snapshot emission; progress-`0` path unchanged.
 
-- [ ] **Add event notification config** — `EventNotificationSettings` /
+- [x] **Add event notification config** — `EventNotificationSettings` /
   `EventNotificationEntry` on `GameSettings`; ship `eventNotifications` in
   `Assets/Configs/game_settings.json` with war_resolved defaults (flags true +
   `gt(control,0)` pause/show conditions + null write-log condition).
 
-- [ ] **Condition OR-eval helper** — `EventNotificationConditionContext` /
+- [x] **Condition OR-eval helper** — `EventNotificationConditionContext` /
   `Passes(...)` using per-participant `ExpressionContext.Control` and
   `ExpressionNode.Evaluate`; unit-test influence in neither / one / both.
 
-- [ ] **Dispatcher + `WarResults` queue + log gating** — pass notification settings
+- [x] **Dispatcher + `WarResults` queue + log gating** — pass notification settings
   into `VisualStateConverter`; evaluate decisions in `Game.Main`; map component
   snapshots → `WarResultSnapshotState`; project FIFO `VisualState.WarResults`; gate
   `UpdateGameLog` war-resolved lines on `WriteActionLog` decision; preserve short
   log format.
 
-- [ ] **Shared progress layout binder + tooltips** — extract layout USS into
+- [x] **Shared progress layout binder + tooltips** — extract layout USS into
   `WarProgressLayout.uss` with shared element `name`s/`class`es; extract reusable
   bind helpers from `WarProgressWindowView` (including `TooltipSystem` usage);
   keep progress window behaviour identical; result document mirrors progress
@@ -403,24 +403,24 @@ assert still no `WarResolvedApplied`, no queue enqueue, no pause from this featu
   Result UXML must reuse the progress chrome names — no forked `war-result-*`
   progress selectors.
 
-- [ ] **Shared `.gs-color-gold` utility** — add to `Assets/UI/Shared/SharedStyles.uss`
+- [x] **Shared `.gs-color-gold` utility** — add to `Assets/UI/Shared/SharedStyles.uss`
   and document in `.claude/rules/unity/uitoolkit.md`; winner label uses that class;
   `WarResultWindow.uss` stays layout-only.
 
-- [ ] **WarResultWindow UXML/USS/view/document** — sibling modal under
+- [x] **WarResultWindow UXML/USS/view/document** — sibling modal under
   `Assets/UI/Modal/WarResultWindow/`; winner label + results block; gold amounts use
   `0.#`-style formatting; pause only when `ShouldPause && !_state.Time.IsPaused`
   (claim `_issuedPause` only then); unpause on last close only if `_issuedPause`;
   FIFO consume from `WarResults`; VContainer registration in `GameLifetimeScope`.
 
-- [ ] **Localization keys** — EN entries for all new `war_result.*` strings; run
+- [x] **Localization keys** — EN entries for all new `war_result.*` strings; run
   localization skill for real RU translations.
 
-- [ ] **Scene UIDocument wiring** — add `WarResultWindowUI` + `UIDocument` in
+- [x] **Scene UIDocument wiring** — add `WarResultWindowUI` + `UIDocument` in
   `Map.unity` beside `WarProgressWindowUI` (Unity MCP if available; otherwise
   documented YAML fallback) matching other modals’ `HUDPanelSettings`.
 
-- [ ] **Tests + validate** — see Tests; run `dotnet test src/GlobalStrategy.Core.sln`
+- [x] **Tests + validate** — see Tests; run `dotnet test src/GlobalStrategy.Core.sln`
   and Release build for plugin DLLs per workflow.
 
 ## User Steps

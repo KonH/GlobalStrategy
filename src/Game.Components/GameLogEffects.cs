@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using GS.Game.Common;
 
 namespace GS.Game.Components {
@@ -41,7 +42,19 @@ namespace GS.Game.Components {
 	}
 
 	public struct WarResolvedApplied {
+		public string WarId;
+		public string AttackerCountryId;
+		public string DefenderCountryId;
 		public string WinnerCountryId;
 		public string LoserCountryId;
+		public double Progress;
+		public double GoldTaken;
+		public List<WarGoldRecipientSnapshot> GoldRecipients;
+		public List<WarControlDeltaSnapshot> ControlDeltas;
+		public List<string> TransferredProvinceIds;
+		public List<WarProgressHistorySnapshot> History;
+		public WarSideStatsSnapshot Attacker;
+		public WarSideStatsSnapshot Defender;
+		public List<WarBattleRowSnapshot> Battles;
 	}
 }
