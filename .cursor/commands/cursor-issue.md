@@ -20,7 +20,7 @@ Never add or remove `cursor`, and never remove either outcome label. The owner r
 3. Execute the requested workflow. For feature work, follow this repository's `/specify` -> `/plan` -> `/implement` approval gates; do not bypass an approval stop. Work on an existing PR branch directly. For an issue that changes files, create or resume `feature/<feature_name>` from `main`. A pure answer needs no branch.
 4. Commit and push all created artifacts, including partial work, following the repository commit workflow. Never discard partial work.
 5. For an issue branch with commits, create a PR if none exists: `gh pr create --repo KonH/GlobalStrategy --title "<issue title>" --base main --head <branch> --body "Closes #<N>\n\n<brief summary>"`. Never merge.
-6. Post exactly one comment beginning `<!-- cursor-automation -->`, summarizing work, branch/PR, remaining work, and questions.
+6. Post exactly one comment beginning `<!-- cursor-automation -->`, summarizing work, branch/PR, remaining work, and questions. When asking for owner decisions, follow `.claude/rules/issue_clarification_questions.md`: write the full questions in the comment (not only a pointer elsewhere), number them `0`–`9`, and keep each question readable without opening another file.
 7. Add `ai-complete` if fully done, otherwise `ai-need-attention`; only then remove `ai-in-progress`.
 
 When Unity Editor access is required but unavailable, complete everything safely possible, explain the skipped verification in the handoff comment, and use `ai-need-attention`.
