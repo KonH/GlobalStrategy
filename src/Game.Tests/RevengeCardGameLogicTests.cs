@@ -29,7 +29,7 @@ namespace GS.Game.Tests {
 		const int HqBaseDurability = 65;
 		const int TargetBaseDamage = 80;
 		const int TargetBaseDurability = 75;
-		const string MilitaryAdvisorCharId = "fr_mil";
+		const string MilitaryAdvisorCharId = "gb_mil";
 
 		static CharacterConfig BuildCharacterConfig() => new CharacterConfig {
 			Roles = new List<CharacterRoleDefinition> {
@@ -37,7 +37,7 @@ namespace GS.Game.Tests {
 			},
 			CountryPools = new List<CountryCharacterPool> {
 				new CountryCharacterPool {
-					CountryId = TargetCountryId,
+					CountryId = HqCountryId,
 					Slots = new Dictionary<string, List<CharacterEntry>> {
 						["military_advisor"] = new List<CharacterEntry> { new CharacterEntry { CharacterId = MilitaryAdvisorCharId } }
 					}
@@ -149,14 +149,16 @@ namespace GS.Game.Tests {
 			world.Add(e, new Resource { ResourceId = $"opinion_{orgId}", Value = opinion });
 		}
 
-		static void PutRevengeCardInHand(World world, string orgId, string countryId) {
+		static void PutRevengeCardInHand(World world, string orgId, string countryId, string targetCountryId) {
 			int[] required = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				CountryContext[] countries = arch.GetColumn<CountryContext>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (actions[i].ActionId == "revenge" && orgs[i].OrgId == orgId && countries[i].CountryId == countryId) {
+					if (actions[i].ActionId == "revenge" && orgs[i].OrgId == orgId && countries[i].CountryId == countryId
+						&& world.Has<RevengeCardTarget>(arch.Entities[i])
+						&& world.Get<RevengeCardTarget>(arch.Entities[i]).TargetCountryId == targetCountryId) {
 						int entity = arch.Entities[i];
 						if (!world.Has<CardInHand>(entity)) {
 							world.Add(entity, new CardInHand { SlotIndex = 0 });
@@ -184,11 +186,13 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic();
 			logic.Update(0f);
 
-			AddControl(logic.World, OrgId, TargetCountryId, 20);
+			RevengeEligibilityQuery.SetEligible(logic.World, HqCountryId, TargetCountryId);
+			logic.Update(0f);
+			AddControl(logic.World, OrgId, HqCountryId, 20);
 			AddOpinion(logic.World, MilitaryAdvisorCharId, OrgId, 25);
-			PutRevengeCardInHand(logic.World, OrgId, TargetCountryId);
+			PutRevengeCardInHand(logic.World, OrgId, HqCountryId, TargetCountryId);
 
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = TargetCountryId, ActionId = "revenge" });
+			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = HqCountryId, ActionId = "revenge", TargetCountryId = TargetCountryId });
 			logic.Update(0f);
 
 			Assert.True(Wars.IsInWar(logic.World, HqCountryId));

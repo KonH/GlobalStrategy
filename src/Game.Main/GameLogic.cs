@@ -266,6 +266,7 @@ namespace GS.Main {
 			RemoveCardFromHandSystem.Update(_world);
 			CheckHandSizeSystem.Update(_world);
 			RelationCardSyncSystem.Update(_world, _actionConfig);
+			RevengeCardSyncSystem.Update(_world, _actionConfig);
 			DrawCardSystem.Update(_world, _actionConfig, _rng, _hqCountryByOrgId);
 			CleanupCardDiscardSystem.Update(_world);
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool);

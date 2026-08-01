@@ -1802,14 +1802,16 @@ MonoBehaviour:
     Value: Одна из стран уже участвует в войне
   - Key: action.country.unplayable.at_war
     Value: Недоступно во время войны
+  - Key: action.country.unplayable.no_war_loss_to_avenge
+    Value: Требуется неотмщённое поражение против этой страны
   - Key: action.country.unplayable.no_enemy_control
     Value: Нет организации с контролем, которую можно выбрать целью
   - Key: action.country.unplayable.not_at_war
     Value: Эта страна сейчас не участвует в войне
   - Key: action.revenge.name
-    Value: Месть
+    Value: "Месть против {0}"
   - Key: action.revenge.desc
-    Value: Объявить войну от родной страны против этой страны с временными боевыми бонусами.
+    Value: Объявить войну мести против этой страны с временными боевыми бонусами.
   - Key: effect.revenge_declare_war.name
     Value: Объявить войну мести
   - Key: effect.revenge_declare_war.desc

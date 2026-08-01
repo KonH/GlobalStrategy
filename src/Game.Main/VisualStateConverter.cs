@@ -653,6 +653,7 @@ namespace GS.Main {
 							"targetRulerOrMilitaryOpinion" => "insufficient_target_opinion",
 							"neitherSideAtWar" => "already_at_war",
 							"warFree" => "at_war",
+							"revengeEligible" => "no_war_loss_to_avenge",
 							_ => "insufficient_control"
 						};
 					break;
@@ -666,7 +667,9 @@ namespace GS.Main {
 			}
 			bool isUnplayable = conditionFailed || poolFull;
 			string unplayableReason = poolFull ? "pool_full" : (conditionFailed ? failedReason : "");
-			string targetCountryId = world.Has<RelationCardTarget>(entity) ? world.Get<RelationCardTarget>(entity).TargetCountryId : "";
+			string targetCountryId = world.Has<RelationCardTarget>(entity)
+				? world.Get<RelationCardTarget>(entity).TargetCountryId
+				: world.Has<RevengeCardTarget>(entity) ? world.Get<RevengeCardTarget>(entity).TargetCountryId : "";
 
 			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason, targetCountryId, conditionResults);
 		}

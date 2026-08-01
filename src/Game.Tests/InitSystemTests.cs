@@ -599,7 +599,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void revenge_can_populate_initial_hand_when_control_and_war_free_hold() {
+		void revenge_does_not_populate_initial_hand_before_a_country_has_lost_a_war() {
 			const string militaryRole = "military_advisor";
 			var characterConfig = new CharacterConfig {
 				Roles = new List<CharacterRoleDefinition> { new CharacterRoleDefinition { RoleId = militaryRole } },
@@ -683,7 +683,7 @@ namespace GS.Game.Tests {
 				}
 			}
 
-			Assert.True(found);
+			Assert.False(found);
 		}
 
 		[Fact]

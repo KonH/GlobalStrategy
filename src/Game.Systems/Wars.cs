@@ -164,6 +164,7 @@ namespace GS.Game.Systems {
 				WinnerCountryId = winnerCountryId,
 				LoserCountryId = loserCountryId
 			});
+			RevengeEligibilityQuery.OnWarResolved(world, winnerCountryId, loserCountryId);
 
 			return true;
 		}
@@ -281,6 +282,7 @@ namespace GS.Game.Systems {
 
 			int ge = world.Create();
 			world.Add(ge, new WarResolvedApplied { WinnerCountryId = winnerId, LoserCountryId = loserId });
+			RevengeEligibilityQuery.OnWarResolved(world, winnerId, loserId);
 		}
 
 		public static double ComputePeaceChancePercent(double progress, GameSettings settings) {

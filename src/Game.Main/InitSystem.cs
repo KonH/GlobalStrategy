@@ -668,7 +668,7 @@ namespace GS.Main {
 						// Relation-synced cards are created by RelationCardSyncSystem (one per
 						// relation). DeckCopies on those rows is a draw weight, not a static
 						// copy count — skip them here so weight > 0 does not spawn untargeted entities.
-						if (RelationCardSyncSystem.IsSyncedAction(def.ActionId)) { continue; }
+						if (RelationCardSyncSystem.IsSyncedAction(def.ActionId) || def.ActionId == "revenge") { continue; }
 
 						// Determine targets
 						var targets = new List<string>();

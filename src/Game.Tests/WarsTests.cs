@@ -167,6 +167,28 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void stop_war_with_nonzero_progress_grants_the_loser_revenge_eligibility() {
+			var world = new World();
+			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			string warId = GetSingle<War>(world).WarId;
+			ResourceMutations.TrySetValue(world, warId, ResourceDefinitions.WarProgress, -30, out _);
+
+			Wars.StopWar(
+				world,
+				"Great_Britain",
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100);
+
+			// Negative progress favors the defender (France) as winner.
+			Assert.True(RevengeEligibilityQuery.IsEligible(world, "Great_Britain", "France"));
+			Assert.False(RevengeEligibilityQuery.IsEligible(world, "France", "Great_Britain"));
+		}
+
+		[Fact]
 		void stop_war_on_country_not_in_any_war_is_a_no_op() {
 			var world = new World();
 
@@ -217,6 +239,9 @@ namespace GS.Game.Tests {
 			Assert.Single(applied);
 			Assert.Equal("Great_Britain", applied[0].WinnerCountryId);
 			Assert.Equal("France", applied[0].LoserCountryId);
+
+			Assert.True(RevengeEligibilityQuery.IsEligible(world, "France", "Great_Britain"));
+			Assert.False(RevengeEligibilityQuery.IsEligible(world, "Great_Britain", "France"));
 		}
 
 		[Fact]
@@ -247,6 +272,30 @@ namespace GS.Game.Tests {
 			Assert.Single(applied);
 			Assert.Equal("France", applied[0].WinnerCountryId);
 			Assert.Equal("Great_Britain", applied[0].LoserCountryId);
+
+			Assert.True(RevengeEligibilityQuery.IsEligible(world, "Great_Britain", "France"));
+			Assert.False(RevengeEligibilityQuery.IsEligible(world, "France", "Great_Britain"));
+		}
+
+		[Fact]
+		void resolve_war_clears_the_winners_eligibility_when_it_had_previously_lost_to_the_loser() {
+			var world = new World();
+			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "France");
+			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+
+			Wars.ResolveWar(
+				world,
+				"Great_Britain",
+				WarOutcome.Win,
+				DeclareTime,
+				new Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100);
+
+			Assert.False(RevengeEligibilityQuery.IsEligible(world, "Great_Britain", "France"));
+			Assert.True(RevengeEligibilityQuery.IsEligible(world, "France", "Great_Britain"));
 		}
 
 		[Fact]

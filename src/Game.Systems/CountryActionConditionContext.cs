@@ -19,6 +19,13 @@ namespace GS.Game.Systems {
 			double isInWar = 0.0;
 			double warProgress = 0.0;
 			double warFree = 1.0;
+			double revengeEligible = 0.0;
+
+			string hqCountryId = "";
+			if (hqCountryByOrgId != null && !string.IsNullOrEmpty(orgId)) {
+				hqCountryByOrgId.TryGetValue(orgId, out hqCountryId);
+				hqCountryId ??= "";
+			}
 
 			if (!string.IsNullOrEmpty(countryId)) {
 				orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
@@ -26,7 +33,13 @@ namespace GS.Game.Systems {
 				hasSuitableRelationTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
 				isInWar = Wars.IsInWar(world, countryId) ? 1.0 : 0.0;
 				warProgress = Wars.GetOwnWarProgress(world, countryId);
-				warFree = Wars.IsWarFree(world, countryId, orgId, hqCountryByOrgId) ? 1.0 : 0.0;
+				if (definition.ActionId == "revenge" && cardEntity >= 0 && world.Has<RevengeCardTarget>(cardEntity)) {
+					string targetCountryId = world.Get<RevengeCardTarget>(cardEntity).TargetCountryId;
+					warFree = Wars.IsWarFree(world, countryId, targetCountryId) ? 1.0 : 0.0;
+					revengeEligible = RevengeEligibilityQuery.IsEligible(world, countryId, targetCountryId) ? 1.0 : 0.0;
+				} else {
+					warFree = Wars.IsWarFree(world, countryId, hqCountryId) ? 1.0 : 0.0;
+				}
 
 				if (!string.IsNullOrEmpty(definition.TargetRole)) {
 					string characterId = CharacterQuery.GetTargetCharacterByCountryAndRole(
@@ -67,7 +80,8 @@ namespace GS.Game.Systems {
 				WarProgress = warProgress,
 				TargetRulerOrMilitaryOpinion = targetRulerOrMilitaryOpinion,
 				NeitherSideAtWar = neitherSideAtWar,
-				WarFree = warFree
+				WarFree = warFree,
+				RevengeEligible = revengeEligible
 			};
 		}
 	}

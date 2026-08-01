@@ -128,21 +128,22 @@ namespace GS.Game.Systems {
 							});
 						}
 					} else if (effectDef is DeclareRevengeWarEffectParams revengeParams && !string.IsNullOrEmpty(countryId)
-						&& hqCountryByOrgId != null && hqCountryByOrgId.TryGetValue(orgId, out string? hqCountryId) && !string.IsNullOrEmpty(hqCountryId)) {
-						if (Wars.DeclareWar(world, hqCountryId, countryId, currentTime, topology, settings.WarBattles, out string? warId)) {
-							RevengeWarBonusQuery.RemoveForCountry(world, hqCountryId);
+						&& world.Has<RevengeCardTarget>(entity)) {
+						string targetCountryId = world.Get<RevengeCardTarget>(entity).TargetCountryId;
+						if (Wars.DeclareWar(world, countryId, targetCountryId, currentTime, topology, settings.WarBattles, out string? warId)) {
+							RevengeWarBonusQuery.RemoveForCountry(world, countryId);
 							int be = world.Create();
 							world.Add(be, new RevengeWarBonus {
 								WarId = warId ?? "",
-								CountryId = hqCountryId,
+								CountryId = countryId,
 								DamageBonusPercent = revengeParams.DamageBonusPercent,
 								DurabilityBonusPercent = revengeParams.DurabilityBonusPercent
 							});
 							int e = world.Create();
 							world.Add(e, new WarDeclaredApplied {
 								OrgId = orgId,
-								CountryId = hqCountryId,
-								DefenderCountryId = countryId
+								CountryId = countryId,
+								DefenderCountryId = targetCountryId
 							});
 						}
 					} else if (effectDef is EnemyControlDrainEffectParams drainParams && drainParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {

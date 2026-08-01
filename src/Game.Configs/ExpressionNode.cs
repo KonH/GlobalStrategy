@@ -13,6 +13,7 @@ namespace GS.Game.Configs {
 		public double TargetRulerOrMilitaryOpinion { get; set; }
 		public double NeitherSideAtWar { get; set; }
 		public double WarFree { get; set; }
+		public double RevengeEligible { get; set; }
 	}
 
 	public class ExpressionNode {
@@ -84,6 +85,9 @@ namespace GS.Game.Configs {
 				}
 				case "warFree": {
 					return ctx.WarFree;
+				}
+				case "revengeEligible": {
+					return ctx.RevengeEligible;
 				}
 				case "gte": {
 					if (node.Members == null || node.Members.Count < 2) { return 0; }

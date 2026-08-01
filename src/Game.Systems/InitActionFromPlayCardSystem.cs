@@ -45,9 +45,11 @@ namespace GS.Game.Systems {
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId || actions[i].ActionId != actionId) { continue; }
 					int entity = arch.Entities[i];
-					bool hasTarget = world.Has<RelationCardTarget>(entity);
-					if (hasTarget) {
-						if (string.IsNullOrEmpty(targetCountryId) || world.Get<RelationCardTarget>(entity).TargetCountryId != targetCountryId) { continue; }
+					string cardTargetCountryId = world.Has<RelationCardTarget>(entity)
+						? world.Get<RelationCardTarget>(entity).TargetCountryId
+						: world.Has<RevengeCardTarget>(entity) ? world.Get<RevengeCardTarget>(entity).TargetCountryId : "";
+					if (!string.IsNullOrEmpty(cardTargetCountryId)) {
+						if (string.IsNullOrEmpty(targetCountryId) || cardTargetCountryId != targetCountryId) { continue; }
 					} else if (!string.IsNullOrEmpty(targetCountryId)) {
 						continue;
 					}

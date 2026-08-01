@@ -92,7 +92,7 @@ namespace GS.Game.Systems {
 					int entity = arch.Entities[i];
 					string entityTarget = world.Has<RelationCardTarget>(entity)
 						? world.Get<RelationCardTarget>(entity).TargetCountryId
-						: "";
+						: world.Has<RevengeCardTarget>(entity) ? world.Get<RevengeCardTarget>(entity).TargetCountryId : "";
 					if (entityTarget == (targetCountryId ?? "")) {
 						return entity;
 					}
