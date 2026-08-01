@@ -63,5 +63,5 @@ MonoBehaviour:
     frontImage: {fileID: 21300000, guid: 7188917c53336b34cbbe31421718a3ed, type: 3}
     backImage: {fileID: 0}
   - actionId: revenge
-    frontImage: {fileID: 21300000, guid: 44fad9397734b8942aa06bb5fa466b9c, type: 3}
+    frontImage: {fileID: 8466993183105239378, guid: 44fad9397734b8942aa06bb5fa466b9c, type: 3}
     backImage: {fileID: 0}
