@@ -24,17 +24,21 @@
             <ui:VisualElement name="resources-container" class="resources-container" />
         </ui:VisualElement>
         <ui:VisualElement name="relations-block" class="relations-block">
-            <ui:VisualElement name="friends-row-block" class="relations-row-block">
-                <ui:Label name="friends-header" class="gs-label relations-header" text="Friends" />
-                <ui:VisualElement name="friends-flags" class="relations-flags" />
+            <ui:VisualElement name="relations-left-column" class="relations-column">
+                <ui:VisualElement name="friends-row-block" class="relations-row-block">
+                    <ui:Label name="friends-header" class="gs-label relations-header" text="Friends" />
+                    <ui:VisualElement name="friends-flags" class="relations-flags" />
+                </ui:VisualElement>
+                <ui:VisualElement name="rivals-row-block" class="relations-row-block">
+                    <ui:Label name="rivals-header" class="gs-label relations-header" text="Rivals" />
+                    <ui:VisualElement name="rivals-flags" class="relations-flags" />
+                </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="rivals-row-block" class="relations-row-block">
-                <ui:Label name="rivals-header" class="gs-label relations-header" text="Rivals" />
-                <ui:VisualElement name="rivals-flags" class="relations-flags" />
-            </ui:VisualElement>
-            <ui:VisualElement name="wars-row-block" class="relations-row-block">
-                <ui:Label name="wars-header" class="gs-label relations-header" text="Wars" />
-                <ui:VisualElement name="wars-flags" class="relations-flags" />
+            <ui:VisualElement name="relations-right-column" class="relations-column relations-right-column">
+                <ui:VisualElement name="wars-row-block" class="relations-row-block">
+                    <ui:Label name="wars-header" class="gs-label relations-header" text="Wars" />
+                    <ui:VisualElement name="wars-flags" class="relations-flags" />
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement class="country-toggle-block">
