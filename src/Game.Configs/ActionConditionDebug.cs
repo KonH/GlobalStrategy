@@ -73,6 +73,10 @@ namespace GS.Game.Configs {
 					return $"targetRulerOrMilitaryOpinion ({FormatNumber(ctx.TargetRulerOrMilitaryOpinion)})";
 				case "neitherSideAtWar":
 					return $"neitherSideAtWar ({FormatNumber(ctx.NeitherSideAtWar)})";
+				case "warFree":
+					return $"warFree ({FormatNumber(ctx.WarFree)})";
+				case "revengeEligible":
+					return $"revengeEligible ({FormatNumber(ctx.RevengeEligible)})";
 				case "add":
 				case "sub":
 				case "mul":

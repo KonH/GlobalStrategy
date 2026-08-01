@@ -57,9 +57,11 @@ A subscription session/usage-limit hit is handled entirely separately from crash
 - Every later run checks the stored timestamp right after acquiring the lock, comparing aware-UTC to aware-UTC so the machine's local timezone never skews it, and **skips the whole run** (no GitHub calls, no CLI invocation) while the window is still in effect. Once it has passed, the file is deleted and normal runs resume.
 - **`checkout_clean`:** if the local branch exists and is ahead of `origin/<branch>`, push it first, then force-reset; a failed ahead-push does not reset over the local tip (so an unpushed salvage commit survives until push succeeds).
 
-## Concurrency: a process lock, not GitHub state
+## Concurrency: local flock + cross-instance claim
 
 `handle_issues.py` acquires an exclusive `flock` on `Logs/handle_issues_claude.lock` before doing anything else; a run that can't get the lock exits immediately. This stays a local OS-level lock rather than a GitHub label because it releases automatically the moment the process exits, crash or not — and it's precisely what makes the stale-reclaim logic above sound. (On Windows it uses `msvcrt` locking; also set Task Scheduler's "don't start a new instance" option as a second safeguard.)
+
+That flock only serializes one wrapper process on one machine. It does nothing for two distinct automation instances (separate schedules/machines) — the failure mode behind issue #104 / duplicate PRs #105/#106, and the concurrent-plan race on this feature's own branch (`feature/prevent-double-automation`). Cross-instance exclusion is `claim_candidate` in `scripts/automation/common/issue_handler.py`: each provider wrapper calls it once per candidate **before** `checkout_clean` / CLI spawn. It pairs the (non-CAS) `ai-in-progress` label with a uniquely-tokened, fully-invisible claim comment, sleeps a short settle delay so a near-simultaneous rival can post, then breaks the tie by monotonic GitHub comment id among comments fresher than a short freshness window. Losers log and `continue` with no checkout, CLI, branch, commit, PR, or summary comment for that item.
 
 ## Security
 

@@ -6,7 +6,17 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class CreateActionEffectSystem {
-		public static void Update(World world, ActionConfig actionConfig, EffectConfig effectConfig, DateTime currentTime) {
+		public static void Update(
+			World world,
+			ActionConfig actionConfig,
+			EffectConfig effectConfig,
+			DateTime currentTime,
+			Random rng,
+			GameSettings settings,
+			ProvinceTopology topology,
+			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
+			int maxControlPool,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null) {
 			int[] required = { TypeId<GameAction>.Value, TypeId<ActionSucceeded>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
 			var toProcess = new List<(int entity, string actionId, string orgId)>();
 
@@ -117,6 +127,25 @@ namespace GS.Game.Systems {
 								DefenderCountryId = targetCountryId
 							});
 						}
+					} else if (effectDef is DeclareRevengeWarEffectParams revengeParams && !string.IsNullOrEmpty(countryId)
+						&& world.Has<RevengeCardTarget>(entity)) {
+						string targetCountryId = world.Get<RevengeCardTarget>(entity).TargetCountryId;
+						if (Wars.DeclareWar(world, countryId, targetCountryId, currentTime, topology, settings.WarBattles, out string? warId)) {
+							RevengeWarBonusQuery.RemoveForCountry(world, countryId);
+							int be = world.Create();
+							world.Add(be, new RevengeWarBonus {
+								WarId = warId ?? "",
+								CountryId = countryId,
+								DamageBonusPercent = revengeParams.DamageBonusPercent,
+								DurabilityBonusPercent = revengeParams.DurabilityBonusPercent
+							});
+							int e = world.Create();
+							world.Add(e, new WarDeclaredApplied {
+								OrgId = orgId,
+								CountryId = countryId,
+								DefenderCountryId = targetCountryId
+							});
+						}
 					} else if (effectDef is EnemyControlDrainEffectParams drainParams && drainParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
 						string? targetOrgId = ControlQuery.GetHighestControlOtherOrg(world, orgId, countryId);
 						if (targetOrgId != null) {
@@ -140,6 +169,10 @@ namespace GS.Game.Systems {
 								});
 							}
 						}
+					} else if (effectDef is ResolveWarEffectParams resolveWarParams && !string.IsNullOrEmpty(countryId)) {
+						Wars.ResolveWar(
+							world, countryId, resolveWarParams.Outcome, currentTime,
+							rng, settings, topology, provinceCenters, maxControlPool);
 					} else if (effectDef is CountryResourceModifierEffectParams resourceModifierParams) {
 						if (string.IsNullOrEmpty(countryId)) {
 							throw new InvalidOperationException(

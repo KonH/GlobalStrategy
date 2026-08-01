@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Common;
@@ -95,6 +96,30 @@ namespace GS.Game.Tests {
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 250.0 } }
 					},
 					new ActionDefinition {
+						ActionId = "ultimatum",
+						OwnerType = "country",
+						TargetRole = "military_advisor",
+						Conditions = new List<ExpressionNode> {
+							Gte("control", 10),
+							Gte("opinion", 50),
+							Gte("isInWar", 1),
+							Gte("warProgress", 50)
+						},
+						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 300.0 } }
+					},
+					new ActionDefinition {
+						ActionId = "surrender",
+						OwnerType = "country",
+						TargetRole = "military_advisor",
+						Conditions = new List<ExpressionNode> {
+							Gte("control", 20),
+							Gte("opinion", 80),
+							Gte("isInWar", 1),
+							Lte("warProgress", 0)
+						},
+						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 500.0 } }
+					},
+					new ActionDefinition {
 						ActionId = "sell_arms",
 						OwnerType = "country",
 						TargetRole = "military_advisor",
@@ -114,7 +139,39 @@ namespace GS.Game.Tests {
 								}
 							}
 						}
+					},
+					new ActionDefinition {
+						ActionId = "revenge",
+						OwnerType = "country",
+						TargetRole = "military_advisor",
+						Conditions = new List<ExpressionNode> {
+							Gte("control", 20),
+							Gte("opinion", 25),
+							Gte("warFree", 1),
+							Gte("revengeEligible", 1)
+						},
+						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } }
 					}
+				}
+			};
+		}
+
+		static ExpressionNode Gte(string fieldType, double value) {
+			return new ExpressionNode {
+				Type = "gte",
+				Members = new List<ExpressionNode> {
+					new ExpressionNode { Type = fieldType },
+					new ExpressionNode { Type = "value", Value = value }
+				}
+			};
+		}
+
+		static ExpressionNode Lte(string fieldType, double value) {
+			return new ExpressionNode {
+				Type = "lte",
+				Members = new List<ExpressionNode> {
+					new ExpressionNode { Type = fieldType },
+					new ExpressionNode { Type = "value", Value = value }
 				}
 			};
 		}
@@ -135,6 +192,28 @@ namespace GS.Game.Tests {
 			world.Add(resEntity, new ResourceOwner(charId, OwnerType.Character));
 			world.Add(resEntity, new Resource { ResourceId = $"opinion_{orgId}", Value = opinion });
 			return charEntity;
+		}
+
+		static int AddMilitaryAdvisor(World world, string countryId, string charId, string orgId, int opinion) {
+			int charEntity = world.Create();
+			world.Add(charEntity, new Character {
+				CharacterId = charId, CountryId = countryId, OrgId = "", RoleId = "military_advisor",
+				NamePartKeys = System.Array.Empty<string>()
+			});
+			int resEntity = world.Create();
+			world.Add(resEntity, new ResourceOwner(charId, OwnerType.Character));
+			world.Add(resEntity, new Resource { ResourceId = $"opinion_{orgId}", Value = opinion });
+			return charEntity;
+		}
+
+		static void SetWarProgress(World world, double value) {
+			int[] required = { TypeId<War>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
+				var wars = arch.GetColumn<War>();
+				for (int i = 0; i < arch.Count; i++) {
+					ResourceMutations.TrySetValue(world, wars[i].WarId, ResourceDefinitions.WarProgress, value, out _);
+				}
+			}
 		}
 
 		static int AddDiplomacyAdvisor(World world, string countryId, string charId, string orgId, int opinion) {
@@ -440,6 +519,138 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void ultimatum_unplayable_when_not_in_any_war() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 300.0);
+			AddControl(world, "OrgA", "Prussia", 10);
+			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void ultimatum_playable_when_in_war_and_thresholds_met_and_affordable() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 300.0);
+			AddControl(world, "OrgA", "Prussia", 10);
+			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
+			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
+			SetWarProgress(world, 50);
+
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void ultimatum_unplayable_when_control_one_below_gate() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 300.0);
+			AddControl(world, "OrgA", "Prussia", 9);
+			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
+			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
+			SetWarProgress(world, 50);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void ultimatum_unplayable_when_opinion_one_below_gate() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 300.0);
+			AddControl(world, "OrgA", "Prussia", 10);
+			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 49);
+			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
+			SetWarProgress(world, 50);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void ultimatum_unplayable_when_own_war_progress_one_below_gate() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 300.0);
+			AddControl(world, "OrgA", "Prussia", 10);
+			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
+			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
+			SetWarProgress(world, 49);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void ultimatum_own_progress_is_signed_relative_to_attacker_or_defender() {
+			var config = BuildActionConfig();
+
+			// Prussia is the defender: raw WarProgress.Value = -60 -> own progress = 60 -> playable.
+			var defenderWorld = new World();
+			AddGold(defenderWorld, "OrgA", 300.0);
+			AddControl(defenderWorld, "OrgA", "Prussia", 10);
+			AddMilitaryAdvisor(defenderWorld, "Prussia", "char1", "OrgA", opinion: 50);
+			Wars.DeclareWar(defenderWorld, "France", "Prussia", new DateTime(1880, 1, 1));
+			SetWarProgress(defenderWorld, -60);
+			Assert.True(ActionPlayability.Evaluate(defenderWorld, config, -1, "ultimatum", "OrgA", "Prussia"));
+
+			// Prussia is the attacker with the same raw value: own progress = -60 -> not playable.
+			var attackerWorld = new World();
+			AddGold(attackerWorld, "OrgA", 300.0);
+			AddControl(attackerWorld, "OrgA", "Prussia", 10);
+			AddMilitaryAdvisor(attackerWorld, "Prussia", "char1", "OrgA", opinion: 50);
+			Wars.DeclareWar(attackerWorld, "Prussia", "France", new DateTime(1880, 1, 1));
+			SetWarProgress(attackerWorld, -60);
+			Assert.False(ActionPlayability.Evaluate(attackerWorld, config, -1, "ultimatum", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void ultimatum_is_playable_and_surrender_is_not_when_winning() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 500.0);
+			AddControl(world, "OrgA", "Prussia", 25);
+			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 90);
+			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
+			SetWarProgress(world, 60);
+
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "surrender", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void surrender_is_playable_and_ultimatum_is_not_when_losing() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 500.0);
+			AddControl(world, "OrgA", "Prussia", 25);
+			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 90);
+			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
+			SetWarProgress(world, -40);
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "surrender", "OrgA", "Prussia"));
+		}
+
+		[Fact]
+		void ultimatum_and_diplomacy_gated_card_evaluate_opinion_independently_per_role() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 300.0);
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddControl(world, "OrgA", "Prussia", 10);
+			// Diplomacy advisor's opinion is high enough for make_friend but the military advisor's is not.
+			AddDiplomacyAdvisor(world, "Prussia", "diplo1", "OrgA", opinion: 50);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 10);
+			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
+			SetWarProgress(world, 50);
+
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "make_friend", "OrgA", "Prussia"));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+		}
+
+		[Fact]
 		void sell_arms_requires_active_war_and_military_advisor_opinion() {
 			var config = BuildActionConfig();
 			var world = new World();
@@ -501,6 +712,103 @@ namespace GS.Game.Tests {
 
 			Assert.True(expected);
 			Assert.Equal(expected, RunPipeline(world, config, card));
+		}
+
+		[Fact]
+		void revenge_unplayable_when_control_below_threshold() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 19);
+			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+		}
+
+		[Fact]
+		void revenge_unplayable_when_opinion_below_threshold_at_military_advisor_even_with_high_diplomacy_advisor_opinion() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddDiplomacyAdvisor(world, "Prussia", "diplo1", "OrgA", opinion: 90);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 24);
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+		}
+
+		[Fact]
+		void revenge_unplayable_when_the_selected_country_is_at_war() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 50);
+			Wars.DeclareWar(world, "Prussia", "Austria", new DateTime(1880, 1, 1));
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+		}
+
+		[Fact]
+		void revenge_unplayable_when_the_orgs_hq_country_is_at_war() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 50);
+			Wars.DeclareWar(world, "Great_Britain", "Austria", new DateTime(1880, 1, 1));
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+		}
+
+		[Fact]
+		void revenge_unplayable_when_no_prior_war_loss_against_the_country() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Great_Britain", 20);
+			AddMilitaryAdvisor(world, "Great_Britain", "mil1", "OrgA", opinion: 25);
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+		}
+
+		[Fact]
+		void revenge_playable_when_all_conditions_hold_and_affordable() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Great_Britain", 20);
+			AddMilitaryAdvisor(world, "Great_Britain", "mil1", "OrgA", opinion: 25);
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
+
+			int card = AddCard(world, "OrgA", "revenge", "Great_Britain");
+			world.Add(card, new RevengeCardTarget { TargetCountryId = "Prussia" });
+			Assert.True(ActionPlayability.Evaluate(world, config, card, "revenge", "OrgA", "Great_Britain", hqCountryByOrgId));
+		}
+
+		[Fact]
+		void revenge_unplayable_again_once_the_loss_has_been_avenged() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 25);
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
+
+			RevengeEligibilityQuery.OnWarResolved(world, winnerCountryId: "Great_Britain", loserCountryId: "Prussia");
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
 		}
 	}
 }

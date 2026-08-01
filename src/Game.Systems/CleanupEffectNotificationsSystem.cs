@@ -29,6 +29,7 @@ namespace GS.Game.Systems {
 			RemoveComponent<DiscoveryApplied>(world);
 			RemoveComponent<RelationSetApplied>(world);
 			RemoveComponent<RelationClearedApplied>(world);
+			RemoveComponent<WarResolvedApplied>(world);
 			RemoveComponent<WarDeclaredApplied>(world);
 		}
 

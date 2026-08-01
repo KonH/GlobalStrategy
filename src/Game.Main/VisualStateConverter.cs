@@ -58,6 +58,7 @@ namespace GS.Main {
 			UpdateOrgActions(world);
 			UpdateCountryActions(world, gameTimeEntity);
 			UpdateCountryRelations(world);
+			UpdateCountryWars(world);
 			UpdateProvinceOwnership(world);
 			UpdateProvinceOccupation(world);
 			UpdateSelectedProvince(world);
@@ -628,12 +629,13 @@ namespace GS.Main {
 			var def = _actionConfig?.Find(actionId);
 			if (def == null) { return null; }
 
-			var ctx = CountryActionConditionContext.Build(
+			ExpressionContext ctx = CountryActionConditionContext.Build(
 				world,
 				def,
 				orgId,
 				countryId,
-				entity);
+				entity,
+				_hqCountryByOrgId);
 
 			var conditionResults = ActionConditionDebug.EvaluateAll(def.Conditions, ctx);
 			bool conditionFailed = false;
@@ -653,6 +655,8 @@ namespace GS.Main {
 							"relationStillExists" => "relation_no_longer_exists",
 							"targetRulerOrMilitaryOpinion" => "insufficient_target_opinion",
 							"neitherSideAtWar" => "already_at_war",
+							"warFree" => "at_war",
+							"revengeEligible" => "no_war_loss_to_avenge",
 							_ => "insufficient_control"
 						};
 					break;
@@ -666,7 +670,9 @@ namespace GS.Main {
 			}
 			bool isUnplayable = conditionFailed || poolFull;
 			string unplayableReason = poolFull ? "pool_full" : (conditionFailed ? failedReason : "");
-			string targetCountryId = world.Has<RelationCardTarget>(entity) ? world.Get<RelationCardTarget>(entity).TargetCountryId : "";
+			string targetCountryId = world.Has<RelationCardTarget>(entity)
+				? world.Get<RelationCardTarget>(entity).TargetCountryId
+				: world.Has<RevengeCardTarget>(entity) ? world.Get<RevengeCardTarget>(entity).TargetCountryId : "";
 
 			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason, targetCountryId, conditionResults);
 		}
@@ -693,6 +699,15 @@ namespace GS.Main {
 			}
 			var (friends, rivals) = CountryRelations.GetRelationsByCountryId(world, _state.SelectedCountry.CountryId);
 			_state.SelectedCountry.Relations.Set(friends, rivals);
+		}
+
+		void UpdateCountryWars(IReadOnlyWorld world) {
+			if (!_state.SelectedCountry.IsValid) {
+				_state.SelectedCountry.Wars.Set(Array.Empty<string>());
+				return;
+			}
+			List<string> opponents = Wars.GetOpponentCountryIds(world, _state.SelectedCountry.CountryId);
+			_state.SelectedCountry.Wars.Set(opponents);
 		}
 
 		void UpdateProvinceOwnership(IReadOnlyWorld world) {

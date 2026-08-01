@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Configs;
@@ -79,7 +80,8 @@ namespace GS.Game.Tests {
 					new ResourceDefinition { ResourceId = ResourceDefinitions.CountryScore },
 					new ResourceDefinition { ResourceId = ResourceDefinitions.Recruits },
 					new ResourceDefinition { ResourceId = ResourceDefinitions.Population, SeedTarget = ResourceSeedTarget.Province },
-					new ResourceDefinition { ResourceId = ResourceDefinitions.OrgScore, SeedTarget = ResourceSeedTarget.Org }
+					new ResourceDefinition { ResourceId = ResourceDefinitions.OrgScore, SeedTarget = ResourceSeedTarget.Org },
+					new ResourceDefinition { ResourceId = ResourceDefinitions.WarInitiative, SeedTarget = ResourceSeedTarget.Country }
 				}
 			};
 			var geoJson = new GeoJsonConfig();
@@ -516,6 +518,175 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void revenge_and_make_friend_never_populate_initial_hand_since_opinion_starts_at_zero() {
+			const string diplomacyRole = "diplomacy_advisor";
+			const string militaryRole = "military_advisor";
+			var characterConfig = new CharacterConfig {
+				Roles = new List<CharacterRoleDefinition> {
+					new CharacterRoleDefinition { RoleId = diplomacyRole },
+					new CharacterRoleDefinition { RoleId = militaryRole }
+				},
+				CountryPools = new List<CountryCharacterPool> {
+					new CountryCharacterPool {
+						CountryId = "France",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[diplomacyRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "fr_diplo" } },
+							[militaryRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "fr_mil" } }
+						}
+					}
+				}
+			};
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 3 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
+						ActionId = "make_friend",
+						OwnerType = "country",
+						TargetRole = diplomacyRole,
+						DeckCopies = 3,
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "opinion" },
+									new ExpressionNode { Type = "value", Value = 30 }
+								}
+							}
+						},
+						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } }
+					},
+					new ActionDefinition {
+						ActionId = "revenge",
+						OwnerType = "country",
+						TargetRole = militaryRole,
+						DeckCopies = 3,
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "opinion" },
+									new ExpressionNode { Type = "value", Value = 25 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "warFree" },
+									new ExpressionNode { Type = "value", Value = 1 }
+								}
+							}
+						},
+						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } }
+					}
+				}
+			};
+
+			// Must not throw now that revenge resolves Opinion via TargetRole=military_advisor
+			// (mixed-role regression alongside make_friend's diplomacy_advisor) in the same init pass.
+			var logic = BuildLogic(actionConfigOverride: actionConfig, characterConfigOverride: characterConfig);
+			logic.Update(0f);
+
+			int[] handReq = { TypeId<GameAction>.Value, TypeId<CardInHand>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(handReq, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				for (int i = 0; i < arch.Count; i++) {
+					Assert.NotEqual("make_friend", actions[i].ActionId);
+					Assert.NotEqual("revenge", actions[i].ActionId);
+				}
+			}
+		}
+
+		[Fact]
+		void revenge_does_not_populate_initial_hand_before_a_country_has_lost_a_war() {
+			const string militaryRole = "military_advisor";
+			var characterConfig = new CharacterConfig {
+				Roles = new List<CharacterRoleDefinition> { new CharacterRoleDefinition { RoleId = militaryRole } },
+				CountryPools = new List<CountryCharacterPool> {
+					new CountryCharacterPool {
+						CountryId = "Great_Britain",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[militaryRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "gb_mil" } }
+						}
+					}
+				}
+			};
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
+						ActionId = "revenge",
+						OwnerType = "country",
+						TargetRole = militaryRole,
+						DeckCopies = 1,
+						// No opinion condition here: at init, opinion always starts at zero
+						// (no seeding mechanism exists), so isolating control+warFree is the only
+						// way to exercise the positive initial-hand-fill path for this card.
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "control" },
+									new ExpressionNode { Type = "value", Value = 20 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "warFree" },
+									new ExpressionNode { Type = "value", Value = 1 }
+								}
+							}
+						},
+						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } }
+					}
+				}
+			};
+			var organizationConfig = new OrganizationConfig {
+				Organizations = new List<OrganizationEntry> {
+					new OrganizationEntry {
+						OrganizationId = "Illuminati",
+						DisplayName = "Illuminati",
+						HqCountryId = "Great_Britain",
+						InitialGold = 1000.0,
+						BaseControl = 20
+					}
+				}
+			};
+			var logic = BuildLogic(
+				actionConfigOverride: actionConfig,
+				characterConfigOverride: characterConfig,
+				organizationConfigOverride: organizationConfig);
+
+			logic.Update(0f);
+
+			int[] required = {
+				TypeId<GameAction>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CountryContext>.Value,
+				TypeId<CardInHand>.Value
+			};
+			bool found = false;
+			foreach (var arch in logic.World.GetMatchingArchetypes(required, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				CountryContext[] countries = arch.GetColumn<CountryContext>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (actions[i].ActionId == "revenge"
+						&& orgs[i].OrgId == "Illuminati"
+						&& countries[i].CountryId == "Great_Britain") {
+						found = true;
+					}
+				}
+			}
+
+			Assert.False(found);
+		}
+
+		[Fact]
 		void decrease_enemy_control_can_populate_initial_hand_when_another_org_has_control() {
 			var actionConfig = new ActionConfig {
 				Defaults = new List<ActionOwnerDefaults> {
@@ -588,6 +759,129 @@ namespace GS.Game.Tests {
 			}
 
 			Assert.True(found);
+		}
+
+		[Fact]
+		void diplomacy_and_military_gated_cards_resolve_opinion_independently_per_role_at_initial_hand_fill() {
+			const string diplomacyRole = "diplomacy_advisor";
+			const string militaryRole = "military_advisor";
+			var characterConfig = new CharacterConfig {
+				Roles = new List<CharacterRoleDefinition> {
+					new CharacterRoleDefinition { RoleId = diplomacyRole },
+					new CharacterRoleDefinition { RoleId = militaryRole }
+				},
+				CountryPools = new List<CountryCharacterPool> {
+					new CountryCharacterPool {
+						CountryId = "Great_Britain",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[diplomacyRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "diplo_gb" } },
+							[militaryRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "mil_gb" } }
+						}
+					},
+					new CountryCharacterPool {
+						CountryId = "France",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[diplomacyRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "diplo_fr" } },
+							[militaryRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "mil_fr" } }
+						}
+					}
+				}
+			};
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 3 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
+						ActionId = "make_friend",
+						OwnerType = "country",
+						TargetRole = diplomacyRole,
+						DeckCopies = 1,
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "opinion" },
+									new ExpressionNode { Type = "value", Value = 30 }
+								}
+							}
+						}
+					},
+					new ActionDefinition {
+						ActionId = "ultimatum",
+						OwnerType = "country",
+						TargetRole = militaryRole,
+						DeckCopies = 1,
+						Conditions = new List<ExpressionNode> {
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "control" },
+									new ExpressionNode { Type = "value", Value = 10 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "opinion" },
+									new ExpressionNode { Type = "value", Value = 50 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "isInWar" },
+									new ExpressionNode { Type = "value", Value = 1 }
+								}
+							},
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "warProgress" },
+									new ExpressionNode { Type = "value", Value = 50 }
+								}
+							}
+						}
+					}
+				}
+			};
+			var logic = BuildLogic(actionConfigOverride: actionConfig, characterConfigOverride: characterConfig);
+
+			// Seed both advisors' opinion before init runs: diplomacy advisor satisfies make_friend's
+			// gate, military advisor does not satisfy ultimatum's — proving the two cards' own-role
+			// opinion is resolved independently rather than off one shared value.
+			int diploResEntity = logic.World.Create();
+			logic.World.Add(diploResEntity, new ResourceOwner("diplo_gb", OwnerType.Character));
+			logic.World.Add(diploResEntity, new Resource { ResourceId = "opinion_Illuminati", Value = 50 });
+			int milResEntity = logic.World.Create();
+			logic.World.Add(milResEntity, new ResourceOwner("mil_gb", OwnerType.Character));
+			logic.World.Add(milResEntity, new Resource { ResourceId = "opinion_Illuminati", Value = 10 });
+			Wars.DeclareWar(logic.World, "Great_Britain", "France", new DateTime(1880, 1, 1));
+			int[] warReq = { TypeId<War>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(warReq, null)) {
+				var wars = arch.GetColumn<War>();
+				for (int i = 0; i < arch.Count; i++) {
+					ResourceMutations.TrySetValue(logic.World, wars[i].WarId, ResourceDefinitions.WarProgress, 50, out _);
+				}
+			}
+
+			logic.Update(0f);
+
+			bool foundMakeFriend = false;
+			bool foundUltimatum = false;
+			int[] handReq = { TypeId<GameAction>.Value, TypeId<CountryContext>.Value, TypeId<CardInHand>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(handReq, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				CountryContext[] countries = arch.GetColumn<CountryContext>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (countries[i].CountryId != "Great_Britain") { continue; }
+					if (actions[i].ActionId == "make_friend") { foundMakeFriend = true; }
+					if (actions[i].ActionId == "ultimatum") { foundUltimatum = true; }
+				}
+			}
+
+			Assert.True(foundMakeFriend);
+			Assert.False(foundUltimatum);
 		}
 	}
 }

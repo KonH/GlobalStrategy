@@ -456,6 +456,24 @@ MonoBehaviour:
     Value: 'Progress: {0}'
   - Key: war_progress.effects_title
     Value: Progress effects
+  - Key: war_progress.stat_tooltip_base
+    Value: 'Country base: {0}'
+  - Key: war_progress.stat_tooltip_ruler
+    Value: 'Ruler skill: {0}'
+  - Key: war_progress.stat_tooltip_military_advisor
+    Value: 'Military advisor skill: {0}'
+  - Key: war_progress.stat_tooltip_economic_advisor
+    Value: 'Economic advisor skill: {0}'
+  - Key: war_progress.stat_tooltip_subtotal
+    Value: 'Subtotal: {0}'
+  - Key: war_progress.stat_tooltip_effect_gain_format
+    Value: '{0} by {1}: +{2}%'
+  - Key: war_progress.stat_tooltip_effect_decay_format
+    Value: '{0} decay by {1}: {2}%/month'
+  - Key: war_progress.stat_tooltip_effect_decay_desc
+    Value: This bonus fades gradually over time.
+  - Key: war_progress.stat_tooltip_total
+    Value: 'Total: {0}'
   - Key: war_progress.stats_title
     Value: Forces
   - Key: war_progress.battles_title
@@ -1776,12 +1794,28 @@ MonoBehaviour:
     Value: Arms Supply Bonus
   - Key: effect.sell_arms_damage_bonus_effect.desc
     Value: Boosts this country's troop damage, fading gradually over time.
+  - Key: action.ultimatum.name
+    Value: Ultimatum
+  - Key: action.ultimatum.desc
+    Value: Force this country to win its current war.
+  - Key: action.surrender.name
+    Value: Surrender
+  - Key: action.surrender.desc
+    Value: Force this country to lose its current war.
+  - Key: effect.ultimatum_effect.name
+    Value: Force War Victory
+  - Key: effect.ultimatum_effect.desc
+    Value: End the country's current war with it as the winner.
+  - Key: effect.surrender_effect.name
+    Value: Force War Defeat
+  - Key: effect.surrender_effect.desc
+    Value: End the country's current war with it as the loser.
   - Key: action.country.unplayable.pool_full
     Value: No control pool space remaining
   - Key: action.country.unplayable.insufficient_control
     Value: Requires {0} control
   - Key: action.country.unplayable.insufficient_opinion
-    Value: Requires {0} opinion with the diplomacy advisor
+    Value: Requires {0} opinion with the {1}
   - Key: action.country.unplayable.insufficient_target_opinion
     Value: Requires {0} opinion from the country's ruler or military advisor
   - Key: action.country.unplayable.no_suitable_target
@@ -1790,8 +1824,22 @@ MonoBehaviour:
     Value: The named relation no longer exists
   - Key: action.country.unplayable.already_at_war
     Value: One of the countries is already at war
+  - Key: action.country.unplayable.at_war
+    Value: Cannot be played while at war
+  - Key: action.country.unplayable.no_war_loss_to_avenge
+    Value: Requires an unavenged war loss against this country
   - Key: action.country.unplayable.no_enemy_control
     Value: No organization with control available to target
+  - Key: action.country.unplayable.not_at_war
+    Value: This country is not currently at war
+  - Key: action.revenge.name
+    Value: "{0} Revenge"
+  - Key: action.revenge.desc
+    Value: Declare a revenge war against this country with temporary combat bonuses.
+  - Key: effect.revenge_declare_war.name
+    Value: Declare Revenge War
+  - Key: effect.revenge_declare_war.desc
+    Value: Start a war with temporary damage and durability bonuses for the attacker.
   - Key: action.country.unplayable.war_ended
     Value: War has ended
   - Key: hud.actions
@@ -1800,6 +1848,8 @@ MonoBehaviour:
     Value: Friends
   - Key: hud.rivals
     Value: Rivals
+  - Key: hud.wars
+    Value: Wars
   - Key: hud.discovery.confirmation
     Value: "Discovered: {0}!"
   - Key: game_log.discovered_format

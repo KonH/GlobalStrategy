@@ -88,8 +88,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.issue_handler import (  # noqa: E402
-    acquire_lock, candidate_branch, checkout_clean, find_candidates, handle_limit_pause,
-    limit_active, reclaim_stale_in_progress, salvage_uncommitted_work, setup_logging,
+    acquire_lock, candidate_branch, checkout_clean, claim_candidate, find_candidates,
+    handle_limit_pause, limit_active, reclaim_stale_in_progress, salvage_uncommitted_work,
+    setup_logging,
 )
 
 MODEL = "claude-sonnet-5"
@@ -261,6 +262,9 @@ def main():
     logger.info(f"Found {len(candidates)} candidate(s).")
     exit_code = 0
     for candidate in candidates:
+        if not claim_candidate(logger, LABEL, MARKER, candidate):
+            logger.info(f"Lost claim race for {candidate['kind']} #{candidate['number']} - skipping.")
+            continue
         branch = candidate_branch(candidate)
         checkout_clean(logger, branch)
         logger.info(f"Processing {candidate['kind']} #{candidate['number']} from clean "

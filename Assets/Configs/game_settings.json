@@ -9,6 +9,8 @@
   "recruitsCapPercent": 15,
   "recruitsMonthlyIncreasePercent": 1,
   "attackerWarProgressDecayPerMonth": 2.5,
+  "revengeDamageBonusDecayPerMonth": 1.0,
+  "revengeDurabilityBonusDecayPerMonth": 0.5,
   "peaceMinLoseBand": 20,
   "peaceMinWinBand": 20,
   "peaceChanceMinPercent": 0.3,
