@@ -44,6 +44,20 @@ namespace GS.Game.Systems {
 			return IsWarFree(world, countryId, hqCountryId);
 		}
 
+		public static List<string> GetOpponentCountryIds(IReadOnlyWorld world, string countryId) {
+			var result = new List<string>();
+			string? warId = FindWarIdForCountry(world, countryId);
+			if (warId == null) {
+				return result;
+			}
+			foreach (WarBattles.ParticipantInfo participant in WarBattles.GetParticipants(world, warId)) {
+				if (participant.CountryId != countryId) {
+					result.Add(participant.CountryId);
+				}
+			}
+			return result;
+		}
+
 		public static bool DeclareWar(World world, string attackerCountryId, string defenderCountryId, DateTime currentTime) {
 			return DeclareWar(
 				world, attackerCountryId, defenderCountryId, currentTime,

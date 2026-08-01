@@ -63,7 +63,15 @@
 }
 
 .relations-block {
+    flex-direction: row;
+}
+
+.relations-column {
     flex-direction: column;
+}
+
+.relations-right-column {
+    margin-left: 56px;
 }
 
 .relations-row-block {
@@ -76,6 +84,7 @@
 
 .relations-flags {
     flex-direction: row;
+    margin-left: 6px;
 }
 
 .relations-flag {
