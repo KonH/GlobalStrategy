@@ -16,7 +16,8 @@ namespace GS.Game.Systems {
 			int baseDurability = _basesByCountryId.TryGetValue(ownerId, out var bases) ? bases.BaseDurability : 40;
 			double rulerStinginess = WartimeSkillQuery.GetSkill(world, ownerId, "ruler", "stinginess");
 			double economicStinginess = WartimeSkillQuery.GetSkill(world, ownerId, "economic_advisor", "stinginess");
-			double target = baseDurability + rulerStinginess + economicStinginess;
+			double target = (baseDurability + rulerStinginess + economicStinginess)
+				* (1.0 + RevengeWarBonusQuery.GetBonusPercent(world, ownerId, "durability") / 100.0);
 			return target - currentValue;
 		}
 	}

@@ -1791,7 +1791,7 @@ MonoBehaviour:
   - Key: action.country.unplayable.insufficient_control
     Value: Requires {0} control
   - Key: action.country.unplayable.insufficient_opinion
-    Value: Requires {0} opinion with the diplomacy advisor
+    Value: Требуется {0} мнения у {1}
   - Key: action.country.unplayable.insufficient_target_opinion
     Value: Требуется мнение не ниже {0} у правителя или военного советника страны
   - Key: action.country.unplayable.no_suitable_target
@@ -1800,10 +1800,22 @@ MonoBehaviour:
     Value: Указанные отношения больше не существуют
   - Key: action.country.unplayable.already_at_war
     Value: Одна из стран уже участвует в войне
+  - Key: action.country.unplayable.at_war
+    Value: Недоступно во время войны
+  - Key: action.country.unplayable.no_war_loss_to_avenge
+    Value: Требуется неотмщённое поражение против этой страны
   - Key: action.country.unplayable.no_enemy_control
     Value: Нет организации с контролем, которую можно выбрать целью
   - Key: action.country.unplayable.not_at_war
     Value: Эта страна сейчас не участвует в войне
+  - Key: action.revenge.name
+    Value: "Месть против {0}"
+  - Key: action.revenge.desc
+    Value: Объявить войну мести против этой страны с временными боевыми бонусами.
+  - Key: effect.revenge_declare_war.name
+    Value: Объявить войну мести
+  - Key: effect.revenge_declare_war.desc
+    Value: Начать войну с временными бонусами к урону и стойкости для атакующего.
   - Key: action.country.unplayable.war_ended
     Value: Война окончена
   - Key: hud.actions

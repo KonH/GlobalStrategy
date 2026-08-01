@@ -15,7 +15,8 @@ namespace GS.Game.Systems {
 			GameSettings settings,
 			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
-			int maxControlPool) {
+			int maxControlPool,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null) {
 			int[] required = { TypeId<GameAction>.Value, TypeId<ActionSucceeded>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
 			var toProcess = new List<(int entity, string actionId, string orgId)>();
 
@@ -119,6 +120,25 @@ namespace GS.Game.Systems {
 					} else if (effectDef is DeclareWarEffectParams && !string.IsNullOrEmpty(countryId) && world.Has<RelationCardTarget>(entity)) {
 						string targetCountryId = world.Get<RelationCardTarget>(entity).TargetCountryId;
 						if (Wars.DeclareWar(world, countryId, targetCountryId, currentTime)) {
+							int e = world.Create();
+							world.Add(e, new WarDeclaredApplied {
+								OrgId = orgId,
+								CountryId = countryId,
+								DefenderCountryId = targetCountryId
+							});
+						}
+					} else if (effectDef is DeclareRevengeWarEffectParams revengeParams && !string.IsNullOrEmpty(countryId)
+						&& world.Has<RevengeCardTarget>(entity)) {
+						string targetCountryId = world.Get<RevengeCardTarget>(entity).TargetCountryId;
+						if (Wars.DeclareWar(world, countryId, targetCountryId, currentTime, topology, settings.WarBattles, out string? warId)) {
+							RevengeWarBonusQuery.RemoveForCountry(world, countryId);
+							int be = world.Create();
+							world.Add(be, new RevengeWarBonus {
+								WarId = warId ?? "",
+								CountryId = countryId,
+								DamageBonusPercent = revengeParams.DamageBonusPercent,
+								DurabilityBonusPercent = revengeParams.DurabilityBonusPercent
+							});
 							int e = world.Create();
 							world.Add(e, new WarDeclaredApplied {
 								OrgId = orgId,

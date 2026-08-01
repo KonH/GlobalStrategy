@@ -6,7 +6,11 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class DrawCardSystem {
-		public static void Update(World world, ActionConfig config, Random rng) {
+		public static void Update(
+			World world,
+			ActionConfig config,
+			Random rng,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null) {
 			int[] deckDrawReq = { TypeId<CardDeck>.Value, TypeId<CardDraw>.Value };
 			var deckDraws = new List<(int entity, string orgId, string countryId, int count)>();
 			foreach (var arch in world.GetMatchingArchetypes(deckDrawReq, null)) {
@@ -18,7 +22,7 @@ namespace GS.Game.Systems {
 				}
 			}
 			foreach (var (entity, orgId, countryId, count) in deckDraws) {
-				DrawCards(world, config, rng, orgId, countryId, count);
+				DrawCards(world, config, rng, orgId, countryId, count, hqCountryByOrgId);
 				world.Remove<CardDraw>(entity);
 			}
 
@@ -36,17 +40,24 @@ namespace GS.Game.Systems {
 			var toDestroy = new List<int>();
 			foreach (var (entity, orgId, _, count) in syntheticDraws) {
 				string cid = world.Has<CountryContext>(entity) ? world.Get<CountryContext>(entity).CountryId : "";
-				DrawCards(world, config, rng, orgId, cid, count);
+				DrawCards(world, config, rng, orgId, cid, count, hqCountryByOrgId);
 				toDestroy.Add(entity);
 			}
 			foreach (int e in toDestroy) { world.Destroy(e); }
 		}
 
-		static void DrawCards(World world, ActionConfig config, Random rng, string orgId, string countryId, int toDraw) {
+		static void DrawCards(
+			World world,
+			ActionConfig config,
+			Random rng,
+			string orgId,
+			string countryId,
+			int toDraw,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId) {
 			if (string.IsNullOrEmpty(countryId)) {
 				DrawOrgCards(world, rng, orgId, toDraw);
 			} else {
-				DrawCountryCards(world, config, rng, orgId, countryId, toDraw);
+				DrawCountryCards(world, config, rng, orgId, countryId, toDraw, hqCountryByOrgId);
 			}
 		}
 
@@ -88,7 +99,14 @@ namespace GS.Game.Systems {
 			return count;
 		}
 
-		static void DrawCountryCards(World world, ActionConfig config, Random rng, string orgId, string countryId, int toDraw) {
+		static void DrawCountryCards(
+			World world,
+			ActionConfig config,
+			Random rng,
+			string orgId,
+			string countryId,
+			int toDraw,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId) {
 			int[] deckReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
 			int[] excludeInHand = { TypeId<CardInHand>.Value };
 			var eligible = new List<int>();
@@ -107,7 +125,8 @@ namespace GS.Game.Systems {
 						def,
 						orgId,
 						countryId,
-						candidateEntity);
+						candidateEntity,
+						hqCountryByOrgId);
 					bool ok = true;
 					foreach (var cond in def.Conditions) {
 						if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { ok = false; break; }
@@ -208,7 +227,7 @@ namespace GS.Game.Systems {
 					int entity = arch.Entities[i];
 					string entityTarget = world.Has<RelationCardTarget>(entity)
 						? world.Get<RelationCardTarget>(entity).TargetCountryId
-						: "";
+						: world.Has<RevengeCardTarget>(entity) ? world.Get<RevengeCardTarget>(entity).TargetCountryId : "";
 					if (entityTarget == (targetCountryId ?? "")) {
 						return entity;
 					}

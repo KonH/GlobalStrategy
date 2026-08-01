@@ -105,6 +105,16 @@ namespace GS.Game.Tests {
 								}
 							}
 						}
+					},
+					new ActionDefinition {
+						ActionId = "revenge",
+						OwnerType = "country",
+						TargetRole = "military_advisor",
+						Conditions = new List<ExpressionNode> {
+							Gte("control", 20),
+							Gte("opinion", 25),
+							Gte("warFree", 1)
+						}
 					}
 				}
 			};
@@ -576,6 +586,95 @@ namespace GS.Game.Tests {
 			Assert.False(IsInHand(world, handCard));
 			Assert.False(world.Has<CardDiscard>(handCard));
 			Assert.True(IsInHand(world, deckCard));
+		}
+
+		[Fact]
+		void draw_skips_revenge_when_control_below_threshold() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddControl(world, "OrgA", "Prussia", 19);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 50);
+			int card = AddDeckCard(world, "OrgA", "Prussia", "revenge");
+
+			int deckEntity = world.Create();
+			world.Add(deckEntity, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
+			world.Add(deckEntity, new CardDraw { Count = 1 });
+			DrawCardSystem.Update(world, config, new Random(1));
+
+			Assert.False(IsInHand(world, card));
+		}
+
+		[Fact]
+		void draw_skips_revenge_when_opinion_below_threshold() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 24);
+			int card = AddDeckCard(world, "OrgA", "Prussia", "revenge");
+
+			int deckEntity = world.Create();
+			world.Add(deckEntity, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
+			world.Add(deckEntity, new CardDraw { Count = 1 });
+			DrawCardSystem.Update(world, config, new Random(1));
+
+			Assert.False(IsInHand(world, card));
+		}
+
+		[Fact]
+		void draw_skips_revenge_when_country_or_hq_is_at_war() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 50);
+			Wars.DeclareWar(world, "Great_Britain", "Austria", new DateTime(1880, 1, 1));
+			int card = AddDeckCard(world, "OrgA", "Prussia", "revenge");
+
+			int deckEntity = world.Create();
+			world.Add(deckEntity, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
+			world.Add(deckEntity, new CardDraw { Count = 1 });
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			DrawCardSystem.Update(world, config, new Random(1), hqCountryByOrgId);
+
+			Assert.False(IsInHand(world, card));
+		}
+
+		[Fact]
+		void draw_includes_revenge_when_all_conditions_hold() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 25);
+			int card = AddDeckCard(world, "OrgA", "Prussia", "revenge");
+
+			int deckEntity = world.Create();
+			world.Add(deckEntity, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
+			world.Add(deckEntity, new CardDraw { Count = 1 });
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			DrawCardSystem.Update(world, config, new Random(1), hqCountryByOrgId);
+
+			Assert.True(IsInHand(world, card));
+		}
+
+		[Fact]
+		void mixed_make_friend_and_revenge_candidates_resolve_opinion_against_their_own_target_role() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddAdvisor(world, "Prussia", "diplo1", "OrgA", "diplomacy_advisor", 50);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 10);
+			AddControl(world, "OrgA", "Prussia", 20);
+			int friendCard = AddDeckCard(world, "OrgA", "Prussia", "make_friend");
+			int revengeCard = AddDeckCard(world, "OrgA", "Prussia", "revenge");
+
+			int deckEntity = world.Create();
+			world.Add(deckEntity, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
+			world.Add(deckEntity, new CardDraw { Count = 2 });
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			DrawCardSystem.Update(world, config, new Random(1), hqCountryByOrgId);
+
+			Assert.True(IsInHand(world, friendCard));
+			Assert.False(IsInHand(world, revengeCard));
 		}
 	}
 }

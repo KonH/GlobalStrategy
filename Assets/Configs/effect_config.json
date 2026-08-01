@@ -116,6 +116,14 @@
       "nameKey": "effect.surrender_effect.name",
       "descKey": "effect.surrender_effect.desc",
       "outcome": "Lose"
+    },
+    {
+      "effectId": "revenge_declare_war_effect",
+      "effectType": "DeclareRevengeWar",
+      "nameKey": "effect.revenge_declare_war.name",
+      "descKey": "effect.revenge_declare_war.desc",
+      "damageBonusPercent": 10.0,
+      "durabilityBonusPercent": 5.0
     }
   ]
 }

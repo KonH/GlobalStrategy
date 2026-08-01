@@ -139,6 +139,18 @@ namespace GS.Game.Tests {
 								}
 							}
 						}
+					},
+					new ActionDefinition {
+						ActionId = "revenge",
+						OwnerType = "country",
+						TargetRole = "military_advisor",
+						Conditions = new List<ExpressionNode> {
+							Gte("control", 20),
+							Gte("opinion", 25),
+							Gte("warFree", 1),
+							Gte("revengeEligible", 1)
+						},
+						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } }
 					}
 				}
 			};
@@ -700,6 +712,103 @@ namespace GS.Game.Tests {
 
 			Assert.True(expected);
 			Assert.Equal(expected, RunPipeline(world, config, card));
+		}
+
+		[Fact]
+		void revenge_unplayable_when_control_below_threshold() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 19);
+			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+		}
+
+		[Fact]
+		void revenge_unplayable_when_opinion_below_threshold_at_military_advisor_even_with_high_diplomacy_advisor_opinion() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddDiplomacyAdvisor(world, "Prussia", "diplo1", "OrgA", opinion: 90);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 24);
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+		}
+
+		[Fact]
+		void revenge_unplayable_when_the_selected_country_is_at_war() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 50);
+			Wars.DeclareWar(world, "Prussia", "Austria", new DateTime(1880, 1, 1));
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+		}
+
+		[Fact]
+		void revenge_unplayable_when_the_orgs_hq_country_is_at_war() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 50);
+			Wars.DeclareWar(world, "Great_Britain", "Austria", new DateTime(1880, 1, 1));
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+		}
+
+		[Fact]
+		void revenge_unplayable_when_no_prior_war_loss_against_the_country() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Great_Britain", 20);
+			AddMilitaryAdvisor(world, "Great_Britain", "mil1", "OrgA", opinion: 25);
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+		}
+
+		[Fact]
+		void revenge_playable_when_all_conditions_hold_and_affordable() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Great_Britain", 20);
+			AddMilitaryAdvisor(world, "Great_Britain", "mil1", "OrgA", opinion: 25);
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
+
+			int card = AddCard(world, "OrgA", "revenge", "Great_Britain");
+			world.Add(card, new RevengeCardTarget { TargetCountryId = "Prussia" });
+			Assert.True(ActionPlayability.Evaluate(world, config, card, "revenge", "OrgA", "Great_Britain", hqCountryByOrgId));
+		}
+
+		[Fact]
+		void revenge_unplayable_again_once_the_loss_has_been_avenged() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 20);
+			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 25);
+			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
+			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
+
+			RevengeEligibilityQuery.OnWarResolved(world, winnerCountryId: "Great_Britain", loserCountryId: "Prussia");
+
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
 		}
 	}
 }

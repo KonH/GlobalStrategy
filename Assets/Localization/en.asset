@@ -1791,7 +1791,7 @@ MonoBehaviour:
   - Key: action.country.unplayable.insufficient_control
     Value: Requires {0} control
   - Key: action.country.unplayable.insufficient_opinion
-    Value: Requires {0} opinion with the diplomacy advisor
+    Value: Requires {0} opinion with the {1}
   - Key: action.country.unplayable.insufficient_target_opinion
     Value: Requires {0} opinion from the country's ruler or military advisor
   - Key: action.country.unplayable.no_suitable_target
@@ -1800,10 +1800,22 @@ MonoBehaviour:
     Value: The named relation no longer exists
   - Key: action.country.unplayable.already_at_war
     Value: One of the countries is already at war
+  - Key: action.country.unplayable.at_war
+    Value: Cannot be played while at war
+  - Key: action.country.unplayable.no_war_loss_to_avenge
+    Value: Requires an unavenged war loss against this country
   - Key: action.country.unplayable.no_enemy_control
     Value: No organization with control available to target
   - Key: action.country.unplayable.not_at_war
     Value: This country is not currently at war
+  - Key: action.revenge.name
+    Value: "{0} Revenge"
+  - Key: action.revenge.desc
+    Value: Declare a revenge war against this country with temporary combat bonuses.
+  - Key: effect.revenge_declare_war.name
+    Value: Declare Revenge War
+  - Key: effect.revenge_declare_war.desc
+    Value: Start a war with temporary damage and durability bonuses for the attacker.
   - Key: action.country.unplayable.war_ended
     Value: War has ended
   - Key: hud.actions

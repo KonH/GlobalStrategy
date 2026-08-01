@@ -21,6 +21,29 @@ namespace GS.Game.Systems {
 			return false;
 		}
 
+		public static bool IsWarFree(IReadOnlyWorld world, string countryId, string hqCountryId) {
+			if (!string.IsNullOrEmpty(countryId) && IsInWar(world, countryId)) {
+				return false;
+			}
+			if (!string.IsNullOrEmpty(hqCountryId) && IsInWar(world, hqCountryId)) {
+				return false;
+			}
+			return true;
+		}
+
+		public static bool IsWarFree(
+			IReadOnlyWorld world,
+			string countryId,
+			string orgId,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId) {
+			string hqCountryId = "";
+			if (hqCountryByOrgId != null && !string.IsNullOrEmpty(orgId)) {
+				hqCountryByOrgId.TryGetValue(orgId, out hqCountryId);
+				hqCountryId ??= "";
+			}
+			return IsWarFree(world, countryId, hqCountryId);
+		}
+
 		public static List<string> GetOpponentCountryIds(IReadOnlyWorld world, string countryId) {
 			var result = new List<string>();
 			string? warId = FindWarIdForCountry(world, countryId);
@@ -38,12 +61,27 @@ namespace GS.Game.Systems {
 		public static bool DeclareWar(World world, string attackerCountryId, string defenderCountryId, DateTime currentTime) {
 			return DeclareWar(
 				world, attackerCountryId, defenderCountryId, currentTime,
-				new ProvinceTopology(new ProvinceConfig()), new WarBattleSettings());
+				new ProvinceTopology(new ProvinceConfig()), new WarBattleSettings(), out _);
+		}
+
+		public static bool DeclareWar(
+			World world, string attackerCountryId, string defenderCountryId, DateTime currentTime,
+			out string? warId) {
+			return DeclareWar(
+				world, attackerCountryId, defenderCountryId, currentTime,
+				new ProvinceTopology(new ProvinceConfig()), new WarBattleSettings(), out warId);
 		}
 
 		public static bool DeclareWar(
 			World world, string attackerCountryId, string defenderCountryId, DateTime currentTime,
 			ProvinceTopology topology, WarBattleSettings settings) {
+			return DeclareWar(world, attackerCountryId, defenderCountryId, currentTime, topology, settings, out _);
+		}
+
+		public static bool DeclareWar(
+			World world, string attackerCountryId, string defenderCountryId, DateTime currentTime,
+			ProvinceTopology topology, WarBattleSettings settings, out string? warId) {
+			warId = null;
 			if (attackerCountryId == defenderCountryId) {
 				return false;
 			}
@@ -51,7 +89,7 @@ namespace GS.Game.Systems {
 				return false;
 			}
 
-			string warId = $"war_{attackerCountryId}_{defenderCountryId}_{currentTime.Ticks}";
+			warId = $"war_{attackerCountryId}_{defenderCountryId}_{currentTime.Ticks}";
 
 			int warEntity = world.Create();
 			world.Add(warEntity, new War { WarId = warId, DeclaredAt = currentTime });
@@ -126,6 +164,7 @@ namespace GS.Game.Systems {
 				WinnerCountryId = winnerCountryId,
 				LoserCountryId = loserCountryId
 			});
+			RevengeEligibilityQuery.OnWarResolved(world, winnerCountryId, loserCountryId);
 
 			return true;
 		}
@@ -243,6 +282,7 @@ namespace GS.Game.Systems {
 
 			int ge = world.Create();
 			world.Add(ge, new WarResolvedApplied { WinnerCountryId = winnerId, LoserCountryId = loserId });
+			RevengeEligibilityQuery.OnWarResolved(world, winnerId, loserId);
 		}
 
 		public static double ComputePeaceChancePercent(double progress, GameSettings settings) {

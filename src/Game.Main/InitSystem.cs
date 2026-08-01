@@ -652,6 +652,10 @@ namespace GS.Main {
 			}
 
 			int handSize = actionConfig.GetHandSize("country");
+			var hqCountryByOrgId = new Dictionary<string, string>();
+			foreach (var orgEntry in participating) {
+				hqCountryByOrgId[orgEntry.OrganizationId] = orgEntry.HqCountryId;
+			}
 
 			foreach (var entry in countryConfig.Countries) {
 				if (!entry.IsAvailable) { continue; }
@@ -664,7 +668,7 @@ namespace GS.Main {
 						// Relation-synced cards are created by RelationCardSyncSystem (one per
 						// relation). DeckCopies on those rows is a draw weight, not a static
 						// copy count — skip them here so weight > 0 does not spawn untargeted entities.
-						if (RelationCardSyncSystem.IsSyncedAction(def.ActionId)) { continue; }
+						if (RelationCardSyncSystem.IsSyncedAction(def.ActionId) || def.ActionId == "revenge") { continue; }
 
 						// Determine targets
 						var targets = new List<string>();
@@ -704,7 +708,8 @@ namespace GS.Main {
 								d,
 								orgId,
 								entry.CountryId,
-								e);
+								e,
+								hqCountryByOrgId);
 							foreach (var cond in d.Conditions) {
 								if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
 									eligible = false;

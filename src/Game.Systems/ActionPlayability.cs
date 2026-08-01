@@ -5,7 +5,14 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class ActionPlayability {
-		public static bool Evaluate(IReadOnlyWorld world, ActionConfig config, int entity, string actionId, string orgId, string? countryId) {
+		public static bool Evaluate(
+			IReadOnlyWorld world,
+			ActionConfig config,
+			int entity,
+			string actionId,
+			string orgId,
+			string? countryId,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null) {
 			var def = config.Find(actionId);
 			if (def == null) { return false; }
 
@@ -14,7 +21,8 @@ namespace GS.Game.Systems {
 				def,
 				orgId,
 				countryId ?? "",
-				entity);
+				entity,
+				hqCountryByOrgId);
 
 			foreach (var cond in def.Conditions) {
 				if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { return false; }

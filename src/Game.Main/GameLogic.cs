@@ -133,6 +133,12 @@ namespace GS.Main {
 				_world, _previousTime, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool);
 			WarSystem.Update(
 				_world, _previousTime, currentTime, GameSettings.AttackerWarProgressDecayPerMonth, ResourceConfig);
+			RevengeWarBonusDecaySystem.Update(
+				_world,
+				_previousTime,
+				currentTime,
+				GameSettings.RevengeDamageBonusDecayPerMonth,
+				GameSettings.RevengeDurabilityBonusDecayPerMonth);
 
 			foreach (var cmd in _commandAccessor.ReadChangeControlCommand().AsSpan()) {
 				ApplyChangeControl(cmd.OrgId, cmd.CountryId, cmd.Delta);
@@ -240,13 +246,13 @@ namespace GS.Main {
 			// See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
 			CleanupEffectNotificationsSystem.UpdateActionEffects(_world);
 			InitActionFromPlayCardSystem.Update(_world, _commandAccessor.ReadPlayCardActionCommand());
-			CheckActionConditionSystem.Update(_world, _actionConfig);
+			CheckActionConditionSystem.Update(_world, _actionConfig, _hqCountryByOrgId);
 			DeductActionCostSystem.Update(_world, _actionConfig);
 			ActionSucceededSystem.Update(_world, _actionConfig);
 			bool hasSucceededCardActions = HasSucceededCardActions(_world);
 			CreateActionEffectSystem.Update(
 				_world, _actionConfig, _effectConfig, currentTime,
-				_rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool);
+				_rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, _hqCountryByOrgId);
 			// A succeeded card can grant a CountryResourceModifier effect (e.g. sell_arms'
 			// troops_damage_bonus_percent) that Damage/Durability's daily-gated collectors
 			// won't pick up until the next day boundary — settle immediately so the War
@@ -260,7 +266,8 @@ namespace GS.Main {
 			RemoveCardFromHandSystem.Update(_world);
 			CheckHandSizeSystem.Update(_world);
 			RelationCardSyncSystem.Update(_world, _actionConfig);
-			DrawCardSystem.Update(_world, _actionConfig, _rng);
+			RevengeCardSyncSystem.Update(_world, _actionConfig);
+			DrawCardSystem.Update(_world, _actionConfig, _rng, _hqCountryByOrgId);
 			CleanupCardDiscardSystem.Update(_world);
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool);
 

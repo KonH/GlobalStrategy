@@ -278,6 +278,23 @@
       ],
       "cost": [{ "resourceId": "gold", "amount": 500.0 }],
       "effectIds": ["surrender_effect"]
+    },
+    {
+      "actionId": "revenge",
+      "ownerType": "country",
+      "rarity": "Standard",
+      "nameKey": "action.revenge.name",
+      "descKey": "action.revenge.desc",
+      "targetRole": "military_advisor",
+      "deckCopies": 3,
+      "conditions": [
+        { "type": "gte", "members": [ { "type": "control" }, { "type": "value", "value": 20 } ] },
+        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 25 } ] },
+        { "type": "gte", "members": [ { "type": "warFree" }, { "type": "value", "value": 1 } ] },
+        { "type": "gte", "members": [ { "type": "revengeEligible" }, { "type": "value", "value": 1 } ] }
+      ],
+      "cost": [{ "resourceId": "gold", "amount": 50.0 }],
+      "effectIds": ["revenge_declare_war_effect"]
     }
   ],
   "orgPools": [
