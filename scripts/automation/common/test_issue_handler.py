@@ -15,8 +15,9 @@ from scripts.automation.cursor.handle_issues import (
     detect_session_limit as detect_cursor_session_limit,
 )
 from scripts.automation.common.issue_handler import (
-    SALVAGE_COMMIT_MESSAGE, SALVAGE_GIT_IDENTITY, candidate_branch, checkout_clean,
-    configured_contributors, count_reclaims_since_owner_comment, find_candidates,
+    AI_IN_PROGRESS, SALVAGE_COMMIT_MESSAGE, SALVAGE_GIT_IDENTITY, candidate_branch,
+    checkout_clean, claim_candidate, configured_contributors,
+    count_reclaims_since_owner_comment, delete_comment, find_candidates,
     handle_limit_pause, limit_active, load_limit_retry_at, reclaim_stale_in_progress,
     release_in_progress_silently, reroute_auto_item_after_limit, salvage_uncommitted_work,
     save_limit_retry_at,
@@ -31,8 +32,19 @@ def item(number, labels, **extra):
     return {"number": number, "labels": [{"name": name} for name in labels], **extra}
 
 
-def comment(body, author="KonH"):
-    return {"body": body, "user": {"login": author}}
+def comment(body, author="KonH", **extra):
+    return {"body": body, "user": {"login": author}, **extra}
+
+
+def _iso_utc(dt):
+    return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def claim_comment(token, comment_id, created_at, kind="issue",
+                  marker_prefix=MARKER_PREFIX):
+    body = (f"{marker_prefix}:claim:{token}: claiming this {kind} "
+            f"for automated processing. -->")
+    return comment(body, id=comment_id, created_at=_iso_utc(created_at))
 
 
 class FindCandidatesTests(unittest.TestCase):
@@ -115,6 +127,179 @@ class CountReclaimsTests(unittest.TestCase):
             comment(f"{RECLAIM_MARKER}\nretry 2"),
         ]):
             self.assertEqual(2, self.count())
+
+    def test_leftover_claim_comment_does_not_reset_the_counter(self):
+        claim_body = (f"{MARKER_PREFIX}:claim:deadbeef: claiming this issue "
+                      "for automated processing. -->")
+        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
+            comment(f"{RECLAIM_MARKER}\nretry 1"),
+            comment(claim_body),
+            comment(f"{RECLAIM_MARKER}\nretry 2"),
+        ]):
+            self.assertEqual(2, self.count())
+
+
+class ClaimCandidateTests(unittest.TestCase):
+    OWN_TOKEN = "a" * 32
+    RIVAL_TOKEN = "b" * 32
+    OTHER_TOKEN = "c" * 32
+
+    def setUp(self):
+        self.logger = MagicMock()
+        self.candidate = item(42, ["claude"], kind="issue")
+        self.now = datetime(2026, 8, 1, 12, 0, 0, tzinfo=timezone.utc)
+
+    def _claim(self, comments, settle_seconds=0, freshness_minutes=10,
+               post_comment_side_effect=None, add_label_side_effect=None,
+               delete_side_effect=None):
+        uuid_mock = MagicMock()
+        uuid_mock.hex = self.OWN_TOKEN
+        with patch("scripts.automation.common.issue_handler.uuid.uuid4",
+                   return_value=uuid_mock), \
+             patch("scripts.automation.common.issue_handler.time.sleep") as sleep, \
+             patch("scripts.automation.common.issue_handler.add_label",
+                   side_effect=add_label_side_effect) as add_label, \
+             patch("scripts.automation.common.issue_handler.post_comment",
+                   side_effect=post_comment_side_effect) as post_comment, \
+             patch("scripts.automation.common.issue_handler.run_gh_json",
+                   return_value=comments) as run_gh_json, \
+             patch("scripts.automation.common.issue_handler.delete_comment",
+                   side_effect=delete_side_effect) as delete, \
+             patch("scripts.automation.common.issue_handler.remove_label") as remove_label, \
+             patch("scripts.automation.common.issue_handler.datetime") as dt_mod:
+            dt_mod.now.return_value = self.now
+            dt_mod.side_effect = lambda *a, **k: datetime(*a, **k)
+            # fromisoformat must still work for created_at parsing
+            dt_mod.fromisoformat = datetime.fromisoformat
+            result = claim_candidate(
+                self.logger, "claude", MARKER, self.candidate,
+                freshness_minutes=freshness_minutes, settle_seconds=settle_seconds,
+            )
+        return result, {
+            "sleep": sleep,
+            "add_label": add_label,
+            "post_comment": post_comment,
+            "run_gh_json": run_gh_json,
+            "delete": delete,
+            "remove_label": remove_label,
+        }
+
+    def test_uncontested_claim_wins_and_deletes_own_comment(self):
+        own = claim_comment(self.OWN_TOKEN, 100, self.now)
+        result, mocks = self._claim([own], settle_seconds=5)
+        self.assertTrue(result)
+        mocks["add_label"].assert_called_once_with(42, AI_IN_PROGRESS)
+        mocks["sleep"].assert_called_once_with(5)
+        mocks["delete"].assert_called_once_with(42, 100)
+        mocks["remove_label"].assert_not_called()
+        posted = mocks["post_comment"].call_args.args[1]
+        self.assertTrue(posted.endswith("-->"))
+        self.assertTrue(posted.startswith(f"{MARKER_PREFIX}:claim:{self.OWN_TOKEN}"))
+
+    def test_contested_claim_this_instance_wins_and_deletes_both(self):
+        own = claim_comment(self.OWN_TOKEN, 10, self.now)
+        rival = claim_comment(self.RIVAL_TOKEN, 20, self.now)
+        result, mocks = self._claim([rival, own])  # rival listed first; own has lower id
+        self.assertTrue(result)
+        self.assertEqual(
+            [(42, 10), (42, 20)],
+            [call.args for call in mocks["delete"].call_args_list],
+        )
+        mocks["remove_label"].assert_not_called()
+
+    def test_contested_claim_this_instance_loses_and_touches_nothing(self):
+        own = claim_comment(self.OWN_TOKEN, 20, self.now)
+        rival = claim_comment(self.RIVAL_TOKEN, 10, self.now)
+        result, mocks = self._claim([own, rival])
+        self.assertFalse(result)
+        mocks["delete"].assert_not_called()
+        mocks["remove_label"].assert_not_called()
+
+    def test_three_way_contested_claim_sorts_by_id_and_deletes_all(self):
+        own = claim_comment(self.OWN_TOKEN, 5, self.now)
+        rival = claim_comment(self.RIVAL_TOKEN, 50, self.now)
+        other = claim_comment(self.OTHER_TOKEN, 25, self.now)
+        # Returned deliberately out of id order to force the explicit sort.
+        result, mocks = self._claim([rival, other, own])
+        self.assertTrue(result)
+        self.assertEqual(
+            [(42, 5), (42, 25), (42, 50)],
+            [call.args for call in mocks["delete"].call_args_list],
+        )
+
+    def test_stale_claim_comments_are_ignored(self):
+        stale_time = self.now - timedelta(minutes=11)
+        stale = claim_comment(self.RIVAL_TOKEN, 1, stale_time)
+        own = claim_comment(self.OWN_TOKEN, 99, self.now)
+        result, mocks = self._claim([stale, own], freshness_minutes=10)
+        self.assertTrue(result)
+        mocks["delete"].assert_called_once_with(42, 99)
+
+    def test_prior_cycle_leaves_no_stray_claim_comment_for_next_cycle(self):
+        # After a clean win the winner deletes every fresh claim comment before the CLI
+        # runs, so a later need-attention → reopen cycle must see an empty claim set from
+        # history and only contend with its own new post.
+        own = claim_comment(self.OWN_TOKEN, 200, self.now)
+        result, mocks = self._claim([own])
+        self.assertTrue(result)
+        mocks["delete"].assert_called_once_with(42, 200)
+
+    def test_exception_after_add_label_rolls_back_and_returns_false(self):
+        result, mocks = self._claim(
+            [], post_comment_side_effect=RuntimeError("gh failed"),
+        )
+        self.assertFalse(result)
+        mocks["add_label"].assert_called_once_with(42, AI_IN_PROGRESS)
+        mocks["remove_label"].assert_called_once_with(42, AI_IN_PROGRESS)
+        mocks["delete"].assert_not_called()
+
+    def test_exception_on_add_label_is_clean_loss_without_rollback(self):
+        result, mocks = self._claim(
+            [], add_label_side_effect=RuntimeError("label failed"),
+        )
+        self.assertFalse(result)
+        mocks["post_comment"].assert_not_called()
+        mocks["remove_label"].assert_not_called()
+
+    def test_winner_cleanup_tolerates_delete_404(self):
+        own = claim_comment(self.OWN_TOKEN, 10, self.now)
+        rival = claim_comment(self.RIVAL_TOKEN, 20, self.now)
+
+        def delete_side_effect(number, comment_id):
+            if comment_id == 10:
+                raise RuntimeError("HTTP 404")
+
+        result, mocks = self._claim(
+            [own, rival], delete_side_effect=delete_side_effect,
+        )
+        self.assertTrue(result)
+        self.assertEqual(
+            [(42, 10), (42, 20)],
+            [call.args for call in mocks["delete"].call_args_list],
+        )
+        mocks["remove_label"].assert_not_called()
+
+    def test_claim_comment_body_renders_nothing_visible(self):
+        own = claim_comment(self.OWN_TOKEN, 100, self.now)
+        _, mocks = self._claim([own])
+        body = mocks["post_comment"].call_args.args[1]
+        self.assertTrue(body.startswith("<!-- "))
+        self.assertTrue(body.endswith("-->"))
+        self.assertEqual(body.count("-->"), 1)
+
+    def test_delete_comment_uses_comment_id_endpoint(self):
+        with patch("scripts.automation.common.issue_handler.run_gh") as run_gh:
+            delete_comment(42, 999)
+        run_gh.assert_called_once_with([
+            "api", "-X", "DELETE",
+            "repos/KonH/GlobalStrategy/issues/comments/999",
+        ])
+
+    def test_no_fresh_claim_comments_is_a_loss(self):
+        result, mocks = self._claim([])
+        self.assertFalse(result)
+        mocks["delete"].assert_not_called()
+        mocks["remove_label"].assert_not_called()
 
 
 class ReclaimStaleInProgressTests(unittest.TestCase):

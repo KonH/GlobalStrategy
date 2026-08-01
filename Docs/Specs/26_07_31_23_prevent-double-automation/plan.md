@@ -177,55 +177,55 @@ above) and a cleanup step.
 
 ### Section 1 — Agent Steps
 
-- [ ] **Add `claim_candidate` and `delete_comment` to `issue_handler.py`** — implement both functions
+- [x] **Add `claim_candidate` and `delete_comment` to `issue_handler.py`** — implement both functions
       as described in Approach (imports needed: `uuid` for token generation and `time.sleep` for the
       settle delay; `datetime`/`timezone` are already imported (`from datetime import datetime,
       timezone`), but `timedelta` is not — add it to that import line). Use
       `marker.rsplit(" -->", 1)[0]` for `marker_prefix`, matching `reclaim_stale_in_progress`'s existing
       convention exactly.
-- [ ] **Unit-test `claim_candidate` and `delete_comment` in `test_issue_handler.py`** — add a new test
+- [x] **Unit-test `claim_candidate` and `delete_comment` in `test_issue_handler.py`** — add a new test
       class following the file's existing `item(...)`/`comment(...)` helper + `unittest.mock.patch` on
       `scripts.automation.common.issue_handler.run_gh_json`/`run_gh` conventions (see Tests below for
       the required cases). Land this before wiring the wrappers so the core mechanism is verified in
       isolation first.
-- [ ] **Wire `claude/handle_issues.py`'s `main()` loop** — import `claim_candidate` from
+- [x] **Wire `claude/handle_issues.py`'s `main()` loop** — import `claim_candidate` from
       `common.issue_handler`; in the `for candidate in candidates:` loop (currently starting with
       `branch = candidate_branch(candidate)` then `checkout_clean(logger, branch)`), call
       `claim_candidate(logger, LABEL, MARKER, candidate)` first and `continue` to the next candidate on
       `False`, logging that the claim was lost, before any `candidate_branch`/`checkout_clean` call.
-- [ ] **Wire `codex/handle_issues.py`'s `main()` loop** — same change, same insertion point (before
+- [x] **Wire `codex/handle_issues.py`'s `main()` loop** — same change, same insertion point (before
       `branch = candidate_branch(candidate)` / `checkout_clean(logger, branch)` in its `for candidate in
       candidates:` loop), using that module's own `LABEL`/`MARKER`.
-- [ ] **Wire `cursor/handle_issues.py`'s `main()` loop** — same change; note this loop's current shape
+- [x] **Wire `cursor/handle_issues.py`'s `main()` loop** — same change; note this loop's current shape
       is `checkout_clean(logger, candidate_branch(candidate))` called inline as the first statement (no
       separate `branch = ...` line, and the file uses tab indentation, unlike the other two wrappers) —
       insert the `claim_candidate` call and `continue`-on-loss before that inline `checkout_clean` call,
       matching the file's existing tab indentation.
-- [ ] **Remove the CLI-side "Claim" step and renumber** in `.claude/commands/handle-issue.md` (currently
+- [x] **Remove the CLI-side "Claim" step and renumber** in `.claude/commands/handle-issue.md` (currently
       numbered step 1, "**Claim** — add `ai-in-progress` as the very first action on the item." under
       "## Candidate lifecycle", steps 1–7; this file documents no manual-invocation path) — delete
       step 1 and renumber the remaining six steps 1–6.
-- [ ] **Reword (not delete) the CLI-side "Claim" step** in `.codex/skills/codex-issue/SKILL.md` (its
+- [x] **Reword (not delete) the CLI-side "Claim" step** in `.codex/skills/codex-issue/SKILL.md` (its
       frontmatter documents a manual-invocation path — "Use when processing a `codex`-labeled item
       manually or from `scripts/automation/codex/handle_issues.py`") — keep it as step 1 but reword to
       note the wrapper already added `ai-in-progress` before invoking the CLI, and instruct a manual
       run to add it itself first, so the unchanged final `remove_label(..., AI_IN_PROGRESS)` hand-off
       step never targets a label that was never added.
-- [ ] **Reword (not delete) the CLI-side "Claim" step** in `.cursor/commands/cursor-issue.md` (it
+- [x] **Reword (not delete) the CLI-side "Claim" step** in `.cursor/commands/cursor-issue.md` (it
       documents "It may also be run manually in Cursor via `/cursor-issue`") — same reword as the Codex
       doc, preserving this file's terser phrasing style, keeping it as step 1.
-- [ ] **Re-verify `count_reclaims_since_owner_comment` needs no code change** — confirm (per Approach)
+- [x] **Re-verify `count_reclaims_since_owner_comment` needs no code change** — confirm (per Approach)
       that claim comments' `{marker_prefix}:claim:` prefix satisfies the existing
       `body.startswith(marker_prefix)` exemption so a leftover claim comment from a failed cleanup can
       never falsely reset the reclaim counter; add a regression test for this case in
       `test_issue_handler.py`'s existing `CountReclaimsTests` class rather than changing the function.
-- [ ] **Update `github-issue-automation` SKILL.md's Concurrency section** — it currently describes only
+- [x] **Update `github-issue-automation` SKILL.md's Concurrency section** — it currently describes only
       the local `flock` and explicitly says it "does nothing for two distinct automation instances."
       Add a short subsection describing the new cross-instance claim protocol (label + uniquely-tokened,
       fully-invisible claim comment + settle delay + freshness-bounded comment-id tie-break, called
       per-candidate before `checkout_clean`), citing issue #104/PRs #105/#106 as the motivating case —
       and this branch's own concurrent-plan race as a second, even more direct example.
-- [ ] **Check whether `test_handle_issues_auto.py` or per-provider tests need a new "skip candidate on
+- [x] **Check whether `test_handle_issues_auto.py` or per-provider tests need a new "skip candidate on
       lost claim" case** — `test_handle_issues_auto.py` covers auto-routing (`route_candidates`), not
       the provider wrappers' own `main()` loops, and there are currently no dedicated
       `test_handle_issues_claude.py`/`codex`/`cursor` files — the three wrappers' `main()` functions are
@@ -236,7 +236,7 @@ above) and a cleanup step.
       covered at the same rigor as the rest of each `main()` loop — confirm this reasoning still holds
       once the wiring is written (i.e. no non-trivial new logic snuck into the wrapper loop itself) and
       only add a test if it did.
-- [ ] **Run the automation test suite and confirm green** — including all new `claim_candidate`/
+- [x] **Run the automation test suite and confirm green** — including all new `claim_candidate`/
       `delete_comment` tests, with no regressions in the existing reclaim/limit-pause/discovery tests.
 
 ### Section 2 — User Steps
