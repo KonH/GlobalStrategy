@@ -1,0 +1,4 @@
+interface:
+  display_name: ".NET Build"
+  short_description: "Build .NET projects with captured logs"
+  default_prompt: "Use $dotnet-build to build the default .NET solution."

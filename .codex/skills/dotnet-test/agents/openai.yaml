@@ -1,0 +1,4 @@
+interface:
+  display_name: ".NET Test"
+  short_description: "Run .NET tests with captured logs"
+  default_prompt: "Use $dotnet-test to run the default .NET test suite."
