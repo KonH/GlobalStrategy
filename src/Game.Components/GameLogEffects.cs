@@ -51,7 +51,7 @@ namespace GS.Game.Components {
 		public double GoldTaken;
 		public List<WarGoldRecipientSnapshot> GoldRecipients;
 		public List<WarControlDeltaSnapshot> ControlDeltas;
-		public List<string> TransferredProvinceIds;
+		public List<WarProvinceTransferSnapshot> TransferredProvinces;
 		public List<WarProgressHistorySnapshot> History;
 		public WarSideStatsSnapshot Attacker;
 		public WarSideStatsSnapshot Defender;

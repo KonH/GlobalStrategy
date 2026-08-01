@@ -22,7 +22,7 @@ namespace GS.Game.Tests {
 				GoldTaken = 10,
 				GoldRecipients = new List<WarGoldRecipientSnapshot>(),
 				ControlDeltas = new List<WarControlDeltaSnapshot>(),
-				TransferredProvinceIds = new List<string>(),
+				TransferredProvinces = new List<WarProvinceTransferSnapshot>(),
 				History = new List<WarProgressHistorySnapshot>(),
 				Attacker = new WarSideStatsSnapshot { CountryId = attacker },
 				Defender = new WarSideStatsSnapshot { CountryId = defender },
@@ -227,6 +227,31 @@ namespace GS.Game.Tests {
 			Assert.True(decision.WriteLog);
 			Assert.True(decision.Show);
 			Assert.True(decision.Pause);
+		}
+
+		[Fact]
+		void influence_gate_falls_back_to_winner_loser_when_attacker_defender_omitted() {
+			var world = new World();
+			AddControl(world, "Org", "France", 3);
+			WarResolvedApplied applied = new WarResolvedApplied {
+				WarId = "war_1",
+				WinnerCountryId = "Great_Britain",
+				LoserCountryId = "France",
+				Progress = 40,
+				GoldRecipients = new List<WarGoldRecipientSnapshot>(),
+				ControlDeltas = new List<WarControlDeltaSnapshot>(),
+				TransferredProvinces = new List<WarProvinceTransferSnapshot>(),
+				History = new List<WarProgressHistorySnapshot>(),
+				Battles = new List<WarBattleRowSnapshot>()
+			};
+
+			EventNotificationDecision decision = EventNotificationDispatcher.EvaluateWarResolved(
+				world, null, "Org", applied);
+
+			Assert.True(decision.WriteLog);
+			Assert.True(decision.Show);
+			Assert.True(decision.Pause);
+			Assert.NotNull(decision.Snapshot);
 		}
 	}
 }

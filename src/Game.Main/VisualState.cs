@@ -691,6 +691,18 @@ namespace GS.Main {
 		}
 	}
 
+	public class WarProvinceTransferState {
+		public string ProvinceId { get; }
+		public string OldOwnerCountryId { get; }
+		public string NewOwnerCountryId { get; }
+
+		public WarProvinceTransferState(string provinceId, string oldOwnerCountryId, string newOwnerCountryId) {
+			ProvinceId = provinceId;
+			OldOwnerCountryId = oldOwnerCountryId;
+			NewOwnerCountryId = newOwnerCountryId;
+		}
+	}
+
 	public class WarResultSnapshotState {
 		public string WarId { get; }
 		public string AttackerCountryId { get; }
@@ -702,7 +714,7 @@ namespace GS.Main {
 		public double GoldTaken { get; }
 		public IReadOnlyList<WarGoldRecipientState> GoldRecipients { get; }
 		public IReadOnlyList<WarControlDeltaState> ControlDeltas { get; }
-		public IReadOnlyList<string> TransferredProvinceIds { get; }
+		public IReadOnlyList<WarProvinceTransferState> TransferredProvinces { get; }
 		public IReadOnlyList<WarProgressHistoryEntryState> History { get; }
 		public WarSideStatsState Attacker { get; }
 		public WarSideStatsState Defender { get; }
@@ -719,7 +731,7 @@ namespace GS.Main {
 			double goldTaken,
 			IReadOnlyList<WarGoldRecipientState> goldRecipients,
 			IReadOnlyList<WarControlDeltaState> controlDeltas,
-			IReadOnlyList<string> transferredProvinceIds,
+			IReadOnlyList<WarProvinceTransferState> transferredProvinces,
 			IReadOnlyList<WarProgressHistoryEntryState> history,
 			WarSideStatsState attacker,
 			WarSideStatsState defender,
@@ -734,7 +746,7 @@ namespace GS.Main {
 			GoldTaken = goldTaken;
 			GoldRecipients = goldRecipients;
 			ControlDeltas = controlDeltas;
-			TransferredProvinceIds = transferredProvinceIds;
+			TransferredProvinces = transferredProvinces;
 			History = history;
 			Attacker = attacker;
 			Defender = defender;

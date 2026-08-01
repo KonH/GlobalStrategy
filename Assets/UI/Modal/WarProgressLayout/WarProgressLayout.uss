@@ -110,19 +110,23 @@
 
 .war-progress-side-header {
     flex-direction: row;
+    flex-wrap: nowrap;
     align-items: center;
     margin-bottom: 6px;
 }
 
 .war-progress-side-label {
+    flex-shrink: 1;
     font-size: 22px;
     -unity-font-style: bold;
+    white-space: nowrap;
 }
 
 .war-progress-side-flag {
+    flex-shrink: 0;
     width: 28px;
     height: 20px;
-    margin-left: 8px;
+    margin-right: 8px;
     -unity-background-scale-mode: scale-to-fit;
 }
 

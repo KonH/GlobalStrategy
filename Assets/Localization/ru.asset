@@ -530,14 +530,18 @@ MonoBehaviour:
     Value: Итоги
   - Key: war_result.gold_title
     Value: Золото
-  - Key: war_result.gold_taken_format
-    Value: 'Захвачено золота: {0}'
   - Key: war_result.gold_empty
     Value: Золото не захвачено
-  - Key: war_result.gold_recipient_org_format
-    Value: '{0}: {1}'
-  - Key: war_result.gold_recipient_country_format
-    Value: '{0}: {1}'
+  - Key: war_result.gold_country_header_format
+    Value: '{0}:'
+  - Key: war_result.gold_amount_lost_format
+    Value: '-{0}'
+  - Key: war_result.gold_amount_gained_format
+    Value: '+{0}'
+  - Key: war_result.gold_orgs_deduction_format
+    Value: '-{0} организациям:'
+  - Key: war_result.gold_org_format
+    Value: '{0} ({1}%): +{2}'
   - Key: war_result.control_title
     Value: Контроль
   - Key: war_result.control_empty

@@ -1,17 +1,44 @@
 .war-result-panel {
-    /* Inherits shared war-progress-panel sizing; results block needs room below battles. */
+    /* Title + winner stay fixed; body scrolls so the results block is never clipped. */
 }
 
 .war-result-winner {
     align-self: center;
+    flex-shrink: 0;
     font-size: 28px;
     margin-bottom: 10px;
     -unity-text-align: middle-center;
 }
 
+.war-result-body {
+    flex-grow: 1;
+    flex-shrink: 1;
+    align-self: stretch;
+    min-height: 0;
+}
+
+.war-result-panel .war-progress-side-header {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.war-result-panel .war-progress-side-flag {
+    flex-shrink: 0;
+}
+
+.war-result-panel .war-progress-side-label {
+    flex-shrink: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .war-result-battles-list {
     flex-grow: 0;
+    flex-shrink: 0;
     max-height: 120px;
+    min-height: 72px;
     margin-bottom: 8px;
 }
 
@@ -25,12 +52,15 @@
 
 .war-result-section-title {
     margin-top: 4px;
+    flex-shrink: 0;
 }
 
 .war-result-results {
-    flex-grow: 1;
+    flex-grow: 0;
+    flex-shrink: 0;
     align-self: stretch;
-    max-height: 220px;
+    min-height: 160px;
+    margin-bottom: 8px;
 }
 
 .war-result-subsection-title {
@@ -49,5 +79,65 @@
     align-self: stretch;
     margin-bottom: 2px;
     font-size: 18px;
+    color: rgb(200, 184, 144);
     white-space: normal;
+}
+
+.war-result-gold-header {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    align-self: stretch;
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+.war-result-gold-header-label {
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-left: 6px;
+}
+
+.war-result-gold-icon {
+    flex-shrink: 0;
+}
+
+.war-result-gold-country {
+    -unity-font-style: bold;
+    margin-top: 4px;
+}
+
+.war-result-gold-amount {
+    margin-left: 8px;
+}
+
+.war-result-province-row {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    align-self: stretch;
+    margin-bottom: 4px;
+}
+
+.war-result-province-flag {
+    flex-shrink: 0;
+    width: 28px;
+    height: 20px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.war-result-province-arrow {
+    flex-shrink: 0;
+    margin-left: 6px;
+    margin-right: 6px;
+    font-size: 18px;
+}
+
+.war-result-province-name {
+    flex-shrink: 1;
+    margin-left: 8px;
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

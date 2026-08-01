@@ -29,7 +29,13 @@ namespace GS.Main {
 			string playerOrgId,
 			WarResolvedApplied applied) {
 			EventNotificationEntry entry = ResolveWarResolvedEntry(settings);
-			string[] participants = { applied.AttackerCountryId ?? "", applied.DefenderCountryId ?? "" };
+			string attackerId = applied.AttackerCountryId ?? "";
+			string defenderId = applied.DefenderCountryId ?? "";
+			// Card resolve historically omitted attacker/defender; fall back to winner/loser so
+			// the influence gate still sees participant countries.
+			string[] participants = !string.IsNullOrEmpty(attackerId) || !string.IsNullOrEmpty(defenderId)
+				? new[] { attackerId, defenderId }
+				: new[] { applied.WinnerCountryId ?? "", applied.LoserCountryId ?? "" };
 			// Peace already applied control shifts; reverse this event's deltas so influence
 			// gates see pre-peace player control (loser cuts must not hide the result window).
 			int ControlBeforePeace(string countryId) {
@@ -107,9 +113,15 @@ namespace GS.Main {
 				}
 			}
 
-			IReadOnlyList<string> transferred = applied.TransferredProvinceIds != null
-				? new List<string>(applied.TransferredProvinceIds)
-				: Array.Empty<string>();
+			var transferred = new List<WarProvinceTransferState>(applied.TransferredProvinces?.Count ?? 0);
+			if (applied.TransferredProvinces != null) {
+				foreach (WarProvinceTransferSnapshot transfer in applied.TransferredProvinces) {
+					transferred.Add(new WarProvinceTransferState(
+						transfer.ProvinceId ?? "",
+						transfer.OldOwnerCountryId ?? "",
+						transfer.NewOwnerCountryId ?? ""));
+				}
+			}
 
 			List<WarProgressHistorySnapshot> historySnapshots = applied.History
 				?? new List<WarProgressHistorySnapshot>();

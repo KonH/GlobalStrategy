@@ -59,4 +59,10 @@ namespace GS.Game.Components {
 		public int Delta;
 		public int TotalAfter;
 	}
+
+	public struct WarProvinceTransferSnapshot {
+		public string ProvinceId;
+		public string OldOwnerCountryId;
+		public string NewOwnerCountryId;
+	}
 }

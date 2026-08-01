@@ -237,8 +237,15 @@ namespace GS.Game.Tests {
 				}
 			}
 			Assert.Single(applied);
+			Assert.Equal("Great_Britain", applied[0].AttackerCountryId);
+			Assert.Equal("France", applied[0].DefenderCountryId);
 			Assert.Equal("Great_Britain", applied[0].WinnerCountryId);
 			Assert.Equal("France", applied[0].LoserCountryId);
+			Assert.NotNull(applied[0].GoldRecipients);
+			Assert.NotNull(applied[0].ControlDeltas);
+			Assert.NotNull(applied[0].TransferredProvinces);
+			Assert.NotNull(applied[0].History);
+			Assert.NotNull(applied[0].Battles);
 
 			Assert.True(RevengeEligibilityQuery.IsEligible(world, "France", "Great_Britain"));
 			Assert.False(RevengeEligibilityQuery.IsEligible(world, "Great_Britain", "France"));

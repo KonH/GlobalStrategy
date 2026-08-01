@@ -14,22 +14,23 @@ namespace GS.Game.Systems {
 
 		// Called before GameLogic's Wars.TryResolvePeaceByChance — WarResolvedApplied is created
 		// there (and by the debug StopWar command handler later in the same tick), both earlier
-		// than UpdateActionEffects' call site, so it cannot share that sweep without being
-		// destroyed the same tick it's created. See Docs/Specs/26_07_18_07_action-log-ui/plan.md
-		// ordering note.
+		// than UpdateActionEffects' call site. Sweeping it from UpdateActionEffects would destroy
+		// peace/StopWar events before VisualStateConverter runs. Card ResolveWar emits after
+		// UpdateActionEffects and is cleaned here on the next tick instead.
 		public static void UpdateWarResolved(World world) {
 			RemoveComponent<WarResolvedApplied>(world);
 		}
 
 		// Called alongside CleanupActionEffectsSystem.Update, before CreateActionEffectSystem/
-		// DiscoverCountrySystem create this tick's batch. See ordering note above.
+		// DiscoverCountrySystem create this tick's batch. Do NOT sweep WarResolvedApplied here —
+		// peace/StopWar emit it earlier in the tick (before this call); that component is cleaned
+		// only by UpdateWarResolved at the start of the next tick.
 		public static void UpdateActionEffects(World world) {
 			RemoveComponent<ControlEffectApplied>(world);
 			RemoveComponent<OpinionEffectApplied>(world);
 			RemoveComponent<DiscoveryApplied>(world);
 			RemoveComponent<RelationSetApplied>(world);
 			RemoveComponent<RelationClearedApplied>(world);
-			RemoveComponent<WarResolvedApplied>(world);
 			RemoveComponent<WarDeclaredApplied>(world);
 		}
 

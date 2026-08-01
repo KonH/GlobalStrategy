@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using GS.Game.Components;
 using GS.Game.Configs;
@@ -9,6 +10,7 @@ using UnityEngine.UIElements;
 namespace GS.Unity.UI {
 	class WarResultWindowView {
 		readonly ILocalization _loc;
+		readonly CountryVisualConfig _countryVisualConfig;
 		readonly WarProgressLayoutBinder _binder;
 		readonly Label _winner;
 		readonly Label _resultsTitle;
@@ -25,6 +27,7 @@ namespace GS.Unity.UI {
 			VisualElement root, ILocalization loc, CountryVisualConfig countryVisualConfig,
 			EffectConfig effectConfig, TooltipSystem tooltip) {
 			_loc = loc;
+			_countryVisualConfig = countryVisualConfig;
 			_binder = new WarProgressLayoutBinder(root, loc, countryVisualConfig, effectConfig, tooltip);
 			_winner = root.Q<Label>("war-result-winner");
 			_resultsTitle = root.Q<Label>("war-result-results-title");
@@ -44,7 +47,8 @@ namespace GS.Unity.UI {
 				_resultsTitle.text = _getText("war_result.results_title", "Results");
 			}
 			if (_goldTitle != null) {
-				_goldTitle.text = _getText("war_result.gold_title", "Gold");
+				// Title text is rebuilt with the coin icon in RefreshGold.
+				_goldTitle.style.display = DisplayStyle.None;
 			}
 			if (_controlTitle != null) {
 				_controlTitle.text = _getText("war_result.control_title", "Control");
@@ -80,35 +84,97 @@ namespace GS.Unity.UI {
 		}
 
 		void RefreshGold(WarResultSnapshotState snapshot) {
+			IReadOnlyList<WarGoldRecipientState> recipients = snapshot.GoldRecipients
+				?? Array.Empty<WarGoldRecipientState>();
 			if (_goldTaken != null) {
-				if (snapshot.GoldTaken == 0 && snapshot.GoldRecipients.Count == 0) {
-					_goldTaken.text = GetLoc("war_result.gold_empty", "No gold taken");
-				} else {
-					_goldTaken.text = string.Format(
-						GetLoc("war_result.gold_taken_format", "Gold taken: {0}"),
-						FormatGold(snapshot.GoldTaken));
-				}
+				_goldTaken.style.display = DisplayStyle.None;
 			}
-
 			if (_goldList == null) {
 				return;
 			}
 			_goldList.Clear();
-			foreach (WarGoldRecipientState recipient in snapshot.GoldRecipients) {
-				string line;
-				if (recipient.OwnerType == OwnerType.Org) {
-					line = string.Format(
-						GetLoc("war_result.gold_recipient_org_format", "{0}: {1}"),
-						GetOrgName(recipient.OwnerId),
-						FormatGold(recipient.Amount));
-				} else {
-					line = string.Format(
-						GetLoc("war_result.gold_recipient_country_format", "{0}: {1}"),
-						GetCountryName(recipient.OwnerId),
-						FormatGold(recipient.Amount));
-				}
-				_goldList.Add(CreateRow(line));
+			_goldList.Add(CreateGoldHeaderRow());
+
+			if (snapshot.GoldTaken == 0 && recipients.Count == 0) {
+				_goldList.Add(CreateTextRow(GetLoc("war_result.gold_empty", "No gold taken")));
+				return;
 			}
+
+			var orgRecipients = new List<WarGoldRecipientState>();
+			double orgTotal = 0;
+			foreach (WarGoldRecipientState recipient in recipients) {
+				if (recipient.OwnerType == OwnerType.Org && recipient.Amount != 0) {
+					orgRecipients.Add(recipient);
+					orgTotal += recipient.Amount;
+				}
+			}
+
+			string amount = FormatGold(snapshot.GoldTaken);
+			_goldList.Add(CreateTextRow(
+				string.Format(GetLoc("war_result.gold_country_header_format", "{0}:"),
+					GetCountryName(snapshot.LoserCountryId)),
+				"war-result-gold-country"));
+			_goldList.Add(CreateTextRow(
+				string.Format(GetLoc("war_result.gold_amount_lost_format", "-{0}"), amount),
+				"war-result-gold-amount"));
+
+			_goldList.Add(CreateTextRow(
+				string.Format(GetLoc("war_result.gold_country_header_format", "{0}:"),
+					GetCountryName(snapshot.WinnerCountryId)),
+				"war-result-gold-country"));
+			_goldList.Add(CreateTextRow(
+				string.Format(GetLoc("war_result.gold_amount_gained_format", "+{0}"), amount),
+				"war-result-gold-amount"));
+
+			if (orgTotal > 0) {
+				_goldList.Add(CreateTextRow(
+					string.Format(
+						GetLoc("war_result.gold_orgs_deduction_format", "-{0} for organizations:"),
+						FormatGold(orgTotal)),
+					"war-result-gold-amount"));
+			}
+
+			foreach (WarGoldRecipientState recipient in orgRecipients) {
+				int percent = snapshot.GoldTaken > 0
+					? (int)Math.Round(recipient.Amount * 100.0 / snapshot.GoldTaken, MidpointRounding.AwayFromZero)
+					: 0;
+				_goldList.Add(CreateTextRow(
+					string.Format(
+						GetLoc("war_result.gold_org_format", "{0} ({1}%): +{2}"),
+						GetOrgName(recipient.OwnerId),
+						percent.ToString(CultureInfo.InvariantCulture),
+						FormatGold(recipient.Amount)),
+					"war-result-gold-amount"));
+			}
+		}
+
+		VisualElement CreateGoldHeaderRow() {
+			var row = new VisualElement();
+			row.AddToClassList("war-result-gold-header");
+
+			var icon = new VisualElement();
+			icon.AddToClassList("resource-icon");
+			icon.AddToClassList("resource-icon--coin");
+			icon.AddToClassList("war-result-gold-icon");
+
+			var label = new Label(GetLoc("war_result.gold_title", "Gold"));
+			label.AddToClassList("gs-label");
+			label.AddToClassList("war-result-subsection-title");
+			label.AddToClassList("war-result-gold-header-label");
+
+			row.Add(icon);
+			row.Add(label);
+			return row;
+		}
+
+		static Label CreateTextRow(string text, string extraClass = null) {
+			var row = new Label(text);
+			row.AddToClassList("gs-content");
+			row.AddToClassList("war-result-row");
+			if (!string.IsNullOrEmpty(extraClass)) {
+				row.AddToClassList(extraClass);
+			}
+			return row;
 		}
 
 		void RefreshControl(WarResultSnapshotState snapshot) {
@@ -116,11 +182,13 @@ namespace GS.Unity.UI {
 				return;
 			}
 			_controlList.Clear();
-			if (snapshot.ControlDeltas.Count == 0) {
+			IReadOnlyList<WarControlDeltaState> deltas = snapshot.ControlDeltas
+				?? Array.Empty<WarControlDeltaState>();
+			if (deltas.Count == 0) {
 				_controlList.Add(CreateRow(GetLoc("war_result.control_empty", "No control changes")));
 				return;
 			}
-			foreach (WarControlDeltaState delta in snapshot.ControlDeltas) {
+			foreach (WarControlDeltaState delta in deltas) {
 				string signedDelta = delta.Delta > 0
 					? $"+{delta.Delta.ToString(CultureInfo.InvariantCulture)}"
 					: delta.Delta.ToString(CultureInfo.InvariantCulture);
@@ -139,13 +207,52 @@ namespace GS.Unity.UI {
 				return;
 			}
 			_provincesList.Clear();
-			if (snapshot.TransferredProvinceIds.Count == 0) {
+			IReadOnlyList<WarProvinceTransferState> transfers = snapshot.TransferredProvinces
+				?? Array.Empty<WarProvinceTransferState>();
+			if (transfers.Count == 0) {
 				_provincesList.Add(CreateRow(GetLoc("war_result.provinces_empty", "No provinces transferred")));
 				return;
 			}
-			foreach (string provinceId in snapshot.TransferredProvinceIds) {
-				_provincesList.Add(CreateRow(GetProvinceName(provinceId)));
+			foreach (WarProvinceTransferState transfer in transfers) {
+				_provincesList.Add(CreateProvinceTransferRow(transfer));
 			}
+		}
+
+		VisualElement CreateProvinceTransferRow(WarProvinceTransferState transfer) {
+			var row = new VisualElement();
+			row.AddToClassList("war-result-province-row");
+
+			var oldFlag = new VisualElement();
+			oldFlag.AddToClassList("war-result-province-flag");
+			ApplyFlag(oldFlag, transfer.OldOwnerCountryId);
+
+			var arrow = new Label("->");
+			arrow.AddToClassList("gs-content");
+			arrow.AddToClassList("war-result-province-arrow");
+
+			var newFlag = new VisualElement();
+			newFlag.AddToClassList("war-result-province-flag");
+			ApplyFlag(newFlag, transfer.NewOwnerCountryId);
+
+			var name = new Label(GetProvinceName(transfer.ProvinceId));
+			name.AddToClassList("gs-content");
+			name.AddToClassList("war-result-province-name");
+
+			row.Add(oldFlag);
+			row.Add(arrow);
+			row.Add(newFlag);
+			row.Add(name);
+			return row;
+		}
+
+		void ApplyFlag(VisualElement flagElement, string countryId) {
+			UnityEngine.Sprite sprite = _countryVisualConfig?.Find(countryId)?.flag;
+			if (sprite == null) {
+				flagElement.style.display = DisplayStyle.None;
+				return;
+			}
+			flagElement.style.backgroundImage = new StyleBackground(sprite);
+			flagElement.style.display = DisplayStyle.Flex;
 		}
 
 		static Label CreateRow(string text) {

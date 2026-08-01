@@ -16,7 +16,8 @@ namespace GS.Game.Systems {
 			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
 			int maxControlPool,
-			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null) {
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
+			CountryConfig? countryConfig = null) {
 			int[] required = { TypeId<GameAction>.Value, TypeId<ActionSucceeded>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
 			var toProcess = new List<(int entity, string actionId, string orgId)>();
 
@@ -172,7 +173,7 @@ namespace GS.Game.Systems {
 					} else if (effectDef is ResolveWarEffectParams resolveWarParams && !string.IsNullOrEmpty(countryId)) {
 						Wars.ResolveWar(
 							world, countryId, resolveWarParams.Outcome, currentTime,
-							rng, settings, topology, provinceCenters, maxControlPool);
+							rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
 					} else if (effectDef is CountryResourceModifierEffectParams resourceModifierParams) {
 						if (string.IsNullOrEmpty(countryId)) {
 							throw new InvalidOperationException(

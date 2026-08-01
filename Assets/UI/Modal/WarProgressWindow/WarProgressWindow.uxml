@@ -23,8 +23,8 @@
             <ui:VisualElement name="stats-row" class="war-progress-stats-row">
                 <ui:VisualElement name="attacker-stats" class="war-progress-stats-column">
                     <ui:VisualElement class="war-progress-side-header">
-                        <ui:Label name="attacker-label" text="Attacker" class="gs-label gs-color-attacker war-progress-side-label"/>
                         <ui:VisualElement name="attacker-flag" class="war-progress-side-flag"/>
+                        <ui:Label name="attacker-label" text="Attacker" class="gs-label gs-color-attacker war-progress-side-label"/>
                     </ui:VisualElement>
                     <ui:Label name="attacker-recruits" class="gs-content war-progress-stat"/>
                     <ui:Label name="attacker-troops-in-battles" class="gs-content war-progress-stat"/>
@@ -34,8 +34,8 @@
                 </ui:VisualElement>
                 <ui:VisualElement name="defender-stats" class="war-progress-stats-column war-progress-stats-column--last">
                     <ui:VisualElement class="war-progress-side-header">
-                        <ui:Label name="defender-label" text="Defender" class="gs-label gs-color-defender war-progress-side-label"/>
                         <ui:VisualElement name="defender-flag" class="war-progress-side-flag"/>
+                        <ui:Label name="defender-label" text="Defender" class="gs-label gs-color-defender war-progress-side-label"/>
                     </ui:VisualElement>
                     <ui:Label name="defender-recruits" class="gs-content war-progress-stat"/>
                     <ui:Label name="defender-troops-in-battles" class="gs-content war-progress-stat"/>
