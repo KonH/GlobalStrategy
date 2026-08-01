@@ -19,8 +19,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.issue_handler import (  # noqa: E402
-	acquire_lock, candidate_branch, checkout_clean, find_candidates, limit_active,
-	reclaim_stale_in_progress, release_in_progress_silently, save_limit_retry_at,
+	acquire_lock, candidate_branch, checkout_clean, claim_candidate, find_candidates,
+	limit_active, reclaim_stale_in_progress, release_in_progress_silently, save_limit_retry_at,
 	setup_logging,
 )
 
@@ -173,6 +173,9 @@ def main():
 		logger.info("No cursor candidates found.")
 		return
 	for candidate in candidates:
+		if not claim_candidate(logger, LABEL, MARKER, candidate):
+			logger.info("Lost claim race for %s #%s - skipping.", candidate["kind"], candidate["number"])
+			continue
 		checkout_clean(logger, candidate_branch(candidate))
 		returncode, errors = run_cursor(build_prompt(candidate), args)
 		limit_hit, retry_at = detect_session_limit(errors)
