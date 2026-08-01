@@ -524,6 +524,34 @@ MonoBehaviour:
     Value: This bonus fades gradually over time.
   - Key: war_progress.stat_tooltip_total
     Value: 'Total: {0}'
+  - Key: war_result.winner_format
+    Value: '{0} won!'
+  - Key: war_result.results_title
+    Value: Results
+  - Key: war_result.gold_title
+    Value: Gold
+  - Key: war_result.gold_empty
+    Value: No gold taken
+  - Key: war_result.gold_country_header_format
+    Value: '{0}:'
+  - Key: war_result.gold_amount_lost_format
+    Value: '-{0}'
+  - Key: war_result.gold_amount_gained_format
+    Value: '+{0}'
+  - Key: war_result.gold_orgs_deduction_format
+    Value: '-{0} for organizations:'
+  - Key: war_result.gold_org_format
+    Value: '{0} ({1}%): +{2}'
+  - Key: war_result.control_title
+    Value: Control
+  - Key: war_result.control_empty
+    Value: No control changes
+  - Key: war_result.control_delta_format
+    Value: '{0} in {1}: {2} (now {3})'
+  - Key: war_result.provinces_title
+    Value: Provinces
+  - Key: war_result.provinces_empty
+    Value: No provinces transferred
   - Key: select_org.base_control
     Value: "Base Control:"
   - Key: select_org.estimated_income

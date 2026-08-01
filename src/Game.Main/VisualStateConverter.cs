@@ -21,6 +21,7 @@ namespace GS.Main {
 		long _nextGameLogSequenceId = 1;
 		readonly bool _gameLogIncludePlayerActions;
 		readonly int _gameLogMaxEntries;
+		readonly EventNotificationSettings? _eventNotifications;
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
@@ -28,13 +29,15 @@ namespace GS.Main {
 		public VisualStateConverter(VisualState state, ActionConfig? actionConfig = null,
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
 			bool gameLogIncludePlayerActions = true, int gameLogMaxEntries = 12,
-			CountryConfig? countryConfig = null) {
+			CountryConfig? countryConfig = null,
+			EventNotificationSettings? eventNotifications = null) {
 			_state = state;
 			_actionConfig = actionConfig;
 			_hqCountryByOrgId = hqCountryByOrgId ?? new Dictionary<string, string>();
 			_countryConfig = countryConfig;
 			_gameLogIncludePlayerActions = gameLogIncludePlayerActions;
 			_gameLogMaxEntries = gameLogMaxEntries;
+			_eventNotifications = eventNotifications;
 		}
 
 		public void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
@@ -939,8 +942,15 @@ namespace GS.Main {
 				WarResolvedApplied[] applied = arch.GetColumn<WarResolvedApplied>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					newEntries.Add(new GameLogEntry(0, GameLogEntryKind.WarResolved, "", applied[i].WinnerCountryId,
-						"", "", Array.Empty<string>(), 0, 0, false, applied[i].LoserCountryId));
+					EventNotificationDecision decision = EventNotificationDispatcher.EvaluateWarResolved(
+						world, _eventNotifications, playerOrgId, applied[i]);
+					if (decision.WriteLog) {
+						newEntries.Add(new GameLogEntry(0, GameLogEntryKind.WarResolved, "", applied[i].WinnerCountryId,
+							"", "", Array.Empty<string>(), 0, 0, false, applied[i].LoserCountryId));
+					}
+					if (decision.Show && decision.Snapshot != null) {
+						_state.WarResults.Enqueue(decision.Snapshot);
+					}
 				}
 			}
 

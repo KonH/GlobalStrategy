@@ -141,31 +141,22 @@ namespace GS.Game.Systems {
 			GameSettings settings,
 			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
-			int maxControlPool) {
+			int maxControlPool,
+			CountryConfig? countryConfig = null) {
 			string? warId = FindWarIdForCountry(world, countryId);
 			if (warId == null) {
 				return false;
 			}
-			if (!TryGetWarState(world, warId, out string attackerId, out string defenderId, out _, out DateTime declaredAt)) {
+			if (!TryGetWarState(world, warId, out string attackerId, out string defenderId, out double progress, out DateTime declaredAt)) {
 				return false;
 			}
 			string opponentCountryId = attackerId == countryId ? defenderId : attackerId;
 			string winnerCountryId = outcomeForCountry == WarOutcome.Win ? countryId : opponentCountryId;
 			string loserCountryId = outcomeForCountry == WarOutcome.Win ? opponentCountryId : countryId;
 
-			TransferOccupiedProvinces(world, winnerCountryId, loserCountryId, rng, settings, topology, provinceCenters);
-			ClearOccupationForParticipants(world, attackerId, defenderId);
-			TransferGoldSpoils(world, winnerCountryId, loserCountryId, declaredAt, currentTime, settings);
-			ApplyControlShifts(world, winnerCountryId, loserCountryId, settings, maxControlPool);
-			DestroyWar(world, warId);
-
-			int appliedEntity = world.Create();
-			world.Add(appliedEntity, new WarResolvedApplied {
-				WinnerCountryId = winnerCountryId,
-				LoserCountryId = loserCountryId
-			});
-			RevengeEligibilityQuery.OnWarResolved(world, winnerCountryId, loserCountryId);
-
+			ApplyWarResolution(
+				world, warId, attackerId, defenderId, winnerCountryId, loserCountryId, progress,
+				declaredAt, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
 			return true;
 		}
 
@@ -198,12 +189,14 @@ namespace GS.Game.Systems {
 			GameSettings settings,
 			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
-			int maxControlPool) {
+			int maxControlPool,
+			CountryConfig? countryConfig = null) {
 			string? warId = FindWarIdForCountry(world, countryId);
 			if (warId == null) {
 				return false;
 			}
-			ResolvePeace(world, warId, currentTime, rng, settings, topology, provinceCenters, maxControlPool);
+			ResolvePeace(
+				world, warId, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
 			return true;
 		}
 
@@ -215,7 +208,8 @@ namespace GS.Game.Systems {
 			GameSettings settings,
 			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
-			int maxControlPool) {
+			int maxControlPool,
+			CountryConfig? countryConfig = null) {
 			bool isDayBoundary = previousTime.Date != currentTime.Date;
 			if (!isDayBoundary) {
 				return;
@@ -247,7 +241,8 @@ namespace GS.Game.Systems {
 
 			foreach (string warId in toResolve) {
 				if (TryGetWarProgress(world, warId, out _)) {
-					ResolvePeace(world, warId, currentTime, rng, settings, topology, provinceCenters, maxControlPool);
+					ResolvePeace(
+						world, warId, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
 				}
 			}
 		}
@@ -260,7 +255,8 @@ namespace GS.Game.Systems {
 			GameSettings settings,
 			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
-			int maxControlPool) {
+			int maxControlPool,
+			CountryConfig? countryConfig = null) {
 			if (!TryGetWarState(world, warId, out string attackerId, out string defenderId, out double progress, out DateTime declaredAt)) {
 				return;
 			}
@@ -273,15 +269,60 @@ namespace GS.Game.Systems {
 
 			string winnerId = progress > 0.0 ? attackerId : defenderId;
 			string loserId = progress > 0.0 ? defenderId : attackerId;
+			ApplyWarResolution(
+				world, warId, attackerId, defenderId, winnerId, loserId, progress,
+				declaredAt, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
+		}
 
-			TransferOccupiedProvinces(world, winnerId, loserId, rng, settings, topology, provinceCenters);
+		static void ApplyWarResolution(
+			World world,
+			string warId,
+			string attackerId,
+			string defenderId,
+			string winnerId,
+			string loserId,
+			double progress,
+			DateTime declaredAt,
+			DateTime currentTime,
+			Random rng,
+			GameSettings settings,
+			ProvinceTopology topology,
+			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
+			int maxControlPool,
+			CountryConfig? countryConfig) {
+			List<WarProgressHistorySnapshot> history = WarProgressSnapshot.BuildHistory(world, warId);
+			WarSideStatsSnapshot attackerStats = WarProgressSnapshot.BuildSideStats(
+				world, warId, attackerId, WarParticipantKind.Attacker, countryConfig);
+			WarSideStatsSnapshot defenderStats = WarProgressSnapshot.BuildSideStats(
+				world, warId, defenderId, WarParticipantKind.Defender, countryConfig);
+			List<WarBattleRowSnapshot> battles = WarProgressSnapshot.BuildBattles(world, warId);
+
+			List<WarProvinceTransferSnapshot> transferredProvinces = TransferOccupiedProvinces(
+				world, winnerId, loserId, rng, settings, topology, provinceCenters);
 			ClearOccupationForParticipants(world, attackerId, defenderId);
-			TransferGoldSpoils(world, winnerId, loserId, declaredAt, currentTime, settings);
-			ApplyControlShifts(world, winnerId, loserId, settings, maxControlPool);
+			(double goldTaken, List<WarGoldRecipientSnapshot> goldRecipients) = TransferGoldSpoils(
+				world, winnerId, loserId, declaredAt, currentTime, settings, maxControlPool);
+			List<WarControlDeltaSnapshot> controlDeltas = ApplyControlShifts(
+				world, winnerId, loserId, settings, maxControlPool);
 			DestroyWar(world, warId);
 
-			int ge = world.Create();
-			world.Add(ge, new WarResolvedApplied { WinnerCountryId = winnerId, LoserCountryId = loserId });
+			int appliedEntity = world.Create();
+			world.Add(appliedEntity, new WarResolvedApplied {
+				WarId = warId,
+				AttackerCountryId = attackerId,
+				DefenderCountryId = defenderId,
+				WinnerCountryId = winnerId,
+				LoserCountryId = loserId,
+				Progress = progress,
+				GoldTaken = goldTaken,
+				GoldRecipients = goldRecipients,
+				ControlDeltas = controlDeltas,
+				TransferredProvinces = transferredProvinces,
+				History = history,
+				Attacker = attackerStats,
+				Defender = defenderStats,
+				Battles = battles
+			});
 			RevengeEligibilityQuery.OnWarResolved(world, winnerId, loserId);
 		}
 
@@ -491,7 +532,7 @@ namespace GS.Game.Systems {
 			}
 		}
 
-		static void TransferOccupiedProvinces(
+		static List<WarProvinceTransferSnapshot> TransferOccupiedProvinces(
 			World world,
 			string winnerId,
 			string loserId,
@@ -499,6 +540,7 @@ namespace GS.Game.Systems {
 			GameSettings settings,
 			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters) {
+			var transferred = new List<WarProvinceTransferSnapshot>();
 			var eligible = new List<string>();
 			int[] ownershipRequired = { TypeId<ProvinceOwnership>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(ownershipRequired, null)) {
@@ -517,7 +559,7 @@ namespace GS.Game.Systems {
 			}
 
 			if (eligible.Count == 0) {
-				return;
+				return transferred;
 			}
 
 			int minPercent = (int)Math.Round(settings.PeaceProvinceTransferMinPercent);
@@ -529,7 +571,7 @@ namespace GS.Game.Systems {
 			double fraction = percent / 100.0;
 			int transferCount = Math.Min(eligible.Count, (int)Math.Ceiling(eligible.Count * fraction));
 			if (transferCount <= 0) {
-				return;
+				return transferred;
 			}
 
 			bool hasCentroid = TryComputeWinnerCentroid(
@@ -547,8 +589,15 @@ namespace GS.Game.Systems {
 			});
 
 			for (int i = 0; i < transferCount; i++) {
-				ProvinceOwnershipSystem.ChangeOwner(world, eligible[i], winnerId);
+				string provinceId = eligible[i];
+				ProvinceOwnershipSystem.ChangeOwner(world, provinceId, winnerId);
+				transferred.Add(new WarProvinceTransferSnapshot {
+					ProvinceId = provinceId,
+					OldOwnerCountryId = loserId,
+					NewOwnerCountryId = winnerId
+				});
 			}
+			return transferred;
 		}
 
 		// A winner's overseas colonies (owned provinces generated from the country's
@@ -624,43 +673,49 @@ namespace GS.Game.Systems {
 			return dLon * dLon + dLat * dLat;
 		}
 
-		static void TransferGoldSpoils(
+		static (double GoldTaken, List<WarGoldRecipientSnapshot> Recipients) TransferGoldSpoils(
 			World world,
 			string winnerId,
 			string loserId,
 			DateTime declaredAt,
 			DateTime currentTime,
-			GameSettings settings) {
-			int durationMonths = (currentTime.Year - declaredAt.Year) * 12 + (currentTime.Month - declaredAt.Month);
-			if (durationMonths < 0) {
-				durationMonths = 0;
-			}
+			GameSettings settings,
+			int maxControlPool) {
+			int durationMonths = ComputeBillableWarMonths(declaredAt, currentTime);
 			double amount = durationMonths * settings.PeaceGoldPerMonth;
+			if (amount == 0.0) {
+				return (0.0, new List<WarGoldRecipientSnapshot>());
+			}
+
+			CollectGoldFromSide(world, loserId, amount, maxControlPool);
+			List<WarGoldRecipientSnapshot> recipients = PayoutGoldToSide(world, winnerId, amount, maxControlPool);
+			return (amount, recipients);
+		}
+
+		// Bill war length in 30-day months, rounding partial months up (2 days → 1, 32 days → 2).
+		public static int ComputeBillableWarMonths(DateTime declaredAt, DateTime currentTime) {
+			double totalDays = (currentTime - declaredAt).TotalDays;
+			if (totalDays <= 0) {
+				return 0;
+			}
+			return (int)Math.Ceiling(totalDays / 30.0);
+		}
+
+		static void CollectGoldFromSide(World world, string countryId, double amount, int maxControlPool) {
 			if (amount == 0.0) {
 				return;
 			}
-
-			CollectGoldFromSide(world, loserId, amount);
-			PayoutGoldToSide(world, winnerId, amount);
-		}
-
-		static void CollectGoldFromSide(World world, string countryId, double amount) {
+			int pool = Math.Max(1, maxControlPool);
 			var orgTotals = GetOrgControlTotalsInCountry(world, countryId);
-			int totalControl = 0;
-			foreach (var pair in orgTotals) {
-				totalControl += pair.Value;
-			}
 
 			double attributed = 0.0;
-			if (totalControl > 0) {
-				foreach (var pair in orgTotals) {
-					if (pair.Value <= 0) {
-						continue;
-					}
-					double share = amount * (pair.Value / (double)totalControl);
-					AdjustGold(world, pair.Key, OwnerType.Org, -share);
-					attributed += share;
+			foreach (var pair in orgTotals) {
+				if (pair.Value <= 0) {
+					continue;
 				}
+				double share = amount * (pair.Value / (double)pool);
+				AdjustGold(world, pair.Key, OwnerType.Org, -share);
+				attributed += share;
 			}
 			double remainder = amount - attributed;
 			if (remainder != 0.0) {
@@ -668,28 +723,39 @@ namespace GS.Game.Systems {
 			}
 		}
 
-		static void PayoutGoldToSide(World world, string countryId, double amount) {
-			var orgTotals = GetOrgControlTotalsInCountry(world, countryId);
-			int totalControl = 0;
-			foreach (var pair in orgTotals) {
-				totalControl += pair.Value;
+		static List<WarGoldRecipientSnapshot> PayoutGoldToSide(
+			World world, string countryId, double amount, int maxControlPool) {
+			var recipients = new List<WarGoldRecipientSnapshot>();
+			if (amount == 0.0) {
+				return recipients;
 			}
+			int pool = Math.Max(1, maxControlPool);
+			var orgTotals = GetOrgControlTotalsInCountry(world, countryId);
 
 			double attributed = 0.0;
-			if (totalControl > 0) {
-				foreach (var pair in orgTotals) {
-					if (pair.Value <= 0) {
-						continue;
-					}
-					double share = amount * (pair.Value / (double)totalControl);
-					AdjustGold(world, pair.Key, OwnerType.Org, share);
-					attributed += share;
+			foreach (var pair in orgTotals) {
+				if (pair.Value <= 0) {
+					continue;
 				}
+				double share = amount * (pair.Value / (double)pool);
+				AdjustGold(world, pair.Key, OwnerType.Org, share);
+				recipients.Add(new WarGoldRecipientSnapshot {
+					OwnerType = OwnerType.Org,
+					OwnerId = pair.Key,
+					Amount = share
+				});
+				attributed += share;
 			}
 			double remainder = amount - attributed;
 			if (remainder != 0.0) {
 				AdjustGold(world, countryId, OwnerType.Country, remainder);
+				recipients.Add(new WarGoldRecipientSnapshot {
+					OwnerType = OwnerType.Country,
+					OwnerId = countryId,
+					Amount = remainder
+				});
 			}
+			return recipients;
 		}
 
 		static void AdjustGold(World world, string ownerId, OwnerType ownerType, double delta) {
@@ -715,17 +781,26 @@ namespace GS.Game.Systems {
 			world.Add(entity, new Resource { ResourceId = ResourceDefinitions.Gold, Value = delta });
 		}
 
-		static void ApplyControlShifts(
+		static List<WarControlDeltaSnapshot> ApplyControlShifts(
 			World world,
 			string winnerId,
 			string loserId,
 			GameSettings settings,
 			int maxControlPool) {
-			ApplyWinnerControlBoosts(world, winnerId, settings.PeaceWinnerControlIncreaseFraction, maxControlPool);
-			ApplyLoserControlCuts(world, loserId, settings.PeaceLoserControlDecreaseFraction);
+			var deltas = new List<WarControlDeltaSnapshot>();
+			ApplyWinnerControlBoosts(
+				world, winnerId, settings.PeaceWinnerControlIncreaseFraction, maxControlPool, deltas);
+			ApplyLoserControlCuts(
+				world, loserId, settings.PeaceLoserControlDecreaseFraction, deltas);
+			return deltas;
 		}
 
-		static void ApplyWinnerControlBoosts(World world, string countryId, double fraction, int maxControlPool) {
+		static void ApplyWinnerControlBoosts(
+			World world,
+			string countryId,
+			double fraction,
+			int maxControlPool,
+			List<WarControlDeltaSnapshot> deltas) {
 			var totals = GetOrgControlTotalsInCountry(world, countryId);
 			if (totals.Count == 0) {
 				return;
@@ -755,10 +830,20 @@ namespace GS.Game.Systems {
 					continue;
 				}
 				ControlSystem.ApplyChangeControl(world, orgId, countryId, delta, maxControlPool);
+				deltas.Add(new WarControlDeltaSnapshot {
+					CountryId = countryId,
+					OrgId = orgId,
+					Delta = delta,
+					TotalAfter = ControlQuery.GetOrgControlInCountry(world, orgId, countryId)
+				});
 			}
 		}
 
-		static void ApplyLoserControlCuts(World world, string countryId, double fraction) {
+		static void ApplyLoserControlCuts(
+			World world,
+			string countryId,
+			double fraction,
+			List<WarControlDeltaSnapshot> deltas) {
 			var totals = GetOrgControlTotalsInCountry(world, countryId);
 			if (totals.Count == 0) {
 				return;
@@ -781,7 +866,16 @@ namespace GS.Game.Systems {
 					continue;
 				}
 				int cut = Math.Min(desired, orgTotal);
+				if (cut <= 0) {
+					continue;
+				}
 				ControlQuery.ReduceOrgControlInCountry(world, orgId, countryId, cut);
+				deltas.Add(new WarControlDeltaSnapshot {
+					CountryId = countryId,
+					OrgId = orgId,
+					Delta = -cut,
+					TotalAfter = ControlQuery.GetOrgControlInCountry(world, orgId, countryId)
+				});
 			}
 		}
 

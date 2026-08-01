@@ -186,6 +186,7 @@
 .gs-color-light { color: rgb(240, 232, 208); }
 .gs-color-attacker { color: rgb(200, 64, 64); }
 .gs-color-defender { color: rgb(64, 112, 200); }
+.gs-color-gold { color: rgb(212, 175, 55); }
 .gs-bg-attacker { background-color: rgb(200, 64, 64); }
 .gs-bg-defender { background-color: rgb(64, 112, 200); }
 

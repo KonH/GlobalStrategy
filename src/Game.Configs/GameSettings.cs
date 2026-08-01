@@ -22,9 +22,9 @@ namespace GS.Game.Configs {
 		public double PeaceChanceMaxPercent { get; set; } = 100;
 		public double PeaceProvinceTransferMinPercent { get; set; } = 10;
 		public double PeaceProvinceTransferMaxPercent { get; set; } = 30;
-		public double PeaceGoldPerMonth { get; set; } = 100;
-		public double PeaceWinnerControlIncreaseFraction { get; set; } = 0.05;
-		public double PeaceLoserControlDecreaseFraction { get; set; } = 0.10;
+		public double PeaceGoldPerMonth { get; set; } = 1000;
+		public double PeaceWinnerControlIncreaseFraction { get; set; } = 0.5;
+		public double PeaceLoserControlDecreaseFraction { get; set; } = 1.0;
 		public WarBattleSettings WarBattles { get; set; } = new WarBattleSettings();
 		public string[] ResourceIdUpdateOrder { get; set; } = {
 			ResourceDefinitions.Population, ResourceDefinitions.CountryPopulation, ResourceDefinitions.CountryScore,
@@ -41,6 +41,7 @@ namespace GS.Game.Configs {
 			}
 		};
 		public GameLogSettings GameLog { get; set; } = new GameLogSettings();
+		public EventNotificationSettings EventNotifications { get; set; } = new();
 		public List<EndGameComparisonEntry> EndGameComparisons { get; set; } = new List<EndGameComparisonEntry>();
 
 		// discoveredCountriesAvailableControl: 0 is the eval-validated threshold (see

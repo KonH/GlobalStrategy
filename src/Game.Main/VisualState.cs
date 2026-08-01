@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using GS.Game.Common;
+using GS.Game.Components;
 using GS.Game.Configs;
 
 namespace GS.Main {
@@ -664,6 +665,125 @@ namespace GS.Main {
 		}
 	}
 
+	public class WarGoldRecipientState {
+		public OwnerType OwnerType { get; }
+		public string OwnerId { get; }
+		public double Amount { get; }
+
+		public WarGoldRecipientState(OwnerType ownerType, string ownerId, double amount) {
+			OwnerType = ownerType;
+			OwnerId = ownerId;
+			Amount = amount;
+		}
+	}
+
+	public class WarControlDeltaState {
+		public string CountryId { get; }
+		public string OrgId { get; }
+		public int Delta { get; }
+		public int TotalAfter { get; }
+
+		public WarControlDeltaState(string countryId, string orgId, int delta, int totalAfter) {
+			CountryId = countryId;
+			OrgId = orgId;
+			Delta = delta;
+			TotalAfter = totalAfter;
+		}
+	}
+
+	public class WarProvinceTransferState {
+		public string ProvinceId { get; }
+		public string OldOwnerCountryId { get; }
+		public string NewOwnerCountryId { get; }
+
+		public WarProvinceTransferState(string provinceId, string oldOwnerCountryId, string newOwnerCountryId) {
+			ProvinceId = provinceId;
+			OldOwnerCountryId = oldOwnerCountryId;
+			NewOwnerCountryId = newOwnerCountryId;
+		}
+	}
+
+	public class WarResultSnapshotState {
+		public string WarId { get; }
+		public string AttackerCountryId { get; }
+		public string DefenderCountryId { get; }
+		public string WinnerCountryId { get; }
+		public string LoserCountryId { get; }
+		public double Progress { get; }
+		public bool ShouldPause { get; }
+		public double GoldTaken { get; }
+		public IReadOnlyList<WarGoldRecipientState> GoldRecipients { get; }
+		public IReadOnlyList<WarControlDeltaState> ControlDeltas { get; }
+		public IReadOnlyList<WarProvinceTransferState> TransferredProvinces { get; }
+		public IReadOnlyList<WarProgressHistoryEntryState> History { get; }
+		public WarSideStatsState Attacker { get; }
+		public WarSideStatsState Defender { get; }
+		public IReadOnlyList<WarBattleRowState> Battles { get; }
+
+		public WarResultSnapshotState(
+			string warId,
+			string attackerCountryId,
+			string defenderCountryId,
+			string winnerCountryId,
+			string loserCountryId,
+			double progress,
+			bool shouldPause,
+			double goldTaken,
+			IReadOnlyList<WarGoldRecipientState> goldRecipients,
+			IReadOnlyList<WarControlDeltaState> controlDeltas,
+			IReadOnlyList<WarProvinceTransferState> transferredProvinces,
+			IReadOnlyList<WarProgressHistoryEntryState> history,
+			WarSideStatsState attacker,
+			WarSideStatsState defender,
+			IReadOnlyList<WarBattleRowState> battles) {
+			WarId = warId;
+			AttackerCountryId = attackerCountryId;
+			DefenderCountryId = defenderCountryId;
+			WinnerCountryId = winnerCountryId;
+			LoserCountryId = loserCountryId;
+			Progress = progress;
+			ShouldPause = shouldPause;
+			GoldTaken = goldTaken;
+			GoldRecipients = goldRecipients;
+			ControlDeltas = controlDeltas;
+			TransferredProvinces = transferredProvinces;
+			History = history;
+			Attacker = attacker;
+			Defender = defender;
+			Battles = battles;
+		}
+	}
+
+	public class WarResultsState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		readonly List<WarResultSnapshotState> _queue = new();
+
+		public IReadOnlyList<WarResultSnapshotState> Entries => _queue;
+
+		public void Enqueue(WarResultSnapshotState snapshot) {
+			_queue.Add(snapshot);
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+
+		public bool TryPeek(out WarResultSnapshotState? snapshot) {
+			if (_queue.Count == 0) {
+				snapshot = null;
+				return false;
+			}
+			snapshot = _queue[0];
+			return true;
+		}
+
+		public void AcknowledgeCurrent() {
+			if (_queue.Count == 0) {
+				return;
+			}
+			_queue.RemoveAt(0);
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class SelectedProvinceState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -833,6 +953,7 @@ namespace GS.Main {
 		public LeaderboardState Leaderboard { get; } = new LeaderboardState();
 		public WarIconsState WarIcons { get; } = new WarIconsState();
 		public SelectedWarState SelectedWar { get; } = new SelectedWarState();
+		public WarResultsState WarResults { get; } = new WarResultsState();
 		public GameLogState GameLog { get; } = new GameLogState();
 		public GameCompletionState GameCompletion { get; } = new GameCompletionState();
 		public WinConditionHintState WinConditionHint { get; } = new WinConditionHintState();
