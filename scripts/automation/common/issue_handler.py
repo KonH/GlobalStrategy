@@ -32,6 +32,20 @@ items (removes the label) up to MAX_AUTO_RECLAIMS times, counting attempts via
 more crash after that escalates to `ai-need-attention` instead of retrying forever. A real
 owner comment resets the counter.
 
+Cross-instance claim: the local process lock only serializes one provider's own loop on one
+machine - it does nothing when two separate automation instances (different machines, or
+overlapping schedules) discover the same unlabeled candidate within the same short window, since
+a plain `add_label` call is not compare-and-swap. `claim_candidate` is called per candidate,
+immediately after discovery and before any git/CLI work, to close that gap: it adds
+`ai-in-progress` (idempotent) and posts a uniquely-tokened, fully invisible claim comment, waits
+a short settle delay so both sides of a genuine race have time to post, then re-lists the item's
+claim comments and lets whichever one has the lowest (i.e. earliest-created) comment id win -
+GitHub comment ids are a monotonic server-assigned tie-break, unlike `created_at`'s coarse
+per-second resolution. Only comments created within the last `freshness_minutes` count, so a
+crash between posting a claim and cleaning it up can never permanently deadlock the item. The
+winner best-effort deletes every fresh claim comment (`delete_comment`); the loser does nothing
+further, leaving the winner's label and markers untouched.
+
 Session/usage limits are NOT crashes: when a wrapper detects that its CLI run was cut short by
 the provider's session/usage limit, it first salvages any dirty working-tree changes
 (`salvage_uncommitted_work` - deterministic Python git commit+push, no agent), records an
@@ -65,7 +79,8 @@ import os
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+import uuid
+from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
@@ -225,6 +240,14 @@ def remove_label(number, name):
 
 def post_comment(number, body):
     run_gh(["api", f"repos/{OWNER}/{REPO}/issues/{number}/comments", "-f", f"body={body}"])
+
+
+def delete_comment(number, comment_id):
+    """Deletes one issue/PR comment. `number` is kept only for logging symmetry with the
+    module's other per-item helpers - the REST endpoint addresses the comment directly and does
+    not nest under the issue number. Callers of this used for best-effort claim-comment cleanup
+    must tolerate a 404 (another instance's own cleanup already removed it)."""
+    run_gh(["api", "-X", "DELETE", f"repos/{OWNER}/{REPO}/issues/comments/{comment_id}"])
 
 
 def label_names(item):
@@ -619,3 +642,72 @@ def reclaim_stale_in_progress(logger, label, marker):
                 f"{MAX_AUTO_RECLAIMS})."
             ))
             remove_label(number, AI_IN_PROGRESS)
+
+
+def _parse_github_timestamp(value):
+    """Parses a GitHub API `created_at` string (`...Z`) into an aware-UTC datetime."""
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def claim_candidate(logger, label, marker, candidate, freshness_minutes=10, settle_seconds=5):
+    """Cross-instance claim for one candidate, called immediately after discovery and before any
+    git/CLI work. Pairs the existing (non-CAS) `add_label(AI_IN_PROGRESS)` with a uniquely-tokened,
+    fully invisible claim comment; a short settle delay lets a genuinely racing rival's own claim
+    comment land before either side decides; GitHub's monotonic comment id (not the coarser
+    per-second `created_at`) then breaks the tie, bounded to comments posted within the last
+    `freshness_minutes` so a crash between claiming and cleanup can never permanently deadlock the
+    item. Returns True when this attempt won (caller proceeds), False when it lost the race or the
+    claim mechanism itself failed (caller must skip the candidate - never a false win).
+
+    Wrapped in one try/except: any exception after `add_label` succeeded best-effort rolls that
+    label back before returning False, so a transient failure between steps can't leave
+    `ai-in-progress` stuck on an item nobody is working (which the next `reclaim_stale_in_progress`
+    pass would otherwise wrongly count as a crash). An exception from `add_label` itself has
+    nothing to roll back."""
+    number = candidate["number"]
+    kind = candidate["kind"]
+    marker_prefix = marker.rsplit(" -->", 1)[0]
+    claim_prefix = f"{marker_prefix}:claim:"
+    token = uuid.uuid4().hex
+    own_body = f"{claim_prefix}{token}: claiming this {kind} for automated processing. -->"
+
+    label_added = False
+    try:
+        add_label(number, AI_IN_PROGRESS)
+        label_added = True
+
+        post_comment(number, own_body)
+        time.sleep(settle_seconds)
+        comments = run_gh_json(["api", f"repos/{OWNER}/{REPO}/issues/{number}/comments", "--paginate"])
+
+        cutoff = datetime.now(timezone.utc) - timedelta(minutes=freshness_minutes)
+        fresh = sorted(
+            (c for c in comments
+             if c.get("body", "").startswith(claim_prefix)
+             and _parse_github_timestamp(c["created_at"]) >= cutoff),
+            key=lambda c: c["id"],
+        )
+
+        if not fresh or not fresh[0]["body"].startswith(f"{claim_prefix}{token}"):
+            logger.info(f"Lost claim race for '{label}' {kind} #{number} - skipping this candidate.")
+            return False
+
+        for fresh_comment in fresh:
+            try:
+                delete_comment(number, fresh_comment["id"])
+            except Exception as exc:
+                logger.warning(f"Could not delete claim comment {fresh_comment['id']} on "
+                                f"'{label}' {kind} #{number} during cleanup: {exc} - continuing.")
+
+        logger.info(f"Won cross-instance claim for '{label}' {kind} #{number}.")
+        return True
+    except Exception as exc:
+        logger.warning(f"Claim attempt failed for '{label}' {kind} #{number}: {exc} - "
+                        "treating as a loss.")
+        if label_added:
+            try:
+                remove_label(number, AI_IN_PROGRESS)
+            except Exception as rollback_exc:
+                logger.warning(f"Rollback of {AI_IN_PROGRESS} failed for '{label}' {kind} "
+                                f"#{number}: {rollback_exc}.")
+        return False
