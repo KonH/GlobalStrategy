@@ -16,13 +16,13 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
   - Hand and deck evaluation runs => no “Discover Country” (or equivalent discover-country) card exists in any org’s pool, deck, or hand for any participating org.
   - The player looks for a way to discover more countries mid-game => there is no card, effect, confirmation fly-text, camera pan-to-newly-discovered-country, or game-log “discovered” line produced by discovery gameplay, because discovery gameplay no longer exists.
 - A bot-driven participating organization plays through a normal session with default bot settings.
-  - The bot takes turns => it never prioritizes or plays a discover-country action; bot behaviour that existed only to alternate discovery vs control is gone or replaced by non-discovery behaviour so bots still play meaningful country/control cards without depending on progressive discovery.
+  - The bot takes turns => default feature id is `control` (renamed from `discoverAndControl`); it never prioritizes or plays a discover-country action (that card no longer exists) and plays control/country cards across all available countries without a discovery gate.
 - Mid-game after start (any month, any org).
   - Time advances / cards are played => no new country becomes “discovered” as a distinct gameplay event; the set of known available countries does not grow over time because it was already complete at start.
 - Debug / calibration tooling that previously force-discovered every country for the viewed org.
-  - A developer opens the debug panel or a headless calibration path that used “Discover All Countries” => that cheat is either removed as redundant or becomes a no-op that does not change gameplay state, because all available countries are already known; headless calibration that depended on discovering all countries still reaches a fully-known map without relying on progressive discovery.
+  - A developer opens the debug panel or a headless calibration path that used “Discover All Countries” => the Discover All Countries command, HUD button, and calibration push are gone; headless calibration no longer depends on force-discover because all available countries are already playable without a discovery gate.
 - An older save that was written when discovery still existed (some countries discovered, some not).
-  - The save is loaded under the new rules => [NEEDS CLARIFICATION: see Ambiguities] — behaviour for partial-discovery saves must be decided before implementation; until clarified, the product requirement for *new* sessions is full knowledge at start only.
+  - The save is loaded under the new rules => no compatibility is required: discovery components/state are gone and pre-change saves are not supported or migrated for discovery. New sessions simply have no discovery concept.
 
 ## Tech Notes
 
@@ -32,34 +32,31 @@ Maps each product-facing behaviour above to its concrete implementation — spec
   - Owner prompt says “all enabled countries discovered at start.” Country config has no `Enabled` flag; playable countries are those with `CountryEntry.IsAvailable == true` (`src/Game.Configs/CountryConfig.cs`). `InitSystem.Run` only creates `Country` ECS entities for `IsAvailable` entries (`src/Game.Main/InitSystem.cs` ~lines 26–32). Country decks/hands are likewise only built for `IsAvailable` countries (~lines 660–661). Spec “available countries” = `IsAvailable` countries already in the world. Countries with `IsAvailable: false` are not in the ECS world and remain out of scope (unchanged).
   - Bot feature settings use a separate `Enabled` bool (`BotFeatureSetting.Enabled` / `game_settings.json` `botFeatures[].enabled`) — do not confuse with country availability.
 
-- **Start-of-game: all available countries known for every participating org:**
-  - Today `InitSystem.DiscoverInitialCountries` (`src/Game.Main/InitSystem.cs` ~736–759) creates one `DiscoveredCountry { OrgId, CountryId }` entity per org for that org’s `HqCountryId` only.
-  - Required behaviour: for each participating org × each world `Country` id (i.e. every available country), the org must treat that country as known from the first tick — either by expanding `DiscoverInitialCountries` to emit a full cross-product of `DiscoveredCountry` entities, or by removing the discovery gate entirely so consumers no longer consult `DiscoveredCountry` (see Ambiguities on removal depth).
-  - Call site remains `InitSystem.Run` after `CreateCountryActionEntities` (~line 122).
+- **Start-of-game: all available countries known (implicitly) for every participating org:**
+  - Owner decision: **full removal (B)** of the discovery concept. Delete `InitSystem.DiscoverInitialCountries` and its call site; do **not** emit any `DiscoveredCountry` entities. “Known” is implicit for every world `Country` (i.e. every `IsAvailable` country).
+  - Consumers that previously consulted discovery must stop gating on it (map, bots, UI).
 
-- **Remove discover-country card, effect, and progressive discovery:**
-  - Config: delete / stop shipping `actionId: "discover_country"` from `Assets/Configs/action_config.json` (action row + both `orgPools` entries that currently list only `discover_country` for Illuminati/Masons). Delete `effectId: "discover_country"` / `effectType: "DiscoverCountry"` from `Assets/Configs/effect_config.json`. Remove matching art entry in `Assets/Configs/ActionVisualConfig.asset`.
-  - Config types: `DiscoverCountryEffectParams` and `"DiscoverCountry"` arm of `ActionEffectDefinitionListConverter` in `src/Game.Configs/EffectConfig.cs`.
-  - Effect pipeline: `CreateActionEffectSystem` branch that creates `DiscoverCountryEffect` (`src/Game.Systems/CreateActionEffectSystem.cs` ~50–52); `DiscoverCountrySystem.Update` (`src/Game.Systems/DiscoverCountrySystem.cs`) and its orchestration call in `GameLogic` (`src/Game.Main/GameLogic.cs` ~264); `CleanupActionEffectsSystem` sweep of `DiscoverCountryEffect`; `CleanupEffectNotificationsSystem` sweep of `DiscoveryApplied`.
-  - Components: `DiscoverCountryEffect` (`src/Game.Components/ResourceChangeEffect.cs`), `DiscoveryApplied` (`src/Game.Components/GameLogEffects.cs`). Fate of `[Savable] DiscoveredCountry` (`src/Game.Components/DiscoveredCountry.cs`) is the removal-depth ambiguity below.
-  - Locale keys to retire with the concept (or leave orphaned only if localization cleanup is deferred): `action.discover_country.*`, `effect.discover_country.*`, `hud.discovery.confirmation`, `game_log.discovered_format` in `Assets/Localization/en.asset` / `ru.asset`.
+- **Remove discover-country card, effect, progressive discovery, and ECS discovery entirely:**
+  - Config: delete `actionId: "discover_country"` from `Assets/Configs/action_config.json` (action row + both Illuminati/Masons `orgPools` entries — owner: **delete empty pool entries**, no replacement org card). Delete `effectId: "discover_country"` / `effectType: "DiscoverCountry"` from `Assets/Configs/effect_config.json`. Remove matching art entry in `Assets/Configs/ActionVisualConfig.asset` (owner: cleanup card-related art with the rest).
+  - Config types: remove `DiscoverCountryEffectParams` and `"DiscoverCountry"` arm of `ActionEffectDefinitionListConverter` in `src/Game.Configs/EffectConfig.cs`.
+  - Effect pipeline: remove `CreateActionEffectSystem` branch for `DiscoverCountryEffect`; delete `DiscoverCountrySystem` and its `GameLogic` orchestration call; remove `CleanupActionEffectsSystem` / `CleanupEffectNotificationsSystem` sweeps for discovery types.
+  - Components to delete: `DiscoverCountryEffect`, `DiscoveryApplied`, and `[Savable] DiscoveredCountry` (`src/Game.Components/DiscoveredCountry.cs`) entirely.
+  - Locale keys to strip in the same change: `action.discover_country.*`, `effect.discover_country.*`, `hud.discovery.confirmation`, `game_log.discovered_format` in `Assets/Localization/en.asset` / `ru.asset`.
 
-- **Map / presentation: no undiscovered fog:**
-  - `MapLensApplier` (`Assets/Scripts/Unity/Map/MapLensApplier.cs`) currently disables fill/border renderers when `!IsCountryDiscovered(ownerId)`, reading `VisualState.DiscoveredCountries.CountryIds`. After this feature, available countries must always render under normal lens rules (fills/borders on). Implementation either always-true discovery sets in visual state, or delete the discovery check / `DiscoveredCountries` subscription.
-  - `CardPlayAnimator` (`Assets/Scripts/Unity/UI/CardPlayAnimator.cs`) pans to `DiscoveredCountries.RecentlyDiscovered` and shows `hud.discovery.confirmation` fly text — remove that discovery success path.
-  - `VisualState.DiscoveredCountriesState` / `RecentlyDiscovered` (`src/Game.Main/VisualState.cs`) and `VisualStateConverter.UpdateDiscoveredCountries` (`src/Game.Main/VisualStateConverter.cs` ~482–504) — remove or reduce to always-full sets with no “recently discovered” delta tracking.
+- **Map / presentation: available countries visible; unavailable stay hidden:**
+  - Owner: unavailable (`IsAvailable: false`) map features must **still not be visible**. After deleting discovery, `MapLensApplier` must stop consulting `DiscoveredCountries` and instead gate visibility on whether the owner country exists in world / playable set (same net effect as today: available → visible, unavailable → hidden).
+  - Remove `CardPlayAnimator` discovery pan / `hud.discovery.confirmation` fly-text path.
+  - Delete `VisualState.DiscoveredCountriesState` / `RecentlyDiscovered` and `VisualStateConverter.UpdateDiscoveredCountries` (and any discovery-related change notifications).
 
 - **Game log:**
-  - `VisualStateConverter` emits `GameLogEntryKind.Discovery` from `DiscoveryApplied` (~907–913). `ActionLogView` / `GameLogLineFormatter.BuildDiscoveryLine` format those lines. With no progressive discovery, new discovery log lines must not appear. Whether `GameLogEntryKind.Discovery` enum value and formatter stay for old-save display is under Ambiguities / save compatibility.
+  - Owner: strip in the same change — remove `GameLogEntryKind.Discovery`, discovery formatters (`GameLogLineFormatter.BuildDiscoveryLine` / `ActionLogView` branches), and emission from `VisualStateConverter`. No dormant enum/locale for old logs.
 
 - **Bots:**
-  - `DiscoverAndControlFeature` (`src/Game.Bots/DiscoverAndControlFeature.cs`, id `"discoverAndControl"`) prefers discover vs control via `discoveredCountriesAvailableControl` and `BotCardView.DiscoversCountry`. Registered in `BotFeatureRegistry.CreateDefault`; enabled by default in `Assets/Configs/game_settings.json` `botFeatures` and mirrored defaults in `src/Game.Configs/GameSettings.cs`.
-  - `BotObservation.Build` (`src/Game.Bots/BotObservation.cs`) gates countries, country hands, characters, and control shares on the org’s `DiscoveredCountry` set; exposes `DiscoveredCountryIds` and classifies cards via `DiscoverCountryEffectParams` → `DiscoversCountry`.
-  - Product requirement: remove discover-related bot logic. Concretely that means retiring or replacing `discoverAndControl` (config entry, registry registration, `Docs/BotFeatures/discoverAndControl/*` eval artifacts), dropping `DiscoversCountry` classification once the effect type is gone, and ensuring bots can see/play all available countries without a discovery gate (either full initial `DiscoveredCountry` sets or observation no longer filters on discovery). Default bot profile must still play useful control/country cards — typically fall back to `baselineCardPlay` or a control-only successor feature (clarification if a new feature id is required).
+  - Owner: rename `discoverAndControl` → **`control`** (control-only successor, no discover parameters / discover play path). Rename class/id/registry registration; update `Assets/Configs/game_settings.json` and `GameSettings` defaults; move/rename `Docs/BotFeatures/discoverAndControl/` → `Docs/BotFeatures/control/` (owner Q4: follow Q3 rename).
+  - `BotObservation.Build` must stop filtering countries/hands/characters/control on discovery; drop `DiscoveredCountryIds` and `DiscoversCountry` classification with the effect type.
 
 - **Debug “Discover All Countries” / calibration:**
-  - Command: `DebugDiscoverAllCountriesCommand` (`src/Game.Commands/DebugDiscoverAllCountriesCommand.cs`).
-  - Applied by `GameLogic.ApplyDebugDiscoverAllCountries` (`src/Game.Main/GameLogic.cs` ~644+) for the view org; UI button in `HUDDocument` debug panel; headless use in `src/Game.ConsoleRunner/CalibrationRunner.cs` and end-game calibration skill docs. After full-at-start discovery, remove the button/command or make apply a no-op; update calibration so it no longer depends on force-discover to unlock the map.
+  - Owner: **remove entirely** — delete `DebugDiscoverAllCountriesCommand`, HUD button, `GameLogic.ApplyDebugDiscoverAllCountries`, and CalibrationRunner / end-game calibration skill references that push discover-all.
 
 - **Tests expected to change (non-exhaustive):**
   - `DiscoveryPerOrgTests`, `SavableDiscoveryTests`, `DiscoverAndControlFeatureTests`, `BotSessionTests` (discover-count assertions), `MultiOrgInitTests` (HQ-only initial discovery), `UnifiedPipelineTests` / `GameLogStateTests` (discovery applied), `BaselineCardPlayTests` / bot observation tests that seed `DiscoveredCountry`, `VisualStateChangeNotificationTests` (`DiscoveredCountriesState`), `SaveLoadRoundTripTests` discovery round-trip.
@@ -78,11 +75,13 @@ Maps each product-facing behaviour above to its concrete implementation — spec
 
 ## Ambiguities
 
-- [NEEDS CLARIFICATION: **Removal depth for `DiscoveredCountry`** — Prefer (A) keep the `[Savable] DiscoveredCountry` component and related visual-state set, but initialize the full org×available-country cross-product at start and delete only progressive discovery (card/system/bot discover path), or (B) delete the discovery concept from ECS/UI entirely (`DiscoveredCountry`, `DiscoveredCountriesState`, map discovery checks, bot `DiscoveredCountryIds`) so “known” is implicit for every `Country` in the world?]
-- [NEEDS CLARIFICATION: **Map presentation after removal** — With discovery gone, should unavailable (`IsAvailable: false`) map features that never had `Country` entities continue to render as they do today when not in `DiscoveredCountries`, or must the map applier stop consulting discovery and only use ownership/lens data for countries that exist in world state?]
-- [NEEDS CLARIFICATION: **Save compatibility** — On load of a pre-change save with a partial per-org discovery set, should the game (A) auto-complete discovery for all available countries for every org on load, (B) leave historical `DiscoveredCountry` entities as-is (breaking the “no undiscovered state” rule for old saves only), (C) reject/migrate the save with an explicit version bump, or (D) something else?]
-- [NEEDS CLARIFICATION: **Default bot replacement** — After removing `discoverAndControl`, should default `game_settings.json` `botFeatures` switch to enabled `baselineCardPlay` only, keep a renamed control-focused feature with no discover parameters, or require a new minimal feature id before this ships?]
-- [NEEDS CLARIFICATION: **`Docs/BotFeatures/discoverAndControl/`** — Archive/delete the eval config/summary/history as obsolete with this feature, or leave historical eval docs in place unused?]
-- [NEEDS CLARIFICATION: **Debug Discover All** — Remove `DebugDiscoverAllCountriesCommand`, HUD button, and CalibrationRunner push entirely, or keep a no-op command for script compatibility?]
-- [NEEDS CLARIFICATION: **Game log / locale cleanup** — Strip `GameLogEntryKind.Discovery`, discovery formatters, and locale keys in the same change, or leave dormant enum/locale entries for older log display?]
-- [NEEDS CLARIFICATION: **Empty org pools** — After removing `discover_country`, Illuminati/Masons `orgPools` in `action_config.json` become empty; should those pool entries be deleted (orgs use only shared/default org actions if any remain), or must a replacement org-level card be introduced in this same feature so org hands are non-empty?]
+Resolved by owner on issue #111 (2026-08-02):
+
+0. **Removal depth** — **B, full**: delete discovery from ECS/UI entirely; “known” is implicit for every world `Country`.
+1. **Map presentation** — Unavailable countries remain **not visible**; stop consulting discovery and gate on playable/world countries instead.
+2. **Save compatibility** — **None**: no migration or support for pre-change discovery saves.
+3. **Default bot replacement** — Rename `discoverAndControl` → **`control`** (control-only; drop discover params/path).
+4. **`Docs/BotFeatures/discoverAndControl/`** — Follow Q3: rename/move to `control` (not leave orphaned under old id).
+5. **Debug Discover All** — **Remove** command, HUD button, and calibration push entirely.
+6. **Game log / locale / art cleanup** — Strip discovery enum/formatters/locale keys **and** card-related art in the same change.
+7. **Empty org pools** — **Delete** the Illuminati/Masons `orgPools` entries; no replacement org card in this feature.
