@@ -111,6 +111,10 @@ namespace GS.Unity.UI {
 						_localization.Get("select_org.win_conditions.full_control_countries"),
 						((int)row.Value).ToString(CultureInfo.InvariantCulture),
 						row.AvailableCountryCount.ToString(CultureInfo.InvariantCulture));
+				case WinConditionHintKind.ScoreGoal:
+					return string.Format(
+						_localization.Get("select_org.win_conditions.score_goal"),
+						((int)row.Value).ToString(CultureInfo.InvariantCulture));
 				default:
 					return "";
 			}

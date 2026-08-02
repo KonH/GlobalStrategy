@@ -48,7 +48,8 @@
     "type": "any",
     "members": [
       { "type": "total_control", "value": 0.8 },
-      { "type": "full_control_countries", "value": 15 }
+      { "type": "full_control_countries", "value": 15 },
+      { "type": "score_goal", "value": 275592 }
     ]
   },
   "botFeatures": [
@@ -87,14 +88,14 @@
     ]
   },
   "endGameComparisons": [
-    { "comparisonElementId": "CommitteeOf300", "score": 14349 },
-    { "comparisonElementId": "TrilateralCommission", "score": 55601 },
-    { "comparisonElementId": "BilderbergGroup", "score": 96853 },
-    { "comparisonElementId": "DeepState", "score": 138105 },
-    { "comparisonElementId": "Reptilians", "score": 179357 },
-    { "comparisonElementId": "SkullAndBones", "score": 220609 },
-    { "comparisonElementId": "NewWorldOrder", "score": 261861 },
-    { "comparisonElementId": "KnightsTemplar", "score": 303113 },
-    { "comparisonElementId": "BohemianGrove", "score": 344365 }
+    { "comparisonElementId": "CommitteeOf300", "score": 11479 },
+    { "comparisonElementId": "TrilateralCommission", "score": 44481 },
+    { "comparisonElementId": "BilderbergGroup", "score": 77482 },
+    { "comparisonElementId": "DeepState", "score": 110484 },
+    { "comparisonElementId": "Reptilians", "score": 143486 },
+    { "comparisonElementId": "SkullAndBones", "score": 176487 },
+    { "comparisonElementId": "NewWorldOrder", "score": 209489 },
+    { "comparisonElementId": "KnightsTemplar", "score": 242491 },
+    { "comparisonElementId": "BohemianGrove", "score": 275492 }
   ]
 }

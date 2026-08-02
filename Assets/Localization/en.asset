@@ -1900,6 +1900,8 @@ MonoBehaviour:
     Value: Reach {0}% total control across all countries
   - Key: select_org.win_conditions.full_control_countries
     Value: 'Fully control {0} of {1} countries'
+  - Key: select_org.win_conditions.score_goal
+    Value: Reach a total score of {0}
   - Key: end_game.comparison.CommitteeOf300
     Value: The Committee of 300
   - Key: end_game.comparison.TrilateralCommission
