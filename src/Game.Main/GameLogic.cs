@@ -174,9 +174,6 @@ namespace GS.Main {
 			foreach (var cmd in _commandAccessor.ReadDebugChangeGoldCommand().AsSpan()) {
 				ApplyDebugChangeGold(cmd.OrgId, cmd.Amount);
 			}
-			if (_commandAccessor.ReadDebugDiscoverAllCountriesCommand().Count > 0) {
-				ApplyDebugDiscoverAllCountries();
-			}
 			foreach (var cmd in _commandAccessor.ReadDebugForceCompletionConditionCommand().AsSpan()) {
 				ApplyDebugForceCompletionCondition(cmd.TargetOrgId, cmd.ConditionType, cmd.Value);
 			}
@@ -242,8 +239,8 @@ namespace GS.Main {
 			WarBattleSystem.Update(
 				_world, _previousTime, currentTime, _rng, _provinceTopology, GameSettings.WarBattles, ResourceConfig);
 
-			// Game Log: sweep last tick's Control/Opinion/Discovery events before
-			// CreateActionEffectSystem/DiscoverCountrySystem create this tick's batch below.
+			// Game Log: sweep last tick's Control/Opinion events before
+			// CreateActionEffectSystem creates this tick's batch below.
 			// See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
 			CleanupEffectNotificationsSystem.UpdateActionEffects(_world);
 			InitActionFromPlayCardSystem.Update(_world, _commandAccessor.ReadPlayCardActionCommand());
@@ -261,7 +258,6 @@ namespace GS.Main {
 			if (hasSucceededCardActions) {
 				SettleCombatResources();
 			}
-			DiscoverCountrySystem.Update(_world, _proximityEntity, _rng, _hqCountryByOrgId);
 			SetCountryRelationSystem.Update(_world, _proximityEntity, _rng);
 			ClearCountryRelationSystem.Update(_world);
 			RemoveCardFromHandSystem.Update(_world);
@@ -638,36 +634,6 @@ namespace GS.Main {
 						return;
 					}
 				}
-			}
-		}
-
-		void ApplyDebugDiscoverAllCountries() {
-			string viewOrgId = _orgEntity >= 0 ? _world.Get<Organization>(_orgEntity).OrganizationId : "";
-			if (string.IsNullOrEmpty(viewOrgId)) { return; }
-
-			var discovered = new HashSet<string>();
-			int[] discReq = { TypeId<DiscoveredCountry>.Value };
-			foreach (var arch in _world.GetMatchingArchetypes(discReq, null)) {
-				DiscoveredCountry[] dcs = arch.GetColumn<DiscoveredCountry>();
-				for (int i = 0; i < arch.Count; i++) {
-					if (dcs[i].OrgId == viewOrgId) { discovered.Add(dcs[i].CountryId); }
-				}
-			}
-
-			var toDiscover = new List<string>();
-			int[] req = { TypeId<Country>.Value };
-			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
-				Country[] countries = arch.GetColumn<Country>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (!discovered.Contains(countries[i].CountryId)) {
-						toDiscover.Add(countries[i].CountryId);
-					}
-				}
-			}
-			foreach (string countryId in toDiscover) {
-				int entity = _world.Create();
-				_world.Add(entity, new DiscoveredCountry { OrgId = viewOrgId, CountryId = countryId });
 			}
 		}
 

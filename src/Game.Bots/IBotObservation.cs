@@ -9,7 +9,6 @@ namespace GS.Game.Bots {
 		int OrgHandSize { get; }
 		int TotalControl { get; }
 		IReadOnlyList<BotCardView> OrgHand { get; }
-		IReadOnlyList<string> DiscoveredCountryIds { get; }
 		IReadOnlyList<BotCharacterSlotView> CharacterSlots { get; }
 		IReadOnlyList<BotCountryView> Countries { get; }
 		BotCountryView? GetCountry(string countryId);

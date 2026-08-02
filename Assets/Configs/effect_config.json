@@ -1,15 +1,7 @@
 {
   "effects": [
     {
-      "effectId": "discover_country",
-      "effectType": "DiscoverCountry",
-      "nameKey": "effect.discover_country.name",
-      "descKey": "effect.discover_country.desc",
-      "minCountryChance": 0.01
-    },
-    {
-      "effectId": "sphere_of_pressure_control",
-      "effectType": "ControlChange",
+      "effectId": "sphere_of_pressure_control",      "effectType": "ControlChange",
       "nameKey": "effect.sphere_of_pressure_control.name",
       "descKey": "effect.sphere_of_pressure_control.desc",
       "amount": 10

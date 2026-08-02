@@ -10,7 +10,7 @@ namespace GS.Game.Components {
 
 	// Not [Savable] — same-tick transient marker consumed and destroyed by
 	// SetCountryRelationSystem in the same GameLogic.Update tick it's created,
-	// exactly like DiscoverCountryEffect.
+	// exactly like other one-shot action effects.
 	public struct SetCountryRelationEffect {
 		public string EffectId;
 		public string OrgId;

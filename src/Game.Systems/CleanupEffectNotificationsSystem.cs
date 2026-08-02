@@ -5,7 +5,7 @@ using GS.Game.Components;
 namespace GS.Game.Systems {
 	public static class CleanupEffectNotificationsSystem {
 		// Called before GameLogic's character-cycling debug-command handlers — RoleChangeApplied
-		// is created there, earlier in the tick than CreateActionEffectSystem/DiscoverCountrySystem,
+		// is created there, earlier in the tick than CreateActionEffectSystem,
 		// so it cannot share UpdateActionEffects' call site without being destroyed the same tick
 		// it's created. See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
 		public static void UpdateRoleChange(World world) {
@@ -21,14 +21,13 @@ namespace GS.Game.Systems {
 			RemoveComponent<WarResolvedApplied>(world);
 		}
 
-		// Called alongside CleanupActionEffectsSystem.Update, before CreateActionEffectSystem/
-		// DiscoverCountrySystem create this tick's batch. Do NOT sweep WarResolvedApplied here —
+		// Called alongside CleanupActionEffectsSystem.Update, before CreateActionEffectSystem
+		// creates this tick's batch. Do NOT sweep WarResolvedApplied here —
 		// peace/StopWar emit it earlier in the tick (before this call); that component is cleaned
 		// only by UpdateWarResolved at the start of the next tick.
 		public static void UpdateActionEffects(World world) {
 			RemoveComponent<ControlEffectApplied>(world);
 			RemoveComponent<OpinionEffectApplied>(world);
-			RemoveComponent<DiscoveryApplied>(world);
 			RemoveComponent<RelationSetApplied>(world);
 			RemoveComponent<RelationClearedApplied>(world);
 			RemoveComponent<WarDeclaredApplied>(world);

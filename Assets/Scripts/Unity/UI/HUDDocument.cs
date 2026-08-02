@@ -969,10 +969,6 @@ namespace GS.Unity.UI {
 			_commands.Push(new DebugClearCountryRelationCommand { CountryIdA = countryId, CountryIdB = otherCountryId });
 		}
 
-		void PushDiscoverAllCountriesCommand() {
-			_commands?.Push(new DebugDiscoverAllCountriesCommand());
-		}
-
 		static int CountAvailableCountries(CountryConfig countryConfig) {
 			int count = 0;
 			foreach (var entry in countryConfig.Countries) {
@@ -1075,13 +1071,6 @@ namespace GS.Unity.UI {
 			if (orgMiscDebugContainer == null) {
 				return;
 			}
-
-			var discoverAllBtn = new Button(() => PushDiscoverAllCountriesCommand());
-			discoverAllBtn.text = "Discover All Countries";
-			discoverAllBtn.AddToClassList("gs-btn");
-			discoverAllBtn.AddToClassList("gs-btn--small");
-			discoverAllBtn.AddToClassList("debug-panel-button");
-			orgMiscDebugContainer.Add(discoverAllBtn);
 
 			foreach (var row in _winConditionRows) {
 				var capturedRow = row;

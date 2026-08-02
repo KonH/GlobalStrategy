@@ -36,10 +36,9 @@ Optional flags (defaults match `HeadlessOptions`'s pattern): `--max-ticks` (defa
 1. Loads `organizations.json`, resolves the winner org (`--org` for `win`, the other participating org
    for `lose`), and builds a `GameLogicContext` via `Program.BuildContext` with all organizations
    participating, `initialOrganizationId = --org`.
-2. Runs one `GameLogic.Update(0f)` to initialize, pushes `DebugDiscoverAllCountriesCommand`, then pushes
-   a `ChangeControlCommand` giving the winner org `MaxControlPool` control of every country in
-   `country_config.json` (the same pattern `GameCompletionLogicTests.GiveTotalControl` uses in
-   `src/Game.Tests`).
+2. Runs one `GameLogic.Update(0f)` to initialize, then pushes a `ChangeControlCommand` giving the
+   winner org `MaxControlPool` control of every country in `country_config.json` (the same pattern
+   `GameCompletionLogicTests.GiveTotalControl` uses in `src/Game.Tests`).
 3. Calls `GameLogic.Update(deltaTime)` once per tick until `GameLogic.IsCompleted`, or until it hits
    `--max-ticks` or `--timeout-seconds` (checked every 256 ticks, same cadence as `HeadlessRunner`).
 4. Reads the final score, settling it first rather than trusting a plain `ResourceQuery.GetValue`

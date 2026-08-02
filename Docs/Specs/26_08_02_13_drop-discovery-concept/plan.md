@@ -30,14 +30,14 @@ Delete discovery end-to-end (components, systems, config, UI, bots, debug, tests
 
 ### Section 1 — Agent Steps
 
-- [ ] **Delete discovery ECS surface** — remove `DiscoveredCountry.cs`; remove `DiscoverCountryEffect` / `DiscoveryApplied`; delete `DiscoverCountrySystem.cs`; strip `CreateActionEffectSystem` / `CleanupActionEffectsSystem` / `CleanupEffectNotificationsSystem` discovery branches; remove `InitSystem.DiscoverInitialCountries` + call; remove `GameLogic` discovery system call + `ApplyDebugDiscoverAllCountries` + debug-command read.
-- [ ] **Config + types** — delete discover action/effect JSON; delete Illuminati/Masons `orgPools` entries; remove `DiscoverCountryEffectParams` + converter arm; strip locales; remove `ActionVisualConfig` entry (+ orphaned texture if unused).
-- [ ] **VisualState / presentation** — delete `DiscoveredCountriesState` and converter/update/game-log Discovery path; remove `GameLogEntryKind.Discovery` + `GameLogLineFormatter.BuildDiscoveryLine` + Unity `ActionLogView` branch **and** web `ActionsLog.razor` Discovery arm/`BuildDiscoveryLine`; strip `CardPlayAnimator` discovery UX.
-- [ ] **MapLensApplier world-country gate** — add `WorldCountriesState` (world/`IsAvailable` ids from `GetCountryIds`, set-on-key-change only); replace `IsCountryDiscovered` / `DiscoveredCountries` subscription with `Contains` + `PropertyChanged` so first VisualState populate repaints Political/Org lenses; update `map_system.md`.
-- [ ] **Bot rename to `control`** — `ControlFeature`, registry, settings defaults/`game_settings.json`; strip observation discovery fields/filters/`DiscoversCountry`; move `Docs/BotFeatures/` folder and rewrite eval config.
-- [ ] **Debug / calibration cleanup** — delete command type, HUD wiring, CalibrationRunner push, end-game calibration skill mention.
-- [ ] **Tests + benchmarks** — delete or rewrite suites listed in Approach; remove all `DiscoveredCountry` seeding; ensure `ControlFeature` coverage (control-only play, no discover path); update benchmarks that referenced `DiscoveredCountriesState`.
-- [ ] **Build + test** — `dotnet-build` / `dotnet-test` green; no remaining references to discovery types/ids except historical Docs/Specs (leave old specs alone).
+- [x] **Delete discovery ECS surface** — remove `DiscoveredCountry.cs`; remove `DiscoverCountryEffect` / `DiscoveryApplied`; delete `DiscoverCountrySystem.cs`; strip `CreateActionEffectSystem` / `CleanupActionEffectsSystem` / `CleanupEffectNotificationsSystem` discovery branches; remove `InitSystem.DiscoverInitialCountries` + call; remove `GameLogic` discovery system call + `ApplyDebugDiscoverAllCountries` + debug-command read.
+- [x] **Config + types** — delete discover action/effect JSON; delete Illuminati/Masons `orgPools` entries; remove `DiscoverCountryEffectParams` + converter arm; strip locales; remove `ActionVisualConfig` entry (+ orphaned texture if unused).
+- [x] **VisualState / presentation** — delete `DiscoveredCountriesState` and converter/update/game-log Discovery path; remove `GameLogEntryKind.Discovery` + `GameLogLineFormatter.BuildDiscoveryLine` + Unity `ActionLogView` branch **and** web `ActionsLog.razor` Discovery arm/`BuildDiscoveryLine`; strip `CardPlayAnimator` discovery UX.
+- [x] **MapLensApplier world-country gate** — add `WorldCountriesState` (world/`IsAvailable` ids from `GetCountryIds`, set-on-key-change only); replace `IsCountryDiscovered` / `DiscoveredCountries` subscription with `Contains` + `PropertyChanged` so first VisualState populate repaints Political/Org lenses; update `map_system.md`.
+- [x] **Bot rename to `control`** — `ControlFeature`, registry, settings defaults/`game_settings.json`; strip observation discovery fields/filters/`DiscoversCountry`; move `Docs/BotFeatures/` folder and rewrite eval config.
+- [x] **Debug / calibration cleanup** — delete command type, HUD wiring, CalibrationRunner push, end-game calibration skill mention.
+- [x] **Tests + benchmarks** — delete or rewrite suites listed in Approach; remove all `DiscoveredCountry` seeding; ensure `ControlFeature` coverage (control-only play, no discover path); update benchmarks that referenced `DiscoveredCountriesState`.
+- [x] **Build + test** — `dotnet-build` / `dotnet-test` green; no remaining references to discovery types/ids except historical Docs/Specs (leave old specs alone).
 
 ### Section 2 — User Steps
 

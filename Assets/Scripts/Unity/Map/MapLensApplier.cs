@@ -27,7 +27,7 @@ namespace GS.Unity.Map {
 			}
 			_state.MapLens.PropertyChanged += HandleLensChanged;
 			_state.OrgMap.PropertyChanged  += HandleOrgMapChanged;
-			_state.DiscoveredCountries.PropertyChanged += HandleDiscoveredChanged;
+			_state.WorldCountries.PropertyChanged += HandleWorldCountriesChanged;
 			_state.ProvinceOwnership.PropertyChanged += HandleProvinceOwnershipChanged;
 			_state.ProvinceOccupation.PropertyChanged += HandleProvinceOccupationChanged;
 		}
@@ -42,7 +42,7 @@ namespace GS.Unity.Map {
 			}
 			_state.MapLens.PropertyChanged -= HandleLensChanged;
 			_state.OrgMap.PropertyChanged  -= HandleOrgMapChanged;
-			_state.DiscoveredCountries.PropertyChanged -= HandleDiscoveredChanged;
+			_state.WorldCountries.PropertyChanged -= HandleWorldCountriesChanged;
 			_state.ProvinceOwnership.PropertyChanged -= HandleProvinceOwnershipChanged;
 			_state.ProvinceOccupation.PropertyChanged -= HandleProvinceOccupationChanged;
 		}
@@ -57,7 +57,7 @@ namespace GS.Unity.Map {
 			}
 		}
 
-		void HandleDiscoveredChanged(object sender, PropertyChangedEventArgs e) {
+		void HandleWorldCountriesChanged(object sender, PropertyChangedEventArgs e) {
 			ApplyLens(_state.MapLens.Lens);
 		}
 
@@ -89,14 +89,14 @@ namespace GS.Unity.Map {
 
 				string ownerId = ResolveOwner(identifier);
 				string occupierId = ResolveOccupier(identifier.ProvinceId);
-				bool discovered = IsCountryDiscovered(ownerId);
-				bool visiblyOccupied = discovered && occupierId != "" && occupierId != ownerId;
+				bool inWorld = IsCountryInWorld(ownerId);
+				bool visiblyOccupied = inWorld && occupierId != "" && occupierId != ownerId;
 
-				fillRenderer.enabled = discovered;
-				SetBorderRenderersEnabled(go, discovered && showBorders);
+				fillRenderer.enabled = inWorld;
+				SetBorderRenderersEnabled(go, inWorld && showBorders);
 				SetOccupationHatchEnabled(go, visiblyOccupied, GetOccupationColor(occupierId));
 
-				if (!discovered) {
+				if (!inWorld) {
 					continue;
 				}
 				fillRenderer.material.color = GetColor(lens, ownerId);
@@ -147,8 +147,8 @@ namespace GS.Unity.Map {
 			}
 		}
 
-		bool IsCountryDiscovered(string countryId) {
-			var ids = _state?.DiscoveredCountries?.CountryIds;
+		bool IsCountryInWorld(string countryId) {
+			var ids = _state?.WorldCountries?.CountryIds;
 			if (ids == null) { return true; }
 			return ids.Contains(countryId);
 		}

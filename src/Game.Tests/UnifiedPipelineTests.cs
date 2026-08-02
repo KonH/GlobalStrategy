@@ -159,31 +159,6 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void pipeline_discovers_country_on_org_action_success() {
-			var actionConfig = SingleOrgActionConfig("spread_rumors", 0.0, new List<string> { "discover" });
-			var effectConfig = new EffectConfig {
-				Effects = new List<ActionEffectDefinition> {
-					new DiscoverCountryEffectParams { EffectId = "discover", EffectType = "DiscoverCountry" }
-				}
-			};
-			var logic = BuildLogic(actionConfig, effectConfig);
-			logic.Update(0f);
-
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, ActionId = "spread_rumors" });
-			logic.Update(0f);
-
-			bool discovered = false;
-			int[] discReq = { TypeId<DiscoveredCountry>.Value };
-			foreach (var arch in logic.World.GetMatchingArchetypes(discReq, null)) {
-				DiscoveredCountry[] dcs = arch.GetColumn<DiscoveredCountry>();
-				for (int i = 0; i < arch.Count; i++) {
-					if (dcs[i].OrgId == OrgId && dcs[i].CountryId == OtherCountryId) { discovered = true; }
-				}
-			}
-			Assert.True(discovered);
-		}
-
-		[Fact]
 		void pipeline_draws_replacement_card_after_play() {
 			var actionConfig = new ActionConfig {
 				Defaults = new List<ActionOwnerDefaults> {
@@ -326,12 +301,8 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void cleanup_system_removes_prior_frame_components() {
-			var actionConfig = SingleOrgActionConfig("spread_rumors", 0.0, new List<string> { "discover" });
-			var effectConfig = new EffectConfig {
-				Effects = new List<ActionEffectDefinition> {
-					new DiscoverCountryEffectParams { EffectId = "discover", EffectType = "DiscoverCountry" }
-				}
-			};
+			var actionConfig = SingleOrgActionConfig("spread_rumors", 0.0, new List<string>());
+			var effectConfig = new EffectConfig();
 			var logic = BuildLogic(actionConfig, effectConfig);
 			logic.Update(0f);
 
@@ -351,11 +322,6 @@ namespace GS.Game.Tests {
 			Assert.False(logic.World.Has<ActionSucceeded>(cardEntity));
 			Assert.False(logic.World.Has<CardUse>(cardEntity));
 			Assert.False(logic.World.Has<ActionValid>(cardEntity));
-
-			int[] discoverReq = { TypeId<DiscoverCountryEffect>.Value };
-			int discoverCount = 0;
-			foreach (var arch in logic.World.GetMatchingArchetypes(discoverReq, null)) { discoverCount += arch.Count; }
-			Assert.Equal(0, discoverCount);
 		}
 
 		// Covers Docs/Specs/26_07_24_13_stop-friendship-rivalry-cards/plan.md's Tests-section

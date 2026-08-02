@@ -29,7 +29,7 @@ namespace GS.Game.WebClient.Tests {
 		void unquotes_double_quoted_value() {
 			string content = File.ReadAllText(FindRepoRootLocalizationPath("en.asset"));
 			Dictionary<string, string> entries = LocaleAssetParser.Parse(content);
-			Assert.Equal("{0} discovered {1}", entries["game_log.discovered_format"]);
+			Assert.Equal("{0} increased control in {1} by {2} ({3})", entries["game_log.control_increased_format"]);
 		}
 
 		[Fact]

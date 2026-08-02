@@ -52,18 +52,11 @@
 
 	string FormatEntry(GameLogEntry entry) {
 		return entry.Kind switch {
-			GameLogEntryKind.Discovery => BuildDiscoveryLine(entry),
 			GameLogEntryKind.Control => BuildControlLine(entry),
 			GameLogEntryKind.Opinion => BuildOpinionLine(entry),
 			GameLogEntryKind.NewCharacter => BuildNewCharacterLine(entry),
 			_ => ""
 		};
-	}
-
-	string BuildDiscoveryLine(GameLogEntry entry) {
-		string orgName = Bold(Localization.Get($"organization_name.{entry.OrgId}"));
-		string countryName = Bold(Localization.Get($"country_name.{entry.CountryId}"));
-		return string.Format(Localization.Get("game_log.discovered_format"), orgName, countryName);
 	}
 
 	string BuildControlLine(GameLogEntry entry) {
