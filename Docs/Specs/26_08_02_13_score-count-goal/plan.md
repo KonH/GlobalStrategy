@@ -40,11 +40,22 @@ types' semantics.
 
 ### 1. Decrease shipped comparison scores + calibration constant
 
-In `Assets/Configs/game_settings.json`, multiply each of the nine `endGameComparisons[].score`
-values by `0.8` and round to the nearest integer (`Math.Round(x * 0.8, MidpointRounding.AwayFromZero)`),
-preserving ascending order:
+In `src/Game.Tests/EndGameThresholdFormulaTests.cs`, change `ShippedCalibrationMaximum` (line 15)
+from `286971.0094511145` to `286971.0094511145 * 0.8 = 229576.8075608916`. Do not touch `Factor(i)`
+or the rounding policy.
 
-| id | current | × 0.8 (rounded) |
+Then derive each decreased `Assets/Configs/game_settings.json` `endGameComparisons[].score` value
+as `Round(Factor(i) × 229576.8075608916, AwayFromZero)` — from the formula against the *rescaled*
+constant, not by independently rounding `0.8 × originalShippedScore`. The two approaches disagree
+for `KnightsTemplar` (index 7): `Round(303113 × 0.8) = 242490`, but
+`Round(Factor(7) × 229576.8075608916) = Round(242490.50298619174) = 242491` — double-rounding
+through the already-rounded original integer loses a fraction that the raw formula still carries.
+Using the mismatched value would make
+`shipped_end_game_comparisons_match_formula_against_calibration_maximum` fail (it asserts each
+config score equals `Round(Factor(i) × ShippedCalibrationMaximum, AwayFromZero)` against the
+*rescaled* constant). Computed this way, all nine values are:
+
+| id | current | decreased (formula vs. rescaled constant) |
 |---|---|---|
 | CommitteeOf300 | 14349 | 11479 |
 | TrilateralCommission | 55601 | 44481 |
@@ -53,13 +64,11 @@ preserving ascending order:
 | Reptilians | 179357 | 143486 |
 | SkullAndBones | 220609 | 176487 |
 | NewWorldOrder | 261861 | 209489 |
-| KnightsTemplar | 303113 | 242490 |
+| KnightsTemplar | 303113 | 242491 |
 | BohemianGrove | 344365 | 275492 |
 
-In `src/Game.Tests/EndGameThresholdFormulaTests.cs`, change `ShippedCalibrationMaximum` (line 15)
-from `286971.0094511145` to `286971.0094511145 * 0.8 = 229576.8075608916`. Do not touch `Factor(i)`
-or the rounding policy. `shipped_end_game_comparisons_match_formula_against_calibration_maximum`
-must pass unchanged against the new config values and constant.
+`shipped_end_game_comparisons_match_formula_against_calibration_maximum` must pass unchanged
+against these new config values and the rescaled constant.
 
 No change to `src/Game.Main/EndGameComparisonProjector.cs` or
 `Assets/Scripts/Unity/UI/EndGameWindowView.cs` — both consume `EndGameComparisons` as-is.
@@ -240,7 +249,11 @@ Core (`src/Game.Tests`), all pure C#, run via `dotnet test src/GlobalStrategy.Co
   one qualifies, including the case where only the score goal is met while control-based
   thresholds are not; an unparseable/unknown type still fails fast via the existing
   `CompletionConditionTypeParser.TryParse` guard (already covered, just confirm `score_goal` is
-  recognized and nothing else regresses).
+  recognized and nothing else regresses). **`AssertDefaultConfig`'s existing `Assert.Collection`
+  call (asserting `GameSettings.CompletionCondition`'s default has exactly the `total_control` and
+  `full_control_countries` members) must gain a third `member =>` clause for `score_goal`/`275592`
+  — it currently hard-asserts a count of 2 and will fail once Step 3 adds the third default
+  member.**
 - **`WinConditionHintProjectorTests`** (existing file, extended): a `score_goal` leaf produces a
   `WinConditionHintKind.ScoreGoal` row carrying its configured `Value`; a three-leaf `any`
   (`total_control` + `full_control_countries` + `score_goal`) flattens to three rows in
@@ -264,7 +277,7 @@ still render correctly ranked in the end-game window.
 - [ ] Add `ScoreGoal` to `WinConditionHintKind` in `src/Game.Main/VisualState.cs` and the matching `Flatten` branch in `src/Game.Main/WinConditionHintProjector.cs`.
 - [ ] Add the `WinConditionHintKind.ScoreGoal` case to `FormatGoalHintRow` in `Assets/Scripts/Unity/UI/SelectOrgDocument.cs`.
 - [ ] Add `select_org.win_conditions.score_goal` to `Assets/Localization/en.asset`, then use the `localization` skill to produce and add the real Russian translation to `Assets/Localization/ru.asset`.
-- [ ] Add `src/Game.Tests/ScoreGoalConditionTests.cs` (below/equal/above threshold, absent-resource zero-default, constructor validation) and extend `src/Game.Tests/CompletionConditionTests.cs` / `src/Game.Tests/WinConditionHintProjectorTests.cs` per the **Tests** section.
+- [ ] Add `src/Game.Tests/ScoreGoalConditionTests.cs` (below/equal/above threshold, absent-resource zero-default, constructor validation) and extend `src/Game.Tests/CompletionConditionTests.cs` (including `AssertDefaultConfig`'s `Assert.Collection` gaining a third `score_goal`/`275592` clause) / `src/Game.Tests/WinConditionHintProjectorTests.cs` per the **Tests** section.
 - [ ] Run `dotnet test src/GlobalStrategy.Core.sln` (via `dotnet-test` skill), then `dotnet build src/GlobalStrategy.Core.sln -c Release`; refresh Unity and confirm a clean console via `read_console(types=["error"])`.
 
 ## Section 2 — User Steps
