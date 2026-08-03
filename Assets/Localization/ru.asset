@@ -1888,6 +1888,8 @@ MonoBehaviour:
     Value: Достигните {0}% суммарного контроля над всеми странами
   - Key: select_org.win_conditions.full_control_countries
     Value: 'Полностью контролируйте {0} из {1} стран'
+  - Key: select_org.win_conditions.score_goal
+    Value: Достичь итогового счета {0}
   - Key: end_game.comparison.CommitteeOf300
     Value: Комитет 300
   - Key: end_game.comparison.TrilateralCommission

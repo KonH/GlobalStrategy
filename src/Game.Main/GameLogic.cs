@@ -663,6 +663,9 @@ namespace GS.Main {
 				case CompletionConditionType.FullControlCountries:
 					ForceFullControlCountries(targetOrgId, (int)value, countryIds);
 					break;
+				case CompletionConditionType.ScoreGoal:
+					_context.Logger?.LogError($"[DebugForceCompletion] conditionType='score_goal' is not supported by this debug command, no-op: target='{targetOrgId}' value={value}");
+					break;
 			}
 
 			SettleOrgScores($"target='{targetOrgId}' conditionType='{conditionType}' value={value}");

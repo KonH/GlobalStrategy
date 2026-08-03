@@ -61,6 +61,36 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void single_score_goal_leaf_yields_one_available_row() {
+			var (isAvailable, isAlternativeGroup, rows) = WinConditionHintProjector.Build(Leaf("score_goal", 275592), 12);
+
+			Assert.True(isAvailable);
+			Assert.False(isAlternativeGroup);
+			Assert.Single(rows);
+			Assert.Equal(WinConditionHintKind.ScoreGoal, rows[0].Kind);
+			Assert.Equal(275592, rows[0].Value);
+		}
+
+		[Fact]
+		void three_leaf_any_flattens_to_three_rows_in_configuration_order() {
+			var condition = Any(
+				Leaf("total_control", 0.8),
+				Leaf("full_control_countries", 15),
+				Leaf("score_goal", 275592)
+			);
+
+			var (isAvailable, isAlternativeGroup, rows) = WinConditionHintProjector.Build(condition, 20);
+
+			Assert.True(isAvailable);
+			Assert.True(isAlternativeGroup);
+			Assert.Equal(3, rows.Count);
+			Assert.Equal(WinConditionHintKind.TotalControl, rows[0].Kind);
+			Assert.Equal(WinConditionHintKind.FullControlCountries, rows[1].Kind);
+			Assert.Equal(WinConditionHintKind.ScoreGoal, rows[2].Kind);
+			Assert.Equal(275592, rows[2].Value);
+		}
+
+		[Fact]
 		void unsupported_leaf_types_are_skipped_without_failing_the_projection() {
 			var condition = Any(
 				Leaf("total_control", 0.8),

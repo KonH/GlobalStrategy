@@ -5,7 +5,7 @@ description: Reference for scripts/automation/claude/handle_issues.py (and the c
 
 # Label-Driven GitHub Issue/PR Automation
 
-`scripts/automation/claude/handle_issues.{py,sh,ps1}` runs on a cron schedule **in the user's own environment** (a personal machine or server the user controls — not this Claude Code Remote session, not a GitHub Actions runner). The script itself does cheap discovery via plain `gh` calls (no LLM usage); it only invokes `claude -p "/handle-issue ..."` (`.claude/commands/handle-issue.md`) — and only then spends subscription usage — when discovery actually finds a candidate. Discovery/locking/reclaim logic shared with the Codex equivalent (`scripts/automation/codex/handle_issues.py`, driving `.codex/skills/codex-issue/SKILL.md`) lives in `scripts/automation/common/issue_handler.py`.
+`scripts/automation/claude/handle_issues.{py,sh,ps1}` runs on a cron schedule **in the user's own environment** (a personal machine or server the user controls — not this Claude Code Remote session, not a GitHub Actions runner). The script itself does cheap discovery via plain `gh` calls (no LLM usage); it only invokes `claude -p "/handle-issue ..."` (`.claude/commands/handle-issue.md`) — and only then spends subscription usage — when discovery actually finds a candidate. Discovery/locking/claim/clear logic shared with the Codex and Cursor equivalents (`scripts/automation/codex|cursor/handle_issues.py`) lives in `scripts/automation/common/issue_handler.py`.
 
 ## The labels are the whole state machine
 
@@ -16,7 +16,7 @@ There is no local state file, no timestamp bookkeeping, no comment-heading parsi
 - **`ai-need-attention`** — the automation stopped and is waiting on the owner (question asked, blocked, partial work, missing environment). Skipped by discovery. Shared across providers.
 - **`ai-complete`** — the prompt is fully done. Skipped by discovery. Shared across providers.
 
-**A candidate is any open, configured-contributor-authored issue or PR carrying the provider opt-in label and none of the three shared `ai-*` status labels.** That single rule is all of discovery — one `gh issue list` plus one `gh pr list`, filtered locally. Reclaim/release only touch items that also carry the calling provider's opt-in label.
+**A candidate is any open, configured-contributor-authored issue or PR carrying the provider opt-in label and none of the three shared `ai-*` status labels.** That single rule is all of discovery — one `gh issue list` plus one `gh pr list`, filtered locally. Claim and clear only touch the claimed item's number, so one provider/instance cannot clear another's in-flight work.
 
 **Each candidate gets its own CLI invocation from a guaranteed-clean checkout of its valid branch** — `main` for an issue, the PR's head branch for a PR. The wrapper prepares it itself before every invocation (`git fetch` + if the local branch exists and is ahead of `origin/<branch>`, `git push -u origin <branch>` first + `git checkout -f -B <branch> origin/<branch>` + `git clean -fd`, which keeps ignored files like `Logs/` intact). The ahead-push preserves unpushed salvage commits; if that push fails, the force-reset is skipped so the local tip is not discarded. The CLI run never starts from a stale or dirty tree, and candidates needing different branches can't contaminate each other. The CLI run must never do its own reset/clean at the start.
 
@@ -24,25 +24,20 @@ There is no local state file, no timestamp bookkeeping, no comment-heading parsi
 
 ## Per-item lifecycle (the command side)
 
-For each candidate, the CLI run (see `.claude/commands/handle-issue.md` for the exact rules):
+For each candidate, the **Python wrapper** claims (`claim_candidate` → `ai-in-progress`) before checkout/CLI, then clears that label after the CLI returns (`clear_in_progress`). The CLI run (see `.claude/commands/handle-issue.md` for the exact rules) never adds or removes `ai-in-progress`:
 
-1. Adds `ai-in-progress` first.
-2. Reads the item's live description + owner comments as the prompt (later comments override earlier ones; its own `<!-- claude-automation -->`-marked comments are context, never instructions).
-3. Executes it — on the PR's head branch for PR candidates, on `feature/<feature_name>` for issue candidates (reused if it already exists on origin).
-4. **Always commits and pushes**, even partial work — the pushed branch is the next run's starting point.
-5. Ensures a PR exists for issue work (`Closes #N`). **Never merges anything** — merging is always the owner's click.
-6. Posts one summary comment (marker first line) — the handoff for both the owner and the next memory-less run.
-7. Applies `ai-complete` or `ai-need-attention`, **then** removes `ai-in-progress` — every item ends the run with exactly one outcome label.
+1. Reads the item's live description + owner comments as the prompt (later comments override earlier ones; its own `<!-- claude-automation -->`-marked comments are context, never instructions).
+2. Executes it — on the PR's head branch for PR candidates, on `feature/<feature_name>` for issue candidates (reused if it already exists on origin).
+3. **Always commits and pushes**, even partial work — the pushed branch is the next run's starting point.
+4. Ensures a PR exists for issue work (`Closes #N`). **Never merges anything** — merging is always the owner's click.
+5. Posts one summary comment (marker first line) — the handoff for both the owner and the next memory-less run.
+6. Applies `ai-complete` or `ai-need-attention` only.
 
-## Crash recovery: stale-label reclaim with a GitHub-side counter
+## Crash recovery: manual stuck-label cleanup
 
-The wrapper holds an exclusive process lock, so at run start no other run of this provider can be active — any of that provider's items still labeled `ai-in-progress` is by definition leftover from a crashed/interrupted run (step 7's ordering guarantees a healthy run never leaves only that label). `reclaim_stale_in_progress` in `issue_handler.py`:
+There is **no** automatic stale-label reclaim. A hard-kill (SIGKILL, power loss, host crash) after claim and before harness post-CLI clear can leave `ai-in-progress` stuck indefinitely — discovery keeps skipping the item until the owner manually removes `ai-in-progress` (and any needed follow-up labels) on GitHub. That is intentional: automatic reclaim was the peer-steal root cause across independently scheduled instances (#111/#112).
 
-- Posts a `<!-- claude-automation:reclaim -->` marker comment and removes the label, so normal discovery picks the item up again — up to `MAX_AUTO_RECLAIMS` (2) times.
-- On the crash after that (3rd interrupted attempt), it parks the item with `ai-need-attention` and an explanatory comment instead — repeated crashes never burn subscription usage forever.
-- The reclaim comments *are* the counter — stored on GitHub, no local state. A real owner comment (non-marker, authored by a configured contributor) resets it, so a resumed item gets fresh retries.
-
-A crash *before* the run even applies `ai-in-progress` simply leaves the item a plain candidate — it retries next tick with no counter. That window is one label call wide; accepted.
+A crash *before* claim simply leaves the item a plain candidate — it retries next tick. That window is one claim-protocol call wide; accepted.
 
 ## Session/usage limits: a planned pause, never a crash
 
@@ -52,16 +47,16 @@ A subscription session/usage-limit hit is handled entirely separately from crash
 - **Detection (Codex):** `usage limit|rate limit|quota exceeded` in error/failed output only. Reset time preference: parseable `try again at Aug 5th, 2026 9:31 AM` (aware UTC; message has no timezone) → else now + `--limit-backoff-minutes` (default 60).
 - **Detection (Cursor):** `usage limit|rate limit|requests limit|too many requests|resource_exhausted|quota exceeded|spend limit` in error/failed output only. Production CLI phrasing includes `You've hit your usage limit` / `free requests limit` plus `Your usage limits will reset when your monthly cycle ends on 8/14/2025`. Reset time preference: that `M/D/YYYY` as aware-UTC midnight (next day if already past) → else now + `--limit-backoff-minutes` (default 60).
 - **Salvage:** before writing the limit file / releasing labels, the wrapper runs deterministic Python git (`salvage_uncommitted_work`): if the tree is dirty, `git add -A`, commit with fixed message `chore: salvage uncommitted work after session limit` under `GIT_AUTHOR_*` / `GIT_COMMITTER_*` identity `GlobalStrategy Automation <automation@local>`, then `git push -u origin HEAD`. Clean tree → no commit. No agent/`commit.md` pipeline, no version bump, no backup branches.
-- **Pause orchestration (`handle_limit_pause`):** salvage → always write the shared provider-keyed state file → on clean/committed: `release_in_progress_silently` (no reclaim comment, no crash-retry), then `reroute_auto_item_after_limit`, then best-effort automation note on the item (salvage outcome + either the reroute or pause-until-`retry_at`); on salvage failure: apply `ai-need-attention`, remove `ai-in-progress` **directly** (never via silent release after need-attention), then best-effort failure comment - no reroute, since the item is now waiting on the owner, not just paused. Note posting is best-effort *after* save/release so a failed `post_comment` cannot leave `ai-in-progress` for reclaim. Exits 0.
+- **Pause orchestration (`handle_limit_pause`):** salvage → always write the shared provider-keyed state file → on clean/committed: `clear_in_progress` for the claimed number only (never a provider-wide scan), then `reroute_auto_item_after_limit`, then best-effort automation note on the item (salvage outcome + either the reroute or pause-until-`retry_at`); on salvage failure: apply `ai-need-attention`, then `clear_in_progress` for that number, then best-effort failure comment - no reroute, since the item is now waiting on the owner, not just paused. Note posting is best-effort *after* save/clear so a failed `post_comment` cannot undo a successful clear. Exits 0.
 - **Immediate reroute for auto-routed items (`reroute_auto_item_after_limit`):** if the limit-hit candidate still carries `auto-ai` (i.e. it was routed rather than opted in with a plain provider label), the release above is followed by dropping the current provider label and re-running `select_auto_provider` over the other two providers right there in the same process - no waiting for this provider's own backoff window, and no waiting for the next scheduled `handle_issues_auto.py` tick. If every other provider is limited too, `park_auto_item_unroutable` applies `ai-need-attention` and posts an `<!-- auto-ai-automation -->` note. Items opted in with a plain provider label (not auto-routed) are left on that label and simply wait out the pause, same as before.
 - Every later run checks the stored timestamp right after acquiring the lock, comparing aware-UTC to aware-UTC so the machine's local timezone never skews it, and **skips the whole run** (no GitHub calls, no CLI invocation) while the window is still in effect. Once it has passed, the file is deleted and normal runs resume.
 - **`checkout_clean`:** if the local branch exists and is ahead of `origin/<branch>`, push it first, then force-reset; a failed ahead-push does not reset over the local tip (so an unpushed salvage commit survives until push succeeds).
 
 ## Concurrency: local flock + cross-instance claim
 
-`handle_issues.py` acquires an exclusive `flock` on `Logs/handle_issues_claude.lock` before doing anything else; a run that can't get the lock exits immediately. This stays a local OS-level lock rather than a GitHub label because it releases automatically the moment the process exits, crash or not — and it's precisely what makes the stale-reclaim logic above sound. (On Windows it uses `msvcrt` locking; also set Task Scheduler's "don't start a new instance" option as a second safeguard.)
+`handle_issues.py` acquires an exclusive `flock` on `Logs/handle_issues_claude.lock` before doing anything else; a run that can't get the lock exits immediately. This stays a local OS-level lock rather than a GitHub label because it releases automatically the moment the process exits, crash or not. (On Windows it uses `msvcrt` locking; also set Task Scheduler's "don't start a new instance" option as a second safeguard.) The flock only serializes one wrapper process on one machine — it is not what prevents cross-instance double work.
 
-That flock only serializes one wrapper process on one machine. It does nothing for two distinct automation instances (separate schedules/machines) — the failure mode behind issue #104 / duplicate PRs #105/#106, and the concurrent-plan race on this feature's own branch (`feature/prevent-double-automation`). Cross-instance exclusion is `claim_candidate` in `scripts/automation/common/issue_handler.py`: each provider wrapper calls it once per candidate **before** `checkout_clean` / CLI spawn. It pairs the (non-CAS) `ai-in-progress` label with a uniquely-tokened, fully-invisible claim comment, sleeps a short settle delay so a near-simultaneous rival can post, then breaks the tie by monotonic GitHub comment id among comments fresher than a short freshness window. Losers log and `continue` with no checkout, CLI, branch, commit, PR, or summary comment for that item.
+That flock does nothing for two distinct automation instances (separate schedules/machines) — the failure mode behind issue #104 / duplicate PRs #105/#106. Cross-instance exclusion is `claim_candidate` in `scripts/automation/common/issue_handler.py`: each provider wrapper calls it once per candidate **before** `checkout_clean` / CLI spawn. It pairs the (non-CAS) `ai-in-progress` label with a uniquely-tokened, fully-invisible claim comment, sleeps a short settle delay so a near-simultaneous rival can post, then breaks the tie by monotonic GitHub comment id among comments fresher than a short freshness window. Losers log and `continue` with no checkout, CLI, branch, commit, PR, or summary comment for that item. After a successful claim, wrappers wrap checkout + CLI in `try`/`finally: clear_in_progress(logger, number)` so the label is cleared for that item only when the CLI returns (including Cursor `SystemExit` and Claude max-turns). Limit paths also clear only the claimed number — never a provider-wide scan that could peer-steal a sibling instance's live claim.
 
 ## Security
 

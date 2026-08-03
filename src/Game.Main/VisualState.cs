@@ -871,7 +871,8 @@ namespace GS.Main {
 
 	public enum WinConditionHintKind {
 		TotalControl,
-		FullControlCountries
+		FullControlCountries,
+		ScoreGoal
 	}
 
 	public class WinConditionHintRowState {
