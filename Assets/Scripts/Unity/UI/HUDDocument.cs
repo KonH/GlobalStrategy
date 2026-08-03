@@ -345,7 +345,7 @@ namespace GS.Unity.UI {
 			}
 
 			menu.style.display = DisplayStyle.None;
-			button.text = $"▶ {label}";
+			button.text = $"> {label}";
 			button.RegisterCallback<PointerUpEvent>(e => {
 				if (!button.enabledSelf || e.button != 0 || !button.ContainsPoint(e.localPosition)) {
 					return;
@@ -353,7 +353,7 @@ namespace GS.Unity.UI {
 
 				bool isOpen = menu.style.display != DisplayStyle.None;
 				menu.style.display = isOpen ? DisplayStyle.None : DisplayStyle.Flex;
-				button.text = $"{(isOpen ? "▶" : "▼")} {label}";
+				button.text = $"{(isOpen ? ">" : "v")} {label}";
 			});
 		}
 
@@ -682,7 +682,7 @@ namespace GS.Unity.UI {
 					if (_selectedCountryDebugMenu != null) {
 						_selectedCountryDebugMenu.style.display = DisplayStyle.None;
 					}
-					_btnSelectedCountryDebugMenu.text = "▶ Selected country";
+					_btnSelectedCountryDebugMenu.text = "> Selected country";
 				}
 			}
 			foreach (var button in _selectedCountryCharacterDebugButtons) {
@@ -841,7 +841,7 @@ namespace GS.Unity.UI {
 					if (_selectedProvinceDebugMenu != null) {
 						_selectedProvinceDebugMenu.style.display = DisplayStyle.None;
 					}
-					_btnSelectedProvinceDebugMenu.text = "▶ Selected province";
+					_btnSelectedProvinceDebugMenu.text = "> Selected province";
 				}
 			}
 			if (!valid) {
