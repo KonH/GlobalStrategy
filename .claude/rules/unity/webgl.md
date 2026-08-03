@@ -19,6 +19,19 @@ Replace with ASCII-safe alternatives, or bundle a Unicode font and apply it via 
 
 **Do not use emoji or Unicode symbol glyphs (▲▼●■ etc.) in UI text at all, even outside WebGL.** For state indicators (expanded/collapsed, on/off), prefer a visual state on the control itself — e.g. toggle the `gs-toggle-on`/`gs-toggle-off` classes on the button for a pressed/unpressed look — over encoding state in the label text. If an icon is genuinely needed, generate a proper image asset (see `.claude/rules/image_generation.md` and `.claude/rules/flag_assets.md`) and reference it via `background-image` in USS, rather than relying on a font glyph.
 
+## Decorative SDF fonts lack Cyrillic glyphs — RU text renders as tofu
+
+`Assets/UI/Fonts/Cinzel-*` and `IMFellEnglish-*` are Latin-only Google Fonts — their source `.ttf` files contain zero Cyrillic codepoints (verified via cmap inspection), so any text styled with those SDF font assets renders as tofu in the `ru` locale, in every build (not just WebGL). `PlayfairDisplay-*` is the only bundled family with Cyrillic coverage.
+
+Each `TMP_FontAsset`/`FontAsset` `.asset` file has an `m_FallbackFontAssetTable` field — a plain YAML list — that TMP consults at runtime when the primary font lacks a requested glyph. Since these fonts use `m_AtlasPopulationMode: 1` (Dynamic, not DynamicOS) and their source `.ttf` import settings have `includeFontData: 1`, missing glyphs are rasterized on demand from the fallback's source font at runtime, including in WebGL builds — no Editor/Font Asset Creator re-bake is required. Wire a Cyrillic-capable fallback (e.g. the matching-weight `PlayfairDisplay-* SDF` asset) into `m_FallbackFontAssetTable` for any Latin-only font asset used where localized text can appear:
+
+```yaml
+m_FallbackFontAssetTable:
+- {fileID: 11400000, guid: <guid-of-fallback-.asset>, type: 2}
+```
+
+This is a visual/typography change (RU text falls back to a different font family than the EN headline font) — always ask the owner to confirm the look in-Editor or in a build after making this kind of change.
+
 ## Shader stripping: use preloadedAssets, not Shader.Find fallbacks
 
 If `Shader.Find("X")` returns null in a WebGL build, the shader is being stripped. The correct fix is to add the shader's material to **Player Settings → Preloaded Assets**, not to silently fall back to a different shader (which changes rendering behaviour).

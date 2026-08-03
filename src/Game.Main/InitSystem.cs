@@ -58,12 +58,14 @@ namespace GS.Main {
 				MultiplierIndex = 0
 			});
 
+			string locale = string.IsNullOrEmpty(context.InitialLocale) ? settings.DefaultLocale : context.InitialLocale;
+
 			int localeEntity = world.Create();
-			world.Add(localeEntity, new Locale { Value = settings.DefaultLocale });
+			world.Add(localeEntity, new Locale { Value = locale });
 
 			int settingsEntity = world.Create();
 			world.Add(settingsEntity, new AppSettings {
-				Locale = settings.DefaultLocale,
+				Locale = locale,
 				AutoSaveInterval = ParseAutoSaveInterval(settings.AutoSaveInterval)
 			});
 

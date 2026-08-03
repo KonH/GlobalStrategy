@@ -10,16 +10,16 @@ namespace GS.Game.WebClient.Services {
 	public class ConfigProvider : IGameConfigSource {
 		readonly HttpClient _httpClient;
 
-		public IConfigSource<GeoJsonConfig> GeoJson { get; private set; } = null!;
-		public IConfigSource<MapEntryConfig> MapEntry { get; private set; } = null!;
-		public IConfigSource<CountryConfig> Country { get; private set; } = null!;
-		public IConfigSource<GameSettings> GameSettings { get; private set; } = null!;
-		public IConfigSource<ResourceConfig> Resource { get; private set; } = null!;
-		public IConfigSource<OrganizationConfig> Organization { get; private set; } = null!;
-		public IConfigSource<CharacterConfig> Character { get; private set; } = null!;
-		public IConfigSource<ActionConfig> Action { get; private set; } = null!;
-		public IConfigSource<EffectConfig> Effect { get; private set; } = null!;
-		public IConfigSource<ProvinceConfig> Province { get; private set; } = null!;
+		public IReadOnlyConfigSource<GeoJsonConfig> GeoJson { get; private set; } = null!;
+		public IReadOnlyConfigSource<MapEntryConfig> MapEntry { get; private set; } = null!;
+		public IReadOnlyConfigSource<CountryConfig> Country { get; private set; } = null!;
+		public IReadOnlyConfigSource<GameSettings> GameSettings { get; private set; } = null!;
+		public IReadOnlyConfigSource<ResourceConfig> Resource { get; private set; } = null!;
+		public IReadOnlyConfigSource<OrganizationConfig> Organization { get; private set; } = null!;
+		public IReadOnlyConfigSource<CharacterConfig> Character { get; private set; } = null!;
+		public IReadOnlyConfigSource<ActionConfig> Action { get; private set; } = null!;
+		public IReadOnlyConfigSource<EffectConfig> Effect { get; private set; } = null!;
+		public IReadOnlyConfigSource<ProvinceConfig> Province { get; private set; } = null!;
 		public List<MapFeature> MapGeometry { get; private set; } = null!;
 
 		public ConfigProvider(HttpClient httpClient) {

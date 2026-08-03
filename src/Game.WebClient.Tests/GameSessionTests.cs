@@ -29,16 +29,16 @@ namespace GS.Game.WebClient.Tests {
 		}
 
 		sealed class FileGameConfigSource : IGameConfigSource {
-			public IConfigSource<GeoJsonConfig> GeoJson { get; }
-			public IConfigSource<MapEntryConfig> MapEntry { get; }
-			public IConfigSource<CountryConfig> Country { get; }
-			public IConfigSource<GameSettings> GameSettings { get; }
-			public IConfigSource<ResourceConfig> Resource { get; }
-			public IConfigSource<OrganizationConfig> Organization { get; }
-			public IConfigSource<CharacterConfig> Character { get; }
-			public IConfigSource<ActionConfig> Action { get; }
-			public IConfigSource<EffectConfig> Effect { get; }
-			public IConfigSource<ProvinceConfig> Province { get; }
+			public IReadOnlyConfigSource<GeoJsonConfig> GeoJson { get; }
+			public IReadOnlyConfigSource<MapEntryConfig> MapEntry { get; }
+			public IReadOnlyConfigSource<CountryConfig> Country { get; }
+			public IReadOnlyConfigSource<GameSettings> GameSettings { get; }
+			public IReadOnlyConfigSource<ResourceConfig> Resource { get; }
+			public IReadOnlyConfigSource<OrganizationConfig> Organization { get; }
+			public IReadOnlyConfigSource<CharacterConfig> Character { get; }
+			public IReadOnlyConfigSource<ActionConfig> Action { get; }
+			public IReadOnlyConfigSource<EffectConfig> Effect { get; }
+			public IReadOnlyConfigSource<ProvinceConfig> Province { get; }
 			public List<MapFeature> MapGeometry { get; }
 
 			public FileGameConfigSource() {
