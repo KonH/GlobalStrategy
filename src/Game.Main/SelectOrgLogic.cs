@@ -18,10 +18,10 @@ namespace GS.Main {
 		public IReadOnlyList<string> HqCountryIds { get; }
 
 		public SelectOrgLogic(
-			IConfigSource<GS.Game.Configs.CountryConfig> countryConfig,
-			IConfigSource<OrganizationConfig> orgConfig,
+			IReadOnlyConfigSource<GS.Game.Configs.CountryConfig> countryConfig,
+			IReadOnlyConfigSource<OrganizationConfig> orgConfig,
 			ResourceConfig resourceConfig,
-			IConfigSource<GameSettings> gameSettingsConfig) {
+			IReadOnlyConfigSource<GameSettings> gameSettingsConfig) {
 			Commands = (IWriteOnlyCommandAccessor)_commandAccessor;
 			_resourceConfig = resourceConfig;
 

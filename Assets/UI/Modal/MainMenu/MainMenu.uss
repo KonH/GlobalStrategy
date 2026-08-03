@@ -12,7 +12,7 @@
 .menu-panel {
     position: relative;
     padding: 40px 28px;
-    width: 340px;
+    width: 391px;
 }
 
 .menu-title {

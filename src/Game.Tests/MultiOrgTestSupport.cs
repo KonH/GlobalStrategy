@@ -18,7 +18,7 @@ namespace GS.Game.Tests {
 		public const string CountryCardActionId = "influence_country";
 		public const double CountryCardGoldCost = 20.0;
 
-		public sealed class StaticConfig<T> : IConfigSource<T> {
+		public sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;

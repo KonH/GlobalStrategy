@@ -116,7 +116,7 @@ namespace GS.Unity.UI {
 			block.AddToClassList("debug-card-block");
 
 			var header = new Button();
-			header.text = $"▶ {title}";
+			header.text = $"> {title}";
 			header.AddToClassList("gs-btn");
 			header.AddToClassList("gs-btn--small");
 			header.AddToClassList("debug-panel-button");
@@ -154,7 +154,7 @@ namespace GS.Unity.UI {
 				}
 				bool isOpen = details.style.display != DisplayStyle.None;
 				details.style.display = isOpen ? DisplayStyle.None : DisplayStyle.Flex;
-				header.text = $"{(isOpen ? "▶" : "▼")} {title}";
+				header.text = $"{(isOpen ? ">" : "v")} {title}";
 			});
 
 			block.Add(header);
