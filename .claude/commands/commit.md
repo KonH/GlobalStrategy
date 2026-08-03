@@ -16,6 +16,17 @@ Steps:
 
 Always run this before committing so the version bump is included in the commit.
 
+## Pre-commit step: build Release DLLs (if src/ changed)
+
+Run `git diff --cached --name-only` (or check the already-known staged file list). If any staged path is under `src/` (e.g. `.cs`/`.csproj` changes), the `Assets/Plugins/Core/*.dll` files are now stale and must be rebuilt before committing:
+
+1. Run `dotnet build src/GlobalStrategy.Core.sln -c Release > .tmp/dotnet-build.log 2>&1` (see the `dotnet-build` skill; no `cd`, `dangerouslyDisableSandbox: true`). Release output goes straight to `Assets/Plugins/Core/` per `.claude/rules/unity/plugins.md`.
+2. Read `.tmp/dotnet-build.log`. If the build failed, stop and report the errors instead of committing.
+3. `git add Assets/Plugins/Core/*.dll` to stage the rebuilt DLLs.
+4. Delete `.tmp/dotnet-build.log` as a separate Bash call.
+
+Skip this step entirely if no staged file is under `src/`.
+
 ## Usage stats catch-all scan (best-effort)
 
 Run `python scripts/stats/collect_usage.py --scan` (or `scripts/stats/collect_usage.ps1 -Scan` / `collect_usage.sh --scan`) once, before invoking `k:commit` below. This is the manual/cron catch-all scan from `Docs/Specs/26_07_22_17_spec-dev-stats/plan.md` §16, piggybacked onto the one command that already runs at the end of nearly every work session (both Claude and Codex) — it needs no global machine config and no scheduled task. It reads Claude Code transcripts and Codex rollouts newer than the local watermark and updates each affected `Docs/Specs/<dir>/usage.csv`. **Never block or fail the commit on this step** — if it errors (missing Python, a locked file, anything), log the error and continue straight to the commit; usage-stats freshness is not a commit precondition.
