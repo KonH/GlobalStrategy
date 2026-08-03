@@ -63,4 +63,4 @@ Maps each product-facing behaviour above to its concrete implementation — spec
 
 ## Ambiguities
 
-- [NEEDS CLARIFICATION: After the harness reliably clears `ai-in-progress` when the CLI returns, should agent lifecycle docs (`.claude/commands/handle-issue.md`, `.codex/skills/codex-issue/SKILL.md`, `.cursor/commands/cursor-issue.md`, and the github-issue-automation skill) stop instructing the agent to remove `ai-in-progress` (harness-only), or keep agent-side removal as belt-and-suspenders alongside harness cleanup?]
+- **Resolved (owner 2026-08-03):** Agents must not add or remove `ai-in-progress` at all — only the Python wrappers own that label (set via `claim_candidate` before work; cleared after CLI return / limit paths). Lifecycle docs (`.claude/commands/handle-issue.md`, `.codex/skills/codex-issue/SKILL.md`, `.cursor/commands/cursor-issue.md`, github-issue-automation skill, and parallel Codex/Cursor automation docs) must drop agent-side add/remove instructions, including the “manual invocation: add it yourself” fallback. Agents still apply `ai-complete` / `ai-need-attention` only.

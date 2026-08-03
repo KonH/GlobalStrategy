@@ -1,12 +1,22 @@
 # Plan: Solid `ai-in-progress` Harness Ownership
 
+## Note: concurrent plan drafts
+
+While this plan was being written, a second automation instance also pushed a plan commit
+to `feature/solid-in-progress-harness` (`6b17666`) — another live instance of the race this
+feature fixes. Both drafts agree on reclaim removal + post-CLI `clear_in_progress` + harness-only
+agent docs. This document is the reconciled final: it keeps the plan-review fixes from this run
+(especially retiring the provider-wide limit scan that still peer-steals) and adopts useful notes
+from the peer draft (empty-fresh claim leftovers after reclaim removal; Ambiguity 0 already resolved
+in `spec.md`).
+
 ## Spec
 
 Full spec: `Docs/Specs/26_08_02_16_solid-in-progress-harness/spec.md`.
 
 As the repository owner running multiple automation instances, the Python harness itself must set `ai-in-progress` immediately before work starts (already done by merged PR #109 `claim_candidate`) and clear it when the agent CLI returns (success or failure), with **no** automatic stale-label reclaim — so a peer instance cannot strip a still-running run's label and duplicate work, while true process crashes are left for manual cleanup.
 
-**Ambiguity (resolved, binding):** Owner answer **0** — agents must **not** add or remove `ai-in-progress`. Only the Python wrapper owns that label. Agent lifecycle docs must stop instructing agents to claim or clear it. Agents still apply `ai-complete` / `ai-need-attention` only. Implementation also edits `spec.md` Ambiguities to checked/resolved with that answer so the spec no longer reads as open.
+**Ambiguity (resolved, binding):** Owner answer **0** — agents must **not** add or remove `ai-in-progress`. Only the Python wrapper owns that label. Agent lifecycle docs must stop instructing agents to claim or clear it. Agents still apply `ai-complete` / `ai-need-attention` only. `spec.md` Ambiguities already records this resolution; implementers must not re-open belt-and-suspenders agent clears.
 
 Acceptance criteria (condensed — see spec.md for the full `Precondition => Action => Outcome` table):
 
@@ -31,13 +41,14 @@ Remove stale-label reclaim entirely; keep `claim_candidate` as the sole cross-in
 ### Keep claim; delete reclaim
 
 - **Keep** `claim_candidate(...)` behavior and per-candidate call sites in `scripts/automation/claude|codex|cursor/handle_issues.py` (claim before `checkout_clean` / CLI). Do not change settle delay, claim-comment protocol, or winner/loser semantics.
+- **Accepted leftover after reclaim removal:** non-exception `return False` after `add_label` (rival win, or empty fresh claim comments) still does not roll back the label on a true rival win (correct); empty-fresh leftovers that reclaim used to heal now need the same owner-manual cleanup as hard-kill sticks. Do not expand claim-protocol changes in this feature.
 - **Delete** from `scripts/automation/common/issue_handler.py`:
   - `reclaim_stale_in_progress`
   - `count_reclaims_since_owner_comment`
   - `MAX_AUTO_RECLAIMS`
   - reclaim-marker protocol (`<!-- …:reclaim -->`) and all call sites / imports
 - **Remove** startup `reclaim_stale_in_progress(logger, LABEL, MARKER)` from all three wrappers (`claude` ~L255, `codex` ~L240, `cursor` ~L170).
-- After deletions, `rg` for reclaim leftovers under `scripts/automation`, `.claude`, `.codex`, `.cursor` and purge every hit (wrapper headers, Claude max-turns salvage comment, skill intros, agent “reclaim logic” sentences, `claim_candidate` / limit-pause docs).
+- After deletions, `rg` for reclaim leftovers under `scripts/automation`, `.claude`, `.codex`, `.cursor` and purge every hit (wrapper headers, Claude max-turns salvage comment, skill intros, agent “reclaim logic” sentences, `claim_candidate` / limit-pause docs). Historical specs/plans may still mention reclaim — leave those alone.
 
 ### Shared post-CLI / limit clear helper
 
@@ -65,9 +76,9 @@ For each candidate in all three wrappers:
 
 **CRITICAL:** never put `claim_candidate` (or a lost-claim `continue`) inside that `try`. `continue` inside `try` still runs `finally` and would clear the **winner's** live label — recreating #111/#112-style steal via claim placement.
 
-**Cursor (critical gap today):** `raise SystemExit(returncode)` on non-zero (~L189–190) currently exits **without** clearing the label. One `try`/`finally` must wrap checkout + `run_cursor` + limit handling + `raise SystemExit(returncode)` so both `SystemExit` (not caught by Cursor's outer `except Exception`) and ordinary `Exception`s clear before outer handling. Limit path: per-number clear (via `handle_limit_pause` equivalent / direct `clear_in_progress`), then `return` (finally still runs; second clear is best-effort).
+**Cursor (critical gap today):** `raise SystemExit(returncode)` on non-zero (~L189–190) currently exits **without** clearing the label. One `try`/`finally` must wrap checkout + `run_cursor` + limit handling + `raise SystemExit(returncode)` so both `SystemExit` (not caught by Cursor's outer `except Exception`) and ordinary `Exception`s clear before outer handling. Limit path: per-number clear, then `return` (finally still runs; second clear is best-effort).
 
-**Claude:** After CLI return, limit → `handle_limit_pause` + `sys.exit(0)` (clears claimed number; finally best-effort). Non-limit including `max_turns_hit` salvage: keep salvage, then finally clears `ai-in-progress` (today max_turns leaves the label for reclaim — that reliance goes away). Non-zero `exit_code` at end of loop still clears per item in finally before `sys.exit(exit_code)`.
+**Claude:** After CLI return, limit → `handle_limit_pause` + `sys.exit(0)` (clears claimed number; finally best-effort). Non-limit including `max_turns_hit` salvage: keep salvage, then finally clears `ai-in-progress`. **Load-bearing:** today max-turns leaves `ai-in-progress` and only re-enters discovery via startup reclaim (`find_candidates` skips the label). After reclaim removal, clear is what makes the item a plain candidate for the next tick — do not keep the leave-label-on model. Non-zero `exit_code` at end of loop still clears per item in finally before `sys.exit(exit_code)`.
 
 **Codex:** Same try/finally pattern as Claude for limit vs non-limit; no max_turns path today.
 
@@ -99,8 +110,8 @@ Agents still must end with exactly one of `ai-complete` / `ai-need-attention`. A
 
 ## Section 1 — Agent Steps
 
-- [ ] **Resolve spec Ambiguity 0 in `spec.md`** — Mark the Ambiguities item checked/resolved: harness-only; agents never add/remove `ai-in-progress`; wrappers own the label.
-- [ ] **Delete reclaim machinery** — Remove `MAX_AUTO_RECLAIMS`, `count_reclaims_since_owner_comment`, and `reclaim_stale_in_progress` from `scripts/automation/common/issue_handler.py`; strip reclaim narrative from the module docstring and from `claim_candidate` / limit-pause comments. Then `rg -n 'reclaim|MAX_AUTO_RECLAIMS|reclaim_stale|locking/reclaim|reclaimed as stale|stale-in-progress reclaim' scripts/automation .claude .codex .cursor` and clear every remaining hit (wrappers including Claude max-turns salvage comment, skill intros, agent lifecycle sentences).
+- [ ] **Confirm Ambiguity 0 stays resolved in `spec.md`** — Keep the resolved Ambiguities text (agents never add/remove `ai-in-progress`; wrappers own the label). Do not reintroduce belt-and-suspenders agent clears.
+- [ ] **Delete reclaim machinery** — Remove `MAX_AUTO_RECLAIMS`, `count_reclaims_since_owner_comment`, and `reclaim_stale_in_progress` from `scripts/automation/common/issue_handler.py`; strip reclaim narrative from the module docstring and from `claim_candidate` / limit-pause comments. Then `rg -n 'reclaim|MAX_AUTO_RECLAIMS|reclaim_stale|locking/reclaim|reclaimed as stale|stale-in-progress reclaim' scripts/automation .claude .codex .cursor` and clear every remaining hit (wrappers including Claude max-turns salvage comment, skill intros, agent lifecycle sentences). Leave historical specs/plans alone.
 - [ ] **Add `clear_in_progress` and retire scan release** — Implement per-number best-effort `clear_in_progress(logger, number)`. Change `handle_limit_pause` clean/committed path and Cursor's limit path to clear only `candidate["number"]`. Delete `release_in_progress_silently` or reduce it to a one-number alias — **no provider-wide scan**.
 - [ ] **Wire Claude wrapper** — Drop startup reclaim import/call; **after a True claim only**, wrap checkout/CLI/limit/max-turns in `try/finally` that calls `clear_in_progress`; keep `handle_limit_pause` + `sys.exit(0)` on limit; update header docs (including max_turns). Never put `claim_candidate` inside the try.
 - [ ] **Wire Codex wrapper** — Same reclaim removal + claim-outside-try + try/finally clear pattern; keep `handle_limit_pause` on limit; update header docs.
