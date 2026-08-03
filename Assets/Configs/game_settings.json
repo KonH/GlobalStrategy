@@ -49,7 +49,7 @@
     "members": [
       { "type": "total_control", "value": 0.8 },
       { "type": "full_control_countries", "value": 15 },
-      { "type": "score_goal", "value": 275592 }
+      { "type": "score_goal", "value": 270000 }
     ]
   },
   "botFeatures": [

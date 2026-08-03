@@ -114,7 +114,7 @@ namespace GS.Unity.UI {
 				case WinConditionHintKind.ScoreGoal:
 					return string.Format(
 						_localization.Get("select_org.win_conditions.score_goal"),
-						((int)row.Value).ToString(CultureInfo.InvariantCulture));
+						ScoreFormat.Format(row.Value));
 				default:
 					return "";
 			}
