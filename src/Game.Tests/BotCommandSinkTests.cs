@@ -98,28 +98,20 @@ namespace GS.Game.Tests {
 		[Fact]
 		void distinct_plays_in_same_phase_are_all_emitted() {
 			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
-			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 23);
+			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 23, includeCountryCard: true);
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, logic.Commands, null);
 
 			double goldBefore = OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA);
+			int controlBefore = OrgMetrics.GetTotalControl(logic.World, MultiOrgTestSupport.OrgA);
 			sink.BeginDecisionPhase();
 			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId);
-			sink.PlayOrgCard(MultiOrgTestSupport.DiscoverActionId);
+			sink.PlayCountryCard(MultiOrgTestSupport.CountryCardActionId, MultiOrgTestSupport.HqA);
 			logic.Update(0f);
 
-			Assert.Equal(goldBefore - 50.0, OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA));
-
-			var discovered = new HashSet<string>();
-			int[] req = { TypeId<DiscoveredCountry>.Value };
-			foreach (var arch in logic.World.GetMatchingArchetypes(req, null)) {
-				DiscoveredCountry[] dcs = arch.GetColumn<DiscoveredCountry>();
-				for (int i = 0; i < arch.Count; i++) {
-					if (dcs[i].OrgId == MultiOrgTestSupport.OrgA) { discovered.Add(dcs[i].CountryId); }
-				}
-			}
-			Assert.True(discovered.Count > 1);
+			Assert.Equal(goldBefore - 50.0 - MultiOrgTestSupport.CountryCardGoldCost, OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA));
+			Assert.True(OrgMetrics.GetTotalControl(logic.World, MultiOrgTestSupport.OrgA) > controlBefore);
 		}
 
 		[Fact]

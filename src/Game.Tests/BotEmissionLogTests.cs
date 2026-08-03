@@ -55,7 +55,7 @@ namespace GS.Game.Tests {
 
 			var features = new List<IBotFeature> {
 				new ScriptedFeature("featureOne", MultiOrgTestSupport.SpendGoldActionId),
-				new ScriptedFeature("featureTwo", MultiOrgTestSupport.DiscoverActionId)
+				new ScriptedFeature("featureTwo", MultiOrgTestSupport.SampleOrgActionId)
 			};
 			var (emissions, bot, _) = BuildHost(logic, MultiOrgTestSupport.OrgA, features, "1880-02-14", 44);
 
@@ -67,14 +67,14 @@ namespace GS.Game.Tests {
 			Assert.Equal("1880-02-14", emissions[0].Date);
 			Assert.Equal(44, emissions[0].Tick);
 			Assert.Equal("featureTwo", emissions[1].FeatureId);
-			Assert.Equal(MultiOrgTestSupport.DiscoverActionId, emissions[1].ActionId);
+			Assert.Equal(MultiOrgTestSupport.SampleOrgActionId, emissions[1].ActionId);
 		}
 
 		[Fact]
 		void identical_decision_sequences_produce_element_wise_identical_logs() {
 			var features = new List<IBotFeature> {
 				new ScriptedFeature("featureOne", MultiOrgTestSupport.SpendGoldActionId),
-				new ScriptedFeature("featureTwo", MultiOrgTestSupport.DiscoverActionId)
+				new ScriptedFeature("featureTwo", MultiOrgTestSupport.SampleOrgActionId)
 			};
 
 			var ctx1 = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: new List<string> { MultiOrgTestSupport.OrgA });

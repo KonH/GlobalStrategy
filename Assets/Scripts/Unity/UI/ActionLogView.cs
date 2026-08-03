@@ -72,7 +72,6 @@ namespace GS.Unity.UI {
 
 		Label BuildLabel(GameLogEntry entry) {
 			string text = entry.Kind switch {
-				GameLogEntryKind.Discovery => GameLogLineFormatter.BuildDiscoveryLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
 				GameLogEntryKind.Control => GameLogLineFormatter.BuildControlLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
 				GameLogEntryKind.Opinion => GameLogLineFormatter.BuildOpinionLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),
 				GameLogEntryKind.Relation => GameLogLineFormatter.BuildRelationLine(entry, _loc, _countryVisualConfig, _orgVisualConfig),

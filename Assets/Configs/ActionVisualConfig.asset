@@ -14,9 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: GS.Unity.Common::GS.Unity.Common.ActionVisualConfig
   defaultBackImage: {fileID: -2458957394299649226, guid: 1c6106ccfe009cd4791bf7e52d8378d4, type: 3}
   entries:
-  - actionId: discover_country
-    frontImage: {fileID: -1664331322968743427, guid: 53e256e9cfdcced4692382c9e7a8c2ca, type: 3}
-    backImage: {fileID: -2458957394299649226, guid: 1c6106ccfe009cd4791bf7e52d8378d4, type: 3}
   - actionId: sphere_of_pressure
     frontImage: {fileID: 21300000, guid: 4b8bfcc96ac545940b794e72d2f11059, type: 3}
     backImage: {fileID: 0}

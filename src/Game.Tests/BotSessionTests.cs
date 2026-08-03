@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using ECS;
 using GS.Game.Bots;
 using GS.Game.Components;
+using GS.Game.Systems;
 using GS.Main;
 using Xunit;
 
@@ -19,15 +20,10 @@ namespace GS.Game.Tests {
 			return System.Array.Empty<string>();
 		}
 
-		static int DiscoveredCountryCount(GameLogic logic, string orgId) {
-			var obs = BotObservation.Build(logic.World, logic.ActionConfig, orgId, logic.EffectConfig);
-			return obs.DiscoveredCountryIds.Count;
-		}
-
-		static BotProfile DiscoverAndControlProfile(string orgId) => new BotProfile {
+		static BotProfile ControlProfile(string orgId) => new BotProfile {
 			OrgId = orgId,
 			Features = new List<BotFeatureSetting> {
-				new BotFeatureSetting { FeatureId = DiscoverAndControlFeature.Id, Enabled = true, Parameters = new Dictionary<string, double>() }
+				new BotFeatureSetting { FeatureId = ControlFeature.Id, Enabled = true, Parameters = new Dictionary<string, double>() }
 			}
 		};
 
@@ -48,7 +44,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void world_discovery_mode_attaches_bot_after_init_and_ticks_it_on_the_next_update() {
-			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 2);
+			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 2, includeCountryCard: true);
 			var logic = new GameLogic(ctx);
 			var observed = new List<(string OrgId, string FeatureId, string ActionId, string CountryId)>();
 			var session = BotSession.Create(logic, rngSeed: 2, onAction: (orgId, featureId, actionId, countryId) => {
@@ -65,8 +61,8 @@ namespace GS.Game.Tests {
 			session.Update(24f);
 			Assert.Single(observed);
 			Assert.Equal(MultiOrgTestSupport.OrgB, observed[0].OrgId);
-			Assert.Equal(DiscoverAndControlFeature.Id, observed[0].FeatureId);
-			Assert.Equal(MultiOrgTestSupport.DiscoverActionId, observed[0].ActionId);
+			Assert.Equal(ControlFeature.Id, observed[0].FeatureId);
+			Assert.Equal(MultiOrgTestSupport.CountryCardActionId, observed[0].ActionId);
 		}
 
 		[Fact]
@@ -74,10 +70,10 @@ namespace GS.Game.Tests {
 			// OrgA is the initial (player) org here, so InitSystem never marks it BotControlled —
 			// world-discovery mode would never attach a bot for it. Attaching via explicitProfiles
 			// must still work, proving explicit attachment is independent of the BotControlled marker.
-			var ctx = MultiOrgTestSupport.BuildContext(rngSeed: 3);
+			var ctx = MultiOrgTestSupport.BuildContext(rngSeed: 3, includeCountryCard: true);
 			var logic = new GameLogic(ctx);
 			var observed = new List<string>();
-			var profiles = new List<BotProfile> { DiscoverAndControlProfile(MultiOrgTestSupport.OrgA) };
+			var profiles = new List<BotProfile> { ControlProfile(MultiOrgTestSupport.OrgA) };
 			var session = BotSession.Create(logic, rngSeed: 3, explicitProfiles: profiles, onAction: (orgId, featureId, actionId, countryId) => {
 				observed.Add(actionId);
 			});
@@ -86,37 +82,36 @@ namespace GS.Game.Tests {
 			session.Update(24f);
 
 			Assert.Single(observed);
-			Assert.Equal(MultiOrgTestSupport.DiscoverActionId, observed[0]);
+			Assert.Equal(MultiOrgTestSupport.CountryCardActionId, observed[0]);
 		}
 
 		[Fact]
 		void update_ticks_the_bot_before_game_logic_update_so_the_play_is_visible_in_the_same_call() {
-			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 4);
+			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 4, includeCountryCard: true);
 			var logic = new GameLogic(ctx);
 			logic.Update(0f); // init only, no BotSession involved yet
 
-			int discoveredBefore = DiscoveredCountryCount(logic, MultiOrgTestSupport.OrgB);
+			int controlBefore = OrgMetrics.GetTotalControl(logic.World, MultiOrgTestSupport.OrgB);
 
-			var profiles = new List<BotProfile> { DiscoverAndControlProfile(MultiOrgTestSupport.OrgB) };
+			var profiles = new List<BotProfile> { ControlProfile(MultiOrgTestSupport.OrgB) };
 			var session = BotSession.Create(logic, rngSeed: 4, explicitProfiles: profiles);
 
-			// A single Update() call must both decide (play the discover card) and process that
-			// command (CreateActionEffectSystem/DiscoverCountrySystem) in the same call —
-			// DiscoverCountrySystem always adds exactly one DiscoveredCountry entity whenever
-			// undiscovered candidates remain, so this is a deterministic, non-rng-sensitive signal.
+			// A single Update() call must both decide (play a RaisesControl country card) and
+			// process that command (CreateActionEffectSystem/ControlSystem) in the same call —
+			// ControlFeature always raises control when a playable RaisesControl card remains.
 			session.Update(24f);
 
-			Assert.Equal(discoveredBefore + 1, DiscoveredCountryCount(logic, MultiOrgTestSupport.OrgB));
+			Assert.True(OrgMetrics.GetTotalControl(logic.World, MultiOrgTestSupport.OrgB) > controlBefore);
 		}
 
 		[Fact]
 		void on_action_fires_exactly_once_per_real_play_and_not_for_gated_or_empty_ticks() {
-			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 5);
+			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 5, includeCountryCard: true);
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
 
 			var observed = new List<string>();
-			var profiles = new List<BotProfile> { DiscoverAndControlProfile(MultiOrgTestSupport.OrgB) };
+			var profiles = new List<BotProfile> { ControlProfile(MultiOrgTestSupport.OrgB) };
 			var session = BotSession.Create(logic, rngSeed: 5, explicitProfiles: profiles, onAction: (orgId, featureId, actionId, countryId) => {
 				observed.Add(actionId);
 			});
@@ -134,7 +129,7 @@ namespace GS.Game.Tests {
 			// Org with zero cards/context (never participates) — the feature finds nothing eligible,
 			// so it must never invoke the observer even though the bot is attached and ticked.
 			var emptyOrgObserved = new List<string>();
-			var emptyProfiles = new List<BotProfile> { DiscoverAndControlProfile(MultiOrgTestSupport.OrgC) };
+			var emptyProfiles = new List<BotProfile> { ControlProfile(MultiOrgTestSupport.OrgC) };
 			var emptyOrgSession = BotSession.Create(logic, rngSeed: 5, explicitProfiles: emptyProfiles, onAction: (orgId, featureId, actionId, countryId) => {
 				emptyOrgObserved.Add(actionId);
 			});
@@ -144,11 +139,11 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void two_sessions_from_different_game_logic_instances_do_not_share_bot_state() {
-			var ctxA = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 6);
+			var ctxA = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 6, includeCountryCard: true);
 			var logicA = new GameLogic(ctxA);
 			var sessionA = BotSession.Create(logicA, rngSeed: 6);
 
-			var ctxB = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 6);
+			var ctxB = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 6, includeCountryCard: true);
 			var logicB = new GameLogic(ctxB);
 			var sessionB = BotSession.Create(logicB, rngSeed: 6);
 
@@ -158,7 +153,7 @@ namespace GS.Game.Tests {
 			sessionA.Update(24f);
 
 			// Session B is only initialized once — its bot (if any) has had no chance to attach/act
-			// yet, since discovery happens after the tick phase of its own first Update call.
+			// yet, since world-sync attaches after the tick phase of its own first Update call.
 			sessionB.Update(0f);
 
 			Assert.NotEmpty(ReadBotActionLogEntries(logicA.World));
@@ -167,11 +162,11 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void terminal_tick_emits_no_bot_command_callback_or_action_log_entry() {
-			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 7);
+			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 7, includeCountryCard: true);
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
 			var observed = new List<string>();
-			var profiles = new List<BotProfile> { DiscoverAndControlProfile(MultiOrgTestSupport.OrgB) };
+			var profiles = new List<BotProfile> { ControlProfile(MultiOrgTestSupport.OrgB) };
 			var session = BotSession.Create(logic, rngSeed: 7, explicitProfiles: profiles, onAction: (orgId, featureId, actionId, countryId) => {
 				observed.Add(actionId);
 			});

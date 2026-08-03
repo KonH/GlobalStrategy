@@ -1718,18 +1718,10 @@ MonoBehaviour:
     Value: At opinion {0} - {1}
   - Key: hud.character.card_country_placeholder
     Value: Country
-  - Key: action.discover_country.name
-    Value: Discover Country
-  - Key: action.discover_country.desc
-    Value: Send agents to uncover a nearby unknown nation.
   - Key: action.tooltip.play_hint
     Value: Click to play
   - Key: action.tooltip.unaffordable_hint
     Value: Not enough gold
-  - Key: effect.discover_country.name
-    Value: Discover Country
-  - Key: effect.discover_country.desc
-    Value: Reveals a previously unknown country on the map.
   - Key: action.sphere_of_pressure.name
     Value: Sphere of Pressure
   - Key: action.sphere_of_pressure.desc
@@ -1854,10 +1846,6 @@ MonoBehaviour:
     Value: Rivals
   - Key: hud.wars
     Value: Wars
-  - Key: hud.discovery.confirmation
-    Value: "Discovered: {0}!"
-  - Key: game_log.discovered_format
-    Value: "{0} discovered {1}"
   - Key: game_log.control_increased_format
     Value: "{0} increased control in {1} by {2} ({3})"
   - Key: game_log.control_decreased_format
@@ -1900,6 +1888,8 @@ MonoBehaviour:
     Value: Reach {0}% total control across all countries
   - Key: select_org.win_conditions.full_control_countries
     Value: 'Fully control {0} of {1} countries'
+  - Key: select_org.win_conditions.score_goal
+    Value: Reach a total score of {0}
   - Key: end_game.comparison.CommitteeOf300
     Value: The Committee of 300
   - Key: end_game.comparison.TrilateralCommission

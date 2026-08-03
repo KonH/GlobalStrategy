@@ -9,14 +9,12 @@ using GS.Main;
 using GS.Game.Commands;
 using GS.Game.Configs;
 using GS.Unity.Common;
-using GS.Unity.Map;
 
 namespace GS.Unity.UI {
 	public class CardPlayAnimator : MonoBehaviour {
 		UIDocument _hudDocument;
 		VisualState _state;
 		IWriteOnlyCommandAccessor _commands;
-		MapCameraController _cameraController;
 		CountryConfig _domainConfig;
 		ActionConfig _actionConfig;
 		EffectConfig _effectConfig;
@@ -29,25 +27,22 @@ namespace GS.Unity.UI {
 		bool _resultReady;
 		bool _lastActionSuccess;
 		CardPlayBarriersHolder _barrierHolder;
-		IFlyTextNotifier _flyText;
 
 		public bool IsPlaying => _isPlaying;
 		public event Action OnCardPlayComplete;
 
 		[Inject]
 		void Construct(VisualState state, IWriteOnlyCommandAccessor commands,
-			MapCameraController cameraController, CountryConfig domainConfig,
+			CountryConfig domainConfig,
 			ActionConfig actionConfig, EffectConfig effectConfig,
-			ActionVisualConfig visualConfig, ILocalization loc, IFlyTextNotifier flyText) {
+			ActionVisualConfig visualConfig, ILocalization loc) {
 			_state = state;
 			_commands = commands;
-			_cameraController = cameraController;
 			_domainConfig = domainConfig;
 			_actionConfig = actionConfig;
 			_effectConfig = effectConfig;
 			_visualConfig = visualConfig;
 			_loc = loc;
-			_flyText = flyText;
 		}
 
 		void Awake() {
@@ -191,8 +186,6 @@ namespace GS.Unity.UI {
 				_barrierHolder = null;
 			}
 
-			string discoveredCountryId = _state.DiscoveredCountries.RecentlyDiscovered;
-
 			await UniTask.Delay(700);
 
 			// Start card-to-deck transition, then hide overlay concurrently before awaiting
@@ -234,17 +227,6 @@ namespace GS.Unity.UI {
 				_actionsView.SuppressRefresh = false;
 			}
 
-			if (success && !string.IsNullOrEmpty(discoveredCountryId)) {
-				_cameraController?.PanToCountry(discoveredCountryId);
-				await UniTask.Delay(1000);
-				string localizedName = _loc.Get($"country_name.{discoveredCountryId}");
-				if (string.IsNullOrEmpty(localizedName) || localizedName == $"country_name.{discoveredCountryId}") {
-					localizedName = discoveredCountryId.Replace("_", " ");
-				}
-				_flyText?.Notify("hud.discovery.confirmation", localizedName);
-			}
-
-			_state.DiscoveredCountries.ClearRecentlyDiscovered();
 			ModalState.IsModalOpen = false;
 			_commands.Push(new UnpauseCommand());
 			await goldTask;

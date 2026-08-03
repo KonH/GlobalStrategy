@@ -32,8 +32,8 @@ namespace GS.Game.Systems {
 			}
 
 			// Marker entities are deliberately not destroyed here — CleanupActionEffectsSystem
-			// removes ClearCountryRelationEffect on the next tick, mirroring DiscoverCountrySystem's
-			// treatment of DiscoverCountryEffect. See ecs_patterns.md's "no system-to-system calls"
+			// removes ClearCountryRelationEffect on the next tick. See ecs_patterns.md's
+			// "no system-to-system calls"
 			// rule and the ordering note above.
 		}
 	}

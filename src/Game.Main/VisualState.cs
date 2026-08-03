@@ -245,23 +245,16 @@ namespace GS.Main {
 		}
 	}
 
-	public class DiscoveredCountriesState : INotifyPropertyChanged {
+	public class WorldCountriesState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
-		public System.Collections.Generic.HashSet<string> CountryIds { get; private set; } = new System.Collections.Generic.HashSet<string>();
-		public string RecentlyDiscovered { get; private set; } = "";
+		public HashSet<string> CountryIds { get; private set; } = new HashSet<string>();
 
-		public void Set(System.Collections.Generic.HashSet<string> ids, string recentlyDiscovered = "") {
-			var equal = CountryIds.SetEquals(ids);
-			RecentlyDiscovered = recentlyDiscovered;
-			if (equal) {
+		public void Set(HashSet<string> ids) {
+			if (CountryIds.SetEquals(ids)) {
 				return;
 			}
 			CountryIds = ids;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
-		}
-
-		public void ClearRecentlyDiscovered() {
-			RecentlyDiscovered = "";
 		}
 	}
 
@@ -802,7 +795,6 @@ namespace GS.Main {
 	}
 
 	public enum GameLogEntryKind {
-		Discovery,
 		Control,
 		Opinion,
 		NewCharacter,
@@ -879,7 +871,8 @@ namespace GS.Main {
 
 	public enum WinConditionHintKind {
 		TotalControl,
-		FullControlCountries
+		FullControlCountries,
+		ScoreGoal
 	}
 
 	public class WinConditionHintRowState {
@@ -943,7 +936,7 @@ namespace GS.Main {
 		public SelectedOrganizationState SelectedOrganization { get; } = new SelectedOrganizationState();
 		public MapLensState MapLens { get; } = new MapLensState();
 		public OrgMapState OrgMap { get; } = new OrgMapState();
-		public DiscoveredCountriesState DiscoveredCountries { get; } = new DiscoveredCountriesState();
+		public WorldCountriesState WorldCountries { get; } = new WorldCountriesState();
 		public VisualEffectCollection LastFrameEffects { get; } = new VisualEffectCollection();
 		public SaveResultState SaveResult { get; } = new SaveResultState();
 		public ProvinceOwnershipState ProvinceOwnership { get; } = new ProvinceOwnershipState();
