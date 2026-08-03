@@ -15,6 +15,7 @@
         <ui:VisualElement name="top-left-panel" class="top-left-panel" picking-mode="Ignore">
             <ui:Instance template="PlayerCountry" name="player-country" class="player-country-panel"/>
             <ui:Button name="btn-leaderboard" text="Leaderboard" class="gs-btn leaderboard-hud-button"/>
+            <ui:Button name="btn-goals" text="Goals" class="gs-btn leaderboard-hud-button"/>
         </ui:VisualElement>
         <ui:Instance template="CountryInfo" name="country-info" class="country-info-panel"/>
         <ui:Instance template="ProvinceInfo" name="province-info" class="province-info-panel"/>

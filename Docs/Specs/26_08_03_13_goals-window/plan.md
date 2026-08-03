@@ -32,7 +32,11 @@ Today `TotalControlCondition`, `FullControlCondition`, and `ScoreGoalCondition` 
 
 Refactor each `IsMet` to early-out on empty countries (existing behavior for control leaves) then `return GetCurrent(context) >= GetTarget(context)` so win checks and progress bars share one code path.
 
-Do **not** change `ICompletionCondition` itself (factory/`Any` stay boolean-only). Goals projection instantiates the same leaf types via config flattening (or reuses constructed leaves) and calls the concrete accessors.
+Also expose control-map overloads used by the Goals projector’s single-scan path:
+- `TotalControlCondition.GetCurrentFromControl(IReadOnlyDictionary<string, int> control)` — sum of map values
+- `FullControlCondition.GetCurrentFromControl(IReadOnlyDictionary<string, int> control, int maxControlPool)` — count of entries `>= maxControlPool`
+
+Do **not** change `ICompletionCondition` itself (factory/`Any` stay boolean-only). Goals projection uses cached leaf descriptors (see §3) and calls the concrete accessors.
 
 ### 2. `GoalsState` on `VisualState`
 
@@ -64,15 +68,16 @@ Wire `public GoalsState Goals { get; } = new GoalsState();` on `VisualState`. St
 
 ### 3. `GoalsProjector` + converter hook
 
-Add `src/Game.Main/GoalsProjector.cs` (static, mirror `WinConditionHintProjector` + `SelectedWarProjector` style):
+Add `src/Game.Main/GoalsProjector.cs` (static helpers + leaf descriptor type, mirror `WinConditionHintProjector` + `SelectedWarProjector` style):
 
-- Flatten `CompletionConditionConfig` the same way as `WinConditionHintProjector` (`any` expands members; unsupported types skipped).
+- Flatten `CompletionConditionConfig` the same way as `WinConditionHintProjector` (`any` expands members; unsupported types skipped) into **cached leaf descriptors** (kind + config value + constructed concrete condition instance). Rebuild the cache only when the converter is constructed (config is immutable for a session) — do **not** re-flatten or re-construct conditions every `UpdateGoals` tick.
 - For each organization entity in the world (same org iteration style as `VisualStateConverter.UpdateLeaderboards`), build a `CompletionConditionContext` with `GameCompletionSystem.GetAvailableCountryIds(world)` and `MaxControlPool`.
-- For each flattened leaf, construct the matching condition (`TotalControlCondition` / `FullControlCondition` / `ScoreGoalCondition`) with the config value and call `GetCurrent` / `GetTarget`.
+- **Per org per tick, call `OrgMetrics.GetControlByCountry` at most once.** Derive both total-control and full-control currents from that shared map via the leaf conditions' control-map overloads (`GetCurrentFromControl`); score leaves still use `GetCurrent(context)`. Targets come from `GetTarget(context)` (shared across orgs for a given leaf).
 - Preserve leaf order from config flatten (matches select-org hint order: total → full → score under current `game_settings.json`).
 
 Extend `VisualStateConverter`:
 - Constructor gains `CompletionConditionConfig? completionCondition` and `int maxControlPool` (defaults: null / 100-compatible fallback only if needed for existing tests).
+- Cache flattened goal leaf descriptors from `completionCondition` in the ctor.
 - Call `UpdateGoals(world)` from `Update(...)` after `UpdateLeaderboards(world)`.
 - `GameLogic` construction already has `settings.CompletionCondition` and `MaxControlPool` — pass them into the converter ctor alongside existing args.
 
@@ -98,13 +103,13 @@ Shell mirrors `LeaderboardWindow.uxml`: `gs-blackfade`, panel, centered title `g
 - Right: `ScrollView` `goals-progress-list` of rows: description label + track `VisualElement` with inner fill (width `%`) + `N/M` label. No Countries tab.
 
 Scripts (existing `GS.Unity.UI` assembly — no new asmdef):
-- `Assets/Scripts/Unity/UI/GoalsWindowDocument.cs` — `[RequireComponent(typeof(UIDocument))]`, `SortingOrder = 505` (distinct from Leaderboard `500` and WarProgress `510`; below FlyText `1000`), `Show`/`Hide` with `_ownsModalState` + `ModalState.IsModalOpen`, close via `PointerUpEvent` + `ContainsPoint`, subscribe to `Goals` + `Leaderboard` + `Locale` + `PlayerOrganization` while visible.
-- `Assets/Scripts/Unity/UI/GoalsWindowView.cs` — owns `_selectedOrgId`; `ResetToPlayerOrg(playerOrgId)` on every `Show`; row click toggles `.goals-row--selected` via `EnableInClassList`; refresh left from `Leaderboard.Organizations`, right from matching `Goals.Organizations` entry; format descriptions like `SelectOrgDocument`; format N/M with invariant ints for control/country goals and `ScoreFormat` for score; clamp fill to 100%.
+- `Assets/Scripts/Unity/UI/GoalsWindowDocument.cs` — `[RequireComponent(typeof(UIDocument))]`, `SortingOrder = 505` (distinct from Leaderboard `500` and WarProgress `510`; below FlyText `1000`), `Show`/`Hide` with `_ownsModalState` + `ModalState.IsModalOpen`, close via `PointerUpEvent` + `ContainsPoint`, subscribe to `Goals` + `Leaderboard` + `Locale` + `PlayerOrganization` while visible. **Locale handler only calls `RefreshTexts()` / refreshes the view — never `_loc.SetLocale` (HUD owns locale), matching Leaderboard.**
+- `Assets/Scripts/Unity/UI/GoalsWindowView.cs` — owns `_selectedOrgId`; `ResetToPlayerOrg(playerOrgId)` on every `Show`; row activate via `PointerUpEvent` + `ContainsPoint` (not `Button.clicked`); on every left-list rebuild **re-apply `.goals-row--selected` from `_selectedOrgId` and preserve `scrollOffset`** (live refresh must not wipe selection chrome or jump scroll); refresh left from `Leaderboard.Organizations`, right from matching `Goals.Organizations` entry; format descriptions like `SelectOrgDocument`; format N/M with invariant ints for control/country goals and `ScoreFormat` for score; clamp fill to 100%.
 
 ### 6. Scene + DI
 
 - `GameLifetimeScope`: `builder.RegisterComponentInHierarchy<GoalsWindowDocument>();` next to Leaderboard/WarProgress registrations.
-- `Assets/Scenes/Map.unity`: add root `GoalsWindowUI` GameObject with `GoalsWindowDocument` + `UIDocument` (UXML = GoalsWindow, PanelSettings = same `HUDPanelSettings` guid as LeaderboardWindowUI `a52ac28cceb58ba4db172389975ccca7`), and register its Transform in `SceneRoots`. Prefer Unity Editor / MCP; YAML clone of `LeaderboardWindowUI` (`fileID` block `9300000`) is acceptable fallback once `.meta` GUID for the new script exists.
+- `Assets/Scenes/Map.unity`: add root `GoalsWindowUI` GameObject with `GoalsWindowDocument` + `UIDocument` (UXML = GoalsWindow, PanelSettings = same `HUDPanelSettings` guid as LeaderboardWindowUI `a52ac28cceb58ba4db172389975ccca7`), and register its Transform in `SceneRoots`. Prefer Unity Editor / MCP; YAML fallback is allowed **only with new unique fileIDs** (e.g. `9600000`–`9600003`) — **do not reuse Leaderboard’s `9300000`–`9300003` (or WarProgress/WarResult blocks)**; colliding IDs would break those scene objects.
 
 ### 7. Localization
 
@@ -119,25 +124,25 @@ Reuse existing description keys (no new copy unless a format needs a Goals-speci
 
 ## Agent Steps
 
-- [ ] **Extract GetCurrent/GetTarget on leaf conditions** — Update `src/Game.Systems/TotalControlCondition.cs`, `FullControlCondition.cs`, and `ScoreGoalCondition.cs`; keep `IsMet` behavior identical via the new accessors.
+- [x] **Extract GetCurrent/GetTarget on leaf conditions** — Update `src/Game.Systems/TotalControlCondition.cs`, `FullControlCondition.cs`, and `ScoreGoalCondition.cs`; keep `IsMet` behavior identical via the new accessors.
 
-- [ ] **Add Goals visual-state types + equality** — `GoalProgressEntryState`, `GoalsOrgEntryState`, `GoalsState` on `VisualState`; equality helpers in `StateEquality.cs`.
+- [x] **Add Goals visual-state types + equality** — `GoalProgressEntryState`, `GoalsOrgEntryState`, `GoalsState` on `VisualState`; equality helpers in `StateEquality.cs`.
 
-- [ ] **Implement GoalsProjector + converter wiring** — New `src/Game.Main/GoalsProjector.cs`; extend `VisualStateConverter` ctor/`Update`/`UpdateGoals`; pass `CompletionCondition` + `MaxControlPool` from `GameLogic`.
+- [x] **Implement GoalsProjector + converter wiring** — New `src/Game.Main/GoalsProjector.cs`; extend `VisualStateConverter` ctor/`Update`/`UpdateGoals`; pass `CompletionCondition` + `MaxControlPool` from `GameLogic`.
 
-- [ ] **Core tests for accessors + projector** — Extend `CompletionConditionTests` / `ScoreGoalConditionTests` for current/target; add `GoalsProjectorTests` (and converter coverage if needed) per Tests section.
+- [x] **Core tests for accessors + projector** — Extend `CompletionConditionTests` / `ScoreGoalConditionTests` for current/target; add `GoalsProjectorTests` (and converter coverage if needed) per Tests section.
 
-- [ ] **GoalsWindow UXML/USS** — Create `Assets/UI/Modal/GoalsWindow/` two-column modal mirroring Leaderboard chrome and shared modal classes.
+- [x] **GoalsWindow UXML/USS** — Create `Assets/UI/Modal/GoalsWindow/` two-column modal mirroring Leaderboard chrome and shared modal classes.
 
-- [ ] **GoalsWindowDocument + GoalsWindowView** — Modal lifecycle (`SortingOrder` 505, ModalState, PointerUp close), default/reopen player-org selection, live refresh, progress-bar fill + N/M.
+- [x] **GoalsWindowDocument + GoalsWindowView** — Modal lifecycle (`SortingOrder` 505, ModalState, PointerUp close), default/reopen player-org selection, live refresh, progress-bar fill + N/M.
 
-- [ ] **HUD button + document wiring** — `btn-goals` in `HUD.uxml`/`HUD.uss`; inject/open from `HUDDocument`; localize `hud.goals`.
+- [x] **HUD button + document wiring** — `btn-goals` in `HUD.uxml`/`HUD.uss`; inject/open from `HUDDocument`; localize `hud.goals`.
 
-- [ ] **DI + Map scene UIDocument** — Register in `GameLifetimeScope`; add `GoalsWindowUI` to `Map.unity` with HUDPanelSettings.
+- [x] **DI + Map scene UIDocument** — Register in `GameLifetimeScope`; add `GoalsWindowUI` to `Map.unity` with HUDPanelSettings.
 
-- [ ] **Localization keys** — Add `goals.title` / `hud.goals` to EN+RU via localization skill.
+- [x] **Localization keys** — Add `goals.title` / `hud.goals` to EN+RU via localization skill.
 
-- [ ] **Validate** — `dotnet test src/GlobalStrategy.Core.sln`; Release build if `src/` DLL plugins need refresh; Unity import / console clean.
+- [x] **Validate** — `dotnet test src/GlobalStrategy.Core.sln`; Release build if `src/` DLL plugins need refresh; Unity import / console clean.
 
 ## User Steps
 
@@ -158,6 +163,10 @@ On first open and after close/reopen with another org previously selected, confi
 ### 4. Progress bar visuals
 
 With zero / partial / met-or-exceeded progress (use debug force-completion or time advancement), confirm unfilled / proportional / capped-full fills and correct N/M for all three goals, including live updates while the window stays open.
+
+### 5. Left-column parity vs Leaderboard Organizations
+
+With both windows openable in the same session, confirm the Goals left column matches the Leaderboard Organizations tab for the same tick: same orgs (no eliminated filter), same sort/places, same flags/names/scores. Catch presentation drift early.
 
 ## Tests
 

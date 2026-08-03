@@ -21,6 +21,8 @@ namespace GS.Main {
 		readonly bool _gameLogIncludePlayerActions;
 		readonly int _gameLogMaxEntries;
 		readonly EventNotificationSettings? _eventNotifications;
+		readonly int _maxControlPool;
+		readonly IReadOnlyList<GoalsLeafDescriptor> _goalLeaves;
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
@@ -29,7 +31,9 @@ namespace GS.Main {
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
 			bool gameLogIncludePlayerActions = true, int gameLogMaxEntries = 12,
 			CountryConfig? countryConfig = null,
-			EventNotificationSettings? eventNotifications = null) {
+			EventNotificationSettings? eventNotifications = null,
+			CompletionConditionConfig? completionCondition = null,
+			int maxControlPool = 100) {
 			_state = state;
 			_actionConfig = actionConfig;
 			_hqCountryByOrgId = hqCountryByOrgId ?? new Dictionary<string, string>();
@@ -37,6 +41,8 @@ namespace GS.Main {
 			_gameLogIncludePlayerActions = gameLogIncludePlayerActions;
 			_gameLogMaxEntries = gameLogMaxEntries;
 			_eventNotifications = eventNotifications;
+			_maxControlPool = maxControlPool > 0 ? maxControlPool : 100;
+			_goalLeaves = GoalsProjector.FlattenLeaves(completionCondition);
 		}
 
 		public void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
@@ -63,6 +69,7 @@ namespace GS.Main {
 			UpdateSelectedProvince(world);
 			UpdateCountryScore(world);
 			UpdateLeaderboards(world);
+			UpdateGoals(world);
 			UpdateGameLog(world, orgEntity);
 
 			// Tick all animatables
@@ -782,6 +789,10 @@ namespace GS.Main {
 			SortAndAssignPlaces(organizations);
 			SortAndAssignPlaces(countries);
 			_state.Leaderboard.Set(organizations, countries);
+		}
+
+		public void UpdateGoals(IReadOnlyWorld world) {
+			_state.Goals.Set(GoalsProjector.Build(world, _goalLeaves, _maxControlPool));
 		}
 
 		IReadOnlyList<string> GetCountryIds(IReadOnlyWorld world) {

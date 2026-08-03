@@ -24,6 +24,10 @@ MonoBehaviour:
     Value: No leaderboard entries available
   - Key: hud.leaderboard
     Value: Leaderboard
+  - Key: goals.title
+    Value: Goals
+  - Key: hud.goals
+    Value: Goals
   - Key: country_name.Afghanistan
     Value: Afghanistan
   - Key: country_name.Algeria

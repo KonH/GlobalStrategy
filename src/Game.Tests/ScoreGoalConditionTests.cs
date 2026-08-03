@@ -25,6 +25,20 @@ namespace GS.Game.Tests {
 			var condition = new ScoreGoalCondition(100);
 
 			Assert.True(condition.IsMet(Context(world)));
+			Assert.Equal(100, condition.GetCurrent(Context(world)));
+			Assert.Equal(100, condition.GetTarget(Context(world)));
+		}
+
+		[Fact]
+		void score_below_goal_exposes_current_under_target() {
+			var world = new World();
+			AddScore(world, OrgA, 99);
+			var condition = new ScoreGoalCondition(100);
+			CompletionConditionContext context = Context(world);
+
+			Assert.Equal(99, condition.GetCurrent(context));
+			Assert.Equal(100, condition.GetTarget(context));
+			Assert.False(condition.IsMet(context));
 		}
 
 		[Fact]

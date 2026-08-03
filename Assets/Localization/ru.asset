@@ -24,6 +24,10 @@ MonoBehaviour:
     Value: Нет записей в таблице лидеров
   - Key: hud.leaderboard
     Value: Таблица лидеров
+  - Key: goals.title
+    Value: Цели
+  - Key: hud.goals
+    Value: Цели
   - Key: country_name.Afghanistan
     Value: Афганистан
   - Key: country_name.Algeria
