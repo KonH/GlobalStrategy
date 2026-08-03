@@ -1035,6 +1035,7 @@ namespace GS.Unity.UI {
 		}
 
 		void ToggleOrgInfo() {
+			if (!(_gameSettings?.FeatureFlags?.ShowPlayerOrgControls ?? true)) { return; }
 			if (_orgInfoDocument == null) { return; }
 			_orgPanelOpen = !_orgPanelOpen;
 			if (_orgPanelOpen) {
