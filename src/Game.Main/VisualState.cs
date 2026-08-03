@@ -934,6 +934,7 @@ namespace GS.Main {
 		public LocaleState Locale { get; } = new LocaleState();
 		public PlayerOrganizationState PlayerOrganization { get; } = new PlayerOrganizationState();
 		public SelectedOrganizationState SelectedOrganization { get; } = new SelectedOrganizationState();
+		public CountryResourcesState OrgLensOrganizationResources { get; } = new CountryResourcesState();
 		public MapLensState MapLens { get; } = new MapLensState();
 		public OrgMapState OrgMap { get; } = new OrgMapState();
 		public WorldCountriesState WorldCountries { get; } = new WorldCountriesState();
