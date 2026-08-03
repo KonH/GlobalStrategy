@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using GS.Configs;
 
 namespace GS.Configs.IO {
-	public class StringConfig<TConfig> : IConfigSource<TConfig> {
+	public class StringConfig<TConfig> : IReadOnlyConfigSource<TConfig> {
 		readonly string _json;
 
 		public StringConfig(string json) {

@@ -8,7 +8,7 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class SaveResultTests {
-		sealed class StaticConfig<T> : IConfigSource<T> {
+		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;

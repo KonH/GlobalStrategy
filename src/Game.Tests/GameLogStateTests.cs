@@ -17,7 +17,7 @@ namespace GS.Game.Tests {
 	// CharacterVisualStateTests convention: bespoke GameLogicContext/ActionConfig/EffectConfig
 	// per scenario, GameLogic driven directly via Update(...) and Commands.Push(...).
 	public class GameLogStateTests {
-		sealed class StaticConfig<T> : IConfigSource<T> {
+		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;
