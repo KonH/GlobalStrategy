@@ -64,7 +64,8 @@
     "maxLogEntries": 12
   },
   "featureFlags": {
-    "showPlayerOrgControls": false
+    "showPlayerOrgControls": false,
+    "enableSecretAdvisor": false
   },
   "eventNotifications": {
     "events": [
