@@ -3,7 +3,12 @@
 
 Run this from an isolated scheduled-task/cron clone, never the primary working copy: before
 each candidate it force-resets the relevant branch and removes untracked files. The shared
-label workflow, locking, recovery, and candidate discovery live in `common.issue_handler`.
+label workflow, locking, claim, clear, and candidate discovery live in `common.issue_handler`.
+
+Cross-instance claim: each candidate is claimed via `claim_candidate` (sets `ai-in-progress`)
+before checkout/CLI. After the CLI returns - including non-zero `SystemExit` - this wrapper
+clears that item's `ai-in-progress` in a `finally` block. Hard-kill before that clear can leave
+the label stuck; recovery is manual owner removal (no automatic reclaim).
 """
 
 import argparse
@@ -19,9 +24,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.issue_handler import (  # noqa: E402
-	acquire_lock, candidate_branch, checkout_clean, claim_candidate, find_candidates,
-	limit_active, reclaim_stale_in_progress, release_in_progress_silently, save_limit_retry_at,
-	setup_logging,
+	acquire_lock, candidate_branch, checkout_clean, claim_candidate, clear_in_progress,
+	find_candidates, limit_active, save_limit_retry_at, setup_logging,
 )
 
 MODEL = "cursor-grok-4.5-high"
@@ -150,6 +154,26 @@ def run_cursor(prompt, args):
 	return process.returncode, errors
 
 
+def process_claimed_candidate(candidate, args):
+	"""Checkout + CLI + limit handling for one already-claimed candidate.
+
+	Raises SystemExit on non-zero CLI return so callers can wrap this in try/finally and
+	still clear `ai-in-progress` before the exit propagates (SystemExit is a BaseException).
+	"""
+	checkout_clean(logger, candidate_branch(candidate))
+	returncode, errors = run_cursor(build_prompt(candidate), args)
+	limit_hit, retry_at = detect_session_limit(errors)
+	if limit_hit:
+		if retry_at is None:
+			retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
+		save_limit_retry_at(args.provider_state_file, LABEL, retry_at)
+		clear_in_progress(logger, candidate["number"])
+		logger.warning("Cursor usage limit hit; pausing until %s.", retry_at.isoformat())
+		sys.exit(0)
+	if returncode:
+		raise SystemExit(returncode)
+
+
 def main():
 	parser = argparse.ArgumentParser(description=__doc__)
 	parser.add_argument("--model", default=MODEL)
@@ -167,7 +191,6 @@ def main():
 	lock = acquire_lock(logger, args.lock_file)
 	if lock is None or limit_active(logger, args.provider_state_file, LABEL):
 		return
-	reclaim_stale_in_progress(logger, LABEL, MARKER)
 	candidates = find_candidates(LABEL)
 	if not candidates:
 		logger.info("No cursor candidates found.")
@@ -176,18 +199,10 @@ def main():
 		if not claim_candidate(logger, LABEL, MARKER, candidate):
 			logger.info("Lost claim race for %s #%s - skipping.", candidate["kind"], candidate["number"])
 			continue
-		checkout_clean(logger, candidate_branch(candidate))
-		returncode, errors = run_cursor(build_prompt(candidate), args)
-		limit_hit, retry_at = detect_session_limit(errors)
-		if limit_hit:
-			if retry_at is None:
-				retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
-			save_limit_retry_at(args.provider_state_file, LABEL, retry_at)
-			release_in_progress_silently(logger, LABEL)
-			logger.warning("Cursor usage limit hit; pausing until %s.", retry_at.isoformat())
-			return
-		if returncode:
-			raise SystemExit(returncode)
+		try:
+			process_claimed_candidate(candidate, args)
+		finally:
+			clear_in_progress(logger, candidate["number"])
 
 
 if __name__ == "__main__":
