@@ -74,7 +74,7 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic();
 			Assert.True(logic.VisualState.WinConditionHint.IsAvailable);
 			Assert.True(logic.VisualState.WinConditionHint.IsAlternativeGroup);
-			Assert.Equal(2, logic.VisualState.WinConditionHint.Rows.Count);
+			Assert.Equal(3, logic.VisualState.WinConditionHint.Rows.Count);
 		}
 	}
 }

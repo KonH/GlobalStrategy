@@ -12,7 +12,10 @@ namespace GS.Game.Tests {
 		// .claude/skills/end-game-score-calibration/references/calibration_results.md — if a
 		// future calibration rerun changes this value, the shipped config must be regenerated
 		// and this constant updated in the same change, or the test below catches the drift.
-		const double ShippedCalibrationMaximum = 286971.0094511145;
+		// Scaled by 0.8 (issue #112: score count goal) from the original 286971.0094511145.
+		const double ShippedCalibrationMaximum = 229576.8075608916;
+
+		const double ScoreGoal = 275592;
 
 		// dotnet test runs from the test assembly's own output directory, not the repo root -
 		// walk up until Assets/Configs is found.
@@ -67,6 +70,20 @@ namespace GS.Game.Tests {
 				double expected = Math.Round(Factor(i) * ShippedCalibrationMaximum, MidpointRounding.AwayFromZero);
 				Assert.Equal(expected, settings.EndGameComparisons[i].Score);
 			}
+		}
+
+		[Fact]
+		void score_goal_equals_max_decreased_comparison_score_plus_100() {
+			GameSettings settings = new FileConfig<GameSettings>(FindRepoRootConfigPath("game_settings.json")).Load();
+
+			double maxComparisonScore = 0;
+			foreach (var comparison in settings.EndGameComparisons) {
+				if (comparison.Score > maxComparisonScore) {
+					maxComparisonScore = comparison.Score;
+				}
+			}
+
+			Assert.Equal(ScoreGoal, maxComparisonScore + 100);
 		}
 	}
 }

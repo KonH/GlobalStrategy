@@ -1,5 +1,5 @@
 namespace GS.Game.Configs {
-	public enum CompletionConditionType { Any, TotalControl, FullControlCountries }
+	public enum CompletionConditionType { Any, TotalControl, FullControlCountries, ScoreGoal }
 
 	public static class CompletionConditionTypeParser {
 		public static bool TryParse(string raw, out CompletionConditionType type) {
@@ -12,6 +12,9 @@ namespace GS.Game.Configs {
 					return true;
 				case "full_control_countries":
 					type = CompletionConditionType.FullControlCountries;
+					return true;
+				case "score_goal":
+					type = CompletionConditionType.ScoreGoal;
 					return true;
 				default:
 					type = default;
