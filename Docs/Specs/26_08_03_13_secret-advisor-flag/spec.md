@@ -47,6 +47,7 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 
 ## Ambiguities
 
-- [NEEDS CLARIFICATION: Confirm the flag name `EnableSecretAdvisor` (C#) / `enableSecretAdvisor` (JSON) is acceptable, versus an alternative like `SecretAdvisorEnabled` or `ShowSecretAdvisor`.]
-- [NEEDS CLARIFICATION: Confirm the checked-in `Assets/Configs/game_settings.json` value should be `false` (feature off by default in the shipped config), matching "false by default, it is not needed for now" from the issue.]
-- [NEEDS CLARIFICATION: Confirm scope is exactly the `secret_advisor` role and its single related action card (`letter_of_commendation_secret_advisor`) — no other role or card is intended to be covered by this flag.]
+None — all three prior clarification questions were confirmed by the owner in the issue #121 thread:
+- Flag name `EnableSecretAdvisor` (C#) / `enableSecretAdvisor` (JSON) confirmed.
+- Checked-in `Assets/Configs/game_settings.json` value confirmed as `false`.
+- Scope confirmed as exactly the `secret_advisor` role and its single related action card (`letter_of_commendation_secret_advisor`).
