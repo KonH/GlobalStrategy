@@ -265,6 +265,7 @@ namespace GS.Main {
 		public bool   IsUnplayable    { get; }
 		public string UnplayableReason { get; }
 		public string TargetCountryId { get; }
+		public int?   WarWinChancePercent { get; }
 		public IReadOnlyList<ActionConditionDebugEntry> Conditions { get; }
 		public ActionCardEntry(
 			string actionId,
@@ -273,10 +274,12 @@ namespace GS.Main {
 			bool isUnplayable = false,
 			string unplayableReason = "",
 			string targetCountryId = "",
-			IReadOnlyList<ActionConditionDebugEntry>? conditions = null) {
+			IReadOnlyList<ActionConditionDebugEntry>? conditions = null,
+			int? warWinChancePercent = null) {
 			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
 			IsUnplayable = isUnplayable; UnplayableReason = unplayableReason;
 			TargetCountryId = targetCountryId;
+			WarWinChancePercent = warWinChancePercent;
 			Conditions = conditions ?? Array.Empty<ActionConditionDebugEntry>();
 		}
 	}

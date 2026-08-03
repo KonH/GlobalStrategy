@@ -9,24 +9,24 @@ namespace GS.Unity.UI {
 			public Label CostLabel;
 		}
 
-		public static CardResult Build(string name, string desc, string goldCostText, Sprite art) {
+		public static CardResult Build(string name, string desc, string goldCostText, Sprite art, int? warWinChancePercent = null) {
 			var card = new VisualElement();
 			card.AddToClassList("action-card");
-			var result = Populate(card, name, desc, goldCostText, art);
+			var result = Populate(card, name, desc, goldCostText, art, warWinChancePercent);
 			result.Card = card;
 			return result;
 		}
 
-		public static CardResult PopulateSlot(VisualElement slot, string name, string desc, string goldCostText, Sprite art) {
+		public static CardResult PopulateSlot(VisualElement slot, string name, string desc, string goldCostText, Sprite art, int? warWinChancePercent = null) {
 			slot.Clear();
 			slot.RemoveFromClassList("action-card--success");
 			slot.RemoveFromClassList("action-card--fail");
-			var result = Populate(slot, name, desc, goldCostText, art);
+			var result = Populate(slot, name, desc, goldCostText, art, warWinChancePercent);
 			result.Card = slot;
 			return result;
 		}
 
-		static CardResult Populate(VisualElement container, string name, string desc, string goldCostText, Sprite art) {
+		static CardResult Populate(VisualElement container, string name, string desc, string goldCostText, Sprite art, int? warWinChancePercent = null) {
 			var header = new Label(name);
 			header.AddToClassList("action-card-header");
 			container.Add(header);
@@ -40,6 +40,9 @@ namespace GS.Unity.UI {
 				artImage.style.backgroundImage = new StyleBackground(art);
 			}
 			artEl.Add(artImage);
+			if (warWinChancePercent.HasValue) {
+				artEl.Add(BuildWarWinChanceBadge(warWinChancePercent.Value));
+			}
 			container.Add(artEl);
 
 			var body = new VisualElement();
@@ -70,6 +73,19 @@ namespace GS.Unity.UI {
 			container.Add(body);
 
 			return new CardResult { Body = body, CostLabel = costLabel };
+		}
+
+		static Label BuildWarWinChanceBadge(int percent) {
+			var badge = new Label($"{percent}%");
+			badge.AddToClassList("action-card-war-win-chance");
+			if (percent <= 33) {
+				badge.AddToClassList("action-card-war-win-chance--low");
+			} else if (percent <= 66) {
+				badge.AddToClassList("action-card-war-win-chance--mid");
+			} else {
+				badge.AddToClassList("action-card-war-win-chance--high");
+			}
+			return badge;
 		}
 
 		static void SetupDescAutoSize(Label desc, float minSize = 11f) {

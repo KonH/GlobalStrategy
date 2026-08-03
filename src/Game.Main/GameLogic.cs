@@ -78,7 +78,7 @@ namespace GS.Main {
 			settings.WarBattles.Validate();
 			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId,
 				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig,
-				settings.EventNotifications);
+				settings.EventNotifications, _effectConfig);
 			_speedMultipliers = settings.SpeedMultipliers;
 			var combatBasesByCountryId = new Dictionary<string, CountryCombatBases>();
 			foreach (var entry in CountryConfig.Countries) {

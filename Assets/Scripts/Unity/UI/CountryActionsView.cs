@@ -62,7 +62,7 @@ namespace GS.Unity.UI {
 			bool canAffordGold = goldCost <= 0 || GetResourceValue(orgResources, "gold") >= goldCost;
 			bool canPlay = !card.IsUnplayable && canAffordGold;
 
-			var result = ActionCardBuilder.Build(name, descText, goldCostText, sprite);
+			var result = ActionCardBuilder.Build(name, descText, goldCostText, sprite, card.WarWinChancePercent);
 			var cardEl = result.Card;
 			cardEl.AddToClassList(canPlay ? "action-card--available" : "action-card--unavailable");
 

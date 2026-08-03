@@ -72,6 +72,6 @@ Resolved from owner (#122, 2026-08-03):
 - **Formula (locked):** `sideStrength = recruits × damage / max(enemyDurability, ε)`; `winFraction = attackerStrength / (attackerStrength + defenderStrength)`; `percent = clamp(round(winFraction × 100), 1, 99)`; equal strengths → 50.
 - **Revenge pending bonuses (locked):** Yes — include the pending attacker-only revenge bonuses (+10% damage / +5% durability from `DeclareRevengeWarEffectParams` / `revenge_declare_war_effect`) as if the war had already started.
 - **Live combat resources (locked):** Read live `damage`/`durability` resources, including any already-applied bonuses (e.g. `troops_damage_bonus_percent` / Sell Arms — later available before war).
-- **Badge chrome (locked):** Green / yellow / red **circle**, white bold text with outline. Unplayable cards keep existing card dimming (badge is part of the card, no special opacity override). Color band thresholds for green/yellow/red were not specified — plan may propose defaults (e.g. 1–33 red, 34–66 yellow, 67–99 green) subject to plan approval.
+- **Badge chrome (locked):** Green / yellow / red **circle**, white bold text with outline. Unplayable cards keep existing card dimming (badge is part of the card, no special opacity override). Color bands: **1–33 red**, **34–66 yellow**, **67–99 green**. Preview durability floor **ε = 1.0**.
 - **Zero attacker recruits (locked):** If the current (attacking) country has 0 recruits → show **1**.
 - **Surfaces (locked):** Badge on unplayable hand copies and on draw/play transition fronts (not hand-only when playable).

@@ -68,23 +68,23 @@ Inputs (locked):
 
 ## Agent Steps
 
-- [ ] **Add `WarWinChanceEstimator`** — `src/Game.Systems/WarWinChanceEstimator.cs`: pure static helper implementing the locked formula + edge cases; when a pending percent `> 0`, apply **replace** on attacker damage/durability (divide out live `RevengeWarBonusQuery` factor, then multiply pending); when pending is `0`, use live resources as-is.
+- [x] **Add `WarWinChanceEstimator`** — `src/Game.Systems/WarWinChanceEstimator.cs`: pure static helper implementing the locked formula + edge cases; when a pending percent `> 0`, apply **replace** on attacker damage/durability (divide out live `RevengeWarBonusQuery` factor, then multiply pending); when pending is `0`, use live resources as-is.
 
-- [ ] **Extend `ActionCardEntry` + equality** — `src/Game.Main/VisualState.cs`: add `int? WarWinChancePercent` (default null); extend ctor. `StateEquality.ActionCardEntryEquals`: include the new field so hand rebinds when the estimate changes.
+- [x] **Extend `ActionCardEntry` + equality** — `src/Game.Main/VisualState.cs`: add `int? WarWinChancePercent` (default null); extend ctor. `StateEquality.ActionCardEntryEquals`: include the new field so hand rebinds when the estimate changes.
 
-- [ ] **Wire `EffectConfig` into `VisualStateConverter`** — Add optional `EffectConfig?` ctor param; pass `EffectConfig` / `_effectConfig` from `GameLogic` (already loaded). Existing test `new VisualStateConverter(...)` call sites keep compiling with the default `null` (revenge pending stays `0, 0` in those tests unless they pass a config).
+- [x] **Wire `EffectConfig` into `VisualStateConverter`** — Add optional `EffectConfig?` ctor param; pass `EffectConfig` / `_effectConfig` from `GameLogic` (already loaded). Existing test `new VisualStateConverter(...)` call sites keep compiling with the default `null` (revenge pending stays `0, 0` in those tests unless they pass a config).
 
-- [ ] **Project percent in `VisualStateConverter.BuildEntry`** — When `actionId` is `declare_war` or `revenge` and `targetCountryId` is non-empty, call `WarWinChanceEstimator` with attacker = selected `countryId`, defender = `targetCountryId`. For `revenge`, resolve pending bonuses by walking `_actionConfig.Find(actionId).EffectIds` → `_effectConfig.Find` → first `DeclareRevengeWarEffectParams` (do not hardcode effect id); for `declare_war`, pass `0, 0`. All other actions leave `WarWinChancePercent` null. Deck backs need not render a badge even if a deck `ActionCardEntry` carries a percent.
+- [x] **Project percent in `VisualStateConverter.BuildEntry`** — When `actionId` is `declare_war` or `revenge` and `targetCountryId` is non-empty, call `WarWinChanceEstimator` with attacker = selected `countryId`, defender = `targetCountryId`. For `revenge`, resolve pending bonuses by walking `_actionConfig.Find(actionId).EffectIds` → `_effectConfig.Find` → first `DeclareRevengeWarEffectParams` (do not hardcode effect id); for `declare_war`, pass `0, 0`. All other actions leave `WarWinChancePercent` null. Deck backs need not render a badge even if a deck `ActionCardEntry` carries a percent.
 
-- [ ] **Extend `ActionCardBuilder`** — Optional `int? warWinChancePercent` on `Build` / `PopulateSlot` / `Populate`. When present, add a `Label` as sibling of `.action-card-art-image` inside `.action-card-art` with text `{n}%`, base class `.action-card-war-win-chance`, and band modifier from the locked bands. When null, omit the label.
+- [x] **Extend `ActionCardBuilder`** — Optional `int? warWinChancePercent` on `Build` / `PopulateSlot` / `Populate`. When present, add a `Label` as sibling of `.action-card-art-image` inside `.action-card-art` with text `{n}%`, base class `.action-card-war-win-chance`, and band modifier from the locked bands. When null, omit the label.
 
-- [ ] **Add USS for the badge** — `Assets/UI/Overlay/OrgInfo/OrgActions.uss`: circle, absolute top-right, Cinzel-Bold, white + outline, `--low/--mid/--high` backgrounds. Leave `.action-card-success-pct` unused/untouched.
+- [x] **Add USS for the badge** — `Assets/UI/Overlay/OrgInfo/OrgActions.uss`: circle, absolute top-right, Cinzel-Bold, white + outline, `--low/--mid/--high` backgrounds. Leave `.action-card-success-pct` unused/untouched.
 
-- [ ] **Bind hand cards** — `CountryActionsView.BuildHandCard`: pass `card.WarWinChancePercent` into `ActionCardBuilder.Build`.
+- [x] **Bind hand cards** — `CountryActionsView.BuildHandCard`: pass `card.WarWinChancePercent` into `ActionCardBuilder.Build`.
 
-- [ ] **Thread transitions** — Extend `CardTransitionView.ShowCountry` and `CardPlayAnimator.PopulateCountryTestCard` (+ all country `ShowCountry` call sites) with `int? warWinChancePercent`. In `PlayCountrySequence`, capture the playing card’s percent from hand **before** `PlayCardActionCommand`, pass it through play→test / test→deck; pass the new hand entry’s percent on deck→hand draw.
+- [x] **Thread transitions** — Extend `CardTransitionView.ShowCountry` and `CardPlayAnimator.PopulateCountryTestCard` (+ all country `ShowCountry` call sites) with `int? warWinChancePercent`. In `PlayCountrySequence`, capture the playing card’s percent from hand **before** `PlayCardActionCommand`, pass it through play→test / test→deck; pass the new hand entry’s percent on deck→hand draw.
 
-- [ ] **Add / update tests** — see Tests below.
+- [x] **Add / update tests** — see Tests below.
 
 ## User Steps
 

@@ -85,6 +85,36 @@
     -unity-background-scale-mode: scale-and-crop;
 }
 
+.action-card-war-win-chance {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    justify-content: center;
+    align-items: center;
+    -unity-text-align: middle-center;
+    font-size: 13px;
+    color: rgb(255, 255, 255);
+    -unity-font-definition: url("/Assets/UI/Fonts/Cinzel-Bold SDF.asset");
+    -unity-font-style: bold;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+}
+
+.action-card-war-win-chance--low {
+    background-color: rgb(176, 40, 40);
+}
+
+.action-card-war-win-chance--mid {
+    background-color: rgb(196, 160, 32);
+}
+
+.action-card-war-win-chance--high {
+    background-color: rgb(40, 140, 56);
+}
+
 /* Body */
 .action-card-body {
     padding: 5px 6px;
