@@ -19,7 +19,7 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 
 ## Tech Notes
 
-- New nested settings class in `src/Game.Configs/GameSettings.cs`, following the existing pattern of `WarBattleSettings`/`GameLogSettings`/`EventNotificationSettings`:
+- New settings class in its own file `src/Game.Configs/FeatureFlagSettings.cs`, following the existing pattern of `GameLogSettings`/`EventNotificationSettings` (each in its own file, referenced by a property on `GameSettings`):
   ```csharp
   public class FeatureFlagSettings {
       public bool ShowPlayerOrgControls { get; set; } = true;
@@ -30,7 +30,7 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
   public FeatureFlagSettings FeatureFlags { get; set; } = new();
   ```
   Default `true` so an absent `featureFlags` block or an absent `showPlayerOrgControls` key preserves current behavior (buttons visible, subject to existing content rules) — the C# default, not JSON presence, is what guarantees this.
-- `Assets/Configs/game_settings.json`: add a `"featureFlags": { "showPlayerOrgControls": false }` block (camelCase JSON keys matching the PascalCase C# properties, per existing convention, e.g. `"startYear"` <-> `StartYear`). The owner's request sets the flag to `false` in this rollout; whether the checked-in default value should be `true` or `false` is covered under Ambiguities.
+- `Assets/Configs/game_settings.json`: add a `"featureFlags": { "showPlayerOrgControls": false }` block (camelCase JSON keys matching the PascalCase C# properties, per existing convention, e.g. `"startYear"` <-> `StartYear`). The checked-in value is `false`, per owner confirmation — buttons are hidden immediately for all players.
 - `Assets/Scripts/Unity/UI/OrgInfoDocument.cs` is the only consumer (it exclusively renders `_state.PlayerOrganization`; there is a separate view for discovered/other orgs, out of scope here):
   - Inject `GameSettings` via the existing `[Inject] void Construct(...)` method (VContainer method-injection pattern per `.claude/rules/unity/vcontainer.md`; `GameSettings` is already registered as a config object resolved off `GameLogic`, following `builder.Register(c => c.Resolve<GameLogic>().GameSettings, Lifetime.Singleton)` — mirror however the sibling configs `ResourceConfig`/`CharacterConfig`/etc. are currently registered).
   - In `Refresh()` (around the existing `hasChars`/`hasActions` block at lines ~157-165), AND the flag into the existing per-content checks rather than replacing them:
@@ -53,6 +53,8 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 
 ## Ambiguities
 
-- [NEEDS CLARIFICATION: Should the checked-in `Assets/Configs/game_settings.json` default `showPlayerOrgControls` to `true` (preserve current shipped behavior, flag exists but inactive) or `false` (immediately hide the buttons for all players)? The issue text implies the owner wants it off now ("if disabled player org don't show..."), but the acceptance criteria above assume `true` is the safe C#-level default for any *unset* key — this question is specifically about what value ships in the actual JSON file today.]
-- [NEEDS CLARIFICATION: If the Characters or Actions sub-panel is already open (slid out) at the moment the flag evaluates to false — e.g. the flag were ever changed at runtime, or on the frame `Refresh()` first runs after the panel was opened by some other trigger — should the open sub-panel be force-closed (`SetCharsOpen(false)`/`SetActionsOpen(false)`), or is hiding just the toggle button sufficient per the literal request, leaving an already-open panel visible with no way to close it via the button? Given the flag is described as build-time/static config rather than a live toggle, this may not be reachable in practice — confirm whether it's worth guarding anyway.]
-- [NEEDS CLARIFICATION: Does "player org" here mean only the buttons on `OrgInfoDocument` (the panel exclusively bound to `_state.PlayerOrganization`), or should the flag also affect any other player-org-specific UI entry points elsewhere in the HUD (e.g. a keyboard shortcut, a different panel, or a notification/tutorial prompt that references Characters/Actions) that aren't visible from the two files inspected for this spec?]
+Resolved by owner (issue #119 comment, 2026-08-03):
+
+- Checked-in `Assets/Configs/game_settings.json` value: `false` — buttons hidden immediately for all players.
+- Already-open sub-panel when the flag evaluates to false: not handled — out of scope, not important (flag is static/build-time config).
+- "Player org" scope: `OrgInfoDocument`'s two buttons only, no other UI entry points.
