@@ -42,6 +42,7 @@ namespace GS.Game.Configs {
 		};
 		public GameLogSettings GameLog { get; set; } = new GameLogSettings();
 		public EventNotificationSettings EventNotifications { get; set; } = new();
+		public FeatureFlagSettings FeatureFlags { get; set; } = new();
 		public List<EndGameComparisonEntry> EndGameComparisons { get; set; } = new List<EndGameComparisonEntry>();
 
 		// discoveredCountriesAvailableControl: 0 is the eval-validated threshold (see

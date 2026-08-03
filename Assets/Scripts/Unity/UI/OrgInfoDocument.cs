@@ -13,6 +13,7 @@ namespace GS.Unity.UI {
 		UIDocument _document;
 		VisualState _state;
 		ILocalization _loc;
+		GameSettings _gameSettings;
 		ResourceConfig _resourceConfig;
 		CharacterConfig _characterConfig;
 		CharacterVisualConfig _characterVisualConfig;
@@ -37,10 +38,11 @@ namespace GS.Unity.UI {
 		CardPlayAnimator _cardPlayAnimator;
 
 		[Inject]
-		void Construct(VisualState state, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig,
+		void Construct(VisualState state, ILocalization loc, GameSettings gameSettings, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig,
 			OrgVisualConfig orgVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator) {
 			_state = state;
 			_loc = loc;
+			_gameSettings = gameSettings;
 			_resourceConfig = resourceConfig;
 			_characterConfig = characterConfig;
 			_characterVisualConfig = characterVisualConfig;
@@ -154,12 +156,13 @@ namespace GS.Unity.UI {
 			_actionsView?.Refresh(_state.PlayerOrganization.Actions, _state.PlayerOrganization.Resources);
 			if (!_actionsOpen && _actionsSlide != null) { SetPickingModeRecursive(_actionsSlide, PickingMode.Ignore); }
 
-			bool hasChars = _state.PlayerOrganization.Characters.Slots.Count > 0;
+			bool showControls = _gameSettings?.FeatureFlags?.ShowPlayerOrgControls ?? true;
+			bool hasChars = showControls && _state.PlayerOrganization.Characters.Slots.Count > 0;
 			if (_charsToggleBtn != null) {
 				_charsToggleBtn.style.display = hasChars ? DisplayStyle.Flex : DisplayStyle.None;
 			}
 
-			bool hasActions = _state.PlayerOrganization.Actions.Hand.Count > 0 || _state.PlayerOrganization.Actions.Deck.Count > 0;
+			bool hasActions = showControls && (_state.PlayerOrganization.Actions.Hand.Count > 0 || _state.PlayerOrganization.Actions.Deck.Count > 0);
 			if (_actionsToggleBtn != null) {
 				_actionsToggleBtn.style.display = hasActions ? DisplayStyle.Flex : DisplayStyle.None;
 			}

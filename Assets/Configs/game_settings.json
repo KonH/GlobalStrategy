@@ -62,6 +62,9 @@
     "includePlayerActions": true,
     "maxLogEntries": 12
   },
+  "featureFlags": {
+    "showPlayerOrgControls": false
+  },
   "eventNotifications": {
     "events": [
       {
