@@ -8,7 +8,6 @@ using GS.Game.Configs;
 namespace GS.Main {
 	public class VisualStateConverter {
 		readonly VisualState _state;
-		readonly System.Collections.Generic.HashSet<string> _previousDiscoveredIds = new();
 		readonly Dictionary<string, AnimatableInt> _characterOpinionAnimatables = new();
 		readonly Dictionary<(string, string), AnimatableDouble> _resourceAnimatables = new();
 		readonly IReadOnlyDictionary<string, string> _hqCountryByOrgId;
@@ -54,7 +53,7 @@ namespace GS.Main {
 			UpdateCharacters(world, orgEntity);
 			UpdateOrgCharacters(world);
 			UpdateOrgMap(world, orgEntity);
-			UpdateDiscoveredCountries(world, orgEntity);
+			UpdateWorldCountries(world);
 			UpdateOrgActions(world);
 			UpdateCountryActions(world, gameTimeEntity);
 			UpdateCountryRelations(world);
@@ -479,28 +478,9 @@ namespace GS.Main {
 			_state.OrgMap.Set(entries);
 		}
 
-		void UpdateDiscoveredCountries(IReadOnlyWorld world, int orgEntity) {
-			string viewOrgId = orgEntity >= 0 ? world.Get<Organization>(orgEntity).OrganizationId : "";
-			var ids = new System.Collections.Generic.HashSet<string>();
-			int[] req = { TypeId<DiscoveredCountry>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				DiscoveredCountry[] dcs = arch.GetColumn<DiscoveredCountry>();
-				for (int i = 0; i < arch.Count; i++) {
-					if (dcs[i].OrgId == viewOrgId) { ids.Add(dcs[i].CountryId); }
-				}
-			}
-
-			string recently = "";
-			if (_previousDiscoveredIds.Count > 0) {
-				foreach (var id in ids) {
-					if (!_previousDiscoveredIds.Contains(id)) { recently = id; break; }
-				}
-			}
-			_previousDiscoveredIds.Clear();
-			foreach (var id in ids) { _previousDiscoveredIds.Add(id); }
-
-			string pendingRecently = recently != "" ? recently : _state.DiscoveredCountries.RecentlyDiscovered;
-			_state.DiscoveredCountries.Set(ids, pendingRecently);
+		void UpdateWorldCountries(IReadOnlyWorld world) {
+			var ids = new System.Collections.Generic.HashSet<string>(GetCountryIds(world));
+			_state.WorldCountries.Set(ids);
 		}
 
 		void UpdateOrgActions(IReadOnlyWorld world) {
@@ -901,17 +881,6 @@ namespace GS.Main {
 						newEntries.Add(new GameLogEntry(0, GameLogEntryKind.Opinion, applied[i].OrgId, charInfo.CountryId,
 							applied[i].CharacterId, charInfo.RoleId, charInfo.NamePartKeys, applied[i].Delta, clampedTotal, false));
 					}
-				}
-			}
-
-			int[] discoveryReq = { TypeId<DiscoveryApplied>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(discoveryReq, null)) {
-				DiscoveryApplied[] applied = arch.GetColumn<DiscoveryApplied>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (!_gameLogIncludePlayerActions && applied[i].OrgId == playerOrgId) { continue; }
-					newEntries.Add(new GameLogEntry(0, GameLogEntryKind.Discovery, applied[i].OrgId, applied[i].CountryId,
-						"", "", Array.Empty<string>(), 0, 0, false));
 				}
 			}
 

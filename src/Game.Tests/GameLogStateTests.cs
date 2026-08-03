@@ -13,7 +13,7 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	// Covers Docs/Specs/26_07_18_07_action-log-ui/plan.md — the Action Log feature's
-	// UpdateGameLog collection logic. Follows the DiscoverAndControlFeatureTests /
+	// UpdateGameLog collection logic. Follows the ControlFeatureTests /
 	// CharacterVisualStateTests convention: bespoke GameLogicContext/ActionConfig/EffectConfig
 	// per scenario, GameLogic driven directly via Update(...) and Commands.Push(...).
 	public class GameLogStateTests {
@@ -92,52 +92,6 @@ namespace GS.Game.Tests {
 		}
 
 		static IReadOnlyList<GameLogEntry> Entries(GameLogic logic) => logic.VisualState.GameLog.Entries;
-
-		[Fact]
-		void discovery_produces_exactly_one_entry_and_no_extra_on_a_passive_tick() {
-			var actionConfig = new ActionConfig {
-				Defaults = new List<ActionOwnerDefaults> {
-					new ActionOwnerDefaults { OwnerType = "org", HandSize = 1 }
-				},
-				OrgPools = new List<OrgActionPool> {
-					new OrgActionPool { OrgId = OrgId, ActionIds = new List<string> { "spread_rumors" } }
-				},
-				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = "spread_rumors", OwnerType = "org", EffectIds = new List<string> { "discover" } }
-				}
-			};
-			var effectConfig = new EffectConfig {
-				Effects = new List<ActionEffectDefinition> {
-					new DiscoverCountryEffectParams { EffectId = "discover", EffectType = "DiscoverCountry" }
-				}
-			};
-			var logic = BuildLogic(actionConfig, effectConfig);
-			logic.Update(0f);
-
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, ActionId = "spread_rumors" });
-			logic.Update(0f);
-
-			var discoveries = Entries(logic).Where(e => e.Kind == GameLogEntryKind.Discovery).ToList();
-			Assert.Single(discoveries);
-			Assert.Equal(OrgId, discoveries[0].OrgId);
-			Assert.Equal(OtherCountryId, discoveries[0].CountryId);
-
-			// Passive tick, no new PlayCardActionCommand — no additional entry.
-			logic.Update(0f);
-			Assert.Single(Entries(logic).Where(e => e.Kind == GameLogEntryKind.Discovery));
-
-			// DiscoveryApplied and DiscoveredCountry are independent sibling entities — confirm
-			// the persistent record still exists alongside the (already-swept) transient log event.
-			bool discoveredCountryExists = false;
-			int[] req = { TypeId<DiscoveredCountry>.Value };
-			foreach (var arch in logic.World.GetMatchingArchetypes(req, null)) {
-				DiscoveredCountry[] dcs = arch.GetColumn<DiscoveredCountry>();
-				for (int i = 0; i < arch.Count; i++) {
-					if (dcs[i].OrgId == OrgId && dcs[i].CountryId == OtherCountryId) { discoveredCountryExists = true; }
-				}
-			}
-			Assert.True(discoveredCountryExists);
-		}
 
 		static ActionConfig RelationActionConfig() => new ActionConfig {
 			Defaults = new List<ActionOwnerDefaults> {
@@ -724,39 +678,24 @@ namespace GS.Game.Tests {
 					new CountryEntry { CountryId = OtherCountryId, DisplayName = "France", IsAvailable = true }
 				}
 			};
-			var actionConfig = new ActionConfig {
-				Defaults = new List<ActionOwnerDefaults> { new ActionOwnerDefaults { OwnerType = "org", HandSize = 1 } },
-				OrgPools = new List<OrgActionPool> {
-					new OrgActionPool { OrgId = OrgId, ActionIds = new List<string> { "spread_rumors" } },
-					new OrgActionPool { OrgId = OrgBId, ActionIds = new List<string> { "spread_rumors" } }
-				},
-				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = "spread_rumors", OwnerType = "org", EffectIds = new List<string> { "discover" } }
-				}
-			};
-			var effectConfig = new EffectConfig {
-				Effects = new List<ActionEffectDefinition> {
-					new DiscoverCountryEffectParams { EffectId = "discover", EffectType = "DiscoverCountry" }
-				}
-			};
 			var gameSettings = new GameSettings {
 				StartYear = 1880, DefaultLocale = "en", SpeedMultipliers = new[] { 1, 24, 720 }, AutoSaveInterval = "monthly",
 				GameLog = new GameLogSettings { IncludePlayerActions = false, MaxLogEntries = 12 }
 			};
 			var characterConfig = NewCharacterConfig();
-			var logic = BuildLogic(actionConfig, effectConfig, characterConfig, gameSettings, orgConfig, countryConfig,
+			var logic = BuildLogic(ControlActionConfig(1), ControlEffectConfig(5), characterConfig, gameSettings, orgConfig, countryConfig,
 				participatingOrgIds: new List<string> { OrgId, OrgBId });
 			logic.Update(0f);
 
-			// Player org (Illuminati, the initialOrganizationId) discovery — suppressed.
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, ActionId = "spread_rumors" });
+			// Player org (Illuminati, the initialOrganizationId) control — suppressed.
+			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control" });
 			logic.Update(0f);
-			Assert.Empty(Entries(logic).Where(e => e.Kind == GameLogEntryKind.Discovery));
+			Assert.Empty(Entries(logic).Where(e => e.Kind == GameLogEntryKind.Control));
 
-			// AI org discovery — still appears.
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgBId, ActionId = "spread_rumors" });
+			// AI org control — still appears.
+			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgBId, CountryId = OtherCountryId, ActionId = "raise_control" });
 			logic.Update(0f);
-			Assert.Single(Entries(logic).Where(e => e.Kind == GameLogEntryKind.Discovery && e.OrgId == OrgBId));
+			Assert.Single(Entries(logic).Where(e => e.Kind == GameLogEntryKind.Control && e.OrgId == OrgBId));
 
 			// Country-role NewCharacter (no acting org) — never suppressed.
 			logic.Commands.Push(new DebugCycleCharacterCommand { OwnerId = HqCountryId, RoleId = "ruler", SlotIndex = 0 });

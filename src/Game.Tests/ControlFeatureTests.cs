@@ -2,30 +2,27 @@ using System;
 using System.Collections.Generic;
 using GS.Configs;
 using GS.Game.Bots;
-using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
 using GS.Main;
 using Xunit;
 
 namespace GS.Game.Tests {
-	public class DiscoverAndControlFeatureTests {
+	public class ControlFeatureTests {
 		sealed class RecordingSink : IBotCommandSink {
 			public List<(string ActionId, string CountryId)> Plays = new();
 			public void PlayOrgCard(string actionId) => Plays.Add((actionId, ""));
 			public void PlayCountryCard(string actionId, string countryId) => Plays.Add((actionId, countryId));
 		}
 
-		const string DiscoverCardId = "discover_country_card";
 		const string ControlCardId = "raise_control_card";
 		const string OpinionCardId = "opinion_card";
+		const string OrgDistractorCardId = "org_distractor_card";
 
-		// Bespoke minimal config for priority-order tests, modeled on
-		// BaselineCardPlayTests.BuildScanOrderLogic: a single org card whose affordability
-		// is toggled via orgGold, plus two always-affordable country cards (a positive
-		// ControlChangeEffectParams card and an OpinionModifierEffectParams distractor)
-		// dealt once "Austria" is discovered.
-		static GameLogic BuildPriorityLogic(double orgGold, bool discoverAustria) {
+		// Bespoke minimal config for priority-order tests: a free org distractor plus two
+		// always-affordable country cards (a positive ControlChangeEffectParams card and an
+		// OpinionModifierEffectParams distractor) dealt into every country hand from init.
+		static GameLogic BuildPriorityLogic(double orgGold) {
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
 					new CountryEntry { CountryId = "HQ", DisplayName = "HQ", IsAvailable = true },
@@ -47,20 +44,16 @@ namespace GS.Game.Tests {
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = 2 }
 				},
 				OrgPools = new List<OrgActionPool> {
-					new OrgActionPool { OrgId = "Illuminati", ActionIds = new List<string> { DiscoverCardId } }
+					new OrgActionPool { OrgId = "Illuminati", ActionIds = new List<string> { OrgDistractorCardId } }
 				},
 				Actions = new List<ActionDefinition> {
-					new ActionDefinition {
-						ActionId = DiscoverCardId, OwnerType = "org", EffectIds = new List<string> { "discover" },
-						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 100.0 } }
-					},
+					new ActionDefinition { ActionId = OrgDistractorCardId, OwnerType = "org" },
 					new ActionDefinition { ActionId = ControlCardId, OwnerType = "country", DeckCopies = 1, EffectIds = new List<string> { "control_pos" } },
 					new ActionDefinition { ActionId = OpinionCardId, OwnerType = "country", DeckCopies = 1, EffectIds = new List<string> { "opinion" } }
 				}
 			};
 			var effectConfig = new EffectConfig {
 				Effects = new List<ActionEffectDefinition> {
-					new DiscoverCountryEffectParams { EffectId = "discover", EffectType = "DiscoverCountry" },
 					new ControlChangeEffectParams { EffectId = "control_pos", EffectType = "ControlChange", Amount = 5 },
 					new OpinionModifierEffectParams { EffectId = "opinion", EffectType = "OpinionModifier" }
 				}
@@ -79,12 +72,6 @@ namespace GS.Game.Tests {
 
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
-
-			if (discoverAustria) {
-				int discEntity = logic.World.Create();
-				logic.World.Add(discEntity, new DiscoveredCountry { OrgId = "Illuminati", CountryId = "Austria" });
-			}
-
 			return logic;
 		}
 
@@ -106,11 +93,9 @@ namespace GS.Game.Tests {
 
 		// Bespoke config for the divergence/disabled/determinism tests below: a single org
 		// with an empty org hand and one always-affordable positive ControlChangeEffectParams
-		// country card, dealt into an already-discovered country from the start. This lets
-		// discoverAndControl's second scan branch (raise control) diverge measurably from a
-		// passive run purely via GetTotalControl - MultiOrgTestSupport's default action set has
-		// no control-raising card, so Gold (used by BaselineCardPlayTests) is not a usable
-		// divergence signal for this feature.
+		// country card. This lets ControlFeature diverge measurably from a passive run via
+		// GetTotalControl — MultiOrgTestSupport's default action set has no control-raising
+		// card unless includeCountryCard is set.
 		static GameLogic BuildDivergenceLogic(int seed) {
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
@@ -156,38 +141,19 @@ namespace GS.Game.Tests {
 
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
-
-			int discEntity = logic.World.Create();
-			logic.World.Add(discEntity, new DiscoveredCountry { OrgId = "Illuminati", CountryId = "Austria" });
-
 			return logic;
 		}
 
 		[Fact]
-		void plays_discover_country_org_card_when_playable_and_no_control_card_eligible_yet() {
-			// Discover card affordable (order 1); Austria not yet discovered so there is no
-			// country hand to fall back to.
-			var logic = BuildPriorityLogic(orgGold: 1000.0, discoverAustria: false);
+		void plays_control_change_card_over_opinion_card_when_eligible() {
+			// Org distractor is playable but ControlFeature ignores org cards; Austria has both a
+			// positive ControlChangeEffectParams card and an OpinionModifierEffectParams distractor.
+			// Only the control-change card qualifies — proving baselineCardPlay's "any playable
+			// card" behavior does not leak into this feature.
+			var logic = BuildPriorityLogic(orgGold: 1000.0);
 			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
 			var sink = new RecordingSink();
-			var feature = new DiscoverAndControlFeature(new Dictionary<string, double>(), 100);
-
-			feature.Tick(obs, sink, new Random(1));
-
-			Assert.Single(sink.Plays);
-			Assert.Equal((DiscoverCardId, ""), sink.Plays[0]);
-		}
-
-		[Fact]
-		void plays_control_change_card_over_opinion_card_once_country_is_discovered() {
-			// Discover card unaffordable (org hand yields nothing), Austria already discovered
-			// with both a positive ControlChangeEffectParams card and an OpinionModifierEffectParams
-			// distractor in hand. Only the control-change card qualifies (order 2) - proving
-			// baselineCardPlay's "any playable card" behavior does not leak into this feature.
-			var logic = BuildPriorityLogic(orgGold: 5.0, discoverAustria: true);
-			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
-			var sink = new RecordingSink();
-			var feature = new DiscoverAndControlFeature(new Dictionary<string, double>(), 100);
+			var feature = new ControlFeature(new Dictionary<string, double>(), 100);
 
 			feature.Tick(obs, sink, new Random(1));
 
@@ -196,29 +162,13 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void plays_discover_card_over_control_card_when_below_threshold() {
-			// Both a playable discover card and a playable control card are available;
-			// default parameters (no threshold) must preserve discover-first ordering.
-			var logic = BuildPriorityLogic(orgGold: 1000.0, discoverAustria: true);
+		void ignores_removed_discovery_threshold_parameter() {
+			// Legacy discoveredCountriesAvailableControl must be ignored; ControlFeature still
+			// plays the first eligible RaisesControl country card.
+			var logic = BuildPriorityLogic(orgGold: 1000.0);
 			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
 			var sink = new RecordingSink();
-			var feature = new DiscoverAndControlFeature(new Dictionary<string, double>(), 100);
-
-			feature.Tick(obs, sink, new Random(1));
-
-			Assert.Single(sink.Plays);
-			Assert.Equal((DiscoverCardId, ""), sink.Plays[0]);
-		}
-
-		[Fact]
-		void plays_control_card_over_discover_card_once_threshold_is_met() {
-			// Same setup as above, but with discoveredCountriesAvailableControl=0 the
-			// single already-discovered country (Austria) meets the threshold, so the
-			// bot should prefer raising control over discovering further.
-			var logic = BuildPriorityLogic(orgGold: 1000.0, discoverAustria: true);
-			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
-			var sink = new RecordingSink();
-			var feature = new DiscoverAndControlFeature(new Dictionary<string, double> { ["discoveredCountriesAvailableControl"] = 0 }, 100);
+			var feature = new ControlFeature(new Dictionary<string, double> { ["discoveredCountriesAvailableControl"] = 0 }, 100);
 
 			feature.Tick(obs, sink, new Random(1));
 
@@ -228,10 +178,10 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void plays_at_most_one_card_per_tick() {
-			var logic = BuildPriorityLogic(orgGold: 1000.0, discoverAustria: true);
+			var logic = BuildPriorityLogic(orgGold: 1000.0);
 			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
 			var sink = new RecordingSink();
-			var feature = new DiscoverAndControlFeature(new Dictionary<string, double>(), 100);
+			var feature = new ControlFeature(new Dictionary<string, double>(), 100);
 
 			feature.Tick(obs, sink, new Random(1));
 
@@ -239,14 +189,14 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void discover_and_control_bot_changes_metrics_relative_to_passive_run() {
+		void control_bot_changes_metrics_relative_to_passive_run() {
 			const int seed = 2024;
 			var passive = BuildDivergenceLogic(seed);
 			RunPassive(passive, 60);
 
 			var withBot = BuildDivergenceLogic(seed);
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, withBot.Commands, null);
-			var feature = new DiscoverAndControlFeature(new Dictionary<string, double>(), 100);
+			var feature = new ControlFeature(new Dictionary<string, double>(), 100);
 			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, withBot.EffectConfig);
 			RunWithBot(withBot, bot, 60);
 
@@ -273,13 +223,13 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void same_seed_produces_identical_end_state_with_discover_and_control_bot() {
+		void same_seed_produces_identical_end_state_with_control_bot() {
 			const int seed = 4044;
 
 			GameLogic BuildAndRun() {
 				var logic = BuildDivergenceLogic(seed);
 				var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, logic.Commands, null);
-				var feature = new DiscoverAndControlFeature(new Dictionary<string, double>(), 100);
+				var feature = new ControlFeature(new Dictionary<string, double>(), 100);
 				var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, logic.EffectConfig);
 				RunWithBot(logic, bot, 60);
 				return logic;
@@ -297,4 +247,3 @@ namespace GS.Game.Tests {
 		}
 	}
 }
-

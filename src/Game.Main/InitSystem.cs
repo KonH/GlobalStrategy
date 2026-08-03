@@ -119,7 +119,6 @@ namespace GS.Main {
 			CreateOrgCharacterEntities(world, context, resourceConfig, rng, participating);
 			CreateCharacterEntities(world, context, resourceConfig, rng);
 			CreateCountryActionEntities(world, context, rng, participating);
-			DiscoverInitialCountries(world, participating);
 
 			// InitSystem does not call ResourceSystem.Update itself — it only creates the raw
 			// Resource/ResourceEffect/ResourceCollector entities above. GameLogic.Update calls
@@ -733,29 +732,5 @@ namespace GS.Main {
 			}
 		}
 
-		static void DiscoverInitialCountries(World world, List<OrganizationEntry> participating) {
-			if (participating.Count == 0) { return; }
-
-			var availableCountryIds = new HashSet<string>();
-			int[] countryReq = { TypeId<Country>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(countryReq, null)) {
-				Country[] countries = arch.GetColumn<Country>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					availableCountryIds.Add(countries[i].CountryId);
-				}
-			}
-
-			foreach (var orgEntry in participating) {
-				var toDiscover = new HashSet<string>();
-				if (!string.IsNullOrEmpty(orgEntry.HqCountryId) && availableCountryIds.Contains(orgEntry.HqCountryId)) {
-					toDiscover.Add(orgEntry.HqCountryId);
-				}
-				foreach (string countryId in toDiscover) {
-					int entity = world.Create();
-					world.Add(entity, new DiscoveredCountry { OrgId = orgEntry.OrganizationId, CountryId = countryId });
-				}
-			}
-		}
 	}
 }

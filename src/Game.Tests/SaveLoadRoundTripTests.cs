@@ -380,37 +380,6 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void round_trip_preserves_per_org_discovery() {
-			var world = new World();
-			int e1 = world.Create();
-			world.Add(e1, new DiscoveredCountry { OrgId = "OrgA", CountryId = "France" });
-			int e2 = world.Create();
-			world.Add(e2, new DiscoveredCountry { OrgId = "OrgA", CountryId = "Prussia" });
-			int e3 = world.Create();
-			world.Add(e3, new DiscoveredCountry { OrgId = "OrgB", CountryId = "Austria" });
-
-			var snapshot = Snapshot(world);
-			var restored = new World();
-			Restore(snapshot, restored);
-
-			var byOrg = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.HashSet<string>>();
-			int[] req = { TypeId<DiscoveredCountry>.Value };
-			foreach (var arch in restored.GetMatchingArchetypes(req, null)) {
-				DiscoveredCountry[] dcs = arch.GetColumn<DiscoveredCountry>();
-				for (int i = 0; i < arch.Count; i++) {
-					if (!byOrg.TryGetValue(dcs[i].OrgId, out var set)) {
-						set = new System.Collections.Generic.HashSet<string>();
-						byOrg[dcs[i].OrgId] = set;
-					}
-					set.Add(dcs[i].CountryId);
-				}
-			}
-
-			Assert.Equal(new System.Collections.Generic.HashSet<string> { "France", "Prussia" }, byOrg["OrgA"]);
-			Assert.Equal(new System.Collections.Generic.HashSet<string> { "Austria" }, byOrg["OrgB"]);
-		}
-
-		[Fact]
 		void round_trip_preserves_grown_province_population_and_continues_compounding() {
 			var world = new World();
 			int provinceEntity = world.Create();
@@ -498,9 +467,9 @@ namespace GS.Game.Tests {
 			var world = new World();
 			int botActionLogEntity = world.Create();
 			var entries = new[] {
-				"1882-06-15 | Illuminati | DiscoverAndControl/spread_rumors -> France",
-				"1882-06-16 | Illuminati | DiscoverAndControl/spend_gold",
-				"1882-06-17 | Masons | DiscoverAndControl/spread_rumors -> Prussia"
+				"1882-06-15 | Illuminati | control/sphere_of_pressure -> France",
+				"1882-06-16 | Illuminati | baselineCardPlay/spend_gold",
+				"1882-06-17 | Masons | control/sphere_of_pressure -> Prussia"
 			};
 			world.Add(botActionLogEntity, new BotActionLog { Entries = entries });
 

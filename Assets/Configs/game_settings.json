@@ -54,9 +54,9 @@
   },
   "botFeatures": [
     {
-      "featureId": "discoverAndControl",
+      "featureId": "control",
       "enabled": true,
-      "parameters": { "discoveredCountriesAvailableControl": 0 }
+      "parameters": {}
     }
   ],
   "gameLog": {

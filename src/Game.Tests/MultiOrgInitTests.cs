@@ -152,15 +152,10 @@ namespace GS.Game.Tests {
 			Assert.Equal(-1, FindOrgEntity(world, MultiOrgTestSupport.OrgB));
 			Assert.Equal(1000.0, GetGold(world, MultiOrgTestSupport.OrgA));
 
-			var discovered = new HashSet<string>();
-			int[] req = { TypeId<DiscoveredCountry>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				DiscoveredCountry[] dcs = arch.GetColumn<DiscoveredCountry>();
-				for (int i = 0; i < arch.Count; i++) {
-					if (dcs[i].OrgId == MultiOrgTestSupport.OrgA) { discovered.Add(dcs[i].CountryId); }
-				}
-			}
-			Assert.Equal(new HashSet<string> { MultiOrgTestSupport.HqA }, discovered);
+			Assert.Contains(MultiOrgTestSupport.HqA, logic.VisualState.WorldCountries.CountryIds);
+			Assert.Contains(MultiOrgTestSupport.HqB, logic.VisualState.WorldCountries.CountryIds);
+			Assert.Contains(MultiOrgTestSupport.ExtraCountry1, logic.VisualState.WorldCountries.CountryIds);
+			Assert.Contains(MultiOrgTestSupport.ExtraCountry2, logic.VisualState.WorldCountries.CountryIds);
 		}
 
 		[Fact]

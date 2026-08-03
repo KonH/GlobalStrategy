@@ -1718,18 +1718,10 @@ MonoBehaviour:
     Value: При мнении {0} - {1}
   - Key: hud.character.card_country_placeholder
     Value: Страна
-  - Key: action.discover_country.name
-    Value: Разведать страну
-  - Key: action.discover_country.desc
-    Value: Отправить агентов для разведки неизвестной соседней нации.
   - Key: action.tooltip.play_hint
     Value: Нажмите для запуска
   - Key: action.tooltip.unaffordable_hint
     Value: Недостаточно золота
-  - Key: effect.discover_country.name
-    Value: Разведать страну
-  - Key: effect.discover_country.desc
-    Value: Открывает ранее неизвестную страну на карте.
   - Key: action.sphere_of_pressure.name
     Value: Сфера влияния
   - Key: action.sphere_of_pressure.desc
@@ -1854,10 +1846,6 @@ MonoBehaviour:
     Value: Соперники
   - Key: hud.wars
     Value: Войны
-  - Key: hud.discovery.confirmation
-    Value: "Обнаружено: {0}!"
-  - Key: game_log.discovered_format
-    Value: "{0} разведал {1}"
   - Key: game_log.control_increased_format
     Value: "{0} увеличил контроль в {1} на {2} ({3})"
   - Key: game_log.control_decreased_format

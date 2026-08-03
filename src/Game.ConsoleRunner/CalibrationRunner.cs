@@ -43,7 +43,6 @@ namespace GS.Game.ConsoleRunner {
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
 
-			logic.Commands.Push(new DebugDiscoverAllCountriesCommand());
 			foreach (var country in logic.CountryConfig.Countries) {
 				logic.Commands.Push(new ChangeControlCommand {
 					OrgId = winnerOrgId,

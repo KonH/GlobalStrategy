@@ -5,9 +5,4 @@ namespace GS.Game.Components {
 		public string OwnerId;
 		public double Amount;
 	}
-
-	public struct DiscoverCountryEffect {
-		public string EffectId;
-		public string OrgId;
-	}
 }

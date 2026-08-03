@@ -94,24 +94,23 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		public void discovered_countries_state_no_op_and_recently_discovered_ignored_in_equality_check() {
-			var state = new DiscoveredCountriesState();
+		public void world_countries_state_no_op_set_does_not_fire_property_changed() {
+			var state = new WorldCountriesState();
 			var ids = new HashSet<string> { "Great_Britain", "France" };
-			state.Set(ids, "France");
+			state.Set(ids);
 			int fireCount = 0;
 			state.PropertyChanged += (_, __) => fireCount++;
 
 			var reordered = new HashSet<string> { "France", "Great_Britain" };
-			state.Set(reordered, "Great_Britain");
+			state.Set(reordered);
 			Assert.Equal(0, fireCount);
-			Assert.Equal("Great_Britain", state.RecentlyDiscovered);
 
 			var added = new HashSet<string> { "France", "Great_Britain", "Germany" };
-			state.Set(added, "Germany");
+			state.Set(added);
 			Assert.Equal(1, fireCount);
 
 			var removed = new HashSet<string> { "France", "Great_Britain" };
-			state.Set(removed, "Germany");
+			state.Set(removed);
 			Assert.Equal(2, fireCount);
 		}
 
