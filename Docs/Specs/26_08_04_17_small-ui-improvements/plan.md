@@ -62,15 +62,15 @@ Four independent presentation fixes. No ECS / command / VisualState shape change
 
 ## Agent Steps
 
-- [ ] **Raise pause-menu sortingOrder** — `GameMenuDocument.Awake`: after `_doc = GetComponent<UIDocument>()`, set `_doc.sortingOrder` from `const int SortingOrder = 990` with a GoalsWindow-style comment (above modals 500–510, just below FlyText 1000, below EndGame 1100). Do not change `Hide()` unpause or menu UXML/USS.
+- [x] **Raise pause-menu sortingOrder** — `GameMenuDocument.Awake`: after `_doc = GetComponent<UIDocument>()`, set `_doc.sortingOrder` from `const int SortingOrder = 990` with a GoalsWindow-style comment (above modals 500–510, just below FlyText 1000, below EndGame 1100). Do not change `Hide()` unpause or menu UXML/USS.
 
-- [ ] **Card-play pause ownership** — In `CardPlayAnimator.PlaySequence` and `PlayCountrySequence`: at start `bool issuedPause = !_state.Time.IsPaused;`; push `PauseCommand` only if `issuedPause` (when pausing, keep existing “action command then pause” same-tick ordering). At end always clear `ModalState.IsModalOpen`; push `UnpauseCommand` only if `issuedPause`. Do not change `GameMenuDocument.Hide()`.
+- [x] **Card-play pause ownership** — In `CardPlayAnimator.PlaySequence` and `PlayCountrySequence`: at start `bool issuedPause = !_state.Time.IsPaused;`; push `PauseCommand` only if `issuedPause` (when pausing, keep existing “action command then pause” same-tick ordering). At end always clear `ModalState.IsModalOpen`; push `UnpauseCommand` only if `issuedPause`. Do not change `GameMenuDocument.Hide()`. Wrap each sequence in `try`/`finally` so mid-sequence faults still clear modal / `_isPlaying` / suppress-refresh and only unpause when this sequence issued pause.
 
-- [ ] **Action-log pick-through + bottom reserve** — `ActionLogView`: change `BottomReservedOffsetPx` to **280f**. In the constructor, `SetPickingIgnoreRecursive(_root)` so the Instance panel itself pass-throughs. In `BuildLabel`, `SetPickingIgnoreRecursive(label)` for every new entry (Ignore is not recursive; re-apply on each `Refresh` add).
+- [x] **Action-log pick-through + bottom reserve** — `ActionLogView`: change `BottomReservedOffsetPx` to **280f**. In the constructor, `SetPickingIgnoreRecursive(_root)` so the Instance panel itself pass-throughs. In `BuildLabel`, `SetPickingIgnoreRecursive(label)` for every new entry (Ignore is not recursive; re-apply on each `Refresh` add).
 
-- [ ] **Action-log gray backdrop** — Add `background-color: rgba(0, 0, 0, 0.35);` to `.action-log-panel` in `HUD.uss` only (not also `.action-log-root`). Keep `.action-log-entry` white + shadow legibility. No new PanelSettings.
+- [x] **Action-log gray backdrop** — Add `background-color: rgba(0, 0, 0, 0.35);` to `.action-log-panel` in `HUD.uss` only (not also `.action-log-root`). Keep `.action-log-entry` white + shadow legibility. No new PanelSettings.
 
-- [ ] **Flying card hard-match 240×300** — `CardTransitionView.PlaceAndAnimate`: change `_cardCopy.style.height` from `320f` to `300f`. Width stays `240f`. No worldBound size lerp; keep `SetPickingIgnoreRecursive`.
+- [x] **Flying card hard-match 240×300** — `CardTransitionView.PlaceAndAnimate`: change `_cardCopy.style.height` from `320f` to `300f`. Width stays `240f`. No worldBound size lerp; keep `SetPickingIgnoreRecursive`.
 
 ## User Steps
 
