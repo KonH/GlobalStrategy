@@ -93,13 +93,6 @@ namespace GS.Game.Tests {
 							new ExpressionNode {
 								Type = "gte",
 								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "isInWar" },
-									new ExpressionNode { Type = "value", Value = 1 }
-								}
-							},
-							new ExpressionNode {
-								Type = "gte",
-								Members = new List<ExpressionNode> {
 									new ExpressionNode { Type = "opinion" },
 									new ExpressionNode { Type = "value", Value = 80 }
 								}
@@ -336,36 +329,51 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void draw_skips_sell_arms_without_war_or_sufficient_military_opinion() {
+		void draw_includes_sell_arms_in_peacetime_with_sufficient_military_opinion() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddAdvisor(world, "Prussia", "general", "OrgA", "military_advisor", 80);
+			int card = AddDeckCard(world, "OrgA", "Prussia", "sell_arms");
+			int deck = world.Create();
+			world.Add(deck, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
+			world.Add(deck, new CardDraw { Count = 1 });
+			DrawCardSystem.Update(world, config, new Random(1));
+
+			Assert.True(IsInHand(world, card));
+		}
+
+		[Fact]
+		void draw_skips_sell_arms_without_sufficient_military_opinion() {
 			var config = BuildActionConfig();
 
-			var peacefulWorld = new World();
-			AddAdvisor(peacefulWorld, "Prussia", "general", "OrgA", "military_advisor", 80);
-			int peacefulCard = AddDeckCard(peacefulWorld, "OrgA", "Prussia", "sell_arms");
-			int peacefulDeck = peacefulWorld.Create();
-			peacefulWorld.Add(peacefulDeck, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
-			peacefulWorld.Add(peacefulDeck, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(peacefulWorld, config, new Random(1));
+			var lowOpinionPeaceful = new World();
+			AddAdvisor(lowOpinionPeaceful, "Prussia", "diplomat", "OrgA", "diplomacy_advisor", 100);
+			AddAdvisor(lowOpinionPeaceful, "Prussia", "general", "OrgA", "military_advisor", 79);
+			int peacefulCard = AddDeckCard(lowOpinionPeaceful, "OrgA", "Prussia", "sell_arms");
+			int peacefulDeck = lowOpinionPeaceful.Create();
+			lowOpinionPeaceful.Add(peacefulDeck, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
+			lowOpinionPeaceful.Add(peacefulDeck, new CardDraw { Count = 1 });
+			DrawCardSystem.Update(lowOpinionPeaceful, config, new Random(1));
 
-			var lowOpinionWorld = new World();
-			AddAdvisor(lowOpinionWorld, "Prussia", "diplomat", "OrgA", "diplomacy_advisor", 100);
-			AddAdvisor(lowOpinionWorld, "Prussia", "general", "OrgA", "military_advisor", 79);
-			Wars.DeclareWar(lowOpinionWorld, "Prussia", "Austria", new DateTime(1880, 1, 1));
-			int lowOpinionCard = AddDeckCard(lowOpinionWorld, "OrgA", "Prussia", "sell_arms");
-			int lowOpinionDeck = lowOpinionWorld.Create();
-			lowOpinionWorld.Add(lowOpinionDeck, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
-			lowOpinionWorld.Add(lowOpinionDeck, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(lowOpinionWorld, config, new Random(1));
+			var lowOpinionWartime = new World();
+			AddAdvisor(lowOpinionWartime, "Prussia", "diplomat", "OrgA", "diplomacy_advisor", 100);
+			AddAdvisor(lowOpinionWartime, "Prussia", "general", "OrgA", "military_advisor", 79);
+			Wars.DeclareWar(lowOpinionWartime, "Prussia", "Austria", new DateTime(1880, 1, 1));
+			int wartimeCard = AddDeckCard(lowOpinionWartime, "OrgA", "Prussia", "sell_arms");
+			int wartimeDeck = lowOpinionWartime.Create();
+			lowOpinionWartime.Add(wartimeDeck, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
+			lowOpinionWartime.Add(wartimeDeck, new CardDraw { Count = 1 });
+			DrawCardSystem.Update(lowOpinionWartime, config, new Random(1));
 
-			Assert.False(IsInHand(peacefulWorld, peacefulCard));
-			Assert.False(IsInHand(lowOpinionWorld, lowOpinionCard));
+			Assert.False(IsInHand(lowOpinionPeaceful, peacefulCard));
+			Assert.False(IsInHand(lowOpinionWartime, wartimeCard));
 		}
 
 		[Fact]
 		void sell_arms_becomes_eligible_on_later_requested_draw() {
 			var config = BuildActionConfig();
 			var world = new World();
-			AddAdvisor(world, "Prussia", "general", "OrgA", "military_advisor", 80);
+			AddAdvisor(world, "Prussia", "general", "OrgA", "military_advisor", 79);
 			int card = AddDeckCard(world, "OrgA", "Prussia", "sell_arms");
 			int deck = world.Create();
 			world.Add(deck, new CardDeck { OrgId = "OrgA", CountryId = "Prussia" });
@@ -374,7 +382,7 @@ namespace GS.Game.Tests {
 			DrawCardSystem.Update(world, config, new Random(1));
 			Assert.False(IsInHand(world, card));
 
-			Wars.DeclareWar(world, "Prussia", "Austria", new DateTime(1880, 1, 1));
+			Assert.True(ResourceMutations.TrySetValue(world, "general", "opinion_OrgA", 80, out _));
 			Assert.False(IsInHand(world, card));
 
 			world.Add(deck, new CardDraw { Count = 1 });

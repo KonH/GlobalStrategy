@@ -227,7 +227,6 @@
       "targetRole": "military_advisor",
       "deckCopies": 3,
       "conditions": [
-        { "type": "gte", "members": [ { "type": "isInWar" }, { "type": "value", "value": 1 } ] },
         { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] }
       ],
       "cost": [{ "resourceId": "gold", "amount": 200.0 }],
