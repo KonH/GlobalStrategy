@@ -30,8 +30,7 @@ Maps each product-facing behaviour above to its concrete implementation — spec
   - Layering among documents that share `Assets/UI/HUD/HUDPanelSettings.asset` is controlled by `UIDocument.sortingOrder` (see `.claude/rules/unity/uitoolkit.md`). Higher values draw on top. `FlyTextNotifierDocument` uses `_topMostSortingOrder` default `1000`; `EndGameWindowDocument` uses `_sortingOrder` default `1100`.
   - Today both `GameMenuUI` and `GameHUD` in `Assets/Scenes/Map.unity` serialize `m_SortingOrder: 0`. `GameMenuDocument` (`Assets/Scripts/Unity/UI/GameMenuDocument.cs`) never assigns `sortingOrder` in `Awake`/`Start`, unlike peers that set an explicit const (`LeaderboardWindowDocument` `500`, `GoalsWindowDocument` `505`, `WarProgressWindowDocument` / `WarResultWindowDocument` `510`).
   - With equal sort orders, draw order falls back to scene/document registration order; `GameHUD` appears later in `Map.unity` than `GameMenuUI`, so the HUD paints over the pause menu — matching the reported bug.
-  - Fix: in `GameMenuDocument.Awake` (after caching `UIDocument`), assign `_doc.sortingOrder` to an explicit value **above HUD (`0`)** and **below fly-text (`1000`)** / end-game (`1100`), following the same “explicit sortingOrder, not scene-authoring order” comment pattern as `GoalsWindowDocument`. Prefer a const (or serialized field) rather than relying on scene YAML alone.
-  - Exact numeric band vs Leaderboard/Goals/War modals is an Ambiguity below; product requirement is only “over HUD.”
+  - Fix: in `GameMenuDocument.Awake` (after caching `UIDocument`), assign `_doc.sortingOrder` to an explicit const **above all modal windows** (Leaderboard `500` / Goals `505` / War `510`) and **just below fly-text (`1000`)**, still below end-game (`1100`). Locked value: **`990`**. Follow the same “explicit sortingOrder, not scene-authoring order” comment pattern as `GoalsWindowDocument`. Prefer a const rather than relying on scene YAML alone.
   - Pause menu chrome remains `Assets/UI/Modal/GameMenu/GameMenu.uxml` + `.uss` (`.gs-blackfade` + `.gs-panel`); no new PanelSettings asset (Constitution: UI Toolkit only; layer model uses shared `HUDPanelSettings`).
 
 - Do not unpause on card-play completion when the game was already paused:
@@ -45,15 +44,15 @@ Maps each product-facing behaviour above to its concrete implementation — spec
 - Action log: pass-through picks, raise above bottom bar, gray backdrop:
   - View: `ActionLogView` (`Assets/Scripts/Unity/UI/ActionLogView.cs`), built from `HUDDocument` (`_actionLog = new ActionLogView(...)`). Template: `Assets/UI/HUD/ActionLog/ActionLog.uxml` + `ActionLog.uss`; instance `.action-log-panel` in `Assets/UI/HUD/HUD.uxml` / layout in `HUD.uss`.
   - **Tap blocking:** UXML sets `picking-mode="Ignore"` on `action-log-root` and `action-log-content`, but `.claude/rules/unity/uitoolkit.md` documents that `PickingMode.Ignore` is **not recursive**. `BuildLabel` creates `Label` entries with default `PickingMode.Position`, so entries still steal clicks. Fix: after creating each entry (and on the `.action-log-panel` / root if needed), apply recursive `PickingMode.Ignore` (same helper pattern as `CardTransitionView.SetPickingIgnoreRecursive` / `OrgInfoDocument` / `CountryInfoView`). Re-apply after refresh diffs that add new labels.
-  - **Vertical clearance:** `ActionLogView` uses fixed `BottomReservedOffsetPx = 160f` (`_root.style.bottom`). Original action-log plan treated 160 as a “representative closed-state height” of the bottom bar so the log does not jump when selection opens/closes (`Docs/Specs/26_07_18_07_action-log-ui/`). In practice that value is too small: bottom selection chrome (`.country-info-panel` / `.org-lens-country-info-panel` / `.province-info-panel` in `HUD.uss`, plus `OrgInfoUI` bottom bar) is taller — `map-controls-panel` already uses `bottom: 280px` as a clearance hint. Raise the reserved bottom offset (or otherwise move the log up) so the log never intersects the selected country/org panel when that panel is shown, while keeping the existing “fixed bottom anchor so the log does not shift when the bar opens/closes” contract unless the owner opts into dynamic measurement (Ambiguity).
+  - **Vertical clearance:** `ActionLogView` uses fixed `BottomReservedOffsetPx = 160f` (`_root.style.bottom`). Original action-log plan treated 160 as a “representative closed-state height” of the bottom bar so the log does not jump when selection opens/closes (`Docs/Specs/26_07_18_07_action-log-ui/`). Raise to **`280f`** (matches `map-controls-panel`’s `bottom: 280px`) so the log clears the selected country/org panel. Keep the fixed bottom anchor (log does not jump when selection opens/closes); no dynamic measurement.
   - Top/right sizing (`TopGapPx`, `WidthMultiplier`, `RightPx`, `RepositionAndResize` against `.top-right-panel`) stays as today unless changing them is required to keep layout coherent after the bottom raise.
-  - **Semi-transparent gray background:** add a panel background on `.action-log-panel` and/or `.action-log-root` in USS (or a dedicated shared utility if one fits). Prefer a gray translucent fill (e.g. `rgba(...)`) suitable over the map; exact opacity/color is Ambiguity. Keep entry text legibility (`action-log-entry` white + shadow). Per UI kit rules, put color on the panel backdrop in feature USS or a shared class — do not invent a second PanelSettings.
+  - **Semi-transparent gray background:** add a panel background on `.action-log-panel` and/or `.action-log-root` in USS. Locked fill: **`rgba(0, 0, 0, 0.35)`**. Keep entry text legibility (`action-log-entry` white + shadow). Per UI kit rules, put color on the panel backdrop in feature USS — do not invent a second PanelSettings.
 
 - Flying card size matches static card:
   - Static hand/overlay cards use `.action-card` in `Assets/UI/Overlay/OrgInfo/OrgActions.uss`: `width: 240px; height: 300px`. Built via `ActionCardBuilder` / `OrgActionsView` / `CountryActionsView`.
   - Flying copy: `CardTransitionView.PlaceAndAnimate` (`Assets/Scripts/Unity/UI/CardTransitionView.cs`) hardcodes `_cardCopy.style.width = 240f` and `_cardCopy.style.height = 320f` — **20px taller** than the static card. That is the size mismatch.
   - Mid-animation destination `card-test-card` in `HUD.uxml` uses class `action-card` with inline `width: 240px` only (height from USS → 300).
-  - Fix: drive the transition card size from the same dimensions as `.action-card` (240×300), or from `fromRect` / `toElement.worldBound` size so start and end footprints match. Keep `SetPickingIgnoreRecursive` on the copy. No change to animation timing (`Show` / `ShowCountry` durations in `CardPlayAnimator`) required for size alone.
+  - Fix: hard-match the transition card to static `.action-card` **`240×300`** (change `PlaceAndAnimate` height from `320f` → `300f`). Do not lerp width/height from source/destination `worldBound`. Keep `SetPickingIgnoreRecursive` on the copy. No change to animation timing (`Show` / `ShowCountry` durations in `CardPlayAnimator`) required for size alone.
   - Constitution: presentation-only change in Unity UI Toolkit code under `Assets/Scripts/Unity/UI/`; no ECS / game-logic changes.
 
 ## Out of Scope
@@ -66,9 +65,11 @@ Maps each product-facing behaviour above to its concrete implementation — spec
 - Introducing a separate `PanelSettings` asset or Canvas/uGUI layers.
 - Web client / Razor UI parity for these Unity HUD bugs.
 
-## Ambiguities
+## Resolved Clarifications
 
-- [NEEDS CLARIFICATION: Exact `UIDocument.sortingOrder` for `GameMenuDocument` — e.g. just above HUD (`~10–100`), in the modal band with Leaderboard/Goals/War (`500–520`), or always above those modals but still below FlyText (`1000`)? Issue only requires “over HUD.”]
-- [NEEDS CLARIFICATION: Action-log bottom clearance — raise the fixed `BottomReservedOffsetPx` to a specific value (e.g. match `map-controls-panel`’s `280px`), or measure the country/org bar height once and use that as the fixed reserve? Keep “does not jump when selection opens/closes” unless you want dynamic bottom anchoring.]
-- [NEEDS CLARIFICATION: Exact semi-transparent gray for the action-log backdrop — preferred `rgba(R,G,B,A)` / opacity (e.g. `rgba(0,0,0,0.35)` vs a lighter gray)?]
-- [NEEDS CLARIFICATION: For flying-card size, is matching the static USS `240×300` sufficient, or must the transition also lerp width/height from the source `worldBound` to the destination `worldBound` if those ever diverge (scaled wrappers, etc.)?]
+Owner answers on #134 (locked for planning):
+
+0. Pause-menu `sortingOrder`: above all windows, just below fly text → **`990`** (FlyText `1000`, EndGame `1100`).
+1. Action-log bottom reserve: **`280px`** (fixed; no dynamic anchoring).
+2. Action-log backdrop: assumed default accepted → **`rgba(0, 0, 0, 0.35)`**.
+3. Flying-card size: **hard-match `240×300`** (no worldBound lerp).
