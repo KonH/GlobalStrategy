@@ -105,6 +105,7 @@ namespace GS.Unity.DI {
 
 			builder.RegisterComponentInHierarchy<GameMenuDocument>();
 			builder.RegisterComponentInHierarchy<LeaderboardWindowDocument>();
+			builder.RegisterComponentInHierarchy<GoalsWindowDocument>();
 			builder.RegisterComponentInHierarchy<WarProgressWindowDocument>();
 			builder.RegisterComponentInHierarchy<WarResultWindowDocument>();
 			builder.RegisterComponentInHierarchy<SettingsWindowDocument>();

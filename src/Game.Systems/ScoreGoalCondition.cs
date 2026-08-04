@@ -14,8 +14,15 @@ namespace GS.Game.Systems {
 		}
 
 		public bool IsMet(CompletionConditionContext context) {
-			double score = ResourceQuery.GetValue(context.World, context.OrganizationId, ResourceDefinitions.OrgScore);
-			return score >= _goal;
+			return GetCurrent(context) >= GetTarget(context);
+		}
+
+		public double GetCurrent(CompletionConditionContext context) {
+			return ResourceQuery.GetValue(context.World, context.OrganizationId, ResourceDefinitions.OrgScore);
+		}
+
+		public double GetTarget(CompletionConditionContext context) {
+			return _goal;
 		}
 	}
 }

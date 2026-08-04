@@ -81,6 +81,49 @@ namespace GS.Game.Tests {
 
 			Assert.False(new TotalControlCondition(0.8).IsMet(context));
 			Assert.False(new FullControlCondition(15).IsMet(context));
+			Assert.Equal(0, new TotalControlCondition(0.8).GetCurrent(context));
+			Assert.Equal(0, new TotalControlCondition(0.8).GetTarget(context));
+			Assert.Equal(0, new FullControlCondition(15).GetCurrent(context));
+			Assert.Equal(15, new FullControlCondition(15).GetTarget(context));
+		}
+
+		[Fact]
+		void total_control_current_and_target_match_is_met_boundary() {
+			var world = new World();
+			AddControl(world, OrgA, "a", 100);
+			AddControl(world, OrgA, "b", 60);
+			var condition = new TotalControlCondition(0.8);
+			CompletionConditionContext context = Context(world, "a", "b");
+
+			Assert.Equal(160, condition.GetCurrent(context));
+			Assert.Equal(160, condition.GetTarget(context));
+			Assert.True(condition.IsMet(context));
+
+			CompletionConditionContext withZero = Context(world, "a", "b", "zero");
+			Assert.Equal(160, condition.GetCurrent(withZero));
+			Assert.Equal(240, condition.GetTarget(withZero), 1e-9);
+			Assert.False(condition.IsMet(withZero));
+		}
+
+		[Fact]
+		void full_control_current_and_target_match_is_met_boundary() {
+			var world = new World();
+			var countries = new List<string>();
+			for (int i = 0; i < 15; i++) {
+				string country = $"country-{i}";
+				countries.Add(country);
+				AddControl(world, OrgA, country, i == 14 ? 99 : 100);
+			}
+			var condition = new FullControlCondition(15);
+			var context = new CompletionConditionContext(world, OrgA, countries, 100);
+
+			Assert.Equal(14, condition.GetCurrent(context));
+			Assert.Equal(15, condition.GetTarget(context));
+			Assert.False(condition.IsMet(context));
+
+			AddControl(world, OrgA, countries[14], 1);
+			Assert.Equal(15, condition.GetCurrent(context));
+			Assert.True(condition.IsMet(context));
 		}
 
 		[Fact]

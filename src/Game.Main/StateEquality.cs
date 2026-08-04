@@ -116,6 +116,19 @@ namespace GS.Main {
 				&& a.Score == b.Score;
 		}
 
+		public static bool GoalProgressEntryStateEquals(GoalProgressEntryState a, GoalProgressEntryState b) {
+			return a.Kind == b.Kind
+				&& a.ConfigValue == b.ConfigValue
+				&& a.Current == b.Current
+				&& a.Target == b.Target
+				&& a.AvailableCountryCount == b.AvailableCountryCount;
+		}
+
+		public static bool GoalsOrgEntryStateEquals(GoalsOrgEntryState a, GoalsOrgEntryState b) {
+			return a.OrgId == b.OrgId
+				&& ListEquals(a.Goals, b.Goals, GoalProgressEntryStateEquals);
+		}
+
 		public static bool WarIconEntryStateEquals(WarIconEntryState a, WarIconEntryState b) {
 			return a.WarId == b.WarId
 				&& a.Progress == b.Progress
