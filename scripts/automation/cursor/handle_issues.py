@@ -9,6 +9,9 @@ Cross-instance claim: each candidate is claimed via `claim_candidate` (sets `ai-
 before checkout/CLI. After the CLI returns - including non-zero `SystemExit` - this wrapper
 clears that item's `ai-in-progress` in a `finally` block. Hard-kill before that clear can leave
 the label stuck; recovery is manual owner removal (no automatic reclaim).
+
+Agents may also set informational stage labels (`ai-specify` / `ai-plan` / `ai-implement`)
+while running those commands; those are not discovery status labels.
 """
 
 import argparse

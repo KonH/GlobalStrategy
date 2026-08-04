@@ -15,8 +15,9 @@ There is no local state file, no timestamp bookkeeping, no comment-heading parsi
 - **`ai-in-progress`** — a run is actively working the item. Skipped by discovery. Shared across providers.
 - **`ai-need-attention`** — the automation stopped and is waiting on the owner (question asked, blocked, partial work, missing environment). Skipped by discovery. Shared across providers.
 - **`ai-complete`** — the prompt is fully done. Skipped by discovery. Shared across providers.
+- **`ai-specify` / `ai-plan` / `ai-implement`** — informational stage progress while an agent runs `/specify`, `/plan`, or `/implement` on the item. Shared across providers. **Not** discovery status labels (they do not skip candidates by themselves). Agents set the matching label at the start of that command and remove the other two so at most one stage label is present.
 
-**A candidate is any open, configured-contributor-authored issue or PR carrying the provider opt-in label and none of the three shared `ai-*` status labels.** That single rule is all of discovery — one `gh issue list` plus one `gh pr list`, filtered locally. Claim and clear only touch the claimed item's number, so one provider/instance cannot clear another's in-flight work.
+**A candidate is any open, configured-contributor-authored issue or PR carrying the provider opt-in label and none of the three shared `ai-*` status labels** (`ai-in-progress` / `ai-need-attention` / `ai-complete`). Stage labels do not affect that rule. That single rule is all of discovery — one `gh issue list` plus one `gh pr list`, filtered locally. Claim and clear only touch the claimed item's number, so one provider/instance cannot clear another's in-flight work.
 
 **Each candidate gets its own CLI invocation from a guaranteed-clean checkout of its valid branch** — `main` for an issue, the PR's head branch for a PR. The wrapper prepares it itself before every invocation (`git fetch` + if the local branch exists and is ahead of `origin/<branch>`, `git push -u origin <branch>` first + `git checkout -f -B <branch> origin/<branch>` + `git clean -fd`, which keeps ignored files like `Logs/` intact). The ahead-push preserves unpushed salvage commits; if that push fails, the force-reset is skipped so the local tip is not discarded. The CLI run never starts from a stale or dirty tree, and candidates needing different branches can't contaminate each other. The CLI run must never do its own reset/clean at the start.
 
@@ -27,11 +28,11 @@ There is no local state file, no timestamp bookkeeping, no comment-heading parsi
 For each candidate, the **Python wrapper** claims (`claim_candidate` → `ai-in-progress`) before checkout/CLI, then clears that label after the CLI returns (`clear_in_progress`). The CLI run (see `.claude/commands/handle-issue.md` for the exact rules) never adds or removes `ai-in-progress`:
 
 1. Reads the item's live description + owner comments as the prompt (later comments override earlier ones; its own `<!-- claude-automation -->`-marked comments are context, never instructions).
-2. Executes it — on the PR's head branch for PR candidates, on `feature/<feature_name>` for issue candidates (reused if it already exists on origin).
+2. Executes it — on the PR's head branch for PR candidates, on `feature/<feature_name>` for issue candidates (reused if it already exists on origin). When the prompt runs `/specify`, `/plan`, or `/implement`, the agent sets the matching stage label (`ai-specify` / `ai-plan` / `ai-implement`) at the start of that command and clears the other two.
 3. **Always commits and pushes**, even partial work — the pushed branch is the next run's starting point.
 4. Ensures a PR exists for issue work (`Closes #N`). **Never merges anything** — merging is always the owner's click.
 5. Posts one summary comment (marker first line) — the handoff for both the owner and the next memory-less run.
-6. Applies `ai-complete` or `ai-need-attention` only.
+6. Applies `ai-complete` or `ai-need-attention` only — except after finishing `/implement`, which always ends with `ai-complete` (never `ai-need-attention` for implement completion; skipped Editor-only work is noted in the comment).
 
 ## Crash recovery: manual stuck-label cleanup
 
@@ -64,7 +65,7 @@ Every action only ever triggers on content authored by `KonH` — the issue/PR i
 
 ## Environment limits
 
-The automation host has no Unity Editor, no Unity MCP, and no image-generation pipeline. Prompts needing those get everything that *is* possible (C# verifiable via `dotnet build`/`dotnet test`, configs, docs, scripts), an explicit list of what was skipped, and an `ai-need-attention` finish. Implementation tooling like `scripts/automation/claude/ralph.py` remains available as a standalone tool but is no longer wired into this automation.
+The automation host has no Unity Editor, no Unity MCP, and no image-generation pipeline. Prompts needing those get everything that *is* possible (C# verifiable via `dotnet build`/`dotnet test`, configs, docs, scripts) and an explicit list of what was skipped. If the run finished `/implement`, it still ends with `ai-complete`; otherwise it ends with `ai-need-attention`. Implementation tooling like `scripts/automation/claude/ralph.py` remains available as a standalone tool but is no longer wired into this automation.
 
 ## One-time setup
 
@@ -78,9 +79,12 @@ gh label create auto-ai --color 1D76DB --description "Auto-route this item to an
 gh label create ai-in-progress --color FBCA04 --description "Automation actively working this item"
 gh label create ai-need-attention --color D93F0B --description "Automation waiting on the owner"
 gh label create ai-complete --color 0E8A16 --description "Automation finished this item's prompt"
+gh label create ai-specify --color 2DC37E --description "Automation currently running /specify on this item"
+gh label create ai-plan --color 29C8C6 --description "Automation currently running /plan on this item"
+gh label create ai-implement --color B1C727 --description "Automation currently running /implement on this item"
 ```
 
-Only the plain provider / `auto-ai` labels are ever applied by the owner when opting an item in — the three shared `ai-*` status labels are managed by the automation (removal of `ai-need-attention`/`ai-complete` to resume being the one owner-side exception). When `auto-ai` routing (or a post-limit immediate reroute) finds every provider usage/session-limited, `park_auto_item_unroutable` parks the item with `ai-need-attention` and an `<!-- auto-ai-automation -->` comment rather than leaving it unlabeled for endless empty polls.
+Only the plain provider / `auto-ai` labels are ever applied by the owner when opting an item in — the three shared `ai-*` status labels plus the three stage labels are managed by the automation (removal of `ai-need-attention`/`ai-complete` to resume being the one owner-side exception). When `auto-ai` routing (or a post-limit immediate reroute) finds every provider usage/session-limited, `park_auto_item_unroutable` parks the item with `ai-need-attention` and an `<!-- auto-ai-automation -->` comment rather than leaving it unlabeled for endless empty polls.
 
 ## Setup checklist
 
