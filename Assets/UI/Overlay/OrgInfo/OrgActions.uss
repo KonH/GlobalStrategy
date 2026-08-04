@@ -95,12 +95,10 @@
     justify-content: center;
     align-items: center;
     -unity-text-align: middle-center;
-    font-size: 13px;
+    font-size: 16px;
     color: rgb(255, 255, 255);
     -unity-font-definition: url("/Assets/UI/Fonts/Cinzel-Bold SDF.asset");
     -unity-font-style: bold;
-    -unity-text-outline-width: 1px;
-    -unity-text-outline-color: rgb(0, 0, 0);
 }
 
 .action-card-war-win-chance--low {
