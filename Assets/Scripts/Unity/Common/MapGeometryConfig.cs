@@ -4,7 +4,7 @@ using GS.Configs;
 using GS.Core.Map;
 
 namespace GS.Unity.Common {
-	public class MapGeometryConfig : IConfigSource<List<MapFeature>> {
+	public class MapGeometryConfig : IReadOnlyConfigSource<List<MapFeature>> {
 		readonly TextAsset _geoJsonAsset;
 
 		public MapGeometryConfig(TextAsset geoJsonAsset) {

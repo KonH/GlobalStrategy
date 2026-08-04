@@ -33,6 +33,7 @@ namespace GS.Unity.DI {
 		protected override void Configure(IContainerBuilder builder) {
 			var storage = new PersistentStorage();
 			var serializer = new NewtonsoftSnapshotSerializer();
+			var settingsStorage = new SettingsStorage(storage);
 
 			string initialOrgId = SceneTransitionArgs.OrganizationId ?? "";
 
@@ -63,7 +64,8 @@ namespace GS.Unity.DI {
 				effect: _effectConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.EffectConfig>(_effectConfigAsset) : null,
 				mapGeometry: new MapGeometryConfig(_geoJsonConfig),
 				province: new TextAssetConfig<GS.Game.Configs.ProvinceConfig>(_provinceConfigAsset),
-				participatingOrganizationIds: participatingOrgIds
+				participatingOrganizationIds: participatingOrgIds,
+				initialLocale: settingsStorage.Locale
 			);
 
 			var domainCountryConfig = new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset).Load();

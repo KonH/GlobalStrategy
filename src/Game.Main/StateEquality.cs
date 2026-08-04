@@ -94,6 +94,7 @@ namespace GS.Main {
 				&& a.IsUnplayable == b.IsUnplayable
 				&& a.UnplayableReason == b.UnplayableReason
 				&& a.TargetCountryId == b.TargetCountryId
+				&& a.WarWinChancePercent == b.WarWinChancePercent
 				&& ListEquals(a.Conditions, b.Conditions, ActionConditionDebugEntryEquals);
 		}
 

@@ -116,7 +116,12 @@ namespace GS.Unity.UI {
 				root.Q("time-panel"),
 				OnPauseToggle,
 				OnSpeedChange);
-			_orgLensCountryView = new OrgLensCountryView(root.Q("org-lens-country-info"), _orgVisualConfig);
+			_orgLensCountryView = new OrgLensCountryView(
+				root.Q("org-lens-country-info"),
+				_loc,
+				_resourceConfig,
+				_tooltip,
+				_orgVisualConfig);
 
 			var playerOrgRoot = root.Q("player-country");
 			if (playerOrgRoot != null) {
@@ -348,7 +353,7 @@ namespace GS.Unity.UI {
 			}
 
 			menu.style.display = DisplayStyle.None;
-			button.text = $"▶ {label}";
+			button.text = $"> {label}";
 			button.RegisterCallback<PointerUpEvent>(e => {
 				if (!button.enabledSelf || e.button != 0 || !button.ContainsPoint(e.localPosition)) {
 					return;
@@ -356,7 +361,7 @@ namespace GS.Unity.UI {
 
 				bool isOpen = menu.style.display != DisplayStyle.None;
 				menu.style.display = isOpen ? DisplayStyle.None : DisplayStyle.Flex;
-				button.text = $"{(isOpen ? "▶" : "▼")} {label}";
+				button.text = $"{(isOpen ? ">" : "v")} {label}";
 			});
 		}
 
@@ -380,6 +385,7 @@ namespace GS.Unity.UI {
 			_state.Locale.PropertyChanged             += HandleLocaleChanged;
 			_state.PlayerOrganization.Resources.PropertyChanged    += HandlePlayerResourcesChanged;
 			_state.SelectedCountry.Resources.PropertyChanged  += HandleSelectedResourcesChanged;
+			_state.OrgLensOrganizationResources.PropertyChanged += HandleOrgLensResourcesChanged;
 			_state.SelectedCountry.Control.PropertyChanged  += HandleControlChanged;
 			_state.SelectedCountry.Characters.PropertyChanged += HandleCharactersChanged;
 			_state.SelectedCountry.CountryActions.PropertyChanged += HandleCountryActionsChanged;
@@ -419,6 +425,7 @@ namespace GS.Unity.UI {
 			_state.Locale.PropertyChanged             -= HandleLocaleChanged;
 			_state.PlayerOrganization.Resources.PropertyChanged    -= HandlePlayerResourcesChanged;
 			_state.SelectedCountry.Resources.PropertyChanged  -= HandleSelectedResourcesChanged;
+			_state.OrgLensOrganizationResources.PropertyChanged -= HandleOrgLensResourcesChanged;
 			_state.SelectedCountry.Control.PropertyChanged  -= HandleControlChanged;
 			_state.SelectedCountry.Characters.PropertyChanged -= HandleCharactersChanged;
 			_state.SelectedCountry.CountryActions.PropertyChanged -= HandleCountryActionsChanged;
@@ -475,7 +482,11 @@ namespace GS.Unity.UI {
 				if (_countryInfoRoot != null) {
 					_countryInfoRoot.style.display = DisplayStyle.None;
 				}
-				_orgLensCountryView?.Refresh(_state.SelectedCountry, _state.OrgMap, _state.SelectedCountry.Control);
+				_orgLensCountryView?.Refresh(
+					_state.SelectedCountry,
+					_state.OrgMap,
+					_state.SelectedCountry.Control,
+					_state.OrgLensOrganizationResources);
 			} else {
 				_orgLensCountryView?.Hide();
 				_countryInfo?.Refresh(_state.SelectedCountry, _state.SelectedCountry.Resources, _state.SelectedCountry.Control, _state.SelectedCountry.Characters, _state.SelectedCountry.CountryActions, _state.PlayerOrganization.Resources);
@@ -687,7 +698,7 @@ namespace GS.Unity.UI {
 					if (_selectedCountryDebugMenu != null) {
 						_selectedCountryDebugMenu.style.display = DisplayStyle.None;
 					}
-					_btnSelectedCountryDebugMenu.text = "▶ Selected country";
+					_btnSelectedCountryDebugMenu.text = "> Selected country";
 				}
 			}
 			foreach (var button in _selectedCountryCharacterDebugButtons) {
@@ -729,6 +740,17 @@ namespace GS.Unity.UI {
 
 		void HandleSelectedResourcesChanged(object sender, PropertyChangedEventArgs e) {
 			_countryInfo?.Refresh(_state.SelectedCountry, _state.SelectedCountry.Resources, _state.SelectedCountry.Control, _state.SelectedCountry.Characters, _state.SelectedCountry.CountryActions, _state.PlayerOrganization.Resources);
+		}
+
+		void HandleOrgLensResourcesChanged(object sender, PropertyChangedEventArgs e) {
+			if (_state.MapLens.Lens != MapLens.Org) {
+				return;
+			}
+			_orgLensCountryView?.Refresh(
+				_state.SelectedCountry,
+				_state.OrgMap,
+				_state.SelectedCountry.Control,
+				_state.OrgLensOrganizationResources);
 		}
 
 		void HandleCharactersChanged(object sender, PropertyChangedEventArgs e) {
@@ -836,7 +858,7 @@ namespace GS.Unity.UI {
 					if (_selectedProvinceDebugMenu != null) {
 						_selectedProvinceDebugMenu.style.display = DisplayStyle.None;
 					}
-					_btnSelectedProvinceDebugMenu.text = "▶ Selected province";
+					_btnSelectedProvinceDebugMenu.text = "> Selected province";
 				}
 			}
 			if (!valid) {
@@ -1030,6 +1052,7 @@ namespace GS.Unity.UI {
 		}
 
 		void ToggleOrgInfo() {
+			if (!(_gameSettings?.FeatureFlags?.ShowPlayerOrgControls ?? true)) { return; }
 			if (_orgInfoDocument == null) { return; }
 			_orgPanelOpen = !_orgPanelOpen;
 			if (_orgPanelOpen) {

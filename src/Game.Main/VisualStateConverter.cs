@@ -12,6 +12,7 @@ namespace GS.Main {
 		readonly Dictionary<(string, string), AnimatableDouble> _resourceAnimatables = new();
 		readonly IReadOnlyDictionary<string, string> _hqCountryByOrgId;
 		readonly CountryConfig? _countryConfig;
+		readonly EffectConfig? _effectConfig;
 		ActionConfig? _actionConfig;
 		int _lastSeenProvinceOwnershipVersion = -1;
 		int _lastSeenProvinceOccupationVersion = -1;
@@ -33,7 +34,8 @@ namespace GS.Main {
 			CountryConfig? countryConfig = null,
 			EventNotificationSettings? eventNotifications = null,
 			CompletionConditionConfig? completionCondition = null,
-			int maxControlPool = 100) {
+			int maxControlPool = 100,
+			EffectConfig? effectConfig = null) {
 			_state = state;
 			_actionConfig = actionConfig;
 			_hqCountryByOrgId = hqCountryByOrgId ?? new Dictionary<string, string>();
@@ -43,6 +45,7 @@ namespace GS.Main {
 			_eventNotifications = eventNotifications;
 			_maxControlPool = maxControlPool > 0 ? maxControlPool : 100;
 			_goalLeaves = GoalsProjector.FlattenLeaves(completionCondition);
+			_effectConfig = effectConfig;
 		}
 
 		public void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
@@ -54,11 +57,11 @@ namespace GS.Main {
 			UpdateWarIcons(world);
 			UpdateSelectedWar(world);
 			UpdateGameCompletion(world, orgEntity);
+			UpdateOrgMap(world, orgEntity);
 			UpdateResources(world);
 			UpdateSelectedControl(world);
 			UpdateCharacters(world, orgEntity);
 			UpdateOrgCharacters(world);
-			UpdateOrgMap(world, orgEntity);
 			UpdateWorldCountries(world);
 			UpdateOrgActions(world);
 			UpdateCountryActions(world, gameTimeEntity);
@@ -313,10 +316,16 @@ namespace GS.Main {
 		void UpdateResources(IReadOnlyWorld world) {
 			string playerOrgId = _state.PlayerOrganization.IsValid ? _state.PlayerOrganization.OrgId : "";
 			string selectedCountryId = _state.SelectedCountry.IsValid ? _state.SelectedCountry.CountryId : "";
+			string dominantOrgId = ResolveDominantOrgId(selectedCountryId);
 
 			List<ControlIncomeEntry>? orgControlIncomes = null;
 			if (_state.PlayerOrganization.IsValid) {
 				orgControlIncomes = BuildControlIncomesForOrg(world, playerOrgId);
+			}
+
+			List<ControlIncomeEntry>? dominantOrgControlIncomes = null;
+			if (!string.IsNullOrEmpty(dominantOrgId)) {
+				dominantOrgControlIncomes = BuildControlIncomesForOrg(world, dominantOrgId);
 			}
 
 			_state.PlayerOrganization.Resources.Set(
@@ -328,6 +337,23 @@ namespace GS.Main {
 				_state.SelectedCountry.IsValid,
 				selectedCountryId,
 				BuildResources(world, selectedCountryId));
+			_state.OrgLensOrganizationResources.Set(
+				!string.IsNullOrEmpty(dominantOrgId),
+				dominantOrgId,
+				BuildResources(world, dominantOrgId),
+				dominantOrgControlIncomes);
+		}
+
+		string ResolveDominantOrgId(string countryId) {
+			if (string.IsNullOrEmpty(countryId)) {
+				return "";
+			}
+			foreach (var entry in _state.OrgMap.Entries) {
+				if (entry.CountryId == countryId) {
+					return entry.TopOrgId;
+				}
+			}
+			return "";
 		}
 
 		List<ControlIncomeEntry> BuildControlIncomesForOrg(IReadOnlyWorld world, string orgId) {
@@ -661,7 +687,41 @@ namespace GS.Main {
 				? world.Get<RelationCardTarget>(entity).TargetCountryId
 				: world.Has<RevengeCardTarget>(entity) ? world.Get<RevengeCardTarget>(entity).TargetCountryId : "";
 
-			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason, targetCountryId, conditionResults);
+			int? warWinChancePercent = null;
+			if ((actionId == "declare_war" || actionId == "revenge") && !string.IsNullOrEmpty(targetCountryId)) {
+				double pendingDamageBonusPercent = 0;
+				double pendingDurabilityBonusPercent = 0;
+				if (actionId == "revenge") {
+					TryResolveRevengePendingBonuses(actionId, out pendingDamageBonusPercent, out pendingDurabilityBonusPercent);
+				}
+				warWinChancePercent = WarWinChanceEstimator.EstimateAttackerWinPercent(
+					world,
+					countryId,
+					targetCountryId,
+					pendingDamageBonusPercent,
+					pendingDurabilityBonusPercent);
+			}
+
+			return new ActionCardEntry(
+				actionId, slotIndex, isInHand, isUnplayable, unplayableReason, targetCountryId, conditionResults, warWinChancePercent);
+		}
+
+		bool TryResolveRevengePendingBonuses(string actionId, out double damageBonusPercent, out double durabilityBonusPercent) {
+			damageBonusPercent = 0;
+			durabilityBonusPercent = 0;
+			var def = _actionConfig?.Find(actionId);
+			if (def == null || _effectConfig == null) {
+				return false;
+			}
+			foreach (string effectId in def.EffectIds) {
+				var effect = _effectConfig.Find(effectId);
+				if (effect is DeclareRevengeWarEffectParams revengeParams) {
+					damageBonusPercent = revengeParams.DamageBonusPercent;
+					durabilityBonusPercent = revengeParams.DurabilityBonusPercent;
+					return true;
+				}
+			}
+			return false;
 		}
 
 		static bool ContainsExpressionType(ExpressionNode node, string type) {

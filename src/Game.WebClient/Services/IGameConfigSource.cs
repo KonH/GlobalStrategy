@@ -9,16 +9,16 @@ namespace GS.Game.WebClient.Services {
 	// Game.WebClient.Tests provides a file-based implementation so GameSession can be
 	// exercised headlessly without a browser/HttpClient.
 	public interface IGameConfigSource {
-		IConfigSource<GeoJsonConfig> GeoJson { get; }
-		IConfigSource<MapEntryConfig> MapEntry { get; }
-		IConfigSource<CountryConfig> Country { get; }
-		IConfigSource<GameSettings> GameSettings { get; }
-		IConfigSource<ResourceConfig> Resource { get; }
-		IConfigSource<OrganizationConfig> Organization { get; }
-		IConfigSource<CharacterConfig> Character { get; }
-		IConfigSource<ActionConfig> Action { get; }
-		IConfigSource<EffectConfig> Effect { get; }
-		IConfigSource<ProvinceConfig> Province { get; }
+		IReadOnlyConfigSource<GeoJsonConfig> GeoJson { get; }
+		IReadOnlyConfigSource<MapEntryConfig> MapEntry { get; }
+		IReadOnlyConfigSource<CountryConfig> Country { get; }
+		IReadOnlyConfigSource<GameSettings> GameSettings { get; }
+		IReadOnlyConfigSource<ResourceConfig> Resource { get; }
+		IReadOnlyConfigSource<OrganizationConfig> Organization { get; }
+		IReadOnlyConfigSource<CharacterConfig> Character { get; }
+		IReadOnlyConfigSource<ActionConfig> Action { get; }
+		IReadOnlyConfigSource<EffectConfig> Effect { get; }
+		IReadOnlyConfigSource<ProvinceConfig> Province { get; }
 		List<MapFeature> MapGeometry { get; }
 	}
 }
