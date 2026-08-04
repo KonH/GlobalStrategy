@@ -78,6 +78,18 @@ class FindCandidatesTests(unittest.TestCase):
                    side_effect=[[item(1, ["claude", "bug", "enhancement"])], []]):
             self.assertEqual(1, len(find_candidates("claude")))
 
+    def test_stage_labels_do_not_exclude(self):
+        issues = [
+            item(1, ["claude", "ai-specify"]),
+            item(2, ["claude", "ai-plan"]),
+            item(3, ["claude", "ai-implement"]),
+            item(4, ["claude", "ai-implement", "ai-complete"]),
+        ]
+        with patch("scripts.automation.common.issue_handler.run_gh_json",
+                   side_effect=[issues, []]):
+            candidates = find_candidates("claude")
+        self.assertEqual([1, 2, 3], [c["number"] for c in candidates])
+
     def test_discovery_queries_every_configured_contributor_for_issues_and_prs(self):
         with patch("scripts.automation.common.issue_handler.configured_contributors",
                    return_value=("KonH", "collaborator")), \
