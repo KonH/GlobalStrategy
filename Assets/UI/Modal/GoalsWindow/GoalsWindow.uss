@@ -98,9 +98,11 @@
 
 .goals-org-list,
 .goals-progress-list {
-    flex-grow: 1;
     align-self: stretch;
-    min-height: 0;
+}
+
+.goals-progress-header-spacer {
+    opacity: 0;
 }
 
 .goals-row {
@@ -139,11 +141,8 @@
 .goals-progress-row {
     flex-direction: row;
     align-items: center;
-    min-height: 64px;
-    padding: 10px 12px;
-    margin-bottom: 8px;
-    background-color: rgba(8, 14, 30, 0.45);
-    border-radius: 4px;
+    min-height: 54px;
+    margin-bottom: 4px;
 }
 
 .goals-progress-description {
@@ -157,34 +156,34 @@
     white-space: normal;
 }
 
-.goals-progress-meter {
+.goals-progress-track {
+    position: relative;
     flex-direction: row;
     align-items: center;
+    justify-content: center;
+    flex-grow: 0;
     flex-shrink: 0;
-    width: 280px;
-}
-
-.goals-progress-track {
-    flex-grow: 1;
-    height: 18px;
-    margin-right: 12px;
+    width: 33%;
+    height: 52px;
     background-color: rgba(20, 30, 50, 0.9);
-    border-radius: 3px;
+    border-radius: 4px;
     border-width: 1px;
     border-color: rgb(200, 160, 64);
     overflow: hidden;
 }
 
 .goals-progress-fill {
-    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
     width: 0%;
     background-color: rgb(240, 200, 96);
 }
 
 .goals-progress-nm {
-    width: 110px;
-    color: rgb(255, 224, 128);
+    color: rgb(255, 255, 255);
     font-size: 20px;
     -unity-font-style: bold;
-    -unity-text-align: middle-right;
+    -unity-text-align: middle-center;
 }

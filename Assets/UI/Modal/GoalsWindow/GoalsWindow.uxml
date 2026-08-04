@@ -16,10 +16,11 @@
                         <ui:Label text="Name" class="goals-header-name"/>
                         <ui:Label text="Score" class="goals-header-score"/>
                     </ui:VisualElement>
-                    <ui:ScrollView name="goals-org-list" class="goals-org-list" mode="Vertical" vertical-scroller-visibility="AlwaysVisible"/>
+                    <ui:VisualElement name="goals-org-list" class="goals-org-list"/>
                 </ui:VisualElement>
                 <ui:VisualElement class="goals-right">
-                    <ui:ScrollView name="goals-progress-list" class="goals-progress-list" mode="Vertical" vertical-scroller-visibility="AlwaysVisible"/>
+                    <ui:VisualElement class="goals-table-header goals-progress-header-spacer"/>
+                    <ui:VisualElement name="goals-progress-list" class="goals-progress-list"/>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

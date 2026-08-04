@@ -9,8 +9,8 @@ using GS.Unity.Map;
 namespace GS.Unity.UI {
 	public class GoalsWindowView {
 		readonly VisualElement _root;
-		readonly ScrollView _orgList;
-		readonly ScrollView _progressList;
+		readonly VisualElement _orgList;
+		readonly VisualElement _progressList;
 		readonly ILocalization _loc;
 		readonly OrgVisualConfig _orgVisualConfig;
 		string _selectedOrgId = "";
@@ -21,8 +21,8 @@ namespace GS.Unity.UI {
 			_root = root;
 			_loc = loc;
 			_orgVisualConfig = orgVisualConfig;
-			_orgList = root.Q<ScrollView>("goals-org-list");
-			_progressList = root.Q<ScrollView>("goals-progress-list");
+			_orgList = root.Q<VisualElement>("goals-org-list");
+			_progressList = root.Q<VisualElement>("goals-progress-list");
 		}
 
 		public void ResetToPlayerOrg(string playerOrgId) {
@@ -37,12 +37,10 @@ namespace GS.Unity.UI {
 			_lastLeaderboard = leaderboard;
 			_lastGoals = goals;
 
-			Vector2 scrollOffset = _orgList.scrollOffset;
 			_orgList.Clear();
 			foreach (var entry in leaderboard.Organizations) {
 				_orgList.Add(CreateOrgRow(entry));
 			}
-			_orgList.schedule.Execute(() => _orgList.scrollOffset = scrollOffset);
 
 			RefreshProgressPanel();
 		}
@@ -124,11 +122,9 @@ namespace GS.Unity.UI {
 			description.AddToClassList("goals-progress-description");
 			row.Add(description);
 
-			var meter = new VisualElement();
-			meter.AddToClassList("goals-progress-meter");
-
 			var track = new VisualElement();
 			track.AddToClassList("goals-progress-track");
+
 			var fill = new VisualElement();
 			fill.AddToClassList("goals-progress-fill");
 			float percent = 0f;
@@ -137,13 +133,12 @@ namespace GS.Unity.UI {
 			}
 			fill.style.width = new Length(percent, LengthUnit.Percent);
 			track.Add(fill);
-			meter.Add(track);
 
 			var nm = new Label($"{FormatValue(goal, goal.Current)}/{FormatValue(goal, goal.Target)}");
 			nm.AddToClassList("goals-progress-nm");
-			meter.Add(nm);
+			track.Add(nm);
 
-			row.Add(meter);
+			row.Add(track);
 			return row;
 		}
 
