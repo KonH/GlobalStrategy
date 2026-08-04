@@ -39,6 +39,7 @@ namespace GS.Unity.UI {
 
 		void Start() {
 			var root = _doc.rootVisualElement;
+			UIPointerState.RuntimePanel = root.panel;
 			_orgNameLabel = root.Q<Label>("country-name-label");
 			_orgFlagElement = root.Q("org-flag");
 			_goldLabel = root.Q<Label>("gold-label");

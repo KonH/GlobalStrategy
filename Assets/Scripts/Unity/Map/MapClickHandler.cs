@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using VContainer;
 using GS.Main;
@@ -93,10 +92,9 @@ namespace GS.Unity.Map {
 			_pressScreenPos = screenPos;
 			_pressIsTouch = isTouch;
 			_pressTouchId = pointerId;
-			_pressing = !ModalState.IsModalOpen
-				&& !(EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(pointerId));
+			_pressing = !ModalState.IsModalOpen && !UIPointerState.IsPointerOverUI(screenPos);
 			if (!_pressing) {
-				Debug.Log("[MapClick] Blocked by UI (IsPointerOverGameObject)");
+				Debug.Log("[MapClick] Blocked by UI");
 			}
 		}
 

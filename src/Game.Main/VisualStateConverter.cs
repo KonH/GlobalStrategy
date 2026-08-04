@@ -51,11 +51,11 @@ namespace GS.Main {
 			UpdateWarIcons(world);
 			UpdateSelectedWar(world);
 			UpdateGameCompletion(world, orgEntity);
+			UpdateOrgMap(world, orgEntity);
 			UpdateResources(world);
 			UpdateSelectedControl(world);
 			UpdateCharacters(world, orgEntity);
 			UpdateOrgCharacters(world);
-			UpdateOrgMap(world, orgEntity);
 			UpdateWorldCountries(world);
 			UpdateOrgActions(world);
 			UpdateCountryActions(world, gameTimeEntity);
@@ -309,10 +309,16 @@ namespace GS.Main {
 		void UpdateResources(IReadOnlyWorld world) {
 			string playerOrgId = _state.PlayerOrganization.IsValid ? _state.PlayerOrganization.OrgId : "";
 			string selectedCountryId = _state.SelectedCountry.IsValid ? _state.SelectedCountry.CountryId : "";
+			string dominantOrgId = ResolveDominantOrgId(selectedCountryId);
 
 			List<ControlIncomeEntry>? orgControlIncomes = null;
 			if (_state.PlayerOrganization.IsValid) {
 				orgControlIncomes = BuildControlIncomesForOrg(world, playerOrgId);
+			}
+
+			List<ControlIncomeEntry>? dominantOrgControlIncomes = null;
+			if (!string.IsNullOrEmpty(dominantOrgId)) {
+				dominantOrgControlIncomes = BuildControlIncomesForOrg(world, dominantOrgId);
 			}
 
 			_state.PlayerOrganization.Resources.Set(
@@ -324,6 +330,23 @@ namespace GS.Main {
 				_state.SelectedCountry.IsValid,
 				selectedCountryId,
 				BuildResources(world, selectedCountryId));
+			_state.OrgLensOrganizationResources.Set(
+				!string.IsNullOrEmpty(dominantOrgId),
+				dominantOrgId,
+				BuildResources(world, dominantOrgId),
+				dominantOrgControlIncomes);
+		}
+
+		string ResolveDominantOrgId(string countryId) {
+			if (string.IsNullOrEmpty(countryId)) {
+				return "";
+			}
+			foreach (var entry in _state.OrgMap.Entries) {
+				if (entry.CountryId == countryId) {
+					return entry.TopOrgId;
+				}
+			}
+			return "";
 		}
 
 		List<ControlIncomeEntry> BuildControlIncomesForOrg(IReadOnlyWorld world, string orgId) {

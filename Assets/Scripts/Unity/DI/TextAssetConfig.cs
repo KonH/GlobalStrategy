@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using GS.Configs;
 
 namespace GS.Unity.DI {
-	class TextAssetConfig<TConfig> : IConfigSource<TConfig> {
+	class TextAssetConfig<TConfig> : IReadOnlyConfigSource<TConfig> {
 		readonly TextAsset _asset;
 
 		public TextAssetConfig(TextAsset asset) {

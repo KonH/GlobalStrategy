@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using GS.Configs;
 
 namespace GS.Configs.IO {
-	public class FileConfig<TConfig> : IConfigSource<TConfig> {
+	public class FileConfig<TConfig> : IReadOnlyConfigSource<TConfig> {
 		readonly string _filePath;
 
 		public FileConfig(string filePath) {
