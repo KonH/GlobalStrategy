@@ -41,15 +41,18 @@ As a player viewing the map in Political or Org lens, I want to see border lines
   - `MapMeshBuilder.BuildBorderMesh` currently walks each polygon ring as one undifferentiated sequence of segments and emits a quad per segment uniformly. Rendering only country/org boundary segments requires attributing each ring segment to the specific neighboring province (or "no neighbor") it borders, then classifying that segment as "boundary" (different owner/org) or "internal" (same owner/org) per lens, per current ownership/control state.
   - This segment-to-neighbor attribution does not exist anywhere in the codebase today and is the central new technical problem this feature introduces.
 
-- Data pipeline vs. runtime decision (flagged for `/plan`, not decided here):
-  - Unresolved whether segment-to-neighbor attribution should be precomputed offline (e.g. extending `scripts/utils/generate_provinces.py` to bake segment/neighbor metadata into `provinces_1880.json` or `province_config.json`, alongside the existing `NeighborProvinceIds` generation described in `.claude/rules/unity/province_config_generator.md`) or computed/classified at runtime in `MapMeshBuilder`/`ProvinceRenderer`/`MapLensApplier` from existing polygon + adjacency data.
-  - Ownership and org control change at runtime (province owner via gameplay/debug commands, org control via `ControlEffect` accumulation), so whatever segment/neighbor *mapping* is precomputed, the boundary/internal *classification* per segment must still be re-evaluated at runtime (on lens change and on ownership/control change) — precomputation, if used, only needs to cover the static geometry-to-neighbor mapping, not the classification itself.
+- Data pipeline vs. runtime decision (resolved):
+  - Segment-to-neighbor attribution is derived/classified at runtime in Unity (C#), not precomputed in `scripts/utils/generate_provinces.py`/baked into `provinces_1880.json`/`province_config.json`. Owner rationale: province owner can change at runtime, so the "Unity way" (runtime derivation) is preferred over extending the offline config-generation pipeline.
+  - Ownership and org control change at runtime (province owner via gameplay/debug commands, org control via `ControlEffect` accumulation), so the boundary/internal classification per segment must be re-evaluated at runtime (on lens change and on ownership/control change).
 
-- Visual styling:
-  - Default assumption: reuse `Assets/Materials/ProvinceBorderMaterial.mat` and the existing `_borderWidth` value used by `MapMeshBuilder.BuildBorderMesh`, for consistency with Province lens borders, unless product direction calls for a visually heavier line to read as a "bigger feature" per the issue text.
+- Org lens fallback when controlling org is unknown (resolved):
+  - When either province's owning country has no `TopOrgId` entry in `VisualState.OrgMap.Entries` (no controlling org), Org lens falls back to the same border criteria as Political lens for that edge — i.e. compare by country ownership instead of by org — rather than suppressing or forcing the border.
 
-- Double-rendering of shared boundary segments:
-  - Per the Province-lens precedent (`Docs/Specs/26_07_11_09_province-map-lens/spec.md`), double-rendering a shared edge (once from each adjacent province's ring) was explicitly accepted as non-defective. Default assumption here is to keep that precedent for country/org borders too, since the segments being drawn are a strict subset of what Province lens already draws twice. Flagged as an ambiguity below given the research note that isolated boundary lines (vs. full per-province outlines) may make double-rendering more visually noticeable (e.g. z-fighting or double-width appearance at scale).
+- Visual styling (resolved):
+  - Country/org border lines use different styling from Province lens borders (not a reuse of `ProvinceBorderMaterial`/existing `_borderWidth` unchanged), so the feature visually reads as a "bigger feature" per the issue text. Exact material/width values are a `/plan` implementation detail.
+
+- Double-rendering of shared boundary segments (resolved):
+  - Per the Province-lens precedent (`Docs/Specs/26_07_11_09_province-map-lens/spec.md`), double-rendering a shared edge (once from each adjacent province's ring) is accepted as non-defective, consistent with existing behavior. No deduplication is required for this feature.
 
 ## Out of Scope
 
@@ -61,7 +64,9 @@ As a player viewing the map in Political or Org lens, I want to see border lines
 
 ## Ambiguities
 
-- [NEEDS CLARIFICATION: Segment-to-neighbor attribution approach — should the mapping from each province ring segment to its bordering neighbor (or "none") be precomputed in the config-generation pipeline (`scripts/utils/generate_provinces.py` → `provinces_1880.json`/`province_config.json`), or derived/classified purely at runtime from existing polygon and `NeighborProvinceIds` data? This is the hardest open technical question and materially changes the plan's shape (config-gen script changes + regenerated config assets vs. Unity-side-only code changes).]
-- [NEEDS CLARIFICATION: For Org lens, how should a country with no controlling org (no `TopOrgId` entry in `VisualState.OrgMap.Entries`) be treated for border purposes against a neighbor that also has no controlling org (border or no border), and against a neighbor that does have a controlling org (border or no border)?]
-- [NEEDS CLARIFICATION: Should double-rendering of a shared country/org boundary segment (drawn once from each adjacent province's ring) be accepted as in the Province-lens precedent, or does showing only isolated boundary lines (rather than every province's full outline) make double-rendering visually objectionable enough to require deduplication in this feature?]
-- [NEEDS CLARIFICATION: Should the new country/org border lines reuse `ProvinceBorderMaterial`/current border width unchanged, or use different (e.g. thicker/differently colored) styling to visually read as a "bigger feature" as the issue's wording suggests?]
+None outstanding — all four open questions were resolved by the issue owner (see "resolved" notes under Tech Notes above):
+
+- Segment-to-neighbor attribution: derived/classified at runtime in Unity, not precomputed in the config-generation pipeline.
+- Org lens fallback when controlling org is unknown: fall back to Political-lens (country-ownership) comparison for that edge.
+- Double-rendering of shared boundary segments: keep existing precedent, no deduplication.
+- Border styling: use different styling from Province lens borders, not a reuse of the existing material/width unchanged.
