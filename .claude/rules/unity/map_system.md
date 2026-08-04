@@ -10,7 +10,7 @@ paths:
 `MapRenderer`/`FeatureIdentifier` (the old `mapFeatureId → CountryEntry.FindByFeatureId → fill mesh` path) have been removed as dead code. All four map lenses (`Province`, `Political`, `Org`, `Geographic`) render from `ProvinceRenderer`'s per-province meshes (`MapController.ActiveProvinceRenderer.FeatureObjects`), each carrying a `ProvinceIdentifier` component.
 
 - Per-province fill colour is resolved from the **runtime** `VisualState.ProvinceOwnership.OwnerByProvinceId[go.name]` map (`go.name` == `provinceId`), falling back to the province's static seed `ProvinceIdentifier.CountryId` only if the province is absent from that map.
-- Province border child renderers (the `_Border` child GameObject) are enabled **only** in the `Province` lens — country lenses (`Political`/`Org`/`Geographic`) stay border-free, matching the old country-lens look.
+- Province lens still uses full-ring `_Border` / `ProvinceBorderRendererMarker` children. Political and Org lenses use selective `_CountryOrgBorder` / `CountryOrgBorderRendererMarker` lines derived from live ownership/org state (only segments whose neighboring province has a different owner, or different top org with Political-style fallback when org data is missing). Geographic stays border-free.
 - Province visibility is gated by `VisualState.WorldCountries.CountryIds` (`WorldCountriesState`): a province whose owner country is **not** in that set (unavailable / not spawned into the world) stays hidden — fill, borders, and occupation hatch all off. Available world countries are visible.
 - `MapLensApplier` subscribes to `VisualState.ProvinceOwnership.PropertyChanged` (alongside `MapLens`/`OrgMap`/`WorldCountries`) and re-applies the current lens so a runtime ownership change recolours immediately.
 

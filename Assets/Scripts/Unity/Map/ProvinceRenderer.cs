@@ -1,24 +1,30 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using GS.Core.Map;
+using GS.Game.Common;
+using GS.Game.Systems;
 
 namespace GS.Unity.Map {
 	public class ProvinceRenderer : MonoBehaviour {
 		[SerializeField] Material _materialTemplate;
 		[SerializeField] Material _borderMaterialTemplate;
+		[SerializeField] Material _countryOrgBorderMaterialTemplate;
 		[SerializeField] Material _occupationHatchMaterialTemplate;
 		[SerializeField] float _occupationHatchZOffset = -0.01f;
 		[SerializeField] int _occupationHatchTextureSize = 32;
 		[SerializeField] int _occupationHatchLineWidth = 6;
 		[SerializeField] float _occupationHatchTextureScale = 0.04f;
 		[SerializeField] float _borderWidth = 0.5f; // Placeholder; tuned visually against the map's world scale later.
+		[SerializeField] float _countryOrgBorderWidth = 1.2f;
 
 		List<GameObject> _featureObjects = new List<GameObject>();
 		HashSet<string> _warnedMissingProvinces = new HashSet<string>();
 		HashSet<string> _warnedMissingCountryVisuals = new HashSet<string>();
 		bool _warnedMissingOccupationHatchMaterial;
 		Texture2D _occupationHatchTexture;
+		Dictionary<string, string> _countryIdByProvinceId = new Dictionary<string, string>();
 
 		public IReadOnlyList<GameObject> FeatureObjects => _featureObjects;
 
@@ -27,6 +33,45 @@ namespace GS.Unity.Map {
 				Destroy(obj);
 			}
 			_featureObjects.Clear();
+			_countryIdByProvinceId.Clear();
+
+			var ringsByProvinceId = new Dictionary<string, IReadOnlyList<Vector2d[]>>();
+			var neighborProvinceIdsByProvinceId = new Dictionary<string, IReadOnlyList<string>>();
+
+			foreach (var feature in features) {
+				string provinceId = feature.Name;
+				var provinceEntry = provinceConfig?.FindByProvinceId(provinceId);
+				if (provinceEntry == null) {
+					continue;
+				}
+				_countryIdByProvinceId[provinceId] = provinceEntry.CountryId ?? "";
+				neighborProvinceIdsByProvinceId[provinceId] = provinceEntry.NeighborProvinceIds
+					?? (IReadOnlyList<string>)Array.Empty<string>();
+
+				var projectedRings = new List<Vector2d[]>();
+				foreach (var polygon in feature.Polygons) {
+					if (polygon.Rings.Count == 0) {
+						projectedRings.Add(Array.Empty<Vector2d>());
+						continue;
+					}
+					var projected = MapMeshBuilder.ProjectRingVertices(polygon.Rings[0]);
+					if (projected == null || projected.Length < 2) {
+						projectedRings.Add(Array.Empty<Vector2d>());
+						continue;
+					}
+					var ring = new Vector2d[projected.Length];
+					for (int i = 0; i < projected.Length; i++) {
+						ring[i] = new Vector2d(projected[i].x, projected[i].y);
+					}
+					projectedRings.Add(ring);
+				}
+				if (projectedRings.Count > 0) {
+					ringsByProvinceId[provinceId] = projectedRings;
+				}
+			}
+
+			var neighborMap = BorderSegmentIndex.BuildNeighborMap(
+				ringsByProvinceId, neighborProvinceIdsByProvinceId);
 
 			foreach (var feature in features) {
 				string provinceId = feature.Name;
@@ -67,7 +112,12 @@ namespace GS.Unity.Map {
 				fillRenderer.material = mat;
 				fillRenderer.enabled = false;
 
-				go.AddComponent<ProvinceIdentifier>().SetProvince(provinceId, provinceEntry.CountryId, feature);
+				var identifier = go.AddComponent<ProvinceIdentifier>();
+				identifier.SetProvince(provinceId, provinceEntry.CountryId, feature);
+				identifier.SetSegmentNeighbors(
+					neighborMap.TryGetValue(provinceId, out var neighbors)
+						? neighbors
+						: Array.Empty<string[]>());
 				CreateOccupationHatch(provinceId, go.transform, mesh);
 
 				var borderMesh = MapMeshBuilder.BuildBorderMesh(feature.Polygons, _borderWidth);
@@ -81,8 +131,134 @@ namespace GS.Unity.Map {
 					borderRenderer.enabled = false;
 				}
 
+				var countryOrgBorderGo = new GameObject(provinceId + "_CountryOrgBorder");
+				countryOrgBorderGo.transform.SetParent(go.transform, false);
+				countryOrgBorderGo.AddComponent<MeshFilter>();
+				countryOrgBorderGo.AddComponent<CountryOrgBorderRendererMarker>();
+				var countryOrgBorderRenderer = countryOrgBorderGo.AddComponent<MeshRenderer>();
+				if (_countryOrgBorderMaterialTemplate != null) {
+					countryOrgBorderRenderer.material = _countryOrgBorderMaterialTemplate;
+				}
+				countryOrgBorderRenderer.enabled = false;
+
 				_featureObjects.Add(go);
 			}
+		}
+
+		public void RebuildCountryOrgBorders(
+			MapLens lens,
+			IReadOnlyDictionary<string, string> ownerByProvinceId,
+			IReadOnlyDictionary<string, string> topOrgIdByCountryId,
+			IReadOnlyCollection<string> visibleProvinceIds) {
+			foreach (var go in _featureObjects) {
+				if (go == null) {
+					continue;
+				}
+				var identifier = go.GetComponent<ProvinceIdentifier>();
+				if (identifier == null) {
+					continue;
+				}
+
+				MeshFilter meshFilter = null;
+				MeshRenderer meshRenderer = null;
+				foreach (Transform child in go.transform) {
+					if (child.GetComponent<CountryOrgBorderRendererMarker>() == null) {
+						continue;
+					}
+					meshFilter = child.GetComponent<MeshFilter>();
+					meshRenderer = child.GetComponent<MeshRenderer>();
+					break;
+				}
+				if (meshFilter == null || meshRenderer == null) {
+					continue;
+				}
+
+				if (visibleProvinceIds == null || !visibleProvinceIds.Contains(identifier.ProvinceId)) {
+					DisableCountryOrgBorderChild(meshFilter, meshRenderer);
+					continue;
+				}
+
+				var segmentNeighbors = identifier.SegmentNeighborProvinceIds;
+				if (segmentNeighbors == null || segmentNeighbors.Length == 0 || identifier.Feature == null) {
+					DisableCountryOrgBorderChild(meshFilter, meshRenderer);
+					continue;
+				}
+
+				string ownerId = ResolveOwner(identifier.ProvinceId, ownerByProvinceId);
+				var masks = new bool[segmentNeighbors.Length][];
+				bool anyBoundary = false;
+				for (int r = 0; r < segmentNeighbors.Length; r++) {
+					var ringNeighbors = segmentNeighbors[r] ?? Array.Empty<string>();
+					var mask = new bool[ringNeighbors.Length];
+					for (int i = 0; i < ringNeighbors.Length; i++) {
+						string neighborId = ringNeighbors[i] ?? "";
+						if (neighborId == "") {
+							mask[i] = false;
+							continue;
+						}
+						string neighborOwner = ResolveOwner(neighborId, ownerByProvinceId);
+						mask[i] = BorderClassifier.ShouldRenderBoundary(
+							ownerId, neighborOwner, lens, topOrgIdByCountryId);
+						if (mask[i]) {
+							anyBoundary = true;
+						}
+					}
+					masks[r] = mask;
+				}
+
+				if (!anyBoundary) {
+					DisableCountryOrgBorderChild(meshFilter, meshRenderer);
+					continue;
+				}
+
+				var mesh = MapMeshBuilder.BuildBorderMesh(
+					identifier.Feature.Polygons, _countryOrgBorderWidth, masks);
+				if (meshFilter.sharedMesh != null) {
+					Destroy(meshFilter.sharedMesh);
+				}
+				if (mesh == null) {
+					meshFilter.mesh = null;
+					meshRenderer.enabled = false;
+					continue;
+				}
+				meshFilter.mesh = mesh;
+				meshRenderer.enabled = true;
+			}
+		}
+
+		public void DisableCountryOrgBorders() {
+			foreach (var go in _featureObjects) {
+				if (go == null) {
+					continue;
+				}
+				foreach (Transform child in go.transform) {
+					if (child.GetComponent<CountryOrgBorderRendererMarker>() == null) {
+						continue;
+					}
+					var childRenderer = child.GetComponent<MeshRenderer>();
+					if (childRenderer != null) {
+						childRenderer.enabled = false;
+					}
+				}
+			}
+		}
+
+		static void DisableCountryOrgBorderChild(MeshFilter meshFilter, MeshRenderer meshRenderer) {
+			if (meshFilter.sharedMesh != null) {
+				Destroy(meshFilter.sharedMesh);
+				meshFilter.mesh = null;
+			}
+			meshRenderer.enabled = false;
+		}
+
+		string ResolveOwner(string provinceId, IReadOnlyDictionary<string, string> ownerByProvinceId) {
+			if (ownerByProvinceId != null && ownerByProvinceId.TryGetValue(provinceId, out string ownerId)) {
+				return ownerId;
+			}
+			if (_countryIdByProvinceId.TryGetValue(provinceId, out string seedOwner)) {
+				return seedOwner;
+			}
+			return "";
 		}
 
 		void CreateOccupationHatch(string provinceId, Transform parent, Mesh mesh) {
