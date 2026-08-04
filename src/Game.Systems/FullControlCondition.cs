@@ -19,16 +19,30 @@ namespace GS.Game.Systems {
 			if (context.AvailableCountryIds.Count == 0) {
 				return false;
 			}
+			return GetCurrent(context) >= GetTarget(context);
+		}
 
+		public double GetCurrent(CompletionConditionContext context) {
+			if (context.AvailableCountryIds.Count == 0) {
+				return 0;
+			}
 			Dictionary<string, int> control = OrgMetrics.GetControlByCountry(
 				context.World, context.OrganizationId, context.AvailableCountryIds);
+			return GetCurrentFromControl(control, context.MaxControlPool);
+		}
+
+		public static double GetCurrentFromControl(IReadOnlyDictionary<string, int> control, int maxControlPool) {
 			int fullCountryCount = 0;
 			foreach (int value in control.Values) {
-				if (value >= context.MaxControlPool) {
+				if (value >= maxControlPool) {
 					fullCountryCount++;
 				}
 			}
-			return fullCountryCount >= _requiredCountryCount;
+			return fullCountryCount;
+		}
+
+		public double GetTarget(CompletionConditionContext context) {
+			return _requiredCountryCount;
 		}
 	}
 }

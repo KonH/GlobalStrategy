@@ -12,6 +12,7 @@ namespace GS.Main {
 		readonly Dictionary<(string, string), AnimatableDouble> _resourceAnimatables = new();
 		readonly IReadOnlyDictionary<string, string> _hqCountryByOrgId;
 		readonly CountryConfig? _countryConfig;
+		readonly EffectConfig? _effectConfig;
 		ActionConfig? _actionConfig;
 		int _lastSeenProvinceOwnershipVersion = -1;
 		int _lastSeenProvinceOccupationVersion = -1;
@@ -21,6 +22,8 @@ namespace GS.Main {
 		readonly bool _gameLogIncludePlayerActions;
 		readonly int _gameLogMaxEntries;
 		readonly EventNotificationSettings? _eventNotifications;
+		readonly int _maxControlPool;
+		readonly IReadOnlyList<GoalsLeafDescriptor> _goalLeaves;
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
@@ -29,7 +32,10 @@ namespace GS.Main {
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
 			bool gameLogIncludePlayerActions = true, int gameLogMaxEntries = 12,
 			CountryConfig? countryConfig = null,
-			EventNotificationSettings? eventNotifications = null) {
+			EventNotificationSettings? eventNotifications = null,
+			CompletionConditionConfig? completionCondition = null,
+			int maxControlPool = 100,
+			EffectConfig? effectConfig = null) {
 			_state = state;
 			_actionConfig = actionConfig;
 			_hqCountryByOrgId = hqCountryByOrgId ?? new Dictionary<string, string>();
@@ -37,6 +43,9 @@ namespace GS.Main {
 			_gameLogIncludePlayerActions = gameLogIncludePlayerActions;
 			_gameLogMaxEntries = gameLogMaxEntries;
 			_eventNotifications = eventNotifications;
+			_maxControlPool = maxControlPool > 0 ? maxControlPool : 100;
+			_goalLeaves = GoalsProjector.FlattenLeaves(completionCondition);
+			_effectConfig = effectConfig;
 		}
 
 		public void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
@@ -63,6 +72,7 @@ namespace GS.Main {
 			UpdateSelectedProvince(world);
 			UpdateCountryScore(world);
 			UpdateLeaderboards(world);
+			UpdateGoals(world);
 			UpdateGameLog(world, orgEntity);
 
 			// Tick all animatables
@@ -677,7 +687,41 @@ namespace GS.Main {
 				? world.Get<RelationCardTarget>(entity).TargetCountryId
 				: world.Has<RevengeCardTarget>(entity) ? world.Get<RevengeCardTarget>(entity).TargetCountryId : "";
 
-			return new ActionCardEntry(actionId, slotIndex, isInHand, isUnplayable, unplayableReason, targetCountryId, conditionResults);
+			int? warWinChancePercent = null;
+			if ((actionId == "declare_war" || actionId == "revenge") && !string.IsNullOrEmpty(targetCountryId)) {
+				double pendingDamageBonusPercent = 0;
+				double pendingDurabilityBonusPercent = 0;
+				if (actionId == "revenge") {
+					TryResolveRevengePendingBonuses(actionId, out pendingDamageBonusPercent, out pendingDurabilityBonusPercent);
+				}
+				warWinChancePercent = WarWinChanceEstimator.EstimateAttackerWinPercent(
+					world,
+					countryId,
+					targetCountryId,
+					pendingDamageBonusPercent,
+					pendingDurabilityBonusPercent);
+			}
+
+			return new ActionCardEntry(
+				actionId, slotIndex, isInHand, isUnplayable, unplayableReason, targetCountryId, conditionResults, warWinChancePercent);
+		}
+
+		bool TryResolveRevengePendingBonuses(string actionId, out double damageBonusPercent, out double durabilityBonusPercent) {
+			damageBonusPercent = 0;
+			durabilityBonusPercent = 0;
+			var def = _actionConfig?.Find(actionId);
+			if (def == null || _effectConfig == null) {
+				return false;
+			}
+			foreach (string effectId in def.EffectIds) {
+				var effect = _effectConfig.Find(effectId);
+				if (effect is DeclareRevengeWarEffectParams revengeParams) {
+					damageBonusPercent = revengeParams.DamageBonusPercent;
+					durabilityBonusPercent = revengeParams.DurabilityBonusPercent;
+					return true;
+				}
+			}
+			return false;
 		}
 
 		static bool ContainsExpressionType(ExpressionNode node, string type) {
@@ -805,6 +849,10 @@ namespace GS.Main {
 			SortAndAssignPlaces(organizations);
 			SortAndAssignPlaces(countries);
 			_state.Leaderboard.Set(organizations, countries);
+		}
+
+		public void UpdateGoals(IReadOnlyWorld world) {
+			_state.Goals.Set(GoalsProjector.Build(world, _goalLeaves, _maxControlPool));
 		}
 
 		IReadOnlyList<string> GetCountryIds(IReadOnlyWorld world) {

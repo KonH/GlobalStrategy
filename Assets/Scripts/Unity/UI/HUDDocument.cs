@@ -33,10 +33,12 @@ namespace GS.Unity.UI {
 		OrgVisualConfig _orgVisualConfig;
 		GameMenuDocument _gameMenu;
 		LeaderboardWindowDocument _leaderboardWindow;
+		GoalsWindowDocument _goalsWindow;
 		WarProgressWindowDocument _warProgressWindow;
 		WarIconsView _warIconsView;
 		Button _btnMenu;
 		Button _btnLeaderboard;
+		Button _btnGoals;
 		Button _btnDebugToggle;
 		VisualElement _debugPanel;
 		Button _btnSelectedCountryDebugMenu;
@@ -81,7 +83,7 @@ namespace GS.Unity.UI {
 		DebugCardAvailabilityView _selectedOrgCardDebug;
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, WarProgressWindowDocument warProgressWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig, IFlyTextNotifier flyText, GameSettings gameSettings) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, GoalsWindowDocument goalsWindow, WarProgressWindowDocument warProgressWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig, IFlyTextNotifier flyText, GameSettings gameSettings) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
@@ -93,6 +95,7 @@ namespace GS.Unity.UI {
 			_orgVisualConfig = orgVisualConfig;
 			_gameMenu = gameMenu;
 			_leaderboardWindow = leaderboardWindow;
+			_goalsWindow = goalsWindow;
 			_warProgressWindow = warProgressWindow;
 			_orgInfoDocument = orgInfoDocument;
 			_actionConfig = actionConfig;
@@ -157,12 +160,17 @@ namespace GS.Unity.UI {
 			var root = _document.rootVisualElement;
 			_btnMenu = root.Q<Button>("btn-menu");
 			_btnLeaderboard = root.Q<Button>("btn-leaderboard");
+			_btnGoals = root.Q<Button>("btn-goals");
 			if (_btnMenu != null) {
 				_btnMenu.clicked += () => _gameMenu?.Show();
 			}
 			if (_btnLeaderboard != null) {
 				_btnLeaderboard.clicked += () => _leaderboardWindow?.Show();
 				RefreshLeaderboardButtonText();
+			}
+			if (_btnGoals != null) {
+				_btnGoals.clicked += () => _goalsWindow?.Show();
+				RefreshGoalsButtonText();
 			}
 
 			_btnDebugToggle = root.Q<Button>("btn-debug-toggle");
@@ -619,6 +627,14 @@ namespace GS.Unity.UI {
 			_btnLeaderboard.text = string.IsNullOrEmpty(text) || text == "hud.leaderboard" ? "Leaderboard" : text;
 		}
 
+		void RefreshGoalsButtonText() {
+			if (_btnGoals == null || _loc == null) {
+				return;
+			}
+			string text = _loc.Get("hud.goals");
+			_btnGoals.text = string.IsNullOrEmpty(text) || text == "hud.goals" ? "Goals" : text;
+		}
+
 		void RefreshControlDebugRow() {
 			if (_controlDebugRow == null) {
 				return;
@@ -710,6 +726,7 @@ namespace GS.Unity.UI {
 			_tooltip?.HideAll();
 			_warIconsView?.Refresh(_state.WarIcons);
 			RefreshLeaderboardButtonText();
+			RefreshGoalsButtonText();
 			RefreshCountryViews();
 			RefreshProvinceInfoView();
 			_timeView.Refresh(_state.Time);

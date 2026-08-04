@@ -265,6 +265,7 @@ namespace GS.Main {
 		public bool   IsUnplayable    { get; }
 		public string UnplayableReason { get; }
 		public string TargetCountryId { get; }
+		public int?   WarWinChancePercent { get; }
 		public IReadOnlyList<ActionConditionDebugEntry> Conditions { get; }
 		public ActionCardEntry(
 			string actionId,
@@ -273,10 +274,12 @@ namespace GS.Main {
 			bool isUnplayable = false,
 			string unplayableReason = "",
 			string targetCountryId = "",
-			IReadOnlyList<ActionConditionDebugEntry>? conditions = null) {
+			IReadOnlyList<ActionConditionDebugEntry>? conditions = null,
+			int? warWinChancePercent = null) {
 			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
 			IsUnplayable = isUnplayable; UnplayableReason = unplayableReason;
 			TargetCountryId = targetCountryId;
+			WarWinChancePercent = warWinChancePercent;
 			Conditions = conditions ?? Array.Empty<ActionConditionDebugEntry>();
 		}
 	}
@@ -454,6 +457,51 @@ namespace GS.Main {
 			}
 			Organizations = organizations;
 			Countries = countries;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
+	public class GoalProgressEntryState {
+		public WinConditionHintKind Kind { get; }
+		public double ConfigValue { get; }
+		public double Current { get; }
+		public double Target { get; }
+		public int AvailableCountryCount { get; }
+
+		public GoalProgressEntryState(
+			WinConditionHintKind kind,
+			double configValue,
+			double current,
+			double target,
+			int availableCountryCount) {
+			Kind = kind;
+			ConfigValue = configValue;
+			Current = current;
+			Target = target;
+			AvailableCountryCount = availableCountryCount;
+		}
+	}
+
+	public class GoalsOrgEntryState {
+		public string OrgId { get; }
+		public IReadOnlyList<GoalProgressEntryState> Goals { get; }
+
+		public GoalsOrgEntryState(string orgId, IReadOnlyList<GoalProgressEntryState> goals) {
+			OrgId = orgId;
+			Goals = goals;
+		}
+	}
+
+	public class GoalsState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyList<GoalsOrgEntryState> Organizations { get; private set; } = Array.Empty<GoalsOrgEntryState>();
+
+		public void Set(List<GoalsOrgEntryState> organizations) {
+			if (StateEquality.ListEquals(Organizations, organizations, StateEquality.GoalsOrgEntryStateEquals)) {
+				return;
+			}
+			Organizations = organizations;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -945,6 +993,7 @@ namespace GS.Main {
 		public SelectedProvinceState SelectedProvince { get; } = new SelectedProvinceState();
 		public CountryScoreState CountryScore { get; } = new CountryScoreState();
 		public LeaderboardState Leaderboard { get; } = new LeaderboardState();
+		public GoalsState Goals { get; } = new GoalsState();
 		public WarIconsState WarIcons { get; } = new WarIconsState();
 		public SelectedWarState SelectedWar { get; } = new SelectedWarState();
 		public WarResultsState WarResults { get; } = new WarResultsState();

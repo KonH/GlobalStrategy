@@ -1,0 +1,28 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/Modal/GoalsWindow/GoalsWindow.uss"/>
+    <ui:VisualElement name="goals-root" class="goals-root">
+        <ui:VisualElement name="blackfade" class="gs-blackfade"/>
+        <ui:VisualElement name="goals-panel" class="gs-panel goals-panel">
+            <ui:VisualElement class="goals-header">
+                <ui:Label name="goals-title" text="Goals" class="gs-title goals-title"/>
+            </ui:VisualElement>
+            <ui:Button name="btn-close" text="X" class="gs-btn goals-close"/>
+            <ui:VisualElement class="goals-body">
+                <ui:VisualElement class="goals-left">
+                    <ui:VisualElement name="goals-table-header" class="goals-table-header">
+                        <ui:Label text="#" class="goals-header-place"/>
+                        <ui:Label text="" class="goals-header-flag"/>
+                        <ui:Label text="Name" class="goals-header-name"/>
+                        <ui:Label text="Score" class="goals-header-score"/>
+                    </ui:VisualElement>
+                    <ui:VisualElement name="goals-org-list" class="goals-org-list"/>
+                </ui:VisualElement>
+                <ui:VisualElement class="goals-right">
+                    <ui:VisualElement class="goals-table-header goals-progress-header-spacer"/>
+                    <ui:VisualElement name="goals-progress-list" class="goals-progress-list"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
