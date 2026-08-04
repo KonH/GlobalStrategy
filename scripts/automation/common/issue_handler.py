@@ -12,9 +12,14 @@ The label set IS the state machine - there is no local state file and no timesta
 - `ai-in-progress`               - a run is actively working it; skipped by discovery.
 - `ai-need-attention`            - the automation is waiting on the owner; skipped.
 - `ai-complete`                  - the prompt is fully done; skipped.
+- `ai-specify` / `ai-plan` /
+  `ai-implement`                 - informational stage progress while an agent runs
+                                   `/specify`, `/plan`, or `/implement`; not discovery
+                                   status (do not skip candidates). Agents set these.
 
-Status labels are shared across providers. An item is a candidate iff it carries the provider
-opt-in label and none of the three `ai-*` status labels. The Python wrappers alone add and
+Status labels (`ai-in-progress` / `ai-need-attention` / `ai-complete`) are shared across
+providers. An item is a candidate iff it carries the provider opt-in label and none of those
+three status labels. Stage labels do not affect discovery. The Python wrappers alone add and
 remove `ai-in-progress` (via `claim_candidate` before work and `clear_in_progress` after CLI
 return / limit paths). Agents never touch that label. The owner resumes a need-attention/
 complete item by replying and removing that status label - discovery then selects it again
@@ -93,7 +98,12 @@ CONTRIBUTORS_FILE = AUTOMATION_ROOT / "contributors.json"
 AI_IN_PROGRESS = "ai-in-progress"
 AI_NEED_ATTENTION = "ai-need-attention"
 AI_COMPLETE = "ai-complete"
+AI_SPECIFY = "ai-specify"
+AI_PLAN = "ai-plan"
+AI_IMPLEMENT = "ai-implement"
+# Discovery skips only these three. Stage labels are informational agent progress markers.
 AI_STATUS_LABELS = frozenset({AI_IN_PROGRESS, AI_NEED_ATTENTION, AI_COMPLETE})
+AI_STAGE_LABELS = frozenset({AI_SPECIFY, AI_PLAN, AI_IMPLEMENT})
 
 # Providers handle_issues_auto.py routes `auto-ai` items between. Defined here rather than in
 # that module so handle_limit_pause (below) can reroute an auto-routed item to a different

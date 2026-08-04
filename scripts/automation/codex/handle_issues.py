@@ -17,6 +17,9 @@ The label set is the whole state machine (no local state file, no timestamps):
   ai-in-progress         a run is actively working it (skipped by discovery; shared)
   ai-need-attention      waiting on the owner (skipped by discovery; shared)
   ai-complete            prompt fully done (skipped by discovery; shared)
+  ai-specify/ai-plan/
+  ai-implement           informational /specify|/plan|/implement progress (shared; not
+                         discovery status — agents set these)
 
 A candidate is any open, configured-contributor-authored, `codex`-labeled issue/PR carrying none of the three
 shared `ai-*` status labels. The owner resumes a need-attention/complete item by replying and removing that
