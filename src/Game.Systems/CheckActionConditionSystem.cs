@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Components;
@@ -8,7 +9,8 @@ namespace GS.Game.Systems {
 		public static void Update(
 			World world,
 			ActionConfig config,
-			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null) {
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
+			DateTime currentTime = default) {
 			int[] required = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
 			var toValidate = new List<(int entity, string actionId, string orgId)>();
 
@@ -34,7 +36,7 @@ namespace GS.Game.Systems {
 			var toAdd = new List<int>();
 			foreach (var (entity, actionId, orgId) in toValidate) {
 				entityCountry.TryGetValue(entity, out string countryId);
-				if (ActionPlayability.Evaluate(world, config, entity, actionId, orgId, countryId, hqCountryByOrgId)) {
+				if (ActionPlayability.Evaluate(world, config, entity, actionId, orgId, countryId, hqCountryByOrgId, currentTime)) {
 					toAdd.Add(entity);
 				}
 			}

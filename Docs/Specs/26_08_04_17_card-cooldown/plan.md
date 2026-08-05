@@ -58,9 +58,9 @@ Semantics: the overlay visualizes **remaining** cooldown as a shrinking dark pie
 
 ## Section 1 — Agent Steps
 
-- [ ] **Add `GameSettings.CardCooldownDays`** — `src/Game.Configs/GameSettings.cs`: add `public double CardCooldownDays { get; set; } = 7;` alongside the other flat scalar settings (e.g. near `PeaceGoldPerMonth`). Add `"cardCooldownDays": 7` to `Assets/Configs/game_settings.json` (camelCase JSON policy auto-maps it, confirmed via `Game.Configs.Loader/Program.cs`'s `PropertyNamingPolicy.CamelCase`).
+- [x] **Add `GameSettings.CardCooldownDays`** — `src/Game.Configs/GameSettings.cs`: add `public double CardCooldownDays { get; set; } = 7;` alongside the other flat scalar settings (e.g. near `PeaceGoldPerMonth`). Add `"cardCooldownDays": 7` to `Assets/Configs/game_settings.json` (camelCase JSON policy auto-maps it, confirmed via `Game.Configs.Loader/Program.cs`'s `PropertyNamingPolicy.CamelCase`).
 
-- [ ] **Add `ActionCooldownState` component** — new file `src/Game.Components/ActionCooldownState.cs`:
+- [x] **Add `ActionCooldownState` component** — new file `src/Game.Components/ActionCooldownState.cs`:
   ```csharp
   using System;
 
@@ -75,41 +75,41 @@ Semantics: the overlay visualizes **remaining** cooldown as a shrinking dark pie
   ```
   `[Savable]` because `EndTime` is genuine runtime state set at play time, not derivable from config (per the `[Savable]` omission rule in `.claude/rules/unity/ecs_patterns.md`). One entity per `(OrgId, ActionId)` pair, created lazily the first time that pair is played — mirrors `CardDeck`'s shape.
 
-- [ ] **Add `ActionCooldownQuery`** — new file `src/Game.Systems/ActionCooldownQuery.cs`, a plain non-system helper (same shape as `ControlQuery`):
+- [x] **Add `ActionCooldownQuery`** — new file `src/Game.Systems/ActionCooldownQuery.cs`, a plain non-system helper (same shape as `ControlQuery`):
   - `GetRemaining(IReadOnlyWorld world, string orgId, string actionId, DateTime currentTime) -> TimeSpan?` — scans `ActionCooldownState` entities, returns `null` if no tracking entity for the pair or if `EndTime <= currentTime`, otherwise `EndTime - currentTime`.
   - `IsOnCooldown(IReadOnlyWorld world, string orgId, string actionId, DateTime currentTime) -> bool` — `GetRemaining(...).HasValue`.
 
-- [ ] **Add `ApplyActionCooldownSystem`** — new file `src/Game.Systems/ApplyActionCooldownSystem.cs`:
+- [x] **Add `ApplyActionCooldownSystem`** — new file `src/Game.Systems/ApplyActionCooldownSystem.cs`:
   - `Update(World world, DateTime currentTime, GameSettings settings, ActionConfig actionConfig)`.
   - Query shape: `{ GameAction, ActionSucceeded, OrgContext, CardUse }` — the same archetype `CreateActionEffectSystem.Update` already scans (collect `(actionId, orgId)` pairs into a list first, same two-pass collect-then-mutate style used elsewhere in this codebase to avoid mutating while iterating archetypes).
   - For each pair: look up `actionConfig.Find(actionId)`; **skip if `def == null` or `def.OwnerType != "country"`** (explicitly filters out org-owned actions per spec — must not silently start gating them).
   - `EndTime = currentTime.AddDays(settings.CardCooldownDays)`.
   - Find an existing `ActionCooldownState` tracking entity matching `(OrgId, ActionId)` (linear scan over `ActionCooldownState`-tagged entities); if found, update its `EndTime` via `ref` mutation (`world.Get<ActionCooldownState>(entity).EndTime = endTime`); otherwise `world.Create()` + `world.Add(entity, new ActionCooldownState { OrgId = orgId, ActionId = actionId, EndTime = endTime })`.
 
-- [ ] **Wire `ApplyActionCooldownSystem` into the game loop** — `src/Game.Main/GameLogic.cs`: call `ApplyActionCooldownSystem.Update(_world, currentTime, GameSettings, _actionConfig);` immediately after `ActionSucceededSystem.Update(_world, _actionConfig);` (line 249) and before `CreateActionEffectSystem.Update(...)` (line 251) — both consume the same one-tick `ActionSucceeded`/`CardUse` marker lifetime that `CleanupActionEffectsSystem.Update` sweeps at the top of the *next* tick, so this placement matches every other post-play system's ordering assumption.
+- [x] **Wire `ApplyActionCooldownSystem` into the game loop** — `src/Game.Main/GameLogic.cs`: call `ApplyActionCooldownSystem.Update(_world, currentTime, GameSettings, _actionConfig);` immediately after `ActionSucceededSystem.Update(_world, _actionConfig);` (line 249) and before `CreateActionEffectSystem.Update(...)` (line 251) — both consume the same one-tick `ActionSucceeded`/`CardUse` marker lifetime that `CleanupActionEffectsSystem.Update` sweeps at the top of the *next* tick, so this placement matches every other post-play system's ordering assumption.
 
-- [ ] **Thread `currentTime` through `ActionPlayability.Evaluate` and add the cooldown gate** — `src/Game.Systems/ActionPlayability.cs`:
+- [x] **Thread `currentTime` through `ActionPlayability.Evaluate` and add the cooldown gate** — `src/Game.Systems/ActionPlayability.cs`:
   - Add a trailing optional parameter `DateTime currentTime = default` to `Evaluate`'s signature (after `hqCountryByOrgId`).
   - Add, alongside the existing `CanAfford` check: `if (ActionCooldownQuery.IsOnCooldown(world, orgId, actionId, currentTime)) { return false; }`.
   - No owner-type branching needed inside `Evaluate` itself — this is safe by construction because `ApplyActionCooldownSystem` never creates a tracking entity for an org-owned `actionId`, so `IsOnCooldown` is always `false` for org actions regardless of `currentTime`. (Confirms the spec's Tech Notes point that this needs verifying, not leaving implicit — verified true given step above.)
 
-- [ ] **Thread `currentTime` through `CheckActionConditionSystem.Update`** — `src/Game.Systems/CheckActionConditionSystem.cs`: add a trailing optional parameter `DateTime currentTime = default`, pass it through to the `ActionPlayability.Evaluate(...)` call inside. Update `src/Game.Main/GameLogic.cs`'s call site (line 247) to pass the already-in-scope `currentTime` explicitly: `CheckActionConditionSystem.Update(_world, _actionConfig, _hqCountryByOrgId, currentTime);`.
+- [x] **Thread `currentTime` through `CheckActionConditionSystem.Update`** — `src/Game.Systems/CheckActionConditionSystem.cs`: add a trailing optional parameter `DateTime currentTime = default`, pass it through to the `ActionPlayability.Evaluate(...)` call inside. Update `src/Game.Main/GameLogic.cs`'s call site (line 247) to pass the already-in-scope `currentTime` explicitly: `CheckActionConditionSystem.Update(_world, _actionConfig, _hqCountryByOrgId, currentTime);`.
 
-- [ ] **Pass `currentDate` into the bot's playability check** — `src/Game.Bots/BotObservation.cs`: at the `ActionPlayability.Evaluate(world, actionConfig, entity, actionId, orgId, countryId)` call (line 130), add the already-resolved `currentDate` (from `ReadCurrentDate`, line 71) as the trailing argument: `ActionPlayability.Evaluate(world, actionConfig, entity, actionId, orgId, countryId, currentTime: currentDate)`. This is the one shared-function edit that covers both player-facing server-side validation and `BotCardView.IsPlayable` (consumed by `BaselineCardPlayFeature.TryPlay`) — no bot-specific code needed, satisfying the Constitution's bot-feature carve-out boundary (this is not a new `IBotFeature`, just a shared gate becoming stricter).
+- [x] **Pass `currentDate` into the bot's playability check** — `src/Game.Bots/BotObservation.cs`: at the `ActionPlayability.Evaluate(world, actionConfig, entity, actionId, orgId, countryId)` call (line 130), add the already-resolved `currentDate` (from `ReadCurrentDate`, line 71) as the trailing argument: `ActionPlayability.Evaluate(world, actionConfig, entity, actionId, orgId, countryId, currentTime: currentDate)`. This is the one shared-function edit that covers both player-facing server-side validation and `BotCardView.IsPlayable` (consumed by `BaselineCardPlayFeature.TryPlay`) — no bot-specific code needed, satisfying the Constitution's bot-feature carve-out boundary (this is not a new `IBotFeature`, just a shared gate becoming stricter).
 
-- [ ] **Add cooldown-aware fields to `ActionCardEntry`** — `src/Game.Main/VisualState.cs`: add two nullable properties, `double? CooldownRemainingDays` and `double? CooldownFractionRemaining` (0 = about to end, 1 = just started), with matching optional constructor parameters (default `null`) appended after `warWinChancePercent`.
+- [x] **Add cooldown-aware fields to `ActionCardEntry`** — `src/Game.Main/VisualState.cs`: add two nullable properties, `double? CooldownRemainingDays` and `double? CooldownFractionRemaining` (0 = about to end, 1 = just started), with matching optional constructor parameters (default `null`) appended after `warWinChancePercent`.
 
-- [ ] **Update `StateEquality.ActionCardEntryEquals`** — `src/Game.Main/StateEquality.cs`: add `&& a.CooldownRemainingDays == b.CooldownRemainingDays && a.CooldownFractionRemaining == b.CooldownFractionRemaining` so cooldown countdown changes correctly trigger a `CountryActionsState` refresh.
+- [x] **Update `StateEquality.ActionCardEntryEquals`** — `src/Game.Main/StateEquality.cs`: add `&& a.CooldownRemainingDays == b.CooldownRemainingDays && a.CooldownFractionRemaining == b.CooldownFractionRemaining` so cooldown countdown changes correctly trigger a `CountryActionsState` refresh.
 
-- [ ] **Add `CardCooldownDays` to `VisualStateConverter`'s constructor** — `src/Game.Main/VisualStateConverter.cs`: add a trailing constructor parameter `double cardCooldownDays = 7`, store as `readonly double _cardCooldownDays`. Update the construction call site in `src/Game.Main/GameLogic.cs` (around line 79–81) to pass `settings.CardCooldownDays`.
+- [x] **Add `CardCooldownDays` to `VisualStateConverter`'s constructor** — `src/Game.Main/VisualStateConverter.cs`: add a trailing constructor parameter `double cardCooldownDays = 7`, store as `readonly double _cardCooldownDays`. Update the construction call site in `src/Game.Main/GameLogic.cs` (around line 79–81) to pass `settings.CardCooldownDays`.
 
-- [ ] **Add the cooldown check to `BuildEntry`** — `src/Game.Main/VisualStateConverter.cs`:
+- [x] **Add the cooldown check to `BuildEntry`** — `src/Game.Main/VisualStateConverter.cs`:
   - Add a `DateTime currentTime` parameter to `BuildEntry` (already computed in `UpdateCountryActions`, lines 577–579); update both call sites (lines 615, 628) to pass it.
   - Inside `BuildEntry`, alongside the existing `poolFull` special-case (lines 678–685): `TimeSpan? remaining = ActionCooldownQuery.GetRemaining(world, orgId, actionId, currentTime); bool onCooldown = remaining.HasValue;`
   - Extend `isUnplayable = conditionFailed || poolFull || onCooldown;` and `unplayableReason` to check `onCooldown` (map to `"on_cooldown"`), keeping the existing `poolFull`/`conditionFailed` precedence ahead of it since those are rarer to co-occur with an active cooldown and this preserves current test expectations for the other reasons.
   - Compute `double? cooldownRemainingDays = onCooldown ? System.Math.Ceiling(remaining!.Value.TotalDays) : (double?)null;` (whole days, matching `FormatCooldownRemaining`'s own day-level granularity) and `double? cooldownFractionRemaining = onCooldown && _cardCooldownDays > 0 ? System.Math.Round(System.Math.Clamp(remaining!.Value.TotalDays / _cardCooldownDays, 0.0, 1.0), 2) : (double?)null;` (rounded to the same percent-bucket granularity `GetOrCreateCooldownTexture`'s cache key uses), and pass both into the new `ActionCardEntry(...)` constructor call. Rounding here (rather than passing raw continuously-decreasing doubles) keeps `StateEquality.ActionCardEntryEquals` stable between ticks where the visible label/overlay wouldn't actually change — `TimeSystem` advances `GameTime.CurrentTime` in whole-hour steps on almost every tick while unpaused, and unrounded values would fail equality (and trigger a full hand-panel rebuild via `CountryActionsState.Set` → `HUDDocument.HandleCountryActionsChanged` → `CountryActionsView.Refresh`) on nearly every tick for the entire time a card is on cooldown.
 
-- [ ] **Add the reused remaining-time formatter** — new small static helper (place in `Assets/Scripts/Unity/UI/ActionCardBuilder.cs` as a `static string FormatCooldownRemaining(double? remainingDays)` method, since it's UI-presentation-only and consumed only from that file/`CountryActionsView.cs`), reproducing the original `FormatCooldown` bucketing from the removed `3ba012c` commit (plain, non-localized text, matching the original — only the `on_cooldown` *reason* label gets localization, not this numeric string):
+- [x] **Add the reused remaining-time formatter** — new small static helper (place in `Assets/Scripts/Unity/UI/ActionCardBuilder.cs` as a `static string FormatCooldownRemaining(double? remainingDays)` method, since it's UI-presentation-only and consumed only from that file/`CountryActionsView.cs`), reproducing the original `FormatCooldown` bucketing from the removed `3ba012c` commit (plain, non-localized text, matching the original — only the `on_cooldown` *reason* label gets localization, not this numeric string):
   ```csharp
   static string FormatCooldownRemaining(double? remainingDays) {
       if (!remainingDays.HasValue || remainingDays.Value <= 0) { return ""; }
@@ -122,7 +122,7 @@ Semantics: the overlay visualizes **remaining** cooldown as a shrinking dark pie
   }
   ```
 
-- [ ] **Add the radial cooldown overlay to `ActionCardBuilder`** — `Assets/Scripts/Unity/UI/ActionCardBuilder.cs`:
+- [x] **Add the radial cooldown overlay to `ActionCardBuilder`** — `Assets/Scripts/Unity/UI/ActionCardBuilder.cs`:
   - Add a `double? cooldownFractionRemaining = null` **and** `double? cooldownRemainingDays = null` parameter pair to `Build`, `PopulateSlot`, and the internal `Populate` method (threaded through together, matching the existing `warWinChancePercent` optional-parameter pattern), so `Populate` can forward both into `BuildCooldownOverlay(fractionRemaining, remainingDays)`.
   - Inside `Populate`, after `artEl` is built and appended (mirroring where `BuildWarWinChanceBadge` is added): if `cooldownFractionRemaining.HasValue`, call a new `BuildCooldownOverlay(cooldownFractionRemaining.Value)` and add its result on top of `container` (added last, after `body`, so it visually covers the whole card face, not just the art thumbnail — matches the issue's "overlay is shown on the card face" wording more literally than confining it to the 130px art strip).
   - `BuildCooldownOverlay(double fractionRemaining)` builds a container `VisualElement` with class `action-card-cooldown-overlay` (`position: absolute`, full card bounds, `display: flex` since it's only added when present — no need for a hidden/visible toggle class, absence of the element itself is the "hidden" state per the acceptance criterion "the radial overlay ... disappear[s]"), containing:
@@ -130,7 +130,7 @@ Semantics: the overlay visualizes **remaining** cooldown as a shrinking dark pie
     - a `Label` with class `action-card-cooldown-label`, text from `FormatCooldownRemaining(...)` (caller passes the days value alongside the fraction — adjust the parameter list to carry both, e.g. `BuildCooldownOverlay(double fractionRemaining, double? remainingDays)`).
   - `GetOrCreateCooldownTexture(double fractionRemaining)`: a `static readonly Dictionary<int, Texture2D>` cache keyed by `Mathf.RoundToInt(Mathf.Clamp01((float)fractionRemaining) * 100)`. On cache miss, generate a new `Texture2D` (e.g. 128×128, `TextureFormat.RGBA32`, `filterMode = FilterMode.Bilinear`), iterate pixels, compute each pixel's angle from image center (0° = 12 o'clock, clockwise) and radius; set alpha ~0.6 black (or a themed dark tone consistent with `.action-card--unavailable`'s dim treatment) where `angle/360 < fractionRemaining` and the pixel is inside the circle radius, fully transparent elsewhere; `Apply()` once, cache, and return.
 
-- [ ] **Add the new USS classes** — `Assets/UI/Overlay/OrgInfo/OrgActions.uss` (this is the file that already owns every other `.action-card*` class and is imported into `CountryInfo.uxml`, per the USS-scope rule in `.claude/rules/unity/uitoolkit.md` — do not create a new stylesheet):
+- [x] **Add the new USS classes** — `Assets/UI/Overlay/OrgInfo/OrgActions.uss` (this is the file that already owns every other `.action-card*` class and is imported into `CountryInfo.uxml`, per the USS-scope rule in `.claude/rules/unity/uitoolkit.md` — do not create a new stylesheet):
   ```css
   .action-card-cooldown-overlay {
       position: absolute;
@@ -162,13 +162,13 @@ Semantics: the overlay visualizes **remaining** cooldown as a shrinking dark pie
   ```
   (Exact colours/sizes are a starting point — flagged for visual confirmation in Section 2, since this environment cannot preview UI Toolkit rendering.)
 
-- [ ] **Wire the `on_cooldown` branch into `CountryActionsView`** — `Assets/Scripts/Unity/UI/CountryActionsView.cs`:
+- [x] **Wire the `on_cooldown` branch into `CountryActionsView`** — `Assets/Scripts/Unity/UI/CountryActionsView.cs`:
   - In the `card.UnplayableReason` switch (lines 74–93), add: `"on_cooldown" => _loc.Get("action.country.unplayable.on_cooldown"),`.
   - In `BuildHandCard`, always pass `card.CooldownFractionRemaining`/`card.CooldownRemainingDays` into `ActionCardBuilder.Build(...)`'s new parameters, regardless of which string `UnplayableReason` currently holds — `CooldownFractionRemaining` is populated by `BuildEntry` whenever the card is actually on cooldown, independent of reason precedence (a card can simultaneously be on cooldown and fail an unrelated condition, in which case `UnplayableReason` resolves to the other reason but the card is still on cooldown), so the overlay must key off `CooldownFractionRemaining.HasValue` directly, not off `UnplayableReason == "on_cooldown"`.
 
-- [ ] **Add the `on_cooldown` locale key (EN + real RU)** — use the `localization` skill to add `action.country.unplayable.on_cooldown` to `Assets/Localization/en.asset` (short practical value, matching the existing terse style of sibling keys, e.g. `On cooldown`) and a real Russian translation to `ru.asset` — not an English placeholder, per `.claude/rules/unity/localization.md`.
+- [x] **Add the `on_cooldown` locale key (EN + real RU)** — use the `localization` skill to add `action.country.unplayable.on_cooldown` to `Assets/Localization/en.asset` (short practical value, matching the existing terse style of sibling keys, e.g. `On cooldown`) and a real Russian translation to `ru.asset` — not an English placeholder, per `.claude/rules/unity/localization.md`.
 
-- [ ] **Add/update unit tests** — see Tests section below for the full list; place ECS-level tests in `src/Game.Tests` alongside `ActionPlayabilityTests.cs`.
+- [x] **Add/update unit tests** — see Tests section below for the full list; place ECS-level tests in `src/Game.Tests` alongside `ActionPlayabilityTests.cs`.
 
 ## Section 2 — User Steps
 

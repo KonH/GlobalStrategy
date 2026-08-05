@@ -1,32 +1,43 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace GS.Unity.UI {
 	static class ActionCardBuilder {
+		const int CooldownTextureSize = 128;
+
+		static readonly Dictionary<int, Texture2D> _cooldownTextureCache = new();
+
 		public struct CardResult {
 			public VisualElement Card;
 			public VisualElement Body;
 			public Label CostLabel;
 		}
 
-		public static CardResult Build(string name, string desc, string goldCostText, Sprite art, int? warWinChancePercent = null) {
+		public static CardResult Build(
+			string name, string desc, string goldCostText, Sprite art, int? warWinChancePercent = null,
+			double? cooldownFractionRemaining = null, double? cooldownRemainingDays = null) {
 			var card = new VisualElement();
 			card.AddToClassList("action-card");
-			var result = Populate(card, name, desc, goldCostText, art, warWinChancePercent);
+			var result = Populate(card, name, desc, goldCostText, art, warWinChancePercent, cooldownFractionRemaining, cooldownRemainingDays);
 			result.Card = card;
 			return result;
 		}
 
-		public static CardResult PopulateSlot(VisualElement slot, string name, string desc, string goldCostText, Sprite art, int? warWinChancePercent = null) {
+		public static CardResult PopulateSlot(
+			VisualElement slot, string name, string desc, string goldCostText, Sprite art, int? warWinChancePercent = null,
+			double? cooldownFractionRemaining = null, double? cooldownRemainingDays = null) {
 			slot.Clear();
 			slot.RemoveFromClassList("action-card--success");
 			slot.RemoveFromClassList("action-card--fail");
-			var result = Populate(slot, name, desc, goldCostText, art, warWinChancePercent);
+			var result = Populate(slot, name, desc, goldCostText, art, warWinChancePercent, cooldownFractionRemaining, cooldownRemainingDays);
 			result.Card = slot;
 			return result;
 		}
 
-		static CardResult Populate(VisualElement container, string name, string desc, string goldCostText, Sprite art, int? warWinChancePercent = null) {
+		static CardResult Populate(
+			VisualElement container, string name, string desc, string goldCostText, Sprite art, int? warWinChancePercent = null,
+			double? cooldownFractionRemaining = null, double? cooldownRemainingDays = null) {
 			var header = new Label(name);
 			header.AddToClassList("action-card-header");
 			container.Add(header);
@@ -72,7 +83,70 @@ namespace GS.Unity.UI {
 			body.Add(footer);
 			container.Add(body);
 
+			if (cooldownFractionRemaining.HasValue) {
+				container.Add(BuildCooldownOverlay(cooldownFractionRemaining.Value, cooldownRemainingDays));
+			}
+
 			return new CardResult { Body = body, CostLabel = costLabel };
+		}
+
+		static VisualElement BuildCooldownOverlay(double fractionRemaining, double? remainingDays) {
+			var overlay = new VisualElement();
+			overlay.AddToClassList("action-card-cooldown-overlay");
+
+			var radial = new VisualElement();
+			radial.AddToClassList("action-card-cooldown-radial");
+			radial.style.backgroundImage = new StyleBackground(GetOrCreateCooldownTexture(fractionRemaining));
+			overlay.Add(radial);
+
+			var label = new Label(FormatCooldownRemaining(remainingDays));
+			label.AddToClassList("action-card-cooldown-label");
+			overlay.Add(label);
+
+			return overlay;
+		}
+
+		static Texture2D GetOrCreateCooldownTexture(double fractionRemaining) {
+			int bucket = Mathf.RoundToInt(Mathf.Clamp01((float)fractionRemaining) * 100);
+			if (_cooldownTextureCache.TryGetValue(bucket, out var cached)) {
+				return cached;
+			}
+
+			float fraction = bucket / 100f;
+			var texture = new Texture2D(CooldownTextureSize, CooldownTextureSize, TextureFormat.RGBA32, false);
+			texture.filterMode = FilterMode.Bilinear;
+			float center = CooldownTextureSize / 2f;
+			float radius = CooldownTextureSize / 2f;
+			var fillColor = new Color(0f, 0f, 0f, 0.6f);
+			var clearColor = new Color(0f, 0f, 0f, 0f);
+			for (int y = 0; y < CooldownTextureSize; y++) {
+				for (int x = 0; x < CooldownTextureSize; x++) {
+					float dx = x + 0.5f - center;
+					float dy = y + 0.5f - center;
+					float dist = Mathf.Sqrt(dx * dx + dy * dy);
+					if (dist > radius) {
+						texture.SetPixel(x, y, clearColor);
+						continue;
+					}
+					float angleDeg = Mathf.Atan2(dx, dy) * Mathf.Rad2Deg;
+					if (angleDeg < 0f) { angleDeg += 360f; }
+					bool filled = (angleDeg / 360f) < fraction;
+					texture.SetPixel(x, y, filled ? fillColor : clearColor);
+				}
+			}
+			texture.Apply();
+			_cooldownTextureCache[bucket] = texture;
+			return texture;
+		}
+
+		static string FormatCooldownRemaining(double? remainingDays) {
+			if (!remainingDays.HasValue || remainingDays.Value <= 0) { return ""; }
+			int days = (int)remainingDays.Value;
+			if (days >= 365) { return $"{days / 365} year(s)"; }
+			if (days >= 30) { return $"{days / 30} month(s)"; }
+			if (days >= 2) { return $"{days} days"; }
+			if (days == 1) { return "1 day"; }
+			return "less than a day";
 		}
 
 		static Label BuildWarWinChanceBadge(int percent) {

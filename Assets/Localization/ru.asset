@@ -1832,6 +1832,8 @@ MonoBehaviour:
     Value: Нет организации с контролем, которую можно выбрать целью
   - Key: action.country.unplayable.not_at_war
     Value: Эта страна сейчас не участвует в войне
+  - Key: action.country.unplayable.on_cooldown
+    Value: На перезарядке
   - Key: action.revenge.name
     Value: "Месть против {0}"
   - Key: action.revenge.desc

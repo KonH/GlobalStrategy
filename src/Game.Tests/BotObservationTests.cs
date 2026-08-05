@@ -330,5 +330,38 @@ namespace GS.Game.Tests {
 			var card = obs.OrgHand.First(c => c.ActionId == UnrelatedCardId);
 			Assert.False(card.RaisesControl);
 		}
+
+		static DateTime ReadCurrentTime(GS.Main.GameLogic logic) {
+			int[] required = { ECS.TypeId<GameTime>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(required, null)) {
+				if (arch.Count > 0) { return arch.GetColumn<GameTime>()[0].CurrentTime; }
+			}
+			return default;
+		}
+
+		[Fact]
+		void country_card_on_cooldown_is_unplayable_for_that_org_only() {
+			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
+			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 21, includeCountryCard: true);
+			var logic = new GameLogic(ctx);
+			logic.Update(0f);
+
+			DateTime currentTime = ReadCurrentTime(logic);
+			int cooldownEntity = logic.World.Create();
+			logic.World.Add(cooldownEntity, new ActionCooldownState {
+				OrgId = MultiOrgTestSupport.OrgA,
+				ActionId = MultiOrgTestSupport.CountryCardActionId,
+				EndTime = currentTime.AddDays(7)
+			});
+
+			var obsA = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA);
+			var cardA = obsA.GetCountry(MultiOrgTestSupport.HqA)!.Hand.First(c => c.ActionId == MultiOrgTestSupport.CountryCardActionId);
+			Assert.False(cardA.IsPlayable);
+
+			// A different org holding the same ActionId in the same country is unaffected.
+			var obsB = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgB);
+			var cardB = obsB.GetCountry(MultiOrgTestSupport.HqA)!.Hand.First(c => c.ActionId == MultiOrgTestSupport.CountryCardActionId);
+			Assert.True(cardB.IsPlayable);
+		}
 	}
 }

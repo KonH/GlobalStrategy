@@ -24,6 +24,7 @@ namespace GS.Main {
 		readonly EventNotificationSettings? _eventNotifications;
 		readonly int _maxControlPool;
 		readonly IReadOnlyList<GoalsLeafDescriptor> _goalLeaves;
+		readonly double _cardCooldownDays;
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
@@ -35,7 +36,8 @@ namespace GS.Main {
 			EventNotificationSettings? eventNotifications = null,
 			CompletionConditionConfig? completionCondition = null,
 			int maxControlPool = 100,
-			EffectConfig? effectConfig = null) {
+			EffectConfig? effectConfig = null,
+			double cardCooldownDays = 7) {
 			_state = state;
 			_actionConfig = actionConfig;
 			_hqCountryByOrgId = hqCountryByOrgId ?? new Dictionary<string, string>();
@@ -46,6 +48,7 @@ namespace GS.Main {
 			_maxControlPool = maxControlPool > 0 ? maxControlPool : 100;
 			_goalLeaves = GoalsProjector.FlattenLeaves(completionCondition);
 			_effectConfig = effectConfig;
+			_cardCooldownDays = cardCooldownDays;
 		}
 
 		public void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
@@ -612,7 +615,7 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId) { continue; }
-					var entry = BuildEntry(world, orgId, countryId, arch.Entities[i], actions[i].ActionId, hands[i].SlotIndex, true, orgControl, usedTotal);
+					var entry = BuildEntry(world, orgId, countryId, arch.Entities[i], actions[i].ActionId, hands[i].SlotIndex, true, orgControl, usedTotal, currentTime);
 					if (entry != null) { hand.Add(entry); }
 				}
 			}
@@ -625,7 +628,7 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId) { continue; }
-					var entry = BuildEntry(world, orgId, countryId, arch.Entities[i], actions[i].ActionId, -1, false, orgControl, usedTotal);
+					var entry = BuildEntry(world, orgId, countryId, arch.Entities[i], actions[i].ActionId, -1, false, orgControl, usedTotal, currentTime);
 					if (entry != null) { deck.Add(entry); }
 				}
 			}
@@ -638,7 +641,7 @@ namespace GS.Main {
 		ActionCardEntry? BuildEntry(
 			IReadOnlyWorld world, string orgId, string countryId, int entity,
 			string actionId, int slotIndex, bool isInHand,
-			int orgControl, int usedTotal) {
+			int orgControl, int usedTotal, DateTime currentTime) {
 			var def = _actionConfig?.Find(actionId);
 			if (def == null) { return null; }
 
@@ -681,8 +684,14 @@ namespace GS.Main {
 					$"control pool not full (used {usedTotal}/100)",
 					!poolFull));
 			}
-			bool isUnplayable = conditionFailed || poolFull;
-			string unplayableReason = poolFull ? "pool_full" : (conditionFailed ? failedReason : "");
+			TimeSpan? remaining = ActionCooldownQuery.GetRemaining(world, orgId, actionId, currentTime);
+			bool onCooldown = remaining.HasValue;
+			bool isUnplayable = conditionFailed || poolFull || onCooldown;
+			string unplayableReason = poolFull ? "pool_full" : (conditionFailed ? failedReason : (onCooldown ? "on_cooldown" : ""));
+			double? cooldownRemainingDays = onCooldown ? Math.Ceiling(remaining!.Value.TotalDays) : (double?)null;
+			double? cooldownFractionRemaining = onCooldown && _cardCooldownDays > 0
+				? Math.Round(Math.Clamp(remaining!.Value.TotalDays / _cardCooldownDays, 0.0, 1.0), 2)
+				: (double?)null;
 			string targetCountryId = world.Has<RelationCardTarget>(entity)
 				? world.Get<RelationCardTarget>(entity).TargetCountryId
 				: world.Has<RevengeCardTarget>(entity) ? world.Get<RevengeCardTarget>(entity).TargetCountryId : "";
@@ -703,7 +712,8 @@ namespace GS.Main {
 			}
 
 			return new ActionCardEntry(
-				actionId, slotIndex, isInHand, isUnplayable, unplayableReason, targetCountryId, conditionResults, warWinChancePercent);
+				actionId, slotIndex, isInHand, isUnplayable, unplayableReason, targetCountryId, conditionResults, warWinChancePercent,
+				cooldownRemainingDays, cooldownFractionRemaining);
 		}
 
 		bool TryResolveRevengePendingBonuses(string actionId, out double damageBonusPercent, out double durabilityBonusPercent) {
