@@ -74,7 +74,7 @@ namespace GS.Unity.UI {
 		async UniTask PlaceAndAnimate(Rect fromRect, VisualElement toElement, float duration) {
 			_cardCopy.style.position = Position.Absolute;
 			_cardCopy.style.width = 240f;
-			_cardCopy.style.height = 320f;
+			_cardCopy.style.height = 300f;
 
 			var fromLocal = _overlay.WorldToLocal(new Vector2(fromRect.x, fromRect.y));
 			_cardCopy.style.left = fromLocal.x;
