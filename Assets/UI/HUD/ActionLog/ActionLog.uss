@@ -13,7 +13,10 @@
 
 .action-log-entry {
     white-space: normal;
-    margin-top: 4px;
+    margin-top: 6px;
+    padding: 3px 6px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 4px;
     color: rgb(255, 255, 255);
     text-shadow: 3px 3px 0 rgba(0, 0, 0, 1);
 }
