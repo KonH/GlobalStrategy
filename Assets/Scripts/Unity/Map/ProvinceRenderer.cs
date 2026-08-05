@@ -193,7 +193,13 @@ namespace GS.Unity.Map {
 					for (int i = 0; i < ringNeighbors.Length; i++) {
 						string neighborId = ringNeighbors[i] ?? "";
 						if (neighborId == "") {
-							mask[i] = false;
+							// Unattributed segment (BorderSegmentIndex found no geometric match) —
+							// fail open: draw it. We can't prove it's an internal same-owner edge,
+							// and geometry-attribution gaps (coarse polygons, per-country simplify
+							// drift) are common enough that hiding by default silently drops real
+							// country/org boundaries. Cost: true coastline segments also draw now.
+							mask[i] = true;
+							anyBoundary = true;
 							continue;
 						}
 						string neighborOwner = ResolveOwner(neighborId, ownerByProvinceId);
