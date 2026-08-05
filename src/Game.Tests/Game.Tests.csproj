@@ -27,6 +27,7 @@
     <ProjectReference Include="../Game.Evals/Game.Evals.csproj" />
     <ProjectReference Include="../Game.Benchmarks/Game.Benchmarks.csproj" />
     <ProjectReference Include="../Game.Common/Game.Common.csproj" />
+    <ProjectReference Include="../Core.Map/Core.Map.csproj" />
   </ItemGroup>
 
 </Project>

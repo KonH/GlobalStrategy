@@ -5,6 +5,7 @@ namespace GS.Unity.Map {
 	[DisallowMultipleComponent]
 	public class ProvinceIdentifier : MonoBehaviour {
 		internal MapFeature Feature { get; private set; }
+		internal string[][] SegmentNeighborProvinceIds { get; private set; }
 
 		public string ProvinceId { get; private set; }
 		public string CountryId { get; private set; }
@@ -13,6 +14,10 @@ namespace GS.Unity.Map {
 			ProvinceId = provinceId;
 			CountryId = countryId;
 			Feature = feature;
+		}
+
+		internal void SetSegmentNeighbors(string[][] neighbors) {
+			SegmentNeighborProvinceIds = neighbors;
 		}
 	}
 }
