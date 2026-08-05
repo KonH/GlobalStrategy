@@ -124,13 +124,6 @@ namespace GS.Game.Tests {
 							new ExpressionNode {
 								Type = "gte",
 								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "isInWar" },
-									new ExpressionNode { Type = "value", Value = 1 }
-								}
-							},
-							new ExpressionNode {
-								Type = "gte",
-								Members = new List<ExpressionNode> {
 									new ExpressionNode { Type = "opinion" },
 									new ExpressionNode { Type = "value", Value = 80 }
 								}
@@ -436,7 +429,6 @@ namespace GS.Game.Tests {
 			world.Add(cardEntity, new CountryContext { CountryId = "Prussia" });
 			world.Add(cardEntity, new CardInHand { SlotIndex = 0 });
 
-			Wars.DeclareWar(world, "Prussia", "Austria", new DateTime(1880, 1, 1));
 			return world;
 		}
 
@@ -463,7 +455,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void sell_arms_reports_war_ended_without_removing_held_card() {
+		void sell_arms_stays_playable_in_peacetime_with_sufficient_military_opinion() {
 			var world = BuildWorldWithSellArmsCard(
 				out int gameTimeEntity,
 				out int localeEntity,
@@ -471,15 +463,26 @@ namespace GS.Game.Tests {
 				out int cardEntity,
 				militaryOpinion: 80,
 				diplomacyOpinion: 100);
-			Wars.StopWar(
-				world,
-				"Prussia",
-				new DateTime(1880, 1, 1),
-				new Random(1),
-				new GameSettings(),
-				new ProvinceTopology(new ProvinceConfig()),
-				new Dictionary<string, (double Lon, double Lat)>(),
-				100);
+			var state = new VisualState();
+			var converter = new VisualStateConverter(state, BuildActionConfig());
+
+			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
+
+			ActionCardEntry? entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "sell_arms");
+			Assert.NotNull(entry);
+			Assert.False(entry!.IsUnplayable);
+			Assert.True(world.Has<CardInHand>(cardEntity));
+		}
+
+		[Fact]
+		void sell_arms_reports_insufficient_opinion_without_removing_held_card() {
+			var world = BuildWorldWithSellArmsCard(
+				out int gameTimeEntity,
+				out int localeEntity,
+				out int orgEntity,
+				out int cardEntity,
+				militaryOpinion: 79,
+				diplomacyOpinion: 100);
 			var state = new VisualState();
 			var converter = new VisualStateConverter(state, BuildActionConfig());
 
@@ -488,7 +491,7 @@ namespace GS.Game.Tests {
 			ActionCardEntry? entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "sell_arms");
 			Assert.NotNull(entry);
 			Assert.True(entry!.IsUnplayable);
-			Assert.Equal("war_ended", entry.UnplayableReason);
+			Assert.Equal("insufficient_opinion", entry.UnplayableReason);
 			Assert.True(world.Has<CardInHand>(cardEntity));
 		}
 
