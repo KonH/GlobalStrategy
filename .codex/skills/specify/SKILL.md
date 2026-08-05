@@ -5,4 +5,6 @@ description: Capture feature intent via /specify for GlobalStrategy. When proces
 
 # Specify (Codex)
 
+Before starting, follow the **Synchronize with main** section in `.claude/commands/specify.md`: fetch `origin/main`, merge it into the current branch, and resolve every conflict before doing specify work.
+
 Follow `.claude/commands/specify.md` (including the issue-automation stage-label block). That command delegates to the shared `k:specify` skill.

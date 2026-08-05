@@ -1,4 +1,14 @@
 Create a plan for the requested task, using the shared `k:plan` skill.
+
+## Synchronize with main
+
+Before doing any planning work, synchronize the current branch with the actual remote main branch:
+
+1. Confirm the working tree is clean with `git status --short`; if it is not, stop and report the existing changes.
+2. Run `git fetch origin main`, then `git merge origin/main`.
+3. Resolve every merge conflict, stage the resolutions, and complete the merge commit before continuing. If a conflict cannot be resolved confidently, stop and ask the user; never discard either side of a conflict.
+
+Do not inspect or write a plan until the branch contains the fetched `origin/main` and the working tree is clean.
 The only project-specific override is what the "User Steps" section should call out.
 
 ## Issue automation stage label
