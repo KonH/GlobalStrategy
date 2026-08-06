@@ -100,6 +100,8 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<TimeInputHandler>();
 
 			builder.Register<ECS.Viewer.PauseToken>(VContainer.Lifetime.Singleton);
+			builder.Register<ModalState>(Lifetime.Singleton);
+			builder.Register<UIPointerState>(Lifetime.Singleton);
 			builder.RegisterEntryPoint<GameLoopRunner>();
 			builder.RegisterComponentInHierarchy<EcsViewerBridge>();
 

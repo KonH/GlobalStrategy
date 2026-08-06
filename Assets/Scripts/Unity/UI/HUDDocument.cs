@@ -81,9 +81,10 @@ namespace GS.Unity.UI {
 		readonly List<string> _relationDropdownCountryIds = new();
 		DebugCardAvailabilityView _selectedCountryCardDebug;
 		DebugCardAvailabilityView _selectedOrgCardDebug;
+		UIPointerState _pointerState;
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, GoalsWindowDocument goalsWindow, WarProgressWindowDocument warProgressWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig, IFlyTextNotifier flyText, GameSettings gameSettings) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, GoalsWindowDocument goalsWindow, WarProgressWindowDocument warProgressWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig, IFlyTextNotifier flyText, GameSettings gameSettings, UIPointerState pointerState) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
@@ -103,13 +104,14 @@ namespace GS.Unity.UI {
 			_cardPlayAnimator = cardPlayAnimator;
 			_countryConfig = countryConfig;
 			_gameSettings = gameSettings;
+			_pointerState = pointerState;
 		}
 
 		void Awake() {
 			_document = GetComponent<UIDocument>();
 			_root = _document.rootVisualElement;
 			var root = _root;
-			UIPointerState.RuntimePanel = root.panel;
+			_pointerState.RuntimePanel = root.panel;
 
 			_tooltip = new TooltipSystem(root.Q("hud-root"));
 			_timeView = new TimeView(

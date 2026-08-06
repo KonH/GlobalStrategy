@@ -24,13 +24,15 @@ namespace GS.Unity.UI {
 		VisualElement _goalHintRows;
 		Label _goalHintAlternativeCue;
 		Label _goalHintEmpty;
+		UIPointerState _pointerState;
 
 		[Inject]
-		void Construct(SelectOrgLogic logic, SceneLoader sceneLoader, ILocalization localization, OrgVisualConfig orgVisualConfig) {
+		void Construct(SelectOrgLogic logic, SceneLoader sceneLoader, ILocalization localization, OrgVisualConfig orgVisualConfig, UIPointerState pointerState) {
 			_logic = logic;
 			_sceneLoader = sceneLoader;
 			_localization = localization;
 			_orgVisualConfig = orgVisualConfig;
+			_pointerState = pointerState;
 		}
 
 		void Awake() {
@@ -39,7 +41,7 @@ namespace GS.Unity.UI {
 
 		void Start() {
 			var root = _doc.rootVisualElement;
-			UIPointerState.RuntimePanel = root.panel;
+			_pointerState.RuntimePanel = root.panel;
 			_orgNameLabel = root.Q<Label>("country-name-label");
 			_orgFlagElement = root.Q("org-flag");
 			_goldLabel = root.Q<Label>("gold-label");

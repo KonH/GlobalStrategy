@@ -20,6 +20,7 @@ namespace GS.Unity.UI {
 		EffectConfig _effectConfig;
 		ActionVisualConfig _visualConfig;
 		ILocalization _loc;
+		ModalState _modalState;
 		bool _isPlaying;
 		CardTransitionView _transitionView;
 		OrgActionsView _actionsView;
@@ -35,7 +36,7 @@ namespace GS.Unity.UI {
 		void Construct(VisualState state, IWriteOnlyCommandAccessor commands,
 			CountryConfig domainConfig,
 			ActionConfig actionConfig, EffectConfig effectConfig,
-			ActionVisualConfig visualConfig, ILocalization loc) {
+			ActionVisualConfig visualConfig, ILocalization loc, ModalState modalState) {
 			_state = state;
 			_commands = commands;
 			_domainConfig = domainConfig;
@@ -43,6 +44,7 @@ namespace GS.Unity.UI {
 			_effectConfig = effectConfig;
 			_visualConfig = visualConfig;
 			_loc = loc;
+			_modalState = modalState;
 		}
 
 		void Awake() {
@@ -129,7 +131,7 @@ namespace GS.Unity.UI {
 			_resultReady = false;
 			_lastActionSuccess = false;
 			_barrierHolder = null;
-			ModalState.IsModalOpen = true;
+			_modalState.Lock(this);
 			bool issuedPause = !_state.Time.IsPaused;
 			if (_actionsView != null) { _actionsView.SuppressRefresh = true; }
 
@@ -231,7 +233,7 @@ namespace GS.Unity.UI {
 					_actionsView.SuppressRefresh = false;
 				}
 
-				ModalState.IsModalOpen = false;
+				_modalState.Unlock(this);
 				if (issuedPause) {
 					_commands.Push(new UnpauseCommand());
 					issuedPause = false;
@@ -243,7 +245,7 @@ namespace GS.Unity.UI {
 				_barrierHolder?.CancelAll();
 				_barrierHolder = null;
 				_transitionView.Hide();
-				ModalState.IsModalOpen = false;
+				_modalState.Unlock(this);
 				if (issuedPause) {
 					_commands.Push(new UnpauseCommand());
 				}
@@ -260,7 +262,7 @@ namespace GS.Unity.UI {
 			_resultReady = false;
 			_lastActionSuccess = false;
 			_barrierHolder = null;
-			ModalState.IsModalOpen = true;
+			_modalState.Lock(this);
 			bool issuedPause = !_state.Time.IsPaused;
 
 			if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = true; }
@@ -372,7 +374,7 @@ namespace GS.Unity.UI {
 				}
 
 				if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = false; }
-				ModalState.IsModalOpen = false;
+				_modalState.Unlock(this);
 				if (issuedPause) {
 					_commands.Push(new UnpauseCommand());
 					issuedPause = false;
@@ -384,7 +386,7 @@ namespace GS.Unity.UI {
 				_barrierHolder?.CancelAll();
 				_barrierHolder = null;
 				_transitionView.Hide();
-				ModalState.IsModalOpen = false;
+				_modalState.Unlock(this);
 				if (issuedPause) {
 					_commands.Push(new UnpauseCommand());
 				}

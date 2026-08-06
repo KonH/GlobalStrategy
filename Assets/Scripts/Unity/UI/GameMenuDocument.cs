@@ -15,6 +15,7 @@ namespace GS.Unity.UI {
 		SceneLoader _sceneLoader;
 		ILocalization _loc;
 		IFlyTextNotifier _flyText;
+		ModalState _modalState;
 		UIDocument _doc;
 		VisualElement _root;
 
@@ -24,12 +25,13 @@ namespace GS.Unity.UI {
 		Button _btnExit;
 
 		[Inject]
-		void Construct(IWriteOnlyCommandAccessor commands, VisualState visualState, SceneLoader sceneLoader, ILocalization loc, IFlyTextNotifier flyText) {
+		void Construct(IWriteOnlyCommandAccessor commands, VisualState visualState, SceneLoader sceneLoader, ILocalization loc, IFlyTextNotifier flyText, ModalState modalState) {
 			_commands = commands;
 			_visualState = visualState;
 			_sceneLoader = sceneLoader;
 			_loc = loc;
 			_flyText = flyText;
+			_modalState = modalState;
 		}
 
 		// Explicit sortingOrder, not scene-authoring order — see .claude/rules/unity/uitoolkit.md
@@ -91,14 +93,14 @@ namespace GS.Unity.UI {
 
 		public void Show() {
 			_commands?.Push(new PauseCommand());
-			ModalState.IsModalOpen = true;
+			_modalState.Lock(this);
 			RefreshTexts();
 			_root.style.display = DisplayStyle.Flex;
 		}
 
 		void Hide() {
 			_commands?.Push(new UnpauseCommand());
-			ModalState.IsModalOpen = false;
+			_modalState.Unlock(this);
 			_root.style.display = DisplayStyle.None;
 		}
 

@@ -3,6 +3,7 @@ using VContainer;
 using VContainer.Unity;
 using GS.Main;
 using GS.Game.Configs;
+using GS.Unity.Common;
 using GS.Unity.Map;
 using GS.Unity.Save;
 using GS.Unity.UI;
@@ -34,6 +35,8 @@ namespace GS.Unity.DI {
 			builder.RegisterInstance(_countryVisualConfig);
 			builder.RegisterInstance(_orgVisualConfig);
 			builder.RegisterInstance(_mapCameraConfig);
+			builder.Register<ModalState>(Lifetime.Singleton);
+			builder.Register<UIPointerState>(Lifetime.Singleton);
 			builder.RegisterComponentInHierarchy<Camera>();
 			builder.RegisterComponentInHierarchy<MapLoader>();
 			builder.RegisterComponentInHierarchy<MapController>();

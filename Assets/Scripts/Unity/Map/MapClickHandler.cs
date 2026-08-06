@@ -15,16 +15,20 @@ namespace GS.Unity.Map {
 		MapController _mapController;
 		IWriteOnlyCommandAccessor _commands;
 		VisualState _state;
+		ModalState _modalState;
+		UIPointerState _pointerState;
 		bool _pressing;
 		Vector2 _pressScreenPos;
 		bool _pressIsTouch;
 		int _pressTouchId;
 
 		[Inject]
-		void Construct(MapController mapController, IWriteOnlyCommandAccessor commands, VisualState state) {
+		void Construct(MapController mapController, IWriteOnlyCommandAccessor commands, VisualState state, ModalState modalState, UIPointerState pointerState) {
 			_mapController = mapController;
 			_commands = commands;
 			_state = state;
+			_modalState = modalState;
+			_pointerState = pointerState;
 		}
 
 		void Awake() {
@@ -52,7 +56,7 @@ namespace GS.Unity.Map {
 				return;
 			}
 			_pressing = false;
-			if (ModalState.IsModalOpen) {
+			if (_modalState.IsLocked()) {
 				return;
 			}
 
@@ -64,7 +68,7 @@ namespace GS.Unity.Map {
 			// fraction ticking) can rebuild UI elements between press and release, leaving the
 			// press-time Pick() briefly stale. Re-checking here closes that race instead of
 			// letting the click fall through to the map underneath.
-			if (UIPointerState.IsPointerOverUI(releasePos)) {
+			if (_pointerState.IsPointerOverUI(releasePos)) {
 				return;
 			}
 
@@ -100,7 +104,7 @@ namespace GS.Unity.Map {
 			_pressScreenPos = screenPos;
 			_pressIsTouch = isTouch;
 			_pressTouchId = pointerId;
-			_pressing = !ModalState.IsModalOpen && !UIPointerState.IsPointerOverUI(screenPos);
+			_pressing = !_modalState.IsLocked() && !_pointerState.IsPointerOverUI(screenPos);
 			if (!_pressing) {
 				Debug.Log("[MapClick] Blocked by UI");
 			}

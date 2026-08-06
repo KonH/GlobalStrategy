@@ -45,8 +45,8 @@ Components that need the active renderer must hold a serialized reference to `Ma
 `MapCameraController` (zoom/pan) and `MapClickHandler` (clicks) all read `Mouse`/`Touchscreen` input directly every frame — this bypasses UI Toolkit's event system entirely, so nothing stops that input from *also* driving the camera while the player is interacting with a UI panel on top of it. This has recurred as a bug more than once (scrolling/dragging a list inside an open window also zoomed/panned the map underneath).
 
 Two checks, both required for any new hardware-polling input handler in this folder:
-- `GS.Unity.Common.ModalState.IsModalOpen` — cheap bool, true while any full modal window is open.
-- `GS.Unity.Common.UIPointerState.IsPointerOverUI(screenPosition)` — real UI Toolkit hit-test (`IPanel.Pick` via `RuntimePanelUtils.ScreenToPanel`) against the shared runtime panel (set once in `HUDDocument.Awake()`, since the whole project shares one `PanelSettings`). Use this even for **non-modal** UI (HUD panels, tooltips) — `ModalState` alone only covers full modal windows.
+- `GS.Unity.Common.ModalState.IsLocked()` — injected instance, true while any modal window's `Lock(this)` call is still outstanding (owners tracked via weak reference, so an unbalanced `Unlock` can't leak the lock forever).
+- `GS.Unity.Common.UIPointerState.IsPointerOverUI(screenPosition)` — injected instance; real UI Toolkit hit-test (`IPanel.Pick` via `RuntimePanelUtils.ScreenToPanel`) against the shared runtime panel (set once in `HUDDocument.Awake()`/`SelectOrgDocument.Start()` via injected `UIPointerState.RuntimePanel`, since the whole project shares one `PanelSettings`). Use this even for **non-modal** UI (HUD panels, tooltips) — `ModalState` alone only covers full modal windows.
 
 **Never use `EventSystem.current.IsPointerOverGameObject()`** for this — it does not reliably detect UI Toolkit panels under the New Input System in this Unity version (see `.claude/rules/unity/uitoolkit.md`'s "Click Blocking for Modal Dialogs").
 

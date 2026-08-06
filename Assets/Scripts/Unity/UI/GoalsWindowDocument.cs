@@ -17,14 +17,15 @@ namespace GS.Unity.UI {
 		Label _title;
 		Button _closeButton;
 		GoalsWindowView _view;
-		bool _ownsModalState;
+		ModalState _modalState;
 		bool _subscribed;
 
 		[Inject]
-		void Construct(VisualState state, ILocalization loc, OrgVisualConfig orgVisualConfig) {
+		void Construct(VisualState state, ILocalization loc, OrgVisualConfig orgVisualConfig, ModalState modalState) {
 			_state = state;
 			_loc = loc;
 			_orgVisualConfig = orgVisualConfig;
+			_modalState = modalState;
 		}
 
 		// Explicit sortingOrder, not scene-authoring order — see .claude/rules/unity/uitoolkit.md
@@ -72,8 +73,7 @@ namespace GS.Unity.UI {
 			if (IsVisible) {
 				return;
 			}
-			ModalState.IsModalOpen = true;
-			_ownsModalState = true;
+			_modalState.Lock(this);
 			_root.style.display = DisplayStyle.Flex;
 		}
 
@@ -81,10 +81,7 @@ namespace GS.Unity.UI {
 			if (_root != null) {
 				_root.style.display = DisplayStyle.None;
 			}
-			if (_ownsModalState) {
-				ModalState.IsModalOpen = false;
-				_ownsModalState = false;
-			}
+			_modalState.Unlock(this);
 		}
 
 		void Subscribe() {
