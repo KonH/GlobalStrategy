@@ -32,8 +32,13 @@ namespace GS.Unity.UI {
 			_flyText = flyText;
 		}
 
+		// Explicit sortingOrder, not scene-authoring order — see .claude/rules/unity/uitoolkit.md
+		// Above modals (Leaderboard 500 / Goals 505 / War 510), just below FlyText (1000), below EndGame (1100).
+		const int SortingOrder = 990;
+
 		void Awake() {
 			_doc = GetComponent<UIDocument>();
+			_doc.sortingOrder = SortingOrder;
 		}
 
 		void OnEnable() {

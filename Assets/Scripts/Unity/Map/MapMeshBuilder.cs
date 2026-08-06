@@ -35,7 +35,7 @@ namespace GS.Unity.Map {
 		}
 
 		static void AppendRingMesh(Ring ring, List<Vector3> vertices, List<int> triangles, List<Vector2> uvs) {
-			var verts = UnwrapAndProjectRing(ring);
+			var verts = ProjectRingVertices(ring);
 			if (verts == null) {
 				return;
 			}
@@ -53,14 +53,28 @@ namespace GS.Unity.Map {
 		}
 
 		public static Mesh BuildBorderMesh(IReadOnlyList<Polygon> polygons, float width) {
+			return BuildBorderMesh(polygons, width, null);
+		}
+
+		public static Mesh BuildBorderMesh(
+			IReadOnlyList<Polygon> polygons,
+			float width,
+			IReadOnlyList<bool[]> ringSegmentMasks) {
 			var vertices = new List<Vector3>();
 			var triangles = new List<int>();
 
+			int polygonIndex = 0;
 			foreach (var polygon in polygons) {
 				if (polygon.Rings.Count == 0) {
+					polygonIndex++;
 					continue;
 				}
-				AppendBorderRingMesh(polygon.Rings[0], width, vertices, triangles);
+				bool[] mask = null;
+				if (ringSegmentMasks != null && polygonIndex < ringSegmentMasks.Count) {
+					mask = ringSegmentMasks[polygonIndex];
+				}
+				AppendBorderRingMesh(polygon.Rings[0], width, mask, vertices, triangles);
+				polygonIndex++;
 			}
 
 			if (vertices.Count == 0) {
@@ -76,8 +90,13 @@ namespace GS.Unity.Map {
 			return mesh;
 		}
 
-		static void AppendBorderRingMesh(Ring ring, float width, List<Vector3> vertices, List<int> triangles) {
-			var verts = UnwrapAndProjectRing(ring);
+		static void AppendBorderRingMesh(
+			Ring ring,
+			float width,
+			bool[] segmentMask,
+			List<Vector3> vertices,
+			List<int> triangles) {
+			var verts = ProjectRingVertices(ring);
 			if (verts == null) {
 				return;
 			}
@@ -86,6 +105,10 @@ namespace GS.Unity.Map {
 			int n = verts.Length;
 
 			for (int i = 0; i < n; i++) {
+				if (segmentMask != null && (i >= segmentMask.Length || !segmentMask[i])) {
+					continue;
+				}
+
 				Vector2 a = verts[i];
 				Vector2 b = verts[(i + 1) % n];
 				Vector2 dir = (b - a).normalized;
@@ -106,7 +129,7 @@ namespace GS.Unity.Map {
 			}
 		}
 
-		static Vector2[] UnwrapAndProjectRing(Ring ring) {
+		public static Vector2[] ProjectRingVertices(Ring ring) {
 			var points = ring.Points;
 			int count = points.Count;
 

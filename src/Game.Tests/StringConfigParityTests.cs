@@ -130,11 +130,6 @@ namespace GS.Game.Tests {
 					action.Conditions,
 					condition => {
 						Assert.Equal("gte", condition.Type);
-						Assert.Equal("isInWar", condition.Members[0].Type);
-						Assert.Equal(1, condition.Members[1].Value);
-					},
-					condition => {
-						Assert.Equal("gte", condition.Type);
 						Assert.Equal("opinion", condition.Members[0].Type);
 						Assert.Equal(80, condition.Members[1].Value);
 					});

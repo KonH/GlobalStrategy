@@ -8,7 +8,7 @@ namespace GS.Unity.UI {
 		const float FadeInSeconds = 0.25f;
 		const float FadeOutSeconds = 0.6f;
 		const float TopGapPx = 6f;
-		const float BottomReservedOffsetPx = 160f; // representative closed-state height of the bottom-bar panel
+		const float BottomReservedOffsetPx = 280f; // clear selected country/org bar (matches map-controls-panel bottom)
 		const float WidthMultiplier = 1.5f;
 		const float RightPx = 6f;
 
@@ -30,6 +30,7 @@ namespace GS.Unity.UI {
 			_countryVisualConfig = countryVisualConfig;
 			_orgVisualConfig = orgVisualConfig;
 			_content = root.Q<VisualElement>("action-log-content");
+			SetPickingIgnoreRecursive(_root);
 			_root.style.bottom = BottomReservedOffsetPx;
 			_topRightPanel.RegisterCallback<GeometryChangedEvent>(_ => RepositionAndResize());
 			RepositionAndResize();
@@ -83,7 +84,15 @@ namespace GS.Unity.UI {
 			var label = new Label(text) { enableRichText = true };
 			label.AddToClassList("gs-label");
 			label.AddToClassList("action-log-entry");
+			SetPickingIgnoreRecursive(label);
 			return label;
+		}
+
+		static void SetPickingIgnoreRecursive(VisualElement el) {
+			el.pickingMode = PickingMode.Ignore;
+			foreach (var child in el.Children()) {
+				SetPickingIgnoreRecursive(child);
+			}
 		}
 	}
 }

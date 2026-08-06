@@ -92,7 +92,7 @@
       "nameKey": "effect.sell_arms_damage_bonus_effect.name",
       "descKey": "effect.sell_arms_damage_bonus_effect.desc",
       "resourceId": "troops_damage_bonus_percent",
-      "initialValue": 10.0,
+      "initialValue": 20.0,
       "decayPerMonth": 1.0
     },
     {

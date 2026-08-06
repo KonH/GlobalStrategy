@@ -127,13 +127,6 @@ namespace GS.Game.Tests {
 							new ExpressionNode {
 								Type = "gte",
 								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "isInWar" },
-									new ExpressionNode { Type = "value", Value = 1 }
-								}
-							},
-							new ExpressionNode {
-								Type = "gte",
-								Members = new List<ExpressionNode> {
 									new ExpressionNode { Type = "opinion" },
 									new ExpressionNode { Type = "value", Value = 80 }
 								}
@@ -657,7 +650,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void sell_arms_requires_active_war_and_military_advisor_opinion() {
+		void sell_arms_requires_military_advisor_opinion_regardless_of_war() {
 			var config = BuildActionConfig();
 			var world = new World();
 			AddAdvisor(world, "Prussia", "diplomat", "OrgA", "diplomacy_advisor", 100);
@@ -670,24 +663,49 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void sell_arms_is_playable_at_exact_opinion_threshold_without_gold() {
+		void sell_arms_is_playable_at_exact_opinion_threshold_in_peacetime_without_gold() {
 			var config = BuildActionConfig();
 			var world = new World();
 			AddAdvisor(world, "Prussia", "general", "OrgA", "military_advisor", 80);
-			Wars.DeclareWar(world, "Prussia", "Austria", new System.DateTime(1880, 1, 1));
 
 			Assert.True(ActionPlayability.Evaluate(world, config, -1, "sell_arms", "OrgA", "Prussia"));
 		}
 
 		[Fact]
-		void held_sell_arms_card_stays_in_hand_and_tracks_current_war_state() {
+		void held_sell_arms_card_stays_in_hand_and_stays_playable_across_war_transitions() {
 			var config = BuildActionConfig();
 			var world = new World();
 			AddAdvisor(world, "Prussia", "general", "OrgA", "military_advisor", 80);
 			int card = AddCard(world, "OrgA", "sell_arms", "Prussia");
-			Wars.DeclareWar(world, "Prussia", "Austria", new System.DateTime(1880, 1, 1));
 
 			Assert.True(ActionPlayability.Evaluate(world, config, card, "sell_arms", "OrgA", "Prussia"));
+
+			Wars.DeclareWar(world, "Prussia", "Austria", new System.DateTime(1880, 1, 1));
+			Assert.True(ActionPlayability.Evaluate(world, config, card, "sell_arms", "OrgA", "Prussia"));
+			Assert.True(world.Has<CardInHand>(card));
+
+			Wars.StopWar(
+				world,
+				"Prussia",
+				new System.DateTime(1880, 1, 1),
+				new System.Random(1),
+				new GameSettings(),
+				new ProvinceTopology(new ProvinceConfig()),
+				new Dictionary<string, (double Lon, double Lat)>(),
+				100);
+			Assert.True(ActionPlayability.Evaluate(world, config, card, "sell_arms", "OrgA", "Prussia"));
+			Assert.True(world.Has<CardInHand>(card));
+		}
+
+		[Fact]
+		void held_sell_arms_card_stays_unplayable_for_opinion_after_war_ends() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddAdvisor(world, "Prussia", "general", "OrgA", "military_advisor", 79);
+			int card = AddCard(world, "OrgA", "sell_arms", "Prussia");
+			Wars.DeclareWar(world, "Prussia", "Austria", new System.DateTime(1880, 1, 1));
+
+			Assert.False(ActionPlayability.Evaluate(world, config, card, "sell_arms", "OrgA", "Prussia"));
 
 			Wars.StopWar(
 				world,
@@ -700,10 +718,6 @@ namespace GS.Game.Tests {
 				100);
 			Assert.False(ActionPlayability.Evaluate(world, config, card, "sell_arms", "OrgA", "Prussia"));
 			Assert.True(world.Has<CardInHand>(card));
-
-			Wars.DeclareWar(world, "Bavaria", "Prussia", new System.DateTime(1880, 2, 1));
-			Assert.True(ActionPlayability.Evaluate(world, config, card, "sell_arms", "OrgA", "Prussia"));
-			Assert.True(world.Has<CardInHand>(card));
 		}
 
 		[Fact]
@@ -711,7 +725,6 @@ namespace GS.Game.Tests {
 			var config = BuildActionConfig();
 			var world = new World();
 			AddAdvisor(world, "Prussia", "general", "OrgA", "military_advisor", 80);
-			Wars.DeclareWar(world, "Austria", "Prussia", new System.DateTime(1880, 1, 1));
 			int card = AddCard(world, "OrgA", "sell_arms", "Prussia");
 
 			bool expected = ActionPlayability.Evaluate(world, config, card, "sell_arms", "OrgA", "Prussia");

@@ -36,17 +36,13 @@
                 <ui:VisualElement class="debug-panel-inner">
                     <ui:Label text="Common options" class="gs-label debug-panel-menu-title" />
                     <ui:Button name="btn-ecs-viewer" text="ECS Viewer" class="gs-btn debug-panel-button"/>
+                </ui:VisualElement>
+                <ui:Button name="btn-selected-country-debug-menu" text="Selected country" class="gs-btn debug-panel-menu-toggle" />
+                <ui:VisualElement name="selected-country-debug-menu" class="debug-panel-inner" style="display: none;">
                     <ui:VisualElement name="control-debug-row" style="display: none;">
                         <ui:Button name="btn-control-plus" text="Control+" class="gs-btn gs-btn--small debug-panel-button"/>
                         <ui:Button name="btn-control-minus" text="Control-" class="gs-btn gs-btn--small debug-panel-button"/>
                     </ui:VisualElement>
-                    <ui:VisualElement style="flex-direction: row;">
-                        <ui:Button name="btn-gold-plus" text="+1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
-                        <ui:Button name="btn-gold-minus" text="-1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
-                    </ui:VisualElement>
-                </ui:VisualElement>
-                <ui:Button name="btn-selected-country-debug-menu" text="Selected country" class="gs-btn debug-panel-menu-toggle" />
-                <ui:VisualElement name="selected-country-debug-menu" class="debug-panel-inner" style="display: none;">
                     <ui:VisualElement class="debug-panel-two-col">
                         <ui:VisualElement class="debug-panel-col">
                             <ui:Button name="btn-selected-country-characters" text="Characters" class="gs-btn debug-panel-menu-toggle" />
@@ -68,6 +64,10 @@
                 </ui:VisualElement>
                 <ui:Button name="btn-selected-org-debug-menu" text="Selected org" class="gs-btn debug-panel-menu-toggle" />
                 <ui:VisualElement name="selected-org-debug-menu" class="debug-panel-inner" style="display: none;">
+                    <ui:VisualElement style="flex-direction: row;">
+                        <ui:Button name="btn-gold-plus" text="+1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
+                        <ui:Button name="btn-gold-minus" text="-1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
+                    </ui:VisualElement>
                     <ui:VisualElement class="debug-panel-two-col">
                         <ui:VisualElement class="debug-panel-col">
                             <ui:Button name="btn-selected-org-characters" text="Characters" class="gs-btn debug-panel-menu-toggle" />
