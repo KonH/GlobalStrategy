@@ -31,8 +31,9 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
   - The player selects a country where the org meets that requirement => the card shows as playable.
   - The player selects a different country where the org does not meet that requirement (same card, same hand slot, nothing was drawn or discarded) => the card now shows as unplayable, because eligibility is evaluated against whichever country is currently selected, not fixed at draw time.
 - A relation-triggered card (Stop Friendship, Stop Rivalry, Declare War, or the renamed revenge-war card) exists for a specific pair of countries that have a friend/rival relation.
-  - The country that is one side of that relation is selected => the specific card instance naming the other side is playable/drawable exactly as before.
-  - A different, unrelated country is selected instead => that same card instance is not playable (its relation pair does not involve the selected country); this is unchanged in spirit from today, only the deck grouping that used to guarantee this changes.
+  - The card may be drawn regardless of which country is selected, like every other deck card under the new draw rules.
+  - The country that is the card's primary side of that relation is selected => the specific card instance naming the other side can be played when its remaining requirements pass.
+  - A different, unrelated country is selected instead => that same drawn card remains in hand but is not playable (its relation pair does not involve the selected country); only the deck grouping that used to guarantee this changes.
 - A country-owned card is played and enters cooldown for the playing org.
   - The player later selects a different country and looks at the same card type => it is still shown on cooldown; cooldown remains keyed by (org, card type) only, never by which country is selected — this feature makes no change to the existing card-cooldown behaviour (`Docs/Specs/26_08_04_17_card-cooldown/spec.md`), it only confirms the deck rework doesn't disturb it.
 
@@ -117,9 +118,11 @@ Confirmed: `VisualState.SelectedCountryState.CountryId` (`src/Game.Main/VisualSt
 
 ### Data surface for the sibling UI spec
 
-`ActionCardEntry` (`src/Game.Main/VisualState.cs:261-291`) already exposes `TargetCountryId`, `IsUnplayable`, `UnplayableReason`, and a debug `Conditions` list — the sibling spec's "all requirements" display should be able to read off this same shape once `VisualStateConverter.BuildEntry` recomputes it against the currently-selected country instead of a per-entity baked-in country (per the entity-model change above). This spec's job is only to make sure a single, correctly-selected-country-aware playability result is available to read.
+`ActionCardEntry` (`src/Game.Main/VisualState.cs:261-291`) already exposes `TargetCountryId`, `IsUnplayable`, `UnplayableReason`, and a debug `Conditions` list — the sibling spec's "all requirements" display can read this shape once `VisualStateConverter.BuildEntry` recomputes it against the currently selected country instead of a per-entity baked-in country (per the entity-model change above).
 
-Note: issue item 3 ("show which countries could play card" badge) is **descoped entirely** per owner review (2026-08-06) — under this spec's single-deck/dynamic-country-context model, a hand card's playability is evaluated against whichever one country is currently selected, not against a discoverable multi-country eligibility set; no card type produced by this rework has more than one simultaneously-eligible country, so there is nothing for a "playable countries" badge to show today. See the sibling UI spec's Out of Scope for the full rationale. If a future card type needs multi-country eligibility, item 3 can be revisited then.
+Issue item 3 additionally needs the countries for which each country card could currently be played. Populate a deterministic, read-only country-id list on the visual entry (for example `PlayableCountryIds`) by evaluating the same card entity against every available country that the player org can target, using the same `ActionPlayability` path used for the selected country. Shared org-level gates such as cooldown and gold affordability are intentionally part of that evaluation, so a card that cannot be played anywhere has an empty list; no alternate badge-only definition of "playable" is introduced. Relation-targeted entities naturally produce at most their matching primary country, while non-relation cards can produce several countries. This cross-country evaluation is presentation-state derivation only: it does not bind the card back to a country, mutate the hand, or change the selected-country context used when the player actually plays it.
+
+The owner clarification that org cards "don't have countries badge" applies to `OrgActionsView`, not to issue item 3's country-card badge. Org cards are currently disabled and are not changed; the sibling UI spec consumes the country-id list only for cards in `CountryActionsView`.
 
 ## Out of Scope
 
