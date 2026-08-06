@@ -1832,6 +1832,8 @@ MonoBehaviour:
     Value: No organization with control available to target
   - Key: action.country.unplayable.not_at_war
     Value: This country is not currently at war
+  - Key: action.country.unplayable.on_cooldown
+    Value: On cooldown
   - Key: action.revenge.name
     Value: "{0} Revenge"
   - Key: action.revenge.desc

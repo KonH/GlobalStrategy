@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Components;
@@ -12,7 +13,8 @@ namespace GS.Game.Systems {
 			string actionId,
 			string orgId,
 			string? countryId,
-			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null) {
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
+			DateTime currentTime = default) {
 			var def = config.Find(actionId);
 			if (def == null) { return false; }
 
@@ -29,6 +31,8 @@ namespace GS.Game.Systems {
 			}
 
 			if (!CanAfford(world, orgId, def.Cost)) { return false; }
+
+			if (ActionCooldownQuery.IsOnCooldown(world, orgId, actionId, currentTime)) { return false; }
 
 			return true;
 		}

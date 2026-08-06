@@ -105,13 +105,13 @@ namespace GS.Unity.UI {
 			cardEl.Add(body);
 
 			string capturedId = card.ActionId;
-			if (canAfford) {
-				cardEl.RegisterCallback<PointerUpEvent>(e => {
-					if (e.button == 0 && cardEl.ContainsPoint(e.localPosition)) {
-						OnCardClicked?.Invoke(capturedId, cardEl);
-					}
-				});
-			}
+			cardEl.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button != 0 || !cardEl.ContainsPoint(e.localPosition)) { return; }
+				e.StopPropagation();
+				if (canAfford) {
+					OnCardClicked?.Invoke(capturedId, cardEl);
+				}
+			});
 
 			wrapper.Add(cardEl);
 

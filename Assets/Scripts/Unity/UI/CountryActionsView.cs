@@ -62,7 +62,9 @@ namespace GS.Unity.UI {
 			bool canAffordGold = goldCost <= 0 || GetResourceValue(orgResources, "gold") >= goldCost;
 			bool canPlay = !card.IsUnplayable && canAffordGold;
 
-			var result = ActionCardBuilder.Build(name, descText, goldCostText, sprite, card.WarWinChancePercent);
+			var result = ActionCardBuilder.Build(
+				name, descText, goldCostText, sprite, card.WarWinChancePercent,
+				card.CooldownFractionRemaining, card.CooldownRemainingDays);
 			var cardEl = result.Card;
 			cardEl.AddToClassList(canPlay ? "action-card--available" : "action-card--unavailable");
 
@@ -87,6 +89,7 @@ namespace GS.Unity.UI {
 					"at_war" => _loc.Get("action.country.unplayable.at_war"),
 					"no_enemy_control" => _loc.Get("action.country.unplayable.no_enemy_control"),
 					"not_at_war" => _loc.Get("action.country.unplayable.not_at_war"),
+					"on_cooldown" => _loc.Get("action.country.unplayable.on_cooldown"),
 					_ => string.Format(
 						_loc.Get("action.country.unplayable.insufficient_control"),
 						def != null && ActionConditionHelper.TryExtractConditionThreshold(def, "control", out int controlThreshold) ? controlThreshold : 0)
@@ -96,14 +99,14 @@ namespace GS.Unity.UI {
 				cardEl.Add(reasonLabel);
 			}
 
-			if (canPlay) {
-				string capturedAction = card.ActionId;
-				cardEl.RegisterCallback<PointerUpEvent>(e => {
-					if (e.button == 0 && cardEl.ContainsPoint(e.localPosition)) {
-						OnCardClicked?.Invoke(capturedAction, card.TargetCountryId, cardEl);
-					}
-				});
-			}
+			string capturedAction = card.ActionId;
+			cardEl.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button != 0 || !cardEl.ContainsPoint(e.localPosition)) { return; }
+				e.StopPropagation();
+				if (canPlay) {
+					OnCardClicked?.Invoke(capturedAction, card.TargetCountryId, cardEl);
+				}
+			});
 
 			wrapper.Add(cardEl);
 

@@ -60,6 +60,14 @@ namespace GS.Unity.Map {
 				return;
 			}
 
+			// Re-check at release, not just at press: a hand refresh (e.g. a cooldown card's
+			// fraction ticking) can rebuild UI elements between press and release, leaving the
+			// press-time Pick() briefly stale. Re-checking here closes that race instead of
+			// letting the click fall through to the map underneath.
+			if (UIPointerState.IsPointerOverUI(releasePos)) {
+				return;
+			}
+
 			Debug.Log($"[MapClick] Left click at screen {releasePos}");
 
 			if (_state != null && _state.MapLens.Lens == MapLens.Province) {

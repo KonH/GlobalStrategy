@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Configs;
@@ -428,12 +429,19 @@ namespace GS.Game.Tests {
 			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(logic.World, SelectedCountryId, GermanyId));
 
 			// The Germany instance was never touched by InitActionFromPlayCardSystem's matching —
-			// it must not have been marked used, must still be in hand, and must still evaluate as
-			// playable (proves this isn't a false-positive from a fixture that merely never looked
-			// at the Germany entity).
+			// it must not have been marked used and must still be in hand (proves this isn't a
+			// false-positive from a fixture that merely never looked at the Germany entity).
 			Assert.False(logic.World.Has<CardUse>(germanyCard));
 			Assert.True(logic.World.Has<CardInHand>(germanyCard));
-			Assert.True(ActionPlayability.Evaluate(logic.World, actionConfig, germanyCard, "stop_friendship", OrgId, SelectedCountryId));
+
+			// It is, however, now unplayable: playing the France instance starts a shared
+			// (OrgId, "stop_friendship") cooldown that covers every instance of that ActionId for
+			// the org — including this untouched Germany copy — per
+			// Docs/Specs/26_08_04_17_card-cooldown/spec.md. It becomes playable again once the
+			// cooldown elapses.
+			var currentTime = new DateTime(1880, 1, 1);
+			Assert.False(ActionPlayability.Evaluate(logic.World, actionConfig, germanyCard, "stop_friendship", OrgId, SelectedCountryId, currentTime: currentTime));
+			Assert.True(ActionPlayability.Evaluate(logic.World, actionConfig, germanyCard, "stop_friendship", OrgId, SelectedCountryId, currentTime: currentTime.AddDays(8)));
 
 			// Exactly one RelationClearedApplied event, naming France — not a second one for Germany.
 			var clearedEvents = new List<RelationClearedApplied>();

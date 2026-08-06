@@ -243,13 +243,19 @@ namespace GS.Game.Tests {
 			return e;
 		}
 
-		static bool? RunPipeline(World world, ActionConfig config, int entity) {
-			CheckActionConditionSystem.Update(world, config);
+		static bool? RunPipeline(World world, ActionConfig config, int entity, DateTime currentTime = default) {
+			CheckActionConditionSystem.Update(world, config, null, currentTime);
 			DeductActionCostSystem.Update(world, config);
 			ActionSucceededSystem.Update(world, config);
 			if (world.Has<ActionSucceeded>(entity)) { return true; }
 			if (world.Has<ActionFailed>(entity)) { return false; }
 			return null;
+		}
+
+		static int AddCooldown(World world, string orgId, string actionId, DateTime endTime) {
+			int e = world.Create();
+			world.Add(e, new ActionCooldownState { OrgId = orgId, ActionId = actionId, EndTime = endTime });
+			return e;
 		}
 
 		[Fact]
@@ -822,6 +828,58 @@ namespace GS.Game.Tests {
 			RevengeEligibilityQuery.OnWarResolved(world, winnerCountryId: "Great_Britain", loserCountryId: "Prussia");
 
 			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+		}
+
+		[Fact]
+		void country_card_cycles_playable_unplayable_playable_again_across_a_seeded_cooldown() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 10);
+			var start = new DateTime(1880, 1, 1);
+
+			// No tracking entity yet -> playable.
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "country_card", "OrgA", "Prussia", currentTime: start));
+
+			// Seed a cooldown with a future EndTime -> unplayable.
+			var endTime = start.AddDays(7);
+			AddCooldown(world, "OrgA", "country_card", endTime);
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "country_card", "OrgA", "Prussia", currentTime: start));
+
+			// currentTime still before EndTime -> still unplayable.
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "country_card", "OrgA", "Prussia", currentTime: endTime.AddDays(-1)));
+
+			// currentTime passes EndTime -> playable again.
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "country_card", "OrgA", "Prussia", currentTime: endTime.AddDays(1)));
+		}
+
+		[Fact]
+		void org_owned_card_unaffected_by_country_action_cooldown_seeded_for_same_org() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			var start = new DateTime(1880, 1, 1);
+
+			// Cooldown seeded for a *different* actionId (a country card), same org.
+			AddCooldown(world, "OrgA", "country_card", start.AddDays(7));
+
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "org_card", "OrgA", null, currentTime: start));
+		}
+
+		[Fact]
+		void evaluate_verdict_matches_pipeline_action_valid_outcome_when_on_cooldown() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100.0);
+			AddControl(world, "OrgA", "Prussia", 10);
+			var start = new DateTime(1880, 1, 1);
+			AddCooldown(world, "OrgA", "country_card", start.AddDays(7));
+			int card = AddCard(world, "OrgA", "country_card", "Prussia");
+
+			bool expected = ActionPlayability.Evaluate(world, config, card, "country_card", "OrgA", "Prussia", currentTime: start);
+
+			Assert.False(expected);
+			Assert.Equal(expected, RunPipeline(world, config, card, start));
 		}
 	}
 }

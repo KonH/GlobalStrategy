@@ -78,7 +78,8 @@ namespace GS.Main {
 			settings.WarBattles.Validate();
 			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId,
 				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig,
-				settings.EventNotifications, settings.CompletionCondition, settings.MaxControlPool, _effectConfig);
+				settings.EventNotifications, settings.CompletionCondition, settings.MaxControlPool, _effectConfig,
+				settings.CardCooldownDays);
 			_speedMultipliers = settings.SpeedMultipliers;
 			var combatBasesByCountryId = new Dictionary<string, CountryCombatBases>();
 			foreach (var entry in CountryConfig.Countries) {
@@ -244,9 +245,10 @@ namespace GS.Main {
 			// See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
 			CleanupEffectNotificationsSystem.UpdateActionEffects(_world);
 			InitActionFromPlayCardSystem.Update(_world, _commandAccessor.ReadPlayCardActionCommand());
-			CheckActionConditionSystem.Update(_world, _actionConfig, _hqCountryByOrgId);
+			CheckActionConditionSystem.Update(_world, _actionConfig, _hqCountryByOrgId, currentTime);
 			DeductActionCostSystem.Update(_world, _actionConfig);
 			ActionSucceededSystem.Update(_world, _actionConfig);
+			ApplyActionCooldownSystem.Update(_world, currentTime, GameSettings, _actionConfig);
 			bool hasSucceededCardActions = HasSucceededCardActions(_world);
 			CreateActionEffectSystem.Update(
 				_world, _actionConfig, _effectConfig, currentTime,

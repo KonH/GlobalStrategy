@@ -306,6 +306,25 @@ namespace GS.Game.Tests {
 			}
 		};
 
+		// Distinct ActionIds sharing the same "control_gain" effect — used where a test needs
+		// several successive control-raising plays by the *same* org in the same tick-sequence.
+		// Reusing a single ActionId for that would now trip the (OrgId, ActionId) cooldown gate
+		// added in Docs/Specs/26_08_04_17_card-cooldown/plan.md, which is unrelated to what these
+		// tests are actually verifying (GameLog entry independence / eviction).
+		static ActionConfig MultiControlActionConfig(params string[] actionIds) {
+			var config = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = actionIds.Length }
+				}
+			};
+			foreach (string actionId in actionIds) {
+				config.Actions.Add(new ActionDefinition {
+					ActionId = actionId, OwnerType = "country", DeckCopies = 1, EffectIds = new List<string> { "control_gain" }
+				});
+			}
+			return config;
+		}
+
 		static EffectConfig ControlEffectConfig(int amount) => new EffectConfig {
 			Effects = new List<ActionEffectDefinition> {
 				new ControlChangeEffectParams { EffectId = "control_gain", EffectType = "ControlChange", Amount = amount }
@@ -403,17 +422,21 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void control_entries_carry_independent_delta_and_running_total() {
-			var logic = BuildLogic(ControlActionConfig(2), ControlEffectConfig(5));
+			// Two distinct ActionIds (not the same one twice) — the same org playing the same
+			// country ActionId back-to-back would now be blocked by the card-cooldown gate; this
+			// test is about GameLog entry independence, not cooldown, so it plays two different
+			// control-raising cards instead. See MultiControlActionConfig.
+			var logic = BuildLogic(MultiControlActionConfig("raise_control_1", "raise_control_2"), ControlEffectConfig(5));
 			logic.Update(0f);
 
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control" });
+			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control_1" });
 			logic.Update(0f);
 			var controls = Entries(logic).Where(e => e.Kind == GameLogEntryKind.Control).ToList();
 			Assert.Single(controls);
 			Assert.Equal(5, controls[0].Delta);
 			Assert.Equal(5, controls[0].Total);
 
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control" });
+			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control_2" });
 			logic.Update(0f);
 			controls = Entries(logic).Where(e => e.Kind == GameLogEntryKind.Control).ToList();
 			Assert.Equal(2, controls.Count);
@@ -713,12 +736,11 @@ namespace GS.Game.Tests {
 					new CountryEntry { CountryId = CountryC, DisplayName = "Spain", IsAvailable = true }
 				}
 			};
-			var actionConfig = new ActionConfig {
-				Defaults = new List<ActionOwnerDefaults> { new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 } },
-				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = "raise_control", OwnerType = "country", DeckCopies = 1, EffectIds = new List<string> { "control_gain" } }
-				}
-			};
+			// Three distinct ActionIds — the same org replaying the same country ActionId
+			// back-to-back would now be blocked by the card-cooldown gate; this test is about
+			// GameLog eviction, not cooldown, so each play uses its own control-raising card.
+			// See MultiControlActionConfig.
+			var actionConfig = MultiControlActionConfig("raise_control_a", "raise_control_b", "raise_control_c");
 			var gameSettings = new GameSettings {
 				StartYear = 1880, DefaultLocale = "en", SpeedMultipliers = new[] { 1, 24, 720 }, AutoSaveInterval = "monthly",
 				GameLog = new GameLogSettings { IncludePlayerActions = true, MaxLogEntries = 2 }
@@ -726,11 +748,11 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic(actionConfig, ControlEffectConfig(5), gameSettings: gameSettings, countryConfig: countryConfig);
 			logic.Update(0f);
 
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryA, ActionId = "raise_control" });
+			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryA, ActionId = "raise_control_a" });
 			logic.Update(0f);
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryB, ActionId = "raise_control" });
+			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryB, ActionId = "raise_control_b" });
 			logic.Update(0f);
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryC, ActionId = "raise_control" });
+			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryC, ActionId = "raise_control_c" });
 			logic.Update(0f);
 
 			var entries = Entries(logic);

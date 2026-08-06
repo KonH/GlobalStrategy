@@ -127,7 +127,7 @@ namespace GS.Game.Bots {
 						}
 					}
 
-					bool isPlayable = ActionPlayability.Evaluate(world, actionConfig, entity, actionId, orgId, countryId);
+					bool isPlayable = ActionPlayability.Evaluate(world, actionConfig, entity, actionId, orgId, countryId, currentTime: currentDate);
 					bool raisesControl = ClassifyRaisesControl(def, effectConfigResolved);
 
 					if (countryId == null) {

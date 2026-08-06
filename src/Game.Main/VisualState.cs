@@ -266,6 +266,8 @@ namespace GS.Main {
 		public string UnplayableReason { get; }
 		public string TargetCountryId { get; }
 		public int?   WarWinChancePercent { get; }
+		public double? CooldownRemainingDays { get; }
+		public double? CooldownFractionRemaining { get; }
 		public IReadOnlyList<ActionConditionDebugEntry> Conditions { get; }
 		public ActionCardEntry(
 			string actionId,
@@ -275,11 +277,15 @@ namespace GS.Main {
 			string unplayableReason = "",
 			string targetCountryId = "",
 			IReadOnlyList<ActionConditionDebugEntry>? conditions = null,
-			int? warWinChancePercent = null) {
+			int? warWinChancePercent = null,
+			double? cooldownRemainingDays = null,
+			double? cooldownFractionRemaining = null) {
 			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
 			IsUnplayable = isUnplayable; UnplayableReason = unplayableReason;
 			TargetCountryId = targetCountryId;
 			WarWinChancePercent = warWinChancePercent;
+			CooldownRemainingDays = cooldownRemainingDays;
+			CooldownFractionRemaining = cooldownFractionRemaining;
 			Conditions = conditions ?? Array.Empty<ActionConditionDebugEntry>();
 		}
 	}
