@@ -1,0 +1,125 @@
+# Spec: Card Deck & Effect Rework
+
+## Feature Intent
+
+As a player, I want every country action card to do exactly one clearly-named thing, to draw from a single deck per organisation instead of a separate deck per country, and to be able to draw any card in that deck regardless of whether I currently qualify to play it, so that the card system is simpler to reason about and never silently withholds a card because of a hidden eligibility check at draw time.
+
+This spec covers issue #139 items **0** (targeted effects & meaningful names), **2** (single deck per org / dynamic country context), and **4** (draw ignores requirements). Items 1, 3, 5 (UI and discard rework) are covered by the sibling spec `Docs/Specs/26_08_06_10_card-ui-discard-rework/spec.md` — see Out of Scope.
+
+## Acceptance Criteria
+
+Legend: `Precondition => Action => Outcome`, grouped under a shared precondition where one applies to several rows.
+
+### One effect per card, meaningful names
+
+- The player looks at any of the four advisor "Letter of Commendation" cards or "Royal Audience" — today each both raises the org's control in the country AND improves an advisor's/ruler's opinion in the same play.
+  - The player reads the card's description => it names exactly one outcome (the opinion improvement); no control change is mentioned or occurs.
+  - The player plays the card => only the opinion effect applies; the org's control in that country is unaffected. (A dedicated control-only card already exists for that purpose — see rename table below.)
+- The player looks at "Decrease Enemy Control" — today it both drains a rival org's control in the country AND grants the player's own org control in the same play.
+  - See Ambiguities — the exact single-effect resolution for this card is not fully determined by the issue text.
+- The player looks at any country-owned card's name and its underlying identifier.
+  - Both are self-descriptive of what the card actually does (e.g. "Diplomatic Dispatch" / `letter_of_commendation_diplomacy_advisor` becomes "Improve Diplomacy Advisor Opinion" / `improve_diplomacy_advisor_opinion`) => no flavor-only, non-descriptive name remains on any card, matching the issue's own example (`letter_of_commendation_military_advisor => improve_military_advisor_opinion`).
+  - The card's description text is updated wherever it referenced an effect that was dropped (e.g. mentioning both control and opinion) => it accurately reflects only the effect the card still has. Flavor phrasing may be kept as long as it stays accurate — only the display **name** and the id must stop being fictional/flavor-only per the issue; the description just needs to match reality.
+
+### Single deck per organisation, no dedicated country deck, dynamic country context
+
+- The player's organisation has more than one country available to interact with (selected in the country view).
+  - The player opens the country-card actions for country A, then later selects country B and opens country-card actions again => both times the same single pool of the org's country-owned cards (deck + hand) is shown — not two separate decks, one baked for A and one for B.
+  - The player draws or plays a card while country A is selected, then selects country B => the hand's card instances are unchanged by the switch; only each card's playability is recomputed against whichever country is now selected.
+- A card whose requirement depends on the selected country (e.g. control threshold, advisor opinion, control-pool space) is in hand.
+  - The player selects a country where the org meets that requirement => the card shows as playable.
+  - The player selects a different country where the org does not meet that requirement (same card, same hand slot, nothing was drawn or discarded) => the card now shows as unplayable, because eligibility is evaluated against whichever country is currently selected, not fixed at draw time.
+- A relation-triggered card (Stop Friendship, Stop Rivalry, Declare War, or the renamed revenge-war card) exists for a specific pair of countries that have a friend/rival relation.
+  - The country that is one side of that relation is selected => the specific card instance naming the other side is playable/drawable exactly as before.
+  - A different, unrelated country is selected instead => that same card instance is not playable (its relation pair does not involve the selected country); this is unchanged in spirit from today, only the deck grouping that used to guarantee this changes.
+- A country-owned card is played and enters cooldown for the playing org.
+  - The player later selects a different country and looks at the same card type => it is still shown on cooldown; cooldown remains keyed by (org, card type) only, never by which country is selected — this feature makes no change to the existing card-cooldown behaviour (`Docs/Specs/26_08_04_17_card-cooldown/spec.md`), it only confirms the deck rework doesn't disturb it.
+
+### Draw ignores requirements
+
+- A hand slot is open (a card was just played/discarded, or the game just started) and the org's country-card deck contains at least one card whose requirement (control threshold, opinion threshold, relation state, etc.) the org does not currently meet for the selected country.
+  - The draw happens => that card can still be drawn into the open slot; it is not skipped for failing its requirement, exactly like org-owned cards already behave today.
+  - The just-drawn card is now visible in hand => if its requirement is still not met, it is shown unplayable exactly like any other unplayable hand card (the existing greyed-out treatment, not new to this feature).
+- A card's requirement is about affordability (its gold cost).
+  - The draw happens => affordability is still never checked at draw time (unchanged from today); cost only ever gates whether the card can be **played**.
+
+## Tech Notes
+
+### Full actionId rename table
+
+All renames below apply consistently across `Assets/Configs/action_config.json` (`actionId`, `nameKey`, `descKey`), `Assets/Configs/effect_config.json` (any effect id embedding the old action name), `Assets/Localization/en.asset` / `ru.asset` (`action.<id>.name`/`.desc` keys — rename the `Key:` entries, no stale unused keys left behind; real Russian translations via the `localization` skill, not English placeholders, done at `/implement` time), and every hardcoded C# string literal listed further below.
+
+| Old `actionId` | New `actionId` | Notes |
+|---|---|---|
+| `sphere_of_pressure` | `improve_control` | single-effect already; renamed only for the "meaningful name" ask |
+| `letter_of_commendation_diplomacy_advisor` | `improve_diplomacy_advisor_opinion` | drop the `ControlChange` half of its effect list |
+| `letter_of_commendation_economic_advisor` | `improve_economic_advisor_opinion` | drop the `ControlChange` half |
+| `letter_of_commendation_military_advisor` | `improve_military_advisor_opinion` | drop the `ControlChange` half (issue's own example) |
+| `letter_of_commendation_secret_advisor` | `improve_secret_advisor_opinion` | drop the `ControlChange` half |
+| `royal_audience` | `improve_ruler_opinion` | drop the `ControlChange` half |
+| `make_friend` | *(unchanged)* | already descriptive |
+| `make_rival` | *(unchanged)* | already descriptive |
+| `stop_friendship` | *(unchanged)* | already descriptive |
+| `stop_rivalry` | *(unchanged)* | already descriptive |
+| `declare_war` | *(unchanged)* | already descriptive |
+| `decrease_enemy_control` | *(unchanged)* | already descriptive; effect-list resolution is the open Ambiguity below |
+| `sell_arms` | *(unchanged)* | already descriptive; single effect already |
+| `ultimatum` | `force_war_win` | resolves the war in the player's favor; "ultimatum" is flavor, not mechanical |
+| `surrender` | `force_war_loss` | resolves the war against the player; "surrender" is flavor-adjacent, renamed for symmetry with `force_war_win` |
+| `revenge` | `declare_revenge_war` | declares a bonus-damage war against a past aggressor; "revenge" alone doesn't say it's a war declaration |
+
+Effect id follow-through (`Assets/Configs/effect_config.json`): rename `sphere_of_pressure_control` → `improve_control_effect`; for each advisor/`royal_audience` card, delete the `ControlChange` effect entry (`letter_commendation_control`, `royal_audience_control`) and rename the surviving `OpinionModifier` entry to `<new_action_id>_effect` (e.g. `letter_commendation_opinion` → `improve_military_advisor_opinion_effect`); rename `ultimatum_effect` → `force_war_win_effect`, `surrender_effect` → `force_war_loss_effect`, `revenge_declare_war_effect` → `declare_revenge_war_effect`. Each renamed `OpinionModifierEffectParams.SourceId` currently reads the flavor value `"letter_of_commendation"`/`"royal_audience"` shared across the 4 advisor cards / the ruler card respectively — confirm at plan time whether each keeps a shared source id (today's behaviour) or moves to a per-card unique source id consistent with the new per-card names; this is a data-hygiene nuance, not a product-visible change either way.
+
+Hardcoded `actionId` string-literal touch points that must move in lockstep with the table above:
+- `src/Game.Main/VisualStateConverter.cs` (`BuildEntry`): the `"sphere_of_pressure"` pool-full special case (two occurrences, ~lines 681–682) → `"improve_control"`; the `"revenge"` war-target special case (~lines 700, 703) → `"declare_revenge_war"`. `"declare_war"` stays as-is since it is not renamed.
+- `src/Game.Systems/RelationCardSyncSystem.cs` (`IsSyncedAction`): unaffected (checks `stop_friendship`/`stop_rivalry`/`declare_war`, none renamed).
+- `src/Game.Systems/RevengeCardSyncSystem.cs` and `src/Game.Systems/CountryActionConditionContext.cs` (line ~36, `definition.ActionId == "revenge"`): → `"declare_revenge_war"`.
+- `src/Game.Main/InitSystem.cs`'s skip check `RelationCardSyncSystem.IsSyncedAction(def.ActionId) || def.ActionId == "revenge"` (line ~676): → `"declare_revenge_war"`; also extend the same skip to whatever action ids are relation-targeted after the item-2 restructuring below (`stop_friendship`, `stop_rivalry`, `declare_war`, `declare_revenge_war`), since none of those are still built by the generic per-org creation loop.
+- Test files under `src/Game.Tests/*CardTests.cs` referencing any old id in the table (`grep -rl` for each old id before implementing, update literal strings and any config fixtures they load).
+
+### Single deck per org / dynamic country context — entity model
+
+Today `InitSystem.CreateCountryActionEntities` (`src/Game.Main/InitSystem.cs:626-739`) creates one `CardDeck{OrgId, CountryId}` per (org, country) pair, plus `DeckCopies × targets.Count` physical card entities per country per non-relation-targeted `ActionDefinition`, each tagged `GameAction`+`OrgContext`+`CountryContext{CountryId}`. This is the "dedicated country deck" the issue wants removed.
+
+New shape, split by whether a card carries an intrinsic second country or not:
+
+- **Non-relation-targeted country cards** (`improve_control`, the four `improve_*_advisor_opinion` cards, `improve_ruler_opinion`, `decrease_enemy_control`, `sell_arms`, `force_war_win`, `force_war_loss`): create exactly **one** card entity per (org, actionId) — mirroring `CreateActionEntities`'s existing org-card shape (`src/Game.Main/InitSystem.cs:594-624`) — tagged `GameAction`+`OrgContext` only, with **no `CountryContext`**. These cards have no intrinsic country binding any more; whichever country is currently selected supplies the `countryId` parameter to `ActionPlayability.Evaluate`/`CountryActionConditionContext.Build` at evaluation time, which already accept it as a parameter today (`src/Game.Systems/ActionPlayability.cs:9-17`, `src/Game.Systems/CountryActionConditionContext.cs:8-14`) — no signature change needed there, only the removal of the baked-in per-entity country. `TargetRole` resolution (which advisor/ruler in the selected country) already happens dynamically inside `CountryActionConditionContext.Build` via `CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, definition.TargetRole)` — this already works with a dynamically-supplied `countryId`, confirming no entity-level target-character binding is needed either.
+  - `DeckCopies` stops meaning "create N physical duplicate entities" (that mechanism is retired) and instead becomes a pure draw-weight multiplier, exactly like it already is for relation-targeted cards in `DrawCardSystem.DrawCountryCards` (`src/Game.Systems/DrawCardSystem.cs:138`, `int weight = world.Has<RelationCardTarget>(candidateEntity) ? def.DeckCopies : 1;`) — after this rework that ternary collapses to `int weight = def.DeckCopies;` uniformly, since no card type is still physically duplicated.
+- **Relation-targeted country cards** (`stop_friendship`, `stop_rivalry`, `declare_war` via `src/Game.Systems/RelationCardSyncSystem.cs`; `declare_revenge_war` via `src/Game.Systems/RevengeCardSyncSystem.cs`): keep the existing "one entity per (org, primaryCountryId, targetCountryId)" creation pattern and keep both `CountryContext{CountryId=primaryCountryId}` and `RelationCardTarget`/`RevengeCardTarget{TargetCountryId}` on each entity — these cards genuinely need two country identities (the relation pair), unlike every other card which only ever needs one (the selected country). What changes is only *where these entities live*: they join the same flat per-org deck/hand pool as every other country card, instead of being scoped to a dedicated per-`CountryContext` `CardDeck`. Playability for these gains one more implicit requirement: the currently selected country must equal the entity's own `CountryContext.CountryId` (its "primary" side) — this is the concrete mechanism satisfying "country context should be properly checked to understand is that card playable for selected country or not" for cards that need it. Where exactly this check lives (a new branch inside `ActionPlayability.Evaluate`, alongside the existing cooldown/afford checks, vs. a new synthetic `ExpressionNode` condition type) is a plan-phase implementation-shape decision; the required behaviour is fixed here.
+- Both `RelationCardSyncSystem.Update` (`src/Game.Systems/RelationCardSyncSystem.cs:15-46`) and `RevengeCardSyncSystem.Update` (`src/Game.Systems/RevengeCardSyncSystem.cs:8-28`) currently discover which (org, country) pairs need syncing by scanning existing `CardDeck` rows with `CountryId != ""` (lines 23-32 / 12-21 respectively) — since that per-country `CardDeck` no longer exists, both must instead enumerate every `IsAvailable` country from `country_config.json` crossed with every participating org directly (the same double loop shape `InitSystem.CreateCountryActionEntities` already uses over `countryConfig.Countries` × `participating`), keeping the rest of each system's per-pair `EnsureCardInstance` logic unchanged.
+- A single flat "country-card" deck/hand record per org (handSize from `ActionConfig.GetHandSize("country")`, currently 5) replaces the per-(org,country) `CardDeck` matrix — analogous to the existing single org-card deck (`CardDeck{OrgId, CountryId=""}`, `CardHand{HandSize}` from `CreateActionEntities`). Since a `CardDeck{OrgId, CountryId=""}` already exists for org-owned cards with a different hand size (3), the two need to stay distinguishable (e.g. an owner-type marker added to `CardDeck`/`CardHand`, or two differently-tagged deck entities per org) — the exact component shape for that distinction is a plan-phase decision; the product requirement is one country-card pool per org, sized 5, separate from the org-card pool sized 3.
+- `DrawCardSystem.DrawCountryCards` (`src/Game.Systems/DrawCardSystem.cs:102-179`), `InitActionFromPlayCardSystem.InitCountryCard` (`src/Game.Systems/InitActionFromPlayCardSystem.cs:38-63`), `RemoveCardFromHandSystem.FindHandCard` (`src/Game.Systems/RemoveCardFromHandSystem.cs:52-102`), and `DrawCardSystem.ForceDrawCard`/`FindMatchingDeckCard`/`FindLowestFreeSlot` (`src/Game.Systems/DrawCardSystem.cs:184-274`) all currently key their lookups by `(orgId, countryId)` where `countryId` meant "which deck". With the deck flattened, the played/found entity is uniquely identified by `(orgId, actionId, targetCountryId)` alone — `targetCountryId` (from `RelationCardTarget`/`RevengeCardTarget`, empty for non-relation cards) is already sufficient to disambiguate the two directional entities of the same relation pair (e.g. `declare_war` primary=A/target=B vs. primary=B/target=A have different `targetCountryId` values, B and A respectively), so no `countryId`-based lookup is needed for *finding* the entity — `PlayCardActionCommand.CountryId` (`src/Game.Commands/PlayCardActionCommand.cs`) keeps existing but changes meaning from "which deck" to "the country selected at play time", used purely for the primary-country-match validation described above, not for locating the card.
+- `Game.Bots/BotObservation.cs` currently builds `countryHandCards` by reading `CountryContext` straight off each hand entity (~lines 115-151) to bucket cards per country. After this rework, only relation-targeted hand entities still carry `CountryContext`; every other country-owned hand card has none. Bot code must instead evaluate playability per country under consideration by calling `ActionPlayability.Evaluate(..., countryId: <country under consideration>, ...)` for each country the bot is reasoning about, rather than reading a fixed country off the card entity.
+- Card cooldown (`Docs/Specs/26_08_04_17_card-cooldown/spec.md`) is already keyed by `(OrgId, ActionId)` only via `ActionCooldownState`/`ActionCooldownQuery` — **no change needed**; this rework must not introduce a `CountryId` dimension to it.
+
+### Draw ignores requirements
+
+- `DrawCardSystem.DrawCountryCards` (`src/Game.Systems/DrawCardSystem.cs:102-179`): remove the `foreach (var cond in def.Conditions) { if (ExpressionNode.Evaluate(cond, ctx) == 0.0) { ok = false; break; } }` gate (lines ~130-134). After the item-2 restructuring above, draw eligibility for country cards becomes "entity has `GameAction`+`OrgContext` (its `ActionDefinition.OwnerType == "country"`), not already in hand" — the same shape `DrawCardSystem.DrawOrgCards` (`src/Game.Systems/DrawCardSystem.cs:64-86`) already uses today. Given the two draw paths converge to nearly the same eligibility rule once both items land, the plan may choose to literally unify them into one function or keep two thin functions differing only in hand-size/slot bookkeeping — either satisfies this spec.
+- `InitSystem.CreateCountryActionEntities`'s initial-hand population (`src/Game.Main/InitSystem.cs:704-736`) duplicates the same conditions filter for the opening hand — remove it too, consistent with the draw-time change, and consistent with the item-2 rewrite of this same block (single entity per actionId rather than per country, so this "initial hand" logic is being rewritten regardless).
+- Cost affordability remains untouched: it is not checked at draw time today and must not become checked at draw time by this change — cost only ever gates `ActionPlayability.Evaluate`'s `CanAfford` check at **play** time.
+- The debug `ForceDrawCard` cheat (`src/Game.Systems/DrawCardSystem.cs:184-197`) needs no behavioural change — normal draw now behaves the same way it always did (bypassing conditions), so the cheat becomes redundant for that specific purpose but still useful for bypassing the hand-size cap; no removal required.
+- A drawn-but-currently-unqualified card correctly renders as unplayable/greyed-out via the existing `ActionCardEntry.IsUnplayable`/`UnplayableReason` machinery (`src/Game.Main/VisualState.cs:261-291`, populated by `VisualStateConverter.BuildEntry`) — no new plumbing is required for that display path; it already handles "in hand but fails a condition" (that's exactly how cooldown display already works).
+
+### Selected-country state (source of "which country is selected now")
+
+Confirmed: `VisualState.SelectedCountryState.CountryId` (`src/Game.Main/VisualState.cs:9-24`) is set via `SelectCountryCommand` (`src/Game.Commands/SelectCountryCommand.cs`) processed by `SelectCountrySystem` (`src/Game.Systems/SelectCountrySystem.cs`). This is the existing state this feature threads through to `ActionPlayability.Evaluate`/`CountryActionConditionContext.Build`'s `countryId` parameter wherever country-card playability is now evaluated against "whichever country is selected" instead of a baked-in `CountryContext`.
+
+### Data surface for the sibling UI spec
+
+`ActionCardEntry` (`src/Game.Main/VisualState.cs:261-291`) already exposes `TargetCountryId`, `IsUnplayable`, `UnplayableReason`, and a debug `Conditions` list — the sibling spec's "playable countries" badge and "all requirements" display should be able to read off this same shape once `VisualStateConverter.BuildEntry` recomputes it against the currently-selected country instead of a per-entity baked-in country (per the entity-model change above). Whether the sibling spec needs `ActionCardEntry` extended further (e.g. a per-country playability map for a multi-country badge) is that spec's concern, not this one's — this spec's job is only to make sure a single, correctly-selected-country-aware playability result is available to read.
+
+## Out of Scope
+
+- Items 1, 3, 5 of issue #139 (UI treatment of drawn-but-unqualified cards, discard-pile rework, and any other UI/discard work) — covered entirely by the sibling spec `Docs/Specs/26_08_06_10_card-ui-discard-rework/spec.md`. This spec only guarantees the underlying data (playability, requirements list, target country) is correctly computed for that spec to consume.
+- Renaming the internal engine vocabulary (`Action`, `GameAction`, `actionId`, `ActionConfig`, etc.) — the issue's rename example targets **content ids** (`letter_of_commendation_military_advisor` → `improve_military_advisor_opinion`), not the surrounding "Action" engine terminology, which stays as-is.
+- Org-owned cards (e.g. `discover_country`) — already a single flat per-org deck today (`InitSystem.CreateActionEntities`), already drawn without any condition gate (`DrawCardSystem.DrawOrgCards`); no change needed for items 2 or 4. Item 0's "meaningful names" pass does not touch `discover_country` since its id/name are already descriptive.
+- Any new cooldown behaviour or change to cooldown's `(OrgId, ActionId)` key — the existing card-cooldown feature already satisfies issue item 2's cooldown ask; this spec only confirms it, it does not modify it.
+- Balance tuning of effect magnitudes (control amounts, opinion decay, etc.) beyond what dropping a side-effect mechanically requires.
+- Any change to `ActionVisualConfig` sprite assignments — renamed action ids need their existing sprite entries re-keyed to the new id at implement time, but no new visual asset work is in scope.
+- Multiplayer/network synchronization concerns (the project has no multiplayer today).
+
+## Ambiguities
+
+- [NEEDS CLARIFICATION: `decrease_enemy_control` currently applies two effects in one play — draining a rival org's control (`decrease_enemy_control_drain_effect`, `EnemyControlDrain`) AND granting the player's own org control (`decrease_enemy_control_gain_effect`, `ControlChange`). The "one effect per card" rule forces a choice: (a) drop the gain effect and keep drain-only (consistent with how the advisor/royal-audience cards are resolved — a dedicated control-gain card, `improve_control`, already exists), (b) drop the drain effect and keep gain-only (loses the card's distinguishing "hurt a rival" purpose), or (c) split into two separate single-effect cards with their own ids (e.g. `decrease_enemy_control` drain-only + a new `steal_enemy_control` gain-only card), at the cost of one more card/id/locale set. Recommended default if no reply: option (a), drop the gain effect, keep `decrease_enemy_control` draining only.]
+
+All other open questions from the initial research were resolved with confident defaults documented directly in Tech Notes above (the relation-card "primary country" model, the selected-country state source, the draw-eligibility convergence) rather than left open here, since each had a single answer consistent with existing code patterns in the repo.
