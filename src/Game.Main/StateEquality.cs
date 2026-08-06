@@ -94,6 +94,7 @@ namespace GS.Main {
 				&& a.IsUnplayable == b.IsUnplayable
 				&& a.UnplayableReason == b.UnplayableReason
 				&& a.TargetCountryId == b.TargetCountryId
+				&& a.WarWinChancePercent == b.WarWinChancePercent
 				&& ListEquals(a.Conditions, b.Conditions, ActionConditionDebugEntryEquals);
 		}
 
@@ -113,6 +114,19 @@ namespace GS.Main {
 				&& a.EntityId == b.EntityId
 				&& a.DisplayName == b.DisplayName
 				&& a.Score == b.Score;
+		}
+
+		public static bool GoalProgressEntryStateEquals(GoalProgressEntryState a, GoalProgressEntryState b) {
+			return a.Kind == b.Kind
+				&& a.ConfigValue == b.ConfigValue
+				&& a.Current == b.Current
+				&& a.Target == b.Target
+				&& a.AvailableCountryCount == b.AvailableCountryCount;
+		}
+
+		public static bool GoalsOrgEntryStateEquals(GoalsOrgEntryState a, GoalsOrgEntryState b) {
+			return a.OrgId == b.OrgId
+				&& ListEquals(a.Goals, b.Goals, GoalProgressEntryStateEquals);
 		}
 
 		public static bool WarIconEntryStateEquals(WarIconEntryState a, WarIconEntryState b) {

@@ -8,7 +8,7 @@ namespace GS.Game.Benchmarks {
 		ProvinceOwnershipState _ownership = null!;
 		ProvinceOccupationState _occupation = null!;
 		CountryScoreState _score = null!;
-		DiscoveredCountriesState _discovered = null!;
+		WorldCountriesState _worldCountries = null!;
 
 		Dictionary<string, string> _ownershipBaseline = null!;
 		Dictionary<string, string> _ownershipAlt = null!;
@@ -16,13 +16,13 @@ namespace GS.Game.Benchmarks {
 		Dictionary<string, string> _occupationAlt = null!;
 		Dictionary<string, double> _scoreBaseline = null!;
 		Dictionary<string, double> _scoreAlt = null!;
-		HashSet<string> _discoveredBaseline = null!;
-		HashSet<string> _discoveredAlt = null!;
+		HashSet<string> _worldCountriesBaseline = null!;
+		HashSet<string> _worldCountriesAlt = null!;
 
 		bool _ownershipToggle;
 		bool _occupationToggle;
 		bool _scoreToggle;
-		bool _discoveredToggle;
+		bool _worldCountriesToggle;
 
 		[GlobalSetup]
 		public void Setup() {
@@ -47,14 +47,14 @@ namespace GS.Game.Benchmarks {
 				["bench_country"] = 999d
 			};
 
-			_discovered = visualState.DiscoveredCountries;
-			_discoveredBaseline = new HashSet<string>(_discovered.CountryIds);
-			_discoveredAlt = new HashSet<string>(_discoveredBaseline) { "bench_country" };
+			_worldCountries = visualState.WorldCountries;
+			_worldCountriesBaseline = new HashSet<string>(_worldCountries.CountryIds);
+			_worldCountriesAlt = new HashSet<string>(_worldCountriesBaseline) { "bench_country" };
 
 			_ownership.Set(_ownershipBaseline);
 			_occupation.Set(_occupationBaseline);
 			_score.Set(_scoreBaseline);
-			_discovered.Set(_discoveredBaseline);
+			_worldCountries.Set(_worldCountriesBaseline);
 		}
 
 		[Benchmark]
@@ -88,13 +88,13 @@ namespace GS.Game.Benchmarks {
 		}
 
 		[Benchmark]
-		public void DiscoveredCountriesState_NoOp() =>
-			_discovered.Set(new HashSet<string>(_discoveredBaseline));
+		public void WorldCountriesState_NoOp() =>
+			_worldCountries.Set(new HashSet<string>(_worldCountriesBaseline));
 
 		[Benchmark]
-		public void DiscoveredCountriesState_Update() {
-			_discoveredToggle = !_discoveredToggle;
-			_discovered.Set(_discoveredToggle ? _discoveredAlt : _discoveredBaseline);
+		public void WorldCountriesState_Update() {
+			_worldCountriesToggle = !_worldCountriesToggle;
+			_worldCountries.Set(_worldCountriesToggle ? _worldCountriesAlt : _worldCountriesBaseline);
 		}
 	}
 }

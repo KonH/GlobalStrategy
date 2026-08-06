@@ -48,6 +48,7 @@ namespace GS.Main {
 			CreateProvinceResourceEntities(world, provinceConfig, resourceConfig);
 
 			var settings = context.GameSettings.Load();
+			var enableSecretAdvisor = settings.FeatureFlags.EnableSecretAdvisor;
 			var startTime = new DateTime(settings.StartYear, 1, 1);
 
 			int gameTimeEntity = world.Create();
@@ -57,12 +58,14 @@ namespace GS.Main {
 				MultiplierIndex = 0
 			});
 
+			string locale = string.IsNullOrEmpty(context.InitialLocale) ? settings.DefaultLocale : context.InitialLocale;
+
 			int localeEntity = world.Create();
-			world.Add(localeEntity, new Locale { Value = settings.DefaultLocale });
+			world.Add(localeEntity, new Locale { Value = locale });
 
 			int settingsEntity = world.Create();
 			world.Add(settingsEntity, new AppSettings {
-				Locale = settings.DefaultLocale,
+				Locale = locale,
 				AutoSaveInterval = ParseAutoSaveInterval(settings.AutoSaveInterval)
 			});
 
@@ -117,9 +120,8 @@ namespace GS.Main {
 			BuildProximityMap(world, context);
 			CreateActionEntities(world, context, rng, participating);
 			CreateOrgCharacterEntities(world, context, resourceConfig, rng, participating);
-			CreateCharacterEntities(world, context, resourceConfig, rng);
+			CreateCharacterEntities(world, context, resourceConfig, rng, enableSecretAdvisor);
 			CreateCountryActionEntities(world, context, rng, participating);
-			DiscoverInitialCountries(world, participating);
 
 			// InitSystem does not call ResourceSystem.Update itself — it only creates the raw
 			// Resource/ResourceEffect/ResourceCollector entities above. GameLogic.Update calls
@@ -162,7 +164,7 @@ namespace GS.Main {
 			return result;
 		}
 
-		static void CreateCharacterEntities(World world, GameLogicContext context, ResourceConfig resourceConfig, Random rng) {
+		static void CreateCharacterEntities(World world, GameLogicContext context, ResourceConfig resourceConfig, Random rng, bool enableSecretAdvisor) {
 			var characterConfig = context.Character.Load();
 			if (characterConfig.Roles.Count == 0) {
 				return;
@@ -178,6 +180,9 @@ namespace GS.Main {
 				}
 				foreach (var role in characterConfig.Roles) {
 					if (!pool.Slots.TryGetValue(role.RoleId, out var slotList) || slotList.Count == 0) {
+						continue;
+					}
+					if (role.RoleId == "secret_advisor" && !enableSecretAdvisor) {
 						continue;
 					}
 					var charEntry = slotList[rng.Next(slotList.Count)];
@@ -733,29 +738,5 @@ namespace GS.Main {
 			}
 		}
 
-		static void DiscoverInitialCountries(World world, List<OrganizationEntry> participating) {
-			if (participating.Count == 0) { return; }
-
-			var availableCountryIds = new HashSet<string>();
-			int[] countryReq = { TypeId<Country>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(countryReq, null)) {
-				Country[] countries = arch.GetColumn<Country>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					availableCountryIds.Add(countries[i].CountryId);
-				}
-			}
-
-			foreach (var orgEntry in participating) {
-				var toDiscover = new HashSet<string>();
-				if (!string.IsNullOrEmpty(orgEntry.HqCountryId) && availableCountryIds.Contains(orgEntry.HqCountryId)) {
-					toDiscover.Add(orgEntry.HqCountryId);
-				}
-				foreach (string countryId in toDiscover) {
-					int entity = world.Create();
-					world.Add(entity, new DiscoveredCountry { OrgId = orgEntry.OrganizationId, CountryId = countryId });
-				}
-			}
-		}
 	}
 }

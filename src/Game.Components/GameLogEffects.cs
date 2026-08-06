@@ -16,11 +16,6 @@ namespace GS.Game.Components {
 		public double Total; // raw, unclamped — VisualStateConverter applies the display clamp
 	}
 
-	public struct DiscoveryApplied {
-		public string OrgId;
-		public string CountryId;
-	}
-
 	public struct RoleChangeApplied {
 		public string CountryId; // set for country-government roles, "" for org roles
 		public string OrgId;     // set for org roles, "" for country-government roles

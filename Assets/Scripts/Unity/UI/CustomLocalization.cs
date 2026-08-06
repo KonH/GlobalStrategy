@@ -1,13 +1,17 @@
+using GS.Unity.Save;
 using UnityEngine;
 
 namespace GS.Unity.UI {
 	public class CustomLocalization : ILocalization {
 		readonly LocalizationConfig _config;
+		readonly SettingsStorage _settings;
 		LocaleConfig _active;
 
-		public CustomLocalization(LocalizationConfig config) {
+		public CustomLocalization(LocalizationConfig config, SettingsStorage settings) {
 			_config = config;
-			_active = FindLocale(config.DefaultLocale);
+			_settings = settings;
+			string savedLocale = string.IsNullOrEmpty(settings.Locale) ? config.DefaultLocale : settings.Locale;
+			_active = FindLocale(savedLocale) ?? FindLocale(config.DefaultLocale);
 			if (_active == null) {
 				Debug.LogWarning($"[Localization] No locale found for default '{config.DefaultLocale}' (available: {config.Locales?.Length ?? 0})");
 			} else {
@@ -36,6 +40,7 @@ namespace GS.Unity.UI {
 				return;
 			}
 			_active = found;
+			_settings.Locale = locale;
 			Debug.Log($"[Localization] Switched to locale '{locale}'");
 		}
 

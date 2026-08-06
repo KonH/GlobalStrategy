@@ -46,7 +46,8 @@ namespace GS.Unity.UI {
 			ActionConfig actionConfig,
 			ActionVisualConfig visualConfig,
 			ILocalization loc,
-			string targetCountryId = "") {
+			string targetCountryId = "",
+			int? warWinChancePercent = null) {
 			if (_cardCopy != null) {
 				_overlay.Remove(_cardCopy);
 			}
@@ -64,7 +65,7 @@ namespace GS.Unity.UI {
 			string goldCostText = GetGoldCostText(def);
 			var sprite = visualConfig?.FindFront(actionId);
 
-			var built = ActionCardBuilder.Build(nameText, descText, goldCostText, sprite);
+			var built = ActionCardBuilder.Build(nameText, descText, goldCostText, sprite, warWinChancePercent);
 			_cardCopy = built.Card;
 			_cardCopy.AddToClassList("action-card--available");
 			await PlaceAndAnimate(fromRect, toElement, duration);
@@ -73,7 +74,7 @@ namespace GS.Unity.UI {
 		async UniTask PlaceAndAnimate(Rect fromRect, VisualElement toElement, float duration) {
 			_cardCopy.style.position = Position.Absolute;
 			_cardCopy.style.width = 240f;
-			_cardCopy.style.height = 320f;
+			_cardCopy.style.height = 300f;
 
 			var fromLocal = _overlay.WorldToLocal(new Vector2(fromRect.x, fromRect.y));
 			_cardCopy.style.left = fromLocal.x;

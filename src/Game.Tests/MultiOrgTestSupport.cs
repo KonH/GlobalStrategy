@@ -13,12 +13,12 @@ namespace GS.Game.Tests {
 		public const string HqC = "Prussia";
 		public const string ExtraCountry1 = "Prussia";
 		public const string ExtraCountry2 = "Austria";
-		public const string DiscoverActionId = "spread_rumors";
+		public const string SampleOrgActionId = "sample_org_action";
 		public const string SpendGoldActionId = "spend_gold";
 		public const string CountryCardActionId = "influence_country";
 		public const double CountryCardGoldCost = 20.0;
 
-		public sealed class StaticConfig<T> : IConfigSource<T> {
+		public sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;
@@ -85,15 +85,14 @@ namespace GS.Game.Tests {
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = includeCountryCard ? 2 : 0 }
 				},
 				OrgPools = new List<OrgActionPool> {
-					new OrgActionPool { OrgId = OrgA, ActionIds = new List<string> { DiscoverActionId, SpendGoldActionId } },
-					new OrgActionPool { OrgId = OrgB, ActionIds = new List<string> { DiscoverActionId, SpendGoldActionId } },
-					new OrgActionPool { OrgId = OrgC, ActionIds = new List<string> { DiscoverActionId, SpendGoldActionId } }
+					new OrgActionPool { OrgId = OrgA, ActionIds = new List<string> { SampleOrgActionId, SpendGoldActionId } },
+					new OrgActionPool { OrgId = OrgB, ActionIds = new List<string> { SampleOrgActionId, SpendGoldActionId } },
+					new OrgActionPool { OrgId = OrgC, ActionIds = new List<string> { SampleOrgActionId, SpendGoldActionId } }
 				},
 				Actions = new List<ActionDefinition> {
 					new ActionDefinition {
-						ActionId = DiscoverActionId,
-						OwnerType = "org",
-						EffectIds = new List<string> { "discover" }
+						ActionId = SampleOrgActionId,
+						OwnerType = "org"
 					},
 					new ActionDefinition {
 						ActionId = SpendGoldActionId,
@@ -102,12 +101,17 @@ namespace GS.Game.Tests {
 					}
 				}
 			};
+			var effectConfig = new EffectConfig {
+				Effects = new List<ActionEffectDefinition>()
+			};
 			if (includeCountryCard) {
-				// Condition is trivially true (control >= 0) so the card is eligible in any discovered
+				// Condition is trivially true (control >= 0) so the card is eligible in any
 				// country from init; playability toggling for tests is driven via cost/gold instead.
+				// Positive ControlChange so ControlFeature / RaisesControl classification work.
 				actionConfig.Actions.Add(new ActionDefinition {
 					ActionId = CountryCardActionId,
 					OwnerType = "country",
+					EffectIds = new List<string> { "control_pos" },
 					Conditions = new List<ExpressionNode> {
 						new ExpressionNode {
 							Type = "gte",
@@ -118,6 +122,9 @@ namespace GS.Game.Tests {
 						}
 					},
 					Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = CountryCardGoldCost } }
+				});
+				effectConfig.Effects.Add(new ControlChangeEffectParams {
+					EffectId = "control_pos", EffectType = "ControlChange", Amount = 5
 				});
 				// Relation-synced cards: DeckCopies is draw weight (InitSystem skips these ids).
 				actionConfig.Actions.Add(new ActionDefinition {
@@ -136,11 +143,6 @@ namespace GS.Game.Tests {
 					DeckCopies = 1
 				});
 			}
-			var effectConfig = new EffectConfig {
-				Effects = new List<ActionEffectDefinition> {
-					new DiscoverCountryEffectParams { EffectId = "discover", EffectType = "DiscoverCountry" }
-				}
-			};
 			var geoJson = new GeoJsonConfig();
 			var mapEntry = new MapEntryConfig();
 

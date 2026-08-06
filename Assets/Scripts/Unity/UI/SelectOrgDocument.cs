@@ -39,6 +39,7 @@ namespace GS.Unity.UI {
 
 		void Start() {
 			var root = _doc.rootVisualElement;
+			UIPointerState.RuntimePanel = root.panel;
 			_orgNameLabel = root.Q<Label>("country-name-label");
 			_orgFlagElement = root.Q("org-flag");
 			_goldLabel = root.Q<Label>("gold-label");
@@ -111,6 +112,10 @@ namespace GS.Unity.UI {
 						_localization.Get("select_org.win_conditions.full_control_countries"),
 						((int)row.Value).ToString(CultureInfo.InvariantCulture),
 						row.AvailableCountryCount.ToString(CultureInfo.InvariantCulture));
+				case WinConditionHintKind.ScoreGoal:
+					return string.Format(
+						_localization.Get("select_org.win_conditions.score_goal"),
+						ScoreFormat.Format(row.Value));
 				default:
 					return "";
 			}

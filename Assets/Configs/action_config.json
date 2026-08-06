@@ -5,18 +5,6 @@
   ],
   "actions": [
     {
-      "actionId": "discover_country",
-      "ownerType": "org",
-      "rarity": "Standard",
-      "nameKey": "action.discover_country.name",
-      "descKey": "action.discover_country.desc",
-      "targetRole": "",
-      "deckCopies": 1,
-      "conditions": [],
-      "cost": [{ "resourceId": "gold", "amount": 10.0 }],
-      "effectIds": ["discover_country"]
-    },
-    {
       "actionId": "sphere_of_pressure",
       "ownerType": "country",
       "rarity": "Standard",
@@ -239,7 +227,6 @@
       "targetRole": "military_advisor",
       "deckCopies": 3,
       "conditions": [
-        { "type": "gte", "members": [ { "type": "isInWar" }, { "type": "value", "value": 1 } ] },
         { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] }
       ],
       "cost": [{ "resourceId": "gold", "amount": 200.0 }],
@@ -297,14 +284,5 @@
       "effectIds": ["revenge_declare_war_effect"]
     }
   ],
-  "orgPools": [
-    {
-      "orgId": "Illuminati",
-      "actionIds": ["discover_country"]
-    },
-    {
-      "orgId": "Masons",
-      "actionIds": ["discover_country"]
-    }
-  ]
+  "orgPools": []
 }

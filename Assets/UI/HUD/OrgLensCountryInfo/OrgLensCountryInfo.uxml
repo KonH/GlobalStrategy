@@ -7,5 +7,6 @@
             <ui:Label name="org-name" class="gs-label" text="" />
         </ui:VisualElement>
         <ui:Label name="org-no-dominant" class="gs-hint" text="No dominant organization" />
+        <ui:VisualElement name="resources-container" class="resources-container" />
     </ui:VisualElement>
 </ui:UXML>

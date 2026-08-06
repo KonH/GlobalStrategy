@@ -35,6 +35,8 @@ namespace GS.Game.Systems {
 					return CreateTotalControl(config.Value, path);
 				case CompletionConditionType.FullControlCountries:
 					return CreateFullControl(config.Value, path);
+				case CompletionConditionType.ScoreGoal:
+					return CreateScoreGoal(config.Value, path);
 				default:
 					throw new ArgumentException($"Unknown completion condition type '{config.Type}' at '{path}'.");
 			}
@@ -51,6 +53,14 @@ namespace GS.Game.Systems {
 		static ICompletionCondition CreateFullControl(double value, string path) {
 			try {
 				return new FullControlCondition(value);
+			} catch (ArgumentOutOfRangeException exception) {
+				throw new ArgumentException($"Invalid completion condition at '{path}': {exception.Message}", exception);
+			}
+		}
+
+		static ICompletionCondition CreateScoreGoal(double value, string path) {
+			try {
+				return new ScoreGoalCondition(value);
 			} catch (ArgumentOutOfRangeException exception) {
 				throw new ArgumentException($"Invalid completion condition at '{path}': {exception.Message}", exception);
 			}

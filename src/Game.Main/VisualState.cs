@@ -245,23 +245,16 @@ namespace GS.Main {
 		}
 	}
 
-	public class DiscoveredCountriesState : INotifyPropertyChanged {
+	public class WorldCountriesState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
-		public System.Collections.Generic.HashSet<string> CountryIds { get; private set; } = new System.Collections.Generic.HashSet<string>();
-		public string RecentlyDiscovered { get; private set; } = "";
+		public HashSet<string> CountryIds { get; private set; } = new HashSet<string>();
 
-		public void Set(System.Collections.Generic.HashSet<string> ids, string recentlyDiscovered = "") {
-			var equal = CountryIds.SetEquals(ids);
-			RecentlyDiscovered = recentlyDiscovered;
-			if (equal) {
+		public void Set(HashSet<string> ids) {
+			if (CountryIds.SetEquals(ids)) {
 				return;
 			}
 			CountryIds = ids;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
-		}
-
-		public void ClearRecentlyDiscovered() {
-			RecentlyDiscovered = "";
 		}
 	}
 
@@ -272,6 +265,7 @@ namespace GS.Main {
 		public bool   IsUnplayable    { get; }
 		public string UnplayableReason { get; }
 		public string TargetCountryId { get; }
+		public int?   WarWinChancePercent { get; }
 		public IReadOnlyList<ActionConditionDebugEntry> Conditions { get; }
 		public ActionCardEntry(
 			string actionId,
@@ -280,10 +274,12 @@ namespace GS.Main {
 			bool isUnplayable = false,
 			string unplayableReason = "",
 			string targetCountryId = "",
-			IReadOnlyList<ActionConditionDebugEntry>? conditions = null) {
+			IReadOnlyList<ActionConditionDebugEntry>? conditions = null,
+			int? warWinChancePercent = null) {
 			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
 			IsUnplayable = isUnplayable; UnplayableReason = unplayableReason;
 			TargetCountryId = targetCountryId;
+			WarWinChancePercent = warWinChancePercent;
 			Conditions = conditions ?? Array.Empty<ActionConditionDebugEntry>();
 		}
 	}
@@ -461,6 +457,51 @@ namespace GS.Main {
 			}
 			Organizations = organizations;
 			Countries = countries;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
+	public class GoalProgressEntryState {
+		public WinConditionHintKind Kind { get; }
+		public double ConfigValue { get; }
+		public double Current { get; }
+		public double Target { get; }
+		public int AvailableCountryCount { get; }
+
+		public GoalProgressEntryState(
+			WinConditionHintKind kind,
+			double configValue,
+			double current,
+			double target,
+			int availableCountryCount) {
+			Kind = kind;
+			ConfigValue = configValue;
+			Current = current;
+			Target = target;
+			AvailableCountryCount = availableCountryCount;
+		}
+	}
+
+	public class GoalsOrgEntryState {
+		public string OrgId { get; }
+		public IReadOnlyList<GoalProgressEntryState> Goals { get; }
+
+		public GoalsOrgEntryState(string orgId, IReadOnlyList<GoalProgressEntryState> goals) {
+			OrgId = orgId;
+			Goals = goals;
+		}
+	}
+
+	public class GoalsState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyList<GoalsOrgEntryState> Organizations { get; private set; } = Array.Empty<GoalsOrgEntryState>();
+
+		public void Set(List<GoalsOrgEntryState> organizations) {
+			if (StateEquality.ListEquals(Organizations, organizations, StateEquality.GoalsOrgEntryStateEquals)) {
+				return;
+			}
+			Organizations = organizations;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -802,7 +843,6 @@ namespace GS.Main {
 	}
 
 	public enum GameLogEntryKind {
-		Discovery,
 		Control,
 		Opinion,
 		NewCharacter,
@@ -879,7 +919,8 @@ namespace GS.Main {
 
 	public enum WinConditionHintKind {
 		TotalControl,
-		FullControlCountries
+		FullControlCountries,
+		ScoreGoal
 	}
 
 	public class WinConditionHintRowState {
@@ -941,9 +982,10 @@ namespace GS.Main {
 		public LocaleState Locale { get; } = new LocaleState();
 		public PlayerOrganizationState PlayerOrganization { get; } = new PlayerOrganizationState();
 		public SelectedOrganizationState SelectedOrganization { get; } = new SelectedOrganizationState();
+		public CountryResourcesState OrgLensOrganizationResources { get; } = new CountryResourcesState();
 		public MapLensState MapLens { get; } = new MapLensState();
 		public OrgMapState OrgMap { get; } = new OrgMapState();
-		public DiscoveredCountriesState DiscoveredCountries { get; } = new DiscoveredCountriesState();
+		public WorldCountriesState WorldCountries { get; } = new WorldCountriesState();
 		public VisualEffectCollection LastFrameEffects { get; } = new VisualEffectCollection();
 		public SaveResultState SaveResult { get; } = new SaveResultState();
 		public ProvinceOwnershipState ProvinceOwnership { get; } = new ProvinceOwnershipState();
@@ -951,6 +993,7 @@ namespace GS.Main {
 		public SelectedProvinceState SelectedProvince { get; } = new SelectedProvinceState();
 		public CountryScoreState CountryScore { get; } = new CountryScoreState();
 		public LeaderboardState Leaderboard { get; } = new LeaderboardState();
+		public GoalsState Goals { get; } = new GoalsState();
 		public WarIconsState WarIcons { get; } = new WarIconsState();
 		public SelectedWarState SelectedWar { get; } = new SelectedWarState();
 		public WarResultsState WarResults { get; } = new WarResultsState();

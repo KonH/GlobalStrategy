@@ -9,7 +9,7 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class BotActionLogTests {
-		sealed class StaticConfig<T> : IConfigSource<T> {
+		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;
@@ -116,7 +116,7 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic();
 			logic.Update(0f);
 
-			logic.RecordBotAction("Illuminati", "DiscoverAndControl", "spread_rumors", "France");
+			logic.RecordBotAction("Illuminati", "control", "sphere_of_pressure", "France");
 
 			var entries = ReadBotActionLogEntries(logic.World);
 			Assert.Single(entries);
@@ -124,7 +124,7 @@ namespace GS.Game.Tests {
 			var parts = entries[0].Split(" | ");
 			Assert.Equal(3, parts.Length);
 			Assert.Equal("Illuminati", parts[1]);
-			Assert.Equal("DiscoverAndControl/spread_rumors -> France", parts[2]);
+			Assert.Equal("control/sphere_of_pressure -> France", parts[2]);
 		}
 
 		[Fact]

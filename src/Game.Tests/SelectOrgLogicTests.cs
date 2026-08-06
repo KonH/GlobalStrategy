@@ -7,7 +7,7 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class SelectOrgLogicTests {
-		sealed class StaticConfig<T> : IConfigSource<T> {
+		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;
@@ -74,7 +74,7 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic();
 			Assert.True(logic.VisualState.WinConditionHint.IsAvailable);
 			Assert.True(logic.VisualState.WinConditionHint.IsAlternativeGroup);
-			Assert.Equal(2, logic.VisualState.WinConditionHint.Rows.Count);
+			Assert.Equal(3, logic.VisualState.WinConditionHint.Rows.Count);
 		}
 	}
 }

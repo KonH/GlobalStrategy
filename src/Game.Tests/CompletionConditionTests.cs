@@ -81,6 +81,49 @@ namespace GS.Game.Tests {
 
 			Assert.False(new TotalControlCondition(0.8).IsMet(context));
 			Assert.False(new FullControlCondition(15).IsMet(context));
+			Assert.Equal(0, new TotalControlCondition(0.8).GetCurrent(context));
+			Assert.Equal(0, new TotalControlCondition(0.8).GetTarget(context));
+			Assert.Equal(0, new FullControlCondition(15).GetCurrent(context));
+			Assert.Equal(15, new FullControlCondition(15).GetTarget(context));
+		}
+
+		[Fact]
+		void total_control_current_and_target_match_is_met_boundary() {
+			var world = new World();
+			AddControl(world, OrgA, "a", 100);
+			AddControl(world, OrgA, "b", 60);
+			var condition = new TotalControlCondition(0.8);
+			CompletionConditionContext context = Context(world, "a", "b");
+
+			Assert.Equal(160, condition.GetCurrent(context));
+			Assert.Equal(160, condition.GetTarget(context));
+			Assert.True(condition.IsMet(context));
+
+			CompletionConditionContext withZero = Context(world, "a", "b", "zero");
+			Assert.Equal(160, condition.GetCurrent(withZero));
+			Assert.Equal(240, condition.GetTarget(withZero), 1e-9);
+			Assert.False(condition.IsMet(withZero));
+		}
+
+		[Fact]
+		void full_control_current_and_target_match_is_met_boundary() {
+			var world = new World();
+			var countries = new List<string>();
+			for (int i = 0; i < 15; i++) {
+				string country = $"country-{i}";
+				countries.Add(country);
+				AddControl(world, OrgA, country, i == 14 ? 99 : 100);
+			}
+			var condition = new FullControlCondition(15);
+			var context = new CompletionConditionContext(world, OrgA, countries, 100);
+
+			Assert.Equal(14, condition.GetCurrent(context));
+			Assert.Equal(15, condition.GetTarget(context));
+			Assert.False(condition.IsMet(context));
+
+			AddControl(world, OrgA, countries[14], 1);
+			Assert.Equal(15, condition.GetCurrent(context));
+			Assert.True(condition.IsMet(context));
 		}
 
 		[Fact]
@@ -171,12 +214,37 @@ namespace GS.Game.Tests {
 		[InlineData("total_control", 1.01)]
 		[InlineData("full_control_countries", 0)]
 		[InlineData("full_control_countries", 1.5)]
+		[InlineData("score_goal", 0)]
+		[InlineData("score_goal", -1)]
 		void factory_reports_context_for_invalid_thresholds(string type, double value) {
 			ArgumentException exception = Assert.Throws<ArgumentException>(() =>
 				CompletionConditionFactory.Create(new CompletionConditionConfig { Type = type, Value = value }, 100));
 
 			Assert.Contains("completionCondition", exception.Message);
 			Assert.Contains("Invalid completion condition", exception.Message);
+		}
+
+		[Fact]
+		void factory_builds_score_goal_condition_that_is_met_at_and_above_threshold() {
+			var world = new World();
+			AddScore(world, OrgA, 100);
+			var condition = CompletionConditionFactory.Create(new CompletionConditionConfig { Type = "score_goal", Value = 100 }, 100);
+
+			Assert.True(condition.IsMet(Context(world, "a")));
+		}
+
+		[Fact]
+		void three_member_any_is_met_when_only_score_goal_qualifies() {
+			var config = Any(
+				new CompletionConditionConfig { Type = "total_control", Value = 0.8 },
+				new CompletionConditionConfig { Type = "full_control_countries", Value = 15 },
+				new CompletionConditionConfig { Type = "score_goal", Value = 100 });
+			ICompletionCondition condition = CompletionConditionFactory.Create(config, 100);
+			var world = new World();
+			AddControl(world, OrgA, "a", 1);
+			AddScore(world, OrgA, 100);
+
+			Assert.True(condition.IsMet(Context(world, "a")));
 		}
 
 		[Fact]
@@ -208,6 +276,12 @@ namespace GS.Game.Tests {
 			});
 		}
 
+		static void AddScore(World world, string orgId, double value) {
+			int entity = world.Create();
+			world.Add(entity, new ResourceOwner(orgId));
+			world.Add(entity, new Resource { ResourceId = ResourceDefinitions.OrgScore, Value = value });
+		}
+
 		static void AssertRecursiveConfig(CompletionConditionConfig config) {
 			Assert.Equal("any", config.Type);
 			Assert.Equal(7, config.Value);
@@ -230,6 +304,10 @@ namespace GS.Game.Tests {
 				member => {
 					Assert.Equal("full_control_countries", member.Type);
 					Assert.Equal(15, member.Value);
+				},
+				member => {
+					Assert.Equal("score_goal", member.Type);
+					Assert.Equal(275592, member.Value);
 				});
 		}
 	}

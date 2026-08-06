@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using GS.Configs;
 using GS.Game.Bots;
-using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
 using GS.Main;
@@ -10,7 +9,7 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class BaselineCardPlayTests {
-		sealed class StaticConfig<T> : IConfigSource<T> {
+		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;
@@ -54,7 +53,7 @@ namespace GS.Game.Tests {
 
 		// Bespoke minimal config for order-of-scan tests: single org card whose affordability
 		// can be toggled via InitialGold, plus a country card cheap enough to always be affordable,
-		// discovered in two countries ("Austria" sorts before "Prussia" ordinally).
+		// dealt into two countries ("Austria" sorts before "Prussia" ordinally).
 		static GameLogic BuildScanOrderLogic(double orgGold) {
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
@@ -105,12 +104,6 @@ namespace GS.Game.Tests {
 
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
-
-			int e1 = logic.World.Create();
-			logic.World.Add(e1, new DiscoveredCountry { OrgId = "Illuminati", CountryId = "Austria" });
-			int e2 = logic.World.Create();
-			logic.World.Add(e2, new DiscoveredCountry { OrgId = "Illuminati", CountryId = "Prussia" });
-
 			return logic;
 		}
 
@@ -154,7 +147,7 @@ namespace GS.Game.Tests {
 			Assert.Single(sinkPlayable.Plays);
 			Assert.Equal(("expensive_org_card", ""), sinkPlayable.Plays[0]);
 
-			// Org hand unplayable -> the ordinal-first discovered country's card is chosen.
+			// Org hand unplayable -> the ordinal-first country's card is chosen.
 			var logicUnplayable = BuildScanOrderLogic(orgGold: 5.0);
 			var obsUnplayable = BotObservation.Build(logicUnplayable.World, logicUnplayable.ActionConfig, "Illuminati");
 			var sinkUnplayable = new RecordingSink();

@@ -37,22 +37,20 @@ namespace GS.Game.Configs {
 			Type = "any",
 			Members = new List<CompletionConditionConfig> {
 				new CompletionConditionConfig { Type = "total_control", Value = 0.8 },
-				new CompletionConditionConfig { Type = "full_control_countries", Value = 15 }
+				new CompletionConditionConfig { Type = "full_control_countries", Value = 15 },
+				new CompletionConditionConfig { Type = "score_goal", Value = 275592 }
 			}
 		};
 		public GameLogSettings GameLog { get; set; } = new GameLogSettings();
 		public EventNotificationSettings EventNotifications { get; set; } = new();
+		public FeatureFlagSettings FeatureFlags { get; set; } = new();
 		public List<EndGameComparisonEntry> EndGameComparisons { get; set; } = new List<EndGameComparisonEntry>();
 
-		// discoveredCountriesAvailableControl: 0 is the eval-validated threshold (see
-		// Docs/BotFeatures/discoverAndControl/eval_summary.md) - it beats the feature's
-		// raw discover-first default (double.MaxValue, applied when a profile omits the
-		// parameter entirely) by a wide margin.
 		public List<BotFeatureConfigEntry> BotFeatures { get; set; } = new List<BotFeatureConfigEntry> {
 			new BotFeatureConfigEntry {
-				FeatureId = "discoverAndControl",
+				FeatureId = "control",
 				Enabled = true,
-				Parameters = new Dictionary<string, double> { ["discoveredCountriesAvailableControl"] = 0 }
+				Parameters = new Dictionary<string, double>()
 			}
 		};
 	}

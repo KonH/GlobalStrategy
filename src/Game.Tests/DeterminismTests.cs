@@ -20,7 +20,7 @@ namespace GS.Game.Tests {
 					logic.Commands.Push(new PlayCardActionCommand { OrgId = MultiOrgTestSupport.OrgA, ActionId = MultiOrgTestSupport.SpendGoldActionId });
 				}
 				if (tick == 10) {
-					logic.Commands.Push(new PlayCardActionCommand { OrgId = MultiOrgTestSupport.OrgB, ActionId = MultiOrgTestSupport.DiscoverActionId });
+					logic.Commands.Push(new PlayCardActionCommand { OrgId = MultiOrgTestSupport.OrgB, ActionId = MultiOrgTestSupport.SampleOrgActionId });
 				}
 				logic.Update(24f);
 			}
@@ -92,7 +92,7 @@ namespace GS.Game.Tests {
 					logic.Commands.Push(new PlayCardActionCommand { OrgId = MultiOrgTestSupport.OrgA, ActionId = MultiOrgTestSupport.SpendGoldActionId });
 				}
 				if (tick == 10) {
-					logic.Commands.Push(new PlayCardActionCommand { OrgId = MultiOrgTestSupport.OrgB, ActionId = MultiOrgTestSupport.DiscoverActionId });
+					logic.Commands.Push(new PlayCardActionCommand { OrgId = MultiOrgTestSupport.OrgB, ActionId = MultiOrgTestSupport.SampleOrgActionId });
 				}
 				logic.Update(24f);
 

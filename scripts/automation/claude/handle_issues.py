@@ -17,6 +17,9 @@ The label set is the whole state machine (no local state file, no timestamps):
   ai-in-progress          a run is actively working it (skipped by discovery; shared)
   ai-need-attention       waiting on the owner (skipped by discovery; shared)
   ai-complete             prompt fully done (skipped by discovery; shared)
+  ai-specify/ai-plan/
+  ai-implement            informational /specify|/plan|/implement progress (shared; not
+                          discovery status — agents set these)
 
 A candidate is any open, configured-contributor-authored, `claude`-labeled issue/PR carrying none of the three
 shared `ai-*` status labels. The owner resumes a need-attention/complete item by replying and removing that
@@ -34,22 +37,22 @@ doing anything else. If a previous run is still in flight when the next cron tic
 run exits immediately instead of racing it - the lock releases automatically even if a prior
 run crashed, since it's tied to the OS file descriptor, not manually cleared state.
 
-Stale-run reclaim: because the lock guarantees no other run of this provider is active, any of
-this provider's items still labeled `ai-in-progress` at startup is leftover from a
-crashed/interrupted run. It's re-queued (the label removed, a `<!-- claude-automation:reclaim -->`
-comment posted as the attempt counter) up to twice; a third consecutive crash parks it with
-`ai-need-attention` instead of retrying forever. A real owner comment resets the counter.
+Cross-instance claim: each candidate is claimed via `claim_candidate` (sets `ai-in-progress`)
+before checkout/CLI. After the CLI returns - success, non-limit failure, or max-turns - this
+wrapper clears that item's `ai-in-progress` in a `finally` block. Hard-kill before that clear
+can leave the label stuck; recovery is manual owner removal (no automatic reclaim).
 
 Session/usage limits are NOT crashes: when the run reports the subscription's session/usage
 limit (including production assistant text with a UTC reset time), it salvages any dirty
 working tree, records the limit in `Logs/auto_ai_provider_state.json` under the `claude`
-provider key, and exits 0. Every later run skips until that provider's window has passed.
+provider key, clears the claimed item's `ai-in-progress`, and exits 0. Every later run skips
+until that provider's window has passed.
 
 Exhausting `--max-turns` (result subtype `error_max_turns`) gets the same dirty-tree salvage
 (commit + push HEAD with a fixed message) so partial progress survives the next run's
-`checkout_clean` - but, unlike a session limit, it is NOT a paused/skip state: the item stays
-`ai-in-progress` and is picked up again next run (or reclaimed as stale) to continue from
-where it left off.
+`checkout_clean`. Unlike a session limit it is not a paused/skip state: after salvage the
+harness clears `ai-in-progress` so the item is eligible again next tick (or parked by an
+outcome label the agent applied).
 
 Requires `gh` authenticated as the repo owner (`gh auth login`), the labels above already
 created in the repo (see handle_issues.sh for the `gh label create` commands), and `claude`
@@ -71,7 +74,7 @@ Usage (from project root):
   python scripts/automation/claude/handle_issues.py
   python scripts/automation/claude/handle_issues.py --max-turns 60
 
-Shared discovery/locking/reclaim logic lives in scripts/automation/common/issue_handler.py -
+Shared discovery/locking/claim/clear logic lives in scripts/automation/common/issue_handler.py -
 this file only supplies what's specific to driving Claude Code: CLI invocation, stream-json
 parsing, and prompt text.
 """
@@ -88,9 +91,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.issue_handler import (  # noqa: E402
-    acquire_lock, candidate_branch, checkout_clean, claim_candidate, find_candidates,
-    handle_limit_pause, limit_active, reclaim_stale_in_progress, salvage_uncommitted_work,
-    setup_logging,
+    acquire_lock, candidate_branch, checkout_clean, claim_candidate, clear_in_progress,
+    find_candidates, handle_limit_pause, limit_active, salvage_uncommitted_work, setup_logging,
 )
 
 MODEL = "claude-sonnet-5"
@@ -252,7 +254,6 @@ def main():
     if limit_active(logger, args.provider_state_file, LABEL):
         return
 
-    reclaim_stale_in_progress(logger, LABEL, MARKER)
     candidates = find_candidates(LABEL)
 
     if not candidates:
@@ -265,29 +266,34 @@ def main():
         if not claim_candidate(logger, LABEL, MARKER, candidate):
             logger.info(f"Lost claim race for {candidate['kind']} #{candidate['number']} - skipping.")
             continue
-        branch = candidate_branch(candidate)
-        checkout_clean(logger, branch)
-        logger.info(f"Processing {candidate['kind']} #{candidate['number']} from clean "
-                     f"'{branch}' - invoking claude -p.")
-        returncode, detection_texts, max_turns_hit = run_claude(build_prompt(candidate), args.max_turns)
-        if returncode != 0:
-            exit_code = returncode
-        limit_hit, retry_at = detect_session_limit(detection_texts)
-        if limit_hit:
-            if retry_at is None:
-                retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
-            handle_limit_pause(logger, LABEL, MARKER, candidate, args.provider_state_file, retry_at)
-            sys.exit(0)
-        elif max_turns_hit:
-            # Same failure mode as a session limit - the run was cut off mid-work, not crashed -
-            # so salvage the dirty tree the same way, or checkout_clean on the next run (this
-            # candidate's stale-in-progress reclaim, or the next scheduled pass) would wipe it.
-            status, detail = salvage_uncommitted_work(logger)
-            logger.warning(
-                f"{candidate['kind']} #{candidate['number']} exhausted --max-turns "
-                f"({args.max_turns}). Salvage status={status}"
-                f"{f' ({detail})' if detail else ''}."
-            )
+        try:
+            branch = candidate_branch(candidate)
+            checkout_clean(logger, branch)
+            logger.info(f"Processing {candidate['kind']} #{candidate['number']} from clean "
+                         f"'{branch}' - invoking claude -p.")
+            returncode, detection_texts, max_turns_hit = run_claude(
+                build_prompt(candidate), args.max_turns)
+            if returncode != 0:
+                exit_code = returncode
+            limit_hit, retry_at = detect_session_limit(detection_texts)
+            if limit_hit:
+                if retry_at is None:
+                    retry_at = datetime.now(timezone.utc) + timedelta(
+                        minutes=args.limit_backoff_minutes)
+                handle_limit_pause(
+                    logger, LABEL, MARKER, candidate, args.provider_state_file, retry_at)
+                sys.exit(0)
+            elif max_turns_hit:
+                # Run was cut off mid-work - salvage so checkout_clean on the next pass
+                # cannot wipe partial progress. Harness finally clears ai-in-progress.
+                status, detail = salvage_uncommitted_work(logger)
+                logger.warning(
+                    f"{candidate['kind']} #{candidate['number']} exhausted --max-turns "
+                    f"({args.max_turns}). Salvage status={status}"
+                    f"{f' ({detail})' if detail else ''}."
+                )
+        finally:
+            clear_in_progress(logger, candidate["number"])
     sys.exit(exit_code)
 
 
