@@ -99,14 +99,14 @@ namespace GS.Unity.UI {
 				cardEl.Add(reasonLabel);
 			}
 
-			if (canPlay) {
-				string capturedAction = card.ActionId;
-				cardEl.RegisterCallback<PointerUpEvent>(e => {
-					if (e.button == 0 && cardEl.ContainsPoint(e.localPosition)) {
-						OnCardClicked?.Invoke(capturedAction, card.TargetCountryId, cardEl);
-					}
-				});
-			}
+			string capturedAction = card.ActionId;
+			cardEl.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button != 0 || !cardEl.ContainsPoint(e.localPosition)) { return; }
+				e.StopPropagation();
+				if (canPlay) {
+					OnCardClicked?.Invoke(capturedAction, card.TargetCountryId, cardEl);
+				}
+			});
 
 			wrapper.Add(cardEl);
 

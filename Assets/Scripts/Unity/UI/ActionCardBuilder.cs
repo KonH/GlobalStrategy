@@ -38,9 +38,16 @@ namespace GS.Unity.UI {
 		static CardResult Populate(
 			VisualElement container, string name, string desc, string goldCostText, Sprite art, int? warWinChancePercent = null,
 			double? cooldownFractionRemaining = null, double? cooldownRemainingDays = null) {
+			// Card face content lives in its own wrapper so the unavailable-card dimming
+			// (applied via .action-card--unavailable .action-card-content) never darkens the
+			// cooldown overlay's remaining-time label, which must stay fully legible.
+			var content = new VisualElement();
+			content.AddToClassList("action-card-content");
+			container.Add(content);
+
 			var header = new Label(name);
 			header.AddToClassList("action-card-header");
-			container.Add(header);
+			content.Add(header);
 			SetupHeaderAutoSize(header);
 
 			var artEl = new VisualElement();
@@ -54,7 +61,7 @@ namespace GS.Unity.UI {
 			if (warWinChancePercent.HasValue) {
 				artEl.Add(BuildWarWinChanceBadge(warWinChancePercent.Value));
 			}
-			container.Add(artEl);
+			content.Add(artEl);
 
 			var body = new VisualElement();
 			body.AddToClassList("action-card-body");
@@ -81,7 +88,7 @@ namespace GS.Unity.UI {
 			}
 
 			body.Add(footer);
-			container.Add(body);
+			content.Add(body);
 
 			if (cooldownFractionRemaining.HasValue) {
 				container.Add(BuildCooldownOverlay(cooldownFractionRemaining.Value, cooldownRemainingDays));
@@ -98,6 +105,12 @@ namespace GS.Unity.UI {
 			radial.AddToClassList("action-card-cooldown-radial");
 			radial.style.backgroundImage = new StyleBackground(GetOrCreateCooldownTexture(fractionRemaining));
 			overlay.Add(radial);
+			overlay.RegisterCallback<GeometryChangedEvent>(_ => {
+				float size = overlay.resolvedStyle.width * 0.5f;
+				if (size <= 0f) { return; }
+				radial.style.width = size;
+				radial.style.height = size;
+			});
 
 			var label = new Label(FormatCooldownRemaining(remainingDays));
 			label.AddToClassList("action-card-cooldown-label");
@@ -128,7 +141,7 @@ namespace GS.Unity.UI {
 						texture.SetPixel(x, y, clearColor);
 						continue;
 					}
-					float angleDeg = Mathf.Atan2(dx, dy) * Mathf.Rad2Deg;
+					float angleDeg = Mathf.Atan2(-dx, dy) * Mathf.Rad2Deg;
 					if (angleDeg < 0f) { angleDeg += 360f; }
 					bool filled = (angleDeg / 360f) < fraction;
 					texture.SetPixel(x, y, filled ? fillColor : clearColor);

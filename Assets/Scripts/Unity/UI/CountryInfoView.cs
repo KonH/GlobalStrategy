@@ -146,6 +146,7 @@ namespace GS.Unity.UI {
 			if (countryActions != null) {
 				_actionsView?.Refresh(countryActions, playerResources ?? resources);
 			}
+			if (!_actionsOpen && _actionsSlide != null) { SetPickingModeRecursive(_actionsSlide, PickingMode.Ignore); }
 		}
 
 		void ToggleChars() {
@@ -183,10 +184,11 @@ namespace GS.Unity.UI {
 			if (_actionsSlide != null) {
 				if (open) {
 					_actionsSlide.AddToClassList("actions-slide--open");
-					_actionsSlide.pickingMode = PickingMode.Position;
+					SetPickingModeRecursive(_actionsSlide, PickingMode.Position);
 				} else {
 					_actionsSlide.RemoveFromClassList("actions-slide--open");
-					_actionsSlide.pickingMode = PickingMode.Ignore;
+					SetPickingModeRecursive(_actionsSlide, PickingMode.Ignore);
+					_tooltip?.HideAll();
 				}
 			}
 			if (_actionsToggleBtn != null) {
