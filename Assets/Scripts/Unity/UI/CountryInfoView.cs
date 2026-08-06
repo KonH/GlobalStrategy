@@ -34,6 +34,7 @@ namespace GS.Unity.UI {
 		readonly CountryVisualConfig? _countryVisualConfig;
 		readonly OrgVisualConfig? _orgVisualConfig;
 		readonly TooltipSystem _tooltip;
+		readonly GameSettings? _gameSettings;
 		CountryActionsView? _actionsView;
 		CountryControlState? _controlState;
 		bool _charsOpen;
@@ -46,8 +47,9 @@ namespace GS.Unity.UI {
 		public CountryActionsView? ActionsView => _actionsView;
 		public void OpenChars() => SetCharsOpen(true);
 
-		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CountryVisualConfig? countryVisualConfig = null, OrgVisualConfig? orgVisualConfig = null) {
+		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CountryVisualConfig? countryVisualConfig = null, OrgVisualConfig? orgVisualConfig = null, GameSettings? gameSettings = null) {
 			_root = root;
+			_gameSettings = gameSettings;
 			_name = root.Q<Label>("country-name");
 			_flagElement = root.Q("country-flag");
 			_countryVisualConfig = countryVisualConfig;
@@ -117,7 +119,12 @@ namespace GS.Unity.UI {
 				if (_friendsHeader != null) { _friendsHeader.text = _loc.Get("hud.friends"); }
 				if (_rivalsHeader != null) { _rivalsHeader.text = _loc.Get("hud.rivals"); }
 				if (_warsHeader != null) { _warsHeader.text = _loc.Get("hud.wars"); }
-				BuildRelationsRow(_friendsFlags, _friendsRowBlock, selected.Relations.Friends, "relation");
+				bool enableFriendsRelation = _gameSettings?.FeatureFlags?.EnableFriendsRelation ?? true;
+				if (enableFriendsRelation) {
+					BuildRelationsRow(_friendsFlags, _friendsRowBlock, selected.Relations.Friends, "relation");
+				} else if (_friendsRowBlock != null) {
+					_friendsRowBlock.style.display = DisplayStyle.None;
+				}
 				BuildRelationsRow(_rivalsFlags, _rivalsRowBlock, selected.Relations.Rivals, "relation");
 				BuildRelationsRow(_warsFlags, _warsRowBlock, selected.Wars.Opponents, "war");
 			}

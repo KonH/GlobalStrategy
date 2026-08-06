@@ -77,5 +77,42 @@ namespace GS.Game.Tests {
 			var settings = new FeatureFlagSettings();
 			Assert.False(settings.EnableSecretAdvisor);
 		}
+
+		[Fact]
+		void enableFriendsRelation_round_trips_from_json() {
+			const string json = @"{
+				""startYear"": 1880,
+				""defaultLocale"": ""en"",
+				""autoSaveInterval"": ""monthly"",
+				""featureFlags"": {
+					""enableFriendsRelation"": false
+				}
+			}";
+
+			var settings = JsonConvert.DeserializeObject<GameSettings>(json);
+
+			Assert.NotNull(settings);
+			Assert.False(settings!.FeatureFlags.EnableFriendsRelation);
+		}
+
+		[Fact]
+		void enableFriendsRelation_defaults_to_true_when_absent_from_json() {
+			const string json = @"{
+				""startYear"": 1880,
+				""defaultLocale"": ""en"",
+				""autoSaveInterval"": ""monthly""
+			}";
+
+			var settings = JsonConvert.DeserializeObject<GameSettings>(json);
+
+			Assert.NotNull(settings);
+			Assert.True(settings!.FeatureFlags.EnableFriendsRelation);
+		}
+
+		[Fact]
+		void featureFlagSettings_class_default_enableFriendsRelation_is_true() {
+			var settings = new FeatureFlagSettings();
+			Assert.True(settings.EnableFriendsRelation);
+		}
 	}
 }

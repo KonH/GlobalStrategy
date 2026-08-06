@@ -32,7 +32,11 @@ namespace GS.Main {
 				CreateCountryResourceEntities(world, entry, resourceConfig);
 			}
 
-			SeedCountryRelations(world, countryConfig);
+			var settings = context.GameSettings.Load();
+			var enableSecretAdvisor = settings.FeatureFlags.EnableSecretAdvisor;
+			var enableFriendsRelation = settings.FeatureFlags.EnableFriendsRelation;
+
+			SeedCountryRelations(world, countryConfig, enableFriendsRelation);
 
 			int countryRelationsVersionEntity = world.Create();
 			world.Add(countryRelationsVersionEntity, new CountryRelationsVersion { Value = 0 });
@@ -47,8 +51,6 @@ namespace GS.Main {
 			var provinceConfig = context.Province.Load();
 			CreateProvinceResourceEntities(world, provinceConfig, resourceConfig);
 
-			var settings = context.GameSettings.Load();
-			var enableSecretAdvisor = settings.FeatureFlags.EnableSecretAdvisor;
 			var startTime = new DateTime(settings.StartYear, 1, 1);
 
 			int gameTimeEntity = world.Create();
@@ -121,7 +123,7 @@ namespace GS.Main {
 			CreateActionEntities(world, context, rng, participating);
 			CreateOrgCharacterEntities(world, context, resourceConfig, rng, participating);
 			CreateCharacterEntities(world, context, resourceConfig, rng, enableSecretAdvisor);
-			CreateCountryActionEntities(world, context, rng, participating);
+			CreateCountryActionEntities(world, context, rng, participating, enableFriendsRelation);
 
 			// InitSystem does not call ResourceSystem.Update itself — it only creates the raw
 			// Resource/ResourceEffect/ResourceCollector entities above. GameLogic.Update calls
@@ -203,7 +205,7 @@ namespace GS.Main {
 			}
 		}
 
-		static void SeedCountryRelations(World world, CountryConfig config) {
+		static void SeedCountryRelations(World world, CountryConfig config, bool enableFriendsRelation) {
 			var availableCountryIds = new HashSet<string>();
 			foreach (var entry in config.Countries) {
 				if (entry.IsAvailable) {
@@ -216,7 +218,9 @@ namespace GS.Main {
 				if (!entry.IsAvailable) {
 					continue;
 				}
-				SeedRelationsForEntry(world, entry.CountryId, entry.HistoricalFriends, RelationKind.Friend, availableCountryIds, seenPairs);
+				if (enableFriendsRelation) {
+					SeedRelationsForEntry(world, entry.CountryId, entry.HistoricalFriends, RelationKind.Friend, availableCountryIds, seenPairs);
+				}
 				SeedRelationsForEntry(world, entry.CountryId, entry.HistoricalRivals, RelationKind.Rival, availableCountryIds, seenPairs);
 			}
 		}
@@ -623,7 +627,7 @@ namespace GS.Main {
 			}
 		}
 
-		static void CreateCountryActionEntities(World world, GameLogicContext context, Random rng, List<OrganizationEntry> participating) {
+		static void CreateCountryActionEntities(World world, GameLogicContext context, Random rng, List<OrganizationEntry> participating, bool enableFriendsRelation) {
 			var actionConfig = context.Action.Load();
 			var countryActions = new List<ActionDefinition>();
 			foreach (var a in actionConfig.Actions) {
@@ -674,6 +678,10 @@ namespace GS.Main {
 						// relation). DeckCopies on those rows is a draw weight, not a static
 						// copy count — skip them here so weight > 0 does not spawn untargeted entities.
 						if (RelationCardSyncSystem.IsSyncedAction(def.ActionId) || def.ActionId == "revenge") { continue; }
+						// make_friend has no relation-synced counterpart to fall back on (unlike
+						// stop_friendship, which naturally disappears once no Friend relations
+						// exist) — skip creating it explicitly when the feature flag is off.
+						if (def.ActionId == "make_friend" && !enableFriendsRelation) { continue; }
 
 						// Determine targets
 						var targets = new List<string>();
