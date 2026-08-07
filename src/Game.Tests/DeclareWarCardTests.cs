@@ -353,7 +353,7 @@ namespace GS.Game.Tests {
 
 			ActionCardEntry entry = Assert.Single(state.SelectedCountry.CountryActions.Hand.Where(e => e.ActionId == "declare_war"));
 			Assert.Equal("insufficient_target_opinion", entry.UnplayableReason);
-			Assert.Equal(6, entry.Conditions.Count);
+			Assert.Equal(5, entry.Conditions.Count);
 			Assert.False(entry.Conditions[0].Passed);
 			Assert.Contains("targetRulerOrMilitaryOpinion", entry.Conditions[0].Label);
 			Assert.True(entry.Conditions[1].Passed);

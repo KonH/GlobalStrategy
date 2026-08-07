@@ -301,7 +301,8 @@ namespace GS.Game.Tests {
 				state.SelectedCountry.CountryActions.Hand,
 				candidate => candidate.ActionId == "control_gated_card");
 			Assert.False(entry.CanPlay);
-			Assert.Equal(new[] { "Austria", "Germany" }, entry.PlayableCountryIds);
+			// Hard-only badge ignores soft control gates, so every available country appears.
+			Assert.Equal(new[] { "Austria", "Prussia", "Germany" }, entry.PlayableCountryIds);
 			Assert.False(world.Has<CountryContext>(card));
 		}
 

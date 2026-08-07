@@ -13,6 +13,8 @@ namespace GS.Unity.UI {
 		readonly ActionConfig _actionConfig;
 		readonly Action<string, string> _onDrawDeckCard;
 		readonly Action<string, string, int> _onDiscardHandCard;
+		readonly HashSet<string> _expandedDeckKeys = new();
+		readonly HashSet<string> _expandedHandKeys = new();
 
 		public DebugCardAvailabilityView(
 			VisualElement deckContainer,
@@ -59,8 +61,11 @@ namespace GS.Unity.UI {
 				bool available = group.EligibleCount > 0;
 				string actionId = group.Representative.ActionId;
 				string targetCountryId = group.Representative.TargetCountryId ?? "";
+				string expandKey = $"{actionId}|{targetCountryId}";
 				_deckContainer.Add(BuildExpandableCard(
 					title,
+					expandKey,
+					_expandedDeckKeys,
 					available,
 					group.Representative.Conditions,
 					onDraw: _onDrawDeckCard == null ? null : () => _onDrawDeckCard(actionId, targetCountryId)));
@@ -106,8 +111,11 @@ namespace GS.Unity.UI {
 				string actionId = card.ActionId;
 				string targetCountryId = card.TargetCountryId ?? "";
 				int slotIndex = card.SlotIndex;
+				string expandKey = $"{actionId}|{targetCountryId}|{slotIndex}";
 				_handContainer.Add(BuildExpandableCard(
 					title,
+					expandKey,
+					_expandedHandKeys,
 					available,
 					conditions,
 					onDiscard: _onDiscardHandCard == null
@@ -118,6 +126,8 @@ namespace GS.Unity.UI {
 
 		VisualElement BuildExpandableCard(
 			string title,
+			string expandKey,
+			HashSet<string> expandedKeys,
 			bool available,
 			IReadOnlyList<ActionConditionDebugEntry> conditions,
 			Action onDraw = null,
@@ -125,23 +135,31 @@ namespace GS.Unity.UI {
 			var block = new VisualElement();
 			block.AddToClassList("debug-card-block");
 
+			var headerRow = new VisualElement();
+			headerRow.AddToClassList("debug-card-header-row");
+
 			var header = new Button();
 			header.text = $"> {title}";
 			header.AddToClassList("gs-btn");
 			header.AddToClassList("gs-btn--small");
 			header.AddToClassList("debug-panel-button");
 			header.AddToClassList(available ? "debug-card-available" : "debug-card-unavailable");
+			headerRow.Add(header);
+
+			// Keep Draw/Discard outside the collapsible details so refresh/expand
+			// state cannot swallow the click while the game is unpaused.
+			if (onDraw != null) {
+				headerRow.Add(CreateActionButton("Draw", onDraw));
+			}
+			if (onDiscard != null) {
+				headerRow.Add(CreateActionButton("Discard", onDiscard));
+			}
 
 			var details = new VisualElement();
 			details.AddToClassList("debug-card-details");
-			details.style.display = DisplayStyle.None;
-
-			if (onDraw != null) {
-				details.Add(CreateActionButton("Draw", onDraw));
-			}
-			if (onDiscard != null) {
-				details.Add(CreateActionButton("Discard", onDiscard));
-			}
+			bool startOpen = expandedKeys.Contains(expandKey);
+			details.style.display = startOpen ? DisplayStyle.Flex : DisplayStyle.None;
+			header.text = $"{(startOpen ? "v" : ">")} {title}";
 
 			bool hasRows = false;
 			if (conditions != null) {
@@ -150,7 +168,7 @@ namespace GS.Unity.UI {
 					hasRows = true;
 				}
 			}
-			if (!hasRows && onDraw == null && onDiscard == null) {
+			if (!hasRows) {
 				details.Add(CreateMutedLabel("(no conditions)"));
 			}
 
@@ -161,18 +179,27 @@ namespace GS.Unity.UI {
 				bool isOpen = details.style.display != DisplayStyle.None;
 				details.style.display = isOpen ? DisplayStyle.None : DisplayStyle.Flex;
 				header.text = $"{(isOpen ? ">" : "v")} {title}";
+				if (isOpen) {
+					expandedKeys.Remove(expandKey);
+				} else {
+					expandedKeys.Add(expandKey);
+				}
+				e.StopPropagation();
 			});
 
-			block.Add(header);
+			block.Add(headerRow);
 			block.Add(details);
 			return block;
 		}
 
 		static Button CreateActionButton(string text, Action onClick) {
-			var button = new Button(onClick) { text = text };
+			var button = new Button(() => onClick()) { text = text };
 			button.AddToClassList("gs-btn");
 			button.AddToClassList("gs-btn--small");
 			button.AddToClassList("debug-panel-button");
+			button.AddToClassList("debug-card-action-button");
+			button.RegisterCallback<PointerUpEvent>(e => e.StopPropagation());
+			button.RegisterCallback<PointerDownEvent>(e => e.StopPropagation());
 			return button;
 		}
 

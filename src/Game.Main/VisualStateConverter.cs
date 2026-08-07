@@ -658,9 +658,12 @@ namespace GS.Main {
 
 			var playableCountryIds = new List<string>();
 			foreach (string candidateCountryId in GetPlayableCountryEvaluationOrder(world)) {
+				// Badge uses hard gates only (relation / war-state) so unavailable cards still
+				// show countries that could play once soft gates (control, opinion, gold) pass.
 				if (ActionPlayability.Evaluate(
 					world, _actionConfig!, entity, actionId, orgId, candidateCountryId,
-					_hqCountryByOrgId, currentTime, _maxControlPool).CanPlay) {
+					_hqCountryByOrgId, currentTime, _maxControlPool,
+					ActionPlayabilityGateSet.HardOnly).CanPlay) {
 					playableCountryIds.Add(candidateCountryId);
 				}
 			}

@@ -23,7 +23,7 @@ namespace GS.Unity.UI {
 		ActiveGesture _activeGesture;
 
 		public Action<string, string, int, VisualElement, ActionCardBuilder.CountryCardFace> OnCardClicked;
-		public Action<string, string, int> OnCardDiscarded;
+		public Action<string, string, int, VisualElement, ActionCardBuilder.CountryCardFace> OnCardDiscarded;
 		public Action<ActionConditionDebugEntry> OnUnplayableCardReleased;
 		public Action OnDiscardUnaffordable;
 		public VisualElement DeckPileElement { get; private set; }
@@ -139,8 +139,11 @@ namespace GS.Unity.UI {
 				name = _loc.Get(definition.NameKey);
 			}
 
-			var requirements = new List<ActionCardBuilder.RequirementRow>(card.Conditions.Count);
+			var requirements = new List<ActionCardBuilder.RequirementRow>();
 			foreach (ActionConditionDebugEntry condition in card.Conditions) {
+				if (condition.Passed) {
+					continue;
+				}
 				requirements.Add(new ActionCardBuilder.RequirementRow(
 					ActionConditionText.Localize(_loc, condition),
 					condition.Passed));
@@ -222,7 +225,12 @@ namespace GS.Unity.UI {
 				}
 				if (discardRequested) {
 					if (gesture.CanAffordDiscard) {
-						OnCardDiscarded?.Invoke(gesture.Card.ActionId, gesture.Card.TargetCountryId, gesture.Card.SlotIndex);
+						OnCardDiscarded?.Invoke(
+							gesture.Card.ActionId,
+							gesture.Card.TargetCountryId,
+							gesture.Card.SlotIndex,
+							gesture.CardElement,
+							gesture.Face);
 					} else {
 						OnDiscardUnaffordable?.Invoke();
 					}

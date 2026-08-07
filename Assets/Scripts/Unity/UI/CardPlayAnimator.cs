@@ -136,6 +136,104 @@ namespace GS.Unity.UI {
 			PlayCountrySequence(orgId, countryId, actionId, slotIndex, clickedCard, faceData, targetCountryId).Forget();
 		}
 
+		public void StartCountryCardDiscard(
+			string orgId,
+			string countryId,
+			string actionId,
+			int slotIndex,
+			VisualElement clickedCard,
+			ActionCardBuilder.CountryCardFace faceData,
+			string targetCountryId = "") {
+			if (_isPlaying) { return; }
+			if (faceData == null) {
+				throw new ArgumentNullException(nameof(faceData));
+			}
+			PlayCountryDiscardSequence(orgId, countryId, actionId, slotIndex, clickedCard, faceData, targetCountryId).Forget();
+		}
+
+		async UniTaskVoid PlayCountryDiscardSequence(
+			string orgId,
+			string countryId,
+			string actionId,
+			int slotIndex,
+			VisualElement clickedCard,
+			ActionCardBuilder.CountryCardFace faceData,
+			string targetCountryId) {
+			_isPlaying = true;
+			_barrierHolder = null;
+			_modalState.Lock(this);
+			bool issuedPause = !_state.Time.IsPaused;
+			if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = true; }
+
+			try {
+				if (issuedPause) {
+					_commands.Push(new PauseCommand());
+				}
+
+				var fromRect = clickedCard.worldBound;
+				var deckRect = _countryActionsView?.DeckPileElement?.worldBound ?? Rect.zero;
+				var deckElement = _countryActionsView?.DeckPileElement;
+				clickedCard.style.opacity = 0f;
+
+				await _transitionView.ShowCountry(faceData, fromRect, deckElement ?? clickedCard, 0.55f);
+				_transitionView.Hide();
+
+				_commands.Push(new DiscardCardCommand {
+					OrgId = orgId,
+					CountryId = countryId,
+					ActionId = actionId,
+					TargetCountryId = targetCountryId ?? "",
+					SlotIndex = slotIndex
+				});
+
+				if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = false; }
+				await UniTask.NextFrame();
+				await UniTask.NextFrame();
+				if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = true; }
+
+				ActionCardEntry replacementCard = null;
+				foreach (var handCard in _state.SelectedCountry.CountryActions.Hand) {
+					if (handCard.SlotIndex == slotIndex) {
+						replacementCard = handCard;
+						break;
+					}
+				}
+
+				VisualElement newHandCard = null;
+				ActionCardBuilder.CountryCardFace replacementFace = null;
+				if (replacementCard != null && _countryActionsView != null) {
+					_countryActionsView.TryGetRenderedCard(slotIndex, out newHandCard);
+					_countryActionsView.TryGetFaceData(replacementCard, out replacementFace);
+				}
+
+				if (newHandCard != null && replacementFace != null) {
+					newHandCard.style.opacity = 0f;
+					await _transitionView.ShowCountry(replacementFace, deckRect, newHandCard, 0.5f);
+					newHandCard.style.opacity = 1f;
+					_transitionView.Hide();
+				}
+
+				if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = false; }
+				_modalState.Unlock(this);
+				if (issuedPause) {
+					_commands.Push(new UnpauseCommand());
+					issuedPause = false;
+				}
+				_isPlaying = false;
+			} finally {
+				_transitionView.Hide();
+				_modalState.Unlock(this);
+				if (issuedPause) {
+					_commands.Push(new UnpauseCommand());
+				}
+				if (_countryActionsView != null) {
+					_countryActionsView.SuppressRefresh = false;
+				}
+				_isPlaying = false;
+				OnCardPlayComplete?.Invoke();
+			}
+		}
+
 		async UniTaskVoid PlaySequence(string orgId, string actionId, int slotIndex, VisualElement clickedCard) {
 			_isPlaying = true;
 			_resultReady = false;

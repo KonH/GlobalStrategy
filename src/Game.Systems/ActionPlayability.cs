@@ -25,6 +25,16 @@ namespace GS.Game.Systems {
 		public static implicit operator bool(ActionPlayabilityResult result) => result.CanPlay;
 	}
 
+	public enum ActionPlayabilityGateSet {
+		/// <summary>Full playability: authored conditions plus pool/cooldown/gold.</summary>
+		All,
+		/// <summary>
+		/// Intrinsic/hard gates only (relation and war-state conditions). Skips soft gates
+		/// such as control, opinion, gold, cooldown, and control-pool capacity.
+		/// </summary>
+		HardOnly
+	}
+
 	public static class ActionPlayability {
 		public static ActionPlayabilityResult Evaluate(
 			IReadOnlyWorld world,
@@ -35,7 +45,8 @@ namespace GS.Game.Systems {
 			string? countryId,
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
 			DateTime currentTime = default,
-			int maxControlPool = 100) {
+			int maxControlPool = 100,
+			ActionPlayabilityGateSet gateSet = ActionPlayabilityGateSet.All) {
 			var entries = new List<ActionConditionDebugEntry>();
 			ActionDefinition? definition = config.Find(actionId);
 			if (definition == null) {
@@ -56,70 +67,93 @@ namespace GS.Game.Systems {
 				selectedCountryId,
 				entity,
 				hqCountryByOrgId);
-			entries.AddRange(ActionConditionDebug.EvaluateAll(definition.Conditions, context));
-
-			if (entity >= 0 && world.TryGet<CountryContext>(entity, out var primaryCountry)) {
-				bool matchesPrimary = primaryCountry.CountryId == selectedCountryId;
-				entries.Add(new ActionConditionDebugEntry(
-					$"selected country ({selectedCountryId}) == primary country ({primaryCountry.CountryId})",
-					matchesPrimary,
-					"action.requirement.primary_country",
-					new[] { primaryCountry.CountryId },
-					"wrong_primary_country"));
+			foreach (ExpressionNode condition in definition.Conditions) {
+				if (gateSet == ActionPlayabilityGateSet.HardOnly && IsSoftCondition(condition)) {
+					continue;
+				}
+				entries.Add(ActionConditionDebug.Evaluate(condition, context));
 			}
 
-			if (actionId == "improve_control") {
-				int usedControl = string.IsNullOrEmpty(selectedCountryId)
-					? maxControlPool
-					: ControlQuery.GetTotalControlInCountry(world, selectedCountryId);
-				bool hasCapacity = usedControl < maxControlPool;
-				entries.Add(new ActionConditionDebugEntry(
-					$"control pool not full (used {usedControl}/{maxControlPool})",
-					hasCapacity,
-					"action.requirement.control_capacity",
-					new[] { usedControl.ToString(CultureInfo.InvariantCulture), maxControlPool.ToString(CultureInfo.InvariantCulture) },
-					"pool_full"));
-			}
+			if (gateSet == ActionPlayabilityGateSet.All) {
+				if (actionId == "improve_control") {
+					int usedControl = string.IsNullOrEmpty(selectedCountryId)
+						? maxControlPool
+						: ControlQuery.GetTotalControlInCountry(world, selectedCountryId);
+					bool hasCapacity = usedControl < maxControlPool;
+					entries.Add(new ActionConditionDebugEntry(
+						$"control pool not full (used {usedControl}/{maxControlPool})",
+						hasCapacity,
+						"action.requirement.control_capacity",
+						new[] { usedControl.ToString(CultureInfo.InvariantCulture), maxControlPool.ToString(CultureInfo.InvariantCulture) },
+						"pool_full"));
+				}
 
-			TimeSpan? cooldownRemaining = ActionCooldownQuery.GetRemaining(world, orgId, actionId, currentTime);
-			entries.Add(new ActionConditionDebugEntry(
-				cooldownRemaining.HasValue
-					? $"cooldown ready (remaining {cooldownRemaining.Value.TotalDays:0.##} days)"
-					: "cooldown ready",
-				!cooldownRemaining.HasValue,
-				"action.requirement.cooldown_ready",
-				cooldownRemaining.HasValue
-					? new[] { Math.Ceiling(cooldownRemaining.Value.TotalDays).ToString(CultureInfo.InvariantCulture) }
-					: Array.Empty<string>(),
-				"on_cooldown"));
-
-			var costOrder = new List<string>();
-			var costByResource = new Dictionary<string, double>(StringComparer.Ordinal);
-			foreach (ActionCost cost in definition.Cost) {
-				if (!costByResource.ContainsKey(cost.ResourceId)) { costOrder.Add(cost.ResourceId); }
-				costByResource.TryGetValue(cost.ResourceId, out double total);
-				costByResource[cost.ResourceId] = total + cost.Amount;
-			}
-			foreach (string resourceId in costOrder) {
-				double amount = costByResource[resourceId];
-				int resourceEntity = FindResourceEntity(world, orgId, resourceId);
-				double available = resourceEntity >= 0 ? world.Get<Resource>(resourceEntity).Value : 0.0;
-				bool canAfford = available >= amount;
+				TimeSpan? cooldownRemaining = ActionCooldownQuery.GetRemaining(world, orgId, actionId, currentTime);
 				entries.Add(new ActionConditionDebugEntry(
-					$"{resourceId} ({available:0.##}) >= {amount:0.##}",
-					canAfford,
-					resourceId == ResourceDefinitions.Gold
-						? "action.requirement.gold"
-						: "action.requirement.resource",
-					new[] {
-						amount.ToString("0.##", CultureInfo.InvariantCulture),
-						available.ToString("0.##", CultureInfo.InvariantCulture),
-						resourceId
-					},
-					"unaffordable"));
+					cooldownRemaining.HasValue
+						? $"cooldown ready (remaining {cooldownRemaining.Value.TotalDays:0.##} days)"
+						: "cooldown ready",
+					!cooldownRemaining.HasValue,
+					"action.requirement.cooldown_ready",
+					cooldownRemaining.HasValue
+						? new[] { Math.Ceiling(cooldownRemaining.Value.TotalDays).ToString(CultureInfo.InvariantCulture) }
+						: Array.Empty<string>(),
+					"on_cooldown"));
+
+				var costOrder = new List<string>();
+				var costByResource = new Dictionary<string, double>(StringComparer.Ordinal);
+				foreach (ActionCost cost in definition.Cost) {
+					if (!costByResource.ContainsKey(cost.ResourceId)) { costOrder.Add(cost.ResourceId); }
+					costByResource.TryGetValue(cost.ResourceId, out double total);
+					costByResource[cost.ResourceId] = total + cost.Amount;
+				}
+				foreach (string resourceId in costOrder) {
+					double amount = costByResource[resourceId];
+					int resourceEntity = FindResourceEntity(world, orgId, resourceId);
+					double available = resourceEntity >= 0 ? world.Get<Resource>(resourceEntity).Value : 0.0;
+					bool canAfford = available >= amount;
+					entries.Add(new ActionConditionDebugEntry(
+						$"{resourceId} ({available:0.##}) >= {amount:0.##}",
+						canAfford,
+						resourceId == ResourceDefinitions.Gold
+							? "action.requirement.gold"
+							: "action.requirement.resource",
+						new[] {
+							amount.ToString("0.##", CultureInfo.InvariantCulture),
+							available.ToString("0.##", CultureInfo.InvariantCulture),
+							resourceId
+						},
+						"unaffordable"));
+				}
 			}
 
 			return new ActionPlayabilityResult(entries);
+		}
+
+		static bool IsSoftCondition(ExpressionNode condition) {
+			return ContainsSoftOperand(condition);
+		}
+
+		static bool ContainsSoftOperand(ExpressionNode node) {
+			if (IsSoftOperandType(node.Type)) {
+				return true;
+			}
+			if (node.Members == null) {
+				return false;
+			}
+			foreach (ExpressionNode member in node.Members) {
+				if (ContainsSoftOperand(member)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		static bool IsSoftOperandType(string type) {
+			return type == "control"
+				|| type == "totalCountryControl"
+				|| type == "opinion"
+				|| type == "targetRulerOrMilitaryOpinion";
 		}
 
 		public static bool CanAfford(IReadOnlyWorld world, string orgId, List<ActionCost> costs) {

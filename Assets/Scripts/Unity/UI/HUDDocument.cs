@@ -79,7 +79,6 @@ namespace GS.Unity.UI {
 		Button _btnSetCountryRival;
 		Button _btnClearCountryRelation;
 		readonly List<string> _relationDropdownCountryIds = new();
-		DebugCardAvailabilityView _selectedCountryCardDebug;
 		DebugCardAvailabilityView _selectedOrgCardDebug;
 		UIPointerState _pointerState;
 
@@ -192,8 +191,6 @@ namespace GS.Unity.UI {
 			RegisterDebugMenuToggle(_btnSelectedOrgDebugMenu, _selectedOrgDebugMenu, "Selected org");
 			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-country-characters"), root.Q("selected-country-characters"), "Characters");
 			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-country-relations"), root.Q("selected-country-relations"), "Relations");
-			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-country-deck"), root.Q("selected-country-deck"), "Deck");
-			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-country-hand"), root.Q("selected-country-hand"), "Hand");
 			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-org-characters"), root.Q("selected-org-characters"), "Characters");
 			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-org-deck"), root.Q("selected-org-deck"), "Deck");
 			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-org-hand"), root.Q("selected-org-hand"), "Hand");
@@ -264,20 +261,14 @@ namespace GS.Unity.UI {
 			BuildProvinceDebugUi();
 			BuildRelationDebugUi();
 
-			_selectedCountryCardDebug = new DebugCardAvailabilityView(
-				root.Q("selected-country-deck"),
-				root.Q("selected-country-hand"),
-				_loc,
-				_actionConfig,
-				PushDebugDrawCountryCardCommand,
-				PushDebugDiscardCountryCardCommand);
+			// Shared country-card deck/hand lives on the org; surface it under Selected org debug.
 			_selectedOrgCardDebug = new DebugCardAvailabilityView(
 				root.Q("selected-org-deck"),
 				root.Q("selected-org-hand"),
 				_loc,
 				_actionConfig,
-				PushDebugDrawOrgCardCommand,
-				PushDebugDiscardOrgCardCommand);
+				PushDebugDrawCountryCardCommand,
+				PushDebugDiscardCountryCardCommand);
 
 			int availableCountryCount = _countryConfig != null ? CountAvailableCountries(_countryConfig) : 0;
 			var (_, _, winConditionRows) = WinConditionHintProjector.Build(_gameSettings?.CompletionCondition, availableCountryCount);
@@ -511,15 +502,10 @@ namespace GS.Unity.UI {
 				return;
 			}
 			double gold = GetPlayerGold();
-			if (_selectedCountryCardDebug != null) {
-				var countryActions = _state.SelectedCountry.CountryActions;
-				_selectedCountryCardDebug.RefreshDeck(countryActions.Deck);
-				_selectedCountryCardDebug.RefreshHand(countryActions.Hand, gold);
-			}
 			if (_selectedOrgCardDebug != null) {
-				var orgActions = _state.PlayerOrganization.Actions;
-				_selectedOrgCardDebug.RefreshDeck(orgActions.Deck);
-				_selectedOrgCardDebug.RefreshHand(orgActions.Hand, gold);
+				var countryActions = _state.SelectedCountry.CountryActions;
+				_selectedOrgCardDebug.RefreshDeck(countryActions.Deck);
+				_selectedOrgCardDebug.RefreshHand(countryActions.Hand, gold);
 			}
 		}
 
@@ -538,21 +524,6 @@ namespace GS.Unity.UI {
 			});
 		}
 
-		void PushDebugDrawOrgCardCommand(string actionId, string targetCountryId) {
-			if (_state == null || !_state.PlayerOrganization.IsValid) {
-				return;
-			}
-			if (string.IsNullOrEmpty(actionId)) {
-				return;
-			}
-			_commands.Push(new DebugDrawCardCommand {
-				OrgId = _state.PlayerOrganization.OrgId,
-				CountryId = "",
-				ActionId = actionId,
-				TargetCountryId = targetCountryId ?? ""
-			});
-		}
-
 		void PushDebugDiscardCountryCardCommand(string actionId, string targetCountryId, int slotIndex) {
 			if (_state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) {
 				return;
@@ -563,22 +534,6 @@ namespace GS.Unity.UI {
 			_commands.Push(new DebugDiscardCardCommand {
 				OrgId = _state.PlayerOrganization.OrgId,
 				CountryId = _state.SelectedCountry.CountryId,
-				ActionId = actionId,
-				TargetCountryId = targetCountryId ?? "",
-				SlotIndex = slotIndex
-			});
-		}
-
-		void PushDebugDiscardOrgCardCommand(string actionId, string targetCountryId, int slotIndex) {
-			if (_state == null || !_state.PlayerOrganization.IsValid) {
-				return;
-			}
-			if (string.IsNullOrEmpty(actionId)) {
-				return;
-			}
-			_commands.Push(new DebugDiscardCardCommand {
-				OrgId = _state.PlayerOrganization.OrgId,
-				CountryId = "",
 				ActionId = actionId,
 				TargetCountryId = targetCountryId ?? "",
 				SlotIndex = slotIndex
@@ -796,17 +751,23 @@ namespace GS.Unity.UI {
 				targetCountryId);
 		}
 
-		void HandleCountryActionCardDiscarded(string actionId, string targetCountryId, int slotIndex) {
-			if (_state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) {
+		void HandleCountryActionCardDiscarded(
+			string actionId,
+			string targetCountryId,
+			int slotIndex,
+			VisualElement element,
+			ActionCardBuilder.CountryCardFace faceData) {
+			if (_cardPlayAnimator == null || _state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) {
 				return;
 			}
-			_commands.Push(new DiscardCardCommand {
-				OrgId = _state.PlayerOrganization.OrgId,
-				CountryId = _state.SelectedCountry.CountryId,
-				ActionId = actionId,
-				TargetCountryId = targetCountryId ?? "",
-				SlotIndex = slotIndex
-			});
+			_cardPlayAnimator.StartCountryCardDiscard(
+				_state.PlayerOrganization.OrgId,
+				_state.SelectedCountry.CountryId,
+				actionId,
+				slotIndex,
+				element,
+				faceData,
+				targetCountryId);
 		}
 
 		void HandleUnplayableCountryActionCardReleased(ActionConditionDebugEntry condition) {

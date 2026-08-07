@@ -932,7 +932,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void relation_card_reports_primary_country_mismatch_as_a_canonical_gate() {
+		void relation_card_is_playable_for_any_selected_country_that_still_holds_the_relation() {
 			var config = BuildActionConfig();
 			var world = new World();
 			AddGold(world, "OrgA", 100);
@@ -941,16 +941,17 @@ namespace GS.Game.Tests {
 			AddCountry(world, "France");
 			AddDiplomacyAdvisor(world, "Austria", "austria_diplomat", "OrgA", 80);
 			CountryRelations.SetRelation(world, "Austria", "France", RelationKind.Friend);
+			// Card instance was created for Prussia's friendship pair, but Austria currently
+			// holds the France friendship — selected-country soft/hard gates decide playability.
 			int card = AddRelationCard(world, "OrgA", "stop_friendship", "Prussia", "France", RelationKind.Friend);
 
 			ActionPlayabilityResult result = ActionPlayability.Evaluate(
 				world, config, card, "stop_friendship", "OrgA", "Austria");
 
-			ActionConditionDebugEntry primaryGate = Assert.Single(
-				System.Linq.Enumerable.Where(result.Entries, entry => entry.LocaleKey == "action.requirement.primary_country"));
-			Assert.False(primaryGate.Passed);
-			Assert.Equal("wrong_primary_country", primaryGate.ReasonCode);
-			Assert.False(result.CanPlay);
+			Assert.DoesNotContain(
+				result.Entries,
+				entry => entry.LocaleKey == "action.requirement.primary_country");
+			Assert.True(result.CanPlay);
 		}
 	}
 }

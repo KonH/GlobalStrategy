@@ -54,12 +54,6 @@
                                 <ui:VisualElement name="relation-debug-container" style="flex-direction: column;" />
                             </ui:VisualElement>
                         </ui:VisualElement>
-                        <ui:VisualElement class="debug-panel-col">
-                            <ui:Button name="btn-selected-country-deck" text="Deck" class="gs-btn debug-panel-menu-toggle" />
-                            <ui:VisualElement name="selected-country-deck" class="debug-panel-inner-section" style="display: none;" />
-                            <ui:Button name="btn-selected-country-hand" text="Hand" class="gs-btn debug-panel-menu-toggle" />
-                            <ui:VisualElement name="selected-country-hand" class="debug-panel-inner-section" style="display: none;" />
-                        </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:Button name="btn-selected-org-debug-menu" text="Selected org" class="gs-btn debug-panel-menu-toggle" />

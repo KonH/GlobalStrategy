@@ -43,7 +43,7 @@ namespace GS.Unity.UI {
 
 		public event Action<bool>? OnSubPanelOpened;
 		public event Action<string, string, int, VisualElement, ActionCardBuilder.CountryCardFace>? OnCountryActionCardClicked;
-		public event Action<string, string, int>? OnCountryActionCardDiscarded;
+		public event Action<string, string, int, VisualElement, ActionCardBuilder.CountryCardFace>? OnCountryActionCardDiscarded;
 		public event Action<ActionConditionDebugEntry>? OnUnplayableCountryActionCardReleased;
 		public event Action? OnCountryActionCardDiscardUnaffordable;
 		public event Action<string>? OnRelatedCountryFlagClicked;
@@ -97,8 +97,8 @@ namespace GS.Unity.UI {
 						gameSettings?.DiscardGoldCost ?? 50);
 					_actionsView.OnCardClicked = (actionId, targetCountryId, slotIndex, element, face) =>
 						OnCountryActionCardClicked?.Invoke(actionId, targetCountryId, slotIndex, element, face);
-					_actionsView.OnCardDiscarded = (actionId, targetCountryId, slotIndex) =>
-						OnCountryActionCardDiscarded?.Invoke(actionId, targetCountryId, slotIndex);
+					_actionsView.OnCardDiscarded = (actionId, targetCountryId, slotIndex, element, faceData) =>
+						OnCountryActionCardDiscarded?.Invoke(actionId, targetCountryId, slotIndex, element, faceData);
 					_actionsView.OnUnplayableCardReleased = condition =>
 						OnUnplayableCountryActionCardReleased?.Invoke(condition);
 					_actionsView.OnDiscardUnaffordable = () =>

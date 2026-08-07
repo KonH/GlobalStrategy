@@ -147,6 +147,18 @@
     margin-top: 2px;
 }
 
+.debug-card-header-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.debug-card-action-button {
+    flex-shrink: 0;
+    margin-left: 4px;
+    margin-top: 8px;
+}
+
 .debug-card-details {
     flex-direction: column;
     margin-left: 12px;

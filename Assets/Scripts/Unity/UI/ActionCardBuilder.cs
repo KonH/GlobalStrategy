@@ -248,7 +248,6 @@ namespace GS.Unity.UI {
 				var row = requirements[i];
 				var label = new Label(row.Text);
 				label.AddToClassList("action-card-requirement-row");
-				label.AddToClassList("gs-content");
 				label.AddToClassList(row.Passed
 					? "action-card-requirement-row--pass"
 					: "action-card-requirement-row--fail");
@@ -263,23 +262,22 @@ namespace GS.Unity.UI {
 		static VisualElement BuildPlayableCountriesBadge(IReadOnlyList<PlayableCountryBadgeItem> countries) {
 			var badge = new VisualElement();
 			badge.AddToClassList("action-card-playable-countries");
+			bool stackAsPile = countries.Count > 2;
 			int visibleCount = Mathf.Min(countries.Count, 2);
 			for (int i = 0; i < visibleCount; i++) {
 				var flag = new VisualElement { pickingMode = PickingMode.Ignore };
 				flag.AddToClassList("action-card-playable-country-flag");
-				if (i > 0) {
+				if (stackAsPile) {
+					flag.AddToClassList("action-card-playable-country-flag--stacked");
+					flag.style.left = i * 6;
+					flag.style.top = i * 4;
+				} else if (i > 0) {
 					flag.style.marginLeft = 3;
 				}
 				if (countries[i].Flag != null) {
 					flag.style.backgroundImage = new StyleBackground(countries[i].Flag);
 				}
 				badge.Add(flag);
-			}
-			if (countries.Count > 2) {
-				var ellipsis = new Label("...") { pickingMode = PickingMode.Ignore };
-				ellipsis.AddToClassList("action-card-playable-countries-ellipsis");
-				ellipsis.style.marginLeft = 3;
-				badge.Add(ellipsis);
 			}
 			return badge;
 		}
@@ -439,21 +437,24 @@ namespace GS.Unity.UI {
 			});
 		}
 
-		static void SetupHeaderAutoSize(Label header, float minSize = 12f) {
+		static void SetupHeaderAutoSize(Label header, float minSize = 9f) {
 			header.RegisterCallback<GeometryChangedEvent>(_ => {
 				float availW = header.resolvedStyle.width;
-				if (availW <= 0) { return; }
+				float availH = header.resolvedStyle.height;
+				if (availW <= 0 || availH <= 0) { return; }
+				float cur = header.resolvedStyle.fontSize;
+				if (float.IsNaN(cur) || cur <= minSize) { return; }
+
 				var measured = header.MeasureTextSize(
-					header.text, float.PositiveInfinity, VisualElement.MeasureMode.Undefined,
+					header.text, availW, VisualElement.MeasureMode.AtMost,
 					float.PositiveInfinity, VisualElement.MeasureMode.Undefined);
-				if (measured.x > availW + 0.5f) {
-					float cur = header.resolvedStyle.fontSize;
-					if (cur > minSize) {
-						float scale = availW / measured.x;
-						float newSize = Mathf.Max(Mathf.Floor(cur * scale), minSize);
-						if (newSize < cur) { header.style.fontSize = newSize; }
-					}
+				if (measured.y <= availH + 0.5f && measured.x <= availW + 0.5f) {
+					return;
 				}
+
+				float scale = Mathf.Min(availW / Mathf.Max(measured.x, 1f), availH / Mathf.Max(measured.y, 1f));
+				float newSize = Mathf.Max(Mathf.Floor(cur * scale), minSize);
+				if (newSize < cur) { header.style.fontSize = newSize; }
 			});
 		}
 	}
