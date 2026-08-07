@@ -143,7 +143,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 75
+          "value": 2200
         }
       ],
       "isAvailable": true,
@@ -204,7 +204,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 150
+          "value": 5000
         }
       ],
       "isAvailable": true,
@@ -264,7 +264,12 @@
         "Belgium"
       ],
       "secondaryMapFeatureIds": [],
-      "initialResources": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 3200
+        }
+      ],
       "isAvailable": true,
       "historicalFriends": [
         "United_Kingdom_of_Great_Britain_and_Ireland",
@@ -854,7 +859,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 75
+          "value": 2400
         }
       ],
       "isAvailable": true,
@@ -896,7 +901,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 75
+          "value": 1800
         }
       ],
       "isAvailable": true,
@@ -942,7 +947,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 150
+          "value": 6000
         }
       ],
       "isAvailable": true,
@@ -1082,7 +1087,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 150
+          "value": 6200
         }
       ],
       "isAvailable": true,
@@ -1279,7 +1284,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 150
+          "value": 4200
         }
       ],
       "isAvailable": true,
@@ -1302,7 +1307,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 150
+          "value": 4000
         }
       ],
       "isAvailable": true,
@@ -1363,7 +1368,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 150
+          "value": 3500
         }
       ],
       "isAvailable": true,
@@ -1652,7 +1657,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 150
+          "value": 4500
         }
       ],
       "isAvailable": true,
@@ -1884,7 +1889,12 @@
       "secondaryMapFeatureIds": [
         "Netherlands_Indies"
       ],
-      "initialResources": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 3300
+        }
+      ],
       "isAvailable": true,
       "historicalFriends": [
         "SwedenNorway",
@@ -2058,7 +2068,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 150
+          "value": 4300
         }
       ],
       "isAvailable": true,
@@ -2159,7 +2169,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 75
+          "value": 2200
         }
       ],
       "isAvailable": true,
@@ -2241,7 +2251,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 75
+          "value": 2300
         }
       ],
       "isAvailable": true,
@@ -2362,7 +2372,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 150
+          "value": 5800
         }
       ],
       "isAvailable": true,
@@ -2561,7 +2571,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 75
+          "value": 3000
         }
       ],
       "isAvailable": true,
@@ -2677,7 +2687,12 @@
         "SwedenNorway"
       ],
       "secondaryMapFeatureIds": [],
-      "initialResources": [],
+      "initialResources": [
+        {
+          "resourceId": "gold",
+          "value": 2800
+        }
+      ],
       "isAvailable": true,
       "historicalFriends": [
         "Netherlands"
@@ -2835,7 +2850,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 150
+          "value": 6800
         }
       ],
       "isAvailable": true,
@@ -2862,7 +2877,7 @@
       "initialResources": [
         {
           "resourceId": "gold",
-          "value": 150
+          "value": 5600
         }
       ],
       "isAvailable": true,
