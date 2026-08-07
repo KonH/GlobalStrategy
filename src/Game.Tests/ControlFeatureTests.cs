@@ -11,8 +11,10 @@ namespace GS.Game.Tests {
 	public class ControlFeatureTests {
 		sealed class RecordingSink : IBotCommandSink {
 			public List<(string ActionId, string CountryId)> Plays = new();
-			public void PlayOrgCard(string actionId) => Plays.Add((actionId, ""));
-			public void PlayCountryCard(string actionId, string countryId) => Plays.Add((actionId, countryId));
+			public void PlayOrgCard(string actionId, int slotIndex) => Plays.Add((actionId, ""));
+			public void PlayCountryCard(string actionId, string countryId, int slotIndex, string targetCountryId) {
+				Plays.Add((actionId, countryId));
+			}
 		}
 
 		const string ControlCardId = "raise_control_card";

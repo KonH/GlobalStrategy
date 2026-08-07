@@ -46,7 +46,7 @@ namespace GS.Game.Tests {
 							new ExpressionNode {
 								Type = "gte",
 								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "hasSuitableRelationTarget" },
+									new ExpressionNode { Type = "hasCountryRelation", RelationKind = "none", DesiredRelationKind = "friend" },
 									new ExpressionNode { Type = "value", Value = 1 }
 								}
 							}
@@ -68,7 +68,7 @@ namespace GS.Game.Tests {
 							new ExpressionNode {
 								Type = "gte",
 								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "relationStillExists" },
+									new ExpressionNode { Type = "hasCountryRelation", RelationKind = "friend" },
 									new ExpressionNode { Type = "value", Value = 1 }
 								}
 							}
@@ -96,7 +96,7 @@ namespace GS.Game.Tests {
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 250.0 } }
 					},
 					new ActionDefinition {
-						ActionId = "ultimatum",
+						ActionId = "force_war_win",
 						OwnerType = "country",
 						TargetRole = "military_advisor",
 						Conditions = new List<ExpressionNode> {
@@ -108,7 +108,7 @@ namespace GS.Game.Tests {
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 300.0 } }
 					},
 					new ActionDefinition {
-						ActionId = "surrender",
+						ActionId = "force_war_loss",
 						OwnerType = "country",
 						TargetRole = "military_advisor",
 						Conditions = new List<ExpressionNode> {
@@ -134,7 +134,7 @@ namespace GS.Game.Tests {
 						}
 					},
 					new ActionDefinition {
-						ActionId = "revenge",
+						ActionId = "declare_revenge_war",
 						OwnerType = "country",
 						TargetRole = "military_advisor",
 						Conditions = new List<ExpressionNode> {
@@ -229,11 +229,12 @@ namespace GS.Game.Tests {
 			int e = world.Create();
 			world.Add(e, new GameAction { ActionId = actionId });
 			world.Add(e, new OrgContext { OrgId = orgId });
+			world.Add(e, new CardOwnerType(countryId == null ? CardOwnerKind.Org : CardOwnerKind.Country));
 			if (countryId != null) {
 				world.Add(e, new CountryContext { CountryId = countryId });
 			}
 			world.Add(e, new CardInHand { SlotIndex = 0 });
-			world.Add(e, new CardUse());
+			world.Add(e, new CardUse { CountryId = countryId ?? "" });
 			return e;
 		}
 
@@ -525,7 +526,7 @@ namespace GS.Game.Tests {
 			AddControl(world, "OrgA", "Prussia", 10);
 			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
 
-			Assert.False(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "force_war_win", "OrgA", "Prussia"));
 		}
 
 		[Fact]
@@ -538,7 +539,7 @@ namespace GS.Game.Tests {
 			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
 			SetWarProgress(world, 50);
 
-			Assert.True(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "force_war_win", "OrgA", "Prussia"));
 		}
 
 		[Fact]
@@ -551,7 +552,7 @@ namespace GS.Game.Tests {
 			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
 			SetWarProgress(world, 50);
 
-			Assert.False(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "force_war_win", "OrgA", "Prussia"));
 		}
 
 		[Fact]
@@ -564,7 +565,7 @@ namespace GS.Game.Tests {
 			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
 			SetWarProgress(world, 50);
 
-			Assert.False(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "force_war_win", "OrgA", "Prussia"));
 		}
 
 		[Fact]
@@ -577,7 +578,7 @@ namespace GS.Game.Tests {
 			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
 			SetWarProgress(world, 49);
 
-			Assert.False(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "force_war_win", "OrgA", "Prussia"));
 		}
 
 		[Fact]
@@ -591,7 +592,7 @@ namespace GS.Game.Tests {
 			AddMilitaryAdvisor(defenderWorld, "Prussia", "char1", "OrgA", opinion: 50);
 			Wars.DeclareWar(defenderWorld, "France", "Prussia", new DateTime(1880, 1, 1));
 			SetWarProgress(defenderWorld, -60);
-			Assert.True(ActionPlayability.Evaluate(defenderWorld, config, -1, "ultimatum", "OrgA", "Prussia"));
+			Assert.True(ActionPlayability.Evaluate(defenderWorld, config, -1, "force_war_win", "OrgA", "Prussia"));
 
 			// Prussia is the attacker with the same raw value: own progress = -60 -> not playable.
 			var attackerWorld = new World();
@@ -600,7 +601,7 @@ namespace GS.Game.Tests {
 			AddMilitaryAdvisor(attackerWorld, "Prussia", "char1", "OrgA", opinion: 50);
 			Wars.DeclareWar(attackerWorld, "Prussia", "France", new DateTime(1880, 1, 1));
 			SetWarProgress(attackerWorld, -60);
-			Assert.False(ActionPlayability.Evaluate(attackerWorld, config, -1, "ultimatum", "OrgA", "Prussia"));
+			Assert.False(ActionPlayability.Evaluate(attackerWorld, config, -1, "force_war_win", "OrgA", "Prussia"));
 		}
 
 		[Fact]
@@ -613,8 +614,8 @@ namespace GS.Game.Tests {
 			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
 			SetWarProgress(world, 60);
 
-			Assert.True(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
-			Assert.False(ActionPlayability.Evaluate(world, config, -1, "surrender", "OrgA", "Prussia"));
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "force_war_win", "OrgA", "Prussia"));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "force_war_loss", "OrgA", "Prussia"));
 		}
 
 		[Fact]
@@ -627,8 +628,8 @@ namespace GS.Game.Tests {
 			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
 			SetWarProgress(world, -40);
 
-			Assert.False(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
-			Assert.True(ActionPlayability.Evaluate(world, config, -1, "surrender", "OrgA", "Prussia"));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "force_war_win", "OrgA", "Prussia"));
+			Assert.True(ActionPlayability.Evaluate(world, config, -1, "force_war_loss", "OrgA", "Prussia"));
 		}
 
 		[Fact]
@@ -646,7 +647,7 @@ namespace GS.Game.Tests {
 			SetWarProgress(world, 50);
 
 			Assert.True(ActionPlayability.Evaluate(world, config, -1, "make_friend", "OrgA", "Prussia"));
-			Assert.False(ActionPlayability.Evaluate(world, config, -1, "ultimatum", "OrgA", "Prussia"));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "force_war_win", "OrgA", "Prussia"));
 		}
 
 		[Fact]
@@ -743,7 +744,7 @@ namespace GS.Game.Tests {
 			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
 			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
 
-			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "declare_revenge_war", "OrgA", "Prussia", hqCountryByOrgId));
 		}
 
 		[Fact]
@@ -757,7 +758,7 @@ namespace GS.Game.Tests {
 			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
 			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
 
-			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "declare_revenge_war", "OrgA", "Prussia", hqCountryByOrgId));
 		}
 
 		[Fact]
@@ -771,7 +772,7 @@ namespace GS.Game.Tests {
 			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
 			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
 
-			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "declare_revenge_war", "OrgA", "Prussia", hqCountryByOrgId));
 		}
 
 		[Fact]
@@ -785,7 +786,7 @@ namespace GS.Game.Tests {
 			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
 			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
 
-			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "declare_revenge_war", "OrgA", "Prussia", hqCountryByOrgId));
 		}
 
 		[Fact]
@@ -797,7 +798,7 @@ namespace GS.Game.Tests {
 			AddMilitaryAdvisor(world, "Great_Britain", "mil1", "OrgA", opinion: 25);
 			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
 
-			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "declare_revenge_war", "OrgA", "Prussia", hqCountryByOrgId));
 		}
 
 		[Fact]
@@ -810,9 +811,9 @@ namespace GS.Game.Tests {
 			var hqCountryByOrgId = new Dictionary<string, string> { ["OrgA"] = "Great_Britain" };
 			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "Prussia");
 
-			int card = AddCard(world, "OrgA", "revenge", "Great_Britain");
+			int card = AddCard(world, "OrgA", "declare_revenge_war", "Great_Britain");
 			world.Add(card, new RevengeCardTarget { TargetCountryId = "Prussia" });
-			Assert.True(ActionPlayability.Evaluate(world, config, card, "revenge", "OrgA", "Great_Britain", hqCountryByOrgId));
+			Assert.True(ActionPlayability.Evaluate(world, config, card, "declare_revenge_war", "OrgA", "Great_Britain", hqCountryByOrgId));
 		}
 
 		[Fact]
@@ -827,7 +828,7 @@ namespace GS.Game.Tests {
 
 			RevengeEligibilityQuery.OnWarResolved(world, winnerCountryId: "Great_Britain", loserCountryId: "Prussia");
 
-			Assert.False(ActionPlayability.Evaluate(world, config, -1, "revenge", "OrgA", "Prussia", hqCountryByOrgId));
+			Assert.False(ActionPlayability.Evaluate(world, config, -1, "declare_revenge_war", "OrgA", "Prussia", hqCountryByOrgId));
 		}
 
 		[Fact]
@@ -880,6 +881,76 @@ namespace GS.Game.Tests {
 
 			Assert.False(expected);
 			Assert.Equal(expected, RunPipeline(world, config, card, start));
+		}
+
+		[Fact]
+		void canonical_result_orders_authored_capacity_cooldown_and_aggregated_gold_once() {
+			var config = new ActionConfig {
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
+						ActionId = "improve_control",
+						OwnerType = "country",
+						Conditions = new List<ExpressionNode> {
+							Gte("control", 10),
+							new ExpressionNode {
+								Type = "gte",
+								Members = new List<ExpressionNode> {
+									new ExpressionNode {
+										Type = "hasCountryRelation", RelationKind = "none", DesiredRelationKind = "friend"
+									},
+									new ExpressionNode { Type = "value", Value = 1 }
+								}
+							}
+						},
+						Cost = new List<ActionCost> {
+							new ActionCost { ResourceId = "gold", Amount = 50 },
+							new ActionCost { ResourceId = "gold", Amount = 25 }
+						}
+					}
+				}
+			};
+			var world = new World();
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddControl(world, "OrgA", "Prussia", 10);
+			AddGold(world, "OrgA", 70);
+
+			ActionPlayabilityResult result = ActionPlayability.Evaluate(
+				world, config, -1, "improve_control", "OrgA", "Prussia");
+
+			Assert.Equal(new[] {
+				"action.requirement.control_min",
+				"action.requirement.friend_candidate",
+				"action.requirement.control_capacity",
+				"action.requirement.cooldown_ready",
+				"action.requirement.gold"
+			}, System.Linq.Enumerable.Select(result.Entries, entry => entry.LocaleKey));
+			Assert.Single(System.Linq.Enumerable.Where(result.Entries, entry => entry.LocaleKey == "action.requirement.gold"));
+			Assert.Equal("75", result.Entries[4].LocaleArguments[0]);
+			Assert.False(result.CanPlay);
+			Assert.Same(result.Entries[4], result.FirstFailure);
+		}
+
+		[Fact]
+		void relation_card_reports_primary_country_mismatch_as_a_canonical_gate() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100);
+			AddCountry(world, "Prussia");
+			AddCountry(world, "Austria");
+			AddCountry(world, "France");
+			AddDiplomacyAdvisor(world, "Austria", "austria_diplomat", "OrgA", 80);
+			CountryRelations.SetRelation(world, "Austria", "France", RelationKind.Friend);
+			int card = AddRelationCard(world, "OrgA", "stop_friendship", "Prussia", "France", RelationKind.Friend);
+
+			ActionPlayabilityResult result = ActionPlayability.Evaluate(
+				world, config, card, "stop_friendship", "OrgA", "Austria");
+
+			ActionConditionDebugEntry primaryGate = Assert.Single(
+				System.Linq.Enumerable.Where(result.Entries, entry => entry.LocaleKey == "action.requirement.primary_country"));
+			Assert.False(primaryGate.Passed);
+			Assert.Equal("wrong_primary_country", primaryGate.ReasonCode);
+			Assert.False(result.CanPlay);
 		}
 	}
 }

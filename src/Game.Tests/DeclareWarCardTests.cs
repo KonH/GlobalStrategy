@@ -55,10 +55,13 @@ namespace GS.Game.Tests {
 		}
 
 		static ExpressionNode Condition(string fieldType, double value) {
+			ExpressionNode operand = fieldType == "relationStillExists"
+				? new ExpressionNode { Type = "hasCountryRelation", RelationKind = "rival" }
+				: new ExpressionNode { Type = fieldType };
 			return new ExpressionNode {
 				Type = "gte",
 				Members = new List<ExpressionNode> {
-					new ExpressionNode { Type = fieldType },
+					operand,
 					new ExpressionNode { Type = "value", Value = value }
 				}
 			};
@@ -99,13 +102,14 @@ namespace GS.Game.Tests {
 			int entity = world.Create();
 			world.Add(entity, new GameAction { ActionId = "declare_war" });
 			world.Add(entity, new OrgContext { OrgId = OrgId });
+			world.Add(entity, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(entity, new CountryContext { CountryId = AttackerId });
 			world.Add(entity, new RelationCardTarget { TargetCountryId = DefenderId, Kind = RelationKind.Rival });
 			if (inHand) {
 				world.Add(entity, new CardInHand { SlotIndex = 0 });
 			}
 			if (readyToResolve) {
-				world.Add(entity, new CardUse());
+				world.Add(entity, new CardUse { CountryId = AttackerId });
 				world.Add(entity, new ActionSucceeded());
 			}
 			return entity;
@@ -232,18 +236,20 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void draw_rechecks_declaring_country_opinion_and_war_gates() {
+		void draw_ignores_declaring_country_opinion_and_war_gates() {
 			var world = BuildPlayableWorld(opinion: 49);
 			int opinionResource = ActionPlayability.FindResourceEntity(world, $"{AttackerId}_ruler", $"opinion_{OrgId}");
 			int card = AddDeclareWarCard(world);
 			int deck = world.Create();
-			world.Add(deck, new CardDeck { OrgId = OrgId, CountryId = AttackerId });
+			world.Add(deck, new CardDeck { OrgId = OrgId });
+			world.Add(deck, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(deck, new CardDraw { Count = 1 });
 
 			DrawCardSystem.Update(world, BuildActionConfig(), new Random(1));
-			Assert.False(world.Has<CardInHand>(card));
+			Assert.True(world.Has<CardInHand>(card));
 
 			world.Get<Resource>(opinionResource).Value = 50;
+			world.Remove<CardInHand>(card);
 			world.Add(deck, new CardDraw { Count = 1 });
 			DrawCardSystem.Update(world, BuildActionConfig(), new Random(1));
 			Assert.True(world.Has<CardInHand>(card));
@@ -252,7 +258,7 @@ namespace GS.Game.Tests {
 			Wars.DeclareWar(world, AttackerId, "Germany", CurrentTime);
 			world.Add(deck, new CardDraw { Count = 1 });
 			DrawCardSystem.Update(world, BuildActionConfig(), new Random(1));
-			Assert.False(world.Has<CardInHand>(card));
+			Assert.True(world.Has<CardInHand>(card));
 		}
 
 		[Fact]
@@ -262,7 +268,8 @@ namespace GS.Game.Tests {
 			AddCountry(world, DefenderId);
 			AddCountry(world, "Spain");
 			int deck = world.Create();
-			world.Add(deck, new CardDeck { OrgId = OrgId, CountryId = AttackerId });
+			world.Add(deck, new CardDeck { OrgId = OrgId });
+			world.Add(deck, new CardOwnerType(CardOwnerKind.Country));
 			CountryRelations.SetRelation(world, AttackerId, DefenderId, RelationKind.Rival);
 			CountryRelations.SetRelation(world, AttackerId, "Spain", RelationKind.Rival);
 
@@ -280,7 +287,8 @@ namespace GS.Game.Tests {
 			AddCountry(world, AttackerId);
 			AddCountry(world, DefenderId);
 			int deck = world.Create();
-			world.Add(deck, new CardDeck { OrgId = OrgId, CountryId = AttackerId });
+			world.Add(deck, new CardDeck { OrgId = OrgId });
+			world.Add(deck, new CardOwnerType(CardOwnerKind.Country));
 			CountryRelations.SetRelation(world, AttackerId, DefenderId, RelationKind.Rival);
 
 			var config = BuildActionConfig();
@@ -345,11 +353,12 @@ namespace GS.Game.Tests {
 
 			ActionCardEntry entry = Assert.Single(state.SelectedCountry.CountryActions.Hand.Where(e => e.ActionId == "declare_war"));
 			Assert.Equal("insufficient_target_opinion", entry.UnplayableReason);
-			Assert.Equal(3, entry.Conditions.Count);
+			Assert.Equal(6, entry.Conditions.Count);
 			Assert.False(entry.Conditions[0].Passed);
 			Assert.Contains("targetRulerOrMilitaryOpinion", entry.Conditions[0].Label);
 			Assert.True(entry.Conditions[1].Passed);
 			Assert.True(entry.Conditions[2].Passed);
+			Assert.All(entry.Conditions.Skip(3), condition => Assert.True(condition.Passed));
 
 			int opinionResource = ActionPlayability.FindResourceEntity(world, $"{AttackerId}_ruler", $"opinion_{OrgId}");
 			world.Get<Resource>(opinionResource).Value = 50;

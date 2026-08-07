@@ -111,6 +111,22 @@ namespace GS.Game.Systems {
 			return GetSuitableRelationCandidates(world, countryId).Count > 0;
 		}
 
+		public static bool MatchesCondition(
+			IReadOnlyWorld world,
+			string countryId,
+			string targetCountryId,
+			string relationKind) {
+			return relationKind switch {
+				"none" => string.IsNullOrEmpty(targetCountryId)
+					? HasSuitableRelationTarget(world, countryId)
+					: GetRelation(world, countryId, targetCountryId) == null,
+				"friend" => GetRelation(world, countryId, targetCountryId) == RelationKind.Friend,
+				"rival" => GetRelation(world, countryId, targetCountryId) == RelationKind.Rival,
+				_ => throw new System.InvalidOperationException(
+					$"Unsupported relation condition kind '{relationKind}'; expected none|friend|rival.")
+			};
+		}
+
 		static bool Matches(CountryRelation relation, string countryIdA, string countryIdB) {
 			return (relation.LeftCountryId == countryIdA && relation.RightCountryId == countryIdB)
 				|| (relation.LeftCountryId == countryIdB && relation.RightCountryId == countryIdA);

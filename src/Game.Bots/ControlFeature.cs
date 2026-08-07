@@ -9,7 +9,8 @@ namespace GS.Game.Bots {
 		// Matches the control pool cap enforced in ControlSystem.ApplyChangeControl. Sourced from
 		// GameSettings.MaxControlPool (game_settings.json) - the single place this value is configured -
 		// rather than a per-feature parameter, since it is not bot-tunable behavior but a game rule.
-		// IsPlayable does not check remaining pool room, so a full country would otherwise still look playable.
+		// The canonical playability result also checks this cap; retain the guard so this feature
+		// does not scan cards for countries that cannot accept more control.
 		readonly int _maxControlPool;
 
 		public ControlFeature(IReadOnlyDictionary<string, double> parameters, int maxControlPool) {
@@ -26,7 +27,7 @@ namespace GS.Game.Bots {
 				if (country.TotalControl >= _maxControlPool) { continue; }
 				foreach (var card in country.Hand) {
 					if (card.IsPlayable && card.RaisesControl) {
-						sink.PlayCountryCard(card.ActionId, card.CountryId);
+						sink.PlayCountryCard(card.ActionId, card.CountryId, card.SlotIndex, card.TargetCountryId);
 						return true;
 					}
 				}

@@ -53,7 +53,7 @@ namespace GS.Game.Tests {
 			world.Add(entity, new ActionSucceeded());
 			world.Add(entity, new OrgContext { OrgId = OrgId });
 			world.Add(entity, new CountryContext { CountryId = CountryId });
-			world.Add(entity, new CardUse());
+			world.Add(entity, new CardUse { CountryId = CountryId });
 			return entity;
 		}
 

@@ -771,12 +771,12 @@ namespace GS.Unity.UI {
 
 		void HandleWarsChanged(object sender, PropertyChangedEventArgs e) => RefreshCountryViews();
 
-		void HandleCountryActionCardClicked(string actionId, string targetCharId, VisualElement el) {
+		void HandleCountryActionCardClicked(string actionId, string targetCountryId, int slotIndex, VisualElement el) {
 			if (_cardPlayAnimator == null || _state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) { return; }
 			_cardPlayAnimator.StartCountryCardPlay(
 				_state.PlayerOrganization.OrgId,
 				_state.SelectedCountry.CountryId,
-				actionId, el, targetCharId);
+				actionId, slotIndex, el, targetCountryId);
 		}
 
 		void OnPauseToggle() {

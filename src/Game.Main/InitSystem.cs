@@ -123,7 +123,7 @@ namespace GS.Main {
 			CreateActionEntities(world, context, rng, participating);
 			CreateOrgCharacterEntities(world, context, resourceConfig, rng, participating);
 			CreateCharacterEntities(world, context, resourceConfig, rng, enableSecretAdvisor);
-			CreateCountryActionEntities(world, context, rng, participating, enableFriendsRelation);
+			CreateCountryActionEntities(world, context, participating, enableFriendsRelation, enableSecretAdvisor);
 
 			// InitSystem does not call ResourceSystem.Update itself — it only creates the raw
 			// Resource/ResourceEffect/ResourceCollector entities above. GameLogic.Update calls
@@ -606,7 +606,8 @@ namespace GS.Main {
 				if (pool == null || pool.Count == 0) { continue; }
 
 				int deckEntity = world.Create();
-				world.Add(deckEntity, new CardDeck { OrgId = orgId, CountryId = "" });
+				world.Add(deckEntity, new CardDeck { OrgId = orgId });
+				world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Org));
 				world.Add(deckEntity, new CardHand { HandSize = handSize });
 
 				var deckEntities = new List<int>();
@@ -614,6 +615,7 @@ namespace GS.Main {
 					int cardEntity = world.Create();
 					world.Add(cardEntity, new GameAction { ActionId = pool[i] });
 					world.Add(cardEntity, new OrgContext { OrgId = orgId });
+					world.Add(cardEntity, new CardOwnerType(CardOwnerKind.Org));
 					deckEntities.Add(cardEntity);
 				}
 
@@ -627,7 +629,12 @@ namespace GS.Main {
 			}
 		}
 
-		static void CreateCountryActionEntities(World world, GameLogicContext context, Random rng, List<OrganizationEntry> participating, bool enableFriendsRelation) {
+		static void CreateCountryActionEntities(
+			World world,
+			GameLogicContext context,
+			List<OrganizationEntry> participating,
+			bool enableFriendsRelation,
+			bool enableSecretAdvisor) {
 			var actionConfig = context.Action.Load();
 			var countryActions = new List<ActionDefinition>();
 			foreach (var a in actionConfig.Actions) {
@@ -635,113 +642,42 @@ namespace GS.Main {
 			}
 			if (countryActions.Count == 0) { return; }
 			if (participating.Count == 0) { return; }
-			var countryConfig = context.Country.Load();
 
-			// Build char lookup: countryId -> roleId -> list of charIds
-			var charsByCountryAndRole = new Dictionary<string, Dictionary<string, List<string>>>();
+			var availableTargetRoles = new HashSet<string>();
 			int[] charReq = { TypeId<Character>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(charReq, null)) {
 				Character[] chars = arch.GetColumn<Character>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					string cid = chars[i].CountryId;
-					string rid = chars[i].RoleId;
-					string charId = chars[i].CharacterId;
-					if (string.IsNullOrEmpty(cid)) { continue; }
-					if (!charsByCountryAndRole.TryGetValue(cid, out var byRole)) {
-						byRole = new Dictionary<string, List<string>>();
-						charsByCountryAndRole[cid] = byRole;
+					if (!string.IsNullOrEmpty(chars[i].CountryId) && !string.IsNullOrEmpty(chars[i].RoleId)) {
+						availableTargetRoles.Add(chars[i].RoleId);
 					}
-					if (!byRole.TryGetValue(rid, out var list)) {
-						list = new List<string>();
-						byRole[rid] = list;
-					}
-					list.Add(charId);
 				}
 			}
 
 			int handSize = actionConfig.GetHandSize("country");
-			var hqCountryByOrgId = new Dictionary<string, string>();
 			foreach (var orgEntry in participating) {
-				hqCountryByOrgId[orgEntry.OrganizationId] = orgEntry.HqCountryId;
-			}
+				string orgId = orgEntry.OrganizationId;
+				int countryDeckEntity = world.Create();
+				world.Add(countryDeckEntity, new CardDeck { OrgId = orgId });
+				world.Add(countryDeckEntity, new CardOwnerType(CardOwnerKind.Country));
+				world.Add(countryDeckEntity, new CardHand { HandSize = handSize });
+				if (handSize > 0) { world.Add(countryDeckEntity, new CardDraw { Count = handSize }); }
 
-			foreach (var entry in countryConfig.Countries) {
-				if (!entry.IsAvailable) { continue; }
-
-				foreach (var orgEntry in participating) {
-					string orgId = orgEntry.OrganizationId;
-					var createdEntities = new List<(int entity, string actionId)>();
-
-					foreach (var def in countryActions) {
-						// Relation-synced cards are created by RelationCardSyncSystem (one per
-						// relation). DeckCopies on those rows is a draw weight, not a static
-						// copy count — skip them here so weight > 0 does not spawn untargeted entities.
-						if (RelationCardSyncSystem.IsSyncedAction(def.ActionId) || def.ActionId == "revenge") { continue; }
-						// make_friend has no relation-synced counterpart to fall back on (unlike
-						// stop_friendship, which naturally disappears once no Friend relations
-						// exist) — skip creating it explicitly when the feature flag is off.
-						if (def.ActionId == "make_friend" && !enableFriendsRelation) { continue; }
-
-						// Determine targets
-						var targets = new List<string>();
-						if (def.TargetRole == "") {
-							targets.Add("");
-						} else {
-							charsByCountryAndRole.TryGetValue(entry.CountryId, out var byRole);
-							if (byRole != null && byRole.TryGetValue(def.TargetRole, out var charIds)) {
-								targets.AddRange(charIds);
-							}
-						}
-
-						for (int copyIndex = 0; copyIndex < def.DeckCopies; copyIndex++) {
-							foreach (string targetCharId in targets) {
-								int e = world.Create();
-								world.Add(e, new GameAction { ActionId = def.ActionId });
-								world.Add(e, new OrgContext { OrgId = orgId });
-								world.Add(e, new CountryContext { CountryId = entry.CountryId });
-								createdEntities.Add((e, def.ActionId));
-							}
-						}
+				foreach (var def in countryActions) {
+					if (def.DeckCopies <= 0
+						|| RelationCardSyncSystem.IsSyncedAction(def.ActionId)
+						|| def.ActionId == "declare_revenge_war") {
+						continue;
 					}
+					if (def.ActionId == "make_friend" && !enableFriendsRelation) { continue; }
+					if (def.TargetRole == "secret_advisor" && !enableSecretAdvisor) { continue; }
+					if (!string.IsNullOrEmpty(def.TargetRole) && !availableTargetRoles.Contains(def.TargetRole)) { continue; }
 
-					int countryDeckEntity = world.Create();
-					world.Add(countryDeckEntity, new CardDeck { OrgId = orgId, CountryId = entry.CountryId });
-					world.Add(countryDeckEntity, new CardHand { HandSize = handSize });
-
-					// Populate initial hand
-					if (handSize > 0 && createdEntities.Count > 0) {
-						var eligibleEntities = new List<int>();
-						foreach (var (e, actionId) in createdEntities) {
-							var d = actionConfig.Find(actionId);
-							if (d == null) { continue; }
-							bool eligible = true;
-							ExpressionContext ctx = CountryActionConditionContext.Build(
-								world,
-								d,
-								orgId,
-								entry.CountryId,
-								e,
-								hqCountryByOrgId);
-							foreach (var cond in d.Conditions) {
-								if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
-									eligible = false;
-									break;
-								}
-							}
-							if (eligible) { eligibleEntities.Add(e); }
-						}
-
-						// Fisher-Yates shuffle
-						for (int i = eligibleEntities.Count - 1; i > 0; i--) {
-							int j = rng.Next(i + 1);
-							(eligibleEntities[i], eligibleEntities[j]) = (eligibleEntities[j], eligibleEntities[i]);
-						}
-
-						for (int slot = 0; slot < handSize && slot < eligibleEntities.Count; slot++) {
-							world.Add(eligibleEntities[slot], new CardInHand { SlotIndex = slot });
-						}
-					}
+					int entity = world.Create();
+					world.Add(entity, new GameAction { ActionId = def.ActionId });
+					world.Add(entity, new OrgContext { OrgId = orgId });
+					world.Add(entity, new CardOwnerType(CardOwnerKind.Country));
 				}
 			}
 		}

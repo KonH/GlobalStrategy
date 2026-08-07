@@ -31,7 +31,7 @@ namespace GS.Game.Tests {
 							new ExpressionNode {
 								Type = "gte",
 								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "hasSuitableRelationTarget" },
+									new ExpressionNode { Type = "hasCountryRelation", RelationKind = "none", DesiredRelationKind = "friend" },
 									new ExpressionNode { Type = "value", Value = 1 }
 								}
 							}
@@ -57,7 +57,7 @@ namespace GS.Game.Tests {
 							new ExpressionNode {
 								Type = "gte",
 								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "hasSuitableRelationTarget" },
+									new ExpressionNode { Type = "hasCountryRelation", RelationKind = "none", DesiredRelationKind = "friend" },
 									new ExpressionNode { Type = "value", Value = 1 }
 								}
 							}
@@ -110,7 +110,7 @@ namespace GS.Game.Tests {
 							new ExpressionNode {
 								Type = "gte",
 								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "relationStillExists" },
+									new ExpressionNode { Type = "hasCountryRelation", RelationKind = "friend" },
 									new ExpressionNode { Type = "value", Value = 1 }
 								}
 							}
@@ -131,7 +131,7 @@ namespace GS.Game.Tests {
 						}
 					},
 					new ActionDefinition {
-						ActionId = "revenge",
+						ActionId = "declare_revenge_war",
 						OwnerType = "country",
 						TargetRole = "military_advisor",
 						Conditions = new List<ExpressionNode> {
@@ -189,12 +189,14 @@ namespace GS.Game.Tests {
 			int cardEntity = world.Create();
 			world.Add(cardEntity, new GameAction { ActionId = "make_friend" });
 			world.Add(cardEntity, new OrgContext { OrgId = "OrgA" });
+			world.Add(cardEntity, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(cardEntity, new CountryContext { CountryId = "Prussia" });
 			world.Add(cardEntity, new CardInHand { SlotIndex = 0 });
 
 			int controlCardEntity = world.Create();
 			world.Add(controlCardEntity, new GameAction { ActionId = "control_gated_card" });
 			world.Add(controlCardEntity, new OrgContext { OrgId = "OrgA" });
+			world.Add(controlCardEntity, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(controlCardEntity, new CountryContext { CountryId = "Prussia" });
 			world.Add(controlCardEntity, new CardInHand { SlotIndex = 1 });
 			int controlEntity = world.Create();
@@ -203,18 +205,21 @@ namespace GS.Game.Tests {
 			int candidateCardEntity = world.Create();
 			world.Add(candidateCardEntity, new GameAction { ActionId = "candidate_gated_card" });
 			world.Add(candidateCardEntity, new OrgContext { OrgId = "OrgA" });
+			world.Add(candidateCardEntity, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(candidateCardEntity, new CountryContext { CountryId = "Prussia" });
 			world.Add(candidateCardEntity, new CardInHand { SlotIndex = 2 });
 
 			int highControlCardEntity = world.Create();
 			world.Add(highControlCardEntity, new GameAction { ActionId = "high_control_gated_card" });
 			world.Add(highControlCardEntity, new OrgContext { OrgId = "OrgA" });
+			world.Add(highControlCardEntity, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(highControlCardEntity, new CountryContext { CountryId = "Prussia" });
 			world.Add(highControlCardEntity, new CardInHand { SlotIndex = 3 });
 
 			int decreaseEnemyControlCardEntity = world.Create();
 			world.Add(decreaseEnemyControlCardEntity, new GameAction { ActionId = "decrease_enemy_control" });
 			world.Add(decreaseEnemyControlCardEntity, new OrgContext { OrgId = "OrgA" });
+			world.Add(decreaseEnemyControlCardEntity, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(decreaseEnemyControlCardEntity, new CountryContext { CountryId = "Prussia" });
 			world.Add(decreaseEnemyControlCardEntity, new CardInHand { SlotIndex = 4 });
 
@@ -248,6 +253,56 @@ namespace GS.Game.Tests {
 			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "make_friend");
 			Assert.NotNull(entry);
 			Assert.False(entry!.IsUnplayable);
+		}
+
+		[Fact]
+		void ordinary_card_lists_playable_countries_in_config_order_without_binding_to_selection() {
+			var world = new World();
+			int selected = world.Create();
+			world.Add(selected, new Country("Prussia"));
+			world.Add(selected, new IsSelected());
+			int austria = world.Create();
+			world.Add(austria, new Country("Austria"));
+			int germany = world.Create();
+			world.Add(germany, new Country("Germany"));
+			int orgEntity = world.Create();
+			world.Add(orgEntity, new Organization { OrganizationId = "OrgA", DisplayName = "OrgA" });
+			int gameTimeEntity = world.Create();
+			world.Add(gameTimeEntity, new GameTime { CurrentTime = new DateTime(1880, 1, 1) });
+			int localeEntity = world.Create();
+			world.Add(localeEntity, new Locale { Value = "en" });
+			int card = world.Create();
+			world.Add(card, new GameAction { ActionId = "control_gated_card" });
+			world.Add(card, new OrgContext { OrgId = "OrgA" });
+			world.Add(card, new CardOwnerType(CardOwnerKind.Country));
+			world.Add(card, new CardInHand { SlotIndex = 0 });
+			int austriaControl = world.Create();
+			world.Add(austriaControl, new ControlEffect {
+				OrgId = "OrgA", CountryId = "Austria", Value = 10, EffectId = "austria_control"
+			});
+			int germanyControl = world.Create();
+			world.Add(germanyControl, new ControlEffect {
+				OrgId = "OrgA", CountryId = "Germany", Value = 10, EffectId = "germany_control"
+			});
+			var countryConfig = new CountryConfig {
+				Countries = new List<CountryEntry> {
+					new CountryEntry { CountryId = "Austria", IsAvailable = true },
+					new CountryEntry { CountryId = "Prussia", IsAvailable = true },
+					new CountryEntry { CountryId = "Germany", IsAvailable = true }
+				}
+			};
+			var state = new VisualState();
+			var converter = new VisualStateConverter(
+				state, BuildActionConfig(), countryConfig: countryConfig);
+
+			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
+
+			ActionCardEntry entry = Assert.Single(
+				state.SelectedCountry.CountryActions.Hand,
+				candidate => candidate.ActionId == "control_gated_card");
+			Assert.False(entry.CanPlay);
+			Assert.Equal(new[] { "Austria", "Germany" }, entry.PlayableCountryIds);
+			Assert.False(world.Has<CountryContext>(card));
 		}
 
 		[Fact]
@@ -291,7 +346,7 @@ namespace GS.Game.Tests {
 			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "candidate_gated_card");
 			Assert.NotNull(entry);
 			Assert.True(entry!.IsUnplayable);
-			Assert.Equal("no_suitable_target", entry.UnplayableReason);
+			Assert.Equal("no_friend_candidate", entry.UnplayableReason);
 		}
 
 		[Fact]
@@ -354,6 +409,7 @@ namespace GS.Game.Tests {
 			int cardEntity = world.Create();
 			world.Add(cardEntity, new GameAction { ActionId = "stop_friendship" });
 			world.Add(cardEntity, new OrgContext { OrgId = "OrgA" });
+			world.Add(cardEntity, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(cardEntity, new CountryContext { CountryId = "Prussia" });
 			world.Add(cardEntity, new CardInHand { SlotIndex = 0 });
 			world.Add(cardEntity, new RelationCardTarget { TargetCountryId = "Austria", Kind = RelationKind.Friend });
@@ -426,6 +482,7 @@ namespace GS.Game.Tests {
 			cardEntity = world.Create();
 			world.Add(cardEntity, new GameAction { ActionId = "sell_arms" });
 			world.Add(cardEntity, new OrgContext { OrgId = "OrgA" });
+			world.Add(cardEntity, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(cardEntity, new CountryContext { CountryId = "Prussia" });
 			world.Add(cardEntity, new CardInHand { SlotIndex = 0 });
 
@@ -565,8 +622,9 @@ namespace GS.Game.Tests {
 			}
 
 			int cardEntity = world.Create();
-			world.Add(cardEntity, new GameAction { ActionId = "revenge" });
+			world.Add(cardEntity, new GameAction { ActionId = "declare_revenge_war" });
 			world.Add(cardEntity, new OrgContext { OrgId = "OrgA" });
+			world.Add(cardEntity, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(cardEntity, new CountryContext { CountryId = "Prussia" });
 			world.Add(cardEntity, new CardInHand { SlotIndex = 0 });
 
@@ -581,7 +639,7 @@ namespace GS.Game.Tests {
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
-			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "revenge");
+			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "declare_revenge_war");
 			Assert.NotNull(entry);
 			Assert.True(entry!.IsUnplayable);
 			Assert.Equal("at_war", entry.UnplayableReason);
@@ -595,7 +653,7 @@ namespace GS.Game.Tests {
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
-			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "revenge");
+			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "declare_revenge_war");
 			Assert.NotNull(entry);
 			Assert.False(entry!.IsUnplayable);
 		}
@@ -613,7 +671,7 @@ namespace GS.Game.Tests {
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
-			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "revenge");
+			var entry = FindEntry(state.SelectedCountry.CountryActions.Hand, "declare_revenge_war");
 			Assert.NotNull(entry);
 			Assert.True(entry!.IsUnplayable);
 			Assert.Equal("insufficient_control", entry.UnplayableReason);

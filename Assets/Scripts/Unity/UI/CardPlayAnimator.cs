@@ -108,9 +108,9 @@ namespace GS.Unity.UI {
 			_resultReady = true;
 		}
 
-		public void StartCardPlay(string orgId, string actionId, VisualElement clickedCard) {
+		public void StartCardPlay(string orgId, string actionId, int slotIndex, VisualElement clickedCard) {
 			if (_isPlaying) { return; }
-			PlaySequence(orgId, actionId, clickedCard).Forget();
+			PlaySequence(orgId, actionId, slotIndex, clickedCard).Forget();
 		}
 
 		internal void SetActionsView(OrgActionsView view) {
@@ -121,12 +121,18 @@ namespace GS.Unity.UI {
 			_countryActionsView = view;
 		}
 
-		public void StartCountryCardPlay(string orgId, string countryId, string actionId, VisualElement clickedCard, string targetCountryId = "") {
+		public void StartCountryCardPlay(
+			string orgId,
+			string countryId,
+			string actionId,
+			int slotIndex,
+			VisualElement clickedCard,
+			string targetCountryId = "") {
 			if (_isPlaying) { return; }
-			PlayCountrySequence(orgId, countryId, actionId, clickedCard, targetCountryId).Forget();
+			PlayCountrySequence(orgId, countryId, actionId, slotIndex, clickedCard, targetCountryId).Forget();
 		}
 
-		async UniTaskVoid PlaySequence(string orgId, string actionId, VisualElement clickedCard) {
+		async UniTaskVoid PlaySequence(string orgId, string actionId, int slotIndex, VisualElement clickedCard) {
 			_isPlaying = true;
 			_resultReady = false;
 			_lastActionSuccess = false;
@@ -137,7 +143,7 @@ namespace GS.Unity.UI {
 
 			try {
 				// Push action before pause so both are processed in the same game tick
-				_commands.Push(new PlayCardActionCommand { OrgId = orgId, ActionId = actionId });
+				_commands.Push(new PlayCardActionCommand { OrgId = orgId, ActionId = actionId, SlotIndex = slotIndex });
 				if (issuedPause) {
 					_commands.Push(new PauseCommand());
 				}
@@ -257,7 +263,13 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		async UniTaskVoid PlayCountrySequence(string orgId, string countryId, string actionId, VisualElement clickedCard, string targetCountryId = "") {
+		async UniTaskVoid PlayCountrySequence(
+			string orgId,
+			string countryId,
+			string actionId,
+			int slotIndex,
+			VisualElement clickedCard,
+			string targetCountryId = "") {
 			_isPlaying = true;
 			_resultReady = false;
 			_lastActionSuccess = false;
@@ -270,13 +282,21 @@ namespace GS.Unity.UI {
 			try {
 				int? warWinChancePercent = null;
 				foreach (var handCard in _state.SelectedCountry.CountryActions.Hand) {
-					if (handCard.ActionId == actionId && handCard.TargetCountryId == targetCountryId) {
+					if (handCard.ActionId == actionId
+						&& handCard.TargetCountryId == targetCountryId
+						&& handCard.SlotIndex == slotIndex) {
 						warWinChancePercent = handCard.WarWinChancePercent;
 						break;
 					}
 				}
 
-				_commands.Push(new PlayCardActionCommand { OrgId = orgId, CountryId = countryId, ActionId = actionId, TargetCountryId = targetCountryId });
+				_commands.Push(new PlayCardActionCommand {
+					OrgId = orgId,
+					CountryId = countryId,
+					ActionId = actionId,
+					TargetCountryId = targetCountryId,
+					SlotIndex = slotIndex
+				});
 				if (issuedPause) {
 					_commands.Push(new PauseCommand());
 				}

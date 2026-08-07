@@ -66,7 +66,13 @@ namespace GS.Game.Bots {
 			return false;
 		}
 
-		public static BotObservation Build(IReadOnlyWorld world, ActionConfig actionConfig, string orgId, EffectConfig? effectConfig = null) {
+		public static BotObservation Build(
+			IReadOnlyWorld world,
+			ActionConfig actionConfig,
+			string orgId,
+			EffectConfig? effectConfig = null,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
+			int maxControlPool = 100) {
 			var effectConfigResolved = effectConfig ?? new EffectConfig();
 			DateTime currentDate = ReadCurrentDate(world);
 
@@ -101,22 +107,19 @@ namespace GS.Game.Bots {
 
 			var orgHandCards = new List<BotCardView>();
 			var countryHandCards = new Dictionary<string, List<BotCardView>>();
+			var countryHandEntities = new List<(int entity, string actionId, int slotIndex, string targetCountryId, List<BotCostView> costs, double goldCost, bool raisesControl)>();
 
-			int[] cardReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardInHand>.Value };
+			int[] cardReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardOwnerType>.Value, TypeId<CardInHand>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(cardReq, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgContexts = arch.GetColumn<OrgContext>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				CardInHand[] inHands = arch.GetColumn<CardInHand>();
 				for (int i = 0; i < arch.Count; i++) {
 					if (orgContexts[i].OrgId != orgId) { continue; }
 					int entity = arch.Entities[i];
 					string actionId = actions[i].ActionId;
 					int slotIndex = inHands[i].SlotIndex;
-					string? countryId = null;
-					if (world.TryGet<CountryContext>(entity, out var cc)) {
-						countryId = cc.CountryId;
-					}
-
 					var def = actionConfig.Find(actionId);
 					var costs = new List<BotCostView>();
 					double goldCost = 0;
@@ -127,45 +130,64 @@ namespace GS.Game.Bots {
 						}
 					}
 
-					bool isPlayable = ActionPlayability.Evaluate(world, actionConfig, entity, actionId, orgId, countryId, currentTime: currentDate);
 					bool raisesControl = ClassifyRaisesControl(def, effectConfigResolved);
+					string targetCountryId = world.Has<RelationCardTarget>(entity)
+						? world.Get<RelationCardTarget>(entity).TargetCountryId
+						: world.Has<RevengeCardTarget>(entity)
+							? world.Get<RevengeCardTarget>(entity).TargetCountryId
+							: "";
 
-					if (countryId == null) {
+					if (owners[i].Value == CardOwnerKind.Org) {
+						bool isPlayable = ActionPlayability.Evaluate(
+							world, actionConfig, entity, actionId, orgId, null,
+							hqCountryByOrgId, currentDate, maxControlPool).CanPlay;
 						orgHandCards.Add(new BotCardView {
 							ActionId = actionId,
 							SlotIndex = slotIndex,
 							CountryId = "",
+							TargetCountryId = targetCountryId,
 							Cost = costs,
 							GoldCost = goldCost,
 							IsPlayable = isPlayable,
 							RaisesControl = raisesControl
 						});
-					} else if (countryIds.Contains(countryId)) {
-						if (!countryHandCards.TryGetValue(countryId, out var list)) {
-							list = new List<BotCardView>();
-							countryHandCards[countryId] = list;
-						}
-						list.Add(new BotCardView {
-							ActionId = actionId,
-							SlotIndex = slotIndex,
-							CountryId = countryId,
-							Cost = costs,
-							GoldCost = goldCost,
-							IsPlayable = isPlayable,
-							RaisesControl = raisesControl
-						});
+					} else {
+						countryHandEntities.Add((entity, actionId, slotIndex, targetCountryId, costs, goldCost, raisesControl));
 					}
+				}
+			}
+
+			foreach (var card in countryHandEntities) {
+				foreach (string candidateCountryId in countryIds) {
+					if (!countryHandCards.TryGetValue(candidateCountryId, out var list)) {
+						list = new List<BotCardView>();
+						countryHandCards[candidateCountryId] = list;
+					}
+					ActionPlayabilityResult playability = ActionPlayability.Evaluate(
+						world, actionConfig, card.entity, card.actionId, orgId, candidateCountryId,
+						hqCountryByOrgId, currentDate, maxControlPool);
+					list.Add(new BotCardView {
+						ActionId = card.actionId,
+						SlotIndex = card.slotIndex,
+						CountryId = candidateCountryId,
+						TargetCountryId = card.targetCountryId,
+						Cost = card.costs,
+						GoldCost = card.goldCost,
+						IsPlayable = playability.CanPlay,
+						RaisesControl = card.raisesControl
+					});
 				}
 			}
 			orgHandCards.Sort((a, b) => a.SlotIndex.CompareTo(b.SlotIndex));
 
 			int orgHandSize = 0;
-			int[] deckReq = { TypeId<CardDeck>.Value, TypeId<CardHand>.Value };
+			int[] deckReq = { TypeId<CardDeck>.Value, TypeId<CardOwnerType>.Value, TypeId<CardHand>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(deckReq, null)) {
 				CardDeck[] decks = arch.GetColumn<CardDeck>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				CardHand[] hands = arch.GetColumn<CardHand>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (decks[i].OrgId == orgId && string.IsNullOrEmpty(decks[i].CountryId)) {
+					if (decks[i].OrgId == orgId && owners[i].Value == CardOwnerKind.Org) {
 						orgHandSize = hands[i].HandSize;
 						break;
 					}

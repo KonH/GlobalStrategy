@@ -132,7 +132,7 @@ namespace GS.Game.Tests {
 			},
 			Actions = new List<ActionDefinition> {
 				new ActionDefinition {
-					ActionId = "ultimatum",
+					ActionId = "force_war_win",
 					OwnerType = "country",
 					TargetRole = "military_advisor",
 					DeckCopies = 1,
@@ -145,10 +145,10 @@ namespace GS.Game.Tests {
 					Cost = new List<ActionCost> {
 						new ActionCost { ResourceId = "gold", Amount = 300.0 }
 					},
-					EffectIds = new List<string> { "ultimatum_effect" }
+					EffectIds = new List<string> { "force_war_win_effect" }
 				},
 				new ActionDefinition {
-					ActionId = "surrender",
+					ActionId = "force_war_loss",
 					OwnerType = "country",
 					TargetRole = "military_advisor",
 					DeckCopies = 1,
@@ -161,7 +161,7 @@ namespace GS.Game.Tests {
 					Cost = new List<ActionCost> {
 						new ActionCost { ResourceId = "gold", Amount = 500.0 }
 					},
-					EffectIds = new List<string> { "surrender_effect" }
+					EffectIds = new List<string> { "force_war_loss_effect" }
 				}
 			}
 		};
@@ -169,12 +169,12 @@ namespace GS.Game.Tests {
 		static EffectConfig WarResolutionEffectConfig() => new EffectConfig {
 			Effects = new List<ActionEffectDefinition> {
 				new ResolveWarEffectParams {
-					EffectId = "ultimatum_effect",
+					EffectId = "force_war_win_effect",
 					EffectType = "ResolveWar",
 					Outcome = WarOutcome.Win
 				},
 				new ResolveWarEffectParams {
-					EffectId = "surrender_effect",
+					EffectId = "force_war_loss_effect",
 					EffectType = "ResolveWar",
 					Outcome = WarOutcome.Lose
 				}
@@ -253,12 +253,12 @@ namespace GS.Game.Tests {
 		[Fact]
 		void ultimatum_resolves_war_with_selected_country_as_winner_and_logs_exactly_once() {
 			var logic = BuildWarResolutionLogic();
-			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "ultimatum");
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "force_war_win");
 
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId,
 				CountryId = OtherCountryId,
-				ActionId = "ultimatum"
+				ActionId = "force_war_win"
 			});
 			logic.Update(0f);
 
@@ -277,12 +277,12 @@ namespace GS.Game.Tests {
 		void surrender_resolves_war_with_selected_country_as_loser_and_logs_swapped_outcome() {
 			// OtherCountryId is the defender, so raw +60 means its own war progress is -60 (losing).
 			var logic = BuildWarResolutionLogic(rawWarProgress: 60);
-			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "surrender");
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "force_war_loss");
 
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId,
 				CountryId = OtherCountryId,
-				ActionId = "surrender"
+				ActionId = "force_war_loss"
 			});
 			logic.Update(0f);
 
@@ -399,16 +399,16 @@ namespace GS.Game.Tests {
 			int[] required = {
 				TypeId<GameAction>.Value,
 				TypeId<OrgContext>.Value,
-				TypeId<CountryContext>.Value
+				TypeId<CardOwnerType>.Value
 			};
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
-				CountryContext[] countries = arch.GetColumn<CountryContext>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				for (int i = 0; i < arch.Count; i++) {
 					if (actions[i].ActionId == actionId
 						&& orgs[i].OrgId == orgId
-						&& countries[i].CountryId == countryId) {
+						&& owners[i].Value == CardOwnerKind.Country) {
 						int entity = arch.Entities[i];
 						if (!world.Has<CardInHand>(entity)) {
 							world.Add(entity, new CardInHand { SlotIndex = 0 });
@@ -420,6 +420,29 @@ namespace GS.Game.Tests {
 			throw new InvalidOperationException($"Card not found: org={orgId} country={countryId} action={actionId}");
 		}
 
+		static int FindCountryCardSlot(World world, string orgId, string actionId) {
+			int[] required = {
+				TypeId<GameAction>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CardOwnerType>.Value,
+				TypeId<CardInHand>.Value
+			};
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
+				CardInHand[] hands = arch.GetColumn<CardInHand>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (actions[i].ActionId == actionId
+						&& orgs[i].OrgId == orgId
+						&& owners[i].Value == CardOwnerKind.Country) {
+						return hands[i].SlotIndex;
+					}
+				}
+			}
+			throw new InvalidOperationException($"Country hand card not found: org={orgId} action={actionId}");
+		}
+
 		[Fact]
 		void control_entries_carry_independent_delta_and_running_total() {
 			// Two distinct ActionIds (not the same one twice) — the same org playing the same
@@ -429,14 +452,20 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic(MultiControlActionConfig("raise_control_1", "raise_control_2"), ControlEffectConfig(5));
 			logic.Update(0f);
 
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control_1" });
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control_1",
+				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "raise_control_1")
+			});
 			logic.Update(0f);
 			var controls = Entries(logic).Where(e => e.Kind == GameLogEntryKind.Control).ToList();
 			Assert.Single(controls);
 			Assert.Equal(5, controls[0].Delta);
 			Assert.Equal(5, controls[0].Total);
 
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control_2" });
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control_2",
+				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "raise_control_2")
+			});
 			logic.Update(0f);
 			controls = Entries(logic).Where(e => e.Kind == GameLogEntryKind.Control).ToList();
 			Assert.Equal(2, controls.Count);
@@ -585,7 +614,10 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic(actionConfig, effectConfig, characterConfig);
 			logic.Update(0f);
 
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "improve_opinion" });
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId, CountryId = OtherCountryId, ActionId = "improve_opinion",
+				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "improve_opinion")
+			});
 			logic.Update(0f);
 			var opinions = Entries(logic).Where(e => e.Kind == GameLogEntryKind.Opinion).ToList();
 			Assert.Single(opinions);
@@ -599,7 +631,10 @@ namespace GS.Game.Tests {
 			for (int day = 0; day < 31; day++) { logic.Update(24f); }
 			Assert.Equal(countBeforeDecay, Entries(logic).Count);
 
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "improve_opinion" });
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId, CountryId = OtherCountryId, ActionId = "improve_opinion",
+				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "improve_opinion")
+			});
 			logic.Update(0f);
 			opinions = Entries(logic).Where(e => e.Kind == GameLogEntryKind.Opinion).ToList();
 			Assert.Equal(2, opinions.Count);
@@ -748,11 +783,20 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic(actionConfig, ControlEffectConfig(5), gameSettings: gameSettings, countryConfig: countryConfig);
 			logic.Update(0f);
 
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryA, ActionId = "raise_control_a" });
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId, CountryId = CountryA, ActionId = "raise_control_a",
+				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "raise_control_a")
+			});
 			logic.Update(0f);
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryB, ActionId = "raise_control_b" });
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId, CountryId = CountryB, ActionId = "raise_control_b",
+				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "raise_control_b")
+			});
 			logic.Update(0f);
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryC, ActionId = "raise_control_c" });
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId, CountryId = CountryC, ActionId = "raise_control_c",
+				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "raise_control_c")
+			});
 			logic.Update(0f);
 
 			var entries = Entries(logic);

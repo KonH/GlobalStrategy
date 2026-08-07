@@ -17,7 +17,7 @@ namespace GS.Game.Tests {
 				_actionId = actionId;
 			}
 
-			public void Tick(IBotObservation observation, IBotCommandSink sink, Random rng) => sink.PlayOrgCard(_actionId);
+			public void Tick(IBotObservation observation, IBotCommandSink sink, Random rng) => sink.PlayOrgCard(_actionId, 0);
 		}
 
 		static (List<EmissionEntry> emissions, Bot bot, BotCommandSink sink) BuildHost(GameLogic logic, string orgId, IReadOnlyList<IBotFeature> features, string date, int tick) {
@@ -41,8 +41,8 @@ namespace GS.Game.Tests {
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, logic.Commands, null, callback);
 
 			sink.BeginDecisionPhase();
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId);
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId); // duplicate — suppressed, no callback
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId, 0);
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId, 0); // duplicate — suppressed, no callback
 
 			Assert.Single(calls);
 		}

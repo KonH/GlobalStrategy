@@ -377,7 +377,10 @@ namespace GS.Game.Tests {
 							},
 							new ExpressionNode {
 								Type = "gte",
-								Members = new List<ExpressionNode> { new ExpressionNode { Type = "relationStillExists" }, new ExpressionNode { Type = "value", Value = 1 } }
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "hasCountryRelation", RelationKind = "friend" },
+									new ExpressionNode { Type = "value", Value = 1 }
+								}
 							}
 						},
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 100.0 } },
@@ -407,6 +410,7 @@ namespace GS.Game.Tests {
 			int franceCard = logic.World.Create();
 			logic.World.Add(franceCard, new GameAction { ActionId = "stop_friendship" });
 			logic.World.Add(franceCard, new OrgContext { OrgId = OrgId });
+			logic.World.Add(franceCard, new CardOwnerType(CardOwnerKind.Country));
 			logic.World.Add(franceCard, new CountryContext { CountryId = SelectedCountryId });
 			logic.World.Add(franceCard, new CardInHand { SlotIndex = 0 });
 			logic.World.Add(franceCard, new RelationCardTarget { TargetCountryId = OtherCountryId, Kind = RelationKind.Friend });
@@ -414,12 +418,14 @@ namespace GS.Game.Tests {
 			int germanyCard = logic.World.Create();
 			logic.World.Add(germanyCard, new GameAction { ActionId = "stop_friendship" });
 			logic.World.Add(germanyCard, new OrgContext { OrgId = OrgId });
+			logic.World.Add(germanyCard, new CardOwnerType(CardOwnerKind.Country));
 			logic.World.Add(germanyCard, new CountryContext { CountryId = SelectedCountryId });
 			logic.World.Add(germanyCard, new CardInHand { SlotIndex = 1 });
 			logic.World.Add(germanyCard, new RelationCardTarget { TargetCountryId = GermanyId, Kind = RelationKind.Friend });
 
 			logic.Commands.Push(new PlayCardActionCommand {
-				OrgId = OrgId, CountryId = SelectedCountryId, ActionId = "stop_friendship", TargetCountryId = OtherCountryId
+				OrgId = OrgId, CountryId = SelectedCountryId, ActionId = "stop_friendship",
+				TargetCountryId = OtherCountryId, SlotIndex = 0
 			});
 			logic.Update(0f);
 

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ECS;
+using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 
@@ -15,7 +16,6 @@ namespace GS.Game.Systems {
 			int orgControl = 0;
 			int totalCountryControl = 0;
 			double opinion = 0.0;
-			double hasSuitableRelationTarget = 0.0;
 			double isInWar = 0.0;
 			double warProgress = 0.0;
 			double warFree = 1.0;
@@ -30,10 +30,9 @@ namespace GS.Game.Systems {
 			if (!string.IsNullOrEmpty(countryId)) {
 				orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
 				totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
-				hasSuitableRelationTarget = CountryRelations.HasSuitableRelationTarget(world, countryId) ? 1.0 : 0.0;
 				isInWar = Wars.IsInWar(world, countryId) ? 1.0 : 0.0;
 				warProgress = Wars.GetOwnWarProgress(world, countryId);
-				if (definition.ActionId == "revenge" && cardEntity >= 0 && world.Has<RevengeCardTarget>(cardEntity)) {
+				if (definition.ActionId == "declare_revenge_war" && cardEntity >= 0 && world.Has<RevengeCardTarget>(cardEntity)) {
 					string targetCountryId = world.Get<RevengeCardTarget>(cardEntity).TargetCountryId;
 					warFree = Wars.IsWarFree(world, countryId, targetCountryId) ? 1.0 : 0.0;
 					revengeEligible = RevengeEligibilityQuery.IsEligible(world, countryId, targetCountryId) ? 1.0 : 0.0;
@@ -52,16 +51,22 @@ namespace GS.Game.Systems {
 				}
 			}
 
-			double relationStillExists = 1.0;
+			string relationTargetCountryId = cardEntity >= 0 && world.Has<RelationCardTarget>(cardEntity)
+				? world.Get<RelationCardTarget>(cardEntity).TargetCountryId
+				: "";
+			var relationValues = new Dictionary<string, double>();
+			foreach (string relationKind in new[] { "none", "friend", "rival" }) {
+				relationValues[relationKind] = !string.IsNullOrEmpty(countryId)
+					&& CountryRelations.MatchesCondition(world, countryId, relationTargetCountryId, relationKind)
+					? 1.0
+					: 0.0;
+			}
 			double targetRulerOrMilitaryOpinion = 0.0;
 			double neitherSideAtWar = 1.0;
 			if (cardEntity >= 0
 				&& !string.IsNullOrEmpty(countryId)
 				&& world.Has<RelationCardTarget>(cardEntity)) {
 				RelationCardTarget target = world.Get<RelationCardTarget>(cardEntity);
-				relationStillExists = CountryRelations.GetRelation(world, countryId, target.TargetCountryId) == target.Kind
-					? 1.0
-					: 0.0;
 				string rulerId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "ruler");
 				string militaryAdvisorId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "military_advisor");
 				double rulerOpinion = string.IsNullOrEmpty(rulerId) ? 0.0 : ResourceQuery.GetValue(world, rulerId, $"opinion_{orgId}");
@@ -74,8 +79,7 @@ namespace GS.Game.Systems {
 				Control = orgControl,
 				TotalCountryControl = totalCountryControl,
 				Opinion = opinion,
-				HasSuitableRelationTarget = hasSuitableRelationTarget,
-				RelationStillExists = relationStillExists,
+				CountryRelations = relationValues,
 				IsInWar = isInWar,
 				WarProgress = warProgress,
 				TargetRulerOrMilitaryOpinion = targetRulerOrMilitaryOpinion,

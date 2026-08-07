@@ -166,8 +166,8 @@ namespace GS.Game.Tests {
 				"Prussia",
 				card);
 
-			Assert.Equal(0, beforeRelation.RelationStillExists);
-			Assert.Equal(1, afterRelation.RelationStillExists);
+			Assert.Equal(0, beforeRelation.GetCountryRelation("friend"));
+			Assert.Equal(1, afterRelation.GetCountryRelation("friend"));
 		}
 	}
 }

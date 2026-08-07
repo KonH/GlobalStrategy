@@ -169,13 +169,13 @@ namespace GS.Game.Tests {
 			var fromFile = new FileConfig<EffectConfig>(path).Load();
 			var fromString = new StringConfig<EffectConfig>(File.ReadAllText(path)).Load();
 
-			var ultimatumFromFile = Assert.IsType<ResolveWarEffectParams>(fromFile.Find("ultimatum_effect"));
-			var ultimatumFromString = Assert.IsType<ResolveWarEffectParams>(fromString.Find("ultimatum_effect"));
+			var ultimatumFromFile = Assert.IsType<ResolveWarEffectParams>(fromFile.Find("force_war_win_effect"));
+			var ultimatumFromString = Assert.IsType<ResolveWarEffectParams>(fromString.Find("force_war_win_effect"));
 			Assert.Equal(WarOutcome.Win, ultimatumFromFile.Outcome);
 			Assert.Equal(WarOutcome.Win, ultimatumFromString.Outcome);
 
-			var surrenderFromFile = Assert.IsType<ResolveWarEffectParams>(fromFile.Find("surrender_effect"));
-			var surrenderFromString = Assert.IsType<ResolveWarEffectParams>(fromString.Find("surrender_effect"));
+			var surrenderFromFile = Assert.IsType<ResolveWarEffectParams>(fromFile.Find("force_war_loss_effect"));
+			var surrenderFromString = Assert.IsType<ResolveWarEffectParams>(fromString.Find("force_war_loss_effect"));
 			Assert.Equal(WarOutcome.Lose, surrenderFromFile.Outcome);
 			Assert.Equal(WarOutcome.Lose, surrenderFromString.Outcome);
 		}
@@ -192,8 +192,8 @@ namespace GS.Game.Tests {
 				fromString.Find("sell_arms_damage_bonus_effect"));
 			Assert.Equal(ResourceDefinitions.TroopsDamageBonusPercent, modifierFromFile.ResourceId);
 			Assert.Equal(ResourceDefinitions.TroopsDamageBonusPercent, modifierFromString.ResourceId);
-			Assert.Equal(10.0, modifierFromFile.InitialValue);
-			Assert.Equal(10.0, modifierFromString.InitialValue);
+			Assert.Equal(20.0, modifierFromFile.InitialValue);
+			Assert.Equal(20.0, modifierFromString.InitialValue);
 			Assert.Equal(1.0, modifierFromFile.DecayPerMonth);
 			Assert.Equal(1.0, modifierFromString.DecayPerMonth);
 		}

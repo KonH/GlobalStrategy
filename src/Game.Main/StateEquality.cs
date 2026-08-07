@@ -91,9 +91,12 @@ namespace GS.Main {
 			return a.ActionId == b.ActionId
 				&& a.SlotIndex == b.SlotIndex
 				&& a.IsInHand == b.IsInHand
+				&& a.CanPlay == b.CanPlay
 				&& a.IsUnplayable == b.IsUnplayable
 				&& a.UnplayableReason == b.UnplayableReason
+				&& ActionConditionDebugEntryNullableEquals(a.FirstFailure, b.FirstFailure)
 				&& a.TargetCountryId == b.TargetCountryId
+				&& ListEquals(a.PlayableCountryIds, b.PlayableCountryIds, (x, y) => x == y)
 				&& a.WarWinChancePercent == b.WarWinChancePercent
 				&& a.CooldownRemainingDays == b.CooldownRemainingDays
 				&& a.CooldownFractionRemaining == b.CooldownFractionRemaining
@@ -101,7 +104,16 @@ namespace GS.Main {
 		}
 
 		public static bool ActionConditionDebugEntryEquals(ActionConditionDebugEntry a, ActionConditionDebugEntry b) {
-			return a.Label == b.Label && a.Passed == b.Passed;
+			return a.Label == b.Label
+				&& a.Passed == b.Passed
+				&& a.LocaleKey == b.LocaleKey
+				&& a.ReasonCode == b.ReasonCode
+				&& ListEquals(a.LocaleArguments, b.LocaleArguments, (x, y) => x == y);
+		}
+
+		static bool ActionConditionDebugEntryNullableEquals(ActionConditionDebugEntry? a, ActionConditionDebugEntry? b) {
+			if (a == null || b == null) { return a == null && b == null; }
+			return ActionConditionDebugEntryEquals(a, b);
 		}
 
 		public static bool VisualResourceChangeEffectEquals(VisualResourceChangeEffect a, VisualResourceChangeEffect b) {

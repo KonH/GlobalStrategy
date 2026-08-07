@@ -46,6 +46,7 @@ namespace GS.Main {
 		public ProvinceConfig ProvinceConfig { get; private set; } = null!;
 		public GameSettings GameSettings { get; private set; } = null!;
 		public IReadOnlyList<BotFeatureConfigEntry> BotFeatures { get; private set; } = null!;
+		public IReadOnlyDictionary<string, string> HqCountryByOrgId => _hqCountryByOrgId;
 		public int MaxControlPool { get; private set; }
 		public bool IsCompleted => _gameCompletionEntity >= 0
 			&& _world.Get<GameCompletion>(_gameCompletionEntity).IsCompleted;
@@ -245,7 +246,7 @@ namespace GS.Main {
 			// See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
 			CleanupEffectNotificationsSystem.UpdateActionEffects(_world);
 			InitActionFromPlayCardSystem.Update(_world, _commandAccessor.ReadPlayCardActionCommand());
-			CheckActionConditionSystem.Update(_world, _actionConfig, _hqCountryByOrgId, currentTime);
+			CheckActionConditionSystem.Update(_world, _actionConfig, _hqCountryByOrgId, currentTime, MaxControlPool);
 			DeductActionCostSystem.Update(_world, _actionConfig);
 			ActionSucceededSystem.Update(_world, _actionConfig);
 			ApplyActionCooldownSystem.Update(_world, currentTime, GameSettings, _actionConfig);
@@ -266,7 +267,7 @@ namespace GS.Main {
 			CheckHandSizeSystem.Update(_world);
 			RelationCardSyncSystem.Update(_world, _actionConfig);
 			RevengeCardSyncSystem.Update(_world, _actionConfig);
-			DrawCardSystem.Update(_world, _actionConfig, _rng, _hqCountryByOrgId);
+			DrawCardSystem.Update(_world, _actionConfig, _rng);
 			CleanupCardDiscardSystem.Update(_world);
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool);
 

@@ -39,6 +39,7 @@ namespace GS.Game.Tests {
 			int cardEntity = world.Create();
 			world.Add(cardEntity, new GameAction { ActionId = "declare_war" });
 			world.Add(cardEntity, new OrgContext { OrgId = "OrgA" });
+			world.Add(cardEntity, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(cardEntity, new CountryContext { CountryId = "Prussia" });
 			world.Add(cardEntity, new CardInHand { SlotIndex = 0 });
 

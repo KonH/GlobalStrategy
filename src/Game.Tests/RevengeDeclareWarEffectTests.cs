@@ -15,7 +15,7 @@ namespace GS.Game.Tests {
 
 		static ActionConfig BuildActionConfig() => new ActionConfig {
 			Actions = new List<ActionDefinition> {
-				new ActionDefinition { ActionId = "revenge", OwnerType = "country", EffectIds = new List<string> { "revenge_effect" } }
+				new ActionDefinition { ActionId = "declare_revenge_war", OwnerType = "country", EffectIds = new List<string> { "revenge_effect" } }
 			}
 		};
 
@@ -65,7 +65,7 @@ namespace GS.Game.Tests {
 			world.Add(e, new OrgContext { OrgId = orgId });
 			world.Add(e, new CountryContext { CountryId = countryId });
 			if (!string.IsNullOrEmpty(targetCountryId)) { world.Add(e, new RevengeCardTarget { TargetCountryId = targetCountryId }); }
-			world.Add(e, new CardUse());
+			world.Add(e, new CardUse { CountryId = countryId });
 			world.Add(e, new ActionSucceeded());
 			return e;
 		}
@@ -91,7 +91,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void declares_war_and_attaches_bonus() {
 			var world = new World();
-			AddSucceededCard(world, OrgId, HqCountryId, "revenge", TargetCountryId);
+			AddSucceededCard(world, OrgId, HqCountryId, "declare_revenge_war", TargetCountryId);
 			var hqCountryByOrgId = new Dictionary<string, string> { [OrgId] = HqCountryId };
 
 			RunEffect(world, hqCountryByOrgId);
@@ -109,7 +109,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void declare_uses_passed_war_battle_settings_for_capacity() {
 			var world = new World();
-			AddSucceededCard(world, OrgId, HqCountryId, "revenge", TargetCountryId);
+			AddSucceededCard(world, OrgId, HqCountryId, "declare_revenge_war", TargetCountryId);
 			var hqCountryByOrgId = new Dictionary<string, string> { [OrgId] = HqCountryId };
 			var settings = new GameSettings {
 				WarBattles = new WarBattleSettings { BaseConcurrentBattleCount = 4 }
@@ -123,7 +123,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void declares_war_without_an_org_hq() {
 			var world = new World();
-			AddSucceededCard(world, OrgId, HqCountryId, "revenge", TargetCountryId);
+			AddSucceededCard(world, OrgId, HqCountryId, "declare_revenge_war", TargetCountryId);
 
 			RunEffect(world, null);
 
@@ -135,7 +135,7 @@ namespace GS.Game.Tests {
 		void no_ops_when_declare_war_itself_would_no_op() {
 			var world = new World();
 			Wars.DeclareWar(world, HqCountryId, "Germany", CurrentTime);
-			AddSucceededCard(world, OrgId, HqCountryId, "revenge", TargetCountryId);
+			AddSucceededCard(world, OrgId, HqCountryId, "declare_revenge_war", TargetCountryId);
 			var hqCountryByOrgId = new Dictionary<string, string> { [OrgId] = HqCountryId };
 
 			RunEffect(world, hqCountryByOrgId);
@@ -150,13 +150,13 @@ namespace GS.Game.Tests {
 			var world = new World();
 			var hqCountryByOrgId = new Dictionary<string, string> { [OrgId] = HqCountryId };
 
-			AddSucceededCard(world, OrgId, HqCountryId, "revenge", TargetCountryId);
+			AddSucceededCard(world, OrgId, HqCountryId, "declare_revenge_war", TargetCountryId);
 			RunEffect(world, hqCountryByOrgId);
 			Assert.NotNull(FindBonus(world, HqCountryId));
 
 			StopWar(world, HqCountryId);
 
-			AddSucceededCard(world, OrgId, HqCountryId, "revenge", "Germany");
+			AddSucceededCard(world, OrgId, HqCountryId, "declare_revenge_war", "Germany");
 			RunEffect(world, hqCountryByOrgId, CurrentTime.AddDays(1));
 
 			Assert.Equal(1, CountEntities<RevengeWarBonus>(world));

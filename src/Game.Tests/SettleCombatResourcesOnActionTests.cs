@@ -110,6 +110,7 @@ namespace GS.Game.Tests {
 			int e = world.Create();
 			world.Add(e, new GameAction { ActionId = ActionId });
 			world.Add(e, new OrgContext { OrgId = OrgId });
+			world.Add(e, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(e, new CountryContext { CountryId = CountryId });
 			world.Add(e, new CardInHand { SlotIndex = 0 });
 			return e;

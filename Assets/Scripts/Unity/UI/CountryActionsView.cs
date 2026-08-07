@@ -14,7 +14,7 @@ namespace GS.Unity.UI {
 		readonly ActionVisualConfig _visualConfig;
 		readonly TooltipSystem _tooltip;
 
-		public Action<string, string, VisualElement> OnCardClicked;
+		public Action<string, string, int, VisualElement> OnCardClicked;
 		public VisualElement DeckPileElement { get; private set; }
 		public VisualElement HandContainer => _handContainer;
 		public bool SuppressRefresh { get; set; }
@@ -104,7 +104,7 @@ namespace GS.Unity.UI {
 				if (e.button != 0 || !cardEl.ContainsPoint(e.localPosition)) { return; }
 				e.StopPropagation();
 				if (canPlay) {
-					OnCardClicked?.Invoke(capturedAction, card.TargetCountryId, cardEl);
+					OnCardClicked?.Invoke(capturedAction, card.TargetCountryId, card.SlotIndex, cardEl);
 				}
 			});
 

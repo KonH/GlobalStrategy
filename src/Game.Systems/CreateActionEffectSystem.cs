@@ -19,38 +19,28 @@ namespace GS.Game.Systems {
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
 			CountryConfig? countryConfig = null) {
 			int[] required = { TypeId<GameAction>.Value, TypeId<ActionSucceeded>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
-			var toProcess = new List<(int entity, string actionId, string orgId)>();
+			var toProcess = new List<(int entity, string actionId, string orgId, string countryId)>();
 
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				CardUse[] uses = arch.GetColumn<CardUse>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					toProcess.Add((arch.Entities[i], actions[i].ActionId, orgs[i].OrgId));
+					toProcess.Add((arch.Entities[i], actions[i].ActionId, orgs[i].OrgId, uses[i].CountryId));
 				}
 			}
 
-			int[] countryRequired = { TypeId<CountryContext>.Value };
-			var entityCountry = new Dictionary<int, string>();
-			foreach (var arch in world.GetMatchingArchetypes(countryRequired, null)) {
-				CountryContext[] ctxs = arch.GetColumn<CountryContext>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					entityCountry[arch.Entities[i]] = ctxs[i].CountryId;
-				}
-			}
-
-			foreach (var (entity, actionId, orgId) in toProcess) {
-				entityCountry.TryGetValue(entity, out string countryId);
+			foreach (var (entity, actionId, orgId, countryId) in toProcess) {
 				var def = actionConfig.Find(actionId);
 				if (def == null) { continue; }
 
 				foreach (var effectId in def.EffectIds) {
 					var effectDef = effectConfig.Find(effectId);
 					if (effectDef is ControlChangeEffectParams controlParams && controlParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
-						int usedTotal = ControlQuery.GetTotalControlInCountry(world, countryId);
-						if (usedTotal < 100) {
-							int toAdd = Math.Min(controlParams.Amount, 100 - usedTotal);
+					int usedTotal = ControlQuery.GetTotalControlInCountry(world, countryId);
+					if (usedTotal < maxControlPool) {
+						int toAdd = Math.Min(controlParams.Amount, maxControlPool - usedTotal);
 							int ie = world.Create();
 							world.Add(ie, new ControlEffect {
 								OrgId = orgId,
