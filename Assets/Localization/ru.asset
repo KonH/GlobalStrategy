@@ -433,7 +433,15 @@ MonoBehaviour:
   - Key: effect.base_income.name
     Value: Базовый доход
   - Key: effect.base_income.description
-    Value: Ежемесячный доход от налогов и торговли. Применяется в конце каждого месяца.
+    Value: Ежемесячный доход от населения, провинций и экономического советника. Применяется в конце каждого месяца.
+  - Key: hud.gold_income_base
+    Value: "Базовый доход: +{0}/мес."
+  - Key: hud.gold_income_population
+    Value: "Население ({0}): +{1}/мес."
+  - Key: hud.gold_income_provinces
+    Value: "Провинции ({0}): +{1}/мес."
+  - Key: hud.gold_income_economic_advisor
+    Value: "Экономический советник ({0}): +{1}/мес."
   - Key: hud.country_control
     Value: Контроль
   - Key: hud.control_tooltip_title
@@ -1834,6 +1842,8 @@ MonoBehaviour:
     Value: Требование карты выполнено
   - Key: action.requirement.action_exists
     Value: Действие карты существует
+  - Key: action.requirement.unavailable
+    Value: Карта недоступна
   - Key: action.requirement.control_min
     Value: Контроль не ниже {0}
   - Key: action.requirement.enemy_control
@@ -1872,6 +1882,10 @@ MonoBehaviour:
     Value: Иметь {0} золота
   - Key: action.requirement.resource
     Value: Иметь {0} ед. ресурса {2}
+  - Key: action.discard.hint
+    Value: Сбросить за
+  - Key: action.discard.no_gold
+    Value: Недостаточно золота
   - Key: action.country.unplayable.pool_full
     Value: Пул контроля переполнен
   - Key: action.country.unplayable.insufficient_control
@@ -1881,7 +1895,7 @@ MonoBehaviour:
   - Key: action.country.unplayable.insufficient_target_opinion
     Value: Требуется мнение не ниже {0} у правителя или военного советника страны
   - Key: action.country.unplayable.no_suitable_target
-    Value: No suitable target country available
+    Value: Нет подходящей страны-цели
   - Key: action.country.unplayable.relation_no_longer_exists
     Value: Указанные отношения больше не существуют
   - Key: action.country.unplayable.already_at_war

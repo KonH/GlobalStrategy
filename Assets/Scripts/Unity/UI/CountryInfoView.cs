@@ -42,7 +42,10 @@ namespace GS.Unity.UI {
 		string? _lastCountryId;
 
 		public event Action<bool>? OnSubPanelOpened;
-		public event Action<string, string, VisualElement>? OnCountryActionCardClicked;
+		public event Action<string, string, int, VisualElement, ActionCardBuilder.CountryCardFace>? OnCountryActionCardClicked;
+		public event Action<string, string, int>? OnCountryActionCardDiscarded;
+		public event Action<ActionConditionDebugEntry>? OnUnplayableCountryActionCardReleased;
+		public event Action? OnCountryActionCardDiscardUnaffordable;
 		public event Action<string>? OnRelatedCountryFlagClicked;
 		public CountryActionsView? ActionsView => _actionsView;
 		public void OpenChars() => SetCharsOpen(true);
@@ -86,9 +89,20 @@ namespace GS.Unity.UI {
 				if (actionsInstance != null && actionConfig != null) {
 					_actionsView = new CountryActionsView(
 						actionsInstance.Q("hand-container"),
-						loc, actionConfig, actionVisualConfig, tooltip);
-					_actionsView.OnCardClicked = (actionId, targetCharId, el) =>
-						OnCountryActionCardClicked?.Invoke(actionId, targetCharId, el);
+						loc,
+						actionConfig,
+						actionVisualConfig,
+						countryVisualConfig,
+						tooltip,
+						gameSettings?.DiscardGoldCost ?? 50);
+					_actionsView.OnCardClicked = (actionId, targetCountryId, slotIndex, element, face) =>
+						OnCountryActionCardClicked?.Invoke(actionId, targetCountryId, slotIndex, element, face);
+					_actionsView.OnCardDiscarded = (actionId, targetCountryId, slotIndex) =>
+						OnCountryActionCardDiscarded?.Invoke(actionId, targetCountryId, slotIndex);
+					_actionsView.OnUnplayableCardReleased = condition =>
+						OnUnplayableCountryActionCardReleased?.Invoke(condition);
+					_actionsView.OnDiscardUnaffordable = () =>
+						OnCountryActionCardDiscardUnaffordable?.Invoke();
 				}
 			}
 			if (_charsToggleBtn != null) {

@@ -127,9 +127,13 @@ namespace GS.Unity.UI {
 			string actionId,
 			int slotIndex,
 			VisualElement clickedCard,
+			ActionCardBuilder.CountryCardFace faceData,
 			string targetCountryId = "") {
 			if (_isPlaying) { return; }
-			PlayCountrySequence(orgId, countryId, actionId, slotIndex, clickedCard, targetCountryId).Forget();
+			if (faceData == null) {
+				throw new ArgumentNullException(nameof(faceData));
+			}
+			PlayCountrySequence(orgId, countryId, actionId, slotIndex, clickedCard, faceData, targetCountryId).Forget();
 		}
 
 		async UniTaskVoid PlaySequence(string orgId, string actionId, int slotIndex, VisualElement clickedCard) {
@@ -269,6 +273,7 @@ namespace GS.Unity.UI {
 			string actionId,
 			int slotIndex,
 			VisualElement clickedCard,
+			ActionCardBuilder.CountryCardFace faceData,
 			string targetCountryId = "") {
 			_isPlaying = true;
 			_resultReady = false;
@@ -280,16 +285,6 @@ namespace GS.Unity.UI {
 			if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = true; }
 
 			try {
-				int? warWinChancePercent = null;
-				foreach (var handCard in _state.SelectedCountry.CountryActions.Hand) {
-					if (handCard.ActionId == actionId
-						&& handCard.TargetCountryId == targetCountryId
-						&& handCard.SlotIndex == slotIndex) {
-						warWinChancePercent = handCard.WarWinChancePercent;
-						break;
-					}
-				}
-
 				_commands.Push(new PlayCardActionCommand {
 					OrgId = orgId,
 					CountryId = countryId,
@@ -306,7 +301,7 @@ namespace GS.Unity.UI {
 				var cardTestCard = root.Q("card-test-card");
 
 				if (overlay != null) {
-					PopulateCountryTestCard(cardTestCard, actionId, targetCountryId, warWinChancePercent);
+					PopulateCountryTestCard(cardTestCard, faceData);
 					overlay.style.display = DisplayStyle.Flex;
 					overlay.style.opacity = 0f;
 					if (cardTestCard != null) { cardTestCard.style.opacity = 0f; }
@@ -316,7 +311,7 @@ namespace GS.Unity.UI {
 				clickedCard.style.opacity = 0f;
 				var deckRect = _countryActionsView?.DeckPileElement?.worldBound ?? Rect.zero;
 
-				await _transitionView.ShowCountry(actionId, fromRect, cardTestCard, 0.7f, _actionConfig, _visualConfig, _loc, targetCountryId, warWinChancePercent);
+				await _transitionView.ShowCountry(faceData, fromRect, cardTestCard, 0.7f);
 
 				if (overlay != null) { overlay.style.opacity = 1f; }
 				if (cardTestCard != null) { cardTestCard.style.opacity = 1f; }
@@ -336,7 +331,7 @@ namespace GS.Unity.UI {
 				// Start card-to-deck transition, then hide overlay concurrently before awaiting
 				var fromTestRect = cardTestCard != null ? cardTestCard.worldBound : Rect.zero;
 				var deckElement = _countryActionsView?.DeckPileElement;
-				var deckTransitionTask = _transitionView.ShowCountry(actionId, fromTestRect, deckElement ?? cardTestCard, 0.77f, _actionConfig, _visualConfig, _loc, targetCountryId, warWinChancePercent);
+				var deckTransitionTask = _transitionView.ShowCountry(faceData, fromTestRect, deckElement ?? cardTestCard, 0.77f);
 				if (overlay != null) { overlay.style.display = DisplayStyle.None; }
 				await deckTransitionTask;
 				_transitionView.Hide();
@@ -367,28 +362,24 @@ namespace GS.Unity.UI {
 				await UniTask.NextFrame();
 				if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = true; }
 
-				VisualElement newHandCard = null;
-				if (_countryActionsView != null) {
-					var handContainer = _countryActionsView.HandContainer;
-					int childCount = handContainer?.childCount ?? 0;
-					if (childCount > 1) {
-						var lastWrapper = handContainer[childCount - 1];
-						newHandCard = lastWrapper?.Q(className: "action-card");
+				ActionCardEntry replacementCard = null;
+				foreach (var handCard in _state.SelectedCountry.CountryActions.Hand) {
+					if (handCard.SlotIndex == slotIndex) {
+						replacementCard = handCard;
+						break;
 					}
-					if (newHandCard != null) { newHandCard.style.opacity = 0f; }
 				}
 
-				if (newHandCard != null) {
-					string newActionId = "";
-					string newTargetCountryId = "";
-					int? newWarWinChancePercent = null;
-					if (_state.SelectedCountry.CountryActions.Hand.Count > 0) {
-						var newCard = _state.SelectedCountry.CountryActions.Hand[_state.SelectedCountry.CountryActions.Hand.Count - 1];
-						newActionId = newCard.ActionId;
-						newTargetCountryId = newCard.TargetCountryId;
-						newWarWinChancePercent = newCard.WarWinChancePercent;
-					}
-					await _transitionView.ShowCountry(newActionId, deckRect, newHandCard, 0.5f, _actionConfig, _visualConfig, _loc, newTargetCountryId, newWarWinChancePercent);
+				VisualElement newHandCard = null;
+				ActionCardBuilder.CountryCardFace replacementFace = null;
+				if (replacementCard != null && _countryActionsView != null) {
+					_countryActionsView.TryGetRenderedCard(slotIndex, out newHandCard);
+					_countryActionsView.TryGetFaceData(replacementCard, out replacementFace);
+				}
+
+				if (newHandCard != null && replacementFace != null) {
+					newHandCard.style.opacity = 0f;
+					await _transitionView.ShowCountry(replacementFace, deckRect, newHandCard, 0.5f);
 					newHandCard.style.opacity = 1f;
 					_transitionView.Hide();
 				}
@@ -418,20 +409,9 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		void PopulateCountryTestCard(VisualElement cardSlot, string actionId, string targetCountryId = "", int? warWinChancePercent = null) {
+		void PopulateCountryTestCard(VisualElement cardSlot, ActionCardBuilder.CountryCardFace faceData) {
 			if (cardSlot == null) { return; }
-			var def = _actionConfig?.Find(actionId);
-			string name;
-			if (def == null) {
-				name = actionId;
-			} else if (!string.IsNullOrEmpty(targetCountryId)) {
-				name = string.Format(_loc.Get(def.NameKey), _loc.Get($"country_name.{targetCountryId}"));
-			} else {
-				name = _loc.Get(def.NameKey);
-			}
-			string desc = def != null ? _loc.Get(def.DescKey) : "";
-			string goldCostText = GetGoldCostText(def);
-			ActionCardBuilder.PopulateSlot(cardSlot, name, desc, goldCostText, _visualConfig?.FindFront(actionId), warWinChancePercent);
+			ActionCardBuilder.PopulateSlot(cardSlot, faceData, false);
 		}
 
 		void PopulateTestCard(VisualElement cardSlot, string actionId) {

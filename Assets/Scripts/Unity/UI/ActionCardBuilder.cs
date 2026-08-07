@@ -1,17 +1,97 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace GS.Unity.UI {
-	static class ActionCardBuilder {
+	public static class ActionCardBuilder {
 		const int CooldownTextureSize = 128;
 
 		static readonly Dictionary<int, Texture2D> _cooldownTextureCache = new();
+
+		public readonly struct RequirementRow {
+			public string Text { get; }
+			public bool Passed { get; }
+
+			public RequirementRow(string text, bool passed) {
+				Text = text ?? "";
+				Passed = passed;
+			}
+		}
+
+		public readonly struct PlayableCountryBadgeItem {
+			public string CountryId { get; }
+			public Sprite Flag { get; }
+
+			public PlayableCountryBadgeItem(string countryId, Sprite flag) {
+				CountryId = countryId ?? "";
+				Flag = flag;
+			}
+		}
+
+		public sealed class CountryCardFace {
+			public string Name { get; }
+			public string Description { get; }
+			public string GoldCostText { get; }
+			public Sprite Art { get; }
+			public int? WarWinChancePercent { get; }
+			public double? CooldownFractionRemaining { get; }
+			public double? CooldownRemainingDays { get; }
+			public IReadOnlyList<RequirementRow> Requirements { get; }
+			public IReadOnlyList<PlayableCountryBadgeItem> PlayableCountries { get; }
+
+			public CountryCardFace(
+				string name,
+				string description,
+				string goldCostText,
+				Sprite art,
+				int? warWinChancePercent,
+				double? cooldownFractionRemaining,
+				double? cooldownRemainingDays,
+				IReadOnlyList<RequirementRow> requirements,
+				IReadOnlyList<PlayableCountryBadgeItem> playableCountries) {
+				Name = name ?? "";
+				Description = description ?? "";
+				GoldCostText = goldCostText;
+				Art = art;
+				WarWinChancePercent = warWinChancePercent;
+				CooldownFractionRemaining = cooldownFractionRemaining;
+				CooldownRemainingDays = cooldownRemainingDays;
+				Requirements = CopyAsReadOnly(requirements);
+				PlayableCountries = CopyAsReadOnly(playableCountries);
+			}
+
+			static IReadOnlyList<T> CopyAsReadOnly<T>(IReadOnlyList<T> source) {
+				if (source == null || source.Count == 0) {
+					return Array.Empty<T>();
+				}
+				var copy = new T[source.Count];
+				for (int i = 0; i < source.Count; i++) {
+					copy[i] = source[i];
+				}
+				return Array.AsReadOnly(copy);
+			}
+		}
 
 		public struct CardResult {
 			public VisualElement Card;
 			public VisualElement Body;
 			public Label CostLabel;
+			public VisualElement PlayableCountriesBadge;
+			public VisualElement DiscardHint;
+			public Label DiscardHintLabel;
+			public Label DiscardHintPrice;
+		}
+
+		public static CardResult Build(CountryCardFace face, bool includeDiscardHint = true) {
+			if (face == null) {
+				throw new ArgumentNullException(nameof(face));
+			}
+			var card = new VisualElement();
+			card.AddToClassList("action-card");
+			var result = Populate(card, face, includeDiscardHint);
+			result.Card = card;
+			return result;
 		}
 
 		public static CardResult Build(
@@ -21,6 +101,18 @@ namespace GS.Unity.UI {
 			card.AddToClassList("action-card");
 			var result = Populate(card, name, desc, goldCostText, art, warWinChancePercent, cooldownFractionRemaining, cooldownRemainingDays);
 			result.Card = card;
+			return result;
+		}
+
+		public static CardResult PopulateSlot(VisualElement slot, CountryCardFace face, bool includeDiscardHint = false) {
+			if (face == null) {
+				throw new ArgumentNullException(nameof(face));
+			}
+			slot.Clear();
+			slot.RemoveFromClassList("action-card--success");
+			slot.RemoveFromClassList("action-card--fail");
+			var result = Populate(slot, face, includeDiscardHint);
+			result.Card = slot;
 			return result;
 		}
 
@@ -38,6 +130,30 @@ namespace GS.Unity.UI {
 		static CardResult Populate(
 			VisualElement container, string name, string desc, string goldCostText, Sprite art, int? warWinChancePercent = null,
 			double? cooldownFractionRemaining = null, double? cooldownRemainingDays = null) {
+			return PopulateContent(
+				container, name, desc, goldCostText, art, warWinChancePercent,
+				cooldownFractionRemaining, cooldownRemainingDays, null, null, false);
+		}
+
+		static CardResult Populate(VisualElement container, CountryCardFace face, bool includeDiscardHint) {
+			return PopulateContent(
+				container, face.Name, face.Description, face.GoldCostText, face.Art,
+				face.WarWinChancePercent, face.CooldownFractionRemaining, face.CooldownRemainingDays,
+				face.Requirements, face.PlayableCountries, includeDiscardHint);
+		}
+
+		static CardResult PopulateContent(
+			VisualElement container,
+			string name,
+			string desc,
+			string goldCostText,
+			Sprite art,
+			int? warWinChancePercent,
+			double? cooldownFractionRemaining,
+			double? cooldownRemainingDays,
+			IReadOnlyList<RequirementRow> requirements,
+			IReadOnlyList<PlayableCountryBadgeItem> playableCountries,
+			bool includeDiscardHint) {
 			// Card face content lives in its own wrapper so the unavailable-card dimming
 			// (applied via .action-card--unavailable .action-card-content) never darkens the
 			// cooldown overlay's remaining-time label, which must stay fully legible.
@@ -58,6 +174,11 @@ namespace GS.Unity.UI {
 				artImage.style.backgroundImage = new StyleBackground(art);
 			}
 			artEl.Add(artImage);
+			VisualElement playableCountriesBadge = null;
+			if (playableCountries != null && playableCountries.Count > 0) {
+				playableCountriesBadge = BuildPlayableCountriesBadge(playableCountries);
+				artEl.Add(playableCountriesBadge);
+			}
 			if (warWinChancePercent.HasValue) {
 				artEl.Add(BuildWarWinChanceBadge(warWinChancePercent.Value));
 			}
@@ -70,6 +191,10 @@ namespace GS.Unity.UI {
 			descLabel.AddToClassList("action-card-desc");
 			body.Add(descLabel);
 			SetupDescAutoSize(descLabel);
+
+			if (requirements != null && requirements.Count > 0) {
+				body.Add(BuildRequirements(requirements));
+			}
 
 			var footer = new VisualElement();
 			footer.AddToClassList("action-card-footer");
@@ -90,11 +215,132 @@ namespace GS.Unity.UI {
 			body.Add(footer);
 			content.Add(body);
 
+			VisualElement discardHint = null;
+			Label discardHintLabel = null;
+			Label discardHintPrice = null;
+			if (includeDiscardHint) {
+				discardHint = BuildDiscardHint(out discardHintLabel, out discardHintPrice);
+			}
+
 			if (cooldownFractionRemaining.HasValue) {
 				container.Add(BuildCooldownOverlay(cooldownFractionRemaining.Value, cooldownRemainingDays));
 			}
+			if (discardHint != null) {
+				// The interaction hint must paint above the full-card cooldown overlay.
+				container.Add(discardHint);
+			}
 
-			return new CardResult { Body = body, CostLabel = costLabel };
+			return new CardResult {
+				Body = body,
+				CostLabel = costLabel,
+				PlayableCountriesBadge = playableCountriesBadge,
+				DiscardHint = discardHint,
+				DiscardHintLabel = discardHintLabel,
+				DiscardHintPrice = discardHintPrice
+			};
+		}
+
+		static VisualElement BuildRequirements(IReadOnlyList<RequirementRow> requirements) {
+			var block = new VisualElement();
+			block.AddToClassList("action-card-requirements");
+			var labels = new List<Label>(requirements.Count);
+			for (int i = 0; i < requirements.Count; i++) {
+				var row = requirements[i];
+				var label = new Label(row.Text);
+				label.AddToClassList("action-card-requirement-row");
+				label.AddToClassList("gs-content");
+				label.AddToClassList(row.Passed
+					? "action-card-requirement-row--pass"
+					: "action-card-requirement-row--fail");
+				label.AddToClassList(row.Passed ? "gs-color-positive" : "gs-color-negative");
+				block.Add(label);
+				labels.Add(label);
+			}
+			SetupRequirementsAutoSize(block, labels);
+			return block;
+		}
+
+		static VisualElement BuildPlayableCountriesBadge(IReadOnlyList<PlayableCountryBadgeItem> countries) {
+			var badge = new VisualElement();
+			badge.AddToClassList("action-card-playable-countries");
+			int visibleCount = Mathf.Min(countries.Count, 2);
+			for (int i = 0; i < visibleCount; i++) {
+				var flag = new VisualElement { pickingMode = PickingMode.Ignore };
+				flag.AddToClassList("action-card-playable-country-flag");
+				if (i > 0) {
+					flag.style.marginLeft = 3;
+				}
+				if (countries[i].Flag != null) {
+					flag.style.backgroundImage = new StyleBackground(countries[i].Flag);
+				}
+				badge.Add(flag);
+			}
+			if (countries.Count > 2) {
+				var ellipsis = new Label("...") { pickingMode = PickingMode.Ignore };
+				ellipsis.AddToClassList("action-card-playable-countries-ellipsis");
+				ellipsis.style.marginLeft = 3;
+				badge.Add(ellipsis);
+			}
+			return badge;
+		}
+
+		static VisualElement BuildDiscardHint(out Label hintLabel, out Label priceLabel) {
+			var hint = new VisualElement { pickingMode = PickingMode.Ignore };
+			hint.AddToClassList("action-card-discard-hint");
+			hint.AddToClassList("gs-bg-tooltip");
+			hint.style.display = DisplayStyle.None;
+
+			hintLabel = new Label { pickingMode = PickingMode.Ignore };
+			hintLabel.AddToClassList("action-card-discard-hint-label");
+			hintLabel.AddToClassList("gs-content");
+			hintLabel.AddToClassList("gs-color-light");
+			hint.Add(hintLabel);
+
+			priceLabel = new Label { pickingMode = PickingMode.Ignore };
+			priceLabel.AddToClassList("action-card-discard-hint-price");
+			priceLabel.AddToClassList("gs-content");
+			priceLabel.AddToClassList("gs-color-light");
+			hint.Add(priceLabel);
+
+			var icon = new VisualElement { pickingMode = PickingMode.Ignore };
+			icon.AddToClassList("action-card-cost-icon");
+			hint.Add(icon);
+
+			return hint;
+		}
+
+		static void SetupRequirementsAutoSize(VisualElement block, IReadOnlyList<Label> labels, float minSize = 8f) {
+			block.RegisterCallback<GeometryChangedEvent>(_ => {
+				float availableHeight = block.resolvedStyle.height;
+				float availableWidth = block.resolvedStyle.width;
+				if (availableHeight <= 0f || availableWidth <= 0f || labels.Count == 0) {
+					return;
+				}
+
+				float currentSize = labels[0].resolvedStyle.fontSize;
+				if (float.IsNaN(currentSize) || currentSize <= minSize) {
+					return;
+				}
+
+				float measuredHeight = 0f;
+				for (int i = 0; i < labels.Count; i++) {
+					var measured = labels[i].MeasureTextSize(
+						labels[i].text, availableWidth, VisualElement.MeasureMode.AtMost,
+						float.PositiveInfinity, VisualElement.MeasureMode.Undefined);
+					measuredHeight += measured.y;
+				}
+				if (measuredHeight <= availableHeight + 0.5f) {
+					return;
+				}
+
+				float newSize = Mathf.Max(Mathf.Floor(currentSize * availableHeight / measuredHeight), minSize);
+				if (newSize >= currentSize) {
+					return;
+				}
+				for (int i = 0; i < labels.Count; i++) {
+					labels[i].style.fontSize = newSize;
+				}
+			});
 		}
 
 		static VisualElement BuildCooldownOverlay(double fractionRemaining, double? remainingDays) {

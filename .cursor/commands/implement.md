@@ -31,6 +31,7 @@ When that automation run **finishes** `/implement`, the parent issue/PR handoff 
 - If the plan only touches `src/` (plain C# project): skip the MCP check entirely.
 - Brief each developer sub-agent on Unity MCP usage and `asmdef` format alongside the general code-style rules the skill already asks for.
 - For steps touching `src/`: write the test for the new behavior first so it fails against the current code, then implement until it passes — never disable or weaken an existing test to force a pass, fix the underlying code instead.
+- After any change under `src/`, finish by running `/dotnet-build Release` before handoff (see `.claude/rules/workflow.md` and `.cursor/rules/src-dotnet-build-release.mdc`).
 
 ## Delegate
 

@@ -370,6 +370,7 @@ namespace GS.Game.Tests {
 						OwnerType = "country",
 						TargetRole = TargetRole,
 						DeckCopies = 0,
+						CooldownDays = 7,
 						Conditions = new List<ExpressionNode> {
 							new ExpressionNode {
 								Type = "gte",

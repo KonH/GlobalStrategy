@@ -140,6 +140,9 @@ namespace GS.Unity.UI {
 			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _actionConfig, _actionVisualConfig, _countryVisualConfig, _orgVisualConfig, _gameSettings);
 			_countryInfo.OnSubPanelOpened += HandleOrgSubPanelOpened;
 			_countryInfo.OnCountryActionCardClicked += HandleCountryActionCardClicked;
+			_countryInfo.OnCountryActionCardDiscarded += HandleCountryActionCardDiscarded;
+			_countryInfo.OnUnplayableCountryActionCardReleased += HandleUnplayableCountryActionCardReleased;
+			_countryInfo.OnCountryActionCardDiscardUnaffordable += HandleCountryActionCardDiscardUnaffordable;
 			_countryInfo.OnRelatedCountryFlagClicked += HandleRelatedCountryFlagClicked;
 			_provinceInfoRoot = _root.Q("province-info");
 			_provinceInfo = new ProvinceInfoView(_provinceInfoRoot, _loc, _resourceConfig, _tooltip, _countryVisualConfig);
@@ -450,6 +453,9 @@ namespace GS.Unity.UI {
 			}
 			if (_countryInfo != null) { _countryInfo.OnSubPanelOpened -= HandleOrgSubPanelOpened; }
 			if (_countryInfo != null) { _countryInfo.OnCountryActionCardClicked -= HandleCountryActionCardClicked; }
+			if (_countryInfo != null) { _countryInfo.OnCountryActionCardDiscarded -= HandleCountryActionCardDiscarded; }
+			if (_countryInfo != null) { _countryInfo.OnUnplayableCountryActionCardReleased -= HandleUnplayableCountryActionCardReleased; }
+			if (_countryInfo != null) { _countryInfo.OnCountryActionCardDiscardUnaffordable -= HandleCountryActionCardDiscardUnaffordable; }
 			if (_countryInfo != null) { _countryInfo.OnRelatedCountryFlagClicked -= HandleRelatedCountryFlagClicked; }
 			if (_provinceInfo != null) { _provinceInfo.OnCountryRowClicked -= HandleProvinceInfoCountryRowClicked; }
 		}
@@ -771,12 +777,49 @@ namespace GS.Unity.UI {
 
 		void HandleWarsChanged(object sender, PropertyChangedEventArgs e) => RefreshCountryViews();
 
-		void HandleCountryActionCardClicked(string actionId, string targetCountryId, int slotIndex, VisualElement el) {
-			if (_cardPlayAnimator == null || _state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) { return; }
+		void HandleCountryActionCardClicked(
+			string actionId,
+			string targetCountryId,
+			int slotIndex,
+			VisualElement element,
+			ActionCardBuilder.CountryCardFace faceData) {
+			if (_cardPlayAnimator == null || _state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) {
+				return;
+			}
 			_cardPlayAnimator.StartCountryCardPlay(
 				_state.PlayerOrganization.OrgId,
 				_state.SelectedCountry.CountryId,
-				actionId, slotIndex, el, targetCountryId);
+				actionId,
+				slotIndex,
+				element,
+				faceData,
+				targetCountryId);
+		}
+
+		void HandleCountryActionCardDiscarded(string actionId, string targetCountryId, int slotIndex) {
+			if (_state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) {
+				return;
+			}
+			_commands.Push(new DiscardCardCommand {
+				OrgId = _state.PlayerOrganization.OrgId,
+				CountryId = _state.SelectedCountry.CountryId,
+				ActionId = actionId,
+				TargetCountryId = targetCountryId ?? "",
+				SlotIndex = slotIndex
+			});
+		}
+
+		void HandleUnplayableCountryActionCardReleased(ActionConditionDebugEntry condition) {
+			if (condition == null) {
+				return;
+			}
+			_flyText?.Notify(
+				condition.LocaleKey,
+				ActionConditionText.ToLocalizedFormatArguments(_loc, condition));
+		}
+
+		void HandleCountryActionCardDiscardUnaffordable() {
+			_flyText?.Notify("action.discard.no_gold");
 		}
 
 		void OnPauseToggle() {
