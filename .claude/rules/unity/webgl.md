@@ -5,6 +5,14 @@ paths:
 
 # Unity WebGL Build Gotchas
 
+## Saves need `autoSyncPersistentDataPath`
+
+`PersistentStorage` writes save JSON via `File.WriteAllText` under `Application.persistentDataPath`. On WebGL that path is Emscripten's MEMFS backed by IndexedDB — writes stay in memory until the loader syncs them.
+
+Built-in Unity templates leave `autoSyncPersistentDataPath` unset, so a successful in-session save disappears after refresh. This project uses `Assets/WebGLTemplates/Minimal/index.html` (`PROJECT:Minimal`) with `autoSyncPersistentDataPath: true` so every write under `persistentDataPath` is flushed to IndexedDB.
+
+If you switch templates or host the build behind a custom `createUnityInstance` page (e.g. Unity Play embed), keep that flag set (or call `JS_FileSystem_Sync()` after writes). IndexedDB is also per-origin and keyed by `companyName` + `productName` — changing either, or opening a different host/port, looks like "no saves."
+
 ## StreamingAssets files are not TextAssets
 
 Files in `Assets/StreamingAssets/` are imported with `DefaultImporter` — they are raw blobs, not `TextAsset` objects. A `[SerializeField] TextAsset` field cannot hold a reference to them.
