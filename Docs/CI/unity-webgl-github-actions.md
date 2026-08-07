@@ -1,22 +1,35 @@
 # Unity WebGL GitHub Actions
 
-Workflow: [`.github/workflows/build-webgl.yml`](../../.github/workflows/build-webgl.yml)
+## Workflows
 
-Builds the Unity project for WebGL with [game-ci/unity-builder](https://game.ci/docs/github/builder), using the existing build profile `Assets/Settings/Build Profiles/Web - Desktop - Release.asset`. Successful runs upload a `GlobalStrategy-WebGL` artifact (download from the Actions run page). This does **not** deploy to GitHub Pages — Pages already hosts the Blazor debug client via `deploy-web-client.yml`.
+| Workflow | File | What it does |
+|---|---|---|
+| Build Unity WebGL | [`.github/workflows/build-webgl.yml`](../../.github/workflows/build-webgl.yml) | Builds WebGL and uploads a `GlobalStrategy-WebGL` artifact (PRs + `main`) |
+| Deploy Unity Play | [`.github/workflows/deploy-unity-play.yml`](../../.github/workflows/deploy-unity-play.yml) | Builds WebGL on `main` / manual dispatch, then uploads to [Unity Play](https://play.unity.com/en/games/790490b4-2b09-4c1c-8a2e-df23f6b43b47/global-strategy) |
 
-Official activation docs: https://game.ci/docs/github/activation
+Both builds use [game-ci/unity-builder](https://game.ci/docs/github/builder) with `Assets/Settings/Build Profiles/Web - Desktop - Release.asset`.
 
-## Required secrets (Personal / free Unity license)
+Unity Play upload uses [`scripts/ci/deploy_unity_play.py`](../../scripts/ci/deploy_unity_play.py), which mirrors the WebGL Publisher package API (`POST /api/webgl/upload` + progress poll on `play.unity.com`).
+
+Official GameCI activation docs: https://game.ci/docs/github/activation
+
+GitHub Pages still hosts only the Blazor debug client (`deploy-web-client.yml`) — not the Unity WebGL build.
+
+## Required secrets
 
 Add these under **GitHub → this repo → Settings → Secrets and variables → Actions → New repository secret**.
+
+### Unity license + account (required for both workflows)
 
 | Secret | Value |
 |---|---|
 | `UNITY_LICENSE` | Full contents of your local Unity `.ulf` license file |
-| `UNITY_EMAIL` | Email for the Unity account that owns that license |
+| `UNITY_EMAIL` | Email for the Unity account that owns that license **and** the Unity Play game |
 | `UNITY_PASSWORD` | Password for that Unity account |
 
-Prefer a password with **letters and digits only**. Special characters in `UNITY_PASSWORD` are a known GameCI failure mode.
+Prefer a password with **letters and digits only**. Special characters in `UNITY_PASSWORD` are a known GameCI failure mode, and the same credentials are reused for Unity Play login.
+
+The Unity Play deploy account must be the owner of the existing game (Unity Play publishing is per-user, not org-wide).
 
 ### How to get `UNITY_LICENSE`
 
@@ -31,6 +44,20 @@ Prefer a password with **letters and digits only**. Special characters in `UNITY
 
 The `.ulf` is not tied to a specific Unity editor version or OS. Activating on your desktop machine and using the file in Linux CI is fine.
 
+### Unity Play project id (optional override)
+
+| Secret | Value |
+|---|---|
+| `UNITY_PLAY_PROJECT_ID` | Unity Play game id to **update** (default: `790490b4-2b09-4c1c-8a2e-df23f6b43b47` from the live demo URL) |
+
+Leave unset to keep updating the existing Global Strategy listing. Set only if you intentionally publish/update a different Play game.
+
+Optional repository variable (Settings → Secrets and variables → Actions → **Variables**):
+
+| Variable | Value |
+|---|---|
+| `UNITY_PLAY_TITLE` | Display title sent with the upload (default: `Global Strategy`) |
+
 ## Professional / Plus / Pro license (alternative)
 
 Do **not** set `UNITY_LICENSE` if you use a paid serial. Instead set:
@@ -41,12 +68,18 @@ Do **not** set `UNITY_LICENSE` if you use a paid serial. Instead set:
 | `UNITY_EMAIL` | Unity account email |
 | `UNITY_PASSWORD` | Unity account password |
 
-Then change the build step `env:` in `build-webgl.yml` from `UNITY_LICENSE` to `UNITY_SERIAL` (keep email/password).
+Then change the build step `env:` in both Unity workflows from `UNITY_LICENSE` to `UNITY_SERIAL` (keep email/password). Unity Play deploy still needs `UNITY_EMAIL` / `UNITY_PASSWORD`.
 
 ## After secrets are set
 
-1. Run **Actions → Build Unity WebGL → Run workflow**, or push a change under `Assets/`, `Packages/`, or `ProjectSettings/`.
-2. When the job finishes, open the run and download the `GlobalStrategy-WebGL` artifact.
-3. Serve the unzipped folder over HTTPS (or use a local static server) to smoke-test the build.
+### Artifact-only build
 
-Until the secrets exist, the build job will fail at Unity license activation.
+1. Run **Actions → Build Unity WebGL → Run workflow**, or open a PR that touches `Assets/` / `Packages/` / `ProjectSettings/`.
+2. Download the `GlobalStrategy-WebGL` artifact from the run.
+
+### Deploy to Unity Play
+
+1. Run **Actions → Deploy Unity Play → Run workflow**, or merge/push a Unity-relevant change to `main`.
+2. When the job finishes, open https://play.unity.com/en/games/790490b4-2b09-4c1c-8a2e-df23f6b43b47/global-strategy (or the `url=` printed in the job log).
+
+Until the license/account secrets exist, builds fail at Unity license activation. Until email/password are valid for the Play game owner, deploy fails at Unity ID login or upload.
