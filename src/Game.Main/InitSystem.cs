@@ -34,6 +34,7 @@ namespace GS.Main {
 
 			var settings = context.GameSettings.Load();
 			var enableSecretAdvisor = settings.FeatureFlags.EnableSecretAdvisor;
+			var enableRuler = settings.FeatureFlags.EnableRuler;
 			var enableFriendsRelation = settings.FeatureFlags.EnableFriendsRelation;
 
 			SeedCountryRelations(world, countryConfig, enableFriendsRelation);
@@ -122,7 +123,7 @@ namespace GS.Main {
 			BuildProximityMap(world, context);
 			CreateActionEntities(world, context, rng, participating);
 			CreateOrgCharacterEntities(world, context, resourceConfig, rng, participating);
-			CreateCharacterEntities(world, context, resourceConfig, rng, enableSecretAdvisor);
+			CreateCharacterEntities(world, context, resourceConfig, rng, enableSecretAdvisor, enableRuler);
 			CreateCountryActionEntities(world, context, rng, participating, enableFriendsRelation);
 
 			// InitSystem does not call ResourceSystem.Update itself — it only creates the raw
@@ -166,7 +167,7 @@ namespace GS.Main {
 			return result;
 		}
 
-		static void CreateCharacterEntities(World world, GameLogicContext context, ResourceConfig resourceConfig, Random rng, bool enableSecretAdvisor) {
+		static void CreateCharacterEntities(World world, GameLogicContext context, ResourceConfig resourceConfig, Random rng, bool enableSecretAdvisor, bool enableRuler) {
 			var characterConfig = context.Character.Load();
 			if (characterConfig.Roles.Count == 0) {
 				return;
@@ -185,6 +186,9 @@ namespace GS.Main {
 						continue;
 					}
 					if (role.RoleId == "secret_advisor" && !enableSecretAdvisor) {
+						continue;
+					}
+					if (role.RoleId == "ruler" && !enableRuler) {
 						continue;
 					}
 					var charEntry = slotList[rng.Next(slotList.Count)];

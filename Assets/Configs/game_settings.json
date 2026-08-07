@@ -74,6 +74,7 @@
   "featureFlags": {
     "showPlayerOrgControls": false,
     "enableSecretAdvisor": false,
+    "enableRuler": false,
     "enableFriendsRelation": false
   },
   "eventNotifications": {
