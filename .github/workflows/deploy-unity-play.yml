@@ -1,14 +1,6 @@
 name: Deploy Unity Play
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - Assets/**
-      - Packages/**
-      - ProjectSettings/**
-      - scripts/ci/deploy_unity_play.py
-      - .github/workflows/deploy-unity-play.yml
   workflow_dispatch:
 
 concurrency:

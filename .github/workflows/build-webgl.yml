@@ -1,19 +1,6 @@
 name: Build Unity WebGL
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - Assets/**
-      - Packages/**
-      - ProjectSettings/**
-      - .github/workflows/build-webgl.yml
-  pull_request:
-    paths:
-      - Assets/**
-      - Packages/**
-      - ProjectSettings/**
-      - .github/workflows/build-webgl.yml
   workflow_dispatch:
 
 concurrency:

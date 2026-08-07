@@ -4,8 +4,8 @@
 
 | Workflow | File | What it does |
 |---|---|---|
-| Build Unity WebGL | [`.github/workflows/build-webgl.yml`](../../.github/workflows/build-webgl.yml) | Builds WebGL and uploads a `GlobalStrategy-WebGL` artifact (PRs + `main`) |
-| Deploy Unity Play | [`.github/workflows/deploy-unity-play.yml`](../../.github/workflows/deploy-unity-play.yml) | Builds WebGL on `main` / manual dispatch, then uploads to [Unity Play](https://play.unity.com/en/games/790490b4-2b09-4c1c-8a2e-df23f6b43b47/global-strategy) |
+| Build Unity WebGL | [`.github/workflows/build-webgl.yml`](../../.github/workflows/build-webgl.yml) | Manual-only: builds WebGL and uploads a `GlobalStrategy-WebGL` artifact |
+| Deploy Unity Play | [`.github/workflows/deploy-unity-play.yml`](../../.github/workflows/deploy-unity-play.yml) | Manual-only: builds WebGL, then uploads to [Unity Play](https://play.unity.com/en/games/790490b4-2b09-4c1c-8a2e-df23f6b43b47/global-strategy) |
 
 Both builds use [game-ci/unity-builder](https://game.ci/docs/github/builder) with `Assets/Settings/Build Profiles/Web - Desktop - Release.asset`.
 
@@ -72,14 +72,16 @@ Then change the build step `env:` in both Unity workflows from `UNITY_LICENSE` t
 
 ## After secrets are set
 
+Both workflows are **manual only** (`workflow_dispatch`) — they do not run on push or pull request.
+
 ### Artifact-only build
 
-1. Run **Actions → Build Unity WebGL → Run workflow**, or open a PR that touches `Assets/` / `Packages/` / `ProjectSettings/`.
+1. Run **Actions → Build Unity WebGL → Run workflow**.
 2. Download the `GlobalStrategy-WebGL` artifact from the run.
 
 ### Deploy to Unity Play
 
-1. Run **Actions → Deploy Unity Play → Run workflow**, or merge/push a Unity-relevant change to `main`.
+1. Run **Actions → Deploy Unity Play → Run workflow**.
 2. When the job finishes, open https://play.unity.com/en/games/790490b4-2b09-4c1c-8a2e-df23f6b43b47/global-strategy (or the `url=` printed in the job log).
 
 Until the license/account secrets exist, builds fail at Unity license activation. Until email/password are valid for the Play game owner, deploy fails at Unity ID login or upload.
