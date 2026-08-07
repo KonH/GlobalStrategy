@@ -45,7 +45,7 @@
       "nameKey": "action.letter_of_commendation_economic_advisor.name",
       "descKey": "action.letter_of_commendation_economic_advisor.desc",
       "targetRole": "economic_advisor",
-      "deckCopies": 1,
+      "deckCopies": 0,
       "cooldownDays": 21,
       "conditions": [
         {
