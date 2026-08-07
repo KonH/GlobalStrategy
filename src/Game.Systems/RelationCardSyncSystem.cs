@@ -13,7 +13,7 @@ namespace GS.Game.Systems {
 				|| actionId == "declare_war";
 		}
 
-		public static void Update(World world, ActionConfig config) {
+		public static void Update(World world, CountryRelations relations, ActionConfig config) {
 			int versionEntity = EnsureSingleton<CountryRelationsVersion>(world, new CountryRelationsVersion { Value = 0 });
 			int syncStateEntity = EnsureSingleton<RelationCardSyncState>(world, new RelationCardSyncState { LastSyncedVersion = -1 });
 
@@ -42,7 +42,7 @@ namespace GS.Game.Systems {
 
 			foreach (string orgId in orgIds) {
 				foreach (string countryId in countryIds) {
-					var (friends, rivals) = CountryRelations.GetRelationsByCountryId(world, countryId);
+					var (friends, rivals) = relations.GetRelationsByCountryId(world, countryId);
 					foreach (string otherCountryId in friends) {
 						EnsureCardInstance(world, config, orgId, countryId, otherCountryId, RelationKind.Friend, "stop_friendship");
 					}

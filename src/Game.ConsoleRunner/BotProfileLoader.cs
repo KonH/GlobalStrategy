@@ -3,6 +3,8 @@ using System.IO;
 using System.Text.Json;
 using GS.Game.Bots;
 
+using GS.Game.Systems;
+
 namespace GS.Game.ConsoleRunner {
 	public static class BotProfileLoader {
 		static readonly JsonSerializerOptions s_jsonOptions = new JsonSerializerOptions {

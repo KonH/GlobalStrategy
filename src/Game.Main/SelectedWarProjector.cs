@@ -11,7 +11,8 @@ namespace GS.Main {
 			return WarProgressSnapshot.ComputeActiveBattleProgress(attackerTroops, defenderTroops);
 		}
 
-		public static void Project(IReadOnlyWorld world, SelectedWarState state, CountryConfig? countryConfig = null) {
+		public static void Project(
+			IReadOnlyWorld world, SelectedWarState state, ResourceQuery resources, CountryConfig? countryConfig = null) {
 			string warId = state.PendingWarId;
 			if (string.IsNullOrEmpty(warId) || !WarExists(world, warId)) {
 				state.SetInvalid();
@@ -26,14 +27,14 @@ namespace GS.Main {
 				return;
 			}
 
-			double progress = ResourceQuery.GetValue(world, warId, ResourceDefinitions.WarProgress);
+			double progress = resources.GetValue(world, warId, ResourceDefinitions.WarProgress);
 			List<WarProgressHistoryEntryState> history = MapHistory(WarProgressSnapshot.BuildHistory(world, warId));
 			WarSideStatsState attacker = MapSideStats(
 				WarProgressSnapshot.BuildSideStats(
-					world, warId, attackerCountryId, WarParticipantKind.Attacker, countryConfig));
+					world, resources, warId, attackerCountryId, WarParticipantKind.Attacker, countryConfig));
 			WarSideStatsState defender = MapSideStats(
 				WarProgressSnapshot.BuildSideStats(
-					world, warId, defenderCountryId, WarParticipantKind.Defender, countryConfig));
+					world, resources, warId, defenderCountryId, WarParticipantKind.Defender, countryConfig));
 			List<WarBattleRowState> battles = MapBattles(WarProgressSnapshot.BuildBattles(world, warId));
 
 			state.Set(true, warId, progress, history, attacker, defender, battles);

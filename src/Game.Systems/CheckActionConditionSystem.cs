@@ -9,6 +9,8 @@ namespace GS.Game.Systems {
 		public static void Update(
 			World world,
 			ActionConfig config,
+			ResourceQuery resources,
+			CountryRelations relations,
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
 			DateTime currentTime = default,
 			int maxControlPool = 100) {
@@ -29,7 +31,7 @@ namespace GS.Game.Systems {
 			foreach (var (entity, actionId, orgId, countryId) in toValidate) {
 				if (ActionPlayability.Evaluate(
 					world, config, entity, actionId, orgId, countryId,
-					hqCountryByOrgId, currentTime, maxControlPool).CanPlay) {
+					resources, relations, hqCountryByOrgId, currentTime, maxControlPool).CanPlay) {
 					toAdd.Add(entity);
 				}
 			}

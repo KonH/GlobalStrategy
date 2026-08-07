@@ -6,6 +6,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class ResourceEffectMaxTotalTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static readonly DateTime Jan31 = new DateTime(1880, 1, 31, 23, 0, 0);
 		static readonly DateTime Feb1 = new DateTime(1880, 2, 1, 0, 0, 0);
 		static readonly DateTime Mar1 = new DateTime(1880, 3, 1, 0, 0, 0);

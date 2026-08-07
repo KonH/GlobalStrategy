@@ -11,8 +11,11 @@ namespace GS.Game.Systems {
 			ActionDefinition definition,
 			string orgId,
 			string countryId,
+			ResourceQuery resources,
+			CountryRelations relations,
 			int cardEntity = -1,
-			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null) {
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
+			ActionPlayabilityGateSet gateSet = ActionPlayabilityGateSet.All) {
 			int orgControl = 0;
 			int totalCountryControl = 0;
 			double opinion = 0.0;
@@ -20,6 +23,7 @@ namespace GS.Game.Systems {
 			double warProgress = 0.0;
 			double warFree = 1.0;
 			double revengeEligible = 0.0;
+			bool includeSoft = gateSet == ActionPlayabilityGateSet.All;
 
 			string hqCountryId = "";
 			if (hqCountryByOrgId != null && !string.IsNullOrEmpty(orgId)) {
@@ -28,10 +32,12 @@ namespace GS.Game.Systems {
 			}
 
 			if (!string.IsNullOrEmpty(countryId)) {
-				orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
-				totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
+				if (includeSoft) {
+					orgControl = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
+					totalCountryControl = ControlQuery.GetTotalControlInCountry(world, countryId);
+				}
 				isInWar = Wars.IsInWar(world, countryId) ? 1.0 : 0.0;
-				warProgress = Wars.GetOwnWarProgress(world, countryId);
+				warProgress = Wars.GetOwnWarProgress(world, resources, countryId);
 				if (definition.ActionId == "declare_revenge_war" && cardEntity >= 0 && world.Has<RevengeCardTarget>(cardEntity)) {
 					string targetCountryId = world.Get<RevengeCardTarget>(cardEntity).TargetCountryId;
 					warFree = Wars.IsWarFree(world, countryId, targetCountryId) ? 1.0 : 0.0;
@@ -40,13 +46,13 @@ namespace GS.Game.Systems {
 					warFree = Wars.IsWarFree(world, countryId, hqCountryId) ? 1.0 : 0.0;
 				}
 
-				if (!string.IsNullOrEmpty(definition.TargetRole)) {
+				if (includeSoft && !string.IsNullOrEmpty(definition.TargetRole)) {
 					string characterId = CharacterQuery.GetTargetCharacterByCountryAndRole(
 						world,
 						countryId,
 						definition.TargetRole);
 					if (!string.IsNullOrEmpty(characterId)) {
-						opinion = ResourceQuery.GetValue(world, characterId, $"opinion_{orgId}");
+						opinion = resources.GetValue(world, characterId, $"opinion_{orgId}");
 					}
 				}
 			}
@@ -57,7 +63,7 @@ namespace GS.Game.Systems {
 			var relationValues = new Dictionary<string, double>();
 			foreach (string relationKind in new[] { "none", "friend", "rival" }) {
 				relationValues[relationKind] = !string.IsNullOrEmpty(countryId)
-					&& CountryRelations.MatchesCondition(world, countryId, relationTargetCountryId, relationKind)
+					&& relations.MatchesCondition(world, countryId, relationTargetCountryId, relationKind)
 					? 1.0
 					: 0.0;
 			}
@@ -67,11 +73,13 @@ namespace GS.Game.Systems {
 				&& !string.IsNullOrEmpty(countryId)
 				&& world.Has<RelationCardTarget>(cardEntity)) {
 				RelationCardTarget target = world.Get<RelationCardTarget>(cardEntity);
-				string rulerId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "ruler");
-				string militaryAdvisorId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "military_advisor");
-				double rulerOpinion = string.IsNullOrEmpty(rulerId) ? 0.0 : ResourceQuery.GetValue(world, rulerId, $"opinion_{orgId}");
-				double militaryAdvisorOpinion = string.IsNullOrEmpty(militaryAdvisorId) ? 0.0 : ResourceQuery.GetValue(world, militaryAdvisorId, $"opinion_{orgId}");
-				targetRulerOrMilitaryOpinion = System.Math.Max(rulerOpinion, militaryAdvisorOpinion);
+				if (includeSoft) {
+					string rulerId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "ruler");
+					string militaryAdvisorId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "military_advisor");
+					double rulerOpinion = string.IsNullOrEmpty(rulerId) ? 0.0 : resources.GetValue(world, rulerId, $"opinion_{orgId}");
+					double militaryAdvisorOpinion = string.IsNullOrEmpty(militaryAdvisorId) ? 0.0 : resources.GetValue(world, militaryAdvisorId, $"opinion_{orgId}");
+					targetRulerOrMilitaryOpinion = System.Math.Max(rulerOpinion, militaryAdvisorOpinion);
+				}
 				neitherSideAtWar = !Wars.IsInWar(world, countryId) && !Wars.IsInWar(world, target.TargetCountryId) ? 1.0 : 0.0;
 			}
 

@@ -10,6 +10,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class VisualStateConverterCountryActionsOpinionGateTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static ActionConfig BuildActionConfig() {
 			return new ActionConfig {
 				Defaults = new List<ActionOwnerDefaults> {
@@ -230,7 +232,7 @@ namespace GS.Game.Tests {
 		void make_friend_reports_unplayable_when_opinion_below_threshold() {
 			var world = BuildWorldWithSelectedCountry(out int gameTimeEntity, out int localeEntity, out int orgEntity, opinion: 10);
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, BuildActionConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -246,7 +248,7 @@ namespace GS.Game.Tests {
 			world.Add(e, new Country("Austria"));
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, BuildActionConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -292,8 +294,7 @@ namespace GS.Game.Tests {
 				}
 			};
 			var state = new VisualState();
-			var converter = new VisualStateConverter(
-				state, BuildActionConfig(), countryConfig: countryConfig);
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig(), countryConfig: countryConfig);
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -310,7 +311,7 @@ namespace GS.Game.Tests {
 		void existing_control_gated_card_playability_unaffected_by_opinion_wiring() {
 			var world = BuildWorldWithSelectedCountry(out int gameTimeEntity, out int localeEntity, out int orgEntity, opinion: 0);
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, BuildActionConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -326,7 +327,7 @@ namespace GS.Game.Tests {
 			world.Add(e, new Country("Austria"));
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, BuildActionConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -340,7 +341,7 @@ namespace GS.Game.Tests {
 		void candidate_gated_card_reports_no_suitable_target_reason_when_no_candidate_exists() {
 			var world = BuildWorldWithSelectedCountry(out int gameTimeEntity, out int localeEntity, out int orgEntity, opinion: 0);
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, BuildActionConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -354,7 +355,7 @@ namespace GS.Game.Tests {
 		void control_gated_card_reports_insufficient_control_reason_when_control_below_threshold() {
 			var world = BuildWorldWithSelectedCountry(out int gameTimeEntity, out int localeEntity, out int orgEntity, opinion: 0);
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, BuildActionConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -368,7 +369,7 @@ namespace GS.Game.Tests {
 		void decrease_enemy_control_reports_no_enemy_control_for_nested_total_control_condition() {
 			var world = BuildWorldWithSelectedCountry(out int gameTimeEntity, out int localeEntity, out int orgEntity, opinion: 0);
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, BuildActionConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -378,7 +379,7 @@ namespace GS.Game.Tests {
 			Assert.Equal("no_enemy_control", entry.UnplayableReason);
 		}
 
-		static World BuildWorldWithStopFriendshipCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, bool relationStillHolds) {
+		World BuildWorldWithStopFriendshipCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, bool relationStillHolds) {
 			var world = new World();
 			int countryEntity = world.Create();
 			world.Add(countryEntity, new Country("Prussia"));
@@ -404,7 +405,7 @@ namespace GS.Game.Tests {
 			world.Add(resEntity, new Resource { ResourceId = "opinion_OrgA", Value = 80 });
 
 			if (relationStillHolds) {
-				CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+				_relations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
 			}
 
 			int cardEntity = world.Create();
@@ -422,7 +423,7 @@ namespace GS.Game.Tests {
 		void stop_friendship_reports_unplayable_when_named_relation_no_longer_holds() {
 			var world = BuildWorldWithStopFriendshipCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, relationStillHolds: false);
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, BuildActionConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -435,7 +436,7 @@ namespace GS.Game.Tests {
 		void stop_friendship_reports_playable_when_named_relation_still_holds() {
 			var world = BuildWorldWithStopFriendshipCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, relationStillHolds: true);
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, BuildActionConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -522,7 +523,7 @@ namespace GS.Game.Tests {
 				militaryOpinion: 80,
 				diplomacyOpinion: 100);
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, BuildActionConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -542,7 +543,7 @@ namespace GS.Game.Tests {
 				militaryOpinion: 79,
 				diplomacyOpinion: 100);
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, BuildActionConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -564,7 +565,7 @@ namespace GS.Game.Tests {
 				militaryOpinion: 79,
 				diplomacyOpinion: 100);
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, config);
+			var converter = new VisualStateConverter(state, _resources, _relations, config);
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -575,7 +576,7 @@ namespace GS.Game.Tests {
 				cardEntity,
 				"sell_arms",
 				"OrgA",
-				"Prussia");
+				"Prussia", _resources, _relations);
 
 			Assert.NotNull(entry);
 			Assert.True(entry!.IsUnplayable);
@@ -590,7 +591,7 @@ namespace GS.Game.Tests {
 			return null;
 		}
 
-		static World BuildWorldWithRevengeCard(
+		World BuildWorldWithRevengeCard(
 			out int gameTimeEntity, out int localeEntity, out int orgEntity, bool atWar) {
 			var world = new World();
 			int countryEntity = world.Create();
@@ -619,7 +620,7 @@ namespace GS.Game.Tests {
 			world.Add(controlEntity, new ControlEffect { OrgId = "OrgA", CountryId = "Prussia", Value = 20, EffectId = "test_control" });
 
 			if (atWar) {
-				Wars.DeclareWar(world, "Prussia", "Austria", new DateTime(1880, 1, 1));
+				Wars.DeclareWar(world, _resources, "Prussia", "Austria", new DateTime(1880, 1, 1));
 			}
 
 			int cardEntity = world.Create();
@@ -636,7 +637,7 @@ namespace GS.Game.Tests {
 		void revenge_reports_at_war_reason_when_war_free_fails() {
 			var world = BuildWorldWithRevengeCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, atWar: true);
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, BuildActionConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -650,7 +651,7 @@ namespace GS.Game.Tests {
 		void revenge_is_playable_when_control_opinion_and_war_free_all_hold() {
 			var world = BuildWorldWithRevengeCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, atWar: false);
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, BuildActionConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -668,7 +669,7 @@ namespace GS.Game.Tests {
 				for (int i = 0; i < arch.Count; i++) { controls[i].Value = 5; }
 			}
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, BuildActionConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 

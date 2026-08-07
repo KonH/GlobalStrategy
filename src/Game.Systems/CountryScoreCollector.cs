@@ -11,8 +11,8 @@ namespace GS.Game.Systems {
 			_coefficient = coefficient;
 		}
 
-		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) {
-			double population = ResourceQuery.GetValue(world, ownerId, ResourceDefinitions.CountryPopulation);
+		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world, ResourceQuery resources) {
+			double population = resources.GetValue(world, ownerId, ResourceDefinitions.CountryPopulation);
 			return population * _coefficient - currentValue;
 		}
 	}

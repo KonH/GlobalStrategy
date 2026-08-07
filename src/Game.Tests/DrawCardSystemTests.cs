@@ -9,6 +9,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class DrawCardSystemTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static ActionConfig BuildActionConfig() {
 			return new ActionConfig {
 				Actions = new List<ActionDefinition> {
@@ -151,12 +153,12 @@ namespace GS.Game.Tests {
 			world.Add(resEntity, new Resource { ResourceId = $"opinion_{orgId}", Value = opinion });
 		}
 
-		static void SetWarProgress(World world, double value) {
+		void SetWarProgress(World world, double value) {
 			int[] required = { TypeId<War>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				var wars = arch.GetColumn<War>();
 				for (int i = 0; i < arch.Count; i++) {
-					ResourceMutations.TrySetValue(world, wars[i].WarId, ResourceDefinitions.WarProgress, value, out _);
+					ResourceMutations.TrySetValue(_resources, world, wars[i].WarId, ResourceDefinitions.WarProgress, value, out _);
 				}
 			}
 		}
@@ -219,7 +221,7 @@ namespace GS.Game.Tests {
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
 			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
-			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+			_relations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
 			int card = AddDeckCard(world, "OrgA", "Prussia", "make_friend");
 
 			int deckEntity = world.Create();
@@ -275,7 +277,7 @@ namespace GS.Game.Tests {
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
 			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 80);
-			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+			_relations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
 			int card = AddRelationDeckCard(world, "OrgA", "Prussia", "stop_friendship", "Austria", RelationKind.Friend);
 
 			int deckEntity = world.Create();
@@ -369,7 +371,7 @@ namespace GS.Game.Tests {
 			var lowOpinionWartime = new World();
 			AddAdvisor(lowOpinionWartime, "Prussia", "diplomat", "OrgA", "diplomacy_advisor", 100);
 			AddAdvisor(lowOpinionWartime, "Prussia", "general", "OrgA", "military_advisor", 79);
-			Wars.DeclareWar(lowOpinionWartime, "Prussia", "Austria", new DateTime(1880, 1, 1));
+			Wars.DeclareWar(lowOpinionWartime, _resources, "Prussia", "Austria", new DateTime(1880, 1, 1));
 			int wartimeCard = AddDeckCard(lowOpinionWartime, "OrgA", "Prussia", "sell_arms");
 			int wartimeDeck = lowOpinionWartime.Create();
 			lowOpinionWartime.Add(wartimeDeck, new CardDeck { OrgId = "OrgA" });
@@ -395,7 +397,7 @@ namespace GS.Game.Tests {
 			DrawCardSystem.Update(world, config, new Random(1));
 			Assert.True(IsInHand(world, card));
 
-			Assert.True(ResourceMutations.TrySetValue(world, "general", "opinion_OrgA", 80, out _));
+			Assert.True(ResourceMutations.TrySetValue(_resources, world, "general", "opinion_OrgA", 80, out _));
 			Assert.True(IsInHand(world, card));
 		}
 
@@ -407,7 +409,7 @@ namespace GS.Game.Tests {
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
 			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 80);
-			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+			_relations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
 			int card = AddRelationDeckCard(world, "OrgA", "Prussia", "stop_friendship", "Austria", RelationKind.Friend);
 
 			int deckEntity = world.Create();
@@ -426,7 +428,7 @@ namespace GS.Game.Tests {
 			AddCountry(world, "Prussia");
 			AddControl(world, "OrgA", "Prussia", 10);
 			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
-			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
+			Wars.DeclareWar(world, _resources, "Prussia", "France", new DateTime(1880, 1, 1));
 			SetWarProgress(world, 50);
 			int card = AddDeckCard(world, "OrgA", "Prussia", "force_war_win");
 
@@ -449,8 +451,8 @@ namespace GS.Game.Tests {
 			// The cards have opposite advisor states, but neither requirement filters this draw.
 			AddDiplomacyAdvisor(world, "Prussia", "diplo1", "OrgA", opinion: 80);
 			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 10);
-			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
-			Wars.DeclareWar(world, "Prussia", "France", new DateTime(1880, 1, 1));
+			_relations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+			Wars.DeclareWar(world, _resources, "Prussia", "France", new DateTime(1880, 1, 1));
 			SetWarProgress(world, 50);
 			int stopFriendshipCard = AddRelationDeckCard(world, "OrgA", "Prussia", "stop_friendship", "Austria", RelationKind.Friend);
 			int ultimatumCard = AddDeckCard(world, "OrgA", "Prussia", "force_war_win");
@@ -473,7 +475,7 @@ namespace GS.Game.Tests {
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
 			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 80);
-			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+			_relations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
 			int card = AddRelationDeckCard(world, "OrgA", "Prussia", "stop_friendship", "Austria", RelationKind.Friend);
 
 			int deckEntity = world.Create();
@@ -494,7 +496,7 @@ namespace GS.Game.Tests {
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
 			AddDiplomacyAdvisor(world, "Prussia", "char1", "OrgA", opinion: 80);
-			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+			_relations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
 			AddControl(world, "OrgB", "Prussia", 10);
 			int relationCard = AddRelationDeckCard(world, "OrgA", "Prussia", "stop_friendship", "Austria", RelationKind.Friend);
 			int staticCard = AddDeckCard(world, "OrgA", "Prussia", "decrease_enemy_control");
@@ -678,7 +680,7 @@ namespace GS.Game.Tests {
 			var world = new World();
 			AddControl(world, "OrgA", "Prussia", 20);
 			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 50);
-			Wars.DeclareWar(world, "Great_Britain", "Austria", new DateTime(1880, 1, 1));
+			Wars.DeclareWar(world, _resources, "Great_Britain", "Austria", new DateTime(1880, 1, 1));
 			int card = AddDeckCard(world, "OrgA", "Prussia", "declare_revenge_war");
 
 			int deckEntity = world.Create();

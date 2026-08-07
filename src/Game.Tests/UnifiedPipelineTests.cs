@@ -403,8 +403,8 @@ namespace GS.Game.Tests {
 			logic.World.Add(opinionEntity, new ResourceOwner(DiplomacyAdvisorId, OwnerType.Character));
 			logic.World.Add(opinionEntity, new Resource { ResourceId = $"opinion_{OrgId}", Value = 80.0 });
 
-			CountryRelations.SetRelation(logic.World, SelectedCountryId, OtherCountryId, RelationKind.Friend);
-			CountryRelations.SetRelation(logic.World, SelectedCountryId, GermanyId, RelationKind.Friend);
+			logic.Relations.SetRelation(logic.World, SelectedCountryId, OtherCountryId, RelationKind.Friend);
+			logic.Relations.SetRelation(logic.World, SelectedCountryId, GermanyId, RelationKind.Friend);
 
 			// Seed both instances directly into hand rather than relying on RelationCardSyncSystem +
 			// random draw luck — see plan Tests section / spec.md acceptance criterion.
@@ -432,8 +432,8 @@ namespace GS.Game.Tests {
 
 			// The France instance played and succeeded; only the France relation was cleared.
 			Assert.True(logic.World.Has<ActionSucceeded>(franceCard));
-			Assert.Null(CountryRelations.GetRelation(logic.World, SelectedCountryId, OtherCountryId));
-			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(logic.World, SelectedCountryId, GermanyId));
+			Assert.Null(logic.Relations.GetRelation(logic.World, SelectedCountryId, OtherCountryId));
+			Assert.Equal(RelationKind.Friend, logic.Relations.GetRelation(logic.World, SelectedCountryId, GermanyId));
 
 			// The Germany instance was never touched by InitActionFromPlayCardSystem's matching —
 			// it must not have been marked used and must still be in hand (proves this isn't a
@@ -447,8 +447,8 @@ namespace GS.Game.Tests {
 			// Docs/Specs/26_08_04_17_card-cooldown/spec.md. It becomes playable again once the
 			// cooldown elapses.
 			var currentTime = new DateTime(1880, 1, 1);
-			Assert.False(ActionPlayability.Evaluate(logic.World, actionConfig, germanyCard, "stop_friendship", OrgId, SelectedCountryId, currentTime: currentTime));
-			Assert.True(ActionPlayability.Evaluate(logic.World, actionConfig, germanyCard, "stop_friendship", OrgId, SelectedCountryId, currentTime: currentTime.AddDays(8)));
+			Assert.False(ActionPlayability.Evaluate(logic.World, actionConfig, germanyCard, "stop_friendship", OrgId, SelectedCountryId, logic.Resources, logic.Relations, currentTime: currentTime));
+			Assert.True(ActionPlayability.Evaluate(logic.World, actionConfig, germanyCard, "stop_friendship", OrgId, SelectedCountryId, logic.Resources, logic.Relations, currentTime: currentTime.AddDays(8)));
 
 			// Exactly one RelationClearedApplied event, naming France — not a second one for Germany.
 			var clearedEvents = new List<RelationClearedApplied>();

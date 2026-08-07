@@ -17,6 +17,8 @@ namespace GS.Game.Tests {
 	// CharacterVisualStateTests convention: bespoke GameLogicContext/ActionConfig/EffectConfig
 	// per scenario, GameLogic driven directly via Update(...) and Commands.Push(...).
 	public class GameLogStateTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
@@ -213,12 +215,12 @@ namespace GS.Game.Tests {
 				Value = 80
 			});
 
-			Assert.True(Wars.DeclareWar(logic.World, HqCountryId, OtherCountryId, new DateTime(1880, 1, 1)));
+			Assert.True(Wars.DeclareWar(logic.World, logic.Resources, HqCountryId, OtherCountryId, new DateTime(1880, 1, 1)));
 			int[] warRequired = { TypeId<War>.Value };
 			foreach (Archetype archetype in logic.World.GetMatchingArchetypes(warRequired, null)) {
 				War[] wars = archetype.GetColumn<War>();
 				for (int i = 0; i < archetype.Count; i++) {
-					ResourceMutations.TrySetValue(logic.World, wars[i].WarId, ResourceDefinitions.WarProgress, rawWarProgress, out _);
+					ResourceMutations.TrySetValue(logic.Resources, logic.World, wars[i].WarId, ResourceDefinitions.WarProgress, rawWarProgress, out _);
 				}
 			}
 
@@ -267,7 +269,7 @@ namespace GS.Game.Tests {
 			Assert.Equal(HqCountryId, warResolution.TargetCountryId);
 			Assert.False(Wars.IsInWar(logic.World, HqCountryId));
 			Assert.False(Wars.IsInWar(logic.World, OtherCountryId));
-			Assert.Equal(700, ResourceQuery.GetValue(logic.World, OrgId, "gold"));
+			Assert.Equal(700, _resources.GetValue(logic.World, OrgId, "gold"));
 
 			logic.Update(0f);
 			Assert.Single(Entries(logic).Where(e => e.Kind == GameLogEntryKind.WarResolved));
@@ -291,7 +293,7 @@ namespace GS.Game.Tests {
 			Assert.Equal(OtherCountryId, warResolution.TargetCountryId);
 			Assert.False(Wars.IsInWar(logic.World, HqCountryId));
 			Assert.False(Wars.IsInWar(logic.World, OtherCountryId));
-			Assert.Equal(500, ResourceQuery.GetValue(logic.World, OrgId, "gold"));
+			Assert.Equal(500, _resources.GetValue(logic.World, OrgId, "gold"));
 
 			logic.Update(0f);
 			Assert.Single(Entries(logic).Where(e => e.Kind == GameLogEntryKind.WarResolved));

@@ -9,6 +9,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class ControlFeatureTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		sealed class RecordingSink : IBotCommandSink {
 			public List<(string ActionId, string CountryId)> Plays = new();
 			public void PlayOrgCard(string actionId, int slotIndex) => Plays.Add((actionId, ""));
@@ -153,7 +155,7 @@ namespace GS.Game.Tests {
 			// Only the control-change card qualifies — proving baselineCardPlay's "any playable
 			// card" behavior does not leak into this feature.
 			var logic = BuildPriorityLogic(orgGold: 1000.0);
-			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations, logic.EffectConfig);
 			var sink = new RecordingSink();
 			var feature = new ControlFeature(new Dictionary<string, double>(), 100);
 
@@ -168,7 +170,7 @@ namespace GS.Game.Tests {
 			// Legacy discoveredCountriesAvailableControl must be ignored; ControlFeature still
 			// plays the first eligible RaisesControl country card.
 			var logic = BuildPriorityLogic(orgGold: 1000.0);
-			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations, logic.EffectConfig);
 			var sink = new RecordingSink();
 			var feature = new ControlFeature(new Dictionary<string, double> { ["discoveredCountriesAvailableControl"] = 0 }, 100);
 
@@ -181,7 +183,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void plays_at_most_one_card_per_tick() {
 			var logic = BuildPriorityLogic(orgGold: 1000.0);
-			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.EffectConfig);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations, logic.EffectConfig);
 			var sink = new RecordingSink();
 			var feature = new ControlFeature(new Dictionary<string, double>(), 100);
 
@@ -199,7 +201,7 @@ namespace GS.Game.Tests {
 			var withBot = BuildDivergenceLogic(seed);
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, withBot.Commands, null);
 			var feature = new ControlFeature(new Dictionary<string, double>(), 100);
-			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, withBot.EffectConfig);
+			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, withBot.Resources, withBot.Relations, withBot.EffectConfig);
 			RunWithBot(withBot, bot, 60);
 
 			Assert.NotEqual(OrgMetrics.GetTotalControl(passive.World, MultiOrgTestSupport.OrgA), OrgMetrics.GetTotalControl(withBot.World, MultiOrgTestSupport.OrgA));
@@ -213,7 +215,7 @@ namespace GS.Game.Tests {
 
 			var withDisabledBot = BuildDivergenceLogic(seed);
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, withDisabledBot.Commands, null);
-			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature>(), BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, withDisabledBot.EffectConfig);
+			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature>(), BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, withDisabledBot.Resources, withDisabledBot.Relations, withDisabledBot.EffectConfig);
 			RunWithBot(withDisabledBot, bot, 60);
 
 			foreach (string orgId in DivergenceParticipants) {
@@ -232,7 +234,7 @@ namespace GS.Game.Tests {
 				var logic = BuildDivergenceLogic(seed);
 				var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, logic.Commands, null);
 				var feature = new ControlFeature(new Dictionary<string, double>(), 100);
-				var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, logic.EffectConfig);
+				var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, logic.Resources, logic.Relations, logic.EffectConfig);
 				RunWithBot(logic, bot, 60);
 				return logic;
 			}

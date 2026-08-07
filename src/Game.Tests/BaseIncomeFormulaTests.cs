@@ -7,6 +7,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class BaseIncomeFormulaTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static readonly BaseIncomeSettings Settings = new BaseIncomeSettings();
 
 		[Fact]
@@ -32,7 +34,7 @@ namespace GS.Game.Tests {
 			AddOwnedProvince(world, "France", "fr_2");
 			AddCharacterWithSkill(world, "eco_1", "France", "economic_advisor", "stinginess", 40);
 
-			var breakdown = BaseIncomeFormula.Compute(world, "France", Settings);
+			var breakdown = BaseIncomeFormula.Compute(world, "France", Settings, _resources);
 
 			Assert.Equal(10.0, breakdown.FlatBase);
 			Assert.Equal(0.05, breakdown.PopulationContribution, 6);
@@ -80,7 +82,7 @@ namespace GS.Game.Tests {
 			AddCharacterWithSkill(world, "eco_1", "France", "economic_advisor", "stinginess", 50);
 			var collector = new BaseIncomeCollector(Settings);
 
-			double rate = collector.Compute("France", 999.0, world);
+			double rate = collector.Compute("France", 999.0, world, _resources);
 
 			// flat 10 + pop 0.05 + prov 0.015 + adv 10 = 20.065
 			Assert.Equal(20.065, rate, 6);

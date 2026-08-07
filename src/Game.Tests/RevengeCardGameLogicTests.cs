@@ -16,6 +16,8 @@ namespace GS.Game.Tests {
 	// GameLogic.Update: war declaration, RevengeWarBonus attachment, and same-tick
 	// SettleCombatResources() visibility of the damage/durability multiplier.
 	public class RevengeCardGameLogicTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
@@ -207,12 +209,12 @@ namespace GS.Game.Tests {
 			// Same tick, no waiting for the next day boundary: SettleCombatResources() must have
 			// already re-run the Daily damage/durability collectors after CreateActionEffectSystem
 			// attached RevengeWarBonus.
-			Assert.Equal(HqBaseDamage * 1.10, ResourceQuery.GetValue(logic.World, HqCountryId, ResourceDefinitions.Damage), 6);
-			Assert.Equal(HqBaseDurability * 1.05, ResourceQuery.GetValue(logic.World, HqCountryId, ResourceDefinitions.Durability), 6);
+			Assert.Equal(HqBaseDamage * 1.10, _resources.GetValue(logic.World, HqCountryId, ResourceDefinitions.Damage), 6);
+			Assert.Equal(HqBaseDurability * 1.05, _resources.GetValue(logic.World, HqCountryId, ResourceDefinitions.Durability), 6);
 
 			// Defender is unaffected — the bonus is attacker-only.
-			Assert.Equal(TargetBaseDamage, ResourceQuery.GetValue(logic.World, TargetCountryId, ResourceDefinitions.Damage), 6);
-			Assert.Equal(TargetBaseDurability, ResourceQuery.GetValue(logic.World, TargetCountryId, ResourceDefinitions.Durability), 6);
+			Assert.Equal(TargetBaseDamage, _resources.GetValue(logic.World, TargetCountryId, ResourceDefinitions.Damage), 6);
+			Assert.Equal(TargetBaseDurability, _resources.GetValue(logic.World, TargetCountryId, ResourceDefinitions.Durability), 6);
 		}
 	}
 }

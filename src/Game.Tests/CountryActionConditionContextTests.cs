@@ -8,6 +8,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class CountryActionConditionContextTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static ActionDefinition Definition(string role = "military_advisor") {
 			return new ActionDefinition {
 				ActionId = "sell_arms",
@@ -49,7 +51,9 @@ namespace GS.Game.Tests {
 				world,
 				Definition(),
 				"OrgA",
-				"Prussia");
+				"Prussia",
+				_resources,
+				_relations);
 
 			Assert.Equal(79, context.Opinion);
 		}
@@ -64,7 +68,9 @@ namespace GS.Game.Tests {
 				world,
 				Definition(),
 				"OrgA",
-				"Prussia");
+				"Prussia",
+				_resources,
+				_relations);
 
 			Assert.Equal(80, context.Opinion);
 		}
@@ -76,7 +82,9 @@ namespace GS.Game.Tests {
 				worldWithoutAdvisor,
 				Definition(),
 				"OrgA",
-				"Prussia");
+				"Prussia",
+				_resources,
+				_relations);
 
 			var worldWithoutOpinion = new World();
 			AddCharacter(worldWithoutOpinion, "Prussia", "general", "military_advisor");
@@ -84,7 +92,9 @@ namespace GS.Game.Tests {
 				worldWithoutOpinion,
 				Definition(),
 				"OrgA",
-				"Prussia");
+				"Prussia",
+				_resources,
+				_relations);
 
 			Assert.Equal(0, withoutAdvisor.Opinion);
 			Assert.Equal(0, withoutOpinion.Opinion);
@@ -100,7 +110,9 @@ namespace GS.Game.Tests {
 				world,
 				Definition(),
 				"OrgA",
-				"Prussia");
+				"Prussia",
+				_resources,
+				_relations);
 
 			world.Destroy(oldAdvisor);
 			AddCharacter(world, "Prussia", "new_general", "military_advisor");
@@ -110,7 +122,9 @@ namespace GS.Game.Tests {
 				world,
 				Definition(),
 				"OrgA",
-				"Prussia");
+				"Prussia",
+				_resources,
+				_relations);
 
 			Assert.Equal(90, before.Opinion);
 			Assert.Equal(40, after.Opinion);
@@ -119,23 +133,29 @@ namespace GS.Game.Tests {
 		[Fact]
 		void build_sets_is_in_war_for_attacker_and_defender_only() {
 			var world = new World();
-			Wars.DeclareWar(world, "Prussia", "Austria", new DateTime(1880, 1, 1));
+			Wars.DeclareWar(world, _resources, "Prussia", "Austria", new DateTime(1880, 1, 1));
 
 			ExpressionContext attacker = CountryActionConditionContext.Build(
 				world,
 				Definition(),
 				"OrgA",
-				"Prussia");
+				"Prussia",
+				_resources,
+				_relations);
 			ExpressionContext defender = CountryActionConditionContext.Build(
 				world,
 				Definition(),
 				"OrgA",
-				"Austria");
+				"Austria",
+				_resources,
+				_relations);
 			ExpressionContext nonParticipant = CountryActionConditionContext.Build(
 				world,
 				Definition(),
 				"OrgA",
-				"Bavaria");
+				"Bavaria",
+				_resources,
+				_relations);
 
 			Assert.Equal(1, attacker.IsInWar);
 			Assert.Equal(1, defender.IsInWar);
@@ -156,14 +176,18 @@ namespace GS.Game.Tests {
 				Definition("diplomacy_advisor"),
 				"OrgA",
 				"Prussia",
+				_resources,
+				_relations,
 				card);
 
-			CountryRelations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
+			_relations.SetRelation(world, "Prussia", "Austria", RelationKind.Friend);
 			ExpressionContext afterRelation = CountryActionConditionContext.Build(
 				world,
 				Definition("diplomacy_advisor"),
 				"OrgA",
 				"Prussia",
+				_resources,
+				_relations,
 				card);
 
 			Assert.Equal(0, beforeRelation.GetCountryRelation("friend"));

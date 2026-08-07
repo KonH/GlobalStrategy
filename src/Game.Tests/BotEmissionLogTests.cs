@@ -4,8 +4,12 @@ using GS.Game.Bots;
 using GS.Main;
 using Xunit;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Tests {
 	public class BotEmissionLogTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		sealed record EmissionEntry(string FeatureId, string ActionId, string CountryId, string Date, int Tick);
 
 		sealed class ScriptedFeature : IBotFeature {
@@ -26,7 +30,7 @@ namespace GS.Game.Tests {
 			BotEmissionCallback callback = (actionId, countryId) =>
 				emissions.Add(new EmissionEntry(bot.CurrentFeatureId, actionId, countryId, date, tick));
 			var sink = new BotCommandSink(orgId, logic.Commands, null, callback);
-			bot = new Bot(orgId, features, new Random(1), sink);
+			bot = new Bot(orgId, features, new Random(1), sink, logic.Resources, logic.Relations);
 			return (emissions, bot, sink);
 		}
 

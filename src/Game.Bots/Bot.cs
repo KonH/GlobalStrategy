@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Configs;
+using GS.Game.Systems;
 
 namespace GS.Game.Bots {
 	public sealed class Bot {
@@ -9,6 +10,8 @@ namespace GS.Game.Bots {
 		readonly Random _rng;
 		readonly BotCommandSink _sink;
 		readonly EffectConfig _effectConfig;
+		readonly ResourceQuery _resources;
+		readonly CountryRelations _relations;
 		readonly IReadOnlyDictionary<string, string>? _hqCountryByOrgId;
 		readonly int _maxControlPool;
 		DateTime? _lastActedDate;
@@ -21,6 +24,8 @@ namespace GS.Game.Bots {
 			IReadOnlyList<IBotFeature> features,
 			Random rng,
 			BotCommandSink sink,
+			ResourceQuery resources,
+			CountryRelations relations,
 			EffectConfig? effectConfig = null,
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
 			int maxControlPool = 100) {
@@ -28,6 +33,8 @@ namespace GS.Game.Bots {
 			_features = features;
 			_rng = rng;
 			_sink = sink;
+			_resources = resources;
+			_relations = relations;
 			_effectConfig = effectConfig ?? new EffectConfig();
 			_hqCountryByOrgId = hqCountryByOrgId;
 			_maxControlPool = maxControlPool;
@@ -42,7 +49,7 @@ namespace GS.Game.Bots {
 
 			_sink.BeginDecisionPhase();
 			var observation = BotObservation.Build(
-				world, actionConfig, OrgId, _effectConfig, _hqCountryByOrgId, _maxControlPool);
+				world, actionConfig, OrgId, _resources, _relations, _effectConfig, _hqCountryByOrgId, _maxControlPool);
 			foreach (var feature in _features) {
 				CurrentFeatureId = feature.FeatureId;
 				try {

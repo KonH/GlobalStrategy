@@ -8,18 +8,19 @@ using GS.Game.Systems;
 
 namespace GS.Main {
 	static class InitSystem {
-		public static bool Update(World world, GameLogicContext context, Random rng) {
+		public static bool Update(
+			World world, GameLogicContext context, Random rng, ResourceQuery resources, CountryRelations relations) {
 			int[] required = { TypeId<IsInitialized>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				if (arch.Count > 0) {
 					return false;
 				}
 			}
-			Run(world, context, rng);
+			Run(world, context, rng, resources, relations);
 			return true;
 		}
 
-		static void Run(World world, GameLogicContext context, Random rng) {
+		static void Run(World world, GameLogicContext context, Random rng, ResourceQuery resources, CountryRelations relations) {
 			var countryConfig = context.Country.Load();
 			var resourceConfig = context.Resource.Load();
 
@@ -29,17 +30,17 @@ namespace GS.Main {
 				}
 				int entity = world.Create();
 				world.Add(entity, new Country(entry.CountryId));
-				CreateCountryResourceEntities(world, entry, resourceConfig);
+				CreateCountryResourceEntities(world, resources, entry, resourceConfig);
 			}
 
 			var settings = context.GameSettings.Load();
 			var enableSecretAdvisor = settings.FeatureFlags.EnableSecretAdvisor;
 			var enableFriendsRelation = settings.FeatureFlags.EnableFriendsRelation;
 
-			SeedCountryRelations(world, countryConfig, enableFriendsRelation);
-
 			int countryRelationsVersionEntity = world.Create();
 			world.Add(countryRelationsVersionEntity, new CountryRelationsVersion { Value = 0 });
+
+			SeedCountryRelations(world, relations, countryConfig, enableFriendsRelation);
 
 			int relationCardSyncStateEntity = world.Create();
 			world.Add(relationCardSyncStateEntity, new RelationCardSyncState { LastSyncedVersion = -1 });
@@ -49,7 +50,7 @@ namespace GS.Main {
 			// ProvinceOwnershipSystem.Seed once, gated by this same Update()'s IsInitialized
 			// return flag. See ecs_patterns.md's "no system-to-system calls" rule.
 			var provinceConfig = context.Province.Load();
-			CreateProvinceResourceEntities(world, provinceConfig, resourceConfig);
+			CreateProvinceResourceEntities(world, resources, provinceConfig, resourceConfig);
 
 			var startTime = new DateTime(settings.StartYear, 1, 1);
 
@@ -104,11 +105,9 @@ namespace GS.Main {
 				// OrganizationEntry even though generic gold is country-targeted.
 				// Dynamic opinion_<orgId> resources are likewise not dispatched here;
 				// actions and save loading create those runtime-only IDs explicitly.
-				int orgGoldEntity = world.Create();
-				world.Add(orgGoldEntity, new ResourceOwner(orgEntry.OrganizationId));
-				world.Add(orgGoldEntity, new Resource { ResourceId = ResourceDefinitions.Gold, Value = orgEntry.InitialGold });
+				resources.Set(world, orgEntry.OrganizationId, ResourceDefinitions.Gold, orgEntry.InitialGold);
 
-				CreateOrgResourceEntities(world, orgEntry.OrganizationId, resourceConfig);
+				CreateOrgResourceEntities(world, resources, orgEntry.OrganizationId, resourceConfig);
 
 				int controlEntity = world.Create();
 				world.Add(controlEntity, new ControlEffect {
@@ -121,8 +120,8 @@ namespace GS.Main {
 
 			BuildProximityMap(world, context);
 			CreateActionEntities(world, context, rng, participating);
-			CreateOrgCharacterEntities(world, context, resourceConfig, rng, participating);
-			CreateCharacterEntities(world, context, resourceConfig, rng, enableSecretAdvisor);
+			CreateOrgCharacterEntities(world, context, resourceConfig, rng, participating, resources);
+			CreateCharacterEntities(world, context, resourceConfig, rng, enableSecretAdvisor, resources);
 			CreateCountryActionEntities(world, context, participating, enableFriendsRelation, enableSecretAdvisor);
 
 			// InitSystem does not call ResourceSystem.Update itself — it only creates the raw
@@ -166,7 +165,9 @@ namespace GS.Main {
 			return result;
 		}
 
-		static void CreateCharacterEntities(World world, GameLogicContext context, ResourceConfig resourceConfig, Random rng, bool enableSecretAdvisor) {
+		static void CreateCharacterEntities(
+			World world, GameLogicContext context, ResourceConfig resourceConfig, Random rng, bool enableSecretAdvisor,
+			ResourceQuery resources) {
 			var characterConfig = context.Character.Load();
 			if (characterConfig.Roles.Count == 0) {
 				return;
@@ -200,12 +201,14 @@ namespace GS.Main {
 						RoleId = role.RoleId,
 						NamePartKeys = namePartKeys
 					});
-					CreateCharacterResourceEntities(world, resourceConfig, characterConfig, charEntry, rng, charEntry.CharacterId, null);
+					CreateCharacterResourceEntities(
+						world, resources, resourceConfig, characterConfig, charEntry, rng, charEntry.CharacterId, null);
 				}
 			}
 		}
 
-		static void SeedCountryRelations(World world, CountryConfig config, bool enableFriendsRelation) {
+		static void SeedCountryRelations(
+			World world, CountryRelations relations, CountryConfig config, bool enableFriendsRelation) {
 			var availableCountryIds = new HashSet<string>();
 			foreach (var entry in config.Countries) {
 				if (entry.IsAvailable) {
@@ -219,14 +222,14 @@ namespace GS.Main {
 					continue;
 				}
 				if (enableFriendsRelation) {
-					SeedRelationsForEntry(world, entry.CountryId, entry.HistoricalFriends, RelationKind.Friend, availableCountryIds, seenPairs);
+					SeedRelationsForEntry(world, relations, entry.CountryId, entry.HistoricalFriends, RelationKind.Friend, availableCountryIds, seenPairs);
 				}
-				SeedRelationsForEntry(world, entry.CountryId, entry.HistoricalRivals, RelationKind.Rival, availableCountryIds, seenPairs);
+				SeedRelationsForEntry(world, relations, entry.CountryId, entry.HistoricalRivals, RelationKind.Rival, availableCountryIds, seenPairs);
 			}
 		}
 
 		static void SeedRelationsForEntry(
-			World world, string countryId, List<string> otherIds, RelationKind kind,
+			World world, CountryRelations relations, string countryId, List<string> otherIds, RelationKind kind,
 			HashSet<string> availableCountryIds, HashSet<(string, string)> seenPairs) {
 			foreach (var otherId in otherIds) {
 				if (otherId == countryId || !availableCountryIds.Contains(otherId)) {
@@ -237,14 +240,10 @@ namespace GS.Main {
 				if (string.CompareOrdinal(a, b) > 0) {
 					(a, b) = (b, a);
 				}
-				// First-declared-wins: config file order is stable, so if this pair was already
-				// seeded (as friend or rival) by an earlier entry, a later conflicting declaration
-				// is silently skipped rather than overwritten.
 				if (!seenPairs.Add((a, b))) {
 					continue;
 				}
-				int entity = world.Create();
-				world.Add(entity, new CountryRelation { Kind = kind, LeftCountryId = a, RightCountryId = b });
+				relations.SetRelation(world, a, b, kind);
 			}
 		}
 
@@ -328,15 +327,14 @@ namespace GS.Main {
 			world.Add(dailyEffectEntity, new ResourceCollector { CollectorId = OrgScoreCollector.Id });
 		}
 
-		static void CreateProvinceResourceEntities(World world, ProvinceConfig config, ResourceConfig resourceConfig) {
+		static void CreateProvinceResourceEntities(
+			World world, ResourceQuery resources, ProvinceConfig config, ResourceConfig resourceConfig) {
 			foreach (var entry in config.Provinces) {
 				foreach (var resourceDef in resourceConfig.FindResources(ResourceSeedTarget.Province)) {
 					if (resourceDef.ResourceId != ResourceDefinitions.Population) {
 						ThrowUnsupportedResource(resourceDef);
 					}
-					int entity = world.Create();
-					world.Add(entity, new ResourceOwner(entry.ProvinceId, OwnerType.Province));
-					world.Add(entity, new Resource { ResourceId = resourceDef.ResourceId, Value = entry.Population });
+					resources.Set(world, entry.ProvinceId, resourceDef.ResourceId, entry.Population, OwnerType.Province);
 
 					int growthEffectEntity = world.Create();
 					world.Add(growthEffectEntity, new ResourceOwner(entry.ProvinceId, OwnerType.Province));
@@ -350,7 +348,8 @@ namespace GS.Main {
 			}
 		}
 
-		static void CreateCountryResourceEntities(World world, CountryEntry entry, ResourceConfig resourceConfig) {
+		static void CreateCountryResourceEntities(
+			World world, ResourceQuery resources, CountryEntry entry, ResourceConfig resourceConfig) {
 			foreach (var resourceDef in resourceConfig.FindResources(ResourceSeedTarget.Country)) {
 				double initialValue = resourceDef.DefaultInitialValue;
 				if (resourceDef.ResourceId == ResourceDefinitions.CountryPopulation ||
@@ -371,9 +370,7 @@ namespace GS.Main {
 					}
 				}
 
-				int resourceEntity = world.Create();
-				world.Add(resourceEntity, new ResourceOwner(entry.CountryId, OwnerType.Country));
-				world.Add(resourceEntity, new Resource { ResourceId = resourceDef.ResourceId, Value = initialValue });
+				resources.Set(world, entry.CountryId, resourceDef.ResourceId, initialValue, OwnerType.Country);
 
 				if (resourceDef.ResourceId == ResourceDefinitions.CountryPopulation) {
 					AttachCollectorDrivenCountryEffects(world, entry.CountryId, resourceDef.ResourceId, CountryPopulationCollector.Id);
@@ -403,19 +400,19 @@ namespace GS.Main {
 			}
 		}
 
-		static void CreateOrgResourceEntities(World world, string orgId, ResourceConfig resourceConfig) {
+		static void CreateOrgResourceEntities(World world, ResourceQuery resources, string orgId, ResourceConfig resourceConfig) {
 			foreach (var resourceDef in resourceConfig.FindResources(ResourceSeedTarget.Org)) {
 				if (resourceDef.ResourceId != ResourceDefinitions.OrgScore) {
 					ThrowUnsupportedResource(resourceDef);
 				}
-				int resourceEntity = world.Create();
-				world.Add(resourceEntity, new ResourceOwner(orgId));
-				world.Add(resourceEntity, new Resource { ResourceId = resourceDef.ResourceId, Value = 0 });
+				resources.Set(world, orgId, resourceDef.ResourceId, 0);
 				AttachOrgScoreEffects(world, orgId);
 			}
 		}
 
-		static void CreateOrgCharacterEntities(World world, GameLogicContext context, ResourceConfig resourceConfig, Random rng, List<OrganizationEntry> participating) {
+		static void CreateOrgCharacterEntities(
+			World world, GameLogicContext context, ResourceConfig resourceConfig, Random rng,
+			List<OrganizationEntry> participating, ResourceQuery resources) {
 			var characterConfig = context.Character.Load();
 
 			foreach (var orgEntry in participating) {
@@ -423,17 +420,17 @@ namespace GS.Main {
 				bool isPlayerOrg = true;
 				var pool = characterConfig.FindOrgPool(orgId);
 
-				CreateOrgSlots(world, resourceConfig, characterConfig, rng, orgId, "master", 1, pool, isPlayerOrg);
+				CreateOrgSlots(world, resources, resourceConfig, characterConfig, rng, orgId, "master", 1, pool, isPlayerOrg);
 
 				int agentSlots = orgEntry.InitialAgentSlots;
 				if (agentSlots > 0) {
-					CreateOrgSlots(world, resourceConfig, characterConfig, rng, orgId, "agent", agentSlots, pool, isPlayerOrg);
+					CreateOrgSlots(world, resources, resourceConfig, characterConfig, rng, orgId, "agent", agentSlots, pool, isPlayerOrg);
 				}
 			}
 		}
 
 		static void CreateOrgSlots(
-			World world, ResourceConfig resourceConfig, CharacterConfig characterConfig, Random rng,
+			World world, ResourceQuery resources, ResourceConfig resourceConfig, CharacterConfig characterConfig, Random rng,
 			string orgId, string roleId, int totalSlots,
 			OrgCharacterPool? pool, bool isPlayerOrg) {
 
@@ -468,7 +465,8 @@ namespace GS.Main {
 						? new System.Collections.Generic.HashSet<string>(roleDef.SkillIds)
 						: new System.Collections.Generic.HashSet<string>();
 
-					CreateCharacterResourceEntities(world, resourceConfig, characterConfig, charEntry, rng, charId, roleSkillIds);
+					CreateCharacterResourceEntities(
+						world, resources, resourceConfig, characterConfig, charEntry, rng, charId, roleSkillIds);
 				}
 
 				int slotEntity = world.Create();
@@ -483,7 +481,7 @@ namespace GS.Main {
 		}
 
 		static void CreateCharacterResourceEntities(
-			World world, ResourceConfig resourceConfig, CharacterConfig characterConfig,
+			World world, ResourceQuery resources, ResourceConfig resourceConfig, CharacterConfig characterConfig,
 			CharacterEntry characterEntry, Random rng, string characterId, HashSet<string>? allowedSkillIds) {
 			foreach (var resourceDef in resourceConfig.FindResources(ResourceSeedTarget.Character)) {
 				var skillDef = characterConfig.FindSkill(resourceDef.ResourceId);
@@ -499,9 +497,7 @@ namespace GS.Main {
 				} else {
 					skillValue = rng.Next(5, 31);
 				}
-				int skillEntity = world.Create();
-				world.Add(skillEntity, new ResourceOwner(characterId, OwnerType.Character));
-				world.Add(skillEntity, new Resource { ResourceId = resourceDef.ResourceId, Value = skillValue });
+				resources.Set(world, characterId, resourceDef.ResourceId, skillValue, OwnerType.Character);
 			}
 		}
 

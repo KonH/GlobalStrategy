@@ -1,3 +1,5 @@
+using GS.Game.Systems;
+
 namespace GS.Game.Benchmarks {
 	public static class BenchmarkGate {
 		public const double DefaultEpsilonRelative = 0.05;

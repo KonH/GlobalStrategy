@@ -49,6 +49,7 @@ namespace GS.Game.Systems {
 
 		public static WarSideStatsSnapshot BuildSideStats(
 			IReadOnlyWorld world,
+			ResourceQuery resources,
 			string warId,
 			string countryId,
 			WarParticipantKind side,
@@ -70,20 +71,20 @@ namespace GS.Game.Systems {
 
 			CountryEntry? countryEntry = countryConfig?.FindByCountryId(countryId);
 			double damageBase = countryEntry?.BaseDamage ?? 40;
-			double damageRulerBonus = WartimeSkillQuery.GetSkill(world, countryId, "ruler", "power");
-			double damageAdvisorBonus = WartimeSkillQuery.GetSkill(world, countryId, "military_advisor", "power");
-			double damageBonusPercent = ResourceQuery.GetValue(world, countryId, ResourceDefinitions.TroopsDamageBonusPercent);
+			double damageRulerBonus = WartimeSkillQuery.GetSkill(world, countryId, "ruler", "power", resources);
+			double damageAdvisorBonus = WartimeSkillQuery.GetSkill(world, countryId, "military_advisor", "power", resources);
+			double damageBonusPercent = resources.GetValue(world, countryId, ResourceDefinitions.TroopsDamageBonusPercent);
 			double durabilityBase = countryEntry?.BaseDurability ?? 40;
-			double durabilityRulerBonus = WartimeSkillQuery.GetSkill(world, countryId, "ruler", "stinginess");
-			double durabilityAdvisorBonus = WartimeSkillQuery.GetSkill(world, countryId, "economic_advisor", "stinginess");
+			double durabilityRulerBonus = WartimeSkillQuery.GetSkill(world, countryId, "ruler", "stinginess", resources);
+			double durabilityAdvisorBonus = WartimeSkillQuery.GetSkill(world, countryId, "economic_advisor", "stinginess", resources);
 
 			return new WarSideStatsSnapshot {
 				CountryId = countryId,
-				Recruits = ResourceQuery.GetValue(world, countryId, ResourceDefinitions.Recruits),
+				Recruits = resources.GetValue(world, countryId, ResourceDefinitions.Recruits),
 				TroopsInBattles = troopsInBattles,
 				Casualties = casualties,
-				Damage = ResourceQuery.GetValue(world, countryId, ResourceDefinitions.Damage),
-				Durability = ResourceQuery.GetValue(world, countryId, ResourceDefinitions.Durability),
+				Damage = resources.GetValue(world, countryId, ResourceDefinitions.Damage),
+				Durability = resources.GetValue(world, countryId, ResourceDefinitions.Durability),
 				DamageBase = damageBase,
 				DamageRulerBonus = damageRulerBonus,
 				DamageAdvisorBonus = damageAdvisorBonus,

@@ -43,6 +43,8 @@ namespace GS.Game.Systems {
 			string actionId,
 			string orgId,
 			string? countryId,
+			ResourceQuery resources,
+			CountryRelations relations,
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
 			DateTime currentTime = default,
 			int maxControlPool = 100,
@@ -65,8 +67,11 @@ namespace GS.Game.Systems {
 				definition,
 				orgId,
 				selectedCountryId,
+				resources,
+				relations,
 				entity,
-				hqCountryByOrgId);
+				hqCountryByOrgId,
+				gateSet);
 			foreach (ExpressionNode condition in definition.Conditions) {
 				if (gateSet == ActionPlayabilityGateSet.HardOnly && IsSoftCondition(condition)) {
 					continue;
@@ -109,7 +114,7 @@ namespace GS.Game.Systems {
 				}
 				foreach (string resourceId in costOrder) {
 					double amount = costByResource[resourceId];
-					int resourceEntity = FindResourceEntity(world, orgId, resourceId);
+					int resourceEntity = resources.FindEntity(world, orgId, resourceId);
 					double available = resourceEntity >= 0 ? world.Get<Resource>(resourceEntity).Value : 0.0;
 					bool canAfford = available >= amount;
 					entries.Add(new ActionConditionDebugEntry(
@@ -156,31 +161,17 @@ namespace GS.Game.Systems {
 				|| type == "targetRulerOrMilitaryOpinion";
 		}
 
-		public static bool CanAfford(IReadOnlyWorld world, string orgId, List<ActionCost> costs) {
+		public static bool CanAfford(IReadOnlyWorld world, string orgId, List<ActionCost> costs, ResourceQuery resources) {
 			var totals = new Dictionary<string, double>(StringComparer.Ordinal);
 			foreach (ActionCost cost in costs) {
 				totals.TryGetValue(cost.ResourceId, out double total);
 				totals[cost.ResourceId] = total + cost.Amount;
 			}
 			foreach (var pair in totals) {
-				int entity = FindResourceEntity(world, orgId, pair.Key);
+				int entity = resources.FindEntity(world, orgId, pair.Key);
 				if (entity < 0 || world.Get<Resource>(entity).Value < pair.Value) { return false; }
 			}
 			return true;
-		}
-
-		public static int FindResourceEntity(IReadOnlyWorld world, string ownerId, string resourceId) {
-			int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
-				Resource[] resources = arch.GetColumn<Resource>();
-				for (int i = 0; i < arch.Count; i++) {
-					if (owners[i].OwnerId == ownerId && resources[i].ResourceId == resourceId) {
-						return arch.Entities[i];
-					}
-				}
-			}
-			return -1;
 		}
 	}
 }

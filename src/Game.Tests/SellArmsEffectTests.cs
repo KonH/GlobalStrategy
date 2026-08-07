@@ -8,6 +8,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class SellArmsEffectTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		const string ActionId = "sell_arms";
 		const string CountryEffectId = "sell_arms_damage_bonus_effect";
 		const string OrgId = "org_a";
@@ -69,7 +71,7 @@ namespace GS.Game.Tests {
 			CreateActionEffectSystem.Update(
 				world, BuildActionConfig(), BuildEffectConfig(), CurrentTime,
 				new Random(1), new GameSettings(), new ProvinceTopology(new ProvinceConfig()),
-				new Dictionary<string, (double Lon, double Lat)>(), 100);
+				new Dictionary<string, (double Lon, double Lat)>(), 100, _resources);
 
 			Assert.Equal(10.0, world.Get<Resource>(countryBonus).Value);
 			Assert.Equal(0.0, world.Get<Resource>(otherCountryBonus).Value);
@@ -182,7 +184,7 @@ namespace GS.Game.Tests {
 				CreateActionEffectSystem.Update(
 					world, BuildActionConfig(), BuildEffectConfig(), CurrentTime,
 					new Random(1), new GameSettings(), new ProvinceTopology(new ProvinceConfig()),
-					new Dictionary<string, (double Lon, double Lat)>(), 100));
+					new Dictionary<string, (double Lon, double Lat)>(), 100, _resources));
 
 			Assert.Contains(ActionId, exception.Message);
 			Assert.Contains(CountryId, exception.Message);

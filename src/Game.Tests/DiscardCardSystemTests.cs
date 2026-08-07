@@ -10,6 +10,7 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class DiscardCardSystemTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
 		const string OrgId = "OrgA";
 		const string CountryId = "Prussia";
 		const string ActionId = "improve_control";
@@ -53,14 +54,11 @@ namespace GS.Game.Tests {
 			};
 		}
 
-		static IReadOnlyList<DiscardCardResult> Run(
+		IReadOnlyList<DiscardCardResult> Run(
 			World world,
 			DiscardCardCommand command,
 			double cost = DiscardCost) {
-			return DiscardCardSystem.Update(
-				world,
-				new ReadCommands<DiscardCardCommand>(new[] { command }),
-				cost);
+			return DiscardCardSystem.Update(world, new ReadCommands<DiscardCardCommand>(new[] { command }), cost, _resources);
 		}
 
 		[Fact]
@@ -187,7 +185,7 @@ namespace GS.Game.Tests {
 			(int discardedEntity, string actionId, int slotIndex) = FindFirstCountryHandCard(
 				logic.World,
 				MultiOrgTestSupport.OrgA);
-			double goldBefore = ResourceQuery.GetValue(
+			double goldBefore = logic.Resources.GetValue(
 				logic.World,
 				MultiOrgTestSupport.OrgA,
 				ResourceDefinitions.Gold);
@@ -202,7 +200,7 @@ namespace GS.Game.Tests {
 
 			Assert.Equal(
 				goldBefore - logic.GameSettings.DiscardGoldCost,
-				ResourceQuery.GetValue(logic.World, MultiOrgTestSupport.OrgA, ResourceDefinitions.Gold));
+				logic.Resources.GetValue(logic.World, MultiOrgTestSupport.OrgA, ResourceDefinitions.Gold));
 			Assert.False(logic.World.Has<CardInHand>(discardedEntity));
 			Assert.False(logic.World.Has<CardDiscard>(discardedEntity));
 			Assert.NotEqual(discardedEntity, FindCountryHandCardInSlot(

@@ -8,6 +8,8 @@ using GS.Game.Configs;
 namespace GS.Main {
 	public class VisualStateConverter {
 		readonly VisualState _state;
+		readonly ResourceQuery _resources;
+		readonly CountryRelations _relations;
 		readonly Dictionary<string, AnimatableInt> _characterOpinionAnimatables = new();
 		readonly Dictionary<(string, string), AnimatableDouble> _resourceAnimatables = new();
 		readonly IReadOnlyDictionary<string, string> _hqCountryByOrgId;
@@ -29,7 +31,11 @@ namespace GS.Main {
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
 
-		public VisualStateConverter(VisualState state, ActionConfig? actionConfig = null,
+		public VisualStateConverter(
+			VisualState state,
+			ResourceQuery resources,
+			CountryRelations relations,
+			ActionConfig? actionConfig = null,
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
 			bool gameLogIncludePlayerActions = true, int gameLogMaxEntries = 12,
 			CountryConfig? countryConfig = null,
@@ -39,6 +45,8 @@ namespace GS.Main {
 			EffectConfig? effectConfig = null,
 			BaseIncomeSettings? baseIncomeSettings = null) {
 			_state = state;
+			_resources = resources;
+			_relations = relations;
 			_actionConfig = actionConfig;
 			_hqCountryByOrgId = hqCountryByOrgId ?? new Dictionary<string, string>();
 			_countryConfig = countryConfig;
@@ -283,11 +291,11 @@ namespace GS.Main {
 			string playerOrgId = _state.PlayerOrganization.IsValid
 				? _state.PlayerOrganization.OrgId
 				: "";
-			_state.WarIcons.Set(WarIconsProjector.Build(world, playerOrgId));
+			_state.WarIcons.Set(WarIconsProjector.Build(world, _resources, playerOrgId));
 		}
 
 		void UpdateSelectedWar(IReadOnlyWorld world) {
-			SelectedWarProjector.Project(world, _state.SelectedWar, _countryConfig);
+			SelectedWarProjector.Project(world, _state.SelectedWar, _resources, _countryConfig);
 		}
 
 		void UpdateGameCompletion(IReadOnlyWorld world, int orgEntity) {
@@ -378,7 +386,7 @@ namespace GS.Main {
 				}
 			}
 			foreach (var (countryId, control) in byCountry) {
-				double baseIncome = ControlSystem.ComputeBaseMonthlyGold(world, countryId, _baseIncomeSettings);
+				double baseIncome = ControlSystem.ComputeBaseMonthlyGold(world, countryId, _baseIncomeSettings, _resources);
 				double gain = Math.Round((control / 100.0) * baseIncome, 2);
 				result.Add(new ControlIncomeEntry(countryId, gain));
 			}
@@ -430,7 +438,7 @@ namespace GS.Main {
 				}
 			}
 
-			double baseIncome = ControlSystem.ComputeBaseMonthlyGold(world, selectedCountryId, _baseIncomeSettings);
+			double baseIncome = ControlSystem.ComputeBaseMonthlyGold(world, selectedCountryId, _baseIncomeSettings, _resources);
 			int usedTotal = 0;
 			var entries = new List<OrgControlEntry>();
 			var allOrgs = new System.Collections.Generic.HashSet<string>(byOrgBase.Keys);
@@ -590,6 +598,8 @@ namespace GS.Main {
 			int[] handReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardOwnerType>.Value, TypeId<CardInHand>.Value };
 			int[] excludeHand = { TypeId<CardInHand>.Value };
 
+			IReadOnlyList<string> playableCountryOrder = GetPlayableCountryEvaluationOrder(world);
+
 			// Hand cards
 			foreach (var arch in world.GetMatchingArchetypes(handReq, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
@@ -599,7 +609,9 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || owners[i].Value != CardOwnerKind.Country) { continue; }
-					var entry = BuildEntry(world, orgId, countryId, arch.Entities[i], actions[i].ActionId, hands[i].SlotIndex, true, currentTime);
+					var entry = BuildEntry(
+						world, orgId, countryId, arch.Entities[i], actions[i].ActionId, hands[i].SlotIndex, true,
+						currentTime, playableCountryOrder);
 					if (entry != null) { hand.Add(entry); }
 				}
 			}
@@ -612,7 +624,9 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || owners[i].Value != CardOwnerKind.Country) { continue; }
-					var entry = BuildEntry(world, orgId, countryId, arch.Entities[i], actions[i].ActionId, -1, false, currentTime);
+					var entry = BuildEntry(
+						world, orgId, countryId, arch.Entities[i], actions[i].ActionId, -1, false,
+						currentTime, playableCountryOrder);
 					if (entry != null) { deck.Add(entry); }
 				}
 			}
@@ -625,12 +639,14 @@ namespace GS.Main {
 		ActionCardEntry? BuildEntry(
 			IReadOnlyWorld world, string orgId, string countryId, int entity,
 			string actionId, int slotIndex, bool isInHand,
-			DateTime currentTime) {
+			DateTime currentTime,
+			IReadOnlyList<string> playableCountryOrder) {
 			var def = _actionConfig?.Find(actionId);
 			if (def == null) { return null; }
 
 			ActionPlayabilityResult playability = ActionPlayability.Evaluate(
-				world, _actionConfig!, entity, actionId, orgId, countryId, _hqCountryByOrgId, currentTime, _maxControlPool);
+				world, _actionConfig!, entity, actionId, orgId, countryId,
+				_resources, _relations, _hqCountryByOrgId, currentTime, _maxControlPool);
 			TimeSpan? remaining = ActionCooldownQuery.GetRemaining(world, orgId, actionId, currentTime);
 			bool onCooldown = remaining.HasValue;
 			double? cooldownRemainingDays = onCooldown ? Math.Ceiling(remaining!.Value.TotalDays) : (double?)null;
@@ -650,6 +666,7 @@ namespace GS.Main {
 				}
 				warWinChancePercent = WarWinChanceEstimator.EstimateAttackerWinPercent(
 					world,
+					_resources,
 					countryId,
 					targetCountryId,
 					pendingDamageBonusPercent,
@@ -657,14 +674,14 @@ namespace GS.Main {
 			}
 
 			var playableCountryIds = new List<string>();
-			foreach (string candidateCountryId in GetPlayableCountryEvaluationOrder(world)) {
-				// Badge uses hard gates only (relation / war-state) so unavailable cards still
-				// show countries that could play once soft gates (control, opinion, gold) pass.
-				if (ActionPlayability.Evaluate(
-					world, _actionConfig!, entity, actionId, orgId, candidateCountryId,
-					_hqCountryByOrgId, currentTime, _maxControlPool,
-					ActionPlayabilityGateSet.HardOnly).CanPlay) {
-					playableCountryIds.Add(candidateCountryId);
+			if (isInHand && !playability.CanPlay) {
+				foreach (string candidateCountryId in playableCountryOrder) {
+					if (ActionPlayability.Evaluate(
+						world, _actionConfig!, entity, actionId, orgId, candidateCountryId,
+						_resources, _relations, _hqCountryByOrgId, currentTime, _maxControlPool,
+						ActionPlayabilityGateSet.HardOnly).CanPlay) {
+						playableCountryIds.Add(candidateCountryId);
+					}
 				}
 			}
 
@@ -726,7 +743,7 @@ namespace GS.Main {
 				_state.SelectedCountry.Relations.Set(Array.Empty<string>(), Array.Empty<string>());
 				return;
 			}
-			var (friends, rivals) = CountryRelations.GetRelationsByCountryId(world, _state.SelectedCountry.CountryId);
+			var (friends, rivals) = _relations.GetRelationsByCountryId(world, _state.SelectedCountry.CountryId);
 			_state.SelectedCountry.Relations.Set(friends, rivals);
 		}
 
@@ -798,7 +815,7 @@ namespace GS.Main {
 		public void UpdateCountryScore(IReadOnlyWorld world) {
 			var scoreByCountryId = new Dictionary<string, double>();
 			foreach (string countryId in GetCountryIds(world)) {
-				scoreByCountryId[countryId] = ResourceQuery.GetValue(world, countryId, ResourceDefinitions.CountryScore);
+				scoreByCountryId[countryId] = _resources.GetValue(world, countryId, ResourceDefinitions.CountryScore);
 			}
 			_state.CountryScore.Set(scoreByCountryId);
 		}
@@ -815,7 +832,7 @@ namespace GS.Main {
 						0,
 						orgId,
 						string.IsNullOrEmpty(orgs[i].DisplayName) ? orgId : orgs[i].DisplayName,
-						ResourceQuery.GetValue(world, orgId, ResourceDefinitions.OrgScore)));
+						_resources.GetValue(world, orgId, ResourceDefinitions.OrgScore)));
 				}
 			}
 
@@ -825,7 +842,7 @@ namespace GS.Main {
 					0,
 					countryId,
 					GetCountryDisplayName(countryId),
-					ResourceQuery.GetValue(world, countryId, ResourceDefinitions.CountryScore)));
+					_resources.GetValue(world, countryId, ResourceDefinitions.CountryScore)));
 			}
 
 			SortAndAssignPlaces(organizations);
@@ -834,7 +851,7 @@ namespace GS.Main {
 		}
 
 		public void UpdateGoals(IReadOnlyWorld world) {
-			_state.Goals.Set(GoalsProjector.Build(world, _goalLeaves, _maxControlPool));
+			_state.Goals.Set(GoalsProjector.Build(world, _goalLeaves, _maxControlPool, _resources));
 		}
 
 		IReadOnlyList<string> GetCountryIds(IReadOnlyWorld world) {
@@ -1026,7 +1043,7 @@ namespace GS.Main {
 					if (resourceId == ResourceDefinitions.Gold
 						&& effects[i].EffectId == BaseIncomeFormula.EffectId
 						&& world.Has<ResourceCollector>(arch.Entities[i])) {
-						var breakdown = BaseIncomeFormula.Compute(world, countryId, _baseIncomeSettings);
+						var breakdown = BaseIncomeFormula.Compute(world, countryId, _baseIncomeSettings, _resources);
 						result.Add(new EffectStateEntry(
 							effects[i].EffectId,
 							breakdown.Total,

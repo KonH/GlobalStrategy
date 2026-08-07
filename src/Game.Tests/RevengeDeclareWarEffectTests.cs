@@ -8,6 +8,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class RevengeDeclareWarEffectTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		const string OrgId = "OrgA";
 		const string HqCountryId = "Great_Britain";
 		const string TargetCountryId = "France";
@@ -30,7 +32,7 @@ namespace GS.Game.Tests {
 			}
 		};
 
-		static void RunEffect(
+		void RunEffect(
 			World world,
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId,
 			DateTime? time = null,
@@ -38,7 +40,7 @@ namespace GS.Game.Tests {
 			CreateActionEffectSystem.Update(
 				world, BuildActionConfig(), BuildEffectConfig(), time ?? CurrentTime,
 				new Random(1), settings ?? new GameSettings(), new ProvinceTopology(new ProvinceConfig()),
-				new Dictionary<string, (double Lon, double Lat)>(), 100, hqCountryByOrgId);
+				new Dictionary<string, (double Lon, double Lat)>(), 100, _resources, hqCountryByOrgId);
 		}
 
 		static int? FindWarBattleCapacity(World world) {
@@ -52,9 +54,8 @@ namespace GS.Game.Tests {
 			return null;
 		}
 
-		static void StopWar(World world, string countryId) {
-			Wars.StopWar(
-				world, countryId, CurrentTime.AddDays(1), new Random(1), new GameSettings(),
+		void StopWar(World world, string countryId) {
+			Wars.StopWar(world, _resources, countryId, CurrentTime.AddDays(1), new Random(1), new GameSettings(),
 				new ProvinceTopology(new ProvinceConfig()),
 				new Dictionary<string, (double Lon, double Lat)>(), 100);
 		}
@@ -134,7 +135,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void no_ops_when_declare_war_itself_would_no_op() {
 			var world = new World();
-			Wars.DeclareWar(world, HqCountryId, "Germany", CurrentTime);
+			Wars.DeclareWar(world, _resources, HqCountryId, "Germany", CurrentTime);
 			AddSucceededCard(world, OrgId, HqCountryId, "declare_revenge_war", TargetCountryId);
 			var hqCountryByOrgId = new Dictionary<string, string> { [OrgId] = HqCountryId };
 

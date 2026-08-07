@@ -4,6 +4,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class PeaceChanceTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static GameSettings DefaultSettings() => new GameSettings {
 			PeaceMinLoseBand = 20,
 			PeaceMinWinBand = 20,

@@ -70,6 +70,8 @@ namespace GS.Game.Bots {
 			IReadOnlyWorld world,
 			ActionConfig actionConfig,
 			string orgId,
+			ResourceQuery resources,
+			CountryRelations relations,
 			EffectConfig? effectConfig = null,
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
 			int maxControlPool = 100) {
@@ -140,7 +142,7 @@ namespace GS.Game.Bots {
 					if (owners[i].Value == CardOwnerKind.Org) {
 						bool isPlayable = ActionPlayability.Evaluate(
 							world, actionConfig, entity, actionId, orgId, null,
-							hqCountryByOrgId, currentDate, maxControlPool).CanPlay;
+							resources, relations, hqCountryByOrgId, currentDate, maxControlPool).CanPlay;
 						orgHandCards.Add(new BotCardView {
 							ActionId = actionId,
 							SlotIndex = slotIndex,
@@ -165,7 +167,7 @@ namespace GS.Game.Bots {
 					}
 					ActionPlayabilityResult playability = ActionPlayability.Evaluate(
 						world, actionConfig, card.entity, card.actionId, orgId, candidateCountryId,
-						hqCountryByOrgId, currentDate, maxControlPool);
+						resources, relations, hqCountryByOrgId, currentDate, maxControlPool);
 					list.Add(new BotCardView {
 						ActionId = card.actionId,
 						SlotIndex = card.slotIndex,
@@ -223,7 +225,7 @@ namespace GS.Game.Bots {
 					if (string.IsNullOrEmpty(countryId) || !countryIds.Contains(countryId)) { continue; }
 
 					double opinion = 0.0;
-					int resourceEntity = ActionPlayability.FindResourceEntity(world, chars[i].CharacterId, opinionResourceId);
+					int resourceEntity = resources.FindEntity(world, chars[i].CharacterId, opinionResourceId);
 					if (resourceEntity >= 0) {
 						opinion = world.Get<Resource>(resourceEntity).Value;
 					}

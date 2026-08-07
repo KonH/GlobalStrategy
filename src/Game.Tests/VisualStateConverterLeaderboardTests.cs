@@ -5,8 +5,12 @@ using GS.Game.Configs;
 using GS.Main;
 using Xunit;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Tests {
 	public class VisualStateConverterLeaderboardTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static int SeedCountry(World world, string countryId, double score) {
 			int entity = world.Create();
 			world.Add(entity, new Country(countryId));
@@ -40,7 +44,7 @@ namespace GS.Game.Tests {
 			SeedCountry(world, "c_beta", 50.0);
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, countryConfig: BuildCountryConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, countryConfig: BuildCountryConfig());
 			converter.UpdateLeaderboards(world);
 
 			Assert.Equal("org_high", state.Leaderboard.Organizations[0].EntityId);
@@ -64,7 +68,7 @@ namespace GS.Game.Tests {
 			SeedCountry(world, "c_alpha", 25.0);
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, countryConfig: BuildCountryConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, countryConfig: BuildCountryConfig());
 			converter.UpdateLeaderboards(world);
 
 			Assert.Equal(new[] { "org_b", "org_a", "org_z" }, new[] {
@@ -86,7 +90,7 @@ namespace GS.Game.Tests {
 			SeedCountry(world, "c_beta", 50.0);
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, countryConfig: BuildCountryConfig());
+			var converter = new VisualStateConverter(state, _resources, _relations, countryConfig: BuildCountryConfig());
 			converter.UpdateCountryScore(world);
 
 			Assert.Equal(20.0, state.CountryScore.ScoreByCountryId["c_alpha"]);

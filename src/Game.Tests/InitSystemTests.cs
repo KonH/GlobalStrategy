@@ -12,6 +12,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class InitSystemTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
@@ -873,12 +875,12 @@ namespace GS.Game.Tests {
 			int milResEntity = logic.World.Create();
 			logic.World.Add(milResEntity, new ResourceOwner("mil_gb", OwnerType.Character));
 			logic.World.Add(milResEntity, new Resource { ResourceId = "opinion_Illuminati", Value = 10 });
-			Wars.DeclareWar(logic.World, "Great_Britain", "France", new DateTime(1880, 1, 1));
+			Wars.DeclareWar(logic.World, logic.Resources, "Great_Britain", "France", new DateTime(1880, 1, 1));
 			int[] warReq = { TypeId<War>.Value };
 			foreach (var arch in logic.World.GetMatchingArchetypes(warReq, null)) {
 				var wars = arch.GetColumn<War>();
 				for (int i = 0; i < arch.Count; i++) {
-					ResourceMutations.TrySetValue(logic.World, wars[i].WarId, ResourceDefinitions.WarProgress, 50, out _);
+					ResourceMutations.TrySetValue(logic.Resources, logic.World, wars[i].WarId, ResourceDefinitions.WarProgress, 50, out _);
 				}
 			}
 
@@ -952,7 +954,7 @@ namespace GS.Game.Tests {
 				}
 			};
 			var logic = BuildLogic(actionConfigOverride: actionConfig);
-			CountryRelations.SetRelation(logic.World, "Great_Britain", "France", RelationKind.Friend);
+			_relations.SetRelation(logic.World, "Great_Britain", "France", RelationKind.Friend);
 
 			logic.Update(0f);
 

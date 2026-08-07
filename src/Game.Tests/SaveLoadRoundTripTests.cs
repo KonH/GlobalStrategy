@@ -198,7 +198,9 @@ namespace GS.Game.Tests {
 			int[] warRequired = { TypeId<War>.Value, TypeId<WarBattleCapacity>.Value };
 			Archetype restoredWar = restored.GetMatchingArchetypes(warRequired, null).Single();
 			Assert.Equal(2, restoredWar.GetColumn<WarBattleCapacity>()[0].MaxConcurrentBattleCount);
-			Assert.Equal(10, ResourceQuery.GetValue(restored, warId, ResourceDefinitions.WarProgress));
+			var resourceQuery = new ResourceQuery();
+			resourceQuery.Rebuild(restored);
+			Assert.Equal(10, resourceQuery.GetValue(restored, warId, ResourceDefinitions.WarProgress));
 			int[] historyRequired = {
 				TypeId<ResourceOwner>.Value,
 				TypeId<Resource>.Value,

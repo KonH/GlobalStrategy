@@ -8,7 +8,7 @@ namespace GS.Game.Systems {
 	public static class WarSystem {
 		public static void Update(
 			World world, DateTime previousTime, DateTime currentTime,
-			double decayPerMonth, ResourceConfig? resourceConfig = null) {
+			double decayPerMonth, ResourceQuery resources, ResourceConfig? resourceConfig = null) {
 			bool isMonthBoundary = previousTime.Month != currentTime.Month
 				|| previousTime.Year != currentTime.Year;
 			if (!isMonthBoundary) {
@@ -22,7 +22,7 @@ namespace GS.Game.Systems {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					ResourceMutations.TryApplyClampedDelta(
-						world, wars[i].WarId, ResourceDefinitions.WarProgress, -decayPerMonth,
+						resources, world, wars[i].WarId, ResourceDefinitions.WarProgress, -decayPerMonth,
 						definition, "war_progress_decay", currentTime,
 						-100, 100, out _);
 				}

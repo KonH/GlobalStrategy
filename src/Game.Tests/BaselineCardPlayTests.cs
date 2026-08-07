@@ -9,6 +9,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class BaselineCardPlayTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
@@ -118,7 +120,7 @@ namespace GS.Game.Tests {
 			var withBot = BuildLogic(seed);
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, withBot.Commands, null);
 			var feature = new BaselineCardPlayFeature(new Dictionary<string, double>());
-			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink);
+			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, withBot.Resources, withBot.Relations);
 			RunWithBot(withBot, bot, 60);
 
 			Assert.NotEqual(OrgMetrics.GetGold(passive.World, MultiOrgTestSupport.OrgA), OrgMetrics.GetGold(withBot.World, MultiOrgTestSupport.OrgA));
@@ -129,7 +131,7 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic(1);
 			logic.Update(0f);
 
-			var obs = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
 			var sink = new RecordingSink();
 			var feature = new BaselineCardPlayFeature(new Dictionary<string, double>());
 			feature.Tick(obs, sink, new Random(1));
@@ -143,7 +145,7 @@ namespace GS.Game.Tests {
 
 			// Org hand playable -> the org-hand card is chosen.
 			var logicPlayable = BuildScanOrderLogic(orgGold: 1000.0);
-			var obsPlayable = BotObservation.Build(logicPlayable.World, logicPlayable.ActionConfig, "Illuminati");
+			var obsPlayable = BotObservation.Build(logicPlayable.World, logicPlayable.ActionConfig, "Illuminati", logicPlayable.Resources, logicPlayable.Relations);
 			var sinkPlayable = new RecordingSink();
 			feature.Tick(obsPlayable, sinkPlayable, new Random(1));
 			Assert.Single(sinkPlayable.Plays);
@@ -151,7 +153,7 @@ namespace GS.Game.Tests {
 
 			// Org hand unplayable -> the ordinal-first country's card is chosen.
 			var logicUnplayable = BuildScanOrderLogic(orgGold: 5.0);
-			var obsUnplayable = BotObservation.Build(logicUnplayable.World, logicUnplayable.ActionConfig, "Illuminati");
+			var obsUnplayable = BotObservation.Build(logicUnplayable.World, logicUnplayable.ActionConfig, "Illuminati", logicUnplayable.Resources, logicUnplayable.Relations);
 			var sinkUnplayable = new RecordingSink();
 			feature.Tick(obsUnplayable, sinkUnplayable, new Random(1));
 			Assert.Single(sinkUnplayable.Plays);
@@ -167,7 +169,7 @@ namespace GS.Game.Tests {
 			var withBot = BuildLogic(seed);
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, withBot.Commands, null);
 			var feature = new BaselineCardPlayFeature(new Dictionary<string, double> { ["minGoldReserve"] = 1_000_000_000.0 });
-			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink);
+			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, withBot.Resources, withBot.Relations);
 			RunWithBot(withBot, bot, 60);
 
 			AssertIdenticalEndState(passive, withBot, Participants);
@@ -181,7 +183,7 @@ namespace GS.Game.Tests {
 
 			var withDisabledBot = BuildLogic(seed);
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, withDisabledBot.Commands, null);
-			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature>(), BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink);
+			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature>(), BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, withDisabledBot.Resources, withDisabledBot.Relations);
 			RunWithBot(withDisabledBot, bot, 60);
 
 			AssertIdenticalEndState(passive, withDisabledBot, Participants);

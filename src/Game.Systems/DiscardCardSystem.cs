@@ -27,7 +27,8 @@ namespace GS.Game.Systems {
 		public static IReadOnlyList<DiscardCardResult> Update(
 			World world,
 			ReadCommands<DiscardCardCommand> commands,
-			double goldCost) {
+			double goldCost,
+			ResourceQuery resources) {
 			if (goldCost < 0) {
 				throw new ArgumentOutOfRangeException(nameof(goldCost), goldCost, "The discard gold cost cannot be negative.");
 			}
@@ -37,12 +38,12 @@ namespace GS.Game.Systems {
 
 			var results = new List<DiscardCardResult>(commands.Count);
 			foreach (DiscardCardCommand command in commands.AsSpan()) {
-				results.Add(new DiscardCardResult(command, Process(world, command, goldCost)));
+				results.Add(new DiscardCardResult(command, Process(world, command, goldCost, resources)));
 			}
 			return results;
 		}
 
-		static DiscardCardOutcome Process(World world, DiscardCardCommand command, double goldCost) {
+		static DiscardCardOutcome Process(World world, DiscardCardCommand command, double goldCost, ResourceQuery resources) {
 			if (string.IsNullOrEmpty(command.OrgId)
 				|| string.IsNullOrEmpty(command.CountryId)
 				|| string.IsNullOrEmpty(command.ActionId)
@@ -55,16 +56,14 @@ namespace GS.Game.Systems {
 				return DiscardCardOutcome.CardNotFound;
 			}
 
-			int goldEntity = ActionPlayability.FindResourceEntity(
-				world,
-				command.OrgId,
-				ResourceDefinitions.Gold);
+			int goldEntity = resources.FindEntity(world, command.OrgId, ResourceDefinitions.Gold);
 			if (goldEntity < 0 || world.Get<Resource>(goldEntity).Value < goldCost) {
 				return DiscardCardOutcome.InsufficientGold;
 			}
 
 			ref Resource gold = ref world.Get<Resource>(goldEntity);
 			gold.Value -= goldCost;
+			resources.NotifyValue(command.OrgId, ResourceDefinitions.Gold, gold.Value, goldEntity);
 			AddResourceChange(world, command, goldCost);
 
 			world.Remove<CardInHand>(cardEntity);
