@@ -590,7 +590,7 @@ MonoBehaviour:
     color: {r: 0.8, g: 0.44000003, b: 0.57985616, a: 1}
     flag: {fileID: 0}
   - countryId: United_Kingdom_of_Great_Britain_and_Ireland
-    displayName: United Kingdom of Great Britain and Ireland
+    displayName: United Kingdom of Britain
     color: {r: 0.78431374, g: 0.47058824, b: 0.54901963, a: 1}
     flag: {fileID: 21300000, guid: 7cd1b67893573b74e9292fd857ad9899, type: 3}
   - countryId: United_States_of_America

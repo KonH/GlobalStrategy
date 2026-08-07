@@ -2,10 +2,10 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace GS.Unity.Common {
-	public static class UIPointerState {
-		public static IPanel RuntimePanel { get; set; }
+	public class UIPointerState {
+		public IPanel RuntimePanel { get; set; }
 
-		public static bool IsPointerOverUI(Vector2 screenPosition) {
+		public bool IsPointerOverUI(Vector2 screenPosition) {
 			if (RuntimePanel == null) {
 				return false;
 			}

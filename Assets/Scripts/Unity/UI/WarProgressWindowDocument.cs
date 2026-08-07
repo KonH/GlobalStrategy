@@ -18,15 +18,16 @@ namespace GS.Unity.UI {
 		VisualElement _root;
 		WarProgressWindowView _view;
 		TooltipSystem _tooltip;
-		bool _ownsModalState;
+		ModalState _modalState;
 		bool _subscribed;
 
 		[Inject]
-		void Construct(VisualState state, ILocalization loc, CountryVisualConfig countryVisualConfig, EffectConfig effectConfig) {
+		void Construct(VisualState state, ILocalization loc, CountryVisualConfig countryVisualConfig, EffectConfig effectConfig, ModalState modalState) {
 			_state = state;
 			_loc = loc;
 			_countryVisualConfig = countryVisualConfig;
 			_effectConfig = effectConfig;
+			_modalState = modalState;
 		}
 
 		const int SortingOrder = 510;
@@ -76,8 +77,7 @@ namespace GS.Unity.UI {
 				_view?.Refresh(_state.SelectedWar);
 				return;
 			}
-			ModalState.IsModalOpen = true;
-			_ownsModalState = true;
+			_modalState.Lock(this);
 			_root.style.display = DisplayStyle.Flex;
 			_view?.Refresh(_state.SelectedWar);
 		}
@@ -86,10 +86,7 @@ namespace GS.Unity.UI {
 			if (_root != null) {
 				_root.style.display = DisplayStyle.None;
 			}
-			if (_ownsModalState) {
-				ModalState.IsModalOpen = false;
-				_ownsModalState = false;
-			}
+			_modalState.Unlock(this);
 			_state?.SelectedWar.Clear();
 		}
 

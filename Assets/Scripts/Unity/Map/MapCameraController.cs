@@ -10,6 +10,8 @@ namespace GS.Unity.Map {
 	public class MapCameraController : MonoBehaviour {
 		Camera _camera;
 		MapCameraConfig _config;
+		ModalState _modalState;
+		UIPointerState _pointerState;
 		bool _dragging;
 		Vector3 _dragOriginWorld;
 		MapController _mapController;
@@ -18,9 +20,11 @@ namespace GS.Unity.Map {
 		float? _prevPinchDistance;
 
 		[Inject]
-		void Construct(MapCameraConfig config, MapController mapController) {
+		void Construct(MapCameraConfig config, MapController mapController, ModalState modalState, UIPointerState pointerState) {
 			_config = config;
 			_mapController = mapController;
+			_modalState = modalState;
+			_pointerState = pointerState;
 		}
 
 		void Awake() {
@@ -65,8 +69,8 @@ namespace GS.Unity.Map {
 		void HandleZoom() {
 			var mouse = Mouse.current;
 			if (mouse == null) return;
-			if (ModalState.IsModalOpen) return;
-			if (UIPointerState.IsPointerOverUI(mouse.position.ReadValue())) return;
+			if (_modalState.IsLocked()) return;
+			if (_pointerState.IsPointerOverUI(mouse.position.ReadValue())) return;
 			float scroll = mouse.scroll.ReadValue().y;
 			if (scroll == 0f) return;
 			_camera.orthographicSize = Mathf.Clamp(
@@ -77,7 +81,7 @@ namespace GS.Unity.Map {
 
 		void HandlePinchZoom() {
 			var touchscreen = Touchscreen.current;
-			if (touchscreen == null || ModalState.IsModalOpen) {
+			if (touchscreen == null || _modalState.IsLocked()) {
 				_prevPinchDistance = null;
 				return;
 			}
@@ -116,7 +120,7 @@ namespace GS.Unity.Map {
 		void UpdateDragState() {
 			bool held = TryGetPanPointer(out Vector2 screenPos);
 			if (!_dragging && held) {
-				if (ModalState.IsModalOpen || UIPointerState.IsPointerOverUI(screenPos)) {
+				if (_modalState.IsLocked() || _pointerState.IsPointerOverUI(screenPos)) {
 					return;
 				}
 				_dragOriginWorld = _camera.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));

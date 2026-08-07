@@ -61,7 +61,7 @@ translation for every new key in the same change that introduces it.
 
 `EventSystem.IsPointerOverGameObject()` does not reliably detect UI Toolkit panels with the new Input System (Unity 6). Use `ModalState` instead:
 
-- `GS.Unity.Common.ModalState.IsModalOpen` — static bool, set by any modal that should block world interaction
-- `GameMenuDocument.Show()` sets `ModalState.IsModalOpen = true`; `Hide()` sets it to `false`
-- `MapClickHandler.Update()` returns early when `ModalState.IsModalOpen` is true
+- `GS.Unity.Common.ModalState` — injected via VContainer (`builder.Register<ModalState>(Lifetime.Singleton)` in `GameLifetimeScope`/`SelectCountryLifetimeScope`, scoped to the scene). A modal calls `Lock(this)` on open and `Unlock(this)` on close (owner tracked via weak reference, so a forgotten `Unlock` can't pin the lock open forever); `IsLocked()` returns true while any owner is still alive
+- `GameMenuDocument.Show()` calls `_modalState.Lock(this)`; `Hide()` calls `_modalState.Unlock(this)`
+- `MapClickHandler.Update()` returns early when `_modalState.IsLocked()` is true
 - `GS.Unity.Map.asmdef` must reference `GS.Unity.Common` (GUID `7e5a37e68b84aeb48bf5de2cbe39a94e`)

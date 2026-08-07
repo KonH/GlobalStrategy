@@ -883,5 +883,58 @@ namespace GS.Game.Tests {
 			Assert.True(foundMakeFriend);
 			Assert.False(foundUltimatum);
 		}
+
+		[Fact]
+		void make_friend_is_never_created_when_friends_relation_is_disabled() {
+			const string targetRole = "diplomacy_advisor";
+			var characterConfig = new CharacterConfig {
+				Roles = new List<CharacterRoleDefinition> { new CharacterRoleDefinition { RoleId = targetRole } },
+				CountryPools = new List<CountryCharacterPool> {
+					new CountryCharacterPool {
+						CountryId = "Great_Britain",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[targetRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "advisor_gb" } }
+						}
+					},
+					new CountryCharacterPool {
+						CountryId = "France",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[targetRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "advisor_fr" } }
+						}
+					}
+				}
+			};
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 3 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
+						ActionId = "make_friend",
+						OwnerType = "country",
+						TargetRole = targetRole,
+						DeckCopies = 3
+					}
+				}
+			};
+			var gameSettings = new GameSettings {
+				StartYear = 1880,
+				DefaultLocale = "en",
+				SpeedMultipliers = new[] { 1, 2, 4 },
+				AutoSaveInterval = "monthly",
+				FeatureFlags = new FeatureFlagSettings { EnableFriendsRelation = false }
+			};
+
+			var logic = BuildLogic(gameSettingsOverride: gameSettings, actionConfigOverride: actionConfig, characterConfigOverride: characterConfig);
+			logic.Update(0f);
+
+			int[] req = { TypeId<GameAction>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(req, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				for (int i = 0; i < arch.Count; i++) {
+					Assert.NotEqual("make_friend", actions[i].ActionId);
+				}
+			}
+		}
 	}
 }

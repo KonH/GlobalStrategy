@@ -21,15 +21,16 @@ namespace GS.Unity.UI {
 		Button _tabCountries;
 		Label _empty;
 		LeaderboardWindowView _view;
-		bool _ownsModalState;
+		ModalState _modalState;
 		bool _subscribed;
 
 		[Inject]
-		void Construct(VisualState state, ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig) {
+		void Construct(VisualState state, ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, ModalState modalState) {
 			_state = state;
 			_loc = loc;
 			_countryVisualConfig = countryVisualConfig;
 			_orgVisualConfig = orgVisualConfig;
+			_modalState = modalState;
 		}
 
 		// Explicit sortingOrder, not scene-authoring order — see .claude/rules/unity/uitoolkit.md
@@ -80,8 +81,7 @@ namespace GS.Unity.UI {
 				_view?.Refresh(_state.Leaderboard);
 				return;
 			}
-			ModalState.IsModalOpen = true;
-			_ownsModalState = true;
+			_modalState.Lock(this);
 			_view?.ResetToDefaultTab();
 			_view?.Refresh(_state.Leaderboard);
 			_root.style.display = DisplayStyle.Flex;
@@ -91,10 +91,7 @@ namespace GS.Unity.UI {
 			if (_root != null) {
 				_root.style.display = DisplayStyle.None;
 			}
-			if (_ownsModalState) {
-				ModalState.IsModalOpen = false;
-				_ownsModalState = false;
-			}
+			_modalState.Unlock(this);
 		}
 
 		void Subscribe() {

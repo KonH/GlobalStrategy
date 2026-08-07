@@ -20,7 +20,7 @@ namespace GS.Unity.UI {
 		VisualElement _root;
 		WarResultWindowView _view;
 		TooltipSystem _tooltip;
-		bool _ownsModalState;
+		ModalState _modalState;
 		bool _issuedPause;
 		bool _subscribed;
 		bool _timeSubscribed;
@@ -31,12 +31,14 @@ namespace GS.Unity.UI {
 			ILocalization loc,
 			CountryVisualConfig countryVisualConfig,
 			EffectConfig effectConfig,
-			IWriteOnlyCommandAccessor commands) {
+			IWriteOnlyCommandAccessor commands,
+			ModalState modalState) {
 			_state = state;
 			_loc = loc;
 			_countryVisualConfig = countryVisualConfig;
 			_effectConfig = effectConfig;
 			_commands = commands;
+			_modalState = modalState;
 		}
 
 		const int SortingOrder = 510;
@@ -93,8 +95,7 @@ namespace GS.Unity.UI {
 				_issuedPause = true;
 			}
 
-			ModalState.IsModalOpen = true;
-			_ownsModalState = true;
+			_modalState.Lock(this);
 			_root.style.display = DisplayStyle.Flex;
 			RefreshTexts();
 			_view?.Refresh(snapshot);
@@ -103,10 +104,7 @@ namespace GS.Unity.UI {
 
 		public void Hide() {
 			HideVisualOnly();
-			if (_ownsModalState) {
-				ModalState.IsModalOpen = false;
-				_ownsModalState = false;
-			}
+			_modalState.Unlock(this);
 
 			// AcknowledgeCurrent raises PropertyChanged → TryOpenIfQueued → OpenCurrent for the
 			// next FIFO item; do not call OpenCurrent again here (duplicate PauseCommand / bind).
