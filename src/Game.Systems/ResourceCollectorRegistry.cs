@@ -18,7 +18,8 @@ namespace GS.Game.Systems {
 		public static ResourceCollectorRegistry CreateDefault(
 			double populationGrowthPercentPerMonth, double countryScoreCoefficient,
 			double recruitsInitialPercent, double recruitsCapPercent, double recruitsMonthlyIncreasePercent,
-			IReadOnlyDictionary<string, CountryCombatBases> combatBasesByCountryId) {
+			IReadOnlyDictionary<string, CountryCombatBases> combatBasesByCountryId,
+			BaseIncomeSettings? baseIncomeSettings = null) {
 			var registry = new ResourceCollectorRegistry();
 			registry.Register(PopulationGrowthCollector.Id, new PopulationGrowthCollector(populationGrowthPercentPerMonth));
 			registry.Register(CountryPopulationCollector.Id, new CountryPopulationCollector());
@@ -28,6 +29,7 @@ namespace GS.Game.Systems {
 			registry.Register(OrgScoreCollector.Id, new OrgScoreCollector());
 			registry.Register(DamageCollector.Id, new DamageCollector(combatBasesByCountryId));
 			registry.Register(DurabilityCollector.Id, new DurabilityCollector(combatBasesByCountryId));
+			registry.Register(BaseIncomeCollector.Id, new BaseIncomeCollector(baseIncomeSettings ?? new BaseIncomeSettings()));
 			return registry;
 		}
 	}

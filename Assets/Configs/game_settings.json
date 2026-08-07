@@ -20,7 +20,14 @@
   "peaceGoldPerMonth": 1000,
   "peaceWinnerControlIncreaseFraction": 0.5,
   "peaceLoserControlDecreaseFraction": 1.0,
-  "cardCooldownDays": 7,
+  "baseIncome": {
+    "flatBase": 10.0,
+    "populationWeight": 0.5,
+    "populationGoldPerMillion": 0.1,
+    "provinceWeight": 0.3,
+    "provinceGoldPerProvince": 0.05,
+    "advisorWeight": 0.2
+  },
   "warBattles": {
     "baseConcurrentBattleCount": 1,
     "sharedBorderPairsPerAdditionalBattle": 5,
@@ -42,7 +49,7 @@
     "minimumAbsoluteCasualties": 1,
     "maxFinishedBattlesRetained": 30
   },
-  "resourceIdUpdateOrder": ["population", "country_population", "country_score", "recruits", "org_score", "damage", "durability"],
+  "resourceIdUpdateOrder": ["population", "country_population", "country_score", "recruits", "org_score", "damage", "durability", "gold"],
   "botActionLogRetentionCap": 500,
   "maxControlPool": 100,
   "completionCondition": {

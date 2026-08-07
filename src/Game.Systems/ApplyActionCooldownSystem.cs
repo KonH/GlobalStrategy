@@ -6,7 +6,7 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class ApplyActionCooldownSystem {
-		public static void Update(World world, DateTime currentTime, GameSettings settings, ActionConfig actionConfig) {
+		public static void Update(World world, DateTime currentTime, ActionConfig actionConfig) {
 			int[] required = { TypeId<GameAction>.Value, TypeId<ActionSucceeded>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
 			var toProcess = new List<(string actionId, string orgId)>();
 
@@ -23,8 +23,15 @@ namespace GS.Game.Systems {
 				var def = actionConfig.Find(actionId);
 				if (def == null || def.OwnerType != "country") { continue; }
 
-				DateTime endTime = currentTime.AddDays(settings.CardCooldownDays);
 				int existing = FindTrackingEntity(world, orgId, actionId);
+				if (def.CooldownDays <= 0) {
+					if (existing >= 0) {
+						world.Destroy(existing);
+					}
+					continue;
+				}
+
+				DateTime endTime = currentTime.AddDays(def.CooldownDays);
 				if (existing >= 0) {
 					world.Get<ActionCooldownState>(existing).EndTime = endTime;
 				} else {

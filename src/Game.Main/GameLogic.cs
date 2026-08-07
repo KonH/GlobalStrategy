@@ -79,7 +79,7 @@ namespace GS.Main {
 			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId,
 				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig,
 				settings.EventNotifications, settings.CompletionCondition, settings.MaxControlPool, _effectConfig,
-				settings.CardCooldownDays);
+				settings.BaseIncome);
 			_speedMultipliers = settings.SpeedMultipliers;
 			var combatBasesByCountryId = new Dictionary<string, CountryCombatBases>();
 			foreach (var entry in CountryConfig.Countries) {
@@ -88,7 +88,7 @@ namespace GS.Main {
 			_resourceCollectorRegistry = ResourceCollectorRegistry.CreateDefault(
 				settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient,
 				settings.RecruitsInitialPercent, settings.RecruitsCapPercent, settings.RecruitsMonthlyIncreasePercent,
-				combatBasesByCountryId);
+				combatBasesByCountryId, settings.BaseIncome);
 			_resourceIdUpdateOrder = settings.ResourceIdUpdateOrder;
 			_botActionLogRetentionCap = settings.BotActionLogRetentionCap;
 			BotFeatures = settings.BotFeatures;
@@ -126,7 +126,7 @@ namespace GS.Main {
 			DateTime currentTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
 			ResourceSystem.Update(
 				_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder, ResourceConfig);
-			ControlSystem.Update(_world, _previousTime, currentTime);
+			ControlSystem.Update(_world, _previousTime, currentTime, GameSettings.BaseIncome);
 			// Game Log: sweep last tick's WarResolvedApplied before TryResolvePeaceByChance/the
 			// debug StopWar handler (below) might create a new one this tick. See
 			// Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
@@ -248,7 +248,7 @@ namespace GS.Main {
 			CheckActionConditionSystem.Update(_world, _actionConfig, _hqCountryByOrgId, currentTime);
 			DeductActionCostSystem.Update(_world, _actionConfig);
 			ActionSucceededSystem.Update(_world, _actionConfig);
-			ApplyActionCooldownSystem.Update(_world, currentTime, GameSettings, _actionConfig);
+			ApplyActionCooldownSystem.Update(_world, currentTime, _actionConfig);
 			bool hasSucceededCardActions = HasSucceededCardActions(_world);
 			CreateActionEffectSystem.Update(
 				_world, _actionConfig, _effectConfig, currentTime,

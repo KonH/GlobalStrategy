@@ -25,12 +25,12 @@ namespace GS.Game.Configs {
 		public double PeaceGoldPerMonth { get; set; } = 1000;
 		public double PeaceWinnerControlIncreaseFraction { get; set; } = 0.5;
 		public double PeaceLoserControlDecreaseFraction { get; set; } = 1.0;
-		public double CardCooldownDays { get; set; } = 7;
+		public BaseIncomeSettings BaseIncome { get; set; } = new BaseIncomeSettings();
 		public WarBattleSettings WarBattles { get; set; } = new WarBattleSettings();
 		public string[] ResourceIdUpdateOrder { get; set; } = {
 			ResourceDefinitions.Population, ResourceDefinitions.CountryPopulation, ResourceDefinitions.CountryScore,
 			ResourceDefinitions.Recruits, ResourceDefinitions.OrgScore,
-			ResourceDefinitions.Damage, ResourceDefinitions.Durability
+			ResourceDefinitions.Damage, ResourceDefinitions.Durability, ResourceDefinitions.Gold
 		};
 		public int BotActionLogRetentionCap { get; set; } = 500;
 		public int MaxControlPool { get; set; } = 100;
@@ -54,6 +54,15 @@ namespace GS.Game.Configs {
 				Parameters = new Dictionary<string, double>()
 			}
 		};
+	}
+
+	public class BaseIncomeSettings {
+		public double FlatBase { get; set; } = 10.0;
+		public double PopulationWeight { get; set; } = 0.5;
+		public double PopulationGoldPerMillion { get; set; } = 0.1;
+		public double ProvinceWeight { get; set; } = 0.3;
+		public double ProvinceGoldPerProvince { get; set; } = 0.05;
+		public double AdvisorWeight { get; set; } = 0.2;
 	}
 
 	public class WarBattleSettings {

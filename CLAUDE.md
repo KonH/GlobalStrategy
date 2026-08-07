@@ -8,6 +8,7 @@
 
 - The shell starts in the project root — never use `cd` before git commands, run them directly
 - Never chain shell commands with `&&` — run each as a separate Bash tool call
+- After any change under `src/`, finish by running `/dotnet-build Release` (see `.claude/rules/workflow.md`)
 
 ## Configuration Index
 - **Workflow & tool usage:** `.claude/rules/workflow.md`

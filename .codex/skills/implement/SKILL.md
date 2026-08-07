@@ -9,4 +9,6 @@ Before starting, follow the **Synchronize with main** section in `.claude/comman
 
 Follow `.claude/commands/implement.md` (including the issue-automation stage-label block and Unity MCP pre-flight override). That command delegates to the shared `k:implement` skill.
 
+When any step changes files under `src/`, finish by running `/dotnet-build Release` (or the `dotnet-build` skill with Release) before handoff — see `.claude/rules/workflow.md`.
+
 When finishing `/implement` under issue/PR automation, the parent handoff uses `ai-complete` only — do not apply `ai-need-attention` for implement completion.

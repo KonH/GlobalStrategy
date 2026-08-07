@@ -1,0 +1,11 @@
+---
+description: After any src/ change, finish with a Release dotnet build
+globs: src/**
+alwaysApply: false
+---
+
+# Release build after `src/` changes
+
+Whenever you edit, add, or delete anything under `src/`, finish by running `/dotnet-build Release` (or the project `dotnet-build` skill / `dotnet build src/GlobalStrategy.Core.sln -c Release` logged to `.tmp/dotnet-build.log`).
+
+Release is required even if Debug tests already passed — it writes Unity plugin DLLs under `Assets/Plugins/Core/`. Stop and report on build failure.

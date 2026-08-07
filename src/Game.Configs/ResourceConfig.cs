@@ -55,5 +55,6 @@ namespace GS.Game.Configs {
 		public string DescriptionKey { get; set; } = "";
 		public double Value { get; set; } = 0;
 		public string PayType { get; set; } = "Monthly";
+		public string CollectorId { get; set; } = "";
 	}
 }

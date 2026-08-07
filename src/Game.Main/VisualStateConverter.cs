@@ -24,7 +24,7 @@ namespace GS.Main {
 		readonly EventNotificationSettings? _eventNotifications;
 		readonly int _maxControlPool;
 		readonly IReadOnlyList<GoalsLeafDescriptor> _goalLeaves;
-		readonly double _cardCooldownDays;
+		readonly BaseIncomeSettings _baseIncomeSettings;
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
@@ -37,7 +37,7 @@ namespace GS.Main {
 			CompletionConditionConfig? completionCondition = null,
 			int maxControlPool = 100,
 			EffectConfig? effectConfig = null,
-			double cardCooldownDays = 7) {
+			BaseIncomeSettings? baseIncomeSettings = null) {
 			_state = state;
 			_actionConfig = actionConfig;
 			_hqCountryByOrgId = hqCountryByOrgId ?? new Dictionary<string, string>();
@@ -48,7 +48,7 @@ namespace GS.Main {
 			_maxControlPool = maxControlPool > 0 ? maxControlPool : 100;
 			_goalLeaves = GoalsProjector.FlattenLeaves(completionCondition);
 			_effectConfig = effectConfig;
-			_cardCooldownDays = cardCooldownDays;
+			_baseIncomeSettings = baseIncomeSettings ?? new BaseIncomeSettings();
 		}
 
 		public void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
@@ -378,7 +378,7 @@ namespace GS.Main {
 				}
 			}
 			foreach (var (countryId, control) in byCountry) {
-				double baseIncome = ControlSystem.ComputeBaseMonthlyGold(world, countryId);
+				double baseIncome = ControlSystem.ComputeBaseMonthlyGold(world, countryId, _baseIncomeSettings);
 				double gain = Math.Round((control / 100.0) * baseIncome, 2);
 				result.Add(new ControlIncomeEntry(countryId, gain));
 			}
@@ -430,7 +430,7 @@ namespace GS.Main {
 				}
 			}
 
-			double baseIncome = ControlSystem.ComputeBaseMonthlyGold(world, selectedCountryId);
+			double baseIncome = ControlSystem.ComputeBaseMonthlyGold(world, selectedCountryId, _baseIncomeSettings);
 			int usedTotal = 0;
 			var entries = new List<OrgControlEntry>();
 			var allOrgs = new System.Collections.Generic.HashSet<string>(byOrgBase.Keys);
@@ -689,8 +689,8 @@ namespace GS.Main {
 			bool isUnplayable = conditionFailed || poolFull || onCooldown;
 			string unplayableReason = poolFull ? "pool_full" : (conditionFailed ? failedReason : (onCooldown ? "on_cooldown" : ""));
 			double? cooldownRemainingDays = onCooldown ? Math.Ceiling(remaining!.Value.TotalDays) : (double?)null;
-			double? cooldownFractionRemaining = onCooldown && _cardCooldownDays > 0
-				? Math.Round(Math.Clamp(remaining!.Value.TotalDays / _cardCooldownDays, 0.0, 1.0), 2)
+			double? cooldownFractionRemaining = onCooldown && def.CooldownDays > 0
+				? Math.Round(Math.Clamp(remaining!.Value.TotalDays / def.CooldownDays, 0.0, 1.0), 2)
 				: (double?)null;
 			string targetCountryId = world.Has<RelationCardTarget>(entity)
 				? world.Get<RelationCardTarget>(entity).TargetCountryId
@@ -1049,6 +1049,21 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (owners[i].OwnerId != countryId || links[i].ResourceId != resourceId) {
+						continue;
+					}
+					if (resourceId == ResourceDefinitions.Gold
+						&& effects[i].EffectId == BaseIncomeFormula.EffectId
+						&& world.Has<ResourceCollector>(arch.Entities[i])) {
+						var breakdown = BaseIncomeFormula.Compute(world, countryId, _baseIncomeSettings);
+						result.Add(new EffectStateEntry(
+							effects[i].EffectId,
+							breakdown.Total,
+							effects[i].PayType,
+							baseIncomeBreakdown: new BaseIncomeBreakdownState(
+								breakdown.FlatBase,
+								breakdown.Population, breakdown.PopulationContribution,
+								breakdown.ProvinceCount, breakdown.ProvinceContribution,
+								breakdown.AdvisorSkill, breakdown.AdvisorContribution)));
 						continue;
 					}
 					result.Add(new EffectStateEntry(effects[i].EffectId, effects[i].Value, effects[i].PayType));

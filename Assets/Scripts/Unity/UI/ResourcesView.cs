@@ -221,6 +221,11 @@ namespace GS.Unity.UI {
 					continue;
 				}
 
+				if (effect.EffectId == "base_income" && effect.BaseIncomeBreakdown != null) {
+					AddBaseIncomeBreakdown(root, effect);
+					continue;
+				}
+
 				var effectRow = new VisualElement();
 				effectRow.AddToClassList("tooltip-effect-row");
 
@@ -246,6 +251,32 @@ namespace GS.Unity.UI {
 			}
 
 			return root;
+		}
+
+		void AddBaseIncomeBreakdown(VisualElement root, EffectStateEntry effect) {
+			var breakdown = effect.BaseIncomeBreakdown!;
+			AddIncomeRow(root, string.Format(
+				_loc.Get("hud.gold_income_base"),
+				breakdown.FlatBase.ToString("F1")));
+			AddIncomeRow(root, string.Format(
+				_loc.Get("hud.gold_income_population"),
+				FormatResourceValue(breakdown.Population),
+				breakdown.PopulationContribution.ToString("F1")));
+			AddIncomeRow(root, string.Format(
+				_loc.Get("hud.gold_income_provinces"),
+				breakdown.ProvinceCount.ToString(CultureInfo.InvariantCulture),
+				breakdown.ProvinceContribution.ToString("F1")));
+			AddIncomeRow(root, string.Format(
+				_loc.Get("hud.gold_income_economic_advisor"),
+				breakdown.AdvisorSkill.ToString("F0"),
+				breakdown.AdvisorContribution.ToString("F1")));
+		}
+
+		static void AddIncomeRow(VisualElement root, string text) {
+			var row = new Label(text);
+			row.AddToClassList("tooltip-effect-name");
+			row.AddToClassList("tooltip-effect-positive");
+			root.Add(row);
 		}
 
 		VisualElement BuildInstantEffectList(TooltipContext ctx, string headerText, ResourceStateEntry resource, ResourceDefinition? resDef) {

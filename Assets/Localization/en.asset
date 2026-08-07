@@ -433,7 +433,15 @@ MonoBehaviour:
   - Key: effect.base_income.name
     Value: Base Income
   - Key: effect.base_income.description
-    Value: Monthly income from taxes and trade. Applied at the end of each month.
+    Value: Monthly income from population, provinces, and economic advisor. Applied at the end of each month.
+  - Key: hud.gold_income_base
+    Value: "Base income: +{0}/month"
+  - Key: hud.gold_income_population
+    Value: "Population ({0}): +{1}/month"
+  - Key: hud.gold_income_provinces
+    Value: "Provinces ({0}): +{1}/month"
+  - Key: hud.gold_income_economic_advisor
+    Value: "Economic advisor ({0}): +{1}/month"
   - Key: hud.country_control
     Value: Control
   - Key: hud.control_tooltip_title

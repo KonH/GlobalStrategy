@@ -6,12 +6,16 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class ControlSystem {
-		public static void Update(World world, DateTime previousTime, DateTime currentTime) {
+		public static void Update(
+			World world, DateTime previousTime, DateTime currentTime,
+			BaseIncomeSettings? baseIncomeSettings = null) {
 			bool isMonthBoundary = previousTime.Month != currentTime.Month
 				|| previousTime.Year != currentTime.Year;
 			if (!isMonthBoundary) {
 				return;
 			}
+
+			var incomeSettings = baseIncomeSettings ?? new BaseIncomeSettings();
 
 			// Group control effects by country → (org → totalValue)
 			var byCountry = new Dictionary<string, Dictionary<string, int>>();
@@ -42,7 +46,7 @@ namespace GS.Game.Systems {
 			};
 
 			foreach (var (countryId, orgMap) in byCountry) {
-				double countryBaseIncome = ComputeBaseMonthlyGold(world, countryId);
+				double countryBaseIncome = ComputeBaseMonthlyGold(world, countryId, incomeSettings);
 				if (countryBaseIncome <= 0) {
 					continue;
 				}
@@ -78,17 +82,21 @@ namespace GS.Game.Systems {
 			}
 		}
 
-		public static double ComputeBaseMonthlyGold(IReadOnlyWorld world, string countryId) {
+		public static double ComputeBaseMonthlyGold(
+			IReadOnlyWorld world, string countryId, BaseIncomeSettings? baseIncomeSettings = null) {
+			var incomeSettings = baseIncomeSettings ?? new BaseIncomeSettings();
 			int[] effectRequired = {
 				TypeId<ResourceOwner>.Value,
 				TypeId<ResourceLink>.Value,
 				TypeId<ResourceEffect>.Value
 			};
 			double total = 0;
+			bool sawLiveBaseIncome = false;
 			foreach (Archetype arch in world.GetMatchingArchetypes(effectRequired, null)) {
 				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
 				ResourceLink[] links = arch.GetColumn<ResourceLink>();
 				ResourceEffect[] effects = arch.GetColumn<ResourceEffect>();
+				int[] entities = arch.Entities;
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (owners[i].OwnerId != countryId) {
@@ -98,6 +106,15 @@ namespace GS.Game.Systems {
 						continue;
 					}
 					if (effects[i].PayType != PayType.Monthly) {
+						continue;
+					}
+					bool useLiveFormula = effects[i].EffectId == BaseIncomeFormula.EffectId
+						&& world.Has<ResourceCollector>(entities[i]);
+					if (useLiveFormula) {
+						if (!sawLiveBaseIncome) {
+							total += BaseIncomeFormula.Compute(world, countryId, incomeSettings).Total;
+							sawLiveBaseIncome = true;
+						}
 						continue;
 					}
 					if (effects[i].Value > 0) {

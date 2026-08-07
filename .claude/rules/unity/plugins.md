@@ -19,6 +19,8 @@ All `netstandard2.1` projects in `src/` that Unity needs add this to their `.csp
 
 Running `dotnet build src/GlobalStrategy.Core.sln -c Release` then puts all DLLs directly into `Assets/Plugins/Core/` — no manual copy needed.
 
+**Required:** after any change under `src/`, always end the turn with `/dotnet-build Release` (see `.claude/rules/workflow.md`). Do not leave Unity on stale plugin DLLs.
+
 ## What Goes to Plugins
 
 - `netstandard2.1` library projects that Unity scripts reference (ECS.Core, Game.Main, Game.Configs, etc.)
