@@ -112,8 +112,6 @@
     height: 28px;
     flex-shrink: 0;
     -unity-background-scale-mode: scale-to-fit;
-    border-width: 1px;
-    border-color: rgb(40, 28, 12);
 }
 
 .action-card-playable-country-flag--stacked {

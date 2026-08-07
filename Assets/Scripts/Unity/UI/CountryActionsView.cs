@@ -51,7 +51,11 @@ namespace GS.Unity.UI {
 			if (SuppressRefresh) {
 				return;
 			}
-			CancelActiveGesture();
+			// Unpaused ticks rebuild the hand every frame; tearing down the held card
+			// cancels the 1s discard hold before it can complete.
+			if (_activeGesture != null) {
+				return;
+			}
 			_renderedCardsBySlot.Clear();
 			_handContainer.Clear();
 			_handContainer.Add(BuildDeckPile(state.Deck.Count));
