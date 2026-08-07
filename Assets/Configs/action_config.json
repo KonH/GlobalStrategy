@@ -17,8 +17,8 @@
       "nameKey": "action.improve_control.name",
       "descKey": "action.improve_control.desc",
       "targetRole": "",
-      "deckCopies": 15,
-      "cooldownDays": 14,
+      "deckCopies": 25,
+      "cooldownDays": 3,
       "conditions": [],
       "cost": [
         {
@@ -296,7 +296,7 @@
       "nameKey": "action.stop_friendship.name",
       "descKey": "action.stop_friendship.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 3,
+      "deckCopies": 1,
       "cooldownDays": 30,
       "conditions": [
         {
@@ -342,7 +342,7 @@
       "nameKey": "action.stop_rivalry.name",
       "descKey": "action.stop_rivalry.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 3,
+      "deckCopies": 1,
       "cooldownDays": 21,
       "conditions": [
         {
@@ -388,7 +388,7 @@
       "nameKey": "action.declare_war.name",
       "descKey": "action.declare_war.desc",
       "targetRole": "",
-      "deckCopies": 6,
+      "deckCopies": 1,
       "cooldownDays": 30,
       "conditions": [
         {
@@ -658,7 +658,7 @@
       "nameKey": "action.declare_revenge_war.name",
       "descKey": "action.declare_revenge_war.desc",
       "targetRole": "military_advisor",
-      "deckCopies": 3,
+      "deckCopies": 1,
       "cooldownDays": 30,
       "conditions": [
         {
