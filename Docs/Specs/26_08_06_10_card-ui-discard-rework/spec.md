@@ -1,0 +1,132 @@
+# Spec: Card UI & Discard Rework
+
+## Feature Intent
+
+As a player managing my hand of action cards, I want to see every requirement gating a card in plain language, which countries could play it, and a way to discard an unwanted card for gold, so that I can make informed decisions about my hand instead of guessing at hidden gating logic or being stuck holding a dead card.
+
+This spec covers issue #139 items **1** (show all requirements), **3** (playable-countries badge), and **5** (discard). The owner review scopes these changes to country cards; currently disabled org cards remain untouched.
+
+## Acceptance Criteria
+
+Legend: `Precondition => Action => Outcome`, grouped under a shared precondition where one applies to several rows.
+
+### All requirements shown (issue item 1)
+
+Scope: country-owned cards (`CountryActionsView`) only. Org-owned cards (`OrgActionsView`) are not touched by this spec — see Out of Scope.
+
+- The player opens the selected country's Actions panel and looks at any card currently in hand (playable or unplayable).
+  - The player looks at the card => every requirement gating that card is listed, not just the first failing one; each line clearly shows pass/fail (e.g. color/icon) and is phrased in plain player language, not a raw technical expression (e.g. "Needs 30+ opinion", not `opinion (35) >= 30`).
+  - The card has a gold cost => cost affordability appears as one more line in that same requirements list, not only as the separate cost/gold footer that already exists.
+- The player looks at the same card face rendered as the deck-pile stack (face-down) or as the flying draw/play animation copy or the fixed test-card overlay slot used mid-play.
+  - The card is face-down (deck pile) => no requirements text is expected there (nothing is legible on a card back); the pile's card silhouette still matches the new taller size (see below) so it doesn't visually mismatch the hand.
+  - The card is face-up (flying/animated or test-card copy) => it shows the same requirements list content as the equivalent hand card would, consistent with the sibling war-win-chance badge already staying consistent across these same surfaces.
+- Any rendering of the card shape — hand card, deck-pile back, or flying/test-card animation copy.
+  - The card's height increases by 20% relative to today, while its width stays exactly the same => all three renderings keep the same taller-but-same-width silhouette in sync (no mismatch between the deck stack and hand cards, no visible jump in size mid-animation).
+  - The existing header, art image, and description keep their current visual size and sit at the top of the now-taller card => the extra height is used by the expanded requirements block at the bottom, not spread proportionally across every element; if the requirement list's text still doesn't fit that block, the block's text auto-sizes (shrinks) to fit rather than scrolling or overflowing.
+- The player clicks/releases on a hand card that is currently unplayable, attempting to play it.
+  - Today this is a silent no-op. Resolved by owner review (2026-08-06): show fly text stating why, using the same locale key as the matching requirements-list row (the first failing requirement) — see Tech Notes wording layer.
+
+### Playable-countries badge (issue item 3)
+
+- The player views a country-card hand entry that more than one country could currently play.
+  - The player looks at the card art => a badge appears on the left side of the art, mirroring the war-win-chance badge on the right, and shows flags for up to 2 playable countries (any deterministic order is acceptable).
+  - More than 2 countries could play the card => only the first 2 flags are shown, followed by literal `"..."` to their right, without overflowing the badge or card.
+  - The player hovers the badge => a tooltip lists every playable country, not just the visible 2.
+- Exactly one country could currently play the card => the badge shows that country's flag with no ellipsis.
+- No country could currently play the card => the badge is absent; the requirements list still explains why the card is unavailable for the selected country.
+- The same face-up card is rendered as a flying/test-card copy => the same playable-country badge data and presentation are preserved for that copy.
+- An org-owned card is rendered => it has no playable-countries badge. Org cards are currently disabled and receive no new hand behavior in this feature.
+
+### Discard (issue item 5)
+
+Scope: country-owned cards (`CountryActionsView`) only, per owner review (2026-08-06) — org cards are untouched by this spec, same scoping as item 1 above.
+
+- The player has a country card in hand (not currently mid card-play animation) and presses down on it without releasing.
+  - The player releases within 1 second while still over the card => the card plays exactly as it does today; no discard hint ever appeared, existing play behavior is unchanged.
+  - The player keeps the pointer pressed for 1 second or more => a hint appears on/near the card reading "Discard for 50 <gold-icon>" (the number reflects the current configurable discard cost, not a hardcoded 50).
+- The discard hint is showing and the player currently has enough gold to cover the discard cost.
+  - The player releases while still over the card => the card is discarded from hand and the gold cost is deducted; a **different** card is drawn from the deck to refill the vacated hand slot (owner-confirmed 2026-08-06 — the discarded card instance does not return to the hand immediately), using the sibling deck spec's normal draw mechanics.
+  - The player releases after the pointer has moved off the card => the hint disappears; nothing else happens — no discard, no gold spent, the card stays in hand.
+- The discard hint is showing and the player does NOT have enough gold to cover the discard cost.
+  - The hint is showing => its price text renders in the same red used elsewhere for unaffordable costs, giving the player a clear signal before releasing.
+  - The player releases while still over the card anyway => no discard happens and no gold is deducted; a floating "not enough gold" notification appears near the card; the card remains in hand.
+
+## Tech Notes
+
+### All requirements — layout & data
+
+- **Height/width change (single CSS change, but touches every visual copy independently):**
+  - `.action-card` in `Assets/UI/Overlay/OrgInfo/OrgActions.uss` (~line 32): `height: 300px` → `height: 360px` (20% increase), `width: 240px` stays unchanged. `.action-card-header { height: 32px }` and `.action-card-art { height: 130px }` (same file) are left as-is per the issue's "all content moves up except requirements block" — the +60px is allocated to the new requirements block, not spread across header/art/desc. This class is shared with `OrgActionsView`'s inline-built org cards (see below); org cards incidentally get the same taller silhouette as a side effect of the shared CSS class, which is accepted (not built around) since org cards are currently disabled/unused — no class-splitting needed to prevent it.
+  - `CardTransitionView.PlaceAndAnimate` (`Assets/Scripts/Unity/UI/CardTransitionView.cs`, lines ~76-77) hardcodes `_cardCopy.style.width = 240f; _cardCopy.style.height = 300f;` independently of the USS class — this literal pair **must** be updated to `240f` / `360f` in lockstep with the USS change, or the flying-card copy renders at the old height while the resting hand card is taller. This is the single highest-risk spot for the two sizes drifting apart.
+  - Deck pile (`CountryActionsView.BuildDeckPile`, `OrgActionsView.BuildDeckPile`) applies the raw `.action-card` class to its shadow/front elements with no `ActionCardBuilder` call — picks up the new height automatically from the USS change; no code change needed there beyond the USS edit itself.
+- **Requirements block placement (resolved by owner review, 2026-08-06):** expand the existing requirements/unplayable-reason area at the bottom of `action-card-body` in place (do not add a new sibling section after `action-card-content`) to hold the full per-condition list; the full +60px goes there. No scrolling is added — if the list's text still doesn't fit the block at normal size, the block's text auto-sizes (shrinks font size) to fit rather than truncating, scrolling, or growing the card further.
+- **Card face builder — where the requirements list is actually built:**
+  - `Assets/Scripts/Unity/UI/ActionCardBuilder.cs`, `Populate()` (shared by `Build()` and `PopulateSlot()`) is the single place that lays out header → art (+ optional war-win-chance badge) → body (desc + footer/cost). Replace the existing single-reason label with a new requirements-list section, built from a new `IReadOnlyList<(string Text, bool Passed)>` parameter, in place of the current `action-card-unplayable-reason` element inside `action-card-body`. New USS classes, e.g. `.action-card-requirements`, `.action-card-requirement-row`, `.action-card-requirement-row--pass` / `--fail`, colored via the existing `gs-color-positive` / `gs-color-negative` shared classes rather than inventing new colors, with a shrink-to-fit auto-sizing rule per the placement decision above.
+  - `ActionCardBuilder` is called from exactly **three** live call sites for country cards, all of which need the new parameter threaded through:
+    1. `CountryActionsView.BuildHandCard()` (`Assets/Scripts/Unity/UI/CountryActionsView.cs`, ~line 65) — the primary hand card.
+    2. `CardTransitionView.Show()` / `ShowCountry()` (`Assets/Scripts/Unity/UI/CardTransitionView.cs`) — the flying draw/play animation copy.
+    3. `CardPlayAnimator.PopulateCountryTestCard()` / `PopulateTestCard()` (`Assets/Scripts/Unity/UI/CardPlayAnimator.cs`, ~399-421) — the fixed `card-test-card` overlay slot used mid-play, via `ActionCardBuilder.PopulateSlot`.
+  - **`OrgActionsView.BuildHandCard()` does NOT call `ActionCardBuilder` at all** and is explicitly **out of scope** for this spec, confirmed by owner review (2026-08-06: "org cards now disabled, just don't touch them") — no requirements-list markup, no discard gesture, no wording-layer wiring is added there. Only the incidental shared-CSS height bump (above) reaches it.
+- **Data already available, just unused by player UI:**
+  - `ActionCardEntry.Conditions` (`src/Game.Main/VisualState.cs:271`, `IReadOnlyList<ActionConditionDebugEntry>`) is already populated by `VisualStateConverter.BuildEntry` (`src/Game.Main/VisualStateConverter.cs`, ~641-699) via `ActionConditionDebug.EvaluateAll(def.Conditions, ctx)` — the full per-condition pass/fail list already exists per hand/deck card. Today `BuildEntry` only reduces it to one first-failing-condition string (`ActionCardEntry.UnplayableReason`), rendered by the `switch` in `CountryActionsView.BuildHandCard` (~lines 75-100, classes `action-card-unplayable-reason`). That switch/label is replaced by the new full-list rendering; `UnplayableReason` remains in the data model (it now also drives the "cannot play" fly text below, using its first-failing condition) but the player-facing single-reason `Label` element goes away in favor of the full list.
+  - Cost-affordability row reuses the same `canAffordGold` boolean `CountryActionsView.BuildHandCard` already computes (~line 62), rendered as one more requirement row instead of/alongside the existing separate cost footer styling — mirrors the debug menu's synthetic `gold >= N` row (`Assets/Scripts/Unity/UI/DebugCardAvailabilityView.cs`, `BuildExpandableCard`).
+- **Wording layer (new, shared across three surfaces — resolved by owner review, 2026-08-06):**
+  - `ActionConditionDebugEntry.Label` (`src/Game.Configs/ActionConditionDebug.cs`, `Format`/`FormatOperand`) renders raw expression text like `"opinion (35) >= 30"` — the issue is explicit that player-facing text must not be technical, and the owner directed that the *same* localized wording be used in all three places it currently is (or should be) shown: the debug menu (`DebugCardAvailabilityView.cs`), the new player-facing card requirements list, and the new "cannot play" fly text (item 1 acceptance criteria above). Concretely: extend/rename the existing `action.country.unplayable.*` locale key family (`Assets/Localization/en.asset` ~lines 1813-1846) into one concise (target 16-24 characters where practical — shorter is fine, e.g. `on_cooldown`/`not_at_war` already are) key per `ExpressionNode.Type`, reused verbatim by all three surfaces instead of maintaining separate wording per surface:
+
+    | `ExpressionNode.Type` | Locale key | Proposed short text |
+    |---|---|---|
+    | `control` | `action.country.unplayable.insufficient_control` (existing, shortened) | "Needs {0}+ control" |
+    | `totalCountryControl` | `action.country.unplayable.insufficient_total_control` (new) | "Needs {0}+ country control" |
+    | `opinion` | `action.country.unplayable.insufficient_opinion` (existing, shortened) | "Needs {0}+ {1} opinion" (role name kept short) |
+    | `targetRulerOrMilitaryOpinion` | `action.country.unplayable.insufficient_target_opinion` (existing, shortened) | "Target opinion {0}+" |
+    | `hasCountryRelation(none)` (was `hasSuitableRelationTarget`, see sibling deck spec's condition unification) | `action.country.unplayable.no_friend_candidate` / `no_rival_candidate` (new, one per relationKind, replacing the single `no_suitable_target`) | "No friend candidate" / "No rival candidate" |
+    | `hasCountryRelation(friend\|rival)` (was `relationStillExists`) | `action.country.unplayable.relation_no_longer_exists` (existing, made kind-aware) | "No longer friends" / "No longer rivals" |
+    | `neitherSideAtWar` | `action.country.unplayable.already_at_war` (existing, shortened) | "Already at war" |
+    | `warFree` | `action.country.unplayable.at_war` (existing, shortened) | "Cannot play at war" |
+    | `revengeEligible` | `action.country.unplayable.no_war_loss_to_avenge` (existing key — currently defined in `en.asset` but **not wired into any switch**; this spec fixes that dead-key bug by wiring it up) | "Needs unavenged loss" |
+    | pool-full (not a condition, a separate `IsUnplayable` reason) | `action.country.unplayable.pool_full` (existing, shortened) | "No control pool space" |
+    | on-cooldown (ditto) | `action.country.unplayable.on_cooldown` (existing, already short) | "On cooldown" |
+    | gold cost affordability (new requirement row, not from `Conditions`) | `action.country.unplayable.insufficient_gold` (new) | "Needs {0} gold" |
+
+    `no_war_loss_to_avenge` was too long ("A country that wronged you must be eligible for revenge") per owner review; the table above already reflects the shortened replacement copy. Exact final copy for every row (including non-English via the `localization` skill) is locked at `/implement` time, but the key-per-`ExpressionNode.Type` structure and the "one key, three consumers" rule above are the resolved design.
+  - **Debug menu (`DebugCardAvailabilityView.cs`) is affected, not unaffected as originally drafted:** per owner review, `BuildExpandableCard`'s `CreateConditionLabel(condition.Label, condition.Passed)` (line 139) stops rendering the raw `ActionConditionDebugEntry.Label` string and instead resolves the same locale key the player-facing list and fly text use for that condition, formatted with the same values — the debug view keeps its own layout/chrome (expandable card, `debug-card-available`/`debug-card-unavailable` classes) but the *text* becomes shared, not raw. The raw `Label` (still built by `ActionConditionDebug.Format`) can remain available as a tooltip or secondary technical detail if useful for debugging, but is no longer the primary rendered string.
+  - **"Cannot play" fly text (new):** wire `IFlyTextNotifier` (already available via existing DI, see Discard Tech Notes for the same injection pattern) to fire on a click/release attempt against an unplayable hand card, using the locale key for the card's first-failing condition (`ActionCardEntry.UnplayableReason`, already computed) — same key, same copy as that condition's requirements-list row and debug-view row.
+
+### Playable-countries badge
+
+- Mirror the war-win-chance badge's placement pattern on the opposite side of the card art:
+  - `.action-card-war-win-chance` (`OrgActions.uss`, ~lines 98-124) is positioned at `top: 4px; right: 6px` and is built inside `action-card-art` by `ActionCardBuilder.BuildWarWinChanceBadge`.
+  - Add a sibling element such as `.action-card-playable-countries` at `top: 4px; left: 6px`. It holds flag chips rather than percentage chrome and must coexist with the right-side war badge without overlap.
+- Reuse the `.relations-flag` sizing/rendering convention (`CountryInfoView.BuildRelationsRow`, approximately 28-32px square with the flag from `CountryVisualConfig.Find(countryId)`) rather than the larger `.entity-flag`. Render at most two flag chips, add margin to non-first children rather than unsupported USS `gap`, and append a literal `"..."` label when the full list contains more than two entries.
+- Register one `TooltipSystem` trigger on the whole badge. Its content lists every country from the full list using localized `country_name.{id}` names (flags may accompany the names), following `CountryInfoView.BuildRelationTooltip`; individual visible flags do not get separate tooltips.
+- The sibling deck spec supplies a deterministic `PlayableCountryIds`-style list on `ActionCardEntry`, derived by evaluating the card against every available target country through normal `ActionPlayability`. `CountryActionsView.BuildHandCard`, `CardTransitionView.ShowCountry`, and `CardPlayAnimator.PopulateCountryTestCard` thread that list into `ActionCardBuilder`, following the existing `warWinChancePercent` end-to-end pattern.
+- `OrgActionsView` receives no badge code. The owner's "don't have countries badge" clarification resolves the earlier org-card question; the country-card badge requested by issue item 3 remains in scope.
+
+### Discard
+
+- **Interaction — new pointer plumbing, following the project's mandated `PointerUpEvent` + manual `ContainsPoint` pattern (never `Button.clicked`/`ClickEvent`, per `.claude/rules/unity/uitoolkit.md`):**
+  - Today `CountryActionsView.BuildHandCard` (~line 103) and `OrgActionsView.BuildHandCard` (~line 108) each register only one `PointerUpEvent` handler that plays the card on a quick tap. Add a `PointerDownEvent` handler on the same `cardEl` that starts a 1-second hold timer via `cardEl.schedule.Execute(...).StartingIn(1000)` — the same `IVisualElementScheduler`-based deferred-execution primitive `TooltipSystem`'s auto-pin (`AutoPinSeconds`) already uses, not a raw `Update()`-driven timer.
+  - Track whether the pointer is still over the card via `PointerMoveEvent`/`PointerLeaveEvent` + `ContainsPoint`, so the release handler knows at release time whether to treat it as "still on card" or "moved off".
+  - Coexistence with the existing play-on-release handler (both fire on `PointerUpEvent` on the same element): if the hold reached 1s and the hint is showing, release-on-card triggers discard instead of play; release-off-card cancels silently (matches the existing `ContainsPoint` guard already used for play). If the hold never reached 1s, release behaves exactly as today (play, unchanged). The discard branch must be checked and must short-circuit before the existing play branch to avoid double-firing.
+- **Hint UI:** new small `VisualElement`/`Label` shown on/near the card once the hold timer fires, text `"Discard for {cost}"` followed by the existing gold-icon element — reuse the `.action-card-cost-icon` class already defined in `OrgActions.uss` / built by `ActionCardBuilder.cs` (the `costIcon` `VisualElement`) rather than adding a new icon asset. Hidden via `DisplayStyle.None`/`Flex` toggling, not `opacity`, since it should not intercept pointer events while hidden and should appear/disappear discretely.
+- **Unaffordable price styling:** apply the existing `.action-card-cost-label--unaffordable` class (`OrgActions.uss`, `color: rgb(224, 64, 64)`) to the hint's price text when current gold `< DiscardGoldCost` — the exact same class `CountryActionsView.BuildHandCard`/`OrgActionsView.BuildHandCard` already apply to the normal cost footer label when unaffordable (`result.CostLabel.AddToClassList("action-card-cost-label--unaffordable")`).
+- **Fly text on failed release:** inject `IFlyTextNotifier` (`Assets/Scripts/Unity/UI/IFlyTextNotifier.cs`, impl `FlyTextNotifierDocument`, already registered in `GameLifetimeScope`) into whichever class ends up owning the discard gesture; call `_flyText.Notify("action.discard.no_gold")` (new key) on release-with-insufficient-gold, mirroring existing call sites like `GameMenuDocument`'s `_flyText?.Notify("game_menu.save.confirmation")`. New locale key needs entries in both `Assets/Localization/en.asset` and a real Russian translation in `ru.asset` via the `localization` skill (not an English placeholder), per `.claude/rules/unity/localization.md`.
+- **Configurable discard cost:** add `public double DiscardGoldCost { get; set; } = 50;` to `GameSettings` (`src/Game.Configs/GameSettings.cs`, alongside the existing `CardCooldownDays` — same flat-POCO tunable-value pattern). Mirror `"discardGoldCost": 50` into **both** `Assets/Configs/game_settings.json` and `src/Game.WebClient/wwwroot/configs/game_settings.json` — confirmed both files currently carry `"cardCooldownDays": 7` in sync at the same line (23), so the same dual-file update applies here; verify at implementation time whether one is generated from the other or both are hand-maintained. `HUDDocument.Construct` already injects `GameSettings gameSettings` — no new DI wiring is needed to read the value from wherever the discard gesture lives.
+- **Gold deduction + discard + redraw:** implement as its own explicit small resource-mutation step (new command/system), not routed through the normal `ActionDefinition.Cost` play-cost pipeline (`src/Game.Systems/DeductActionCostSystem.cs`) since discarding is not playing a card — mirror that system's pattern (data-driven gold deduction) for consistency without depending on it directly. Reuse the same `gold >= N` affordability idiom already used by `src/Game.Systems/ActionPlayability.CanAfford`. Redraw semantics resolved by owner review (2026-08-06): a **different** card is guaranteed to fill the vacated slot. The discarded entity must be excluded from that immediate replacement draw (for example by ordering the draw before it becomes eligible again or by a transient exclusion marker); the implementation must not rely on random chance to avoid drawing it again.
+- **In-flight play animation edge case (resolved by owner review, 2026-08-06):** "we already can't interact while card play happens" — no new cancellation logic is needed. The existing `CardPlayAnimator.IsPlaying`/`SuppressRefresh` gating already blocks player interaction with hand cards during an active play sequence, so a discard `PointerDownEvent` cannot start (and an in-progress hold cannot continue receiving pointer events) during that window without any additional guard code. This Tech Note item is resolved as "no action needed", not left as an open edge case.
+- **Country cards only:** resolved by owner review (2026-08-06, "p.3" — same decision as item 1's scoping) — the discard gesture applies only to `CountryActionsView` hand cards. `OrgActionsView` is not touched by this spec at all.
+
+## Out of Scope
+
+- Issue items 0, 2, 4 (deck architecture / single deck per org / target-country context, action effect and naming rework, drawing cards without checking requirements) — covered by the sibling spec `Docs/Specs/26_08_06_10_card-deck-rework/spec.md`. This spec assumes that work lands separately and describes UI behavior (e.g. "requirements for the currently selected country/context") in terms that stay correct regardless of exactly how the sibling spec restructures targeting/decks underneath.
+- Any change to how playability or draw eligibility is actually *computed* (`ActionPlayability`, `DrawCardSystem`, condition/config authoring) — this spec only surfaces already-computed `Conditions` data to players and adds the discard interaction; underlying gating logic and rules are unchanged.
+- Character advisor cards (`Assets/Scripts/Unity/UI/CharactersView.cs`) — not an action card; no requirements list, playable-countries badge, or discard gesture there.
+- The war-win-chance badge's own behavior, formula, or position — unchanged; this spec only mirrors its positioning pattern for the new left-side playable-countries badge.
+- Redesign of card art, header, or description typography/content beyond what's needed to accommodate the taller card and the new requirements block.
+- Sound or haptic feedback for the discard hold/hint/release gesture.
+- Redesigning `DebugCardAvailabilityView.cs` layout or debug chrome — its primary condition text does change to the same localized player wording used by cards and fly text, as explicitly required by the owner.
+- Any change to `GameSettings.CardCooldownDays` / cooldown UI — the discard feature is a new, independent card interaction, not a change to the existing cooldown overlay.
+
+## Ambiguities
+
+None open. Owner review on 2026-08-06 resolved the condition wording direction and relation-kind parameterization, shortened revenge copy, required shared locale IDs across card/debug/fly-text surfaces, excluded org cards from the badge/requirements/discard changes, fixed the 20%-height allocation to the existing non-scrolling auto-sized requirements block, confirmed existing animation interaction gating needs no new behavior, and guaranteed that discard draws a different replacement card.

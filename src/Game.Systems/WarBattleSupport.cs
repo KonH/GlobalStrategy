@@ -16,8 +16,8 @@ using GS.Game.Components;
 		}
 
 		static double RequireResource(
-			IReadOnlyWorld world, string ownerId, string resourceId, string operation) {
-			if (!ResourceQuery.TryGetValue(world, ownerId, resourceId, out double value)) {
+			ResourceQuery resources, IReadOnlyWorld world, string ownerId, string resourceId, string operation) {
+			if (!resources.TryGetValue(world, ownerId, resourceId, out double value)) {
 				throw new InvalidOperationException(
 					$"Cannot continue {operation}: owner '{ownerId}' is missing resource '{resourceId}'.");
 			}
@@ -28,10 +28,10 @@ using GS.Game.Components;
 		// ResourceChange so VisualStateConverter can animate the same battle-caused resource
 		// delta the DeductActionCostSystem/CreateActionEffectSystem card pipeline already does.
 		static double RequireDelta(
-			World world, string ownerId, string resourceId, double delta,
+			ResourceQuery resources, World world, string ownerId, string resourceId, double delta,
 			double minimum, double maximum, string effectId, string operation) {
 			if (!ResourceMutations.TryApplyClampedDelta(
-				world, ownerId, resourceId, delta, minimum, maximum, out double applied)) {
+				resources, world, ownerId, resourceId, delta, minimum, maximum, out double applied)) {
 				throw new InvalidOperationException(
 					$"Cannot continue {operation}: owner '{ownerId}' is missing resource '{resourceId}'.");
 			}

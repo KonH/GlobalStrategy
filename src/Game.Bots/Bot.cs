@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Configs;
+using GS.Game.Systems;
 
 namespace GS.Game.Bots {
 	public sealed class Bot {
@@ -9,17 +10,34 @@ namespace GS.Game.Bots {
 		readonly Random _rng;
 		readonly BotCommandSink _sink;
 		readonly EffectConfig _effectConfig;
+		readonly ResourceQuery _resources;
+		readonly CountryRelations _relations;
+		readonly IReadOnlyDictionary<string, string>? _hqCountryByOrgId;
+		readonly int _maxControlPool;
 		DateTime? _lastActedDate;
 
 		public string OrgId { get; }
 		public string CurrentFeatureId { get; private set; } = "";
 
-		public Bot(string orgId, IReadOnlyList<IBotFeature> features, Random rng, BotCommandSink sink, EffectConfig? effectConfig = null) {
+		public Bot(
+			string orgId,
+			IReadOnlyList<IBotFeature> features,
+			Random rng,
+			BotCommandSink sink,
+			ResourceQuery resources,
+			CountryRelations relations,
+			EffectConfig? effectConfig = null,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
+			int maxControlPool = 100) {
 			OrgId = orgId;
 			_features = features;
 			_rng = rng;
 			_sink = sink;
+			_resources = resources;
+			_relations = relations;
 			_effectConfig = effectConfig ?? new EffectConfig();
+			_hqCountryByOrgId = hqCountryByOrgId;
+			_maxControlPool = maxControlPool;
 		}
 
 		public void ExecuteDecisionTick(IReadOnlyWorld world, ActionConfig actionConfig) {
@@ -30,7 +48,8 @@ namespace GS.Game.Bots {
 			_lastActedDate = currentDate;
 
 			_sink.BeginDecisionPhase();
-			var observation = BotObservation.Build(world, actionConfig, OrgId, _effectConfig);
+			var observation = BotObservation.Build(
+				world, actionConfig, OrgId, _resources, _relations, _effectConfig, _hqCountryByOrgId, _maxControlPool);
 			foreach (var feature in _features) {
 				CurrentFeatureId = feature.FeatureId;
 				try {

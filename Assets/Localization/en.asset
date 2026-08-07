@@ -1734,36 +1734,60 @@ MonoBehaviour:
     Value: Click to play
   - Key: action.tooltip.unaffordable_hint
     Value: Not enough gold
-  - Key: action.sphere_of_pressure.name
-    Value: Sphere of Pressure
-  - Key: action.sphere_of_pressure.desc
+  - Key: action.improve_control.name
+    Value: Improve Control
+  - Key: action.improve_control.desc
     Value: Increase control.
-  - Key: action.letter_of_commendation_diplomacy_advisor.name
-    Value: Diplomatic Dispatch
-  - Key: action.letter_of_commendation_diplomacy_advisor.desc
-    Value: Increase control and diplomacy advisor opinion.
-  - Key: action.letter_of_commendation_economic_advisor.name
-    Value: Treasury Commission
-  - Key: action.letter_of_commendation_economic_advisor.desc
-    Value: Increase control and economic advisor opinion.
-  - Key: action.letter_of_commendation_military_advisor.name
-    Value: Campaign Commendation
-  - Key: action.letter_of_commendation_military_advisor.desc
-    Value: Increase control and military advisor opinion.
-  - Key: action.letter_of_commendation_secret_advisor.name
-    Value: Shadow Accord
-  - Key: action.letter_of_commendation_secret_advisor.desc
-    Value: Increase control and secret advisor opinion.
-  - Key: action.royal_audience.name
-    Value: Royal Audience
-  - Key: action.royal_audience.desc
-    Value: Increase control and ruler opinion.
+  - Key: effect.improve_control_effect.name
+    Value: Improve Control
+  - Key: effect.improve_control_effect.desc
+    Value: Increase organization control.
+  - Key: action.improve_diplomacy_advisor_opinion.name
+    Value: Improve Diplomacy Advisor Opinion
+  - Key: action.improve_diplomacy_advisor_opinion.desc
+    Value: Improve the diplomacy advisor's opinion.
+  - Key: effect.improve_diplomacy_advisor_opinion_effect.name
+    Value: Improve Diplomacy Advisor Opinion
+  - Key: effect.improve_diplomacy_advisor_opinion_effect.desc
+    Value: Improve the diplomacy advisor's opinion.
+  - Key: action.improve_economic_advisor_opinion.name
+    Value: Improve Economic Advisor Opinion
+  - Key: action.improve_economic_advisor_opinion.desc
+    Value: Improve the economic advisor's opinion.
+  - Key: effect.improve_economic_advisor_opinion_effect.name
+    Value: Improve Economic Advisor Opinion
+  - Key: effect.improve_economic_advisor_opinion_effect.desc
+    Value: Improve the economic advisor's opinion.
+  - Key: action.improve_military_advisor_opinion.name
+    Value: Improve Military Advisor Opinion
+  - Key: action.improve_military_advisor_opinion.desc
+    Value: Improve the military advisor's opinion.
+  - Key: effect.improve_military_advisor_opinion_effect.name
+    Value: Improve Military Advisor Opinion
+  - Key: effect.improve_military_advisor_opinion_effect.desc
+    Value: Improve the military advisor's opinion.
+  - Key: action.improve_secret_advisor_opinion.name
+    Value: Improve Secret Advisor Opinion
+  - Key: action.improve_secret_advisor_opinion.desc
+    Value: Improve the secret advisor's opinion.
+  - Key: effect.improve_secret_advisor_opinion_effect.name
+    Value: Improve Secret Advisor Opinion
+  - Key: effect.improve_secret_advisor_opinion_effect.desc
+    Value: Improve the secret advisor's opinion.
+  - Key: action.improve_ruler_opinion.name
+    Value: Improve Ruler Opinion
+  - Key: action.improve_ruler_opinion.desc
+    Value: Improve the ruler's opinion.
+  - Key: effect.improve_ruler_opinion_effect.name
+    Value: Improve Ruler Opinion
+  - Key: effect.improve_ruler_opinion_effect.desc
+    Value: Improve the ruler's opinion.
   - Key: action.make_friend.name
-    Value: Cordial Accord
+    Value: Make Friend
   - Key: action.make_friend.desc
     Value: Mark new country as friend.
   - Key: action.make_rival.name
-    Value: Declaration of Rivalry
+    Value: Make Rival
   - Key: action.make_rival.desc
     Value: Mark new country as rival.
   - Key: action.stop_friendship.name
@@ -1783,17 +1807,13 @@ MonoBehaviour:
   - Key: effect.declare_war_effect.desc
     Value: Start a war with the targeted rival.
   - Key: action.decrease_enemy_control.name
-    Value: Undermine Influence
+    Value: Decrease Enemy Control
   - Key: action.decrease_enemy_control.desc
-    Value: Weaken a rival's control and strengthen your own.
+    Value: Decrease a rival organization's control.
   - Key: effect.decrease_enemy_control_drain.name
     Value: Weaken Rival Control
   - Key: effect.decrease_enemy_control_drain.desc
     Value: Decrease a rival organization's control.
-  - Key: effect.decrease_enemy_control_gain.name
-    Value: Strengthen Control
-  - Key: effect.decrease_enemy_control_gain.desc
-    Value: Increase your organization's control.
   - Key: action.sell_arms.name
     Value: Sell Arms
   - Key: action.sell_arms.desc
@@ -1802,22 +1822,70 @@ MonoBehaviour:
     Value: Arms Supply Bonus
   - Key: effect.sell_arms_damage_bonus_effect.desc
     Value: Boosts this country's troop damage, fading gradually over time.
-  - Key: action.ultimatum.name
-    Value: Ultimatum
-  - Key: action.ultimatum.desc
+  - Key: action.force_war_win.name
+    Value: Force War Win
+  - Key: action.force_war_win.desc
     Value: Force this country to win its current war.
-  - Key: action.surrender.name
-    Value: Surrender
-  - Key: action.surrender.desc
+  - Key: action.force_war_loss.name
+    Value: Force War Loss
+  - Key: action.force_war_loss.desc
     Value: Force this country to lose its current war.
-  - Key: effect.ultimatum_effect.name
+  - Key: effect.force_war_win_effect.name
     Value: Force War Victory
-  - Key: effect.ultimatum_effect.desc
+  - Key: effect.force_war_win_effect.desc
     Value: End the country's current war with it as the winner.
-  - Key: effect.surrender_effect.name
+  - Key: effect.force_war_loss_effect.name
     Value: Force War Defeat
-  - Key: effect.surrender_effect.desc
+  - Key: effect.force_war_loss_effect.desc
     Value: End the country's current war with it as the loser.
+  - Key: action.requirement.generic
+    Value: Card requirement met
+  - Key: action.requirement.action_exists
+    Value: Card action exists
+  - Key: action.requirement.unavailable
+    Value: Card is unavailable
+  - Key: action.requirement.control_min
+    Value: Control at least {0}
+  - Key: action.requirement.enemy_control
+    Value: Enemy control exists
+  - Key: action.requirement.opinion_min
+    Value: Opinion at least {0}
+  - Key: action.requirement.friend_candidate
+    Value: Friend candidate exists
+  - Key: action.requirement.rival_candidate
+    Value: Rival candidate exists
+  - Key: action.requirement.relation_friend
+    Value: Countries are friends
+  - Key: action.requirement.relation_rival
+    Value: Countries are rivals
+  - Key: action.requirement.in_war
+    Value: Country is at war
+  - Key: action.requirement.war_progress_min
+    Value: War progress at least {0}
+  - Key: action.requirement.war_progress_max
+    Value: War progress at most {0}
+  - Key: action.requirement.target_opinion_min
+    Value: Target opinion at least {0}
+  - Key: action.requirement.neither_at_war
+    Value: Both countries are at peace
+  - Key: action.requirement.war_free
+    Value: Countries are not at war
+  - Key: action.requirement.revenge_target
+    Value: Revenge target exists
+  - Key: action.requirement.primary_country
+    Value: Select {0}
+  - Key: action.requirement.control_capacity
+    Value: Control pool has space
+  - Key: action.requirement.cooldown_ready
+    Value: Card is off cooldown
+  - Key: action.requirement.gold
+    Value: Have {0} gold
+  - Key: action.requirement.resource
+    Value: Have {0} {2}
+  - Key: action.discard.hint
+    Value: Discard for
+  - Key: action.discard.no_gold
+    Value: Not enough gold
   - Key: action.country.unplayable.pool_full
     Value: No control pool space remaining
   - Key: action.country.unplayable.insufficient_control
@@ -1842,13 +1910,13 @@ MonoBehaviour:
     Value: This country is not currently at war
   - Key: action.country.unplayable.on_cooldown
     Value: On cooldown
-  - Key: action.revenge.name
-    Value: "{0} Revenge"
-  - Key: action.revenge.desc
+  - Key: action.declare_revenge_war.name
+    Value: "Declare Revenge War on {0}"
+  - Key: action.declare_revenge_war.desc
     Value: Declare a revenge war against this country with temporary combat bonuses.
-  - Key: effect.revenge_declare_war.name
+  - Key: effect.declare_revenge_war_effect.name
     Value: Declare Revenge War
-  - Key: effect.revenge_declare_war.desc
+  - Key: effect.declare_revenge_war_effect.desc
     Value: Start a war with temporary damage and durability bonuses for the attacker.
   - Key: action.country.unplayable.war_ended
     Value: War has ended

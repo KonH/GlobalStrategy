@@ -33,6 +33,27 @@ namespace GS.Game.Tests {
 			return result;
 		}
 
+		static int GetSlot(GameLogic logic, string orgId, CardOwnerKind ownerKind, string actionId) {
+			int[] req = {
+				TypeId<GameAction>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CardOwnerType>.Value,
+				TypeId<CardInHand>.Value
+			};
+			foreach (var arch in logic.World.GetMatchingArchetypes(req, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
+				CardInHand[] hands = arch.GetColumn<CardInHand>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (orgs[i].OrgId == orgId && owners[i].Value == ownerKind && actions[i].ActionId == actionId) {
+						return hands[i].SlotIndex;
+					}
+				}
+			}
+			throw new KeyNotFoundException($"Hand card not found: org={orgId} owner={ownerKind} action={actionId}");
+		}
+
 		[Fact]
 		void sink_stamps_org_id_on_all_commands() {
 			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
@@ -45,7 +66,8 @@ namespace GS.Game.Tests {
 
 			var sinkA = new BotCommandSink(MultiOrgTestSupport.OrgA, logic.Commands, null);
 			sinkA.BeginDecisionPhase();
-			sinkA.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId);
+			sinkA.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId,
+				GetSlot(logic, MultiOrgTestSupport.OrgA, CardOwnerKind.Org, MultiOrgTestSupport.SpendGoldActionId));
 			logic.Update(0f);
 
 			Assert.Equal(goldABefore - 50.0, OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA));
@@ -61,13 +83,19 @@ namespace GS.Game.Tests {
 			logicSink.Update(0f);
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, logicSink.Commands, null);
 			sink.BeginDecisionPhase();
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId);
+			int spendSlot = GetSlot(logicSink, MultiOrgTestSupport.OrgA, CardOwnerKind.Org, MultiOrgTestSupport.SpendGoldActionId);
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId, spendSlot);
 			logicSink.Update(0f);
 
 			var ctxDirect = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 21);
 			var logicDirect = new GameLogic(ctxDirect);
 			logicDirect.Update(0f);
-			logicDirect.Commands.Push(new PlayCardActionCommand { OrgId = MultiOrgTestSupport.OrgA, ActionId = MultiOrgTestSupport.SpendGoldActionId, CountryId = "" });
+			logicDirect.Commands.Push(new PlayCardActionCommand {
+				OrgId = MultiOrgTestSupport.OrgA,
+				ActionId = MultiOrgTestSupport.SpendGoldActionId,
+				CountryId = "",
+				SlotIndex = GetSlot(logicDirect, MultiOrgTestSupport.OrgA, CardOwnerKind.Org, MultiOrgTestSupport.SpendGoldActionId)
+			});
 			logicDirect.Update(0f);
 
 			Assert.Equal(OrgMetrics.GetGold(logicDirect.World, MultiOrgTestSupport.OrgA), OrgMetrics.GetGold(logicSink.World, MultiOrgTestSupport.OrgA));
@@ -87,8 +115,9 @@ namespace GS.Game.Tests {
 
 			double goldBefore = OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA);
 			sink.BeginDecisionPhase();
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId);
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId);
+			int spendSlot = GetSlot(logic, MultiOrgTestSupport.OrgA, CardOwnerKind.Org, MultiOrgTestSupport.SpendGoldActionId);
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId, spendSlot);
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId, spendSlot);
 			logic.Update(0f);
 
 			Assert.Equal(goldBefore - 50.0, OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA));
@@ -106,8 +135,10 @@ namespace GS.Game.Tests {
 			double goldBefore = OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA);
 			int controlBefore = OrgMetrics.GetTotalControl(logic.World, MultiOrgTestSupport.OrgA);
 			sink.BeginDecisionPhase();
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId);
-			sink.PlayCountryCard(MultiOrgTestSupport.CountryCardActionId, MultiOrgTestSupport.HqA);
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId,
+				GetSlot(logic, MultiOrgTestSupport.OrgA, CardOwnerKind.Org, MultiOrgTestSupport.SpendGoldActionId));
+			sink.PlayCountryCard(MultiOrgTestSupport.CountryCardActionId, MultiOrgTestSupport.HqA,
+				GetSlot(logic, MultiOrgTestSupport.OrgA, CardOwnerKind.Country, MultiOrgTestSupport.CountryCardActionId), "");
 			logic.Update(0f);
 
 			Assert.Equal(goldBefore - 50.0 - MultiOrgTestSupport.CountryCardGoldCost, OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA));
@@ -125,12 +156,15 @@ namespace GS.Game.Tests {
 			double goldStart = OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA);
 
 			sink.BeginDecisionPhase();
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId);
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId,
+				GetSlot(logic, MultiOrgTestSupport.OrgA, CardOwnerKind.Org, MultiOrgTestSupport.SpendGoldActionId));
 			logic.Update(0f);
 			Assert.Equal(goldStart - 50.0, OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA));
 
+			logic.Update(0f);
 			sink.BeginDecisionPhase();
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId);
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId,
+				GetSlot(logic, MultiOrgTestSupport.OrgA, CardOwnerKind.Org, MultiOrgTestSupport.SpendGoldActionId));
 			logic.Update(0f);
 			Assert.Equal(goldStart - 100.0, OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA));
 		}
@@ -141,10 +175,16 @@ namespace GS.Game.Tests {
 			Assert.Equal(2, methods.Length);
 			Assert.Contains(methods, m =>
 				m.Name == "PlayOrgCard" && !m.IsGenericMethod &&
-				m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType == typeof(string));
+				m.GetParameters().Length == 2
+				&& m.GetParameters()[0].ParameterType == typeof(string)
+				&& m.GetParameters()[1].ParameterType == typeof(int));
 			Assert.Contains(methods, m =>
 				m.Name == "PlayCountryCard" && !m.IsGenericMethod &&
-				m.GetParameters().Length == 2 && m.GetParameters().All(p => p.ParameterType == typeof(string)));
+				m.GetParameters().Length == 4
+				&& m.GetParameters()[0].ParameterType == typeof(string)
+				&& m.GetParameters()[1].ParameterType == typeof(string)
+				&& m.GetParameters()[2].ParameterType == typeof(int)
+				&& m.GetParameters()[3].ParameterType == typeof(string));
 		}
 	}
 }

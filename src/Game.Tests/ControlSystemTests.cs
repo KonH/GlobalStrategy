@@ -11,11 +11,12 @@ namespace GS.Game.Tests {
 		static readonly DateTime Jan1  = new DateTime(1880, 1,  1,  0, 0, 0);
 		static readonly DateTime Jan2  = new DateTime(1880, 1,  2,  0, 0, 0);
 
-		static int AddResource(World world, string ownerId, string resourceId, double value) {
-			int e = world.Create();
-			world.Add(e, new ResourceOwner(ownerId));
-			world.Add(e, new Resource { ResourceId = resourceId, Value = value });
-			return e;
+		static void AddResource(World world, ResourceQuery resources, string ownerId, string resourceId, double value) {
+			resources.Set(world, ownerId, resourceId, value);
+		}
+
+		static double GetResource(World world, ResourceQuery resources, string ownerId, string resourceId) {
+			return resources.GetValue(world, ownerId, resourceId);
 		}
 
 		static void AddMonthlyEffect(World world, string ownerId, string resourceId, double value) {
@@ -59,63 +60,67 @@ namespace GS.Game.Tests {
 		[Fact]
 		void gold_transferred_at_month_boundary() {
 			var world = new World();
-			int countryGold = AddResource(world, "Russia", "gold", 500.0);
-			int orgGold     = AddResource(world, "Org1",   "gold", 0.0);
+			var resources = new ResourceQuery();
+			AddResource(world, resources, "Russia", "gold", 500.0);
+			AddResource(world, resources, "Org1",   "gold", 0.0);
 			AddMonthlyEffect(world, "Russia", "gold", 1000.0);
 			AddControl(world, "Org1", "Russia", 20);
 
-			ControlSystem.Update(world, Jan31, Feb1);
+			ControlSystem.Update(world, Jan31, Feb1, resources: resources);
 
-			Assert.Equal(300.0, world.Get<Resource>(countryGold).Value, 2);
-			Assert.Equal(200.0, world.Get<Resource>(orgGold).Value, 2);
+			Assert.Equal(300.0, GetResource(world, resources, "Russia", "gold"), 2);
+			Assert.Equal(200.0, GetResource(world, resources, "Org1", "gold"), 2);
 		}
 
 		// Test 3: zero control — org receives nothing
 		[Fact]
 		void zero_control_receives_nothing() {
 			var world = new World();
-			int countryGold = AddResource(world, "Russia", "gold", 500.0);
-			int orgGold     = AddResource(world, "Org1",   "gold", 0.0);
+			var resources = new ResourceQuery();
+			AddResource(world, resources, "Russia", "gold", 500.0);
+			AddResource(world, resources, "Org1",   "gold", 0.0);
 			AddMonthlyEffect(world, "Russia", "gold", 1000.0);
 			AddControl(world, "Org1", "Russia", 0);
 
-			ControlSystem.Update(world, Jan31, Feb1);
+			ControlSystem.Update(world, Jan31, Feb1, resources: resources);
 
-			Assert.Equal(500.0, world.Get<Resource>(countryGold).Value);
-			Assert.Equal(0.0, world.Get<Resource>(orgGold).Value);
+			Assert.Equal(500.0, GetResource(world, resources, "Russia", "gold"));
+			Assert.Equal(0.0, GetResource(world, resources, "Org1", "gold"));
 		}
 
 		// Test 3b: no month boundary — nothing applied
 		[Fact]
 		void no_transfer_within_same_month() {
 			var world = new World();
-			int countryGold = AddResource(world, "Russia", "gold", 500.0);
-			int orgGold     = AddResource(world, "Org1",   "gold", 0.0);
+			var resources = new ResourceQuery();
+			AddResource(world, resources, "Russia", "gold", 500.0);
+			AddResource(world, resources, "Org1",   "gold", 0.0);
 			AddMonthlyEffect(world, "Russia", "gold", 1000.0);
 			AddControl(world, "Org1", "Russia", 20);
 
-			ControlSystem.Update(world, Jan1, Jan2);
+			ControlSystem.Update(world, Jan1, Jan2, resources: resources);
 
-			Assert.Equal(500.0, world.Get<Resource>(countryGold).Value);
-			Assert.Equal(0.0, world.Get<Resource>(orgGold).Value);
+			Assert.Equal(500.0, GetResource(world, resources, "Russia", "gold"));
+			Assert.Equal(0.0, GetResource(world, resources, "Org1", "gold"));
 		}
 
 		// Test 4: multiple orgs receive proportional amounts
 		[Fact]
 		void multiple_orgs_receive_correct_amounts() {
 			var world = new World();
-			int countryGold = AddResource(world, "Russia", "gold", 500.0);
-			int org1Gold    = AddResource(world, "Org1",   "gold", 0.0);
-			int org2Gold    = AddResource(world, "Org2",   "gold", 0.0);
+			var resources = new ResourceQuery();
+			AddResource(world, resources, "Russia", "gold", 500.0);
+			AddResource(world, resources, "Org1",   "gold", 0.0);
+			AddResource(world, resources, "Org2",   "gold", 0.0);
 			AddMonthlyEffect(world, "Russia", "gold", 1000.0);
 			AddControl(world, "Org1", "Russia", 20);
 			AddControl(world, "Org2", "Russia", 30);
 
-			ControlSystem.Update(world, Jan31, Feb1);
+			ControlSystem.Update(world, Jan31, Feb1, resources: resources);
 
-			Assert.Equal(200.0, world.Get<Resource>(org1Gold).Value, 2);
-			Assert.Equal(300.0, world.Get<Resource>(org2Gold).Value, 2);
-			Assert.Equal(0.0, world.Get<Resource>(countryGold).Value, 2);
+			Assert.Equal(200.0, GetResource(world, resources, "Org1", "gold"), 2);
+			Assert.Equal(300.0, GetResource(world, resources, "Org2", "gold"), 2);
+			Assert.Equal(0.0, GetResource(world, resources, "Russia", "gold"), 2);
 		}
 
 		// Test 5: ApplyChangeControl creates/updates permanent entity
@@ -181,18 +186,19 @@ namespace GS.Game.Tests {
 		[Fact]
 		void two_orgs_in_same_country_split_monthly_income_proportionally() {
 			var world = new World();
-			int countryGold = AddResource(world, "Russia", "gold", 500.0);
-			int orgAGold    = AddResource(world, "OrgA", "gold", 0.0);
-			int orgBGold    = AddResource(world, "OrgB", "gold", 0.0);
+			var resources = new ResourceQuery();
+			AddResource(world, resources, "Russia", "gold", 500.0);
+			AddResource(world, resources, "OrgA", "gold", 0.0);
+			AddResource(world, resources, "OrgB", "gold", 0.0);
 			AddMonthlyEffect(world, "Russia", "gold", 1000.0);
 			AddControl(world, "OrgA", "Russia", 30, "base_OrgA");
 			AddControl(world, "OrgB", "Russia", 20, "base_OrgB");
 
-			ControlSystem.Update(world, Jan31, Feb1);
+			ControlSystem.Update(world, Jan31, Feb1, resources: resources);
 
-			Assert.Equal(300.0, world.Get<Resource>(orgAGold).Value, 2);
-			Assert.Equal(200.0, world.Get<Resource>(orgBGold).Value, 2);
-			Assert.Equal(0.0, world.Get<Resource>(countryGold).Value, 2);
+			Assert.Equal(300.0, GetResource(world, resources, "OrgA", "gold"), 2);
+			Assert.Equal(200.0, GetResource(world, resources, "OrgB", "gold"), 2);
+			Assert.Equal(0.0, GetResource(world, resources, "Russia", "gold"), 2);
 		}
 
 		// Test 8: base effect entity remains untouched after command

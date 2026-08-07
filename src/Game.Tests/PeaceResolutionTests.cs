@@ -10,6 +10,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class PeaceResolutionTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static readonly DateTime DeclareTime = new DateTime(1880, 1, 1);
 		static readonly DateTime PeaceTime = new DateTime(1880, 4, 1);
 		// Exactly three 30-day billable months under ceil(days/30).
@@ -28,8 +30,8 @@ namespace GS.Game.Tests {
 
 		static ProvinceTopology EmptyTopology() => new ProvinceTopology(new ProvinceConfig());
 
-		static void SetProgress(World world, string warId, double value) {
-			ResourceMutations.TrySetValue(world, warId, ResourceDefinitions.WarProgress, value, out _);
+		void SetProgress(World world, string warId, double value) {
+			ResourceMutations.TrySetValue(_resources, world, warId, ResourceDefinitions.WarProgress, value, out _);
 		}
 
 		static string GetOnlyWarId(World world) {
@@ -98,7 +100,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void positive_progress_makes_attacker_winner() {
 			var world = new World();
-			Wars.DeclareWar(world, "Attacker", "Defender", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Attacker", "Defender", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 50);
 
@@ -115,7 +117,7 @@ namespace GS.Game.Tests {
 			settings.PeaceProvinceTransferMinPercent = 100;
 			settings.PeaceProvinceTransferMaxPercent = 100;
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), settings, EmptyTopology(), centers, 100);
+			Wars.ResolvePeace(world, _resources, warId, PeaceTime, new Random(1), settings, EmptyTopology(), centers, 100);
 
 			Assert.Equal("Attacker", ProvinceOwnershipSystem.GetOwner(world, "p_lose"));
 			Assert.Equal(0, CountEntities<War>(world));
@@ -124,7 +126,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void negative_progress_makes_defender_winner() {
 			var world = new World();
-			Wars.DeclareWar(world, "Attacker", "Defender", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Attacker", "Defender", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, -50);
 
@@ -141,7 +143,7 @@ namespace GS.Game.Tests {
 			settings.PeaceProvinceTransferMinPercent = 100;
 			settings.PeaceProvinceTransferMaxPercent = 100;
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), settings, EmptyTopology(), centers, 100);
+			Wars.ResolvePeace(world, _resources, warId, PeaceTime, new Random(1), settings, EmptyTopology(), centers, 100);
 
 			Assert.Equal("Defender", ProvinceOwnershipSystem.GetOwner(world, "p_lose"));
 			Assert.Equal(0, CountEntities<War>(world));
@@ -150,7 +152,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void transfer_prefers_provinces_closer_to_winner_centroid_with_ceiling() {
 			var world = new World();
-			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Winner", "Loser", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 80);
 
@@ -176,7 +178,7 @@ namespace GS.Game.Tests {
 			settings.PeaceProvinceTransferMinPercent = 30;
 			settings.PeaceProvinceTransferMaxPercent = 30;
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), settings, EmptyTopology(), centers, 100);
+			Wars.ResolvePeace(world, _resources, warId, PeaceTime, new Random(1), settings, EmptyTopology(), centers, 100);
 
 			Assert.Equal("Winner", ProvinceOwnershipSystem.GetOwner(world, "near"));
 			Assert.Equal("Loser", ProvinceOwnershipSystem.GetOwner(world, "mid"));
@@ -190,7 +192,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void transfer_prefers_province_near_winner_mainland_over_disconnected_colony() {
 			var world = new World();
-			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Winner", "Loser", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 80);
 
@@ -229,7 +231,7 @@ namespace GS.Game.Tests {
 			settings.PeaceProvinceTransferMinPercent = 50;
 			settings.PeaceProvinceTransferMaxPercent = 50;
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), settings, topology, centers, 100);
+			Wars.ResolvePeace(world, _resources, warId, PeaceTime, new Random(1), settings, topology, centers, 100);
 
 			Assert.Equal("Winner", ProvinceOwnershipSystem.GetOwner(world, "near_mainland"));
 			Assert.Equal("Loser", ProvinceOwnershipSystem.GetOwner(world, "near_colony"));
@@ -238,7 +240,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void centroid_falls_back_to_every_owned_province_when_winner_holds_no_main_territory() {
 			var world = new World();
-			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Winner", "Loser", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 80);
 
@@ -263,7 +265,7 @@ namespace GS.Game.Tests {
 			settings.PeaceProvinceTransferMinPercent = 100;
 			settings.PeaceProvinceTransferMaxPercent = 100;
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), settings, topology, centers, 100);
+			Wars.ResolvePeace(world, _resources, warId, PeaceTime, new Random(1), settings, topology, centers, 100);
 
 			Assert.Equal("Winner", ProvinceOwnershipSystem.GetOwner(world, "near"));
 		}
@@ -271,7 +273,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void zero_eligible_skips_ownership_change_but_clears_occupation() {
 			var world = new World();
-			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Winner", "Loser", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 80);
 
@@ -280,7 +282,7 @@ namespace GS.Game.Tests {
 			AddOwnership(world, "p2", "Winner");
 			AddOccupation(world, "p2", "Loser");
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, _resources, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.Equal("Loser", ProvinceOwnershipSystem.GetOwner(world, "p1"));
 			Assert.Equal("Winner", ProvinceOwnershipSystem.GetOwner(world, "p2"));
@@ -291,7 +293,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void gold_spoils_use_duration_org_proportions_country_remainder_and_debt() {
 			var world = new World();
-			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Winner", "Loser", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 50);
 
@@ -305,7 +307,7 @@ namespace GS.Game.Tests {
 			AddGold(world, "OrgWin", OwnerType.Org, 0);
 			AddGold(world, "Winner", OwnerType.Country, 0);
 
-			Wars.ResolvePeace(world, warId, ThreeMonthPeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, _resources, warId, ThreeMonthPeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			// Loser: shares vs pool 100 — OrgLoseA 30%, OrgLoseB 70%
 			Assert.Equal(10 - 90, GetGold(world, "OrgLoseA", OwnerType.Org), precision: 6);
@@ -320,7 +322,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void gold_org_share_uses_control_pool_not_sum_of_org_control() {
 			var world = new World();
-			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Winner", "Loser", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 50);
 
@@ -329,8 +331,7 @@ namespace GS.Game.Tests {
 			AddGold(world, "OrgWin", OwnerType.Org, 0);
 			AddGold(world, "Winner", OwnerType.Country, 0);
 
-			Wars.ResolvePeace(
-				world, warId, DeclareTime.AddDays(30), new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, _resources, warId, DeclareTime.AddDays(30), new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			// 1 month × 100 = 100; org 10/100 → 10, country 90
 			Assert.Equal(10, GetGold(world, "OrgWin", OwnerType.Org), precision: 6);
@@ -340,14 +341,14 @@ namespace GS.Game.Tests {
 		[Fact]
 		void gold_with_no_controlling_orgs_goes_entirely_to_country() {
 			var world = new World();
-			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Winner", "Loser", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 50);
 
 			AddGold(world, "Loser", OwnerType.Country, 1000);
 			AddGold(world, "Winner", OwnerType.Country, 0);
 
-			Wars.ResolvePeace(world, warId, ThreeMonthPeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, _resources, warId, ThreeMonthPeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.Equal(700, GetGold(world, "Loser", OwnerType.Country), precision: 6);
 			Assert.Equal(300, GetGold(world, "Winner", OwnerType.Country), precision: 6);
@@ -356,14 +357,14 @@ namespace GS.Game.Tests {
 		[Fact]
 		void zero_day_peace_transfers_no_gold() {
 			var world = new World();
-			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Winner", "Loser", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 50);
 
 			AddGold(world, "Loser", OwnerType.Country, 1000);
 			AddGold(world, "Winner", OwnerType.Country, 0);
 
-			Wars.ResolvePeace(world, warId, DeclareTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, _resources, warId, DeclareTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.Equal(1000, GetGold(world, "Loser", OwnerType.Country));
 			Assert.Equal(0, GetGold(world, "Winner", OwnerType.Country));
@@ -381,15 +382,14 @@ namespace GS.Game.Tests {
 		[Fact]
 		void short_war_of_two_days_bills_one_month_of_gold() {
 			var world = new World();
-			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Winner", "Loser", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 50);
 
 			AddGold(world, "Loser", OwnerType.Country, 5000);
 			AddGold(world, "Winner", OwnerType.Country, 0);
 
-			Wars.ResolvePeace(
-				world, warId, DeclareTime.AddDays(2), new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, _resources, warId, DeclareTime.AddDays(2), new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.Equal(4900, GetGold(world, "Loser", OwnerType.Country), precision: 6);
 			Assert.Equal(100, GetGold(world, "Winner", OwnerType.Country), precision: 6);
@@ -398,7 +398,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void control_shifts_top_first_with_fractions() {
 			var world = new World();
-			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Winner", "Loser", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 50);
 
@@ -407,7 +407,7 @@ namespace GS.Game.Tests {
 			AddControl(world, "OrgLoseTop", "Loser", 40);
 			AddControl(world, "OrgLoseLow", "Loser", 20);
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, _resources, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.Equal(42, ControlQuery.GetOrgControlInCountry(world, "OrgWinTop", "Winner"));
 			Assert.Equal(21, ControlQuery.GetOrgControlInCountry(world, "OrgWinLow", "Winner"));
@@ -418,7 +418,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void winner_boost_with_base_effect_near_full_pool_stays_at_or_below_max() {
 			var world = new World();
-			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Winner", "Loser", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 50);
 
@@ -426,7 +426,7 @@ namespace GS.Game.Tests {
 			AddControl(world, "OrgWin", "Winner", 96, "base_OrgWin");
 			AddControl(world, "OrgLose", "Loser", 10, "base_OrgLose");
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, _resources, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.True(ControlQuery.GetTotalControlInCountry(world, "Winner") <= 100);
 			// desired = Round(96 * 0.05) = 5, room = 4 → +4 → total 100
@@ -437,7 +437,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void progress_zero_stop_war_skips_transfer_gold_and_control() {
 			var world = new World();
-			Wars.DeclareWar(world, "A", "B", DeclareTime);
+			Wars.DeclareWar(world, _resources, "A", "B", DeclareTime);
 			// progress stays 0
 
 			AddOwnership(world, "p_b", "B");
@@ -450,7 +450,7 @@ namespace GS.Game.Tests {
 			AddGold(world, "A", OwnerType.Country, 500);
 			AddGold(world, "B", OwnerType.Country, 500);
 
-			bool result = Wars.StopWar(world, "A", PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			bool result = Wars.StopWar(world, _resources, "A", PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.True(result);
 			Assert.Equal(0, CountEntities<War>(world));
@@ -467,24 +467,24 @@ namespace GS.Game.Tests {
 		[Fact]
 		void peace_resolution_does_not_touch_country_relations() {
 			var world = new World();
-			Wars.DeclareWar(world, "A", "B", DeclareTime);
+			Wars.DeclareWar(world, _resources, "A", "B", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 50);
-			CountryRelations.SetRelation(world, "A", "B", RelationKind.Rival);
+			_relations.SetRelation(world, "A", "B", RelationKind.Rival);
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, _resources, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
-			Assert.Equal(RelationKind.Rival, CountryRelations.GetRelation(world, "A", "B"));
+			Assert.Equal(RelationKind.Rival, _relations.GetRelation(world, "A", "B"));
 		}
 
 		[Fact]
 		void resolve_peace_creates_war_resolved_log_event_with_winner_and_loser() {
 			var world = new World();
-			Wars.DeclareWar(world, "Attacker", "Defender", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Attacker", "Defender", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 50);
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, _resources, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			WarResolvedApplied applied = Assert.Single(GetComponents<WarResolvedApplied>(world));
 			Assert.Equal("Attacker", applied.WinnerCountryId);
@@ -494,7 +494,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void resolve_peace_emits_enriched_war_resolved_snapshot() {
 			var world = new World();
-			Wars.DeclareWar(world, "Attacker", "Defender", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Attacker", "Defender", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 50);
 
@@ -546,8 +546,7 @@ namespace GS.Game.Tests {
 				}
 			};
 
-			Wars.ResolvePeace(
-				world, warId, ThreeMonthPeaceTime, new Random(1), settings, EmptyTopology(), centers, 100, countryConfig);
+			Wars.ResolvePeace(world, _resources, warId, ThreeMonthPeaceTime, new Random(1), settings, EmptyTopology(), centers, 100, countryConfig);
 
 			WarResolvedApplied applied = Assert.Single(GetComponents<WarResolvedApplied>(world));
 			Assert.Equal(warId, applied.WarId);
@@ -585,11 +584,11 @@ namespace GS.Game.Tests {
 		[Fact]
 		void zero_day_peace_emits_zero_gold_and_empty_recipients() {
 			var world = new World();
-			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Winner", "Loser", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 50);
 
-			Wars.ResolvePeace(world, warId, DeclareTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, _resources, warId, DeclareTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			WarResolvedApplied applied = Assert.Single(GetComponents<WarResolvedApplied>(world));
 			Assert.Equal(0, applied.GoldTaken);
@@ -600,14 +599,14 @@ namespace GS.Game.Tests {
 		[Fact]
 		void zero_eligible_provinces_emits_empty_transferred_list() {
 			var world = new World();
-			Wars.DeclareWar(world, "Winner", "Loser", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Winner", "Loser", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 80);
 
 			AddOwnership(world, "p1", "Loser");
 			AddOccupation(world, "p1", "");
 
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, _resources, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			WarResolvedApplied applied = Assert.Single(GetComponents<WarResolvedApplied>(world));
 			Assert.NotNull(applied.TransferredProvinces);
@@ -617,10 +616,10 @@ namespace GS.Game.Tests {
 		[Fact]
 		void progress_zero_stop_war_creates_no_war_resolved_log_event() {
 			var world = new World();
-			Wars.DeclareWar(world, "A", "B", DeclareTime);
+			Wars.DeclareWar(world, _resources, "A", "B", DeclareTime);
 			// progress stays 0
 
-			Wars.StopWar(world, "A", PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			Wars.StopWar(world, _resources, "A", PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.Empty(GetComponents<WarResolvedApplied>(world));
 		}
@@ -654,7 +653,7 @@ namespace GS.Game.Tests {
 				Battles = new List<WarBattleRowSnapshot>()
 			});
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state);
+			var converter = new VisualStateConverter(state, _resources, _relations);
 
 			converter.Update(0, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -708,7 +707,7 @@ namespace GS.Game.Tests {
 				}
 			};
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, eventNotifications: settings);
+			var converter = new VisualStateConverter(state, _resources, _relations, eventNotifications: settings);
 
 			converter.Update(0, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -761,7 +760,7 @@ namespace GS.Game.Tests {
 			});
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state);
+			var converter = new VisualStateConverter(state, _resources, _relations);
 			converter.Update(0, world, gameTimeEntity, localeEntity, orgEntity);
 
 			Assert.Equal(2, state.GameLog.Entries.Count);
@@ -789,10 +788,10 @@ namespace GS.Game.Tests {
 			world.Add(orgEntity, new Organization { OrganizationId = "Org", DisplayName = "Org" });
 			AddControl(world, "Org", "Attacker", 5);
 
-			Wars.DeclareWar(world, "Attacker", "Defender", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Attacker", "Defender", DeclareTime);
 			string warId = GetOnlyWarId(world);
 			SetProgress(world, warId, 40);
-			Wars.ResolvePeace(world, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
+			Wars.ResolvePeace(world, _resources, warId, PeaceTime, new Random(1), DefaultSettings(), EmptyTopology(), EmptyCenters(), 100);
 
 			// GameLogic order: peace/StopWar emit earlier, then UpdateActionEffects runs, then
 			// VisualStateConverter. UpdateActionEffects must not wipe WarResolvedApplied here.
@@ -801,7 +800,7 @@ namespace GS.Game.Tests {
 			Assert.Single(GetComponents<WarResolvedApplied>(world));
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state);
+			var converter = new VisualStateConverter(state, _resources, _relations);
 			converter.Update(0, world, gameTimeEntity, localeEntity, orgEntity);
 
 			Assert.Single(state.GameLog.Entries);

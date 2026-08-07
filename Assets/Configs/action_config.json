@@ -1,49 +1,74 @@
 {
   "defaults": [
-    { "ownerType": "org",     "handSize": 3 },
-    { "ownerType": "country", "handSize": 5 }
+    {
+      "ownerType": "org",
+      "handSize": 3
+    },
+    {
+      "ownerType": "country",
+      "handSize": 5
+    }
   ],
   "actions": [
     {
-      "actionId": "sphere_of_pressure",
+      "actionId": "improve_control",
       "ownerType": "country",
       "rarity": "Standard",
-      "nameKey": "action.sphere_of_pressure.name",
-      "descKey": "action.sphere_of_pressure.desc",
+      "nameKey": "action.improve_control.name",
+      "descKey": "action.improve_control.desc",
       "targetRole": "",
-      "deckCopies": 3,
-      "cooldownDays": 14,
+      "deckCopies": 25,
+      "cooldownDays": 3,
       "conditions": [],
-      "cost": [{ "resourceId": "gold", "amount": 75.0 }],
-      "effectIds": ["sphere_of_pressure_control"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 75.0
+        }
+      ],
+      "effectIds": [
+        "improve_control_effect"
+      ]
     },
     {
-      "actionId": "letter_of_commendation_diplomacy_advisor",
+      "actionId": "improve_diplomacy_advisor_opinion",
       "ownerType": "country",
       "rarity": "Standard",
-      "nameKey": "action.letter_of_commendation_diplomacy_advisor.name",
-      "descKey": "action.letter_of_commendation_diplomacy_advisor.desc",
+      "nameKey": "action.improve_diplomacy_advisor_opinion.name",
+      "descKey": "action.improve_diplomacy_advisor_opinion.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 3,
+      "deckCopies": 9,
       "cooldownDays": 21,
       "conditions": [
         {
           "type": "gte",
           "members": [
-            { "type": "control" },
-            { "type": "value", "value": 10 }
+            {
+              "type": "control"
+            },
+            {
+              "type": "value",
+              "value": 10
+            }
           ]
         }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 30.0 }],
-      "effectIds": ["letter_commendation_control", "letter_commendation_opinion"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 30.0
+        }
+      ],
+      "effectIds": [
+        "improve_diplomacy_advisor_opinion_effect"
+      ]
     },
     {
-      "actionId": "letter_of_commendation_economic_advisor",
+      "actionId": "improve_economic_advisor_opinion",
       "ownerType": "country",
       "rarity": "Standard",
-      "nameKey": "action.letter_of_commendation_economic_advisor.name",
-      "descKey": "action.letter_of_commendation_economic_advisor.desc",
+      "nameKey": "action.improve_economic_advisor_opinion.name",
+      "descKey": "action.improve_economic_advisor_opinion.desc",
       "targetRole": "economic_advisor",
       "deckCopies": 0,
       "cooldownDays": 21,
@@ -51,76 +76,124 @@
         {
           "type": "gte",
           "members": [
-            { "type": "control" },
-            { "type": "value", "value": 10 }
+            {
+              "type": "control"
+            },
+            {
+              "type": "value",
+              "value": 10
+            }
           ]
         }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 30.0 }],
-      "effectIds": ["letter_commendation_control", "letter_commendation_opinion"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 30.0
+        }
+      ],
+      "effectIds": [
+        "improve_economic_advisor_opinion_effect"
+      ]
     },
     {
-      "actionId": "letter_of_commendation_military_advisor",
+      "actionId": "improve_military_advisor_opinion",
       "ownerType": "country",
       "rarity": "Standard",
-      "nameKey": "action.letter_of_commendation_military_advisor.name",
-      "descKey": "action.letter_of_commendation_military_advisor.desc",
+      "nameKey": "action.improve_military_advisor_opinion.name",
+      "descKey": "action.improve_military_advisor_opinion.desc",
       "targetRole": "military_advisor",
-      "deckCopies": 2,
+      "deckCopies": 6,
       "cooldownDays": 21,
       "conditions": [
         {
           "type": "gte",
           "members": [
-            { "type": "control" },
-            { "type": "value", "value": 10 }
+            {
+              "type": "control"
+            },
+            {
+              "type": "value",
+              "value": 10
+            }
           ]
         }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 30.0 }],
-      "effectIds": ["letter_commendation_control", "letter_commendation_opinion"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 30.0
+        }
+      ],
+      "effectIds": [
+        "improve_military_advisor_opinion_effect"
+      ]
     },
     {
-      "actionId": "letter_of_commendation_secret_advisor",
+      "actionId": "improve_secret_advisor_opinion",
       "ownerType": "country",
       "rarity": "Standard",
-      "nameKey": "action.letter_of_commendation_secret_advisor.name",
-      "descKey": "action.letter_of_commendation_secret_advisor.desc",
+      "nameKey": "action.improve_secret_advisor_opinion.name",
+      "descKey": "action.improve_secret_advisor_opinion.desc",
       "targetRole": "secret_advisor",
-      "deckCopies": 1,
+      "deckCopies": 3,
       "cooldownDays": 21,
       "conditions": [
         {
           "type": "gte",
           "members": [
-            { "type": "control" },
-            { "type": "value", "value": 10 }
+            {
+              "type": "control"
+            },
+            {
+              "type": "value",
+              "value": 10
+            }
           ]
         }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 30.0 }],
-      "effectIds": ["letter_commendation_control", "letter_commendation_opinion"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 30.0
+        }
+      ],
+      "effectIds": [
+        "improve_secret_advisor_opinion_effect"
+      ]
     },
     {
-      "actionId": "royal_audience",
+      "actionId": "improve_ruler_opinion",
       "ownerType": "country",
       "rarity": "Standard",
-      "nameKey": "action.royal_audience.name",
-      "descKey": "action.royal_audience.desc",
+      "nameKey": "action.improve_ruler_opinion.name",
+      "descKey": "action.improve_ruler_opinion.desc",
       "targetRole": "ruler",
-      "deckCopies": 2,
+      "deckCopies": 6,
       "cooldownDays": 30,
       "conditions": [
         {
           "type": "gte",
           "members": [
-            { "type": "control" },
-            { "type": "value", "value": 20 }
+            {
+              "type": "control"
+            },
+            {
+              "type": "value",
+              "value": 20
+            }
           ]
         }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 50.0 }],
-      "effectIds": ["royal_audience_control", "royal_audience_opinion"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 50.0
+        }
+      ],
+      "effectIds": [
+        "improve_ruler_opinion_effect"
+      ]
     },
     {
       "actionId": "make_friend",
@@ -129,14 +202,45 @@
       "nameKey": "action.make_friend.name",
       "descKey": "action.make_friend.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 3,
+      "deckCopies": 9,
       "cooldownDays": 30,
       "conditions": [
-        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 30 } ] },
-        { "type": "gte", "members": [ { "type": "hasSuitableRelationTarget" }, { "type": "value", "value": 1 } ] }
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "opinion"
+            },
+            {
+              "type": "value",
+              "value": 30
+            }
+          ]
+        },
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "hasCountryRelation",
+              "relationKind": "none",
+              "desiredRelationKind": "friend"
+            },
+            {
+              "type": "value",
+              "value": 1
+            }
+          ]
+        }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 100.0 }],
-      "effectIds": ["make_friend_effect"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 100.0
+        }
+      ],
+      "effectIds": [
+        "make_friend_effect"
+      ]
     },
     {
       "actionId": "make_rival",
@@ -145,14 +249,45 @@
       "nameKey": "action.make_rival.name",
       "descKey": "action.make_rival.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 5,
+      "deckCopies": 15,
       "cooldownDays": 21,
       "conditions": [
-        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 30 } ] },
-        { "type": "gte", "members": [ { "type": "hasSuitableRelationTarget" }, { "type": "value", "value": 1 } ] }
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "opinion"
+            },
+            {
+              "type": "value",
+              "value": 30
+            }
+          ]
+        },
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "hasCountryRelation",
+              "relationKind": "none",
+              "desiredRelationKind": "rival"
+            },
+            {
+              "type": "value",
+              "value": 1
+            }
+          ]
+        }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 75.0 }],
-      "effectIds": ["make_rival_effect"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 75.0
+        }
+      ],
+      "effectIds": [
+        "make_rival_effect"
+      ]
     },
     {
       "actionId": "stop_friendship",
@@ -164,11 +299,41 @@
       "deckCopies": 1,
       "cooldownDays": 30,
       "conditions": [
-        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] },
-        { "type": "gte", "members": [ { "type": "relationStillExists" }, { "type": "value", "value": 1 } ] }
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "opinion"
+            },
+            {
+              "type": "value",
+              "value": 80
+            }
+          ]
+        },
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "hasCountryRelation",
+              "relationKind": "friend"
+            },
+            {
+              "type": "value",
+              "value": 1
+            }
+          ]
+        }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 125.0 }],
-      "effectIds": ["clear_friendship_effect"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 125.0
+        }
+      ],
+      "effectIds": [
+        "clear_friendship_effect"
+      ]
     },
     {
       "actionId": "stop_rivalry",
@@ -180,11 +345,41 @@
       "deckCopies": 1,
       "cooldownDays": 21,
       "conditions": [
-        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] },
-        { "type": "gte", "members": [ { "type": "relationStillExists" }, { "type": "value", "value": 1 } ] }
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "opinion"
+            },
+            {
+              "type": "value",
+              "value": 80
+            }
+          ]
+        },
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "hasCountryRelation",
+              "relationKind": "rival"
+            },
+            {
+              "type": "value",
+              "value": 1
+            }
+          ]
+        }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 100.0 }],
-      "effectIds": ["clear_rivalry_effect"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 100.0
+        }
+      ],
+      "effectIds": [
+        "clear_rivalry_effect"
+      ]
     },
     {
       "actionId": "declare_war",
@@ -193,15 +388,56 @@
       "nameKey": "action.declare_war.name",
       "descKey": "action.declare_war.desc",
       "targetRole": "",
-      "deckCopies": 6,
+      "deckCopies": 1,
       "cooldownDays": 30,
       "conditions": [
-        { "type": "gte", "members": [ { "type": "targetRulerOrMilitaryOpinion" }, { "type": "value", "value": 50 } ] },
-        { "type": "gte", "members": [ { "type": "relationStillExists" }, { "type": "value", "value": 1 } ] },
-        { "type": "gte", "members": [ { "type": "neitherSideAtWar" }, { "type": "value", "value": 1 } ] }
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "targetRulerOrMilitaryOpinion"
+            },
+            {
+              "type": "value",
+              "value": 50
+            }
+          ]
+        },
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "hasCountryRelation",
+              "relationKind": "rival"
+            },
+            {
+              "type": "value",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "neitherSideAtWar"
+            },
+            {
+              "type": "value",
+              "value": 1
+            }
+          ]
+        }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 150.0 }],
-      "effectIds": ["declare_war_effect"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 150.0
+        }
+      ],
+      "effectIds": [
+        "declare_war_effect"
+      ]
     },
     {
       "actionId": "decrease_enemy_control",
@@ -210,7 +446,7 @@
       "nameKey": "action.decrease_enemy_control.name",
       "descKey": "action.decrease_enemy_control.desc",
       "targetRole": "",
-      "deckCopies": 3,
+      "deckCopies": 9,
       "cooldownDays": 45,
       "conditions": [
         {
@@ -219,16 +455,30 @@
             {
               "type": "sub",
               "members": [
-                { "type": "totalCountryControl" },
-                { "type": "control" }
+                {
+                  "type": "totalCountryControl"
+                },
+                {
+                  "type": "control"
+                }
               ]
             },
-            { "type": "value", "value": 0 }
+            {
+              "type": "value",
+              "value": 0
+            }
           ]
         }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 250.0 }],
-      "effectIds": ["decrease_enemy_control_drain_effect", "decrease_enemy_control_gain_effect"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 250.0
+        }
+      ],
+      "effectIds": [
+        "decrease_enemy_control_drain_effect"
+      ]
     },
     {
       "actionId": "sell_arms",
@@ -237,67 +487,238 @@
       "nameKey": "action.sell_arms.name",
       "descKey": "action.sell_arms.desc",
       "targetRole": "military_advisor",
-      "deckCopies": 3,
+      "deckCopies": 9,
       "cooldownDays": 21,
       "conditions": [
-        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] }
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "opinion"
+            },
+            {
+              "type": "value",
+              "value": 80
+            }
+          ]
+        }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 175.0 }],
-      "effectIds": ["sell_arms_damage_bonus_effect"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 175.0
+        }
+      ],
+      "effectIds": [
+        "sell_arms_damage_bonus_effect"
+      ]
     },
     {
-      "actionId": "ultimatum",
+      "actionId": "force_war_win",
       "ownerType": "country",
       "rarity": "Standard",
-      "nameKey": "action.ultimatum.name",
-      "descKey": "action.ultimatum.desc",
+      "nameKey": "action.force_war_win.name",
+      "descKey": "action.force_war_win.desc",
       "targetRole": "military_advisor",
-      "deckCopies": 3,
+      "deckCopies": 9,
       "cooldownDays": 60,
       "conditions": [
-        { "type": "gte", "members": [ { "type": "control" }, { "type": "value", "value": 10 } ] },
-        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 50 } ] },
-        { "type": "gte", "members": [ { "type": "isInWar" }, { "type": "value", "value": 1 } ] },
-        { "type": "gte", "members": [ { "type": "warProgress" }, { "type": "value", "value": 50 } ] }
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "control"
+            },
+            {
+              "type": "value",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "opinion"
+            },
+            {
+              "type": "value",
+              "value": 50
+            }
+          ]
+        },
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "isInWar"
+            },
+            {
+              "type": "value",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "warProgress"
+            },
+            {
+              "type": "value",
+              "value": 50
+            }
+          ]
+        }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 300.0 }],
-      "effectIds": ["ultimatum_effect"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 300.0
+        }
+      ],
+      "effectIds": [
+        "force_war_win_effect"
+      ]
     },
     {
-      "actionId": "surrender",
+      "actionId": "force_war_loss",
       "ownerType": "country",
       "rarity": "Standard",
-      "nameKey": "action.surrender.name",
-      "descKey": "action.surrender.desc",
+      "nameKey": "action.force_war_loss.name",
+      "descKey": "action.force_war_loss.desc",
       "targetRole": "military_advisor",
-      "deckCopies": 3,
+      "deckCopies": 9,
       "cooldownDays": 7,
       "conditions": [
-        { "type": "gte", "members": [ { "type": "control" }, { "type": "value", "value": 20 } ] },
-        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 80 } ] },
-        { "type": "gte", "members": [ { "type": "isInWar" }, { "type": "value", "value": 1 } ] },
-        { "type": "lte", "members": [ { "type": "warProgress" }, { "type": "value", "value": 0 } ] }
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "control"
+            },
+            {
+              "type": "value",
+              "value": 20
+            }
+          ]
+        },
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "opinion"
+            },
+            {
+              "type": "value",
+              "value": 80
+            }
+          ]
+        },
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "isInWar"
+            },
+            {
+              "type": "value",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "type": "lte",
+          "members": [
+            {
+              "type": "warProgress"
+            },
+            {
+              "type": "value",
+              "value": 0
+            }
+          ]
+        }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 25.0 }],
-      "effectIds": ["surrender_effect"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 25.0
+        }
+      ],
+      "effectIds": [
+        "force_war_loss_effect"
+      ]
     },
     {
-      "actionId": "revenge",
+      "actionId": "declare_revenge_war",
       "ownerType": "country",
       "rarity": "Standard",
-      "nameKey": "action.revenge.name",
-      "descKey": "action.revenge.desc",
+      "nameKey": "action.declare_revenge_war.name",
+      "descKey": "action.declare_revenge_war.desc",
       "targetRole": "military_advisor",
-      "deckCopies": 3,
+      "deckCopies": 1,
       "cooldownDays": 30,
       "conditions": [
-        { "type": "gte", "members": [ { "type": "control" }, { "type": "value", "value": 20 } ] },
-        { "type": "gte", "members": [ { "type": "opinion" }, { "type": "value", "value": 25 } ] },
-        { "type": "gte", "members": [ { "type": "warFree" }, { "type": "value", "value": 1 } ] },
-        { "type": "gte", "members": [ { "type": "revengeEligible" }, { "type": "value", "value": 1 } ] }
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "control"
+            },
+            {
+              "type": "value",
+              "value": 20
+            }
+          ]
+        },
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "opinion"
+            },
+            {
+              "type": "value",
+              "value": 25
+            }
+          ]
+        },
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "warFree"
+            },
+            {
+              "type": "value",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "type": "gte",
+          "members": [
+            {
+              "type": "revengeEligible"
+            },
+            {
+              "type": "value",
+              "value": 1
+            }
+          ]
+        }
       ],
-      "cost": [{ "resourceId": "gold", "amount": 125.0 }],
-      "effectIds": ["revenge_declare_war_effect"]
+      "cost": [
+        {
+          "resourceId": "gold",
+          "amount": 125.0
+        }
+      ],
+      "effectIds": [
+        "declare_revenge_war_effect"
+      ]
     }
   ],
   "orgPools": []

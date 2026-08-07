@@ -20,6 +20,7 @@
   "peaceGoldPerMonth": 1000,
   "peaceWinnerControlIncreaseFraction": 0.5,
   "peaceLoserControlDecreaseFraction": 1.0,
+  "discardGoldCost": 50,
   "baseIncome": {
     "flatBase": 10.0,
     "populationWeight": 0.5,

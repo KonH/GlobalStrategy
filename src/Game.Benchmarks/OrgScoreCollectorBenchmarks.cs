@@ -12,22 +12,26 @@ namespace GS.Game.Benchmarks {
 	[MemoryDiagnoser]
 	public class OrgScoreCollectorBenchmarks {
 		World _world = null!;
+		ResourceQuery _resources = null!;
 		IResourceCollector _collector = null!;
 		string _orgId = null!;
 		double _currentValue;
 
 		[GlobalSetup]
 		public void Setup() {
+			var resources = new ResourceQuery();
+			var relations = new CountryRelations();
 			var fixture = GameWorldFixture.Build();
 			_world = fixture.Logic.World;
+			_resources = fixture.Logic.Resources;
 			_collector = fixture.CollectorRegistry.Resolve(OrgScoreCollector.Id);
 			_orgId = fixture.FirstOrgId;
-			_currentValue = ResourceQuery.GetValue(_world, _orgId, ResourceDefinitions.OrgScore);
+			_currentValue = resources.GetValue(_world, _orgId, ResourceDefinitions.OrgScore);
 		}
 
 		[Benchmark]
 		public double Compute() {
-			return _collector.Compute(_orgId, _currentValue, _world);
+			return _collector.Compute(_orgId, _currentValue, _world, _resources);
 		}
 	}
 }

@@ -8,6 +8,8 @@ using GS.Game.Bots;
 using GS.Game.Configs;
 using GS.Main;
 
+using GS.Game.Systems;
+
 namespace GS.Game.ConsoleRunner {
 	public static class HeadlessRunner {
 		static readonly JsonSerializerOptions s_jsonOptions = new JsonSerializerOptions {
@@ -194,7 +196,7 @@ namespace GS.Game.ConsoleRunner {
 				OrgId = orgId,
 				TotalControl = GS.Game.Systems.OrgMetrics.GetTotalControl(logic.World, orgId),
 				Gold = GS.Game.Systems.OrgMetrics.GetGold(logic.World, orgId),
-				Score = GS.Game.Systems.ResourceQuery.GetValue(logic.World, orgId, GS.Game.Configs.ResourceDefinitions.OrgScore)
+				Score = logic.Resources.GetValue(logic.World, orgId, GS.Game.Configs.ResourceDefinitions.OrgScore)
 			};
 		}
 	}

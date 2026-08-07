@@ -11,8 +11,8 @@ namespace GS.Game.Systems {
 			_initialPercent = initialPercent;
 		}
 
-		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) {
-			double population = ResourceQuery.GetValue(world, ownerId, ResourceDefinitions.CountryPopulation);
+		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world, ResourceQuery resources) {
+			double population = resources.GetValue(world, ownerId, ResourceDefinitions.CountryPopulation);
 			return population * _initialPercent / 100.0 - currentValue;
 		}
 	}

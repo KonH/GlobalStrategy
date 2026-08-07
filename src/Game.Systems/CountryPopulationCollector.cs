@@ -7,7 +7,7 @@ namespace GS.Game.Systems {
 	public sealed class CountryPopulationCollector : IResourceCollector {
 		public const string Id = "country_population_aggregate";
 
-		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) {
+		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world, ResourceQuery resources) {
 			var provincesByOwner = ProvinceOwnershipSystem.GetProvincesByOwner(world);
 
 			var populationByProvinceId = new Dictionary<string, double>();
@@ -17,13 +17,13 @@ namespace GS.Game.Systems {
 			};
 			foreach (Archetype arch in world.GetMatchingArchetypes(resourceRequired, null)) {
 				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
-				Resource[] resources = arch.GetColumn<Resource>();
+				Resource[] resourceValues = arch.GetColumn<Resource>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerType != OwnerType.Province || resources[i].ResourceId != ResourceDefinitions.Population) {
+					if (owners[i].OwnerType != OwnerType.Province || resourceValues[i].ResourceId != ResourceDefinitions.Population) {
 						continue;
 					}
-					populationByProvinceId[owners[i].OwnerId] = resources[i].Value;
+					populationByProvinceId[owners[i].OwnerId] = resourceValues[i].Value;
 				}
 			}
 

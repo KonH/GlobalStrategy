@@ -7,6 +7,8 @@ using GS.Game.Common;
 using GS.Game.Configs;
 using GS.Main;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Benchmarks {
 	[MemoryDiagnoser]
 	public class ScalarVisualStateSetBenchmarks {

@@ -11,6 +11,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class CompletionConditionTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		const string OrgA = "org-a";
 		const string OrgB = "org-b";
 
@@ -55,9 +57,9 @@ namespace GS.Game.Tests {
 			}
 			var condition = new FullControlCondition(15);
 
-			Assert.False(condition.IsMet(new CompletionConditionContext(world, OrgA, countries, 100)));
+			Assert.False(condition.IsMet(new CompletionConditionContext(world, OrgA, countries, 100, _resources)));
 			AddControl(world, OrgA, countries[14], 1);
-			Assert.True(condition.IsMet(new CompletionConditionContext(world, OrgA, countries, 100)));
+			Assert.True(condition.IsMet(new CompletionConditionContext(world, OrgA, countries, 100, _resources)));
 		}
 
 		[Fact]
@@ -77,7 +79,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void leaves_fail_safely_when_no_countries_are_available() {
-			var context = new CompletionConditionContext(new World(), OrgA, Array.Empty<string>(), 100);
+			var context = new CompletionConditionContext(new World(), OrgA, Array.Empty<string>(), 100, _resources);
 
 			Assert.False(new TotalControlCondition(0.8).IsMet(context));
 			Assert.False(new FullControlCondition(15).IsMet(context));
@@ -115,7 +117,7 @@ namespace GS.Game.Tests {
 				AddControl(world, OrgA, country, i == 14 ? 99 : 100);
 			}
 			var condition = new FullControlCondition(15);
-			var context = new CompletionConditionContext(world, OrgA, countries, 100);
+			var context = new CompletionConditionContext(world, OrgA, countries, 100, _resources);
 
 			Assert.Equal(14, condition.GetCurrent(context));
 			Assert.Equal(15, condition.GetTarget(context));
@@ -252,7 +254,7 @@ namespace GS.Game.Tests {
 			Assert.Throws<ArgumentOutOfRangeException>(() => CompletionConditionFactory.Create(
 				new CompletionConditionConfig { Type = "total_control", Value = 0.8 }, 0));
 			Assert.Throws<ArgumentOutOfRangeException>(() =>
-				new CompletionConditionContext(new World(), OrgA, new[] { "a" }, 0));
+				new CompletionConditionContext(new World(), OrgA, new[] { "a" }, 0, _resources));
 		}
 
 		static CompletionConditionConfig Any(params CompletionConditionConfig[] members) {
@@ -262,8 +264,8 @@ namespace GS.Game.Tests {
 			};
 		}
 
-		static CompletionConditionContext Context(World world, params string[] countries) {
-			return new CompletionConditionContext(world, OrgA, countries, 100);
+		CompletionConditionContext Context(World world, params string[] countries) {
+			return new CompletionConditionContext(world, OrgA, countries, 100, _resources);
 		}
 
 		static void AddControl(World world, string orgId, string countryId, int value) {

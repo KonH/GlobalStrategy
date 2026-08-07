@@ -8,6 +8,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class SetCountryRelationSystemTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static int AddCountry(World world, string countryId) {
 			int e = world.Create();
 			world.Add(e, new Country(countryId));
@@ -46,9 +48,9 @@ namespace GS.Game.Tests {
 			AddCountry(world, "B");
 			int markerEntity = AddMarker(world, "OrgA", "A", RelationKind.Friend);
 
-			SetCountryRelationSystem.Update(world, -1, new Random(1));
+			SetCountryRelationSystem.Update(world, _relations, -1, new Random(1));
 
-			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(world, "A", "B"));
+			Assert.Equal(RelationKind.Friend, _relations.GetRelation(world, "A", "B"));
 			Assert.False(world.TryGet<SetCountryRelationEffect>(markerEntity, out _));
 			Assert.Equal(0, CountEntities<SetCountryRelationEffect>(world));
 		}
@@ -60,7 +62,7 @@ namespace GS.Game.Tests {
 			AddCountry(world, "B");
 			AddMarker(world, "OrgA", "A", RelationKind.Rival);
 
-			SetCountryRelationSystem.Update(world, -1, new Random(1));
+			SetCountryRelationSystem.Update(world, _relations, -1, new Random(1));
 
 			var applied = GetRelationSetApplied(world);
 			Assert.Single(applied);
@@ -68,7 +70,7 @@ namespace GS.Game.Tests {
 			Assert.Equal("A", applied[0].CountryId);
 			Assert.Equal("B", applied[0].TargetCountryId);
 			Assert.Equal(RelationKind.Rival, applied[0].Kind);
-			Assert.Equal(RelationKind.Rival, CountryRelations.GetRelation(world, "A", "B"));
+			Assert.Equal(RelationKind.Rival, _relations.GetRelation(world, "A", "B"));
 		}
 
 		[Fact]
@@ -78,14 +80,14 @@ namespace GS.Game.Tests {
 			AddCountry(world, "B");
 			AddCountry(world, "C");
 			// B is already a Friend of A, so only C is a suitable candidate.
-			CountryRelations.SetRelation(world, "A", "B", RelationKind.Friend);
+			_relations.SetRelation(world, "A", "B", RelationKind.Friend);
 			AddMarker(world, "OrgA", "A", RelationKind.Rival);
 
-			SetCountryRelationSystem.Update(world, -1, new Random(1));
+			SetCountryRelationSystem.Update(world, _relations, -1, new Random(1));
 
-			Assert.Equal(RelationKind.Rival, CountryRelations.GetRelation(world, "A", "C"));
+			Assert.Equal(RelationKind.Rival, _relations.GetRelation(world, "A", "C"));
 			// The pre-existing Friend relation with B must be untouched.
-			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(world, "A", "B"));
+			Assert.Equal(RelationKind.Friend, _relations.GetRelation(world, "A", "B"));
 		}
 
 		[Fact]
@@ -94,12 +96,12 @@ namespace GS.Game.Tests {
 			AddCountry(world, "A");
 			AddCountry(world, "B");
 			// Every other available country is already related to A -> no suitable candidate.
-			CountryRelations.SetRelation(world, "A", "B", RelationKind.Friend);
+			_relations.SetRelation(world, "A", "B", RelationKind.Friend);
 			int markerEntity = AddMarker(world, "OrgA", "A", RelationKind.Rival);
 
-			SetCountryRelationSystem.Update(world, -1, new Random(1));
+			SetCountryRelationSystem.Update(world, _relations, -1, new Random(1));
 
-			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(world, "A", "B"));
+			Assert.Equal(RelationKind.Friend, _relations.GetRelation(world, "A", "B"));
 			Assert.False(world.TryGet<SetCountryRelationEffect>(markerEntity, out _));
 			Assert.Empty(GetRelationSetApplied(world));
 		}
@@ -123,9 +125,9 @@ namespace GS.Game.Tests {
 				world.Add(pmEntity, new ProximityMapData { Distances = distances });
 
 				AddMarker(world, "OrgA", "Anchor", RelationKind.Friend);
-				SetCountryRelationSystem.Update(world, pmEntity, new Random(seed));
+				SetCountryRelationSystem.Update(world, _relations, pmEntity, new Random(seed));
 
-				if (CountryRelations.GetRelation(world, "Anchor", "Near") == RelationKind.Friend) {
+				if (_relations.GetRelation(world, "Anchor", "Near") == RelationKind.Friend) {
 					nearChosenCount++;
 				}
 			}

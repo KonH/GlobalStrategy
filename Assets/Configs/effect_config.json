@@ -1,39 +1,52 @@
 {
   "effects": [
     {
-      "effectId": "sphere_of_pressure_control",      "effectType": "ControlChange",
-      "nameKey": "effect.sphere_of_pressure_control.name",
-      "descKey": "effect.sphere_of_pressure_control.desc",
+      "effectId": "improve_control_effect",      "effectType": "ControlChange",
+      "nameKey": "effect.improve_control_effect.name",
+      "descKey": "effect.improve_control_effect.desc",
       "amount": 10
     },
     {
-      "effectId": "letter_commendation_control",
-      "effectType": "ControlChange",
-      "nameKey": "effect.letter_commendation_control.name",
-      "descKey": "effect.letter_commendation_control.desc",
-      "amount": 1
-    },
-    {
-      "effectId": "letter_commendation_opinion",
+      "effectId": "improve_diplomacy_advisor_opinion_effect",
       "effectType": "OpinionModifier",
-      "nameKey": "effect.letter_commendation_opinion.name",
-      "descKey": "effect.letter_commendation_opinion.desc",
+      "nameKey": "effect.improve_diplomacy_advisor_opinion_effect.name",
+      "descKey": "effect.improve_diplomacy_advisor_opinion_effect.desc",
       "sourceId": "letter_of_commendation",
       "initialValue": 50,
       "decayPerMonth": 1
     },
     {
-      "effectId": "royal_audience_control",
-      "effectType": "ControlChange",
-      "nameKey": "effect.royal_audience_control.name",
-      "descKey": "effect.royal_audience_control.desc",
-      "amount": 2
+      "effectId": "improve_economic_advisor_opinion_effect",
+      "effectType": "OpinionModifier",
+      "nameKey": "effect.improve_economic_advisor_opinion_effect.name",
+      "descKey": "effect.improve_economic_advisor_opinion_effect.desc",
+      "sourceId": "letter_of_commendation",
+      "initialValue": 50,
+      "decayPerMonth": 1
     },
     {
-      "effectId": "royal_audience_opinion",
+      "effectId": "improve_military_advisor_opinion_effect",
       "effectType": "OpinionModifier",
-      "nameKey": "effect.royal_audience_opinion.name",
-      "descKey": "effect.royal_audience_opinion.desc",
+      "nameKey": "effect.improve_military_advisor_opinion_effect.name",
+      "descKey": "effect.improve_military_advisor_opinion_effect.desc",
+      "sourceId": "letter_of_commendation",
+      "initialValue": 50,
+      "decayPerMonth": 1
+    },
+    {
+      "effectId": "improve_secret_advisor_opinion_effect",
+      "effectType": "OpinionModifier",
+      "nameKey": "effect.improve_secret_advisor_opinion_effect.name",
+      "descKey": "effect.improve_secret_advisor_opinion_effect.desc",
+      "sourceId": "letter_of_commendation",
+      "initialValue": 50,
+      "decayPerMonth": 1
+    },
+    {
+      "effectId": "improve_ruler_opinion_effect",
+      "effectType": "OpinionModifier",
+      "nameKey": "effect.improve_ruler_opinion_effect.name",
+      "descKey": "effect.improve_ruler_opinion_effect.desc",
       "sourceId": "royal_audience",
       "initialValue": 25,
       "decayPerMonth": 1
@@ -80,13 +93,6 @@
       "amount": 20
     },
     {
-      "effectId": "decrease_enemy_control_gain_effect",
-      "effectType": "ControlChange",
-      "nameKey": "effect.decrease_enemy_control_gain.name",
-      "descKey": "effect.decrease_enemy_control_gain.desc",
-      "amount": 10
-    },
-    {
       "effectId": "sell_arms_damage_bonus_effect",
       "effectType": "CountryResourceModifier",
       "nameKey": "effect.sell_arms_damage_bonus_effect.name",
@@ -96,24 +102,24 @@
       "decayPerMonth": 1.0
     },
     {
-      "effectId": "ultimatum_effect",
+      "effectId": "force_war_win_effect",
       "effectType": "ResolveWar",
-      "nameKey": "effect.ultimatum_effect.name",
-      "descKey": "effect.ultimatum_effect.desc",
+      "nameKey": "effect.force_war_win_effect.name",
+      "descKey": "effect.force_war_win_effect.desc",
       "outcome": "Win"
     },
     {
-      "effectId": "surrender_effect",
+      "effectId": "force_war_loss_effect",
       "effectType": "ResolveWar",
-      "nameKey": "effect.surrender_effect.name",
-      "descKey": "effect.surrender_effect.desc",
+      "nameKey": "effect.force_war_loss_effect.name",
+      "descKey": "effect.force_war_loss_effect.desc",
       "outcome": "Lose"
     },
     {
-      "effectId": "revenge_declare_war_effect",
+      "effectId": "declare_revenge_war_effect",
       "effectType": "DeclareRevengeWar",
-      "nameKey": "effect.revenge_declare_war.name",
-      "descKey": "effect.revenge_declare_war.desc",
+      "nameKey": "effect.declare_revenge_war_effect.name",
+      "descKey": "effect.declare_revenge_war_effect.desc",
       "damageBonusPercent": 10.0,
       "durabilityBonusPercent": 5.0
     }

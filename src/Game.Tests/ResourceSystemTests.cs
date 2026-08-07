@@ -14,22 +14,22 @@ namespace GS.Game.Tests {
 		sealed class StubFixedDeltaCollector : IResourceCollector {
 			readonly double _delta;
 			public StubFixedDeltaCollector(double delta) { _delta = delta; }
-			public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) => _delta;
+			public double Compute(string ownerId, double currentValue, IReadOnlyWorld world, ResourceQuery resources) => _delta;
 		}
 
 		sealed class MirrorResourceCollector : IResourceCollector {
 			readonly string _sourceResourceId;
 			public MirrorResourceCollector(string sourceResourceId) { _sourceResourceId = sourceResourceId; }
 
-			public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) {
+			public double Compute(string ownerId, double currentValue, IReadOnlyWorld world, ResourceQuery resources) {
 				int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
 				foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
 					ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
-					Resource[] resources = arch.GetColumn<Resource>();
+					Resource[] resourceColumn = arch.GetColumn<Resource>();
 					int count = arch.Count;
 					for (int i = 0; i < count; i++) {
-						if (owners[i].OwnerId == ownerId && resources[i].ResourceId == _sourceResourceId) {
-							return resources[i].Value - currentValue;
+						if (owners[i].OwnerId == ownerId && resourceColumn[i].ResourceId == _sourceResourceId) {
+							return resourceColumn[i].Value - currentValue;
 						}
 					}
 				}

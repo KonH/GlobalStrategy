@@ -4,8 +4,12 @@ using GS.Game.Bots;
 using GS.Main;
 using Xunit;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Tests {
 	public class BotEmissionLogTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		sealed record EmissionEntry(string FeatureId, string ActionId, string CountryId, string Date, int Tick);
 
 		sealed class ScriptedFeature : IBotFeature {
@@ -17,7 +21,7 @@ namespace GS.Game.Tests {
 				_actionId = actionId;
 			}
 
-			public void Tick(IBotObservation observation, IBotCommandSink sink, Random rng) => sink.PlayOrgCard(_actionId);
+			public void Tick(IBotObservation observation, IBotCommandSink sink, Random rng) => sink.PlayOrgCard(_actionId, 0);
 		}
 
 		static (List<EmissionEntry> emissions, Bot bot, BotCommandSink sink) BuildHost(GameLogic logic, string orgId, IReadOnlyList<IBotFeature> features, string date, int tick) {
@@ -26,7 +30,7 @@ namespace GS.Game.Tests {
 			BotEmissionCallback callback = (actionId, countryId) =>
 				emissions.Add(new EmissionEntry(bot.CurrentFeatureId, actionId, countryId, date, tick));
 			var sink = new BotCommandSink(orgId, logic.Commands, null, callback);
-			bot = new Bot(orgId, features, new Random(1), sink);
+			bot = new Bot(orgId, features, new Random(1), sink, logic.Resources, logic.Relations);
 			return (emissions, bot, sink);
 		}
 
@@ -41,8 +45,8 @@ namespace GS.Game.Tests {
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, logic.Commands, null, callback);
 
 			sink.BeginDecisionPhase();
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId);
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId); // duplicate — suppressed, no callback
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId, 0);
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId, 0); // duplicate — suppressed, no callback
 
 			Assert.Single(calls);
 		}

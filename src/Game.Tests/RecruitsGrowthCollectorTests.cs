@@ -5,6 +5,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class RecruitsGrowthCollectorTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static World CreateWorldWithCountryPopulation(string countryId, double population) {
 			var world = new World();
 			int entity = world.Create();
@@ -19,7 +21,7 @@ namespace GS.Game.Tests {
 			var world = CreateWorldWithCountryPopulation("A", 2000.0);
 			var collector = new RecruitsGrowthCollector(1.0, 15.0);
 
-			double delta = collector.Compute("A", 100.0, world);
+			double delta = collector.Compute("A", 100.0, world, _resources);
 
 			Assert.Equal(20.0, delta, 6);
 		}
@@ -30,7 +32,7 @@ namespace GS.Game.Tests {
 			var world = CreateWorldWithCountryPopulation("A", 2000.0);
 			var collector = new RecruitsGrowthCollector(1.0, 15.0);
 
-			double delta = collector.Compute("A", 290.0, world);
+			double delta = collector.Compute("A", 290.0, world, _resources);
 
 			Assert.Equal(10.0, delta, 6);
 		}
@@ -41,7 +43,7 @@ namespace GS.Game.Tests {
 			var world = CreateWorldWithCountryPopulation("A", 2000.0);
 			var collector = new RecruitsGrowthCollector(1.0, 15.0);
 
-			double delta = collector.Compute("A", 300.0, world);
+			double delta = collector.Compute("A", 300.0, world, _resources);
 
 			Assert.Equal(0.0, delta, 6);
 		}
@@ -52,7 +54,7 @@ namespace GS.Game.Tests {
 			var world = CreateWorldWithCountryPopulation("A", 1000.0);
 			var collector = new RecruitsGrowthCollector(1.0, 15.0);
 
-			double delta = collector.Compute("A", 200.0, world);
+			double delta = collector.Compute("A", 200.0, world, _resources);
 
 			Assert.Equal(0.0, delta, 6);
 		}

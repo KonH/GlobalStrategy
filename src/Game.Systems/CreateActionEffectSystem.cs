@@ -16,41 +16,32 @@ namespace GS.Game.Systems {
 			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
 			int maxControlPool,
+			ResourceQuery resources,
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
 			CountryConfig? countryConfig = null) {
 			int[] required = { TypeId<GameAction>.Value, TypeId<ActionSucceeded>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
-			var toProcess = new List<(int entity, string actionId, string orgId)>();
+			var toProcess = new List<(int entity, string actionId, string orgId, string countryId)>();
 
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				CardUse[] uses = arch.GetColumn<CardUse>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					toProcess.Add((arch.Entities[i], actions[i].ActionId, orgs[i].OrgId));
+					toProcess.Add((arch.Entities[i], actions[i].ActionId, orgs[i].OrgId, uses[i].CountryId));
 				}
 			}
 
-			int[] countryRequired = { TypeId<CountryContext>.Value };
-			var entityCountry = new Dictionary<int, string>();
-			foreach (var arch in world.GetMatchingArchetypes(countryRequired, null)) {
-				CountryContext[] ctxs = arch.GetColumn<CountryContext>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					entityCountry[arch.Entities[i]] = ctxs[i].CountryId;
-				}
-			}
-
-			foreach (var (entity, actionId, orgId) in toProcess) {
-				entityCountry.TryGetValue(entity, out string countryId);
+			foreach (var (entity, actionId, orgId, countryId) in toProcess) {
 				var def = actionConfig.Find(actionId);
 				if (def == null) { continue; }
 
 				foreach (var effectId in def.EffectIds) {
 					var effectDef = effectConfig.Find(effectId);
 					if (effectDef is ControlChangeEffectParams controlParams && controlParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
-						int usedTotal = ControlQuery.GetTotalControlInCountry(world, countryId);
-						if (usedTotal < 100) {
-							int toAdd = Math.Min(controlParams.Amount, 100 - usedTotal);
+					int usedTotal = ControlQuery.GetTotalControlInCountry(world, countryId);
+					if (usedTotal < maxControlPool) {
+						int toAdd = Math.Min(controlParams.Amount, maxControlPool - usedTotal);
 							int ie = world.Create();
 							world.Add(ie, new ControlEffect {
 								OrgId = orgId,
@@ -89,7 +80,8 @@ namespace GS.Game.Systems {
 							OwnerId = targetCharId,
 							Amount = opinionParams.InitialValue
 						});
-						double opinionTotal = EnsureOpinionResource(world, targetCharId, opinionResourceId, opinionParams.InitialValue);
+						double opinionTotal = EnsureOpinionResource(
+							resources, world, targetCharId, opinionResourceId, opinionParams.InitialValue);
 						// Game Log event — see Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
 						int opinionGe = world.Create();
 						world.Add(opinionGe, new OpinionEffectApplied {
@@ -117,7 +109,7 @@ namespace GS.Game.Systems {
 						world.Add(e, new ClearCountryRelationEffect { EffectId = effectId, OrgId = orgId, CountryId = countryId, TargetCountryId = targetCountryId });
 					} else if (effectDef is DeclareWarEffectParams && !string.IsNullOrEmpty(countryId) && world.Has<RelationCardTarget>(entity)) {
 						string targetCountryId = world.Get<RelationCardTarget>(entity).TargetCountryId;
-						if (Wars.DeclareWar(world, countryId, targetCountryId, currentTime)) {
+						if (Wars.DeclareWar(world, resources, countryId, targetCountryId, currentTime)) {
 							int e = world.Create();
 							world.Add(e, new WarDeclaredApplied {
 								OrgId = orgId,
@@ -128,7 +120,7 @@ namespace GS.Game.Systems {
 					} else if (effectDef is DeclareRevengeWarEffectParams revengeParams && !string.IsNullOrEmpty(countryId)
 						&& world.Has<RevengeCardTarget>(entity)) {
 						string targetCountryId = world.Get<RevengeCardTarget>(entity).TargetCountryId;
-						if (Wars.DeclareWar(world, countryId, targetCountryId, currentTime, topology, settings.WarBattles, out string? warId)) {
+						if (Wars.DeclareWar(world, resources, countryId, targetCountryId, currentTime, topology, settings.WarBattles, out string? warId)) {
 							RevengeWarBonusQuery.RemoveForCountry(world, countryId);
 							int be = world.Create();
 							world.Add(be, new RevengeWarBonus {
@@ -169,7 +161,7 @@ namespace GS.Game.Systems {
 						}
 					} else if (effectDef is ResolveWarEffectParams resolveWarParams && !string.IsNullOrEmpty(countryId)) {
 						Wars.ResolveWar(
-							world, countryId, resolveWarParams.Outcome, currentTime,
+							world, resources, countryId, resolveWarParams.Outcome, currentTime,
 							rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
 					} else if (effectDef is CountryResourceModifierEffectParams resourceModifierParams) {
 						if (string.IsNullOrEmpty(countryId)) {
@@ -178,6 +170,7 @@ namespace GS.Game.Systems {
 								$"for card entity {entity}.");
 						}
 						AddToExistingResource(
+							resources,
 							world,
 							countryId,
 							OwnerType.Country,
@@ -207,6 +200,7 @@ namespace GS.Game.Systems {
 						});
 					} else if (effectDef is OrgResourceGrantEffectParams resourceGrantParams) {
 						AddToExistingResource(
+							resources,
 							world,
 							orgId,
 							OwnerType.Org,
@@ -228,6 +222,7 @@ namespace GS.Game.Systems {
 		}
 
 		static void AddToExistingResource(
+			ResourceQuery resources,
 			World world,
 			string ownerId,
 			OwnerType ownerType,
@@ -236,41 +231,27 @@ namespace GS.Game.Systems {
 			string actionId,
 			string effectId,
 			int cardEntity) {
-			int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
-			foreach (Archetype archetype in world.GetMatchingArchetypes(required, null)) {
-				ResourceOwner[] owners = archetype.GetColumn<ResourceOwner>();
-				Resource[] resources = archetype.GetColumn<Resource>();
-				for (int i = 0; i < archetype.Count; i++) {
-					if (owners[i].OwnerId == ownerId &&
-						owners[i].OwnerType == ownerType &&
-						resources[i].ResourceId == resourceId) {
-						resources[i].Value += amount;
-						return;
-					}
-				}
+			int entity = resources.FindEntity(world, ownerId, resourceId);
+			if (entity < 0) {
+				throw new InvalidOperationException(
+					$"Action '{actionId}' effect '{effectId}' could not find resource '{resourceId}' " +
+					$"for {ownerType} '{ownerId}' (card entity {cardEntity}).");
 			}
-
-			throw new InvalidOperationException(
-				$"Action '{actionId}' effect '{effectId}' could not find resource '{resourceId}' " +
-				$"for {ownerType} '{ownerId}' (card entity {cardEntity}).");
+			ref Resource resource = ref world.Get<Resource>(entity);
+			resource.Value += amount;
+			resources.NotifyValue(ownerId, resourceId, resource.Value, entity);
 		}
 
-		static double EnsureOpinionResource(World world, string charId, string resourceId, int initialValue) {
-			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
-				Resource[] resources = arch.GetColumn<Resource>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId == charId && resources[i].ResourceId == resourceId) {
-						resources[i].Value += initialValue;
-						return resources[i].Value;
-					}
-				}
+		static double EnsureOpinionResource(
+			ResourceQuery resources, World world, string charId, string resourceId, int initialValue) {
+			int entity = resources.FindEntity(world, charId, resourceId);
+			if (entity >= 0) {
+				ref Resource resource = ref world.Get<Resource>(entity);
+				resource.Value += initialValue;
+				resources.NotifyValue(charId, resourceId, resource.Value, entity);
+				return resource.Value;
 			}
-			int re = world.Create();
-			world.Add(re, new ResourceOwner(charId, OwnerType.Character));
-			world.Add(re, new Resource { ResourceId = resourceId, Value = initialValue });
+			resources.Set(world, charId, resourceId, initialValue, OwnerType.Character);
 			return initialValue;
 		}
 	}

@@ -4,8 +4,12 @@ using GS.Game.Bots;
 using GS.Main;
 using Xunit;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Tests {
 	public class BotOrchestratorTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		sealed class ThrowingFeature : IBotFeature {
 			public string FeatureId => "throwing";
 			public void Tick(IBotObservation observation, IBotCommandSink sink, Random rng) => throw new InvalidOperationException("boom");
@@ -19,7 +23,7 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, logic.Commands, null);
-			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { new ThrowingFeature() }, new Random(1), sink);
+			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { new ThrowingFeature() }, new Random(1), sink, logic.Resources, logic.Relations);
 
 			var ex = Assert.Throws<BotFeatureException>(() => bot.ExecuteDecisionTick(logic.World, logic.ActionConfig));
 			Assert.Equal(MultiOrgTestSupport.OrgA, ex.OrgId);

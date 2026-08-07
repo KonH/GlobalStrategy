@@ -58,28 +58,28 @@ namespace GS.Game.Systems {
 			return result;
 		}
 
-		public static bool DeclareWar(World world, string attackerCountryId, string defenderCountryId, DateTime currentTime) {
+		public static bool DeclareWar(World world, ResourceQuery resources, string attackerCountryId, string defenderCountryId, DateTime currentTime) {
 			return DeclareWar(
-				world, attackerCountryId, defenderCountryId, currentTime,
+				world, resources, attackerCountryId, defenderCountryId, currentTime,
 				new ProvinceTopology(new ProvinceConfig()), new WarBattleSettings(), out _);
 		}
 
 		public static bool DeclareWar(
-			World world, string attackerCountryId, string defenderCountryId, DateTime currentTime,
+			World world, ResourceQuery resources, string attackerCountryId, string defenderCountryId, DateTime currentTime,
 			out string? warId) {
 			return DeclareWar(
-				world, attackerCountryId, defenderCountryId, currentTime,
+				world, resources, attackerCountryId, defenderCountryId, currentTime,
 				new ProvinceTopology(new ProvinceConfig()), new WarBattleSettings(), out warId);
 		}
 
 		public static bool DeclareWar(
-			World world, string attackerCountryId, string defenderCountryId, DateTime currentTime,
+			World world, ResourceQuery resources, string attackerCountryId, string defenderCountryId, DateTime currentTime,
 			ProvinceTopology topology, WarBattleSettings settings) {
-			return DeclareWar(world, attackerCountryId, defenderCountryId, currentTime, topology, settings, out _);
+			return DeclareWar(world, resources, attackerCountryId, defenderCountryId, currentTime, topology, settings, out _);
 		}
 
 		public static bool DeclareWar(
-			World world, string attackerCountryId, string defenderCountryId, DateTime currentTime,
+			World world, ResourceQuery resources, string attackerCountryId, string defenderCountryId, DateTime currentTime,
 			ProvinceTopology topology, WarBattleSettings settings, out string? warId) {
 			warId = null;
 			if (attackerCountryId == defenderCountryId) {
@@ -98,15 +98,13 @@ namespace GS.Game.Systems {
 					world, attackerCountryId, defenderCountryId, topology, settings)
 			});
 
-			int progressEntity = world.Create();
-			world.Add(progressEntity, new ResourceOwner(warId, OwnerType.War));
-			world.Add(progressEntity, new Resource {
-				ResourceId = ResourceDefinitions.WarProgress,
-				Value = 0
-			});
-			world.Add(progressEntity, new ResourceHistory {
-				History = new List<ResourceChangeEntry>()
-			});
+			resources.Set(world, warId, ResourceDefinitions.WarProgress, 0, OwnerType.War);
+			int progressEntity = resources.FindEntity(world, warId, ResourceDefinitions.WarProgress);
+			if (progressEntity >= 0) {
+				world.Add(progressEntity, new ResourceHistory {
+					History = new List<ResourceChangeEntry>()
+				});
+			}
 
 			int attackerEntity = world.Create();
 			world.Add(attackerEntity, new WarParticipant {
@@ -123,10 +121,10 @@ namespace GS.Game.Systems {
 			});
 
 			ResourceMutations.TrySetValue(
-				world, attackerCountryId, ResourceDefinitions.WarInitiative,
+				resources, world, attackerCountryId, ResourceDefinitions.WarInitiative,
 				settings.AttackerInitialInitiative, out _);
 			ResourceMutations.TrySetValue(
-				world, defenderCountryId, ResourceDefinitions.WarInitiative,
+				resources, world, defenderCountryId, ResourceDefinitions.WarInitiative,
 				settings.DefenderInitialInitiative, out _);
 
 			return true;
@@ -134,6 +132,7 @@ namespace GS.Game.Systems {
 
 		public static bool ResolveWar(
 			World world,
+			ResourceQuery resources,
 			string countryId,
 			WarOutcome outcomeForCountry,
 			DateTime currentTime,
@@ -147,7 +146,7 @@ namespace GS.Game.Systems {
 			if (warId == null) {
 				return false;
 			}
-			if (!TryGetWarState(world, warId, out string attackerId, out string defenderId, out double progress, out DateTime declaredAt)) {
+			if (!TryGetWarState(resources, world, warId, out string attackerId, out string defenderId, out double progress, out DateTime declaredAt)) {
 				return false;
 			}
 			string opponentCountryId = attackerId == countryId ? defenderId : attackerId;
@@ -155,17 +154,17 @@ namespace GS.Game.Systems {
 			string loserCountryId = outcomeForCountry == WarOutcome.Win ? opponentCountryId : countryId;
 
 			ApplyWarResolution(
-				world, warId, attackerId, defenderId, winnerCountryId, loserCountryId, progress,
+				world, resources, warId, attackerId, defenderId, winnerCountryId, loserCountryId, progress,
 				declaredAt, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
 			return true;
 		}
 
-		public static double GetOwnWarProgress(IReadOnlyWorld world, string countryId) {
+		public static double GetOwnWarProgress(IReadOnlyWorld world, ResourceQuery resources, string countryId) {
 			string? warId = FindWarIdForCountry(world, countryId);
 			if (warId == null) {
 				return 0;
 			}
-			if (!TryGetWarProgress(world, warId, out double progress)) {
+			if (!TryGetWarProgress(resources, world, warId, out double progress)) {
 				return 0;
 			}
 			bool isAttacker = false;
@@ -183,6 +182,7 @@ namespace GS.Game.Systems {
 
 		public static bool StopWar(
 			World world,
+			ResourceQuery resources,
 			string countryId,
 			DateTime currentTime,
 			Random rng,
@@ -196,12 +196,13 @@ namespace GS.Game.Systems {
 				return false;
 			}
 			ResolvePeace(
-				world, warId, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
+				world, resources, warId, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
 			return true;
 		}
 
 		public static void TryResolvePeaceByChance(
 			World world,
+			ResourceQuery resources,
 			DateTime previousTime,
 			DateTime currentTime,
 			Random rng,
@@ -227,7 +228,7 @@ namespace GS.Game.Systems {
 
 			var toResolve = new List<string>();
 			foreach (string warId in warIds) {
-				if (!TryGetWarProgress(world, warId, out double progress)) {
+				if (!TryGetWarProgress(resources, world, warId, out double progress)) {
 					continue;
 				}
 				double chance = ComputePeaceChancePercent(progress, settings);
@@ -240,15 +241,16 @@ namespace GS.Game.Systems {
 			}
 
 			foreach (string warId in toResolve) {
-				if (TryGetWarProgress(world, warId, out _)) {
+				if (TryGetWarProgress(resources, world, warId, out _)) {
 					ResolvePeace(
-						world, warId, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
+						world, resources, warId, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
 				}
 			}
 		}
 
 		public static void ResolvePeace(
 			World world,
+			ResourceQuery resources,
 			string warId,
 			DateTime currentTime,
 			Random rng,
@@ -257,25 +259,26 @@ namespace GS.Game.Systems {
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
 			int maxControlPool,
 			CountryConfig? countryConfig = null) {
-			if (!TryGetWarState(world, warId, out string attackerId, out string defenderId, out double progress, out DateTime declaredAt)) {
+			if (!TryGetWarState(resources, world, warId, out string attackerId, out string defenderId, out double progress, out DateTime declaredAt)) {
 				return;
 			}
 
 			if (progress == 0.0) {
 				ClearOccupationForParticipants(world, attackerId, defenderId);
-				DestroyWar(world, warId);
+				DestroyWar(world, resources, warId);
 				return;
 			}
 
 			string winnerId = progress > 0.0 ? attackerId : defenderId;
 			string loserId = progress > 0.0 ? defenderId : attackerId;
 			ApplyWarResolution(
-				world, warId, attackerId, defenderId, winnerId, loserId, progress,
+				world, resources, warId, attackerId, defenderId, winnerId, loserId, progress,
 				declaredAt, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
 		}
 
 		static void ApplyWarResolution(
 			World world,
+			ResourceQuery resources,
 			string warId,
 			string attackerId,
 			string defenderId,
@@ -292,19 +295,19 @@ namespace GS.Game.Systems {
 			CountryConfig? countryConfig) {
 			List<WarProgressHistorySnapshot> history = WarProgressSnapshot.BuildHistory(world, warId);
 			WarSideStatsSnapshot attackerStats = WarProgressSnapshot.BuildSideStats(
-				world, warId, attackerId, WarParticipantKind.Attacker, countryConfig);
+				world, resources, warId, attackerId, WarParticipantKind.Attacker, countryConfig);
 			WarSideStatsSnapshot defenderStats = WarProgressSnapshot.BuildSideStats(
-				world, warId, defenderId, WarParticipantKind.Defender, countryConfig);
+				world, resources, warId, defenderId, WarParticipantKind.Defender, countryConfig);
 			List<WarBattleRowSnapshot> battles = WarProgressSnapshot.BuildBattles(world, warId);
 
 			List<WarProvinceTransferSnapshot> transferredProvinces = TransferOccupiedProvinces(
 				world, winnerId, loserId, rng, settings, topology, provinceCenters);
 			ClearOccupationForParticipants(world, attackerId, defenderId);
 			(double goldTaken, List<WarGoldRecipientSnapshot> goldRecipients) = TransferGoldSpoils(
-				world, winnerId, loserId, declaredAt, currentTime, settings, maxControlPool);
+				world, resources, winnerId, loserId, declaredAt, currentTime, settings, maxControlPool);
 			List<WarControlDeltaSnapshot> controlDeltas = ApplyControlShifts(
 				world, winnerId, loserId, settings, maxControlPool);
-			DestroyWar(world, warId);
+			DestroyWar(world, resources, warId);
 
 			int appliedEntity = world.Create();
 			world.Add(appliedEntity, new WarResolvedApplied {
@@ -390,11 +393,12 @@ namespace GS.Game.Systems {
 			return null;
 		}
 
-		static bool TryGetWarProgress(IReadOnlyWorld world, string warId, out double progress) {
-			return ResourceQuery.TryGetValue(world, warId, ResourceDefinitions.WarProgress, out progress);
+		static bool TryGetWarProgress(ResourceQuery resources, IReadOnlyWorld world, string warId, out double progress) {
+			return resources.TryGetValue(world, warId, ResourceDefinitions.WarProgress, out progress);
 		}
 
 		static bool TryGetWarState(
+			ResourceQuery resources,
 			IReadOnlyWorld world,
 			string warId,
 			out string attackerId,
@@ -422,7 +426,7 @@ namespace GS.Game.Systems {
 					break;
 				}
 			}
-			if (!foundWar || !ResourceQuery.TryGetValue(world, warId, ResourceDefinitions.WarProgress, out progress)) {
+			if (!foundWar || !resources.TryGetValue(world, warId, ResourceDefinitions.WarProgress, out progress)) {
 				return false;
 			}
 
@@ -445,7 +449,7 @@ namespace GS.Game.Systems {
 			return attackerId != "" && defenderId != "";
 		}
 
-		static void DestroyWar(World world, string warId) {
+		static void DestroyWar(World world, ResourceQuery resources, string warId) {
 			var battleEntities = new List<int>();
 			var forceEntities = new List<int>();
 			foreach (WarBattles.BattleInfo battle in WarBattles.GetBattles(world, warId)) {
@@ -453,7 +457,7 @@ namespace GS.Game.Systems {
 				foreach (WarBattles.ForceInfo force in WarBattles.GetForces(world, battle.Value.BattleId)) {
 					if (battle.Value.State == BattleState.Active && force.Value.Troops > 0) {
 						ResourceMutations.TryApplyClampedDelta(
-							world, force.Value.CountryId, ResourceDefinitions.Recruits,
+							resources, world, force.Value.CountryId, ResourceDefinitions.Recruits,
 							force.Value.Troops, 0, double.MaxValue, out _);
 					}
 					forceEntities.Add(force.Entity);
@@ -481,22 +485,7 @@ namespace GS.Game.Systems {
 				world.Destroy(e);
 			}
 
-			int[] resourceRequired = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
-			var matchingResources = new List<int>();
-			foreach (Archetype arch in world.GetMatchingArchetypes(resourceRequired, null)) {
-				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
-				Resource[] resources = arch.GetColumn<Resource>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId == warId
-						&& resources[i].ResourceId == ResourceDefinitions.WarProgress) {
-						matchingResources.Add(arch.Entities[i]);
-					}
-				}
-			}
-			foreach (int e in matchingResources) {
-				world.Destroy(e);
-			}
+			resources.Remove(world, warId, ResourceDefinitions.WarProgress);
 
 			var matchingWars = new List<int>();
 			int[] warRequired = { TypeId<War>.Value };
@@ -675,6 +664,7 @@ namespace GS.Game.Systems {
 
 		static (double GoldTaken, List<WarGoldRecipientSnapshot> Recipients) TransferGoldSpoils(
 			World world,
+			ResourceQuery resources,
 			string winnerId,
 			string loserId,
 			DateTime declaredAt,
@@ -687,8 +677,8 @@ namespace GS.Game.Systems {
 				return (0.0, new List<WarGoldRecipientSnapshot>());
 			}
 
-			CollectGoldFromSide(world, loserId, amount, maxControlPool);
-			List<WarGoldRecipientSnapshot> recipients = PayoutGoldToSide(world, winnerId, amount, maxControlPool);
+			CollectGoldFromSide(world, resources, loserId, amount, maxControlPool);
+			List<WarGoldRecipientSnapshot> recipients = PayoutGoldToSide(world, resources, winnerId, amount, maxControlPool);
 			return (amount, recipients);
 		}
 
@@ -701,7 +691,8 @@ namespace GS.Game.Systems {
 			return (int)Math.Ceiling(totalDays / 30.0);
 		}
 
-		static void CollectGoldFromSide(World world, string countryId, double amount, int maxControlPool) {
+		static void CollectGoldFromSide(
+			World world, ResourceQuery resources, string countryId, double amount, int maxControlPool) {
 			if (amount == 0.0) {
 				return;
 			}
@@ -714,17 +705,17 @@ namespace GS.Game.Systems {
 					continue;
 				}
 				double share = amount * (pair.Value / (double)pool);
-				AdjustGold(world, pair.Key, OwnerType.Org, -share);
+				resources.ApplyDelta(world, pair.Key, ResourceDefinitions.Gold, -share, OwnerType.Org);
 				attributed += share;
 			}
 			double remainder = amount - attributed;
 			if (remainder != 0.0) {
-				AdjustGold(world, countryId, OwnerType.Country, -remainder);
+				resources.ApplyDelta(world, countryId, ResourceDefinitions.Gold, -remainder, OwnerType.Country);
 			}
 		}
 
 		static List<WarGoldRecipientSnapshot> PayoutGoldToSide(
-			World world, string countryId, double amount, int maxControlPool) {
+			World world, ResourceQuery resources, string countryId, double amount, int maxControlPool) {
 			var recipients = new List<WarGoldRecipientSnapshot>();
 			if (amount == 0.0) {
 				return recipients;
@@ -738,7 +729,7 @@ namespace GS.Game.Systems {
 					continue;
 				}
 				double share = amount * (pair.Value / (double)pool);
-				AdjustGold(world, pair.Key, OwnerType.Org, share);
+				resources.ApplyDelta(world, pair.Key, ResourceDefinitions.Gold, share, OwnerType.Org);
 				recipients.Add(new WarGoldRecipientSnapshot {
 					OwnerType = OwnerType.Org,
 					OwnerId = pair.Key,
@@ -748,7 +739,7 @@ namespace GS.Game.Systems {
 			}
 			double remainder = amount - attributed;
 			if (remainder != 0.0) {
-				AdjustGold(world, countryId, OwnerType.Country, remainder);
+				resources.ApplyDelta(world, countryId, ResourceDefinitions.Gold, remainder, OwnerType.Country);
 				recipients.Add(new WarGoldRecipientSnapshot {
 					OwnerType = OwnerType.Country,
 					OwnerId = countryId,
@@ -756,29 +747,6 @@ namespace GS.Game.Systems {
 				});
 			}
 			return recipients;
-		}
-
-		static void AdjustGold(World world, string ownerId, OwnerType ownerType, double delta) {
-			if (delta == 0.0) {
-				return;
-			}
-			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(req, null)) {
-				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
-				Resource[] resources = arch.GetColumn<Resource>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId == ownerId
-						&& owners[i].OwnerType == ownerType
-						&& resources[i].ResourceId == ResourceDefinitions.Gold) {
-						resources[i].Value += delta;
-						return;
-					}
-				}
-			}
-			int entity = world.Create();
-			world.Add(entity, new ResourceOwner(ownerId, ownerType));
-			world.Add(entity, new Resource { ResourceId = ResourceDefinitions.Gold, Value = delta });
 		}
 
 		static List<WarControlDeltaSnapshot> ApplyControlShifts(
