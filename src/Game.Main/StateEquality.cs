@@ -194,7 +194,24 @@ namespace GS.Main {
 				&& a.Value == b.Value
 				&& a.PayType == b.PayType
 				&& a.MaxTotal == b.MaxTotal
-				&& a.OrgDisplayName == b.OrgDisplayName;
+				&& a.OrgDisplayName == b.OrgDisplayName
+				&& BaseIncomeBreakdownEquals(a.BaseIncomeBreakdown, b.BaseIncomeBreakdown);
+		}
+
+		static bool BaseIncomeBreakdownEquals(BaseIncomeBreakdownState? a, BaseIncomeBreakdownState? b) {
+			if (a == null && b == null) {
+				return true;
+			}
+			if (a == null || b == null) {
+				return false;
+			}
+			return a.FlatBase == b.FlatBase
+				&& a.Population == b.Population
+				&& a.PopulationContribution == b.PopulationContribution
+				&& a.ProvinceCount == b.ProvinceCount
+				&& a.ProvinceContribution == b.ProvinceContribution
+				&& a.AdvisorSkill == b.AdvisorSkill
+				&& a.AdvisorContribution == b.AdvisorContribution;
 		}
 
 		public static bool ResourceStateEntryEquals(ResourceStateEntry a, ResourceStateEntry b) {

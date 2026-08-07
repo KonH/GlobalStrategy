@@ -120,9 +120,10 @@ namespace GS.Game.Tests {
 				Assert.Equal("country", action.OwnerType);
 				Assert.Equal("military_advisor", action.TargetRole);
 				Assert.Equal(3, action.DeckCopies);
+				Assert.Equal(21, action.CooldownDays);
 				ActionCost cost = Assert.Single(action.Cost);
 				Assert.Equal("gold", cost.ResourceId);
-				Assert.Equal(200.0, cost.Amount);
+				Assert.Equal(175.0, cost.Amount);
 				Assert.Equal(
 					new[] { "sell_arms_damage_bonus_effect" },
 					action.EffectIds);

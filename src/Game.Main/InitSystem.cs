@@ -396,6 +396,9 @@ namespace GS.Main {
 						Value = effectDef.Value,
 						PayType = Enum.Parse<PayType>(effectDef.PayType, ignoreCase: true)
 					});
+					if (!string.IsNullOrEmpty(effectDef.CollectorId)) {
+						world.Add(effectEntity, new ResourceCollector { CollectorId = effectDef.CollectorId });
+					}
 				}
 			}
 		}

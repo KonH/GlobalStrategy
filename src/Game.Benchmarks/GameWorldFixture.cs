@@ -88,7 +88,7 @@ namespace GS.Game.Benchmarks {
 			var registry = ResourceCollectorRegistry.CreateDefault(
 				settings.PopulationGrowthPercentPerMonth, settings.CountryScoreCoefficient,
 				settings.RecruitsInitialPercent, settings.RecruitsCapPercent, settings.RecruitsMonthlyIncreasePercent,
-				combatBasesByCountryId);
+				combatBasesByCountryId, settings.BaseIncome);
 
 			return new Fixture(logic, gameTimeEntity, registry, settings.ResourceIdUpdateOrder,
 				orgIds.Count > 0 ? orgIds[0] : "", firstCountryId, firstProvinceId, settings.SpeedMultipliers);

@@ -17,6 +17,7 @@ namespace GS.Unity.DI {
 		[SerializeField] TextAsset _organizationsConfigAsset;
 		[SerializeField] TextAsset _resourceConfigAsset;
 		[SerializeField] TextAsset _provinceConfigAsset;
+		[SerializeField] TextAsset _characterConfigAsset;
 		[SerializeField] TextAsset _gameSettingsAsset;
 
 		protected override void Configure(IContainerBuilder builder) {
@@ -25,10 +26,15 @@ namespace GS.Unity.DI {
 			var orgConfigSource = new TextAssetConfig<OrganizationConfig>(_organizationsConfigAsset);
 			var resourceConfig = new TextAssetConfig<ResourceConfig>(_resourceConfigAsset).Load();
 			var provinceConfig = new TextAssetConfig<GS.Game.Configs.ProvinceConfig>(_provinceConfigAsset).Load();
+			var characterConfig = _characterConfigAsset != null
+				? new TextAssetConfig<GS.Game.Configs.CharacterConfig>(_characterConfigAsset).Load()
+				: null;
 			var gameSettingsConfig = new TextAssetConfig<GameSettings>(_gameSettingsAsset);
 
 			builder.RegisterInstance(domainCountryConfig);
-			builder.Register(_ => new SelectOrgLogic(countryConfigSource, orgConfigSource, resourceConfig, gameSettingsConfig), Lifetime.Singleton);
+			builder.Register(_ => new SelectOrgLogic(
+				countryConfigSource, orgConfigSource, resourceConfig, gameSettingsConfig,
+				provinceConfig, characterConfig), Lifetime.Singleton);
 			builder.Register(c => c.Resolve<SelectOrgLogic>().VisualState, Lifetime.Singleton);
 
 			builder.RegisterInstance(provinceConfig);

@@ -16,6 +16,10 @@ PowerShell is for things with no dedicated tool: `git`, `dotnet build`, image ge
 
 Every PowerShell call requires a permission prompt and blocks the session. Dedicated tools run in the approved sandbox without interrupting the user.
 
+### After changes under `src/` — always Release-build
+
+Whenever you edit, add, or delete anything under `src/`, finish the turn by running `/dotnet-build Release` (or the equivalent `dotnet-build` skill / `dotnet build src/GlobalStrategy.Core.sln -c Release` logged to `.tmp/dotnet-build.log`). Do this even if you already ran Debug tests earlier — Release updates `Assets/Plugins/Core/` DLLs that Unity consumes. Stop and report if the build fails.
+
 ### Glob directory-listing gotcha (Windows)
 
 `Glob` with a trailing-slash pattern (`Docs/Specs/*/`) or a bare `Docs/Specs/*` silently returns nothing on Windows. Before falling back to Bash `ls`/`find`, try a nested file pattern instead — e.g. `Docs/Specs/*/*.md` — which matches files one level down and reliably returns the folder names as path prefixes. This avoids a PowerShell/Bash permission prompt for what is still just a file listing. Only fall back to Bash if no Glob pattern shape can express the query.

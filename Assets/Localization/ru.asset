@@ -433,7 +433,15 @@ MonoBehaviour:
   - Key: effect.base_income.name
     Value: Базовый доход
   - Key: effect.base_income.description
-    Value: Ежемесячный доход от налогов и торговли. Применяется в конце каждого месяца.
+    Value: Ежемесячный доход от населения, провинций и экономического советника. Применяется в конце каждого месяца.
+  - Key: hud.gold_income_base
+    Value: "Базовый доход: +{0}/мес."
+  - Key: hud.gold_income_population
+    Value: "Население ({0}): +{1}/мес."
+  - Key: hud.gold_income_provinces
+    Value: "Провинции ({0}): +{1}/мес."
+  - Key: hud.gold_income_economic_advisor
+    Value: "Экономический советник ({0}): +{1}/мес."
   - Key: hud.country_control
     Value: Контроль
   - Key: hud.control_tooltip_title

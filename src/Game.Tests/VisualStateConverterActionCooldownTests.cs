@@ -10,13 +10,13 @@ namespace GS.Game.Tests {
 	public class VisualStateConverterActionCooldownTests {
 		static readonly DateTime BaseTime = new DateTime(1880, 6, 1);
 
-		static ActionConfig BuildActionConfig() {
+		static ActionConfig BuildActionConfig(double cooldownDays = 7) {
 			return new ActionConfig {
 				Defaults = new List<ActionOwnerDefaults> {
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = 3 }
 				},
 				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = "declare_war", OwnerType = "country" }
+					new ActionDefinition { ActionId = "declare_war", OwnerType = "country", CooldownDays = cooldownDays }
 				}
 			};
 		}
@@ -65,7 +65,7 @@ namespace GS.Game.Tests {
 			AddCooldownTracking(world, "OrgA", "declare_war", endTime);
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, config, cardCooldownDays: 7);
+			var converter = new VisualStateConverter(state, config);
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -85,7 +85,7 @@ namespace GS.Game.Tests {
 			var world = BuildWorldWithCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, BaseTime);
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, config, cardCooldownDays: 7);
+			var converter = new VisualStateConverter(state, config);
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -97,13 +97,13 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void cooldown_fraction_remaining_is_one_at_instant_of_play() {
-			var config = BuildActionConfig();
+			var config = BuildActionConfig(cooldownDays: 30);
 			var world = BuildWorldWithCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, BaseTime);
-			DateTime endTime = BaseTime.AddDays(7); // remaining == GameSettings.CardCooldownDays
+			DateTime endTime = BaseTime.AddDays(30);
 			AddCooldownTracking(world, "OrgA", "declare_war", endTime);
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, config, cardCooldownDays: 7);
+			var converter = new VisualStateConverter(state, config);
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -120,7 +120,7 @@ namespace GS.Game.Tests {
 			AddCooldownTracking(world, "OrgA", "declare_war", endTime);
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, config, cardCooldownDays: 7);
+			var converter = new VisualStateConverter(state, config);
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
