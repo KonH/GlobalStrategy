@@ -19,17 +19,19 @@ As a player, I want to be clearly notified with an in-world, flavorful window wh
 
 ## Out of Scope
 
-- The underlying domain/ECS logic that determines a country has lost all provinces and marks it destroyed (persistent `IsDestroyed` flag component, the country-destroy event component exposed to `VisualState`, control pool zeroing, goals update) — this is covered by the separate Part-A spec and is treated here only as an already-existing upstream trigger/precondition.
-- Any change to map rendering/visibility/interactivity of a destroyed country's territory (e.g. whether its provinces still highlight on hover, whether the country remains visible but non-interactive, or is removed from `VisualState.WorldCountries.CountryIds`) beyond what is strictly needed to prevent reselection via `SelectCountrySystem`.
-- Any gameplay/economic consequences of destruction (diplomacy, AI behavior, war state cleanup, goals content) beyond closing/blocking the selected-country UI.
-- Producing the final flavor/header copy text or sourcing/generating the final placeholder image asset — this spec only requires that these exist as localized strings and an image element slot, not their final content.
+- The underlying domain/ECS logic that determines a country has lost all provinces and marks it destroyed (persistent `IsDestroyed` flag component, the country-destroy event component exposed to `VisualState`, control pool zeroing, relation removal, card-unplayable reason, goals update) — this is covered by the separate Part-A spec and is treated here only as an already-existing upstream trigger/precondition.
+- Any change to map rendering/visibility/interactivity of a destroyed country's territory beyond what is strictly needed to prevent reselection via `SelectCountrySystem` — the country stays in `VisualState.WorldCountries.CountryIds` (per Part A) and naturally has no territory to render since it owns no provinces; no grey-out/border-removal work here.
+- Any gameplay/economic consequences of destruction (diplomacy, AI behavior, war state cleanup, goals content, card playability) beyond closing/blocking the selected-country UI — those are Part A concerns.
+- Producing the final flavor/header copy text (beyond the direction below) or sourcing/generating the final placeholder image asset — the image asset already exists at `Assets/Textures/Events/country_destroy.png` (added separately) and is reused as-is; exact final English/Russian copy is authored during implementation following the direction below.
 - Any change to how other notification windows (`WarResultWindow`, `EndGameWindow`, `GoalsWindow`) are implemented; `CountryDestroyedWindow` is a new, independent window that merely follows their established pattern.
 
-## Ambiguities
+## Resolved Decisions
 
-- [NEEDS CLARIFICATION: No asset literally named/pathed for "revenge card" art exists anywhere under `Assets` today — "RevengeCard" currently only exists as code (`src/Game.Components/RevengeCardTarget.cs`, `RevengeCardSyncSystem.cs`) and a prior spec (`Docs/Specs/26_07_29_20_revenge-card/plan.md`). Confirm the exact image asset path/name to reuse, or whether a new placeholder image should be generated for this feature.]
-- [NEEDS CLARIFICATION: Should `CountryDestroyedWindow` notifications queue via a FIFO (multiple destroyed countries shown one after another, matching `WarResultWindow`'s pattern), or is a single-country-only design acceptable given country destruction is expected to be rare? The spec assumes FIFO queuing for consistency with the existing pattern, but this should be confirmed.]
-- [NEEDS CLARIFICATION: Exact flavor/header text content — the issue only specifies "fictional" tone, not the actual copy. Final English (and Russian) strings need to be authored/approved before or during implementation.]
-- [NEEDS CLARIFICATION: Does `CountryDestroyedWindow` need to block only the map (via `ModalState.IsLocked()`), or also block/hide other concurrently-open non-modal UI panels? The spec assumes it behaves like other existing `ModalState`-locking windows (map interaction blocked; behavior toward other UI follows existing modal conventions).]
-- [NEEDS CLARIFICATION: If the destroyed country's `CountryInfoView` is open in a non-modal side panel (not modal) at the moment of destruction, is an immediate forced-close required (as specified here) even if the destroy notification window itself is queued behind another notification and not shown right away, or should the info view close only once its notification is actually displayed?]
-- [NEEDS CLARIFICATION: Should the map itself change appearance for a destroyed country (e.g. grey out, remove borders/label) as part of this UI spec, or is that entirely deferred to Part A / a future spec? This spec currently only addresses the notification window and selection-blocking, per the "Out of Scope" section above.]
+(Owner clarifications from the issue thread, superseding the original ambiguities.)
+
+- **Placeholder image asset:** `Assets/Textures/Events/country_destroy.png` (already added to the repo) — use it directly, not the revenge-card action image.
+- **FIFO queuing:** confirmed — multiple destroyed-country notifications queue and display one after another, matching `WarResultWindow`'s pattern.
+- **Flavor copy direction:** dark theme; header along the lines of "`{CountryName}` is lost in the past..." (exact final English/Russian wording authored during implementation, following this direction).
+- **Modal blocking:** `CountryDestroyedWindow` blocks all UI like other existing fullscreen/modal windows (not just the map) — same `ModalState` convention as `WarResultWindow`/`EndGameWindow`.
+- **`CountryInfoView` close timing:** close immediately when the destroy event is processed, regardless of whether the `CountryDestroyedWindow` notification itself is shown immediately or queued behind another notification.
+- **Map appearance:** no explicit map appearance change in this spec or Part A — a destroyed country simply has no provinces left to render, so it is naturally invisible on the map without special-casing.
