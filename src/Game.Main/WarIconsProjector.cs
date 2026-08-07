@@ -17,7 +17,7 @@ namespace GS.Main {
 			}
 		}
 
-		public static List<WarIconEntryState> Build(IReadOnlyWorld world, string playerOrgId) {
+		public static List<WarIconEntryState> Build(IReadOnlyWorld world, ResourceQuery resources, string playerOrgId) {
 			var result = new List<WarIconEntryState>();
 			if (string.IsNullOrEmpty(playerOrgId)) {
 				return result;
@@ -42,7 +42,7 @@ namespace GS.Main {
 						|| participants.Attackers.Count == 0
 						|| participants.Defenders.Count == 0
 						|| !participants.IsRelevant(relevantCountryIds)
-						|| !ResourceQuery.TryGetValue(
+						|| !resources.TryGetValue(
 							world, warId, ResourceDefinitions.WarProgress, out double progress)) {
 						continue;
 					}

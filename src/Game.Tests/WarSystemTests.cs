@@ -8,6 +8,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class WarSystemTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static readonly DateTime Jan31 = new DateTime(1880, 1, 31, 23, 0, 0);
 		static readonly DateTime Feb1  = new DateTime(1880, 2,  1,  0, 0, 0);
 		static readonly DateTime Jan1  = new DateTime(1880, 1,  1,  0, 0, 0);
@@ -65,9 +67,9 @@ namespace GS.Game.Tests {
 			string warId = AddWarWithProgress(world, 0);
 			var config = WarProgressConfig();
 
-			WarSystem.Update(world, Jan31, Feb1, 2.5, config);
+			WarSystem.Update(world, Jan31, Feb1, 2.5, _resources, config);
 
-			Assert.Equal(-2.5, ResourceQuery.GetValue(world, warId, ResourceDefinitions.WarProgress));
+			Assert.Equal(-2.5, _resources.GetValue(world, warId, ResourceDefinitions.WarProgress));
 			ResourceHistory history = GetHistory(world, warId);
 			Assert.Single(history.History);
 			Assert.Equal("war_progress_decay", history.History[0].EffectId);
@@ -81,11 +83,11 @@ namespace GS.Game.Tests {
 			string warId = AddWarWithProgress(world, -99);
 			var config = WarProgressConfig();
 
-			WarSystem.Update(world, Jan31, Feb1, 2.5, config);
-			Assert.Equal(-100, ResourceQuery.GetValue(world, warId, ResourceDefinitions.WarProgress));
+			WarSystem.Update(world, Jan31, Feb1, 2.5, _resources, config);
+			Assert.Equal(-100, _resources.GetValue(world, warId, ResourceDefinitions.WarProgress));
 
-			WarSystem.Update(world, new DateTime(1880, 2, 28), new DateTime(1880, 3, 1), 2.5, config);
-			Assert.Equal(-100, ResourceQuery.GetValue(world, warId, ResourceDefinitions.WarProgress));
+			WarSystem.Update(world, new DateTime(1880, 2, 28), new DateTime(1880, 3, 1), 2.5, _resources, config);
+			Assert.Equal(-100, _resources.GetValue(world, warId, ResourceDefinitions.WarProgress));
 		}
 
 		[Fact]
@@ -94,9 +96,9 @@ namespace GS.Game.Tests {
 			string warId = AddWarWithProgress(world, 10);
 			var config = WarProgressConfig();
 
-			WarSystem.Update(world, Jan1, Jan2, 2.5, config);
+			WarSystem.Update(world, Jan1, Jan2, 2.5, _resources, config);
 
-			Assert.Equal(10, ResourceQuery.GetValue(world, warId, ResourceDefinitions.WarProgress));
+			Assert.Equal(10, _resources.GetValue(world, warId, ResourceDefinitions.WarProgress));
 			Assert.Empty(GetHistory(world, warId).History);
 		}
 	}

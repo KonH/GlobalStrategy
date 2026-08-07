@@ -25,6 +25,7 @@ namespace GS.Game.Configs {
 		public double PeaceGoldPerMonth { get; set; } = 1000;
 		public double PeaceWinnerControlIncreaseFraction { get; set; } = 0.5;
 		public double PeaceLoserControlDecreaseFraction { get; set; } = 1.0;
+		public double DiscardGoldCost { get; set; } = 50;
 		public BaseIncomeSettings BaseIncome { get; set; } = new BaseIncomeSettings();
 		public WarBattleSettings WarBattles { get; set; } = new WarBattleSettings();
 		public string[] ResourceIdUpdateOrder { get; set; } = {

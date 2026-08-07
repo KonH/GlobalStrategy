@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
+using GS.Game.Systems;
+
 namespace GS.Game.ConsoleRunner {
 	public class HeadlessOptions {
 		public bool IsHeadless { get; private set; }

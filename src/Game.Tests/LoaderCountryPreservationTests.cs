@@ -3,8 +3,12 @@ using GS.Game.Configs;
 using GS.Game.Loader;
 using Xunit;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Tests {
 	public class LoaderCountryPreservationTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		[Fact]
 		void preserves_is_available_and_initial_resources_from_existing_entry() {
 			var rebuilt = new List<CountryEntry> {

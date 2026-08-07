@@ -48,7 +48,8 @@ namespace GS.Main {
 		public static List<GoalsOrgEntryState> Build(
 			IReadOnlyWorld world,
 			IReadOnlyList<GoalsLeafDescriptor> leaves,
-			int maxControlPool) {
+			int maxControlPool,
+			ResourceQuery resources) {
 			var organizations = new List<GoalsOrgEntryState>();
 			if (leaves.Count == 0) {
 				return organizations;
@@ -62,7 +63,7 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					string orgId = orgs[i].OrganizationId;
-					var context = new CompletionConditionContext(world, orgId, availableCountryIds, maxControlPool);
+					var context = new CompletionConditionContext(world, orgId, availableCountryIds, maxControlPool, resources);
 					Dictionary<string, int>? controlByCountry = null;
 					var goals = new List<GoalProgressEntryState>(leaves.Count);
 					foreach (GoalsLeafDescriptor leaf in leaves) {

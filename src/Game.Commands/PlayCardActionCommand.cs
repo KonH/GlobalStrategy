@@ -4,5 +4,6 @@ namespace GS.Game.Commands {
 		[OrgId] public string OrgId;
 		[CountryId] public string CountryId;
 		[CountryId] public string TargetCountryId;
+		public int SlotIndex;
 	}
 }

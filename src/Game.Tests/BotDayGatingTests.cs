@@ -5,8 +5,12 @@ using GS.Game.Commands;
 using GS.Main;
 using Xunit;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Tests {
 	public class BotDayGatingTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		sealed class NullCommandAccessor : IWriteOnlyCommandAccessor {
 			public void Push<TCommand>(TCommand cmd) where TCommand : ICommand { }
 		}
@@ -27,7 +31,7 @@ namespace GS.Game.Tests {
 
 			var (sink, plays) = BuildTrackingSink(MultiOrgTestSupport.OrgA, logic.Commands);
 			var feature = new BaselineCardPlayFeature(new Dictionary<string, double>());
-			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(1, MultiOrgTestSupport.OrgA), sink);
+			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(1, MultiOrgTestSupport.OrgA), sink, logic.Resources, logic.Relations);
 
 			// Same simulated day for all three calls - no time advance in between.
 			bot.ExecuteDecisionTick(logic.World, logic.ActionConfig);
@@ -45,7 +49,7 @@ namespace GS.Game.Tests {
 
 			var (sink, plays) = BuildTrackingSink(MultiOrgTestSupport.OrgA, logic.Commands);
 			var feature = new BaselineCardPlayFeature(new Dictionary<string, double>());
-			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(2, MultiOrgTestSupport.OrgA), sink);
+			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(2, MultiOrgTestSupport.OrgA), sink, logic.Resources, logic.Relations);
 
 			bot.ExecuteDecisionTick(logic.World, logic.ActionConfig);
 			int playsAfterDay1 = plays.Count;
@@ -68,7 +72,7 @@ namespace GS.Game.Tests {
 
 			var (sink, plays) = BuildTrackingSink(MultiOrgTestSupport.OrgA, logic.Commands);
 			var feature = new BaselineCardPlayFeature(new Dictionary<string, double>());
-			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(3, MultiOrgTestSupport.OrgA), sink);
+			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(3, MultiOrgTestSupport.OrgA), sink, logic.Resources, logic.Relations);
 
 			// World has no GameTime entity yet (Update has never run) - ReadCurrentDate must
 			// return default rather than throw, and the gate must still let this first-ever

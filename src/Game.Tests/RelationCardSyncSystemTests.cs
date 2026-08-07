@@ -37,7 +37,7 @@ namespace GS.Game.Tests {
 		void creates_one_stop_friendship_instance_for_an_existing_friend_relation() {
 			var logic = BuildLogic();
 			logic.Update(0f);
-			CountryRelations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB, RelationKind.Friend);
+			logic.Relations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB, RelationKind.Friend);
 
 			logic.Update(0f);
 
@@ -51,7 +51,7 @@ namespace GS.Game.Tests {
 		void second_tick_with_no_relation_change_does_not_duplicate() {
 			var logic = BuildLogic();
 			logic.Update(0f);
-			CountryRelations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB, RelationKind.Friend);
+			logic.Relations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB, RelationKind.Friend);
 			logic.Update(0f);
 
 			logic.Update(0f);
@@ -66,8 +66,8 @@ namespace GS.Game.Tests {
 		void simultaneous_friend_and_rival_relations_produce_two_independent_entities() {
 			var logic = BuildLogic();
 			logic.Update(0f);
-			CountryRelations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB, RelationKind.Friend);
-			CountryRelations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.ExtraCountry1, RelationKind.Rival);
+			logic.Relations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB, RelationKind.Friend);
+			logic.Relations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.ExtraCountry1, RelationKind.Rival);
 
 			logic.Update(0f);
 
@@ -84,16 +84,16 @@ namespace GS.Game.Tests {
 		void cleared_then_reformed_pair_reuses_the_same_entity() {
 			var logic = BuildLogic();
 			logic.Update(0f);
-			CountryRelations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB, RelationKind.Friend);
+			logic.Relations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB, RelationKind.Friend);
 			logic.Update(0f);
 			var firstInstances = GetInstances(logic.World, "stop_friendship");
 			var firstMatching = firstInstances.FindAll(i => i.CountryId == MultiOrgTestSupport.HqA && i.TargetCountryId == MultiOrgTestSupport.HqB);
 			Assert.Single(firstMatching);
 			int originalEntity = firstMatching[0].Entity;
 
-			CountryRelations.RemoveRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB);
+			logic.Relations.RemoveRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB);
 			logic.Update(0f);
-			CountryRelations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB, RelationKind.Friend);
+			logic.Relations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB, RelationKind.Friend);
 			logic.Update(0f);
 
 			var finalInstances = GetInstances(logic.World, "stop_friendship");

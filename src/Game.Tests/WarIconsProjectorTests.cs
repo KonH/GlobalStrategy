@@ -9,6 +9,7 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class WarIconsProjectorTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
 		const string PlayerOrgId = "player";
 
 		static int AddControl(World world, string countryId, int value, string orgId = PlayerOrgId) {
@@ -36,7 +37,7 @@ namespace GS.Game.Tests {
 			return entity;
 		}
 
-		static void SetWarProgress(World world, string warId, double progress) {
+		void SetWarProgress(World world, string warId, double progress) {
 			int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
 				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
@@ -45,6 +46,7 @@ namespace GS.Game.Tests {
 					if (owners[i].OwnerId == warId
 						&& resources[i].ResourceId == ResourceDefinitions.WarProgress) {
 						resources[i].Value = progress;
+						_resources.NotifyValue(warId, ResourceDefinitions.WarProgress, progress, arch.Entities[i]);
 						return;
 					}
 				}
@@ -74,7 +76,7 @@ namespace GS.Game.Tests {
 			AddCompleteWar(world, "war_a", "attacker", "defender");
 			AddControl(world, "attacker", 10);
 
-			Assert.Empty(WarIconsProjector.Build(world, ""));
+			Assert.Empty(WarIconsProjector.Build(world, _resources, ""));
 		}
 
 		[Theory]
@@ -88,7 +90,7 @@ namespace GS.Game.Tests {
 				AddControl(world, "attacker", value);
 			}
 
-			Assert.Empty(WarIconsProjector.Build(world, PlayerOrgId));
+			Assert.Empty(WarIconsProjector.Build(world, _resources, PlayerOrgId));
 		}
 
 		[Theory]
@@ -99,7 +101,7 @@ namespace GS.Game.Tests {
 			AddCompleteWar(world, "war_a", "attacker", "defender", -2.5);
 			AddControl(world, controlledCountryId, 1);
 
-			WarIconEntryState entry = Assert.Single(WarIconsProjector.Build(world, PlayerOrgId));
+			WarIconEntryState entry = Assert.Single(WarIconsProjector.Build(world, _resources, PlayerOrgId));
 			Assert.Equal("war_a", entry.WarId);
 			Assert.Equal(-2.5, entry.Progress);
 		}
@@ -111,10 +113,10 @@ namespace GS.Game.Tests {
 			AddControl(world, "attacker", 10);
 			AddControl(world, "attacker", -10);
 
-			Assert.Empty(WarIconsProjector.Build(world, PlayerOrgId));
+			Assert.Empty(WarIconsProjector.Build(world, _resources, PlayerOrgId));
 
 			AddControl(world, "attacker", 1);
-			Assert.Single(WarIconsProjector.Build(world, PlayerOrgId));
+			Assert.Single(WarIconsProjector.Build(world, _resources, PlayerOrgId));
 		}
 
 		[Fact]
@@ -129,7 +131,7 @@ namespace GS.Game.Tests {
 			AddControl(world, "Zulu", 5);
 			AddControl(world, "Yankee", 5);
 
-			WarIconEntryState entry = Assert.Single(WarIconsProjector.Build(world, PlayerOrgId));
+			WarIconEntryState entry = Assert.Single(WarIconsProjector.Build(world, _resources, PlayerOrgId));
 			Assert.Equal("Alpha", entry.AttackerCountryId);
 			Assert.Equal("Bravo", entry.DefenderCountryId);
 			Assert.Equal(25.25, entry.Progress);
@@ -143,7 +145,7 @@ namespace GS.Game.Tests {
 			AddControl(world, "d_z", 1);
 			AddControl(world, "a_a", 1);
 
-			List<WarIconEntryState> entries = WarIconsProjector.Build(world, PlayerOrgId);
+			List<WarIconEntryState> entries = WarIconsProjector.Build(world, _resources, PlayerOrgId);
 
 			Assert.Collection(entries,
 				entry => Assert.Equal("war_a", entry.WarId),
@@ -168,7 +170,7 @@ namespace GS.Game.Tests {
 			AddControl(world, "a", 100);
 			AddControl(world, "d", 100);
 
-			Assert.Empty(WarIconsProjector.Build(world, PlayerOrgId));
+			Assert.Empty(WarIconsProjector.Build(world, _resources, PlayerOrgId));
 		}
 
 		[Fact]
@@ -179,18 +181,18 @@ namespace GS.Game.Tests {
 			AddParticipant(world, "war_a", WarParticipantKind.Defender, "defender");
 			int controlEntity = AddControl(world, "defender", 5);
 
-			Assert.Equal(1.5, Assert.Single(WarIconsProjector.Build(world, PlayerOrgId)).Progress);
+			Assert.Equal(1.5, Assert.Single(WarIconsProjector.Build(world, _resources, PlayerOrgId)).Progress);
 
 			SetWarProgress(world, "war_a", -7.25);
-			Assert.Equal(-7.25, Assert.Single(WarIconsProjector.Build(world, PlayerOrgId)).Progress);
+			Assert.Equal(-7.25, Assert.Single(WarIconsProjector.Build(world, _resources, PlayerOrgId)).Progress);
 
 			world.Destroy(controlEntity);
-			Assert.Empty(WarIconsProjector.Build(world, PlayerOrgId));
+			Assert.Empty(WarIconsProjector.Build(world, _resources, PlayerOrgId));
 
 			AddControl(world, "defender", 5);
-			Assert.Single(WarIconsProjector.Build(world, PlayerOrgId));
+			Assert.Single(WarIconsProjector.Build(world, _resources, PlayerOrgId));
 			world.Destroy(warEntity);
-			Assert.Empty(WarIconsProjector.Build(world, PlayerOrgId));
+			Assert.Empty(WarIconsProjector.Build(world, _resources, PlayerOrgId));
 		}
 
 		[Fact]

@@ -11,36 +11,31 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class SelectedWarProjectorTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static readonly DateTime Start = new DateTime(1880, 1, 1);
 
-		static void AddResource(World world, string ownerId, OwnerType ownerType, string resourceId, double value) {
-			int entity = world.Create();
-			world.Add(entity, new ResourceOwner(ownerId, ownerType));
-			world.Add(entity, new Resource { ResourceId = resourceId, Value = value });
+		static (World world, ResourceQuery resources) CreateWorld() {
+			return (new World(), new ResourceQuery());
 		}
 
-		static string DeclareWar(World world, string attackerId, string defenderId, double progress = 0) {
-			Wars.DeclareWar(world, attackerId, defenderId, Start);
+		static void AddResource(World world, ResourceQuery resources, string ownerId, OwnerType ownerType, string resourceId, double value) {
+			resources.Set(world, ownerId, resourceId, value, ownerType);
+		}
+
+		static string DeclareWar(World world, ResourceQuery resources, string attackerId, string defenderId, double progress = 0) {
+			Wars.DeclareWar(world, resources, attackerId, defenderId, Start);
 			string warId = GetSingle<War>(world).WarId;
 			if (progress != 0) {
-				SetWarProgress(world, warId, progress);
+				SetWarProgress(world, resources, warId, progress);
 			}
 			return warId;
 		}
 
-		static void SetWarProgress(World world, string warId, double progress) {
-			int[] required = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
-				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
-				Resource[] resources = arch.GetColumn<Resource>();
-				for (int i = 0; i < arch.Count; i++) {
-					if (owners[i].OwnerId == warId && resources[i].ResourceId == ResourceDefinitions.WarProgress) {
-						resources[i].Value = progress;
-						return;
-					}
-				}
+		static void SetWarProgress(World world, ResourceQuery resources, string warId, double progress) {
+			if (!resources.TryUpdate(world, warId, ResourceDefinitions.WarProgress, progress, out _)) {
+				throw new InvalidOperationException($"War progress resource for '{warId}' not found.");
 			}
-			throw new InvalidOperationException($"War progress resource for '{warId}' not found.");
 		}
 
 		static int AddWarProgressHistory(World world, string warId, List<ResourceChangeEntry> entries) {
@@ -112,19 +107,19 @@ namespace GS.Game.Tests {
 			throw new InvalidOperationException($"No {typeof(T).Name} entity found.");
 		}
 
-		static SelectedWarState Project(World world, SelectedWarState state) {
-			SelectedWarProjector.Project(world, state);
+		SelectedWarState Project(World world, ResourceQuery resources, SelectedWarState state, CountryConfig? countryConfig = null) {
+			SelectedWarProjector.Project(world, state, resources, countryConfig);
 			return state;
 		}
 
 		[Fact]
 		void empty_history_projects_no_entries() {
-			var world = new World();
-			string warId = DeclareWar(world, "France", "Germany");
+			(var world, var resources) = CreateWorld();
+			string warId = DeclareWar(world, resources, "France", "Germany");
 			var state = new SelectedWarState();
 			state.RequestOpen(warId);
 
-			Project(world, state);
+			Project(world, resources, state);
 
 			Assert.True(state.IsValid);
 			Assert.Empty(state.History);
@@ -132,8 +127,8 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void history_is_projected_oldest_to_newest() {
-			var world = new World();
-			string warId = DeclareWar(world, "France", "Germany");
+			(var world, var resources) = CreateWorld();
+			string warId = DeclareWar(world, resources, "France", "Germany");
 			var first = new DateTime(1880, 1, 1);
 			var second = new DateTime(1880, 2, 1);
 			AddWarProgressHistory(world, warId, new List<ResourceChangeEntry> {
@@ -143,7 +138,7 @@ namespace GS.Game.Tests {
 			var state = new SelectedWarState();
 			state.RequestOpen(warId);
 
-			Project(world, state);
+			Project(world, resources, state);
 
 			Assert.Equal(2, state.History.Count);
 			Assert.Equal("war_progress_decay", state.History[0].EffectId);
@@ -156,12 +151,12 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void side_stats_include_zeros_when_no_battles_or_resources() {
-			var world = new World();
-			string warId = DeclareWar(world, "France", "Germany");
+			(var world, var resources) = CreateWorld();
+			string warId = DeclareWar(world, resources, "France", "Germany");
 			var state = new SelectedWarState();
 			state.RequestOpen(warId);
 
-			Project(world, state);
+			Project(world, resources, state);
 
 			Assert.Equal("France", state.Attacker.CountryId);
 			Assert.Equal(0, state.Attacker.RecruitsAvailable);
@@ -175,12 +170,12 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void side_stats_aggregate_country_resources_and_battle_forces() {
-			var world = new World();
-			string warId = DeclareWar(world, "France", "Germany");
-			AddResource(world, "France", OwnerType.Country, ResourceDefinitions.Recruits, 50);
-			AddResource(world, "France", OwnerType.Country, ResourceDefinitions.Damage, 12);
-			AddResource(world, "France", OwnerType.Country, ResourceDefinitions.Durability, 34);
-			AddResource(world, "Germany", OwnerType.Country, ResourceDefinitions.Recruits, 70);
+			(var world, var resources) = CreateWorld();
+			string warId = DeclareWar(world, resources, "France", "Germany");
+			AddResource(world, resources, "France", OwnerType.Country, ResourceDefinitions.Recruits, 50);
+			AddResource(world, resources, "France", OwnerType.Country, ResourceDefinitions.Damage, 12);
+			AddResource(world, resources, "France", OwnerType.Country, ResourceDefinitions.Durability, 34);
+			AddResource(world, resources, "Germany", OwnerType.Country, ResourceDefinitions.Recruits, 70);
 			AddBattle(world, warId, "active", "France__west", BattleState.Active, 1, Start.AddHours(1));
 			AddForce(world, "active", "France", WarParticipantKind.Attacker, 20);
 			AddForce(world, "active", "Germany", WarParticipantKind.Defender, 5);
@@ -190,7 +185,7 @@ namespace GS.Game.Tests {
 			var state = new SelectedWarState();
 			state.RequestOpen(warId);
 
-			Project(world, state);
+			Project(world, resources, state);
 
 			Assert.Equal(50, state.Attacker.RecruitsAvailable);
 			Assert.Equal(20, state.Attacker.TroopsInBattles);
@@ -204,14 +199,14 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void battles_are_ordered_by_creation_sequence() {
-			var world = new World();
-			string warId = DeclareWar(world, "France", "Germany");
+			(var world, var resources) = CreateWorld();
+			string warId = DeclareWar(world, resources, "France", "Germany");
 			AddBattle(world, warId, "z_battle", "Z", BattleState.Active, 2, Start.AddHours(2));
 			AddBattle(world, warId, "a_battle", "A", BattleState.Active, 1, Start.AddHours(1));
 			var state = new SelectedWarState();
 			state.RequestOpen(warId);
 
-			Project(world, state);
+			Project(world, resources, state);
 
 			Assert.Equal(2, state.Battles.Count);
 			Assert.Equal("a_battle", state.Battles[0].BattleId);
@@ -229,15 +224,15 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void active_battle_row_includes_progress_and_troops() {
-			var world = new World();
-			string warId = DeclareWar(world, "France", "Germany");
+			(var world, var resources) = CreateWorld();
+			string warId = DeclareWar(world, resources, "France", "Germany");
 			AddBattle(world, warId, "active", "France__west", BattleState.Active, 1, Start);
 			AddForce(world, "active", "France", WarParticipantKind.Attacker, 60);
 			AddForce(world, "active", "Germany", WarParticipantKind.Defender, 40);
 			var state = new SelectedWarState();
 			state.RequestOpen(warId);
 
-			Project(world, state);
+			Project(world, resources, state);
 
 			WarBattleRowState row = Assert.Single(state.Battles);
 			Assert.False(row.IsFinished);
@@ -248,15 +243,15 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void finished_battle_row_keeps_attacker_first_casualty_payload() {
-			var world = new World();
-			string warId = DeclareWar(world, "France", "Germany");
+			(var world, var resources) = CreateWorld();
+			string warId = DeclareWar(world, resources, "France", "Germany");
 			AddBattle(world, warId, "finished", "France__west", BattleState.Finished, 1, Start, WarParticipantKind.Defender);
 			AddForce(world, "finished", "France", WarParticipantKind.Attacker, 0, 11);
 			AddForce(world, "finished", "Germany", WarParticipantKind.Defender, 0, 22);
 			var state = new SelectedWarState();
 			state.RequestOpen(warId);
 
-			Project(world, state);
+			Project(world, resources, state);
 
 			WarBattleRowState row = Assert.Single(state.Battles);
 			Assert.True(row.IsFinished);
@@ -268,15 +263,15 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void clearing_selection_invalidates_state() {
-			var world = new World();
-			string warId = DeclareWar(world, "France", "Germany");
+			(var world, var resources) = CreateWorld();
+			string warId = DeclareWar(world, resources, "France", "Germany");
 			var state = new SelectedWarState();
 			state.RequestOpen(warId);
-			Project(world, state);
+			Project(world, resources, state);
 			Assert.True(state.IsValid);
 
 			state.Clear();
-			Project(world, state);
+			Project(world, resources, state);
 
 			Assert.False(state.IsValid);
 			Assert.Equal("", state.WarId);
@@ -284,25 +279,29 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void identical_set_does_not_notify() {
-			var world = new World();
-			string warId = DeclareWar(world, "France", "Germany", 5);
+			(var world, var resources) = CreateWorld();
+			string warId = DeclareWar(world, resources, "France", "Germany", 5);
 			var state = new SelectedWarState();
 			state.RequestOpen(warId);
 			int notifications = 0;
 			state.PropertyChanged += (_, __) => notifications++;
 
-			Project(world, state);
+			Project(world, resources, state);
 			Assert.Equal(1, notifications);
 
-			Project(world, state);
+			Project(world, resources, state);
 			Assert.Equal(1, notifications);
 
-			SetWarProgress(world, warId, 6);
-			Project(world, state);
+			SetWarProgress(world, resources, warId, 6);
+			Project(world, resources, state);
 			Assert.Equal(2, notifications);
 		}
 
-		static void AddCharacterWithSkill(World world, string characterId, string countryId, string roleId, string skillId, double skillValue) {
+		static void AddSkill(World world, ResourceQuery resources, string characterId, string skillId, double skillValue) {
+			resources.Set(world, characterId, skillId, skillValue, OwnerType.Character);
+		}
+
+		static void AddCharacterWithSkill(World world, ResourceQuery resources, string characterId, string countryId, string roleId, string skillId, double skillValue) {
 			int charEntity = world.Create();
 			world.Add(charEntity, new Character {
 				CharacterId = characterId,
@@ -311,24 +310,18 @@ namespace GS.Game.Tests {
 				RoleId = roleId,
 				NamePartKeys = Array.Empty<string>()
 			});
-			AddSkill(world, characterId, skillId, skillValue);
-		}
-
-		static void AddSkill(World world, string characterId, string skillId, double skillValue) {
-			int skillEntity = world.Create();
-			world.Add(skillEntity, new ResourceOwner(characterId, OwnerType.Character));
-			world.Add(skillEntity, new Resource { ResourceId = skillId, Value = skillValue });
+			AddSkill(world, resources, characterId, skillId, skillValue);
 		}
 
 		[Fact]
 		void side_stats_include_damage_and_durability_composition() {
-			var world = new World();
-			string warId = DeclareWar(world, "France", "Germany");
-			AddCharacterWithSkill(world, "ruler_1", "France", "ruler", "power", 20);
-			AddCharacterWithSkill(world, "mil_1", "France", "military_advisor", "power", 15);
-			AddSkill(world, "ruler_1", "stinginess", 5);
-			AddCharacterWithSkill(world, "econ_1", "France", "economic_advisor", "stinginess", 8);
-			AddResource(world, "France", OwnerType.Country, ResourceDefinitions.TroopsDamageBonusPercent, 10);
+			(var world, var resources) = CreateWorld();
+			string warId = DeclareWar(world, resources, "France", "Germany");
+			AddCharacterWithSkill(world, resources, "ruler_1", "France", "ruler", "power", 20);
+			AddCharacterWithSkill(world, resources, "mil_1", "France", "military_advisor", "power", 15);
+			AddSkill(world, resources, "ruler_1", "stinginess", 5);
+			AddCharacterWithSkill(world, resources, "econ_1", "France", "economic_advisor", "stinginess", 8);
+			AddResource(world, resources, "France", OwnerType.Country, ResourceDefinitions.TroopsDamageBonusPercent, 10);
 			int orgEntity = world.Create();
 			world.Add(orgEntity, new Organization { OrganizationId = "org_a", DisplayName = "Illuminati" });
 			int decayEffect = world.Create();
@@ -349,7 +342,7 @@ namespace GS.Game.Tests {
 			var state = new SelectedWarState();
 			state.RequestOpen(warId);
 
-			SelectedWarProjector.Project(world, state, countryConfig);
+			SelectedWarProjector.Project(world, state, resources, countryConfig);
 
 			Assert.Equal(85, state.Attacker.DamageBase);
 			Assert.Equal(20, state.Attacker.DamageRulerBonus);
@@ -366,11 +359,11 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void missing_war_invalidates_pending_selection() {
-			var world = new World();
+			(var world, var resources) = CreateWorld();
 			var state = new SelectedWarState();
 			state.RequestOpen("missing_war");
 
-			Project(world, state);
+			Project(world, resources, state);
 
 			Assert.False(state.IsValid);
 		}

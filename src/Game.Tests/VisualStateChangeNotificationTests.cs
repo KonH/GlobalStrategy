@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using GS.Main;
 using Xunit;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Tests {
 	public class VisualStateChangeNotificationTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		[Fact]
 		public void time_state_no_op_set_does_not_fire_property_changed() {
 			var state = new TimeState();

@@ -7,22 +7,26 @@ namespace GS.Game.Benchmarks {
 	[MemoryDiagnoser]
 	public class RecruitsSeedCollectorBenchmarks {
 		World _world = null!;
+		ResourceQuery _resources = null!;
 		IResourceCollector _collector = null!;
 		string _countryId = null!;
 		double _currentValue;
 
 		[GlobalSetup]
 		public void Setup() {
+			var resources = new ResourceQuery();
+			var relations = new CountryRelations();
 			var fixture = GameWorldFixture.Build();
 			_world = fixture.Logic.World;
+			_resources = fixture.Logic.Resources;
 			_collector = fixture.CollectorRegistry.Resolve(RecruitsSeedCollector.Id);
 			_countryId = fixture.FirstCountryId;
-			_currentValue = ResourceQuery.GetValue(_world, _countryId, ResourceDefinitions.Recruits);
+			_currentValue = resources.GetValue(_world, _countryId, ResourceDefinitions.Recruits);
 		}
 
 		[Benchmark]
 		public double Compute() {
-			return _collector.Compute(_countryId, _currentValue, _world);
+			return _collector.Compute(_countryId, _currentValue, _world, _resources);
 		}
 	}
 }

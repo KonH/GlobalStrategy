@@ -7,6 +7,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class ScoreGoalConditionTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		const string OrgA = "org-a";
 
 		[Fact]
@@ -67,8 +69,8 @@ namespace GS.Game.Tests {
 			Assert.Throws<ArgumentOutOfRangeException>(() => new ScoreGoalCondition(goal));
 		}
 
-		static CompletionConditionContext Context(World world) {
-			return new CompletionConditionContext(world, OrgA, new[] { "a" }, 100);
+		CompletionConditionContext Context(World world) {
+			return new CompletionConditionContext(world, OrgA, new[] { "a" }, 100, _resources);
 		}
 
 		static void AddScore(World world, string orgId, double value) {

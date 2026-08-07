@@ -1,6 +1,8 @@
 using System;
 using ECS;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Benchmarks {
 	// Shared singleton-entity lookup for benchmark [GlobalSetup] methods - mirrors the
 	// documented "Singleton entities" ECS pattern (.claude/rules/unity/ecs_patterns.md).

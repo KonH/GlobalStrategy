@@ -1,3 +1,5 @@
+using GS.Game.Systems;
+
 namespace GS.Game.ConsoleRunner {
 	public class CalibrationResult {
 		public string Scenario { get; set; } = "";

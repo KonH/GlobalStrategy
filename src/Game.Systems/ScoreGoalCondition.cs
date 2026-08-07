@@ -18,7 +18,7 @@ namespace GS.Game.Systems {
 		}
 
 		public double GetCurrent(CompletionConditionContext context) {
-			return ResourceQuery.GetValue(context.World, context.OrganizationId, ResourceDefinitions.OrgScore);
+			return context.Resources.GetValue(context.World, context.OrganizationId, ResourceDefinitions.OrgScore);
 		}
 
 		public double GetTarget(CompletionConditionContext context) {

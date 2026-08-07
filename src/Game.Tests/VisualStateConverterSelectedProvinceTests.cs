@@ -4,8 +4,12 @@ using GS.Game.Components;
 using GS.Main;
 using Xunit;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Tests {
 	public class VisualStateConverterSelectedProvinceTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static int SeedSelection(World world, string provinceId) {
 			int entity = world.Create();
 			world.Add(entity, new ProvinceSelection { ProvinceId = provinceId });
@@ -26,7 +30,7 @@ namespace GS.Game.Tests {
 			SeedProvinceResource(world, "c_alpha__province_one", "population", 42.0);
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state);
+			var converter = new VisualStateConverter(state, _resources, _relations);
 			converter.UpdateSelectedProvince(world);
 
 			Assert.True(state.SelectedProvince.IsValid);
@@ -42,7 +46,7 @@ namespace GS.Game.Tests {
 			SeedSelection(world, "");
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state);
+			var converter = new VisualStateConverter(state, _resources, _relations);
 			converter.UpdateSelectedProvince(world);
 
 			Assert.False(state.SelectedProvince.IsValid);
@@ -58,7 +62,7 @@ namespace GS.Game.Tests {
 			SeedProvinceResource(world, "c_alpha__province_two", "population", 99.0);
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state);
+			var converter = new VisualStateConverter(state, _resources, _relations);
 			converter.UpdateSelectedProvince(world);
 
 			Assert.Single(state.SelectedProvince.Resources.Resources);
@@ -70,7 +74,7 @@ namespace GS.Game.Tests {
 			var world = new World();
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state);
+			var converter = new VisualStateConverter(state, _resources, _relations);
 			converter.UpdateSelectedProvince(world);
 
 			Assert.False(state.SelectedProvince.IsValid);

@@ -9,18 +9,20 @@ namespace GS.Game.Benchmarks {
 	[MemoryDiagnoser]
 	public class ResourceQueryBenchmarks {
 		World _world = null!;
+		ResourceQuery _resources = null!;
 		string _countryId = null!;
 
 		[GlobalSetup]
 		public void Setup() {
 			var fixture = GameWorldFixture.Build();
 			_world = fixture.Logic.World;
+			_resources = fixture.Logic.Resources;
 			_countryId = fixture.FirstCountryId;
 		}
 
 		[Benchmark]
 		public double GetValue() {
-			return ResourceQuery.GetValue(_world, _countryId, ResourceDefinitions.CountryPopulation);
+			return _resources.GetValue(_world, _countryId, ResourceDefinitions.CountryPopulation);
 		}
 	}
 }

@@ -11,6 +11,8 @@ namespace GS.Main {
 	public class GameLogic {
 		readonly World _world = new World();
 		readonly CommandAccessor _commandAccessor = new CommandAccessor();
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		readonly VisualStateConverter _visualStateConverter;
 		readonly GameLogicContext _context;
 		readonly int[] _speedMultipliers;
@@ -38,6 +40,8 @@ namespace GS.Main {
 		public VisualState VisualState { get; } = new VisualState();
 		public IWriteOnlyCommandAccessor Commands { get; }
 		public World World => _world;
+		public ResourceQuery Resources => _resources;
+		public CountryRelations Relations => _relations;
 		public ResourceConfig ResourceConfig { get; private set; } = null!;
 		public CountryConfig CountryConfig { get; private set; } = null!;
 		public CharacterConfig CharacterConfig { get; private set; } = null!;
@@ -46,6 +50,7 @@ namespace GS.Main {
 		public ProvinceConfig ProvinceConfig { get; private set; } = null!;
 		public GameSettings GameSettings { get; private set; } = null!;
 		public IReadOnlyList<BotFeatureConfigEntry> BotFeatures { get; private set; } = null!;
+		public IReadOnlyDictionary<string, string> HqCountryByOrgId => _hqCountryByOrgId;
 		public int MaxControlPool { get; private set; }
 		public bool IsCompleted => _gameCompletionEntity >= 0
 			&& _world.Get<GameCompletion>(_gameCompletionEntity).IsCompleted;
@@ -76,10 +81,13 @@ namespace GS.Main {
 			var settings = context.GameSettings.Load();
 			GameSettings = settings;
 			settings.WarBattles.Validate();
-			_visualStateConverter = new VisualStateConverter(VisualState, _actionConfig, _hqCountryByOrgId,
+			_visualStateConverter = new VisualStateConverter(
+				VisualState, _resources, _relations, _actionConfig, _hqCountryByOrgId,
 				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig,
 				settings.EventNotifications, settings.CompletionCondition, settings.MaxControlPool, _effectConfig,
 				settings.BaseIncome);
+			_resources.OnCacheMissWarning = message => _context.Logger?.LogDebug(message);
+			_relations.OnCacheMissWarning = message => _context.Logger?.LogDebug(message);
 			_speedMultipliers = settings.SpeedMultipliers;
 			var combatBasesByCountryId = new Dictionary<string, CountryCombatBases>();
 			foreach (var entry in CountryConfig.Countries) {
@@ -99,7 +107,9 @@ namespace GS.Main {
 		}
 
 		public void Update(float deltaTime) {
-			if (InitSystem.Update(_world, _context, _rng)) {
+			if (InitSystem.Update(_world, _context, _rng, _resources, _relations)) {
+				_resources.Rebuild(_world);
+				_relations.Rebuild(_world);
 				RefreshSingletonEntities();
 				ProvinceOwnershipSystem.Seed(_world, ProvinceConfig);
 				ProvinceOccupationSystem.Seed(_world, ProvinceConfig);
@@ -125,16 +135,16 @@ namespace GS.Main {
 
 			DateTime currentTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
 			ResourceSystem.Update(
-				_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder, ResourceConfig);
-			ControlSystem.Update(_world, _previousTime, currentTime, GameSettings.BaseIncome);
+				_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder, ResourceConfig, _resources);
+			ControlSystem.Update(_world, _previousTime, currentTime, GameSettings.BaseIncome, _resources);
 			// Game Log: sweep last tick's WarResolvedApplied before TryResolvePeaceByChance/the
 			// debug StopWar handler (below) might create a new one this tick. See
 			// Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
 			CleanupEffectNotificationsSystem.UpdateWarResolved(_world);
 			Wars.TryResolvePeaceByChance(
-				_world, _previousTime, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, CountryConfig);
+				_world, _resources, _previousTime, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, CountryConfig);
 			WarSystem.Update(
-				_world, _previousTime, currentTime, GameSettings.AttackerWarProgressDecayPerMonth, ResourceConfig);
+				_world, _previousTime, currentTime, GameSettings.AttackerWarProgressDecayPerMonth, _resources, ResourceConfig);
 			RevengeWarBonusDecaySystem.Update(
 				_world,
 				_previousTime,
@@ -212,19 +222,19 @@ namespace GS.Main {
 				}
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugSetCountryRelationCommand().AsSpan()) {
-				CountryRelations.SetRelation(_world, cmd.CountryIdA, cmd.CountryIdB, cmd.Kind);
+				_relations.SetRelation(_world, cmd.CountryIdA, cmd.CountryIdB, cmd.Kind);
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugClearCountryRelationCommand().AsSpan()) {
-				CountryRelations.RemoveRelation(_world, cmd.CountryIdA, cmd.CountryIdB);
+				_relations.RemoveRelation(_world, cmd.CountryIdA, cmd.CountryIdB);
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugDeclareWarCommand().AsSpan()) {
 				Wars.DeclareWar(
-					_world, cmd.AttackerCountryId, cmd.DefenderCountryId, currentTime,
+					_world, _resources, cmd.AttackerCountryId, cmd.DefenderCountryId, currentTime,
 					_provinceTopology, GameSettings.WarBattles);
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugStopWarCommand().AsSpan()) {
 				Wars.StopWar(
-					_world, cmd.CountryId, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, CountryConfig);
+					_world, _resources, cmd.CountryId, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, CountryConfig);
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugDrawCardCommand().AsSpan()) {
 				DrawCardSystem.ForceDrawCard(_world, cmd.OrgId, cmd.CountryId, cmd.ActionId, cmd.TargetCountryId);
@@ -238,21 +248,23 @@ namespace GS.Main {
 			// tick's battle-caused ResourceChange, so VisualStateConverter (below) sees it once,
 			// same as the card pipeline's DeductActionCostSystem/CreateActionEffectSystem.
 			WarBattleSystem.Update(
-				_world, _previousTime, currentTime, _rng, _provinceTopology, GameSettings.WarBattles, ResourceConfig);
+				_world, _previousTime, currentTime, _rng, _provinceTopology, GameSettings.WarBattles, _resources, ResourceConfig);
 
 			// Game Log: sweep last tick's Control/Opinion events before
 			// CreateActionEffectSystem creates this tick's batch below.
 			// See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
 			CleanupEffectNotificationsSystem.UpdateActionEffects(_world);
 			InitActionFromPlayCardSystem.Update(_world, _commandAccessor.ReadPlayCardActionCommand());
-			CheckActionConditionSystem.Update(_world, _actionConfig, _hqCountryByOrgId, currentTime);
-			DeductActionCostSystem.Update(_world, _actionConfig);
+			CheckActionConditionSystem.Update(
+				_world, _actionConfig, _resources, _relations, _hqCountryByOrgId, currentTime, MaxControlPool);
+			DeductActionCostSystem.Update(_world, _actionConfig, _resources);
 			ActionSucceededSystem.Update(_world, _actionConfig);
 			ApplyActionCooldownSystem.Update(_world, currentTime, _actionConfig);
 			bool hasSucceededCardActions = HasSucceededCardActions(_world);
 			CreateActionEffectSystem.Update(
 				_world, _actionConfig, _effectConfig, currentTime,
-				_rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, _hqCountryByOrgId, CountryConfig);
+				_rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, _resources,
+				_hqCountryByOrgId, CountryConfig);
 			// A succeeded card can grant a CountryResourceModifier effect (e.g. sell_arms'
 			// troops_damage_bonus_percent) that Damage/Durability's daily-gated collectors
 			// won't pick up until the next day boundary — settle immediately so the War
@@ -260,15 +272,17 @@ namespace GS.Main {
 			if (hasSucceededCardActions) {
 				SettleCombatResources();
 			}
-			SetCountryRelationSystem.Update(_world, _proximityEntity, _rng);
-			ClearCountryRelationSystem.Update(_world);
+			SetCountryRelationSystem.Update(_world, _relations, _proximityEntity, _rng);
+			ClearCountryRelationSystem.Update(_world, _relations);
 			RemoveCardFromHandSystem.Update(_world);
+			DiscardCardSystem.Update(
+				_world, _commandAccessor.ReadDiscardCardCommand(), GameSettings.DiscardGoldCost, _resources);
 			CheckHandSizeSystem.Update(_world);
-			RelationCardSyncSystem.Update(_world, _actionConfig);
+			RelationCardSyncSystem.Update(_world, _relations, _actionConfig);
 			RevengeCardSyncSystem.Update(_world, _actionConfig);
-			DrawCardSystem.Update(_world, _actionConfig, _rng, _hqCountryByOrgId);
+			DrawCardSystem.Update(_world, _actionConfig, _rng);
 			CleanupCardDiscardSystem.Update(_world);
-			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool);
+			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool, _resources);
 
 			_commandAccessor.Clear();
 			_visualStateConverter.Update(deltaTime, _world, _gameTimeEntity, _localeEntity, _orgEntity);
@@ -281,6 +295,8 @@ namespace GS.Main {
 			string json = _context.Storage.Read($"Saves/{saveName}.json");
 			var snapshot = _context.Serializer.Deserialize(json);
 			LoadSystem.Apply(snapshot, _world);
+			_resources.Rebuild(_world);
+			_relations.Rebuild(_world);
 			_commandAccessor.Clear();
 			if (!string.IsNullOrEmpty(snapshot.Header.SessionId)) {
 				_sessionId = snapshot.Header.SessionId;
@@ -289,7 +305,7 @@ namespace GS.Main {
 			ReconcileLoadedCompletionState();
 			RefreshSingletonEntities();
 			_previousTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
-			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool);
+			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool, _resources);
 			SettleCombatResources();
 			_visualStateConverter.Update(0f, _world, _gameTimeEntity, _localeEntity, _orgEntity);
 		}
@@ -498,7 +514,7 @@ namespace GS.Main {
 				RemoveCharacterEntity(currentCharId);
 			}
 
-			CreateOrgCharacterEntity(_world, CharacterConfig, _rng, orgId, roleId, nextEntry);
+			CreateOrgCharacterEntity(_world, _resources, CharacterConfig, _rng, orgId, roleId, nextEntry);
 
 			slot.CharacterId = nextEntry.CharacterId;
 			slot.IsAvailable = false;
@@ -544,9 +560,7 @@ namespace GS.Main {
 				} else {
 					sv = _rng.Next(5, 31);
 				}
-				int se = _world.Create();
-				_world.Add(se, new ResourceOwner(nextEntry.CharacterId, OwnerType.Character));
-				_world.Add(se, new Resource { ResourceId = skillDef.SkillId, Value = sv });
+				_resources.Set(_world, nextEntry.CharacterId, skillDef.SkillId, sv, OwnerType.Character);
 			}
 			// Game Log event — see Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
 			_world.Add(_world.Create(), new RoleChangeApplied { OrgId = "", CountryId = countryId, RoleId = roleId, CharacterId = nextEntry.CharacterId });
@@ -590,25 +604,13 @@ namespace GS.Main {
 				for (int i = 0; i < count; i++) {
 					if (chars[i].CountryId != countryId) { continue; }
 					string charId = chars[i].CharacterId;
-					int[] resReq = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
-					bool found = false;
-					foreach (var resArch in _world.GetMatchingArchetypes(resReq, null)) {
-						ResourceOwner[] owners = resArch.GetColumn<ResourceOwner>();
-						Resource[] resources = resArch.GetColumn<Resource>();
-						int rc = resArch.Count;
-						for (int j = 0; j < rc; j++) {
-							if (owners[j].OwnerId == charId && resources[j].ResourceId == opinionResourceId) {
-								resources[j].Value = Math.Min(100, resources[j].Value + 50);
-								found = true;
-								break;
-							}
-						}
-						if (found) { break; }
-					}
-					if (!found) {
-						int re = _world.Create();
-						_world.Add(re, new ResourceOwner(charId, OwnerType.Character));
-						_world.Add(re, new Resource { ResourceId = opinionResourceId, Value = 50 });
+					int entity = _resources.FindEntity(_world, charId, opinionResourceId);
+					if (entity >= 0) {
+						double current = _resources.GetValue(_world, charId, opinionResourceId);
+						_resources.TryUpdate(
+							_world, charId, opinionResourceId, Math.Min(100, current + 50), out _);
+					} else {
+						_resources.Set(_world, charId, opinionResourceId, 50, OwnerType.Character);
 					}
 				}
 			}
@@ -625,18 +627,12 @@ namespace GS.Main {
 		}
 
 		void ApplyDebugChangeGold(string orgId, double amount) {
-			int[] req = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
-			foreach (var arch in _world.GetMatchingArchetypes(req, null)) {
-				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
-				Resource[] resources = arch.GetColumn<Resource>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId == orgId && resources[i].ResourceId == ResourceDefinitions.Gold) {
-						resources[i].Value = System.Math.Max(0, resources[i].Value + amount);
-						return;
-					}
-				}
+			double current = _resources.GetValue(_world, orgId, ResourceDefinitions.Gold);
+			if (_resources.FindEntity(_world, orgId, ResourceDefinitions.Gold) < 0) {
+				return;
 			}
+			_resources.TryUpdate(
+				_world, orgId, ResourceDefinitions.Gold, Math.Max(0, current + amount), out _);
 		}
 
 		// Debug-only completion forcer: pushes a target org over a single flattened
@@ -798,10 +794,10 @@ namespace GS.Main {
 		// the same ResolveCollectors pass as Instant (both seeing currentValue 0) would double.
 		void SettleCombatResources() {
 			DateTime now = _gameTimeEntity >= 0 ? _world.Get<GameTime>(_gameTimeEntity).CurrentTime : _previousTime;
-			ResourceSystem.Update(_world, now, now, _resourceCollectorRegistry, _resourceIdUpdateOrder);
+			ResourceSystem.Update(_world, now, now, _resourceCollectorRegistry, _resourceIdUpdateOrder, ResourceConfig, _resources);
 			MarkResourceEffectsForRecompute(ResourceDefinitions.Damage);
 			MarkResourceEffectsForRecompute(ResourceDefinitions.Durability);
-			ResourceSystem.Update(_world, now, now, _resourceCollectorRegistry, _resourceIdUpdateOrder);
+			ResourceSystem.Update(_world, now, now, _resourceCollectorRegistry, _resourceIdUpdateOrder, ResourceConfig, _resources);
 		}
 
 		// Debug-only score settle: org_score is a Daily-gated collector-driven resource
@@ -822,16 +818,17 @@ namespace GS.Main {
 
 			var before = new Dictionary<string, double>();
 			foreach (string orgId in orgIds) {
-				before[orgId] = ResourceQuery.GetValue(_world, orgId, ResourceDefinitions.OrgScore);
+				before[orgId] = _resources.GetValue(_world, orgId, ResourceDefinitions.OrgScore);
 			}
 
 			MarkResourceEffectsForRecompute(ResourceDefinitions.OrgScore);
 
 			DateTime now = _gameTimeEntity >= 0 ? _world.Get<GameTime>(_gameTimeEntity).CurrentTime : _previousTime;
-			ResourceSystem.Update(_world, now, now, _resourceCollectorRegistry, _resourceIdUpdateOrder);
+			ResourceSystem.Update(
+				_world, now, now, _resourceCollectorRegistry, _resourceIdUpdateOrder, ResourceConfig, _resources);
 
 			foreach (string orgId in orgIds) {
-				double after = ResourceQuery.GetValue(_world, orgId, ResourceDefinitions.OrgScore);
+				double after = _resources.GetValue(_world, orgId, ResourceDefinitions.OrgScore);
 				_context.Logger?.LogDebug($"[DebugForceCompletion] {logContext}: org_score settled for '{orgId}': {before[orgId]:0.###} -> {after:0.###}");
 			}
 		}
@@ -945,19 +942,29 @@ namespace GS.Main {
 				}
 			}
 			int[] resReq = { TypeId<ResourceOwner>.Value, TypeId<Resource>.Value };
-			var toDestroy = new System.Collections.Generic.List<int>();
+			var toRemove = new System.Collections.Generic.List<(string ResourceId, int Entity)>();
 			foreach (var arch in _world.GetMatchingArchetypes(resReq, null)) {
 				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				Resource[] resources = arch.GetColumn<Resource>();
 				for (int i = 0; i < arch.Count; i++) {
 					if (owners[i].OwnerId == charId) {
-						toDestroy.Add(arch.Entities[i]);
+						toRemove.Add((resources[i].ResourceId, arch.Entities[i]));
 					}
 				}
 			}
-			foreach (int e in toDestroy) { _world.Destroy(e); }
+			foreach ((string resourceId, int _) in toRemove) {
+				_resources.Remove(_world, charId, resourceId);
+			}
 		}
 
-		static void CreateOrgCharacterEntity(World world, CharacterConfig characterConfig, Random rng, string orgId, string roleId, CharacterEntry charEntry) {
+		static void CreateOrgCharacterEntity(
+			World world,
+			ResourceQuery resources,
+			CharacterConfig characterConfig,
+			Random rng,
+			string orgId,
+			string roleId,
+			CharacterEntry charEntry) {
 			var namePartKeys = new string[charEntry.NamePartKeys.Count];
 			for (int i = 0; i < charEntry.NamePartKeys.Count; i++) {
 				namePartKeys[i] = charEntry.NamePartKeys[i];
@@ -982,9 +989,7 @@ namespace GS.Main {
 				} else {
 					sv = rng.Next(5, 31);
 				}
-				int se = world.Create();
-				world.Add(se, new ResourceOwner(charEntry.CharacterId, OwnerType.Character));
-				world.Add(se, new Resource { ResourceId = skillDef.SkillId, Value = sv });
+				resources.Set(world, charEntry.CharacterId, skillDef.SkillId, sv, OwnerType.Character);
 			}
 		}
 	}

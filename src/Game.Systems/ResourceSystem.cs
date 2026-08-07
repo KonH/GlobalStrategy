@@ -10,31 +10,39 @@ namespace GS.Game.Systems {
 			World world, DateTime previousTime, DateTime currentTime,
 			ResourceCollectorRegistry? collectorRegistry = null,
 			IReadOnlyList<string>? resourceIdUpdateOrder = null,
-			ResourceConfig? resourceConfig = null) {
+			ResourceConfig? resourceConfig = null,
+			ResourceQuery? resources = null) {
 
 			bool isMonthBoundary = previousTime.Month != currentTime.Month
 				|| previousTime.Year != currentTime.Year;
 			bool isDayBoundary = previousTime.Date != currentTime.Date;
 
 			if (collectorRegistry != null && resourceIdUpdateOrder != null && resourceIdUpdateOrder.Count > 0) {
+				if (resources == null) {
+					resources = new ResourceQuery();
+					resources.Rebuild(world);
+				}
 				var ordered = new HashSet<string>(resourceIdUpdateOrder);
 				foreach (string resourceId in resourceIdUpdateOrder) {
-					ResolveCollectors(world, resourceId, isMonthBoundary, isDayBoundary, collectorRegistry);
+					ResolveCollectors(
+						world, resourceId, isMonthBoundary, isDayBoundary, collectorRegistry, resources);
 					GatherAndApply(
 						world, isMonthBoundary, isDayBoundary,
 						linkedResourceId => linkedResourceId == resourceId,
-						resourceConfig, currentTime);
+						resourceConfig, currentTime, resources);
 				}
 				GatherAndApply(
 					world, isMonthBoundary, isDayBoundary,
 					linkedResourceId => !ordered.Contains(linkedResourceId),
-					resourceConfig, currentTime);
+					resourceConfig, currentTime, resources);
 			} else {
-				GatherAndApply(world, isMonthBoundary, isDayBoundary, null, resourceConfig, currentTime);
+				GatherAndApply(world, isMonthBoundary, isDayBoundary, null, resourceConfig, currentTime, resources);
 			}
 		}
 
-		static void ResolveCollectors(World world, string resourceId, bool isMonthBoundary, bool isDayBoundary, ResourceCollectorRegistry registry) {
+		static void ResolveCollectors(
+			World world, string resourceId, bool isMonthBoundary, bool isDayBoundary,
+			ResourceCollectorRegistry registry, ResourceQuery resources) {
 			int[] required = {
 				TypeId<ResourceOwner>.Value,
 				TypeId<ResourceLink>.Value,
@@ -62,9 +70,9 @@ namespace GS.Game.Systems {
 						continue;
 					}
 
-					double currentValue = ResourceQuery.GetValue(world, owners[i].OwnerId, resourceId);
+					double currentValue = resources.GetValue(world, owners[i].OwnerId, resourceId);
 					var collector = registry.Resolve(collectors[i].CollectorId);
-					effect.Value = collector.Compute(owners[i].OwnerId, currentValue, world);
+					effect.Value = collector.Compute(owners[i].OwnerId, currentValue, world, resources);
 					effects[i] = effect;
 				}
 			}
@@ -75,7 +83,8 @@ namespace GS.Game.Systems {
 		// forever. Any new collector-driven resourceId must be added to resourceIdUpdateOrder.
 		static void GatherAndApply(
 			World world, bool isMonthBoundary, bool isDayBoundary,
-			Func<string, bool>? resourceIdFilter, ResourceConfig? resourceConfig, DateTime currentTime) {
+			Func<string, bool>? resourceIdFilter, ResourceConfig? resourceConfig, DateTime currentTime,
+			ResourceQuery? resourceQuery) {
 			int[] effectRequired = {
 				TypeId<ResourceOwner>.Value,
 				TypeId<ResourceLink>.Value,
@@ -163,6 +172,9 @@ namespace GS.Game.Systems {
 							resources[i].Value += value;
 						}
 						double appliedDelta = resources[i].Value - oldValue;
+						if (resourceQuery != null) {
+							resourceQuery.NotifyValue(ownerId, resourceId, resources[i].Value, arch.Entities[i]);
+						}
 						if (resourceConfig != null && appliedDelta != 0) {
 							ResourceMutations.TryAppendHistory(
 								world, arch.Entities[i], resourceConfig.FindResource(resourceId),

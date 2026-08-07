@@ -14,8 +14,8 @@ namespace GS.Game.Systems {
 			_capPercent = capPercent;
 		}
 
-		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) {
-			double population = ResourceQuery.GetValue(world, ownerId, ResourceDefinitions.CountryPopulation);
+		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world, ResourceQuery resources) {
+			double population = resources.GetValue(world, ownerId, ResourceDefinitions.CountryPopulation);
 			double cap = population * _capPercent / 100.0;
 			double rawDelta = population * _increasePercent / 100.0;
 			return Math.Max(0.0, Math.Min(rawDelta, cap - currentValue));

@@ -262,9 +262,12 @@ namespace GS.Main {
 		public string ActionId        { get; }
 		public int    SlotIndex       { get; }
 		public bool   IsInHand        { get; }
+		public bool   CanPlay         { get; }
 		public bool   IsUnplayable    { get; }
 		public string UnplayableReason { get; }
+		public ActionConditionDebugEntry? FirstFailure { get; }
 		public string TargetCountryId { get; }
+		public IReadOnlyList<string> PlayableCountryIds { get; }
 		public int?   WarWinChancePercent { get; }
 		public double? CooldownRemainingDays { get; }
 		public double? CooldownFractionRemaining { get; }
@@ -279,10 +282,16 @@ namespace GS.Main {
 			IReadOnlyList<ActionConditionDebugEntry>? conditions = null,
 			int? warWinChancePercent = null,
 			double? cooldownRemainingDays = null,
-			double? cooldownFractionRemaining = null) {
+			double? cooldownFractionRemaining = null,
+			bool? canPlay = null,
+			ActionConditionDebugEntry? firstFailure = null,
+			IReadOnlyList<string>? playableCountryIds = null) {
 			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
-			IsUnplayable = isUnplayable; UnplayableReason = unplayableReason;
+			CanPlay = canPlay ?? !isUnplayable;
+			IsUnplayable = !CanPlay; UnplayableReason = unplayableReason;
+			FirstFailure = firstFailure;
 			TargetCountryId = targetCountryId;
+			PlayableCountryIds = playableCountryIds ?? Array.Empty<string>();
 			WarWinChancePercent = warWinChancePercent;
 			CooldownRemainingDays = cooldownRemainingDays;
 			CooldownFractionRemaining = cooldownFractionRemaining;
