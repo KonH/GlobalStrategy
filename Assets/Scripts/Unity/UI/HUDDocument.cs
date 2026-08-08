@@ -60,6 +60,12 @@ namespace GS.Unity.UI {
 		ActionConfig _actionConfig;
 		ActionVisualConfig _actionVisualConfig;
 		CardPlayAnimator _cardPlayAnimator;
+		CardDrawView _cardDrawView;
+		CardDrawAnimator _cardDrawAnimator;
+		ModalState _modalState;
+		bool _viewEventsSubscribed;
+		bool _started;
+		int _enableGeneration;
 		CountryConfig _countryConfig;
 		GameSettings _gameSettings;
 		List<WinConditionHintRowState> _winConditionRows = new();
@@ -83,7 +89,7 @@ namespace GS.Unity.UI {
 		UIPointerState _pointerState;
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, GoalsWindowDocument goalsWindow, WarProgressWindowDocument warProgressWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig, IFlyTextNotifier flyText, GameSettings gameSettings, UIPointerState pointerState) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, GoalsWindowDocument goalsWindow, WarProgressWindowDocument warProgressWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig, IFlyTextNotifier flyText, GameSettings gameSettings, UIPointerState pointerState, ModalState modalState) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
@@ -104,6 +110,7 @@ namespace GS.Unity.UI {
 			_countryConfig = countryConfig;
 			_gameSettings = gameSettings;
 			_pointerState = pointerState;
+			_modalState = modalState;
 		}
 
 		void Awake() {
@@ -137,15 +144,8 @@ namespace GS.Unity.UI {
 		void Start() {
 			_countryInfoRoot = _root.Q("country-info");
 			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _actionConfig, _actionVisualConfig, _countryVisualConfig, _orgVisualConfig, _gameSettings);
-			_countryInfo.OnSubPanelOpened += HandleOrgSubPanelOpened;
-			_countryInfo.OnCountryActionCardClicked += HandleCountryActionCardClicked;
-			_countryInfo.OnCountryActionCardDiscarded += HandleCountryActionCardDiscarded;
-			_countryInfo.OnUnplayableCountryActionCardReleased += HandleUnplayableCountryActionCardReleased;
-			_countryInfo.OnCountryActionCardDiscardUnaffordable += HandleCountryActionCardDiscardUnaffordable;
-			_countryInfo.OnRelatedCountryFlagClicked += HandleRelatedCountryFlagClicked;
 			_provinceInfoRoot = _root.Q("province-info");
 			_provinceInfo = new ProvinceInfoView(_provinceInfoRoot, _loc, _resourceConfig, _tooltip, _countryVisualConfig);
-			_provinceInfo.OnCountryRowClicked += HandleProvinceInfoCountryRowClicked;
 			_playerOrgView = new PlayerOrgView(_root.Q("player-country"), _loc, _resourceConfig, _tooltip, _orgVisualConfig);
 			_lensSwitcher = new LensSwitcherView(_root.Q("lens-switcher"), _tooltip, _loc);
 			_lensSwitcher.OnLensSelected = OnLensSelected;
@@ -157,10 +157,22 @@ namespace GS.Unity.UI {
 				warId => _warProgressWindow?.Open(warId));
 			_warIconsView.Refresh(_state.WarIcons);
 			_actionLog = new ActionLogView(_root, _root.Q("action-log"), _root.Q("top-right-panel"), _loc, _countryVisualConfig, _orgVisualConfig);
-			if (_orgInfoDocument != null) {
-				_orgInfoDocument.OnSubPanelOpened += HandleOrgSubPanelOpened;
-			}
 			_cardPlayAnimator?.SetCountryActionsView(_countryInfo.ActionsView);
+			var cardDrawOverlay = _root.Q("card-draw-overlay");
+			var cardDrawRow = _root.Q("card-draw-row");
+			if (cardDrawOverlay == null || cardDrawRow == null || _countryInfo.ActionsView == null) {
+				Debug.LogError("[HUDDocument] Card draw UI or country actions view is missing.", this);
+			} else {
+				_cardDrawView = new CardDrawView(cardDrawOverlay, cardDrawRow, _actionVisualConfig);
+				_cardDrawAnimator = new CardDrawAnimator(
+					_state,
+					_commands,
+					_modalState,
+					_document,
+					_countryInfo,
+					_countryInfo.ActionsView,
+					_cardDrawView);
+			}
 			var root = _document.rootVisualElement;
 			_btnMenu = root.Q<Button>("btn-menu");
 			_btnLeaderboard = root.Q<Button>("btn-leaderboard");
@@ -280,6 +292,12 @@ namespace GS.Unity.UI {
 			RebuildRelationCountryDropdown();
 			RefreshRelationActionButtons();
 			RefreshDebugCardAvailability();
+			_started = true;
+			SubscribeViewEvents();
+			_countryInfo.ActionsView?.SetPresentationBusy(_cardPlayAnimator?.IsPlaying ?? false);
+			RefreshCountryViews();
+			_cardDrawAnimator?.SetRestorationEnabled(true);
+			_cardDrawAnimator?.RestorePendingOfferIfIdle();
 		}
 
 		void BuildProvinceDebugUi() {
@@ -371,6 +389,7 @@ namespace GS.Unity.UI {
 		}
 
 		void OnEnable() {
+			int enableGeneration = ++_enableGeneration;
 			if (_state == null) {
 				return;
 			}
@@ -408,9 +427,19 @@ namespace GS.Unity.UI {
 			_timeView.Refresh(_state.Time);
 			_actionLog?.Refresh(_state.GameLog);
 			_lastNotifiedLogSequenceId = HighestSequenceId(_state.GameLog);
+			if (_started) {
+				_cardDrawAnimator?.SetRestorationEnabled(true);
+				_cardDrawAnimator?.BeginResumeBarrier();
+				ResumeAfterEnableAsync(enableGeneration).Forget();
+			}
 		}
 
 		void OnDisable() {
+			_enableGeneration++;
+			_cardDrawAnimator?.SetRestorationEnabled(false);
+			_cardDrawAnimator?.EndResumeBarrier();
+			_cardDrawAnimator?.CancelAndWaitAsync().Forget();
+			UnsubscribeViewEvents();
 			if (_state == null) {
 				return;
 			}
@@ -439,16 +468,67 @@ namespace GS.Unity.UI {
 			_state.GameLog.PropertyChanged -= HandleGameLogChanged;
 			_state.WarIcons.PropertyChanged -= HandleWarIconsChanged;
 			_lastOrgAgentSlotCount = -1;
+		}
+
+		async UniTaskVoid ResumeAfterEnableAsync(int enableGeneration) {
+			if (_cardDrawAnimator != null) {
+				await _cardDrawAnimator.CancelAndWaitAsync();
+			}
+			if (enableGeneration != _enableGeneration || !isActiveAndEnabled) {
+				return;
+			}
+			SubscribeViewEvents();
+			RefreshCountryViews();
+			_cardDrawAnimator?.SetRestorationEnabled(true);
+			_cardDrawAnimator?.EndResumeBarrier();
+			_countryInfo?.ActionsView?.SetPresentationBusy(_cardPlayAnimator?.IsPlaying ?? false);
+			_cardDrawAnimator?.RestorePendingOfferIfIdle();
+		}
+
+		void SubscribeViewEvents() {
+			if (_viewEventsSubscribed || _countryInfo == null) {
+				return;
+			}
+			_countryInfo.OnSubPanelOpened += HandleOrgSubPanelOpened;
+			_countryInfo.OnCountryActionCardClicked += HandleCountryActionCardClicked;
+			_countryInfo.OnCountryActionCardDiscarded += HandleCountryActionCardDiscarded;
+			_countryInfo.OnUnplayableCountryActionCardReleased += HandleUnplayableCountryActionCardReleased;
+			_countryInfo.OnCountryActionCardDiscardUnaffordable += HandleCountryActionCardDiscardUnaffordable;
+			_countryInfo.OnRelatedCountryFlagClicked += HandleRelatedCountryFlagClicked;
+			if (_countryInfo.ActionsView != null) {
+				_countryInfo.ActionsView.OnDrawRequested += HandleCountryActionDrawRequested;
+			}
+			if (_orgInfoDocument != null) {
+				_orgInfoDocument.OnSubPanelOpened += HandleOrgSubPanelOpened;
+			}
+			if (_provinceInfo != null) {
+				_provinceInfo.OnCountryRowClicked += HandleProvinceInfoCountryRowClicked;
+			}
+			_viewEventsSubscribed = true;
+		}
+
+		void UnsubscribeViewEvents() {
+			if (!_viewEventsSubscribed) {
+				return;
+			}
+			if (_countryInfo != null) {
+				_countryInfo.OnSubPanelOpened -= HandleOrgSubPanelOpened;
+				_countryInfo.OnCountryActionCardClicked -= HandleCountryActionCardClicked;
+				_countryInfo.OnCountryActionCardDiscarded -= HandleCountryActionCardDiscarded;
+				_countryInfo.OnUnplayableCountryActionCardReleased -= HandleUnplayableCountryActionCardReleased;
+				_countryInfo.OnCountryActionCardDiscardUnaffordable -= HandleCountryActionCardDiscardUnaffordable;
+				_countryInfo.OnRelatedCountryFlagClicked -= HandleRelatedCountryFlagClicked;
+				if (_countryInfo.ActionsView != null) {
+					_countryInfo.ActionsView.OnDrawRequested -= HandleCountryActionDrawRequested;
+				}
+			}
 			if (_orgInfoDocument != null) {
 				_orgInfoDocument.OnSubPanelOpened -= HandleOrgSubPanelOpened;
 			}
-			if (_countryInfo != null) { _countryInfo.OnSubPanelOpened -= HandleOrgSubPanelOpened; }
-			if (_countryInfo != null) { _countryInfo.OnCountryActionCardClicked -= HandleCountryActionCardClicked; }
-			if (_countryInfo != null) { _countryInfo.OnCountryActionCardDiscarded -= HandleCountryActionCardDiscarded; }
-			if (_countryInfo != null) { _countryInfo.OnUnplayableCountryActionCardReleased -= HandleUnplayableCountryActionCardReleased; }
-			if (_countryInfo != null) { _countryInfo.OnCountryActionCardDiscardUnaffordable -= HandleCountryActionCardDiscardUnaffordable; }
-			if (_countryInfo != null) { _countryInfo.OnRelatedCountryFlagClicked -= HandleRelatedCountryFlagClicked; }
-			if (_provinceInfo != null) { _provinceInfo.OnCountryRowClicked -= HandleProvinceInfoCountryRowClicked; }
+			if (_provinceInfo != null) {
+				_provinceInfo.OnCountryRowClicked -= HandleProvinceInfoCountryRowClicked;
+			}
+			_viewEventsSubscribed = false;
 		}
 
 		void Update() {
@@ -678,7 +758,10 @@ namespace GS.Unity.UI {
 			RefreshCountryViews();
 		}
 
-		void HandleCardPlayComplete() => RefreshCountryViews();
+		void HandleCardPlayComplete() {
+			_countryInfo?.ActionsView?.SetPresentationBusy(_cardDrawAnimator?.IsPlaying ?? false);
+			RefreshCountryViews();
+		}
 
 		void HandleTimeChanged(object sender, PropertyChangedEventArgs e) {
 			_timeView.Refresh(_state.Time);
@@ -691,6 +774,7 @@ namespace GS.Unity.UI {
 			RefreshLeaderboardButtonText();
 			RefreshGoalsButtonText();
 			RefreshCountryViews();
+			_cardDrawAnimator?.RefreshPendingOfferPresentation();
 			RefreshProvinceInfoView();
 			_timeView.Refresh(_state.Time);
 		}
@@ -720,7 +804,10 @@ namespace GS.Unity.UI {
 			RefreshCountryViews();
 		}
 
-		void HandleCountryActionsChanged(object sender, PropertyChangedEventArgs e) => RefreshCountryViews();
+		void HandleCountryActionsChanged(object sender, PropertyChangedEventArgs e) {
+			RefreshCountryViews();
+			_cardDrawAnimator?.RestorePendingOfferIfIdle();
+		}
 
 		void HandleOrgActionsChanged(object sender, PropertyChangedEventArgs e) => RefreshDebugCardAvailability();
 
@@ -738,9 +825,15 @@ namespace GS.Unity.UI {
 			int slotIndex,
 			VisualElement element,
 			ActionCardBuilder.CountryCardFace faceData) {
-			if (_cardPlayAnimator == null || _state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) {
+			if (_cardPlayAnimator == null
+				|| (_cardDrawAnimator?.IsPlaying ?? false)
+				|| _cardPlayAnimator.IsPlaying
+				|| _state == null
+				|| !_state.PlayerOrganization.IsValid
+				|| !_state.SelectedCountry.IsValid) {
 				return;
 			}
+			_countryInfo?.ActionsView?.SetPresentationBusy(true);
 			_cardPlayAnimator.StartCountryCardPlay(
 				_state.PlayerOrganization.OrgId,
 				_state.SelectedCountry.CountryId,
@@ -757,10 +850,15 @@ namespace GS.Unity.UI {
 			int slotIndex,
 			VisualElement element,
 			ActionCardBuilder.CountryCardFace faceData) {
-			if (_cardPlayAnimator == null || _state == null || !_state.PlayerOrganization.IsValid || !_state.SelectedCountry.IsValid) {
+			if (_cardDrawAnimator == null
+				|| (_cardPlayAnimator?.IsPlaying ?? false)
+				|| _cardDrawAnimator.IsPlaying
+				|| _state == null
+				|| !_state.PlayerOrganization.IsValid
+				|| !_state.SelectedCountry.IsValid) {
 				return;
 			}
-			_cardPlayAnimator.StartCountryCardDiscard(
+			_cardDrawAnimator.StartPaidDiscard(
 				_state.PlayerOrganization.OrgId,
 				_state.SelectedCountry.CountryId,
 				actionId,
@@ -768,6 +866,15 @@ namespace GS.Unity.UI {
 				element,
 				faceData,
 				targetCountryId);
+		}
+
+		void HandleCountryActionDrawRequested() {
+			if (_cardDrawAnimator == null
+				|| (_cardPlayAnimator?.IsPlaying ?? false)
+				|| _cardDrawAnimator.IsPlaying) {
+				return;
+			}
+			_cardDrawAnimator.StartExplicitDraw();
 		}
 
 		void HandleUnplayableCountryActionCardReleased(ActionConditionDebugEntry condition) {

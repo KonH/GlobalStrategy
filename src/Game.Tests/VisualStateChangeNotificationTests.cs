@@ -168,6 +168,16 @@ namespace GS.Game.Tests {
 
 			state.Set(hand, deck, offeredChoices, 7, true, false, time);
 			Assert.Equal(4, fireCount);
+
+			var offeredCardWithDifferentCountries = new ActionCardEntry(
+				"make_friend", -1, false,
+				playableCountryIds: new[] { "Austria", "Prussia" },
+				countryContextId: "Prussia");
+			var choicesWithDifferentCountries = new List<CardDrawChoiceEntry> {
+				new CardDrawChoiceEntry(0, offeredCardWithDifferentCountries)
+			};
+			state.Set(hand, deck, choicesWithDifferentCountries, 7, true, false, time);
+			Assert.Equal(5, fireCount);
 		}
 	}
 }

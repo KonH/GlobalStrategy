@@ -27,6 +27,26 @@
     margin-right: 40px;
 }
 
+.action-deck-controls {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 24px;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.action-deck-draw-button {
+    height: 42px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.action-deck-hand-size {
+    margin-top: 6px;
+    -unity-text-align: middle-center;
+}
+
 /* Card shell */
 .action-card {
     width: 240px;

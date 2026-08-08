@@ -84,7 +84,9 @@ namespace GS.Unity.UI {
 			}
 			if (keyboard.escapeKey.wasPressedThisFrame) {
 				if (_root.style.display == DisplayStyle.None) {
-					Show();
+					if (!_modalState.IsLocked()) {
+						Show();
+					}
 				} else {
 					Hide();
 				}
@@ -92,6 +94,11 @@ namespace GS.Unity.UI {
 		}
 
 		public void Show() {
+			if (_root == null
+				|| _root.style.display != DisplayStyle.None
+				|| _modalState.IsLocked()) {
+				return;
+			}
 			_commands?.Push(new PauseCommand());
 			_modalState.Lock(this);
 			RefreshTexts();

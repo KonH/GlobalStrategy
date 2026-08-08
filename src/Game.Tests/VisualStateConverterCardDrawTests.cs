@@ -20,7 +20,14 @@ namespace GS.Game.Tests {
 				},
 				Actions = new List<ActionDefinition> {
 					new ActionDefinition { ActionId = "hand_card", OwnerType = "country", DeckCopies = 1 },
-					new ActionDefinition { ActionId = "offered_card", OwnerType = "country", DeckCopies = 1 },
+					new ActionDefinition {
+						ActionId = "offered_card",
+						OwnerType = "country",
+						DeckCopies = 1,
+						Cost = new List<ActionCost> {
+							new ActionCost { ResourceId = ResourceDefinitions.Gold, Amount = 10 }
+						}
+					},
 					new ActionDefinition { ActionId = "offered_card_two", OwnerType = "country", DeckCopies = 1 },
 					new ActionDefinition { ActionId = "deck_card", OwnerType = "country", DeckCopies = 1 }
 				}
@@ -77,7 +84,14 @@ namespace GS.Game.Tests {
 			AddCard(world, "deck_card", "Prussia");
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
+			var countryConfig = new CountryConfig {
+				Countries = new List<CountryEntry> {
+					new CountryEntry { CountryId = "Austria", IsAvailable = true },
+					new CountryEntry { CountryId = "Prussia", IsAvailable = true }
+				}
+			};
+			var converter = new VisualStateConverter(
+				state, _resources, _relations, BuildActionConfig(), countryConfig: countryConfig);
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -95,6 +109,8 @@ namespace GS.Game.Tests {
 					Assert.Equal("offered_card", choice.Card.ActionId);
 					Assert.Equal("Austria", choice.Card.CountryContextId);
 					Assert.Equal("France", choice.Card.TargetCountryId);
+					Assert.True(choice.Card.IsUnplayable);
+					Assert.Equal(new[] { "Austria", "Prussia" }, choice.Card.PlayableCountryIds);
 				},
 				choice => {
 					Assert.Equal(1, choice.ChoiceIndex);

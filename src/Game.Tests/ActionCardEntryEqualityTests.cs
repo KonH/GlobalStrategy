@@ -79,5 +79,17 @@ namespace GS.Game.Tests {
 				new CardDrawChoiceEntry(0, card),
 				new CardDrawChoiceEntry(0, differentCard)));
 		}
+
+		[Fact]
+		void draw_choice_equality_includes_playable_country_ids() {
+			var card = new ActionCardEntry(
+				"make_friend", -1, false, playableCountryIds: new[] { "Austria", "Prussia" });
+			var differentCountries = new ActionCardEntry(
+				"make_friend", -1, false, playableCountryIds: new[] { "Austria", "France" });
+
+			Assert.False(StateEquality.CardDrawChoiceEntryEquals(
+				new CardDrawChoiceEntry(0, card),
+				new CardDrawChoiceEntry(0, differentCountries)));
+		}
 	}
 }

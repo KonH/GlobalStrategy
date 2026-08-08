@@ -613,7 +613,7 @@ namespace GS.Main {
 					if (orgs[i].OrgId != orgId || owners[i].Value != CardOwnerKind.Country) { continue; }
 					var entry = BuildEntry(
 						world, orgId, countryId, arch.Entities[i], actions[i].ActionId, hands[i].SlotIndex, true,
-						currentTime, playableCountryOrder);
+						true, currentTime, playableCountryOrder);
 					if (entry != null) { hand.Add(entry); }
 				}
 			}
@@ -628,7 +628,7 @@ namespace GS.Main {
 					if (orgs[i].OrgId != orgId || owners[i].Value != CardOwnerKind.Country) { continue; }
 					var entry = BuildEntry(
 						world, orgId, countryId, arch.Entities[i], actions[i].ActionId, -1, false,
-						currentTime, playableCountryOrder);
+						false, currentTime, playableCountryOrder);
 					if (entry != null) { deck.Add(entry); }
 				}
 			}
@@ -645,7 +645,7 @@ namespace GS.Main {
 					if (!world.Has<GameAction>(choice.Entity)) { continue; }
 					var entry = BuildEntry(
 						world, orgId, countryId, choice.Entity, world.Get<GameAction>(choice.Entity).ActionId,
-						-1, false, currentTime, playableCountryOrder);
+						-1, false, true, currentTime, playableCountryOrder);
 					if (entry != null) {
 						drawChoices.Add(new CardDrawChoiceEntry(choice.ChoiceIndex, entry));
 					}
@@ -663,6 +663,7 @@ namespace GS.Main {
 		ActionCardEntry? BuildEntry(
 			IReadOnlyWorld world, string orgId, string countryId, int entity,
 			string actionId, int slotIndex, bool isInHand,
+			bool includePlayableCountryIds,
 			DateTime currentTime,
 			IReadOnlyList<string> playableCountryOrder) {
 			var def = _actionConfig?.Find(actionId);
@@ -701,7 +702,7 @@ namespace GS.Main {
 			}
 
 			var playableCountryIds = new List<string>();
-			if (isInHand && !playability.CanPlay) {
+			if (includePlayableCountryIds && !playability.CanPlay) {
 				foreach (string candidateCountryId in playableCountryOrder) {
 					if (ActionPlayability.Evaluate(
 						world, _actionConfig!, entity, actionId, orgId, candidateCountryId,
