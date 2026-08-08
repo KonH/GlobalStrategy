@@ -4,7 +4,7 @@
 
 As a player building my organisation's country-action hand, I want a clear Draw control on the deck and a quick, readable choose-one-of-three animation, so that drawing a card feels intentional without slowing down normal play.
 
-This spec covers issue #153's **spec B** (deck controls, hand-size presentation, draw-choice interaction, and animation). The authoritative draw/receive commands, eight-card cap, bot behavior, and unresolved owner-kind scope are specified in `Docs/Specs/26_08_08_16_card-draw-logic/spec.md`.
+This spec covers issue #153's **spec B** (deck controls, hand-size presentation, draw-choice interaction, and animation). The authoritative draw/receive commands, eight-card cap, country-card-only scope, paid-discard trigger, and bot behavior are specified in `Docs/Specs/26_08_08_16_card-draw-logic/spec.md`.
 
 ## Acceptance Criteria
 
@@ -56,9 +56,11 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 
 ### Existing card-play and paid-discard presentation
 
-- A country card is played or paid-discarded under the sibling logic spec.
+- A country card is played under the sibling logic spec.
   - Its existing hand-to-test/deck animation still completes => no automatic deck-to-hand replacement animation follows, because the vacancy now remains for the next explicit Draw.
-  - The paid-discard hold hint, gold affordability result, and fly text are otherwise unchanged.
+- A country card is successfully paid-discarded.
+  - Its existing hand-to-deck animation completes => the authoritative offer triggered by that discard starts the same face-down/reveal/select flow without requiring a separate Draw click.
+  - The discarded card is not one of those choices; the paid-discard hold hint, gold affordability result, and fly text are otherwise unchanged.
 - The debug force-draw command is used => no choose-one animation is required; it remains a debug-only direct mutation.
 
 ## Tech Notes
@@ -97,7 +99,7 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
   - `PlayCountryDiscardSequence` after the discard command;
   - `PlayCountrySequence` after a played card returns to the deck;
   - `PlaySequence` for org cards (only remove this branch if owner-kind scope expands).
-- Under the country-only assumption, remove the country replacement lookup/travel blocks but keep the rest of the play/discard sequences, barriers, pause ownership, and cleanup intact.
+- Under the confirmed country-only scope, remove the country replacement lookup/travel blocks but keep the rest of the play/discard sequences, barriers, pause ownership, and cleanup intact.
 
 ### Verification surface
 
@@ -107,11 +109,11 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 ## Out of Scope
 
 - Draw probability, command validation, hand capacity, persistence, and bot priority rules, which belong to the sibling logic spec.
-- Org-card UI changes or re-enabling the hidden org-card surface unless Ambiguities questions 0–1 in the sibling logic spec expand scope.
+- Org-card UI changes or re-enabling the hidden org-card surface; the owner confirmed that only country cards are in scope.
 - New card art, sound, haptics, particle effects, or changes to card face dimensions/content.
 - Redesigning requirements, playable-country badges, cooldown overlays, or paid-discard pricing/hold interaction.
 - Changing normal card-play effect/barrier animations beyond removing the now-obsolete automatic replacement draw.
 
 ## Ambiguities
 
-The UI depends on Ambiguities questions 0–4 in the sibling logic spec. No additional UI-only decision blocks planning: the travel/flip timings above are concrete defaults that satisfy "faster than current" and preserve the issue's exact 0.2-second hover requirement; they can be tuned during Editor review without changing gameplay semantics.
+The owner resolved the sibling logic spec's questions: country cards only, cap 8, up to three choices, paid discard triggers the shared offer flow, and control cards have bot priority. No additional UI-only decision blocks planning: the travel/flip timings above are concrete defaults that satisfy "faster than current" and preserve the issue's exact 0.2-second hover requirement; they can be tuned during Editor review without changing gameplay semantics.
