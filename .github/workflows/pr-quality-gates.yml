@@ -1,0 +1,62 @@
+name: PR Quality Gates
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: pr-quality-gates-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (warnings as errors)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      # src/Directory.Build.props sets TreatWarningsAsErrors for every project
+      # under src/, so a plain build already fails on new warnings.
+      - name: Build
+        run: dotnet build src/GlobalStrategy.Core.sln -c Release
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Test
+        run: dotnet test src/GlobalStrategy.Core.sln -c Release
+
+  plugins-rebuilt:
+    name: Assets/Plugins DLLs up to date
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check Assets/Plugins/Core DLLs were rebuilt for src/ changes
+        run: |
+          python scripts/ci/check_plugins_rebuilt.py \
+            --base-sha "${{ github.event.pull_request.base.sha }}" \
+            --head-sha "${{ github.event.pull_request.head.sha }}"
