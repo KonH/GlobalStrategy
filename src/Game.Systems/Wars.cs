@@ -141,7 +141,8 @@ namespace GS.Game.Systems {
 			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
 			int maxControlPool,
-			CountryConfig? countryConfig = null) {
+			CountryConfig? countryConfig = null,
+			List<string>? territoryLosers = null) {
 			string? warId = FindWarIdForCountry(world, countryId);
 			if (warId == null) {
 				return false;
@@ -155,7 +156,8 @@ namespace GS.Game.Systems {
 
 			ApplyWarResolution(
 				world, resources, warId, attackerId, defenderId, winnerCountryId, loserCountryId, progress,
-				declaredAt, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
+				declaredAt, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig,
+				territoryLosers);
 			return true;
 		}
 
@@ -190,13 +192,15 @@ namespace GS.Game.Systems {
 			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
 			int maxControlPool,
-			CountryConfig? countryConfig = null) {
+			CountryConfig? countryConfig = null,
+			List<string>? territoryLosers = null) {
 			string? warId = FindWarIdForCountry(world, countryId);
 			if (warId == null) {
 				return false;
 			}
 			ResolvePeace(
-				world, resources, warId, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
+				world, resources, warId, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig,
+				territoryLosers);
 			return true;
 		}
 
@@ -210,7 +214,8 @@ namespace GS.Game.Systems {
 			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
 			int maxControlPool,
-			CountryConfig? countryConfig = null) {
+			CountryConfig? countryConfig = null,
+			List<string>? territoryLosers = null) {
 			bool isDayBoundary = previousTime.Date != currentTime.Date;
 			if (!isDayBoundary) {
 				return;
@@ -243,7 +248,8 @@ namespace GS.Game.Systems {
 			foreach (string warId in toResolve) {
 				if (TryGetWarProgress(resources, world, warId, out _)) {
 					ResolvePeace(
-						world, resources, warId, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
+						world, resources, warId, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig,
+						territoryLosers);
 				}
 			}
 		}
@@ -258,7 +264,8 @@ namespace GS.Game.Systems {
 			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
 			int maxControlPool,
-			CountryConfig? countryConfig = null) {
+			CountryConfig? countryConfig = null,
+			List<string>? territoryLosers = null) {
 			if (!TryGetWarState(resources, world, warId, out string attackerId, out string defenderId, out double progress, out DateTime declaredAt)) {
 				return;
 			}
@@ -273,7 +280,8 @@ namespace GS.Game.Systems {
 			string loserId = progress > 0.0 ? defenderId : attackerId;
 			ApplyWarResolution(
 				world, resources, warId, attackerId, defenderId, winnerId, loserId, progress,
-				declaredAt, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
+				declaredAt, currentTime, rng, settings, topology, provinceCenters, maxControlPool, countryConfig,
+				territoryLosers);
 		}
 
 		static void ApplyWarResolution(
@@ -292,7 +300,8 @@ namespace GS.Game.Systems {
 			ProvinceTopology topology,
 			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
 			int maxControlPool,
-			CountryConfig? countryConfig) {
+			CountryConfig? countryConfig,
+			List<string>? territoryLosers) {
 			List<WarProgressHistorySnapshot> history = WarProgressSnapshot.BuildHistory(world, warId);
 			WarSideStatsSnapshot attackerStats = WarProgressSnapshot.BuildSideStats(
 				world, resources, warId, attackerId, WarParticipantKind.Attacker, countryConfig);
@@ -302,6 +311,9 @@ namespace GS.Game.Systems {
 
 			List<WarProvinceTransferSnapshot> transferredProvinces = TransferOccupiedProvinces(
 				world, winnerId, loserId, rng, settings, topology, provinceCenters);
+			if (territoryLosers != null && transferredProvinces.Count > 0) {
+				territoryLosers.Add(loserId);
+			}
 			ClearOccupationForParticipants(world, attackerId, defenderId);
 			(double goldTaken, List<WarGoldRecipientSnapshot> goldRecipients) = TransferGoldSpoils(
 				world, resources, winnerId, loserId, declaredAt, currentTime, settings, maxControlPool);

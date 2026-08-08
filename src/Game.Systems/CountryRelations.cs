@@ -65,6 +65,35 @@ namespace GS.Game.Systems {
 			return removed;
 		}
 
+		public int RemoveAllReferencing(World world, string countryId) {
+			var toDestroy = new List<(int Entity, string OtherId)>();
+			int[] required = { TypeId<CountryRelation>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				CountryRelation[] relations = arch.GetColumn<CountryRelation>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					CountryRelation relation = relations[i];
+					if (relation.LeftCountryId == countryId) {
+						toDestroy.Add((arch.Entities[i], relation.RightCountryId));
+					} else if (relation.RightCountryId == countryId) {
+						toDestroy.Add((arch.Entities[i], relation.LeftCountryId));
+					}
+				}
+			}
+			if (toDestroy.Count == 0) {
+				return 0;
+			}
+			foreach ((int entity, string otherId) in toDestroy) {
+				world.Destroy(entity);
+				DropCache(countryId, otherId);
+			}
+			// Destroyed countries can stop being suitable candidates for countries that never had a
+			// relation with them — wipe the whole suitable-target cache rather than miss those.
+			_hasSuitableTarget.Clear();
+			BumpVersion(world);
+			return toDestroy.Count;
+		}
+
 		public RelationKind? GetRelation(IReadOnlyWorld world, string countryIdA, string countryIdB) {
 			if (countryIdA == countryIdB) {
 				return null;
@@ -98,6 +127,9 @@ namespace GS.Game.Systems {
 
 		public List<string> GetSuitableRelationCandidates(IReadOnlyWorld world, string countryId) {
 			var result = new List<string>();
+			if (IsCountryDestroyed(world, countryId)) {
+				return result;
+			}
 			int[] required = { TypeId<Country>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
 				Country[] countries = arch.GetColumn<Country>();
@@ -105,6 +137,9 @@ namespace GS.Game.Systems {
 				for (int i = 0; i < count; i++) {
 					string candidateId = countries[i].CountryId;
 					if (candidateId == countryId) {
+						continue;
+					}
+					if (world.Has<IsDestroyed>(arch.Entities[i])) {
 						continue;
 					}
 					if (GetRelation(world, countryId, candidateId) == null) {
@@ -116,6 +151,9 @@ namespace GS.Game.Systems {
 		}
 
 		public bool HasSuitableRelationTarget(IReadOnlyWorld world, string countryId) {
+			if (IsCountryDestroyed(world, countryId)) {
+				return false;
+			}
 			if (_hasSuitableTarget.TryGetValue(countryId, out bool cached)) {
 				return cached;
 			}
@@ -141,7 +179,8 @@ namespace GS.Game.Systems {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					string candidateId = countries[i].CountryId;
-					if (candidateId == countryId || related.Contains(candidateId)) {
+					if (candidateId == countryId || related.Contains(candidateId)
+						|| world.Has<IsDestroyed>(arch.Entities[i])) {
 						continue;
 					}
 					found = true;
@@ -303,6 +342,20 @@ namespace GS.Game.Systems {
 		static bool Matches(CountryRelation relation, string countryIdA, string countryIdB) {
 			return (relation.LeftCountryId == countryIdA && relation.RightCountryId == countryIdB)
 				|| (relation.LeftCountryId == countryIdB && relation.RightCountryId == countryIdA);
+		}
+
+		static bool IsCountryDestroyed(IReadOnlyWorld world, string countryId) {
+			int[] required = { TypeId<Country>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				Country[] countries = arch.GetColumn<Country>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (countries[i].CountryId == countryId) {
+						return world.Has<IsDestroyed>(arch.Entities[i]);
+					}
+				}
+			}
+			return false;
 		}
 	}
 }

@@ -297,5 +297,39 @@ namespace GS.Game.Tests {
 			Assert.Contains("France", logic.VisualState.SelectedCountry.Relations.Friends);
 			Assert.Empty(logic.VisualState.SelectedCountry.Relations.Rivals);
 		}
+
+		[Fact]
+		void remove_all_referencing_clears_both_sides_and_leaves_unrelated_pairs() {
+			var relations = new CountryRelations();
+			var world = new World();
+			relations.SetRelation(world, "Great_Britain", "France", RelationKind.Friend);
+			relations.SetRelation(world, "Great_Britain", "Germany", RelationKind.Rival);
+			relations.SetRelation(world, "France", "Germany", RelationKind.Friend);
+
+			int removed = relations.RemoveAllReferencing(world, "Great_Britain");
+
+			Assert.Equal(2, removed);
+			Assert.Null(relations.GetRelation(world, "Great_Britain", "France"));
+			Assert.Null(relations.GetRelation(world, "Great_Britain", "Germany"));
+			Assert.Equal(RelationKind.Friend, relations.GetRelation(world, "France", "Germany"));
+			Assert.Equal(1, CountEntities<CountryRelation>(world));
+		}
+
+		[Fact]
+		void suitable_relation_candidates_exclude_destroyed_countries() {
+			var relations = new CountryRelations();
+			var world = new World();
+			world.Add(world.Create(), new Country("Great_Britain"));
+			world.Add(world.Create(), new Country("France"));
+			int dead = world.Create();
+			world.Add(dead, new Country("Germany"));
+			world.Add(dead, new IsDestroyed());
+
+			List<string> candidates = relations.GetSuitableRelationCandidates(world, "Great_Britain");
+
+			Assert.Contains("France", candidates);
+			Assert.DoesNotContain("Germany", candidates);
+			Assert.Empty(relations.GetSuitableRelationCandidates(world, "Germany"));
+		}
 	}
 }
