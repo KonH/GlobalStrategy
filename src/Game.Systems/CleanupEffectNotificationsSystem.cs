@@ -21,6 +21,13 @@ namespace GS.Game.Systems {
 			RemoveComponent<WarResolvedApplied>(world);
 		}
 
+		// Same ordering as UpdateWarResolved: CountryDestroyedApplied is created during peace/
+		// StopWar/ChangeOwner destroy checks earlier in the tick than UpdateActionEffects.
+		// Sweep next tick only so VisualStateConverter can read events the tick they are created.
+		public static void UpdateCountryDestroyed(World world) {
+			RemoveComponent<CountryDestroyedApplied>(world);
+		}
+
 		// Called alongside CleanupActionEffectsSystem.Update, before CreateActionEffectSystem
 		// creates this tick's batch. Do NOT sweep WarResolvedApplied here —
 		// peace/StopWar emit it earlier in the tick (before this call); that component is cleaned

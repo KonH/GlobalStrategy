@@ -957,5 +957,58 @@ namespace GS.Game.Tests {
 				entry => entry.LocaleKey == "action.requirement.primary_country");
 			Assert.True(result.CanPlay);
 		}
+
+		[Fact]
+		void evaluate_false_when_direct_country_target_is_destroyed() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100);
+			AddControl(world, "OrgA", "Prussia", 10);
+			int dead = AddCountry(world, "Prussia");
+			world.Add(dead, new IsDestroyed());
+
+			ActionPlayabilityResult result = ActionPlayability.Evaluate(
+				world, config, -1, "country_card", "OrgA", "Prussia", _resources, _relations);
+
+			Assert.False(result.CanPlay);
+			Assert.Equal("country_no_longer_exists", result.FirstFailure!.ReasonCode);
+			Assert.Equal("action.country.unplayable.country_no_longer_exists", result.FirstFailure.LocaleKey);
+		}
+
+		[Fact]
+		void evaluate_false_when_relation_card_target_is_destroyed() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 100);
+			AddCountry(world, "Prussia");
+			int dead = AddCountry(world, "France");
+			world.Add(dead, new IsDestroyed());
+			AddDiplomacyAdvisor(world, "Prussia", "prussia_diplomat", "OrgA", 80);
+			int card = AddRelationCard(world, "OrgA", "stop_friendship", "Prussia", "France", RelationKind.Friend);
+
+			ActionPlayabilityResult result = ActionPlayability.Evaluate(
+				world, config, card, "stop_friendship", "OrgA", "Prussia", _resources, _relations);
+
+			Assert.False(result.CanPlay);
+			Assert.Equal("country_no_longer_exists", result.FirstFailure!.ReasonCode);
+		}
+
+		[Fact]
+		void evaluate_false_when_revenge_card_target_is_destroyed() {
+			var config = BuildActionConfig();
+			var world = new World();
+			AddGold(world, "OrgA", 1000);
+			AddCountry(world, "Prussia");
+			int dead = AddCountry(world, "Austria");
+			world.Add(dead, new IsDestroyed());
+			int card = AddCard(world, "OrgA", "declare_revenge_war", "Prussia");
+			world.Add(card, new RevengeCardTarget { TargetCountryId = "Austria" });
+
+			ActionPlayabilityResult result = ActionPlayability.Evaluate(
+				world, config, card, "declare_revenge_war", "OrgA", "Prussia", _resources, _relations);
+
+			Assert.False(result.CanPlay);
+			Assert.Equal("country_no_longer_exists", result.FirstFailure!.ReasonCode);
+		}
 	}
 }

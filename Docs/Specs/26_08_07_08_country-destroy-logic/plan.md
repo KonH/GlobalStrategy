@@ -224,47 +224,47 @@ No new asmdef. No MonoBehaviour domain logic.
 
 ## Agent Steps
 
-- [ ] **Add `IsDestroyed` + `CountryDestroyedApplied`** — empty `[Savable]` tag on
+- [x] **Add `IsDestroyed` + `CountryDestroyedApplied`** — empty `[Savable]` tag on
   country entity; one-shot `{ CountryId }` on own entity, not savable.
 
-- [ ] **Implement `CountryDestroySystem` helpers** — `TryDestroyIfNoProvinces`,
+- [x] **Implement `CountryDestroySystem` helpers** — `TryDestroyIfNoProvinces`,
   `DestroyAllZeroProvinceCountries`, `IsCountryDestroyed`; province existence
   check; idempotent flag + single event; wire control destroy + relation purge.
 
-- [ ] **Control + relations helpers** — `DestroyAllControlInCountry` (collect then
+- [x] **Control + relations helpers** — `DestroyAllControlInCountry` (collect then
   `Destroy`); `CountryRelations.RemoveAllReferencing`; exclude `IsDestroyed` from
   `GetSuitableRelationCandidates`.
 
-- [ ] **Orchestrate in `GameLogic`** — init/load full zero-province pass; after
+- [x] **Orchestrate in `GameLogic`** — init/load full zero-province pass; after
   peace/StopWar check unique losers that lost provinces; after debug
   `ChangeOwner` check `OldOwnerId`; sweep `CountryDestroyedApplied` next tick via
   `CleanupEffectNotificationsSystem.UpdateCountryDestroyed`; keep ordering
   destroy → `GameCompletionSystem` → converter.
 
-- [ ] **Thread loser ids from peace path** — adjust
+- [x] **Thread loser ids from peace path** — adjust
   `Wars.TryResolvePeaceByChance` / `StopWar` / `ResolvePeace` return or out-list
   so `GameLogic` can destroy-check without `Wars` calling destroy as a nested
   system.
 
-- [ ] **Goals** — exclude `IsDestroyed` in `GetAvailableCountryIds`;
+- [x] **Goals** — exclude `IsDestroyed` in `GetAvailableCountryIds`;
   `FullControlCondition.GetTarget` = `Min(configured, AvailableCountryIds.Count)`;
   update completion tests.
 
-- [ ] **VisualState FIFO + destroyed projection** — `CountryDestroyedResultsState` +
+- [x] **VisualState FIFO + destroyed projection** — `CountryDestroyedResultsState` +
   snapshot on `VisualState.CountryDestroyedResults`; converter enqueue from
   `CountryDestroyedApplied`; project persistent destroyed ids; keep destroyed
   countries in `CountryIds`.
 
-- [ ] **Card unplayable gate + locale** — early gate in `ActionPlayability` +
+- [x] **Card unplayable gate + locale** — early gate in `ActionPlayability` +
   `BuildEntry` token `country_no_longer_exists`; EN/RU locale keys; one
   `CountryActionsView` switch arm with country name format arg (plumb destroyed
   id into the entry or pass selected country id into `Refresh` — see Approach §6).
 
-- [ ] **SelectCountrySystem guard** — skip `IsSelected` when target has
+- [x] **SelectCountrySystem guard** — skip `IsSelected` when target has
   `IsDestroyed`; add/extend tests (select destroyed → no `IsSelected`; normal
   select still works; empty id still clears).
 
-- [ ] **Tests + validate** — see Tests; run
+- [x] **Tests + validate** — see Tests; run
   `dotnet test src/GlobalStrategy.Core.sln` and Release build per workflow /
   `dotnet-build` skill.
 

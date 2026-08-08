@@ -1920,6 +1920,8 @@ MonoBehaviour:
     Value: Начать войну с временными бонусами к урону и стойкости для атакующего.
   - Key: action.country.unplayable.war_ended
     Value: Война окончена
+  - Key: action.country.unplayable.country_no_longer_exists
+    Value: "{0} не существует"
   - Key: hud.actions
     Value: Действия
   - Key: hud.friends

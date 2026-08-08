@@ -1920,6 +1920,8 @@ MonoBehaviour:
     Value: Start a war with temporary damage and durability bonuses for the attacker.
   - Key: action.country.unplayable.war_ended
     Value: War has ended
+  - Key: action.country.unplayable.country_no_longer_exists
+    Value: "{0} doesn't exist"
   - Key: hud.actions
     Value: Actions
   - Key: hud.friends

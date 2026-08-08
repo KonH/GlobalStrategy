@@ -248,12 +248,15 @@ namespace GS.Main {
 	public class WorldCountriesState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public HashSet<string> CountryIds { get; private set; } = new HashSet<string>();
+		public HashSet<string> DestroyedCountryIds { get; private set; } = new HashSet<string>();
 
-		public void Set(HashSet<string> ids) {
-			if (CountryIds.SetEquals(ids)) {
+		public void Set(HashSet<string> ids, HashSet<string>? destroyedIds = null) {
+			destroyedIds ??= new HashSet<string>();
+			if (CountryIds.SetEquals(ids) && DestroyedCountryIds.SetEquals(destroyedIds)) {
 				return;
 			}
 			CountryIds = ids;
+			DestroyedCountryIds = destroyedIds;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -840,6 +843,44 @@ namespace GS.Main {
 		}
 	}
 
+	public class CountryDestroyedSnapshotState {
+		public string CountryId { get; }
+
+		public CountryDestroyedSnapshotState(string countryId) {
+			CountryId = countryId;
+		}
+	}
+
+	public class CountryDestroyedResultsState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		readonly List<CountryDestroyedSnapshotState> _queue = new();
+
+		public IReadOnlyList<CountryDestroyedSnapshotState> Entries => _queue;
+
+		public void Enqueue(CountryDestroyedSnapshotState snapshot) {
+			_queue.Add(snapshot);
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+
+		public bool TryPeek(out CountryDestroyedSnapshotState? snapshot) {
+			if (_queue.Count == 0) {
+				snapshot = null;
+				return false;
+			}
+			snapshot = _queue[0];
+			return true;
+		}
+
+		public void AcknowledgeCurrent() {
+			if (_queue.Count == 0) {
+				return;
+			}
+			_queue.RemoveAt(0);
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class SelectedProvinceState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -1012,6 +1053,7 @@ namespace GS.Main {
 		public WarIconsState WarIcons { get; } = new WarIconsState();
 		public SelectedWarState SelectedWar { get; } = new SelectedWarState();
 		public WarResultsState WarResults { get; } = new WarResultsState();
+		public CountryDestroyedResultsState CountryDestroyedResults { get; } = new CountryDestroyedResultsState();
 		public GameLogState GameLog { get; } = new GameLogState();
 		public GameCompletionState GameCompletion { get; } = new GameCompletionState();
 		public WinConditionHintState WinConditionHint { get; } = new WinConditionHintState();
