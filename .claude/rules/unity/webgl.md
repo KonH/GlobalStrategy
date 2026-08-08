@@ -13,6 +13,8 @@ Built-in Unity templates leave `autoSyncPersistentDataPath` unset, so a successf
 
 If you switch templates or host the build behind a custom `createUnityInstance` page (e.g. Unity Play embed), keep that flag set (or call `JS_FileSystem_Sync()` after writes). IndexedDB is also per-origin and keyed by `companyName` + `productName` — changing either, or opening a different host/port, looks like "no saves."
 
+`autoSyncPersistentDataPath` does not change the player payload download. A noticeably slower first load should be investigated separately from the IndexedDB sync. In particular, keep `webGLCompressionFormat` set to Brotli in both `ProjectSettings/ProjectSettings.asset` and the serialized PlayerSettings snapshot in `Assets/Settings/Build Profiles/Web - Desktop - Release.asset`. CI builds use that build profile, and an uncompressed profile makes the large `.data` and `.wasm` payloads substantially more expensive to download.
+
 ## StreamingAssets files are not TextAssets
 
 Files in `Assets/StreamingAssets/` are imported with `DefaultImporter` — they are raw blobs, not `TextAsset` objects. A `[SerializeField] TextAsset` field cannot hold a reference to them.

@@ -148,7 +148,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 1.174
+  bundleVersion: 1.175
   preloadedAssets:
   - {fileID: 2100000, guid: fe0925a90b731404ab778cdf7f98f1fa, type: 2}
   - {fileID: 2100000, guid: 3c0ae1fc5042ff640bf55417c325a3d4, type: 2}
@@ -621,7 +621,7 @@ PlayerSettings:
   webGLTemplate: PROJECT:Minimal
   webGLAnalyzeBuildSize: 0
   webGLUseEmbeddedResources: 0
-  webGLCompressionFormat: 0
+  webGLCompressionFormat: 2
   webGLWasmArithmeticExceptions: 0
   webGLLinkerTarget: 1
   webGLThreadsSupport: 0
