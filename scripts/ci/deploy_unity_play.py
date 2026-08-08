@@ -82,12 +82,35 @@ def login(email: str, password: str) -> str:
     return str(token)
 
 
-def zip_build(build_dir: Path, zip_path: Path) -> None:
+def resolve_build_dir(build_dir: Path) -> Path:
+    """Return the directory that actually holds index.html.
+
+    unity-builder writes the player to <buildsPath>/<targetPlatform>/<buildName>,
+    so a caller pointing at build/WebGL can end up one level above the real root.
+    Accept that by descending to the shallowest index.html below the given path.
+    """
     if not build_dir.is_dir():
         _die(f"build directory not found: {build_dir}")
-    if not (build_dir / "index.html").is_file():
-        _die(f"build directory is missing index.html: {build_dir}")
+    if (build_dir / "index.html").is_file():
+        return build_dir
 
+    candidates = sorted(
+        (p.parent for p in build_dir.glob("*/index.html") if p.is_file()),
+        key=lambda p: p.as_posix(),
+    )
+    if len(candidates) == 1:
+        print(f"note: using nested build directory {candidates[0]}")
+        return candidates[0]
+    if len(candidates) > 1:
+        listed = ", ".join(p.as_posix() for p in candidates)
+        _die(f"multiple nested build directories with index.html under {build_dir}: {listed}")
+
+    contents = ", ".join(sorted(p.name for p in build_dir.iterdir())) or "<empty>"
+    _die(f"build directory is missing index.html: {build_dir} (contains: {contents})")
+    raise AssertionError("unreachable")
+
+
+def zip_build(build_dir: Path, zip_path: Path) -> None:
     if zip_path.exists():
         zip_path.unlink()
 
@@ -252,7 +275,8 @@ def main(argv: list[str] | None = None) -> int:
     if not email or not password:
         _die("UNITY_EMAIL and UNITY_PASSWORD are required")
 
-    zip_build(args.build_dir, args.zip_path)
+    build_dir = resolve_build_dir(args.build_dir)
+    zip_build(build_dir, args.zip_path)
     token = login(email, password)
     key = upload(
         token,
