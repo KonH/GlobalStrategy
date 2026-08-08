@@ -42,6 +42,21 @@
     border-radius: 6px;
 }
 
+.player-org-column {
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 220px;
+}
+
+.player-tasks-panel {
+    margin-top: 6px;
+    padding: 6px 8px;
+    background-color: rgb(26, 42, 72);
+    border-color: rgb(200, 160, 64);
+    border-width: 2px;
+    border-radius: 6px;
+}
+
 .country-info-panel {
     position: absolute;
     bottom: 0;

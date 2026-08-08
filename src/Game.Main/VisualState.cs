@@ -521,6 +521,48 @@ namespace GS.Main {
 		}
 	}
 
+	public class ActiveTaskRewardState {
+		public string ResourceId { get; }
+		public double Amount { get; }
+
+		public ActiveTaskRewardState(string resourceId, double amount) {
+			ResourceId = resourceId;
+			Amount = amount;
+		}
+	}
+
+	public class ActiveTaskEntryState {
+		public string TaskId { get; }
+		public string NameKey { get; }
+		public string DescKey { get; }
+		public IReadOnlyList<ActiveTaskRewardState> Rewards { get; }
+
+		public ActiveTaskEntryState(
+			string taskId,
+			string nameKey,
+			string descKey,
+			IReadOnlyList<ActiveTaskRewardState> rewards) {
+			TaskId = taskId;
+			NameKey = nameKey;
+			DescKey = descKey;
+			Rewards = rewards;
+		}
+	}
+
+	public class ActiveTasksState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyList<ActiveTaskEntryState> Tasks { get; private set; } = Array.Empty<ActiveTaskEntryState>();
+
+		public void Set(List<ActiveTaskEntryState> tasks) {
+			if (StateEquality.ListEquals(Tasks, tasks, StateEquality.ActiveTaskEntryStateEquals)) {
+				return;
+			}
+			Tasks = tasks;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class WarIconEntryState {
 		public string WarId { get; }
 		public double Progress { get; }
@@ -1009,6 +1051,7 @@ namespace GS.Main {
 		public CountryScoreState CountryScore { get; } = new CountryScoreState();
 		public LeaderboardState Leaderboard { get; } = new LeaderboardState();
 		public GoalsState Goals { get; } = new GoalsState();
+		public ActiveTasksState ActiveTasks { get; } = new ActiveTasksState();
 		public WarIconsState WarIcons { get; } = new WarIconsState();
 		public SelectedWarState SelectedWar { get; } = new SelectedWarState();
 		public WarResultsState WarResults { get; } = new WarResultsState();

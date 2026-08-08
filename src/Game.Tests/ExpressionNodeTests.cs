@@ -149,5 +149,33 @@ namespace GS.Game.Tests {
 				Value(0), Value(1));
 			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(control: 100)));
 		}
+
+		[Fact]
+		public void trigger_condition_reads_context_triggers() {
+			var node = new ExpressionNode { Type = "triggerCondition", TriggerId = "intro_done" };
+			var ctx = new ExpressionContext {
+				Triggers = new Dictionary<string, double> { ["intro_done"] = 1.0 }
+			};
+			Assert.Equal(1.0, ExpressionNode.Evaluate(node, ctx));
+		}
+
+		[Fact]
+		public void trigger_condition_missing_id_returns_zero() {
+			var node = new ExpressionNode { Type = "triggerCondition", TriggerId = "missing" };
+			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx()));
+		}
+
+		[Fact]
+		public void trigger_condition_composes_with_gte() {
+			var node = Node(
+				"gte",
+				new ExpressionNode { Type = "triggerCondition", TriggerId = "ready" },
+				Value(1));
+			var ctx = new ExpressionContext {
+				Triggers = new Dictionary<string, double> { ["ready"] = 1.0 }
+			};
+			Assert.Equal(1.0, ExpressionNode.Evaluate(node, ctx));
+			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx()));
+		}
 	}
 }

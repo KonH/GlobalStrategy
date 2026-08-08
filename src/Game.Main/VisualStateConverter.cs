@@ -15,6 +15,7 @@ namespace GS.Main {
 		readonly IReadOnlyDictionary<string, string> _hqCountryByOrgId;
 		readonly CountryConfig? _countryConfig;
 		readonly EffectConfig? _effectConfig;
+		readonly TasksConfig? _tasksConfig;
 		ActionConfig? _actionConfig;
 		int _lastSeenProvinceOwnershipVersion = -1;
 		int _lastSeenProvinceOccupationVersion = -1;
@@ -43,7 +44,8 @@ namespace GS.Main {
 			CompletionConditionConfig? completionCondition = null,
 			int maxControlPool = 100,
 			EffectConfig? effectConfig = null,
-			BaseIncomeSettings? baseIncomeSettings = null) {
+			BaseIncomeSettings? baseIncomeSettings = null,
+			TasksConfig? tasksConfig = null) {
 			_state = state;
 			_resources = resources;
 			_relations = relations;
@@ -57,6 +59,7 @@ namespace GS.Main {
 			_goalLeaves = GoalsProjector.FlattenLeaves(completionCondition);
 			_effectConfig = effectConfig;
 			_baseIncomeSettings = baseIncomeSettings ?? new BaseIncomeSettings();
+			_tasksConfig = tasksConfig;
 		}
 
 		public void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
@@ -84,6 +87,7 @@ namespace GS.Main {
 			UpdateCountryScore(world);
 			UpdateLeaderboards(world);
 			UpdateGoals(world);
+			UpdateActiveTasks(world);
 			UpdateGameLog(world, orgEntity);
 
 			// Tick all animatables
@@ -852,6 +856,32 @@ namespace GS.Main {
 
 		public void UpdateGoals(IReadOnlyWorld world) {
 			_state.Goals.Set(GoalsProjector.Build(world, _goalLeaves, _maxControlPool, _resources));
+		}
+
+		public void UpdateActiveTasks(IReadOnlyWorld world) {
+			var tasks = new List<ActiveTaskEntryState>();
+			if (_tasksConfig != null && _tasksConfig.Tasks.Count > 0) {
+				var activeTaskIds = new HashSet<string>(StringComparer.Ordinal);
+				int[] required = { TypeId<TaskId>.Value, TypeId<TaskActive>.Value };
+				foreach (var arch in world.GetMatchingArchetypes(required, null)) {
+					TaskId[] ids = arch.GetColumn<TaskId>();
+					for (int i = 0; i < arch.Count; i++) {
+						activeTaskIds.Add(ids[i].Value);
+					}
+				}
+
+				foreach (var def in _tasksConfig.Tasks) {
+					if (!activeTaskIds.Contains(def.TaskId)) { continue; }
+					var rewards = new List<ActiveTaskRewardState>();
+					if (def.Reward != null) {
+						foreach (var reward in def.Reward) {
+							rewards.Add(new ActiveTaskRewardState(reward.ResourceId, reward.Amount));
+						}
+					}
+					tasks.Add(new ActiveTaskEntryState(def.TaskId, def.NameKey, def.DescKey, rewards));
+				}
+			}
+			_state.ActiveTasks.Set(tasks);
 		}
 
 		IReadOnlyList<string> GetCountryIds(IReadOnlyWorld world) {

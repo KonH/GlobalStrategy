@@ -18,6 +18,7 @@ namespace GS.Game.WebClient.Services {
 		IReadOnlyConfigSource<CharacterConfig> Character { get; }
 		IReadOnlyConfigSource<ActionConfig> Action { get; }
 		IReadOnlyConfigSource<EffectConfig> Effect { get; }
+		IReadOnlyConfigSource<TasksConfig> Tasks { get; }
 		IReadOnlyConfigSource<ProvinceConfig> Province { get; }
 		List<MapFeature> MapGeometry { get; }
 	}

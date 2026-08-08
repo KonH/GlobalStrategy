@@ -8,6 +8,8 @@ namespace GS.Game.Configs {
 		public double Opinion { get; set; }
 		public IReadOnlyDictionary<string, double> CountryRelations { get; set; }
 			= new Dictionary<string, double>(StringComparer.Ordinal);
+		public IReadOnlyDictionary<string, double> Triggers { get; set; }
+			= new Dictionary<string, double>(StringComparer.Ordinal);
 		public double IsInWar { get; set; }
 		public double WarProgress { get; set; }
 		public double TargetRulerOrMilitaryOpinion { get; set; }
@@ -21,12 +23,20 @@ namespace GS.Game.Configs {
 			}
 			return value;
 		}
+
+		public double GetTrigger(string triggerId) {
+			if (Triggers.TryGetValue(triggerId, out double value)) {
+				return value;
+			}
+			return 0;
+		}
 	}
 
 	public class ExpressionNode {
 		public string Type { get; set; } = "value";
 		public string RelationKind { get; set; } = "";
 		public string DesiredRelationKind { get; set; } = "";
+		public string TriggerId { get; set; } = "";
 		public double Value { get; set; }
 		public List<ExpressionNode> Members { get; set; } = new();
 
@@ -95,6 +105,9 @@ namespace GS.Game.Configs {
 				}
 				case "revengeEligible": {
 					return ctx.RevengeEligible;
+				}
+				case "triggerCondition": {
+					return ctx.GetTrigger(node.TriggerId);
 				}
 				case "gte": {
 					if (node.Members == null || node.Members.Count < 2) { return 0; }

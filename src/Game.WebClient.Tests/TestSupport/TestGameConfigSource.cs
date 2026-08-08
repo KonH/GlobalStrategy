@@ -22,6 +22,7 @@ namespace GS.Game.WebClient.Tests.TestSupport {
 		public IReadOnlyConfigSource<CharacterConfig> Character { get; }
 		public IReadOnlyConfigSource<ActionConfig> Action { get; }
 		public IReadOnlyConfigSource<EffectConfig> Effect { get; }
+		public IReadOnlyConfigSource<TasksConfig> Tasks { get; }
 		public IReadOnlyConfigSource<ProvinceConfig> Province { get; }
 		public List<MapFeature> MapGeometry { get; }
 
@@ -36,6 +37,7 @@ namespace GS.Game.WebClient.Tests.TestSupport {
 			Character = new FileConfig<CharacterConfig>(FindRepoRootConfigPath("character_config.json"));
 			Action = new FileConfig<ActionConfig>(FindRepoRootConfigPath("action_config.json"));
 			Effect = new FileConfig<EffectConfig>(FindRepoRootConfigPath("effect_config.json"));
+			Tasks = new FileConfig<TasksConfig>(FindRepoRootConfigPath("tasks_config.json"));
 			Province = new FileConfig<ProvinceConfig>(FindRepoRootConfigPath("province_config.json"));
 			MapGeometry = GeoJsonParser.Parse(File.ReadAllText(geoJsonPath));
 		}

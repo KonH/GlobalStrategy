@@ -47,6 +47,7 @@
       <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/character_config.json" />
       <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/action_config.json" />
       <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/effect_config.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/tasks_config.json" />
       <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/province_config.json" />
     </ItemGroup>
     <MakeDir Directories="$(MSBuildThisFileDirectory)wwwroot/configs/" />
