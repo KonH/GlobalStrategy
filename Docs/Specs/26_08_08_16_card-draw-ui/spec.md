@@ -4,7 +4,7 @@
 
 As a player building my organisation's country-action hand, I want a clear Draw control on the deck and a quick, readable choose-one-of-three animation, so that drawing a card feels intentional without slowing down normal play.
 
-This spec covers issue #153's **spec B** (deck controls, hand-size presentation, draw-choice interaction, and animation). The authoritative draw/receive commands, eight-card cap, country-card-only scope, paid-discard trigger, and bot behavior are specified in `Docs/Specs/26_08_08_16_card-draw-logic/spec.md`.
+This spec covers issue #153's **part B** (deck controls, hand-size presentation, draw-choice interaction, and animation). Part A is already implemented: the authoritative `DrawCardsCommand` / `ReceiveCardCommand`, up-to-three persistent offer, eight-card country-hand cap, paid-discard trigger, bot behavior, and `CountryActionsState` projection are available for this UI to consume. Their gameplay contract remains documented in `Docs/Specs/26_08_08_16_card-draw-logic/spec.md`.
 
 ## Acceptance Criteria
 
@@ -13,18 +13,19 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 ### Draw control and hand-size label
 
 - The player opens the selected country's Actions panel.
-  - The deck pile is visible => a localized Draw button appears on the face-down deck, with a localized `Hand: N/M` label immediately below the button; `N` is the current country-card count and `M` is the authoritative cap (8 under the sibling logic spec).
+  - The country-card deck pile is visible => a localized Draw button appears over the face-down deck, with a localized `Hand: N/M` label directly below that button; `N` is the number of cards actually in hand, offered cards are not counted, and `M` is the projected authoritative cap (8).
   - A card is received, played, or paid-discarded => the label updates to the new hand count without waiting for the panel to be closed/reopened.
-- The hand contains 8 cards => Draw is visibly unavailable and cannot emit a command.
-- An offer is already pending, a card draw/play/discard animation owns the card surface, or no drawable card exists => Draw is also non-interactive, preventing duplicate or impossible requests.
-- The hand has a free slot, no offer is pending, no conflicting card animation is active, and at least one card is drawable.
+- Projected state reports `CanStartDraw == false`, including when the hand contains 8 cards, an offer is pending, or no drawable card exists => Draw is visibly unavailable and cannot emit a command.
+- A card draw/play/discard animation owns the card surface => Draw is also non-interactive, even if the last projected gameplay state still reports it available.
+- Projected state reports `CanStartDraw == true` and no conflicting card animation is active.
   - The player releases the primary pointer over Draw => exactly one draw command is emitted.
   - The pointer is released outside Draw => nothing happens, following the project's `PointerUpEvent` + manual `ContainsPoint` convention.
+  - Draw is accepted => the command is pushed before any pause command in that frame, then the UI waits for the authoritative offer rather than inventing local choices.
 
 ### Deal offered cards face-down, then reveal
 
 - A draw command produces three choices.
-  - The draw flow starts => the game is paused if it was running, `ModalState` locks other UI/world interactions, and the originating deck/hand cannot be used until the flow resolves.
+  - The authoritative choices appear => the game is paused if it was running, `ModalState` locks other UI/world interactions, the choice overlay has no close/cancel action, and the originating deck/hand cannot be used until one choice resolves.
   - Three card-back copies move from the deck to three stable positions centered on screen, one by one; each travel lasts 0.25 seconds, faster than today's 0.5-second replacement draw.
   - All three card backs are in position => they flip face-up one by one, each over 0.2 seconds; a card cannot be selected until every offered card is face-up and the reveal sequence finishes.
 - The authoritative offer contains only one or two cards => the same sequence uses one or two centered positions, with no blank placeholders and no attempt to fabricate a third choice.
@@ -35,11 +36,11 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 - All offered cards are face-up and selection is enabled.
   - The pointer enters one card => that card scales from 100% to 130% over exactly 0.2 seconds without moving the other cards.
   - The pointer exits => it scales back to 100% over exactly 0.2 seconds.
-  - The scaled card remains fully visible and does not overlap a neighboring choice enough to obscure which card will be selected.
+  - The scaled card renders above its siblings, remains fully inside the safe screen area, and does not obscure enough of a neighboring choice to make the target ambiguous.
 - The player releases the primary pointer within one offered card.
   - Selection locks immediately => further hover/click input cannot submit another receive command.
   - The unselected cards move back to the originating deck one by one, each over 0.25 seconds, in their offer order.
-  - The UI emits one receive-card command for the selected choice and waits for projected state to confirm which hand slot received it.
+  - After the unselected-card return completes => the UI emits one receive-card command using the authoritative `ChoiceIndex` and waits for projected state to confirm which hand slot received it.
   - The selected card moves into that rendered hand slot over 0.3 seconds; the temporary copy is then removed and the real hand card becomes visible.
   - The hand-size label updates and Draw becomes available again only if the hand is still below 8 and no other blocker exists.
 - The pointer releases outside every offered card => no selection occurs and the offer remains open.
@@ -48,6 +49,8 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 
 - The game was running before Draw => the draw command is pushed before Pause in the same frame; after a successful selection animation, only the pause introduced by this flow is removed.
 - The game was already paused => the draw flow leaves it paused when complete.
+- A successful paid-discard animation creates an offer => its card-to-deck animation hands pause/modal ownership directly to the draw flow, without an interactive or unpaused frame between the two sequences.
+- An accepted Draw command does not produce an authoritative offer within the bounded wait => the overlay is not populated with guessed choices, flow-owned pause/modal state is released, and the refreshed Draw availability remains authoritative.
 - A receive command is rejected or projected state does not confirm it within the bounded wait => temporary copies stay/reconstruct as a selectable offer when authoritative offer state still exists; the UI never pretends a card entered the hand.
 - The HUD/view is disabled, rebuilt, or interrupted during animation.
   - Cleanup runs => all temporary copies are removed, any hidden real card/deck element is restored, scheduled hover/animation work stops, and the modal lock/pause ownership is released safely.
@@ -59,7 +62,7 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 - A country card is played under the sibling logic spec.
   - Its existing hand-to-test/deck animation still completes => no automatic deck-to-hand replacement animation follows, because the vacancy now remains for the next explicit Draw.
 - A country card is successfully paid-discarded.
-  - Its existing hand-to-deck animation completes => the authoritative offer triggered by that discard starts the same face-down/reveal/select flow without requiring a separate Draw click.
+  - Its existing hand-to-deck animation completes => the authoritative offer triggered by that discard starts the same face-down/reveal/select flow without requiring a separate Draw click or briefly restoring gameplay interaction.
   - The discarded card is not one of those choices; the paid-discard hold hint, gold affordability result, and fly text are otherwise unchanged.
 - The debug force-draw command is used => no choose-one animation is required; it remains a debug-only direct mutation.
 
@@ -67,7 +70,7 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 
 ### Deck controls
 
-- `Assets/Scripts/Unity/UI/CountryActionsView.cs` currently builds the deck entirely in `BuildDeckPile`. Add the draw button/hand label there (or as a small dedicated deck control view) and expose an `OnDrawRequested` callback. Refresh it from `CountryActionsState.Hand.Count`, `HandSize`, `CanStartDraw`, and pending/animation state.
+- `Assets/Scripts/Unity/UI/CountryActionsView.cs` currently builds the deck entirely in `BuildDeckPile` and exposes `DeckPileElement`. Add the draw button/hand label there (or as a small dedicated deck control view) and expose an `OnDrawRequested` callback. Refresh it from `CountryActionsState.Hand.Count`, `HandSize`, and `CanStartDraw`; combine that authoritative availability with presentation-only animation ownership.
 - Use `PointerUpEvent` with `ContainsPoint` for the draw control and offered-card selection. Do not rely on `Button.clicked` or `ClickEvent`, which are unreliable in Unity 6000.4.1f1 per `.claude/rules/unity/uitoolkit.md`.
 - Add layout-only classes to `Assets/UI/Overlay/OrgInfo/OrgActions.uss`. Keep shared button/text/color styling in `Assets/UI/Shared/SharedStyles.uss` and apply existing `gs-btn`, `gs-btn--small`, `gs-label`, and unavailable-state conventions rather than duplicating colors/fonts.
 - Add locale keys such as `action.draw.button` (`Draw`) and `action.draw.hand_size` (`Hand: {0}/{1}`) to both English and Russian localization assets. At implementation time use the `localization` skill for a real Russian translation.
@@ -84,13 +87,13 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 - Reuse `ActionCardBuilder.Build(CountryCardFace, includeDiscardHint: false)` for every face-up offered copy and `ActionVisualConfig.defaultBackImage` for its back. A horizontal scale-to-zero/swap/scale-to-one transition is an acceptable UI Toolkit flip if a true 3D flip is unavailable.
 - Use named constants for the timings (`0.25s` deal/return, `0.2s` flip/hover, `0.3s` selected travel) and await each deal/flip/return sequentially. Card selection uses `PointerUpEvent` and is registered only after reveal completes.
 - Follow `.claude/rules/unity/game_loop_integration.md`: push `DrawCardsCommand` before `PauseCommand` in the same frame, include a bounded wait for the projected offer, and likewise bound the wait for receipt state.
-- Acquire/release `ModalState` in `try/finally`; restore only a pause introduced by this sequence. The draw overlay, rather than raw EventSystem detection, blocks map/world input.
+- Acquire/release `ModalState` in `try/finally`; restore only a pause introduced by this sequence. Coordinate with `CardPlayAnimator` so paid discard transfers ownership continuously rather than independently unlocking/unpausing before the draw animator starts. The draw overlay, rather than raw EventSystem detection, blocks map/world input.
 
 ### State-to-animation identity and refresh
 
-- The sibling logic spec projects ordered `CardDrawChoiceEntry` objects separately from `Hand`/`Deck`. `CountryActionsView.Refresh` must exclude those cards from its deck pile count while the offer is active and must not tear down interactive temporary copies mid-gesture.
-- `ReceiveCardCommand.ChoiceIndex` is authoritative. To find the selected card after it becomes `CardInHand`, retain a stable domain identity in the projected entry (action id + primary country context + relation/revenge target) or expose an equivalent runtime correlation; `ActionId` + target alone is not unique for all relation cards.
-- Update `CountryActionsState.Set`, `StateEquality`, action-entry equality tests, and list-state benchmarks so offer changes and hand-cap changes notify the HUD reliably.
+- Part A already projects ordered `CardDrawChoiceEntry` objects separately from `Hand` and `Deck`; offered cards are excluded from `CountryActionsState.Deck`. The UI must not subtract them a second time and must not tear down interactive temporary copies mid-gesture.
+- `ReceiveCardCommand.ChoiceIndex` is authoritative. Match the selected offer to the received `ActionCardEntry` with its implemented stable domain identity (`ActionId`, `CountryContextId`, and relation/revenge target where present), because action id + target alone is not unique for all relation cards.
+- `CountryActionsState.Set` and equality already notify the HUD for offer, hand-cap, and availability changes. Part B consumes those notifications; it does not introduce duplicate gameplay state in a MonoBehaviour.
 - If state refreshes while the animator owns the card surface, follow the existing `SuppressRefresh` pattern. On receipt, briefly allow one refresh to build the authoritative hand card, hide it, animate the selected copy to its bounds, then reveal it.
 
 ### Remove obsolete replacement animation
@@ -98,8 +101,8 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 - `Assets/Scripts/Unity/UI/CardPlayAnimator.cs` currently animates automatic replacements in:
   - `PlayCountryDiscardSequence` after the discard command;
   - `PlayCountrySequence` after a played card returns to the deck;
-  - `PlaySequence` for org cards (only remove this branch if owner-kind scope expands).
-- Under the confirmed country-only scope, remove the country replacement lookup/travel blocks but keep the rest of the play/discard sequences, barriers, pause ownership, and cleanup intact.
+  - `PlaySequence` for org cards, which is outside this country-only change.
+- Remove only the two country replacement lookup/travel blocks. Keep the org-card replacement branch, country play/discard effects, barriers, and defensive cleanup. The paid-discard path additionally hands an authoritative pending offer to the new draw sequence before releasing presentation ownership.
 
 ### Verification surface
 
@@ -116,4 +119,8 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 
 ## Ambiguities
 
-The owner resolved the sibling logic spec's questions: country cards only, cap 8, up to three choices, paid discard triggers the shared offer flow, and control cards have bot priority. No additional UI-only decision blocks planning: the travel/flip timings above are concrete defaults that satisfy "faster than current" and preserve the issue's exact 0.2-second hover requirement; they can be tuned during Editor review without changing gameplay semantics.
+The owner resolved Part A's questions: country cards only, cap 8, up to three choices, paid discard triggers the shared offer flow, and control cards have bot priority. Part B still needs explicit owner approval for these presentation defaults before planning:
+
+0. Should the choice flow be a mandatory modal that pauses a running game, blocks all other UI/world interaction, and provides no cancel or close action until one offered card is selected? (Recommended/assumed: yes, because the authoritative offer persists until receipt and this prevents the player from losing the flow.)
+1. Do you approve 0.25 seconds per deal and unselected-return travel, 0.2 seconds per flip, and 0.3 seconds for selected-to-hand travel, while keeping the issue's hover-in and hover-out duration at exactly 0.2 seconds? (Recommended/assumed: yes; these defaults are materially faster than the current 0.5-second replacement travel and can be tuned after Editor review.)
+2. Should a paid discard remain one continuous paused/modal presentation, so that after the discarded card reaches the deck the offer begins without briefly unpausing or unlocking the HUD between animators? (Recommended/assumed: yes, to avoid an input race and visible pause flicker.)
