@@ -64,6 +64,7 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 - A country card is successfully paid-discarded.
   - Its existing hand-to-deck animation completes => the authoritative offer triggered by that discard starts the same face-down/reveal/select flow without requiring a separate Draw click or briefly restoring gameplay interaction.
   - The discarded card is not one of those choices; the paid-discard hold hint, gold affordability result, and fly text are otherwise unchanged.
+- A country card is successfully paid-discarded and no other card is drawable => the discard and hand-size update still complete, no choice cards are fabricated, the modal flow closes after authoritative success is confirmed, and the vacancy remains for a later explicit Draw.
 - The debug force-draw command is used => no choose-one animation is required; it remains a debug-only direct mutation.
 
 ## Tech Notes
@@ -73,7 +74,7 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 - `Assets/Scripts/Unity/UI/CountryActionsView.cs` currently builds the deck entirely in `BuildDeckPile` and exposes `DeckPileElement`. Add the draw button/hand label there (or as a small dedicated deck control view) and expose an `OnDrawRequested` callback. Refresh it from `CountryActionsState.Hand.Count`, `HandSize`, and `CanStartDraw`; combine that authoritative availability with presentation-only animation ownership.
 - Use `PointerUpEvent` with `ContainsPoint` for the draw control and offered-card selection. Do not rely on `Button.clicked` or `ClickEvent`, which are unreliable in Unity 6000.4.1f1 per `.claude/rules/unity/uitoolkit.md`.
 - Add layout-only classes to `Assets/UI/Overlay/OrgInfo/OrgActions.uss`. Keep shared button/text/color styling in `Assets/UI/Shared/SharedStyles.uss` and apply existing `gs-btn`, `gs-btn--small`, `gs-label`, and unavailable-state conventions rather than duplicating colors/fonts.
-- Add locale keys such as `action.draw.button` (`Draw`) and `action.draw.hand_size` (`Hand: {0}/{1}`) to both English and Russian localization assets. At implementation time use the `localization` skill for a real Russian translation.
+- Add `action.draw.button` / `action.draw.hand_size` as `Draw` / `Hand: {0}/{1}` in English and `Взять карту` / `Рука: {0}/{1}` in Russian. The optional `localization` skill may review these values when available, but implementation does not depend on that helper.
 
 ### Dedicated draw overlay and animator
 
@@ -117,10 +118,12 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 - Redesigning requirements, playable-country badges, cooldown overlays, or paid-discard pricing/hold interaction.
 - Changing normal card-play effect/barrier animations beyond removing the now-obsolete automatic replacement draw.
 
-## Ambiguities
+## Resolved Decisions
 
-The owner resolved Part A's questions: country cards only, cap 8, up to three choices, paid discard triggers the shared offer flow, and control cards have bot priority. Part B still needs explicit owner approval for these presentation defaults before planning:
+The owner resolved Part A's questions: country cards only, cap 8, up to three choices, paid discard triggers the shared offer flow, and control cards have bot priority.
 
-0. Should the choice flow be a mandatory modal that pauses a running game, blocks all other UI/world interaction, and provides no cancel or close action until one offered card is selected? (Recommended/assumed: yes, because the authoritative offer persists until receipt and this prevents the player from losing the flow.)
-1. Do you approve 0.25 seconds per deal and unselected-return travel, 0.2 seconds per flip, and 0.3 seconds for selected-to-hand travel, while keeping the issue's hover-in and hover-out duration at exactly 0.2 seconds? (Recommended/assumed: yes; these defaults are materially faster than the current 0.5-second replacement travel and can be tuned after Editor review.)
-2. Should a paid discard remain one continuous paused/modal presentation, so that after the discarded card reaches the deck the offer begins without briefly unpausing or unlocking the HUD between animators? (Recommended/assumed: yes, to avoid an input race and visible pause flicker.)
+The owner also approved all Part B presentation defaults before planning:
+
+0. The choice flow is a mandatory modal. It pauses a running game, blocks all other UI/world interaction, and has no cancel or close action until one offered card is selected.
+1. Deal and unselected-return travel take 0.25 seconds per card, each flip takes 0.2 seconds, selected-to-hand travel takes 0.3 seconds, and hover-in/hover-out each take exactly 0.2 seconds.
+2. A paid discard remains one continuous paused/modal presentation. After the discarded card reaches the deck, the offer begins without an interactive or unpaused frame between the two sequences.
