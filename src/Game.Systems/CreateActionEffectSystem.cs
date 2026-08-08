@@ -36,223 +36,24 @@ namespace GS.Game.Systems {
 				var def = actionConfig.Find(actionId);
 				if (def == null) { continue; }
 
-				foreach (var effectId in def.EffectIds) {
-					var effectDef = effectConfig.Find(effectId);
-					if (effectDef is ControlChangeEffectParams controlParams && controlParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
-					int usedTotal = ControlQuery.GetTotalControlInCountry(world, countryId);
-					if (usedTotal < maxControlPool) {
-						int toAdd = Math.Min(controlParams.Amount, maxControlPool - usedTotal);
-							int ie = world.Create();
-							world.Add(ie, new ControlEffect {
-								OrgId = orgId,
-								CountryId = countryId,
-								Value = toAdd,
-								EffectId = $"country_action_{orgId}_{actionId}_{currentTime.Ticks}"
-							});
-							int rc = world.Create();
-							world.Add(rc, new ResourceChange {
-								EffectId = $"control_{orgId}_{countryId}_{currentTime.Ticks}",
-								ResourceId = $"control_{countryId}",
-								OwnerId = orgId,
-								Amount = toAdd
-							});
-							// Game Log event — computed after ControlEffect above so the sum already
-							// includes this action's own contribution. See
-							// Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
-							int orgTotal = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
-							int ge = world.Create();
-							world.Add(ge, new ControlEffectApplied {
-								OrgId = orgId,
-								CountryId = countryId,
-								Delta = toAdd,
-								Total = orgTotal
-							});
-						}
-					} else if (effectDef is OpinionModifierEffectParams opinionParams && !string.IsNullOrEmpty(countryId)) {
-						string targetCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, def.TargetRole);
-						if (string.IsNullOrEmpty(targetCharId)) { continue; }
-
-						string opinionResourceId = $"opinion_{orgId}";
-						int rc = world.Create();
-						world.Add(rc, new ResourceChange {
-							EffectId = $"opinion_{orgId}_{targetCharId}_{currentTime.Ticks}",
-							ResourceId = opinionResourceId,
-							OwnerId = targetCharId,
-							Amount = opinionParams.InitialValue
-						});
-						double opinionTotal = EnsureOpinionResource(
-							resources, world, targetCharId, opinionResourceId, opinionParams.InitialValue);
-						// Game Log event — see Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
-						int opinionGe = world.Create();
-						world.Add(opinionGe, new OpinionEffectApplied {
-							OrgId = orgId,
-							CharacterId = targetCharId,
-							Delta = opinionParams.InitialValue,
-							Total = opinionTotal
-						});
-						int decayEffectEntity = world.Create();
-						world.Add(decayEffectEntity, new ResourceOwner(targetCharId));
-						world.Add(decayEffectEntity, new ResourceLink(opinionResourceId));
-						world.Add(decayEffectEntity, new ResourceEffect {
-							EffectId = $"opinion_decay_{orgId}_{targetCharId}_{currentTime.Ticks}",
-							Value = -(double)opinionParams.DecayPerMonth,
-							PayType = PayType.Monthly,
-							MaxTotal = opinionParams.InitialValue,
-							ClampToZero = true
-						});
-					} else if (effectDef is SetCountryRelationEffectParams relationParams && !string.IsNullOrEmpty(countryId)) {
-						int e = world.Create();
-						world.Add(e, new SetCountryRelationEffect { EffectId = effectId, OrgId = orgId, CountryId = countryId, Kind = relationParams.Kind });
-					} else if (effectDef is ClearCountryRelationEffectParams && !string.IsNullOrEmpty(countryId) && world.Has<RelationCardTarget>(entity)) {
-						string targetCountryId = world.Get<RelationCardTarget>(entity).TargetCountryId;
-						int e = world.Create();
-						world.Add(e, new ClearCountryRelationEffect { EffectId = effectId, OrgId = orgId, CountryId = countryId, TargetCountryId = targetCountryId });
-					} else if (effectDef is DeclareWarEffectParams && !string.IsNullOrEmpty(countryId) && world.Has<RelationCardTarget>(entity)) {
-						string targetCountryId = world.Get<RelationCardTarget>(entity).TargetCountryId;
-						if (Wars.DeclareWar(world, resources, countryId, targetCountryId, currentTime)) {
-							int e = world.Create();
-							world.Add(e, new WarDeclaredApplied {
-								OrgId = orgId,
-								CountryId = countryId,
-								DefenderCountryId = targetCountryId
-							});
-						}
-					} else if (effectDef is DeclareRevengeWarEffectParams revengeParams && !string.IsNullOrEmpty(countryId)
-						&& world.Has<RevengeCardTarget>(entity)) {
-						string targetCountryId = world.Get<RevengeCardTarget>(entity).TargetCountryId;
-						if (Wars.DeclareWar(world, resources, countryId, targetCountryId, currentTime, topology, settings.WarBattles, out string? warId)) {
-							RevengeWarBonusQuery.RemoveForCountry(world, countryId);
-							int be = world.Create();
-							world.Add(be, new RevengeWarBonus {
-								WarId = warId ?? "",
-								CountryId = countryId,
-								DamageBonusPercent = revengeParams.DamageBonusPercent,
-								DurabilityBonusPercent = revengeParams.DurabilityBonusPercent
-							});
-							int e = world.Create();
-							world.Add(e, new WarDeclaredApplied {
-								OrgId = orgId,
-								CountryId = countryId,
-								DefenderCountryId = targetCountryId
-							});
-						}
-					} else if (effectDef is EnemyControlDrainEffectParams drainParams && drainParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
-						string? targetOrgId = ControlQuery.GetHighestControlOtherOrg(world, orgId, countryId);
-						if (targetOrgId != null) {
-							int targetControlBefore = ControlQuery.GetOrgControlInCountry(world, targetOrgId, countryId);
-							int actualDrain = Math.Min(drainParams.Amount, targetControlBefore);
-							ControlQuery.ReduceOrgControlInCountry(world, targetOrgId, countryId, actualDrain);
-							if (actualDrain > 0) {
-								int rc = world.Create();
-								world.Add(rc, new ResourceChange {
-									EffectId = $"control_{targetOrgId}_{countryId}_{currentTime.Ticks}",
-									ResourceId = $"control_{countryId}",
-									OwnerId = targetOrgId,
-									Amount = -actualDrain
-								});
-								int ge = world.Create();
-								world.Add(ge, new ControlEffectApplied {
-									OrgId = targetOrgId,
-									CountryId = countryId,
-									Delta = -actualDrain,
-									Total = targetControlBefore - actualDrain
-								});
-							}
-						}
-					} else if (effectDef is ResolveWarEffectParams resolveWarParams && !string.IsNullOrEmpty(countryId)) {
-						Wars.ResolveWar(
-							world, resources, countryId, resolveWarParams.Outcome, currentTime,
-							rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
-					} else if (effectDef is CountryResourceModifierEffectParams resourceModifierParams) {
-						if (string.IsNullOrEmpty(countryId)) {
-							throw new InvalidOperationException(
-								$"Action '{actionId}' effect '{effectId}' requires a country context " +
-								$"for card entity {entity}.");
-						}
-						AddToExistingResource(
-							resources,
-							world,
-							countryId,
-							OwnerType.Country,
-							resourceModifierParams.ResourceId,
-							resourceModifierParams.InitialValue,
-							actionId,
-							effectId,
-							entity);
-						int resourceChangeEntity = world.Create();
-						world.Add(resourceChangeEntity, new ResourceChange {
-							EffectId = $"country_resource_{effectId}_{orgId}_{countryId}_{entity}_{currentTime.Ticks}",
-							ResourceId = resourceModifierParams.ResourceId,
-							OwnerId = countryId,
-							Amount = resourceModifierParams.InitialValue
-						});
-
-						int decayEffectEntity = world.Create();
-						world.Add(decayEffectEntity, new ResourceOwner(countryId, OwnerType.Country));
-						world.Add(decayEffectEntity, new ResourceLink(resourceModifierParams.ResourceId));
-						world.Add(decayEffectEntity, new ResourceEffect {
-							EffectId = $"country_resource_decay_{effectId}_{orgId}_{countryId}_{entity}_{currentTime.Ticks}",
-							Value = -resourceModifierParams.DecayPerMonth,
-							PayType = PayType.Monthly,
-							MaxTotal = resourceModifierParams.InitialValue,
-							ClampToZero = true,
-							OrgId = orgId
-						});
-					} else if (effectDef is OrgResourceGrantEffectParams resourceGrantParams) {
-						AddToExistingResource(
-							resources,
-							world,
-							orgId,
-							OwnerType.Org,
-							resourceGrantParams.ResourceId,
-							resourceGrantParams.Amount,
-							actionId,
-							effectId,
-							entity);
-						int resourceChangeEntity = world.Create();
-						world.Add(resourceChangeEntity, new ResourceChange {
-							EffectId = $"org_resource_{effectId}_{orgId}_{entity}_{currentTime.Ticks}",
-							ResourceId = resourceGrantParams.ResourceId,
-							OwnerId = orgId,
-							Amount = resourceGrantParams.Amount
-						});
-					}
-				}
+				EffectApplicator.ApplyEffectIds(
+					world,
+					effectConfig,
+					def.EffectIds,
+					orgId,
+					countryId,
+					currentTime,
+					rng,
+					settings,
+					topology,
+					provinceCenters,
+					maxControlPool,
+					resources,
+					countryConfig,
+					contextEntity: entity,
+					correlationId: actionId,
+					targetRole: def.TargetRole);
 			}
-		}
-
-		static void AddToExistingResource(
-			ResourceQuery resources,
-			World world,
-			string ownerId,
-			OwnerType ownerType,
-			string resourceId,
-			double amount,
-			string actionId,
-			string effectId,
-			int cardEntity) {
-			int entity = resources.FindEntity(world, ownerId, resourceId);
-			if (entity < 0) {
-				throw new InvalidOperationException(
-					$"Action '{actionId}' effect '{effectId}' could not find resource '{resourceId}' " +
-					$"for {ownerType} '{ownerId}' (card entity {cardEntity}).");
-			}
-			ref Resource resource = ref world.Get<Resource>(entity);
-			resource.Value += amount;
-			resources.NotifyValue(ownerId, resourceId, resource.Value, entity);
-		}
-
-		static double EnsureOpinionResource(
-			ResourceQuery resources, World world, string charId, string resourceId, int initialValue) {
-			int entity = resources.FindEntity(world, charId, resourceId);
-			if (entity >= 0) {
-				ref Resource resource = ref world.Get<Resource>(entity);
-				resource.Value += initialValue;
-				resources.NotifyValue(charId, resourceId, resource.Value, entity);
-				return resource.Value;
-			}
-			resources.Set(world, charId, resourceId, initialValue, OwnerType.Character);
-			return initialValue;
 		}
 	}
 }

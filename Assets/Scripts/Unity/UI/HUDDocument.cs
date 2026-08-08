@@ -19,6 +19,7 @@ namespace GS.Unity.UI {
 		CountryInfoView _countryInfo;
 		ProvinceInfoView _provinceInfo;
 		PlayerOrgView _playerOrgView;
+		PlayerTasksView _playerTasksView;
 		TimeView _timeView;
 		TooltipSystem _tooltip;
 		VisualState _state;
@@ -147,6 +148,11 @@ namespace GS.Unity.UI {
 			_provinceInfo = new ProvinceInfoView(_provinceInfoRoot, _loc, _resourceConfig, _tooltip, _countryVisualConfig);
 			_provinceInfo.OnCountryRowClicked += HandleProvinceInfoCountryRowClicked;
 			_playerOrgView = new PlayerOrgView(_root.Q("player-country"), _loc, _resourceConfig, _tooltip, _orgVisualConfig);
+			var playerTasksRoot = _root.Q("player-tasks");
+			if (playerTasksRoot != null) {
+				_playerTasksView = new PlayerTasksView(playerTasksRoot, _loc, _resourceConfig);
+				_playerTasksView.Refresh(_state.ActiveTasks);
+			}
 			_lensSwitcher = new LensSwitcherView(_root.Q("lens-switcher"), _tooltip, _loc);
 			_lensSwitcher.OnLensSelected = OnLensSelected;
 			_warIconsView = new WarIconsView(
@@ -398,8 +404,11 @@ namespace GS.Unity.UI {
 			_state.ProvinceOccupation.PropertyChanged += HandleProvinceOccupationChanged;
 			_state.GameLog.PropertyChanged += HandleGameLogChanged;
 			_state.WarIcons.PropertyChanged += HandleWarIconsChanged;
+			_state.ActiveTasks.PropertyChanged += HandleActiveTasksChanged;
+			_state.LastFrameEffects.PropertyChanged += HandleLastFrameEffectsChanged;
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			_warIconsView?.Refresh(_state.WarIcons);
+			_playerTasksView?.Refresh(_state.ActiveTasks);
 			RefreshCountryViews();
 			RefreshProvinceInfoView();
 			RefreshControlDebugRow();
@@ -438,6 +447,8 @@ namespace GS.Unity.UI {
 			_state.ProvinceOccupation.PropertyChanged -= HandleProvinceOccupationChanged;
 			_state.GameLog.PropertyChanged -= HandleGameLogChanged;
 			_state.WarIcons.PropertyChanged -= HandleWarIconsChanged;
+			_state.ActiveTasks.PropertyChanged -= HandleActiveTasksChanged;
+			_state.LastFrameEffects.PropertyChanged -= HandleLastFrameEffectsChanged;
 			_lastOrgAgentSlotCount = -1;
 			if (_orgInfoDocument != null) {
 				_orgInfoDocument.OnSubPanelOpened -= HandleOrgSubPanelOpened;
@@ -688,11 +699,35 @@ namespace GS.Unity.UI {
 			_loc.SetLocale(_state.Locale.Locale);
 			_tooltip?.HideAll();
 			_warIconsView?.Refresh(_state.WarIcons);
+			_playerTasksView?.Refresh(_state.ActiveTasks);
 			RefreshLeaderboardButtonText();
 			RefreshGoalsButtonText();
 			RefreshCountryViews();
 			RefreshProvinceInfoView();
 			_timeView.Refresh(_state.Time);
+		}
+
+		void HandleActiveTasksChanged(object sender, PropertyChangedEventArgs e) {
+			_playerTasksView?.Refresh(_state.ActiveTasks);
+		}
+
+		void HandleLastFrameEffectsChanged(object sender, PropertyChangedEventArgs e) {
+			if (_state == null || _state.LastFrameEffects.Effects.Count == 0) { return; }
+			if (_cardPlayAnimator != null && _cardPlayAnimator.IsPlaying) { return; }
+			if (!_state.PlayerOrganization.IsValid) { return; }
+
+			string playerOrgId = _state.PlayerOrganization.OrgId;
+			foreach (var effect in _state.LastFrameEffects.Effects) {
+				if (effect.OwnerId != playerOrgId) { continue; }
+				if (effect.ResourceId != ResourceDefinitions.Gold) { continue; }
+				AnimatableDouble goldAnimatable = null;
+				foreach (var res in _state.PlayerOrganization.Resources.Resources) {
+					if (res.ResourceId == ResourceDefinitions.Gold) { goldAnimatable = res.Value; break; }
+				}
+				if (goldAnimatable == null) { continue; }
+				var barrier = goldAnimatable.Hold(-effect.Amount);
+				barrier.Release(3.0f);
+			}
 		}
 
 		void HandlePlayerResourcesChanged(object sender, PropertyChangedEventArgs e) {

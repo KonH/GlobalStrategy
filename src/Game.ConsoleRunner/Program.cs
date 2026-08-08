@@ -61,6 +61,7 @@ namespace GS.Game.ConsoleRunner {
 				character: new FileConfig<CharacterConfig>(Path.Combine(configDir, "character_config.json")),
 				action: new FileConfig<ActionConfig>(Path.Combine(configDir, "action_config.json")),
 				effect: new FileConfig<EffectConfig>(Path.Combine(configDir, "effect_config.json")),
+				tasks: new FileConfig<TasksConfig>(Path.Combine(configDir, "tasks_config.json")),
 				mapGeometry: new MapGeometryFileConfig(Path.Combine(configDir, "geojson_world.json")),
 				province: new FileConfig<ProvinceConfig>(Path.Combine(configDir, "province_config.json")),
 				rngSeed: rngSeed,

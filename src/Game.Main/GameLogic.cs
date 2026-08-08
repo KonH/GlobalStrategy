@@ -36,6 +36,7 @@ namespace GS.Main {
 		DateTime _previousTime;
 		ActionConfig _actionConfig = null!;
 		EffectConfig _effectConfig = null!;
+		TasksConfig _tasksConfig = null!;
 
 		public VisualState VisualState { get; } = new VisualState();
 		public IWriteOnlyCommandAccessor Commands { get; }
@@ -47,6 +48,7 @@ namespace GS.Main {
 		public CharacterConfig CharacterConfig { get; private set; } = null!;
 		public ActionConfig ActionConfig { get; private set; } = null!;
 		public EffectConfig EffectConfig { get; private set; } = null!;
+		public TasksConfig TasksConfig { get; private set; } = null!;
 		public ProvinceConfig ProvinceConfig { get; private set; } = null!;
 		public GameSettings GameSettings { get; private set; } = null!;
 		public IReadOnlyList<BotFeatureConfigEntry> BotFeatures { get; private set; } = null!;
@@ -72,6 +74,8 @@ namespace GS.Main {
 			_actionConfig = ActionConfig;
 			_effectConfig = context.Effect.Load();
 			EffectConfig = _effectConfig;
+			TasksConfig = context.Tasks.Load();
+			_tasksConfig = TasksConfig;
 			ProvinceConfig = context.Province.Load();
 			_provinceCenters = new Dictionary<string, (double Lon, double Lat)>();
 			foreach (var entry in ProvinceConfig.Provinces) {
@@ -85,7 +89,7 @@ namespace GS.Main {
 				VisualState, _resources, _relations, _actionConfig, _hqCountryByOrgId,
 				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig,
 				settings.EventNotifications, settings.CompletionCondition, settings.MaxControlPool, _effectConfig,
-				settings.BaseIncome);
+				settings.BaseIncome, _tasksConfig);
 			_resources.OnCacheMissWarning = message => _context.Logger?.LogDebug(message);
 			_relations.OnCacheMissWarning = message => _context.Logger?.LogDebug(message);
 			_speedMultipliers = settings.SpeedMultipliers;
@@ -280,6 +284,10 @@ namespace GS.Main {
 			CheckHandSizeSystem.Update(_world);
 			RelationCardSyncSystem.Update(_world, _relations, _actionConfig);
 			RevengeCardSyncSystem.Update(_world, _actionConfig);
+			TaskProgressSystem.Update(
+				_world, _tasksConfig, _effectConfig, currentTime,
+				_rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, _resources,
+				_relations, _hqCountryByOrgId, CountryConfig);
 			DrawCardSystem.Update(_world, _actionConfig, _rng);
 			CleanupCardDiscardSystem.Update(_world);
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool, _resources);

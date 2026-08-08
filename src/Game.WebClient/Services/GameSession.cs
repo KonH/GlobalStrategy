@@ -133,6 +133,7 @@ namespace GS.Game.WebClient.Services {
 				character: _configSource.Character,
 				action: _configSource.Action,
 				effect: _configSource.Effect,
+				tasks: _configSource.Tasks,
 				mapGeometry: new InMemoryMapGeometryConfig(_configSource.MapGeometry),
 				province: _configSource.Province,
 				participatingOrganizationIds: participatingOrgIds);

@@ -1,0 +1,58 @@
+.player-tasks-root {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.tasks-list {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.task-item {
+    flex-direction: column;
+    align-items: stretch;
+    margin-top: 4px;
+}
+
+.task-header {
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 6px;
+    background-color: rgb(36, 52, 82);
+    border-color: rgb(160, 130, 50);
+    border-width: 1px;
+    border-radius: 4px;
+}
+
+.task-header-label {
+    font-size: 14px;
+    color: rgb(230, 220, 190);
+    -unity-font-style: bold;
+}
+
+.task-body {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 6px 8px;
+    margin-top: 2px;
+    background-color: rgb(22, 34, 58);
+    border-radius: 4px;
+}
+
+.task-description {
+    font-size: 13px;
+    color: rgb(210, 205, 185);
+    white-space: normal;
+    margin-bottom: 4px;
+}
+
+.task-reward-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.task-reward-label {
+    font-size: 12px;
+    color: rgb(200, 190, 150);
+}
