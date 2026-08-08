@@ -722,3 +722,219 @@ Portrait prompts target oil-painting style circa 1880.
   - *Portrait prompt: Oil painting of a scarred older American statesman in his 70s, formal frock coat, neck scar from 1865 assassination attempt visible, Alaska purchase map framed on wall, diplomatic cables on desk*
 - **Elihu B. Washburne** (1816–1887) — Diplomat, congressman, Grant's political manager and European intelligence source
   - *Portrait prompt: Oil painting of a sharp-nosed Yankee politician-diplomat in his 60s, plain republican frock coat, dry Yankee intelligence, Paris embassy dispatches from the siege of 1870–71 on his Washington study shelf*
+
+---
+
+## Serbia
+
+### Ruler
+- **Miloš Obrenović I** (1780–1860) — founding Prince of the restored Serbian principality, ruled 1815–1839 and 1858–1860
+  - *Portrait prompt: Oil painting portrait of a shrewd, heavyset Serbian prince in his 50s, ornate Balkan court dress with fur-trimmed mantle, thick moustache, calculating gaze, rustic Belgrade court chamber background, 19th-century Balkan portrait style*
+- **Mihailo Obrenović III** (1823–1868) — reforming Prince 1839–1842 and 1860–1868, assassinated in Košutnjak park
+  - *Portrait prompt: Oil painting portrait of a refined, European-educated Serbian prince in his 40s, dark military-style court uniform with medals, thoughtful reformist expression, Belgrade palace study background, 19th-century photorealistic style*
+- **Milan Obrenović** (1854–1901) — Prince 1868–1882, King of Serbia 1882–1889
+  - *Portrait prompt: Oil painting portrait of a young, ambitious Serbian monarch in his late 20s, ornate royal uniform with sash and orders, confident bearing, thin moustache, Belgrade throne room background, 19th-century royal portrait style*
+
+### General
+- **Kosta Protić** (1831–1892) — commander in the Serbian-Turkish War (1876–78), later regent for the young King Alexander
+  - *Portrait prompt: Oil painting of a stern Serbian field marshal in his 50s, dark blue Serbian army uniform with epaulettes and campaign medals, greying beard, war map of the Morava valley on the wall behind him*
+- **Jovan Belimarković** (1827–1906) — general and regent, veteran of the wars against the Ottomans
+  - *Portrait prompt: Oil painting of a dignified elder Serbian general in his 50s, formal dress uniform with high collar, silver whiskers, composed regent's authority, Belgrade military headquarters background*
+- **Đura Horvatović** (1836–1904) — general in the Serbian-Turkish War, later minister of war
+  - *Portrait prompt: Oil painting of a battle-hardened Serbian general in his 40s, campaign uniform with sabre at his side, weathered face, Timok valley battlefield map on desk, resolute expression*
+
+### Baron
+- **Kosta Cukić** (1826–1879) — finance minister who negotiated Serbia's early foreign loans
+  - *Portrait prompt: Oil painting of a meticulous Serbian finance minister in his 50s, dark formal frock coat, ledgers and foreign bond certificates on his desk, careful bureaucratic expression, Belgrade ministry office background*
+- **Vladimir Jovanović** (1833–1922) — economist and reformist politician, pioneer of Serbian liberal economics
+  - *Portrait prompt: Oil painting of a scholarly Serbian economist in his 40s, plain academic coat, spectacles, books on political economy stacked on his desk, earnest intellectual expression, study-lined background*
+- **Đorđe Vajfert** (1850–1937) — industrialist and banker, brewer turned financier
+  - *Portrait prompt: Oil painting of a prosperous Serbian-German industrialist in his 30s, well-tailored merchant's suit, confident half-smile, brewery and banking ledgers visible on a mahogany desk, Belgrade commercial district background*
+
+### Secret Advisor
+- **Nikola Pašić** (1845–1926) — Radical Party founder, political agitator and exile through the 1880s
+  - *Portrait prompt: Oil painting of a bearded Serbian radical politician in his 30s, plain dark coat, sharp calculating eyes, pamphlets and party manifestos scattered across a candlelit table, conspiratorial half-shadow*
+- **Pera Todorović** (1852–1907) — Radical journalist and conspirator, firebrand of the Serbian press
+  - *Portrait prompt: Oil painting of an intense young Serbian journalist in his 30s, ink-stained fingers, disheveled dark hair, newspaper proofs and secret correspondence on a cluttered desk, flickering oil lamp*
+- **Adam Bogosavljević** (1844–1880) — peasant-movement agitator and early Serbian populist leader
+  - *Portrait prompt: Oil painting of a rugged Serbian peasant-politician in his 30s, simple homespun coat over a plain shirt, weathered hands, village square gathering suggested in the background, determined expression*
+
+---
+
+## Bulgaria
+
+### Ruler
+- **Alexander of Battenberg** (1857–1893) — first Prince of Bulgaria, reigned 1879–1886
+  - *Portrait prompt: Oil painting portrait of a youthful, dashing German-born prince in his 20s, ornate Bulgarian court uniform with sash and orders, confident military bearing, Sofia palace background, 19th-century royal portrait style*
+- **Ferdinand I of Bulgaria** (1861–1948) — Prince of Bulgaria from 1887, later Tsar
+  - *Portrait prompt: Oil painting portrait of an elegant, aristocratic prince in his late 20s, elaborate court uniform with medals and orders, sharp intelligent eyes, waxed moustache, Sofia court chamber background*
+- **Stefan Stambolov** (1854–1895) — regent and de facto head of state during the 1886–87 interregnum, later prime minister
+  - *Portrait prompt: Oil painting of a forceful, iron-willed Bulgarian statesman in his 30s, dark formal suit, piercing gaze, government dispatches and a revolver visible on his desk, Sofia office background, tense authoritative mood*
+
+### General
+- **Sava Mutkurov** (1852–1891) — general, hero of the 1885 Serbo-Bulgarian War
+  - *Portrait prompt: Oil painting of a rugged Bulgarian general in his 30s, dark green army uniform with campaign medals, thick moustache, Slivnitsa battlefield map behind him, resolute wartime expression*
+- **Racho Petrov** (1861–1942) — general and war minister, architect of Bulgarian military reform
+  - *Portrait prompt: Oil painting of a disciplined young Bulgarian officer in his 20s, crisp military uniform with sword, sharp attentive eyes, army reform documents on his desk, Sofia war ministry background*
+- **Danail Nikolaev** (1852–1942) — Bulgaria's first war minister and army organiser
+  - *Portrait prompt: Oil painting of a composed Bulgarian military organiser in his 30s, formal officer's uniform, calm methodical expression, newly drafted army regulations spread across his desk*
+
+### Baron
+- **Ivan Evstratiev Geshov** (1849–1924) — banker and founder of Bulgarian financial institutions
+  - *Portrait prompt: Oil painting of a distinguished Bulgarian banker in his 30s, well-tailored dark suit, gold watch chain, bank ledgers and foreign trade correspondence on a polished desk, Sofia commercial district background*
+- **Dragan Tsankov** (1828–1911) — politician-economist, multiple-time prime minister
+  - *Portrait prompt: Oil painting of a seasoned Bulgarian statesman in his 50s, formal frock coat, greying beard, government budget papers on his desk, contemplative expression, ministry office background*
+- **Todor Ikonomov** (1838–1892) — statesman and economic administrator
+  - *Portrait prompt: Oil painting of a careful Bulgarian administrator in his 40s, plain dark coat, spectacles, provincial tax ledgers stacked beside him, quiet bureaucratic diligence, modest office background*
+
+### Secret Advisor
+- **Zahari Stoyanov** (1850–1889) — revolutionary who organized the 1885 unification conspiracy with Eastern Rumelia
+  - *Portrait prompt: Oil painting of a fervent Bulgarian revolutionary in his 30s, plain traveling coat, intense determined eyes, secret unification plans and a pistol on a candlelit table, conspiratorial atmosphere*
+- **Panayot Volov** (1850–1876) — April Uprising conspirator and organiser
+  - *Portrait prompt: Oil painting of a young Bulgarian insurgent leader in his 20s, rough peasant-revolutionary garb, burning idealistic gaze, uprising banners and correspondence hidden beneath a farmhouse table*
+- **Dimitar Rizov** (1862–1918) — diplomat and secret political agent
+  - *Portrait prompt: Oil painting of a sharp-eyed young Bulgarian diplomat-agent in his 20s, dark travelling suit, guarded expression, coded dispatches and a map of the Balkans on a dimly lit desk*
+
+---
+
+## Bosnia-Herzegovina
+
+### Ruler
+- **Josip Filipović** (1819–1889) — first Austro-Hungarian military governor of Bosnia, 1878–1881
+  - *Portrait prompt: Oil painting portrait of a stern Austro-Hungarian field marshal in his 50s, ornate imperial military uniform with sash and decorations, occupation campaign map of Bosnia on the wall, commanding gubernatorial presence*
+- **Hermann Dahlen von Orlaburg** (1828–1887) — Austro-Hungarian governor of Bosnia, 1881–1882
+  - *Portrait prompt: Oil painting of a composed Austro-Hungarian general-governor in his 50s, formal imperial uniform with medals, administrative reports on Sarajevo governance visible on his desk, measured authoritative expression*
+- **Benjámin Kállay** (1839–1903) — Joint Finance Minister and civil administrator/governor of Bosnia, 1882–1903
+  - *Portrait prompt: Oil painting of a scholarly Austro-Hungarian statesman-governor in his 40s, formal dark ministerial coat, spectacles, administrative maps of Bosnia and Herzegovina spread across his Sarajevo office desk*
+
+### General
+- **Salih Vilajetović "Hadži Lojo"** (c. 1826–1882) — leader of the 1878 Sarajevo resistance to the Austro-Hungarian occupation
+  - *Portrait prompt: Oil painting of a fierce Bosniak resistance leader in his 50s, traditional Ottoman-era Bosnian dress with sash and dagger, defiant expression, Sarajevo rooftops and minarets suggested behind him*
+- **Anton von Mollinary** (1817–1891) — Austro-Hungarian general who commanded the 1878 Bosnia campaign
+  - *Portrait prompt: Oil painting of a veteran Austro-Hungarian general in his 60s, elaborate imperial campaign uniform with decorations, greying whiskers, invasion route map of Bosnia on the wall behind him*
+- **Stevan Jovanović** (dates uncertain, active 1870s–1890s) — Bosnian Serb officer in Habsburg military service
+  - *Portrait prompt: Oil painting of a disciplined Bosnian Serb officer in his 30s, Austro-Hungarian regimental uniform, watchful reserved expression, garrison quarters background in occupied Sarajevo*
+
+### Baron
+- **Kosta Hörmann** (1850–1921) — administrator of Bosnia's state monopolies and antiquities/finance under Kállay
+  - *Portrait prompt: Oil painting of a meticulous Austro-Hungarian civil administrator in his 30s, formal ministerial coat, museum artifacts and monopoly revenue ledgers on his Sarajevo office desk, studious expression*
+- **Kálmán Thallóczy** (1854–1916) — head of the Bosnian section of the Joint Finance Ministry
+  - *Portrait prompt: Oil painting of a precise Austro-Hungarian bureaucrat-historian in his 30s, dark formal suit, spectacles, Bosnian financial archives and historical manuscripts stacked on his Vienna office desk*
+- **Anto Šola** (dates uncertain, active 1860s–1900s) — Sarajevo Croat merchant-family patriarch, representative of the local trading class
+  - *Portrait prompt: Oil painting of a prosperous Sarajevo Croat merchant in his 50s, fine bourgeois coat, gold watch chain, trade ledgers and Ottoman-Habsburg commercial correspondence on his desk, market district background*
+
+### Secret Advisor
+- **Mićo Ljubibratić** (1839–1889) — Herzegovinian insurgent leader, active resistance figure against Ottoman and later Austro-Hungarian rule
+  - *Portrait prompt: Oil painting of a rugged Herzegovinian insurgent commander in his 40s, plain highland fighter's garb, weathered determined face, mountainous Herzegovina terrain suggested behind him, rifle at his side*
+- **Gligor Jeftanović** (1846–1928) — Sarajevo Serb merchant who covertly organized Serb cultural-political circles under Habsburg surveillance
+  - *Portrait prompt: Oil painting of a watchful Sarajevo Serb merchant in his 30s, fine dark bourgeois coat, guarded expression, hidden correspondence and Serb cultural-society papers tucked beneath ledgers on his desk*
+- **Ibrahim-beg Bašagić** (dates uncertain, active 1860s–1900s) — Bosniak notable engaged in discreet political organizing
+  - *Portrait prompt: Oil painting of a dignified Bosniak notable in his 40s, traditional fez and formal Ottoman-Bosnian dress, composed inscrutable expression, quiet study filled with correspondence and books*
+
+---
+
+## Montenegro
+
+### Ruler
+- **Petar II Petrović-Njegoš** (1813–1851) — Prince-Bishop of Montenegro 1830–1851, celebrated poet-ruler
+  - *Portrait prompt: Oil painting portrait of a towering, imposing Montenegrin Prince-Bishop in his 30s, black ecclesiastical-princely robes, piercing visionary gaze, rugged mountain fortress background, 19th-century Balkan portrait style*
+- **Danilo I Petrović-Njegoš** (1826–1860) — Prince of Montenegro 1852–1860, assassinated at Kotor
+  - *Portrait prompt: Oil painting portrait of a proud young Montenegrin prince in his 20s, ornate princely court dress with ceremonial weapons, resolute expression, Cetinje court background*
+- **Nikola I Petrović-Njegoš** (1841–1921) — Prince of Montenegro from 1860, later King, ruler through the 1880s
+  - *Portrait prompt: Oil painting portrait of a dignified, bearded Montenegrin prince in his 40s, elaborate court uniform with sash and decorations, commanding patriarchal presence, Cetinje palace background*
+
+### General
+- **Mašo Vrbica** (1833–1896) — general and war minister
+  - *Portrait prompt: Oil painting of a weathered Montenegrin general in his 40s, traditional highland military dress with ceremonial pistols and yataghan, stern mountain-warrior bearing, Cetinje military headquarters background*
+- **Petar Vukotić** (1813–1888) — voivode and military commander
+  - *Portrait prompt: Oil painting of an elder Montenegrin voivode in his 60s, richly embroidered highland tunic, silver moustache, rugged mountain terrain background, commanding tribal-chieftain presence*
+- **Marko Miljanov** (1833–1901) — celebrated warrior and voivode of the Kuči tribe
+  - *Portrait prompt: Oil painting of a legendary Montenegrin tribal warrior-voivode in his 40s, traditional Kuči highland dress with sash of weapons, fierce noble expression, mountain pass battlefield suggested behind him*
+
+### Baron
+- **Božo Petrović-Njegoš** (1820–1890) — statesman and serdar who oversaw court and administrative finances
+  - *Portrait prompt: Oil painting of a composed Montenegrin court statesman in his 50s, formal highland court dress, administrative ledgers and treasury papers on a modest Cetinje office desk*
+- **Lazar Mijušković** (1833–1902) — senator and later prime minister involved in state finances
+  - *Portrait prompt: Oil painting of a dignified Montenegrin senator in his 40s, dark formal coat over traditional dress, state budget documents on his desk, thoughtful administrative expression*
+- **Simo Popović** (1850–1934) — historian and state secretary handling administrative-economic matters
+  - *Portrait prompt: Oil painting of a scholarly Montenegrin state secretary in his 30s, plain formal coat, historical manuscripts and administrative correspondence stacked on his desk, studious candlelit expression*
+
+### Secret Advisor
+- **Stanko Radonjić** (dates uncertain, active 1830s–1860s) — voivode known for court intrigue against Prince Danilo I
+  - *Portrait prompt: Oil painting of a calculating Montenegrin voivode in his 40s, traditional highland dress with concealed dagger, watchful conspiratorial eyes, shadowed Cetinje court chamber background*
+- **Peko Pavlović** (1833–1893) — voivode who organized covert support for the 1875 Herzegovina uprising
+  - *Portrait prompt: Oil painting of a rugged Montenegrin voivode-conspirator in his 40s, highland fighter's garb, determined clandestine expression, mountain border pass suggested behind him, hidden weapons cache implied*
+- **Novica Cerović** (1832–1918) — senator involved in covertly coordinating the Herzegovina uprising
+  - *Portrait prompt: Oil painting of a shrewd Montenegrin senator in his 40s, formal highland court dress, guarded diplomatic expression, secret correspondence with Herzegovinian rebels tucked beneath papers on his desk*
+
+---
+
+## Romania
+
+### Ruler
+- **Alexandru Ioan Cuza** (1820–1873) — first Domnitor of the United Principalities, reigned 1859–1866
+  - *Portrait prompt: Oil painting portrait of a determined Romanian ruler in his 40s, ornate princely military uniform with sash and decorations, reformist gaze, Bucharest palace background, 19th-century royal portrait style*
+- **Carol I of Romania** (1839–1914) — Domnitor from 1866, King of Romania from 1881
+  - *Portrait prompt: Oil painting portrait of a disciplined, Prussian-mannered Romanian king in his 40s, formal royal military uniform with sash and orders, composed authoritative expression, Bucharest royal palace background*
+- **Lascăr Catargiu** (1823–1899) — led the 1866 provisional government (locotenența domnească) between Cuza and Carol I
+  - *Portrait prompt: Oil painting portrait of a conservative Romanian boyar-statesman in his 40s, formal dark frock coat with orders, dignified aristocratic bearing, Bucharest ministerial chamber background*
+
+### General
+- **Gheorghe Manu** (1833–1911) — war minister and commander in the 1877 War of Independence
+  - *Portrait prompt: Oil painting of a disciplined Romanian general in his 40s, dark blue army uniform with campaign medals, Plevna siege map on the wall behind him, resolute wartime expression*
+- **Alexandru Cernat** (1834–1893) — chief of staff, hero of Grivița and the siege of Plevna
+  - *Portrait prompt: Oil painting of a battle-tested Romanian chief of staff in his 40s, formal officer's uniform with sabre, greying moustache, Grivița redoubt battle plan visible on his desk*
+- **Mihail Cerchez** (1839–1904) — general at the Siege of Plevna
+  - *Portrait prompt: Oil painting of a stern Romanian divisional general in his 40s, campaign uniform with decorations, weathered determined face, Plevna trench-line map behind him*
+
+### Baron
+- **Ion Ghica** (1816–1897) — multi-time prime minister and economic reformer
+  - *Portrait prompt: Oil painting of an elder Romanian statesman-economist in his 60s, formal frock coat, silver beard, economic reform papers and trade correspondence on his Bucharest desk*
+- **Petre S. Aurelian** (1833–1909) — economist and statistician, "father of Romanian economic sciences"
+  - *Portrait prompt: Oil painting of a scholarly Romanian economist in his 40s, plain academic coat, spectacles, agricultural statistics and economic charts spread across his desk, studious expression*
+- **Dionisie Pop Marțian** (1829–1865) — Romania's first professional statistician-economist
+  - *Portrait prompt: Oil painting of a meticulous young Romanian statistician in his 30s, formal dark coat, census ledgers and statistical tables stacked on his desk, careful analytical expression*
+
+### Secret Advisor
+- **Constantin A. Rosetti** (1816–1885) — radical journalist and influential behind-the-scenes politician
+  - *Portrait prompt: Oil painting of a fiery Romanian radical journalist in his 50s, plain dark coat, ink-stained fingers, newspaper proofs and revolutionary pamphlets on a cluttered Bucharest desk, intense conspiratorial gaze*
+- **Vasile Boerescu** (1830–1883) — jurist-diplomat involved in secret independence-recognition negotiations
+  - *Portrait prompt: Oil painting of a sharp Romanian jurist-diplomat in his 40s, formal legal robes over dark suit, diplomatic treaties and legal briefs on his desk, calculating attentive expression*
+- **Eugeniu Carada** (1836–1910) — discreet financial architect behind the founding of the National Bank of Romania
+  - *Portrait prompt: Oil painting of a reclusive Romanian financier in his 40s, plain dark suit, guarded enigmatic expression, National Bank founding charter and financial ledgers on a shadowed desk, single candle illumination*
+
+---
+
+## Greece
+
+### Ruler
+- **Otto of Greece** (1815–1867) — first King of Greece, reigned 1832–1862
+  - *Portrait prompt: Oil painting portrait of a young Bavarian-born Greek king in his 20s, ornate Hellenic royal uniform with fustanella-inspired ceremonial elements, formal dignified expression, Athens royal palace background*
+- **George I of Greece** (1845–1913) — King of Greece from 1863, ruler through the 1880s
+  - *Portrait prompt: Oil painting portrait of a genial, bearded Greek king in his 40s, formal royal military uniform with sash and orders, approachable confident bearing, Athens palace background, 19th-century royal portrait style*
+- **Dimitrios Voulgaris** (1802–1877) — led the provisional government after Otto's 1862 ouster, multiple-time prime minister
+  - *Portrait prompt: Oil painting portrait of an elder Greek statesman in his 60s, formal dark frock coat, silver whiskers, dignified authoritative bearing, Athens ministerial chamber background*
+
+### General
+- **Konstantinos Sapountzakis** (1822–1889) — army chief of staff who organized the 1881 annexation of Thessaly
+  - *Portrait prompt: Oil painting of a composed Greek general in his 50s, formal military uniform with campaign medals, Thessaly annexation map on the wall behind him, disciplined authoritative expression*
+- **Timoleon Vassos** (1836–1929) — career officer active through the 1880s, later led the 1897 Crete intervention
+  - *Portrait prompt: Oil painting of a determined Greek officer in his 40s, formal army uniform with sword, resolute nationalist expression, map of Crete and the Aegean on his desk*
+- **Panos Koronaios** (1836–1898) — general and politician active across the mid-to-late 19th century
+  - *Portrait prompt: Oil painting of a seasoned Greek general-politician in his 40s, formal military dress uniform, thoughtful commanding expression, Athens military headquarters background*
+
+### Baron
+- **Andreas Syngros** (1830–1899) — banker, "father of modern Greek banking," major financier
+  - *Portrait prompt: Oil painting of a wealthy Greek banker in his 40s, impeccably tailored suit, gold watch chain, bank ledgers and railway investment plans spread across his Athens office desk, confident prosperous bearing*
+- **Georgios Stavros** (1788–1869) — founder and first governor of the National Bank of Greece
+  - *Portrait prompt: Oil painting of a dignified elder Greek banker in his 60s, formal dark frock coat, silver hair, National Bank founding charter on his desk, composed authoritative expression*
+- **Stefanos Skouloudis** (1838–1928) — banker and later prime minister, prominent 1870s–80s financier
+  - *Portrait prompt: Oil painting of a shrewd Greek banker-statesman in his 40s, well-tailored formal suit, financial correspondence and diplomatic dispatches on his desk, calculating composed expression*
+
+### Secret Advisor
+- **Epameinondas Deligeorgis** (1829–1879) — multi-time prime minister known for political maneuvering
+  - *Portrait prompt: Oil painting of a cunning Greek politician in his 40s, formal dark coat, sharp calculating eyes, political correspondence and coalition papers on a candlelit desk, conspiratorial half-shadow*
+- **Alexandros Rangavis** (1809–1892) — diplomat-scholar who conducted discreet territorial-claims negotiations
+  - *Portrait prompt: Oil painting of a refined Greek diplomat-scholar in his 50s, formal ambassadorial coat, spectacles, territorial maps and diplomatic treaties on his desk, composed scholarly expression*
+- **Konstantinos Kanaris** (1793–1877) — naval hero and multi-time prime minister/minister associated with covert operations
+  - *Portrait prompt: Oil painting of a weathered Greek naval hero in his 60s, formal naval uniform with decorations, sea-worn determined face, fireship raid map of the Aegean behind him, legendary resolute bearing*
