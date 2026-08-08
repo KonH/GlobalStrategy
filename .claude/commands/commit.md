@@ -14,6 +14,8 @@ Steps:
 3. `Edit` the file to replace `  bundleVersion: X.YYY` with `X.{YYY+1}` (keep the two leading spaces, keep `X` unchanged, no padding on the new `YYY+1`)
 4. Run `git add ProjectSettings/ProjectSettings.asset` via Bash
 
+**Also bump the Web build profile.** `Assets/Settings/Build Profiles/Web - Desktop - Release.asset` embeds a full `m_PlayerSettingsYaml` snapshot of PlayerSettings, and its copy of `bundleVersion` wins for every profile-driven Web build. If that override is still present, `Edit` its `- line: '|   bundleVersion: X.YYY'` to the same new value and `git add` it too — otherwise published WebGL builds keep shipping the stale version regardless of the project-level bump.
+
 Always run this before committing so the version bump is included in the commit.
 
 ## Pre-commit step: build Release DLLs (if src/ changed)
