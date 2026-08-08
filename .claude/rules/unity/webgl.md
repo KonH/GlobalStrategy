@@ -5,17 +5,21 @@ paths:
 
 # Unity WebGL Build Gotchas
 
-## Saves need `autoSyncPersistentDataPath`
+## Saves need explicit IndexedDB sync
 
-`PersistentStorage` writes save JSON via `File.WriteAllText` under `Application.persistentDataPath`. On WebGL that path is Emscripten's MEMFS backed by IndexedDB — writes stay in memory until the loader syncs them.
+`PersistentStorage` writes save JSON via `File.WriteAllText` under `Application.persistentDataPath`. On WebGL that path is Emscripten's MEMFS backed by IndexedDB — writes don't persist across reload until flushed.
 
-Built-in Unity templates leave `autoSyncPersistentDataPath` unset, so a successful in-session save disappears after refresh. This project uses `Assets/WebGLTemplates/Minimal/index.html` (`PROJECT:Minimal`) with `autoSyncPersistentDataPath: true` so every write under `persistentDataPath` is flushed to IndexedDB.
+Two things keep this working; touching either one risks reintroducing "saves vanish after reload":
+- `Assets/WebGLTemplates/Minimal/index.html` (`PROJECT:Minimal`) sets `autoSyncPersistentDataPath: true`.
+- `PersistentStorage.Write`/`Delete` (`Assets/Scripts/Unity/Save/PersistentStorage.cs`) also call an explicit `FS.syncfs` flush via `Assets/Plugins/WebGL/PersistentStorageSync.jslib` right after every write/delete.
 
-If you switch templates or host the build behind a custom `createUnityInstance` page (e.g. Unity Play embed), keep that flag set (or call `JS_FileSystem_Sync()` after writes). IndexedDB is also per-origin and keyed by `companyName` + `productName` — changing either, or opening a different host/port, looks like "no saves."
+Sync start/success/failure log to the browser console as `[PersistentStorage] FS.syncfs ...` — check there first if a save still doesn't persist.
 
-`autoSyncPersistentDataPath` alone was not reliable enough in practice (saves still went missing after reload, notably on the Unity Play–hosted build). `PersistentStorage.Write`/`Delete` (`Assets/Scripts/Unity/Save/PersistentStorage.cs`) now also call an explicit `FS.syncfs` flush right after each write/delete via `Assets/Plugins/WebGL/PersistentStorageSync.jslib`, instead of relying solely on the auto path's internal timing. This also surfaces a failure as a `console.error` in the browser, which the auto path does silently. If saves are still missing after this, check the browser's DevTools console for that error first — a `FS.syncfs` error there points at IndexedDB itself being blocked or partitioned (e.g. third-party/iframe storage restrictions from the embedding host), which no amount of sync-timing fixes will solve; a `PlayerPrefs`-based storage backend would hit the same IndexedDB restriction on WebGL, since it uses the same browser storage under the hood.
+IndexedDB is per-origin and keyed by `companyName` + `productName` (Player Settings) — changing either, or opening a different host/port, looks like "no saves."
 
-`autoSyncPersistentDataPath` does not change the player payload download. A noticeably slower first load should be investigated separately from the IndexedDB sync. In particular, keep `webGLCompressionFormat` set to Brotli in both `ProjectSettings/ProjectSettings.asset` and the serialized PlayerSettings snapshot in `Assets/Settings/Build Profiles/Web - Desktop - Release.asset`. CI builds use that build profile, and an uncompressed profile makes the large `.data` and `.wasm` payloads substantially more expensive to download.
+## WebGL payload size
+
+Keep `webGLCompressionFormat` set to Brotli in both `ProjectSettings/ProjectSettings.asset` and the serialized PlayerSettings snapshot in `Assets/Settings/Build Profiles/Web - Desktop - Release.asset` (CI builds use that profile) — an uncompressed profile makes the `.data`/`.wasm` payloads substantially slower to download.
 
 ## StreamingAssets files are not TextAssets
 

@@ -12,9 +12,12 @@ mergeInto(LibraryManager.library, {
 			console.error("[PersistentStorage] FS.syncfs unavailable; cannot flush persistentDataPath to IndexedDB.");
 			return;
 		}
+		console.log("[PersistentStorage] FS.syncfs starting...");
 		FS.syncfs(false, function (err) {
 			if (err) {
 				console.error("[PersistentStorage] FS.syncfs failed to flush persistentDataPath to IndexedDB: " + err);
+			} else {
+				console.log("[PersistentStorage] FS.syncfs succeeded.");
 			}
 		});
 	}
