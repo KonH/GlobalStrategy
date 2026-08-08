@@ -7,11 +7,20 @@ this module must be invokable as a bare `python`/`python3` call with no third-pa
 dependencies, since the SessionEnd hook runs in whatever environment the editor
 process has, not a shell the user set up by hand.
 
+Cursor has no local session-log format this module scans (--scan only ever reads Claude
+transcripts and Codex rollouts) - Cursor rows only ever arrive via the direct --record
+form below, called by scripts/automation/cursor/handle_issues.py right after its `agent
+-p --output-format stream-json` run completes, from that CLI's own final `result` event
+(the same shape record_usage_row already expects from Claude's `-p --output-format json`).
+
 Usage:
   python scripts/stats/collect_usage.py --scan
   python scripts/stats/collect_usage.py --hook
   python scripts/stats/collect_usage.py --record --provider claude --stage implement \\
       --spec-dir <dir> --mode automated --session-id <id> --model <model> --effort <effort> \\
+      --start <iso> --end <iso> --input-tokens N --cached-input-tokens N --output-tokens N
+  python scripts/stats/collect_usage.py --record --provider cursor --stage implement \\
+      --spec-dir <dir> --mode automated --session-id <id> --model <model> \\
       --start <iso> --end <iso> --input-tokens N --cached-input-tokens N --output-tokens N
   python scripts/stats/collect_usage.py --record --provider codex --stage implement \\
       --spec-dir <dir> --mode automated --scan-latest-rollout-since <iso>
@@ -251,7 +260,7 @@ def main():
     parser.add_argument("--scan", action="store_true")
     parser.add_argument("--hook", action="store_true")
     parser.add_argument("--record", action="store_true")
-    parser.add_argument("--provider", choices=["claude", "codex"])
+    parser.add_argument("--provider", choices=["claude", "codex", "cursor"])
     parser.add_argument("--stage")
     parser.add_argument("--spec-dir")
     parser.add_argument("--mode", choices=["automated", "interactive"])
@@ -282,7 +291,7 @@ def main():
             )
         else:
             record_usage_row(
-                provider="claude", stage=args.stage, spec_dir=args.spec_dir, mode=args.mode,
+                provider=args.provider or "claude", stage=args.stage, spec_dir=args.spec_dir, mode=args.mode,
                 session_id=args.session_id, model=args.model, effort=args.effort, start=args.start, end=args.end,
                 input_tokens=args.input_tokens, cached_input_tokens=args.cached_input_tokens,
                 output_tokens=args.output_tokens, diff_lines=args.diff_lines, context=args.context,

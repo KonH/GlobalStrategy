@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using GS.Game.Configs;
 using GS.Main;
 using GS.Unity.Common;
 using UnityEngine;
@@ -16,6 +17,7 @@ namespace GS.Unity.UI {
 		SettingsWindowDocument _settingsWindow;
 		VisualState _state;
 		ILocalization _loc;
+		GameSettings _gameSettings;
 		UIDocument _doc;
 
 		Button _btnPlay;
@@ -27,13 +29,14 @@ namespace GS.Unity.UI {
 		Label _versionNumberLabel;
 
 		[Inject]
-		void Construct(SaveFileManager saveFileManager, SceneLoader sceneLoader, LoadWindowDocument loadWindow, SettingsWindowDocument settingsWindow, VisualState state, ILocalization loc) {
+		void Construct(SaveFileManager saveFileManager, SceneLoader sceneLoader, LoadWindowDocument loadWindow, SettingsWindowDocument settingsWindow, VisualState state, ILocalization loc, GameSettings gameSettings) {
 			_saveFileManager = saveFileManager;
 			_sceneLoader = sceneLoader;
 			_loadWindow = loadWindow;
 			_settingsWindow = settingsWindow;
 			_state = state;
 			_loc = loc;
+			_gameSettings = gameSettings;
 		}
 
 		void Awake() {
@@ -67,7 +70,7 @@ namespace GS.Unity.UI {
 			}
 			_versionNumberLabel = root.Q<Label>("version-label");
 			if (_versionNumberLabel != null) {
-				_versionNumberLabel.text = $"v{Application.version}";
+				_versionNumberLabel.text = $"v{_gameSettings.Version}";
 			}
 
 			_btnPlay.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnPlay.ContainsPoint(e.localPosition)) _sceneLoader.LoadSelectCountry(); });

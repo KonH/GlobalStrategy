@@ -15,7 +15,7 @@ namespace GS.Unity.UI {
 		readonly ResourceConfig _resourceConfig;
 		readonly TooltipSystem _tooltip;
 
-		public Action<string, VisualElement> OnCardClicked;
+		public Action<string, int, VisualElement> OnCardClicked;
 
 		public VisualElement DeckPileElement { get; private set; }
 		public VisualElement HandContainer => _handContainer;
@@ -109,7 +109,7 @@ namespace GS.Unity.UI {
 				if (e.button != 0 || !cardEl.ContainsPoint(e.localPosition)) { return; }
 				e.StopPropagation();
 				if (canAfford) {
-					OnCardClicked?.Invoke(capturedId, cardEl);
+					OnCardClicked?.Invoke(capturedId, card.SlotIndex, cardEl);
 				}
 			});
 

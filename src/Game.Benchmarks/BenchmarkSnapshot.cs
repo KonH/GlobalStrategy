@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Benchmarks {
 	public class BenchmarkEntry {
 		public string Name { get; set; } = "";

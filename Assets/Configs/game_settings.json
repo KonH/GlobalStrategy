@@ -1,4 +1,5 @@
 {
+  "version": "1.177",
   "startYear": 1880,
   "speedMultipliers": [1, 24, 720],
   "defaultLocale": "en",
@@ -20,6 +21,7 @@
   "peaceGoldPerMonth": 1000,
   "peaceWinnerControlIncreaseFraction": 0.5,
   "peaceLoserControlDecreaseFraction": 1.0,
+  "discardGoldCost": 50,
   "baseIncome": {
     "flatBase": 10.0,
     "populationWeight": 0.5,
@@ -74,6 +76,7 @@
   "featureFlags": {
     "showPlayerOrgControls": false,
     "enableSecretAdvisor": false,
+    "enableRuler": false,
     "enableFriendsRelation": false
   },
   "eventNotifications": {

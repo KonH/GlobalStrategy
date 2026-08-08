@@ -6,16 +6,13 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class WarWinChanceEstimatorTests {
-		static void SetResource(World world, string countryId, string resourceId, double value) {
-			int e = world.Create();
-			world.Add(e, new ResourceOwner(countryId, OwnerType.Country));
-			world.Add(e, new Resource {
-				ResourceId = resourceId,
-				Value = value
-			});
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
+		void SetResource(World world, string countryId, string resourceId, double value) {
+			_resources.Set(world, countryId, resourceId, value, OwnerType.Country);
 		}
 
-		static void SetCombatBundle(
+		void SetCombatBundle(
 			World world,
 			string countryId,
 			double recruits,
@@ -26,7 +23,7 @@ namespace GS.Game.Tests {
 			SetResource(world, countryId, ResourceDefinitions.Durability, durability);
 		}
 
-		static void AddRevengeBonus(World world, string countryId, double damagePercent, double durabilityPercent) {
+		void AddRevengeBonus(World world, string countryId, double damagePercent, double durabilityPercent) {
 			int e = world.Create();
 			world.Add(e, new RevengeWarBonus {
 				WarId = $"war_{countryId}",
@@ -42,7 +39,7 @@ namespace GS.Game.Tests {
 			SetCombatBundle(world, "A", recruits: 10, damage: 40, durability: 50);
 			SetCombatBundle(world, "B", recruits: 10, damage: 40, durability: 50);
 
-			Assert.Equal(50, WarWinChanceEstimator.EstimateAttackerWinPercent(world, "A", "B"));
+			Assert.Equal(50, WarWinChanceEstimator.EstimateAttackerWinPercent(world, _resources, "A", "B"));
 		}
 
 		[Fact]
@@ -51,7 +48,7 @@ namespace GS.Game.Tests {
 			SetCombatBundle(world, "A", recruits: 0, damage: 40, durability: 50);
 			SetCombatBundle(world, "B", recruits: 0, damage: 40, durability: 50);
 
-			Assert.Equal(1, WarWinChanceEstimator.EstimateAttackerWinPercent(world, "A", "B"));
+			Assert.Equal(1, WarWinChanceEstimator.EstimateAttackerWinPercent(world, _resources, "A", "B"));
 		}
 
 		[Fact]
@@ -60,7 +57,7 @@ namespace GS.Game.Tests {
 			SetCombatBundle(world, "A", recruits: 0, damage: 100, durability: 100);
 			SetCombatBundle(world, "B", recruits: 50, damage: 100, durability: 100);
 
-			Assert.Equal(1, WarWinChanceEstimator.EstimateAttackerWinPercent(world, "A", "B"));
+			Assert.Equal(1, WarWinChanceEstimator.EstimateAttackerWinPercent(world, _resources, "A", "B"));
 		}
 
 		[Fact]
@@ -69,7 +66,7 @@ namespace GS.Game.Tests {
 			SetCombatBundle(world, "A", recruits: 1000, damage: 200, durability: 100);
 			SetCombatBundle(world, "B", recruits: 1, damage: 10, durability: 10);
 
-			int percent = WarWinChanceEstimator.EstimateAttackerWinPercent(world, "A", "B");
+			int percent = WarWinChanceEstimator.EstimateAttackerWinPercent(world, _resources, "A", "B");
 
 			Assert.InRange(percent, 67, 99);
 			Assert.True(percent <= 99);
@@ -82,7 +79,7 @@ namespace GS.Game.Tests {
 			SetCombatBundle(world, "A", recruits: 1, damage: 10, durability: 10);
 			SetCombatBundle(world, "B", recruits: 1000, damage: 200, durability: 100);
 
-			int percent = WarWinChanceEstimator.EstimateAttackerWinPercent(world, "A", "B");
+			int percent = WarWinChanceEstimator.EstimateAttackerWinPercent(world, _resources, "A", "B");
 
 			Assert.InRange(percent, 1, 33);
 		}
@@ -93,11 +90,8 @@ namespace GS.Game.Tests {
 			SetCombatBundle(world, "A", recruits: 20, damage: 40, durability: 40);
 			SetCombatBundle(world, "B", recruits: 20, damage: 40, durability: 40);
 
-			int withoutPending = WarWinChanceEstimator.EstimateAttackerWinPercent(world, "A", "B");
-			int withPending = WarWinChanceEstimator.EstimateAttackerWinPercent(
-				world, "A", "B",
-				pendingAttackerDamageBonusPercent: 10,
-				pendingAttackerDurabilityBonusPercent: 5);
+			int withoutPending = WarWinChanceEstimator.EstimateAttackerWinPercent(world, _resources, "A", "B");
+			int withPending = WarWinChanceEstimator.EstimateAttackerWinPercent(world, _resources, "A", "B", pendingAttackerDamageBonusPercent: 10, pendingAttackerDurabilityBonusPercent: 5);
 
 			Assert.Equal(50, withoutPending);
 			Assert.True(withPending > withoutPending);
@@ -112,16 +106,13 @@ namespace GS.Game.Tests {
 			SetCombatBundle(world, "B", recruits: 20, damage: 40, durability: 40);
 			AddRevengeBonus(world, "A", damagePercent: 5.0, durabilityPercent: 2.5);
 
-			int withPending = WarWinChanceEstimator.EstimateAttackerWinPercent(
-				world, "A", "B",
-				pendingAttackerDamageBonusPercent: 10,
-				pendingAttackerDurabilityBonusPercent: 5);
+			int withPending = WarWinChanceEstimator.EstimateAttackerWinPercent(world, _resources, "A", "B", pendingAttackerDamageBonusPercent: 10, pendingAttackerDurabilityBonusPercent: 5);
 
 			// Same as stripping residual then applying pending 10%/5% on base 40/40.
 			var stripped = new World();
 			SetCombatBundle(stripped, "A", recruits: 20, damage: 44, durability: 42);
 			SetCombatBundle(stripped, "B", recruits: 20, damage: 40, durability: 40);
-			int expected = WarWinChanceEstimator.EstimateAttackerWinPercent(stripped, "A", "B");
+			int expected = WarWinChanceEstimator.EstimateAttackerWinPercent(stripped, _resources, "A", "B");
 
 			Assert.Equal(expected, withPending);
 
@@ -129,7 +120,7 @@ namespace GS.Game.Tests {
 			var stacked = new World();
 			SetCombatBundle(stacked, "A", recruits: 20, damage: 46.2, durability: 43.05);
 			SetCombatBundle(stacked, "B", recruits: 20, damage: 40, durability: 40);
-			int stackedPercent = WarWinChanceEstimator.EstimateAttackerWinPercent(stacked, "A", "B");
+			int stackedPercent = WarWinChanceEstimator.EstimateAttackerWinPercent(stacked, _resources, "A", "B");
 			Assert.NotEqual(stackedPercent, withPending);
 		}
 
@@ -137,7 +128,7 @@ namespace GS.Game.Tests {
 		void missing_resources_do_not_throw_and_follow_edge_rules() {
 			var world = new World();
 
-			Assert.Equal(1, WarWinChanceEstimator.EstimateAttackerWinPercent(world, "A", "B"));
+			Assert.Equal(1, WarWinChanceEstimator.EstimateAttackerWinPercent(world, _resources, "A", "B"));
 		}
 
 		[Fact]
@@ -146,7 +137,7 @@ namespace GS.Game.Tests {
 			SetCombatBundle(world, "A", recruits: 10, damage: 0, durability: 0);
 			SetCombatBundle(world, "B", recruits: 10, damage: 0, durability: 0);
 
-			Assert.Equal(50, WarWinChanceEstimator.EstimateAttackerWinPercent(world, "A", "B"));
+			Assert.Equal(50, WarWinChanceEstimator.EstimateAttackerWinPercent(world, _resources, "A", "B"));
 		}
 	}
 }

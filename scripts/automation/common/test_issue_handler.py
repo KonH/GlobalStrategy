@@ -15,10 +15,12 @@ from scripts.automation.cursor.handle_issues import (
     detect_session_limit as detect_cursor_session_limit,
 )
 from scripts.automation.common.issue_handler import (
-    AI_IN_PROGRESS, SALVAGE_COMMIT_MESSAGE, SALVAGE_GIT_IDENTITY, candidate_branch,
-    checkout_clean, claim_candidate, clear_in_progress, configured_contributors,
-    delete_comment, find_candidates, handle_limit_pause, limit_active, load_limit_retry_at,
-    reroute_auto_item_after_limit, salvage_uncommitted_work, save_limit_retry_at,
+    AI_IMPLEMENT, AI_IN_PROGRESS, AI_PLAN, AI_SPECIFY, SALVAGE_COMMIT_MESSAGE,
+    SALVAGE_GIT_IDENTITY, candidate_branch, checkout_clean, claim_candidate,
+    clear_in_progress, configured_contributors, delete_comment,
+    determine_usage_stage_and_spec_dir, find_candidates, handle_limit_pause, limit_active,
+    load_limit_retry_at, reroute_auto_item_after_limit, salvage_uncommitted_work,
+    save_limit_retry_at,
 )
 
 MARKER = "<!-- claude-automation -->"
@@ -840,7 +842,7 @@ class WrapperClearLifecycleTests(unittest.TestCase):
         candidate = {"number": 99, "kind": "issue", "title": "t", "body": "", "url": "u"}
         args = MagicMock(limit_backoff_minutes=60, provider_state_file=Path("/tmp/x"))
         with patch.object(cursor_mod, "checkout_clean"), \
-             patch.object(cursor_mod, "run_cursor", return_value=(1, [])), \
+             patch.object(cursor_mod, "run_cursor", return_value=(1, [], None)), \
              patch.object(cursor_mod, "detect_session_limit", return_value=(False, None)), \
              patch.object(cursor_mod, "clear_in_progress") as clear:
             try:
@@ -853,6 +855,96 @@ class WrapperClearLifecycleTests(unittest.TestCase):
             else:
                 self.fail("expected SystemExit")
         clear.assert_called_once_with(cursor_mod.logger, 99)
+
+
+class DetermineUsageStageAndSpecDirTests(unittest.TestCase):
+    """Codex/Cursor handle_issues.py's post-run usage-stats attribution: a spec_dir from
+    the run's file diff, a stage from whichever ai-specify/ai-plan/ai-implement label
+    survived on the item. See scripts/stats/26_07_22_17_spec-dev-stats for the row shape
+    this feeds (through record_usage_row_codex / record_usage_row(provider="cursor"))."""
+
+    def _repo_with_spec_dir(self, spec_name="26_01_01_00_example"):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        (root / "Docs" / "Specs" / spec_name).mkdir(parents=True)
+        return root, spec_name
+
+    def test_diff_touching_no_spec_dir_returns_none_none(self):
+        root, _ = self._repo_with_spec_dir()
+        with patch("scripts.automation.common.issue_handler.run_git",
+                    side_effect=["base-sha", "src/Foo.cs\nREADME.md"]):
+            spec_dir, stage = determine_usage_stage_and_spec_dir(
+                MagicMock(), 42, "feature/foo", root)
+        self.assertIsNone(spec_dir)
+        self.assertIsNone(stage)
+
+    def test_attributes_spec_dir_from_diff_and_stage_from_live_label(self):
+        root, spec_name = self._repo_with_spec_dir()
+        with patch("scripts.automation.common.issue_handler.run_git",
+                    side_effect=["base-sha", f"Docs/Specs/{spec_name}/plan.md\nsrc/Foo.cs"]), \
+             patch("scripts.automation.common.issue_handler.get_item_label_names",
+                   return_value={AI_PLAN}):
+            spec_dir, stage = determine_usage_stage_and_spec_dir(
+                MagicMock(), 42, "feature/foo", root)
+        self.assertEqual(spec_name, spec_dir)
+        self.assertEqual("plan", stage)
+
+    def test_ai_specify_label_maps_to_spec_stage(self):
+        root, spec_name = self._repo_with_spec_dir()
+        with patch("scripts.automation.common.issue_handler.run_git",
+                    side_effect=["base-sha", f"Docs/Specs/{spec_name}/spec.md"]), \
+             patch("scripts.automation.common.issue_handler.get_item_label_names",
+                   return_value={AI_SPECIFY}):
+            spec_dir, stage = determine_usage_stage_and_spec_dir(
+                MagicMock(), 42, "feature/foo", root)
+        self.assertEqual(spec_name, spec_dir)
+        self.assertEqual("spec", stage)
+
+    def test_ai_implement_label_maps_to_implement_stage(self):
+        root, spec_name = self._repo_with_spec_dir()
+        with patch("scripts.automation.common.issue_handler.run_git",
+                    side_effect=["base-sha", f"Docs/Specs/{spec_name}/spec.md"]), \
+             patch("scripts.automation.common.issue_handler.get_item_label_names",
+                   return_value={AI_IMPLEMENT}):
+            spec_dir, stage = determine_usage_stage_and_spec_dir(
+                MagicMock(), 42, "feature/foo", root)
+        self.assertEqual("implement", stage)
+
+    def test_no_surviving_stage_label_defaults_to_implement(self):
+        root, spec_name = self._repo_with_spec_dir()
+        with patch("scripts.automation.common.issue_handler.run_git",
+                    side_effect=["base-sha", f"Docs/Specs/{spec_name}/spec.md"]), \
+             patch("scripts.automation.common.issue_handler.get_item_label_names",
+                   return_value=set()):
+            spec_dir, stage = determine_usage_stage_and_spec_dir(
+                MagicMock(), 42, "feature/foo", root)
+        self.assertEqual(spec_name, spec_dir)
+        self.assertEqual("implement", stage)
+
+    def test_git_failure_returns_none_none_without_raising(self):
+        root, _ = self._repo_with_spec_dir()
+        logger = MagicMock()
+        with patch("scripts.automation.common.issue_handler.run_git",
+                    side_effect=RuntimeError("git merge-base failed")):
+            spec_dir, stage = determine_usage_stage_and_spec_dir(
+                logger, 42, "feature/foo", root)
+        self.assertIsNone(spec_dir)
+        self.assertIsNone(stage)
+        logger.warning.assert_called()
+
+    def test_label_read_failure_still_attributes_spec_dir_with_implement_default(self):
+        root, spec_name = self._repo_with_spec_dir()
+        logger = MagicMock()
+        with patch("scripts.automation.common.issue_handler.run_git",
+                    side_effect=["base-sha", f"Docs/Specs/{spec_name}/spec.md"]), \
+             patch("scripts.automation.common.issue_handler.get_item_label_names",
+                   side_effect=RuntimeError("gh api failed")):
+            spec_dir, stage = determine_usage_stage_and_spec_dir(
+                logger, 42, "feature/foo", root)
+        self.assertEqual(spec_name, spec_dir)
+        self.assertEqual("implement", stage)
+        logger.warning.assert_called()
 
 
 if __name__ == "__main__":

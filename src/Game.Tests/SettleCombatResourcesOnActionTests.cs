@@ -110,6 +110,7 @@ namespace GS.Game.Tests {
 			int e = world.Create();
 			world.Add(e, new GameAction { ActionId = ActionId });
 			world.Add(e, new OrgContext { OrgId = OrgId });
+			world.Add(e, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(e, new CountryContext { CountryId = CountryId });
 			world.Add(e, new CardInHand { SlotIndex = 0 });
 			return e;
@@ -121,42 +122,40 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 			AddCardInHand(logic.World);
 
-			double damageBefore = ResourceQuery.GetValue(logic.World, CountryId, ResourceDefinitions.Damage);
+			double damageBefore = logic.Resources.GetValue(logic.World, CountryId, ResourceDefinitions.Damage);
 			Assert.Equal(BaseDamage, damageBefore);
 
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryId, ActionId = ActionId });
 			logic.Update(0f);
 
-			Assert.Equal(10.0, ResourceQuery.GetValue(logic.World, CountryId, ResourceDefinitions.TroopsDamageBonusPercent));
-			Assert.Equal(BaseDamage * 1.1, ResourceQuery.GetValue(logic.World, CountryId, ResourceDefinitions.Damage), 6);
+			Assert.Equal(10.0, logic.Resources.GetValue(logic.World, CountryId, ResourceDefinitions.TroopsDamageBonusPercent));
+			Assert.Equal(BaseDamage * 1.1, logic.Resources.GetValue(logic.World, CountryId, ResourceDefinitions.Damage), 6);
 		}
 
 		[Fact]
 		void peacetime_damage_bonus_raises_win_percent_from_live_damage_same_tick() {
 			var logic = BuildLogic();
 			logic.Update(0f);
-			EnsureRecruits(logic.World, CountryId, 20);
-			EnsureRecruits(logic.World, OpponentId, 20);
+			EnsureRecruits(logic, CountryId, 20);
+			EnsureRecruits(logic, OpponentId, 20);
 			AddCardInHand(logic.World);
 
 			int winPercentBefore = WarWinChanceEstimator.EstimateAttackerWinPercent(
-				logic.World, CountryId, OpponentId);
+				logic.World, logic.Resources, CountryId, OpponentId, 0, 0);
 			Assert.Equal(50, winPercentBefore);
 
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryId, ActionId = ActionId });
 			logic.Update(0f);
 
-			Assert.Equal(BaseDamage * 1.1, ResourceQuery.GetValue(logic.World, CountryId, ResourceDefinitions.Damage), 6);
+			Assert.Equal(BaseDamage * 1.1, logic.Resources.GetValue(logic.World, CountryId, ResourceDefinitions.Damage), 6);
 			int winPercentAfter = WarWinChanceEstimator.EstimateAttackerWinPercent(
-				logic.World, CountryId, OpponentId);
+				logic.World, logic.Resources, CountryId, OpponentId, 0, 0);
 			Assert.True(winPercentAfter > winPercentBefore);
 		}
 
-		static void EnsureRecruits(World world, string countryId, double value) {
-			if (!ResourceMutations.TrySetValue(world, countryId, ResourceDefinitions.Recruits, value, out _)) {
-				int entity = world.Create();
-				world.Add(entity, new ResourceOwner(countryId, OwnerType.Country));
-				world.Add(entity, new Resource { ResourceId = ResourceDefinitions.Recruits, Value = value });
+		static void EnsureRecruits(GameLogic logic, string countryId, double value) {
+			if (!ResourceMutations.TrySetValue(logic.Resources, logic.World, countryId, ResourceDefinitions.Recruits, value, out _)) {
+				logic.Resources.Set(logic.World, countryId, ResourceDefinitions.Recruits, value, OwnerType.Country);
 			}
 		}
 
@@ -169,12 +168,12 @@ namespace GS.Game.Tests {
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryId, ActionId = ActionId });
 			logic.Update(0f);
 
-			Assert.Equal(10.0, ResourceQuery.GetValue(logic.World, CountryId, ResourceDefinitions.TroopsDamageBonusPercent));
+			Assert.Equal(10.0, logic.Resources.GetValue(logic.World, CountryId, ResourceDefinitions.TroopsDamageBonusPercent));
 			Assert.False(Wars.IsInWar(logic.World, CountryId));
 
-			Assert.True(Wars.DeclareWar(logic.World, CountryId, OpponentId, new DateTime(1880, 1, 1)));
+			Assert.True(Wars.DeclareWar(logic.World, logic.Resources, CountryId, OpponentId, new DateTime(1880, 1, 1)));
 			Assert.True(Wars.IsInWar(logic.World, CountryId));
-			Assert.Equal(10.0, ResourceQuery.GetValue(logic.World, CountryId, ResourceDefinitions.TroopsDamageBonusPercent));
+			Assert.Equal(10.0, logic.Resources.GetValue(logic.World, CountryId, ResourceDefinitions.TroopsDamageBonusPercent));
 		}
 	}
 }

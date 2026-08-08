@@ -9,6 +9,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class WarPeaceMonthTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static readonly DateTime Jan1 = new DateTime(1880, 1, 1, 0, 0, 0);
 		static readonly DateTime Jan1Noon = new DateTime(1880, 1, 1, 12, 0, 0);
 		static readonly DateTime Jan2 = new DateTime(1880, 1, 2, 0, 0, 0);
@@ -67,7 +69,7 @@ namespace GS.Game.Tests {
 			var settings = DefaultSettings();
 
 			// Progress 100 → 100% chance; any NextDouble() succeeds
-			Wars.TryResolvePeaceByChance(world, Jan1, Jan2, new Random(1), settings, EmptyTopology(), EmptyCenters(), 100);
+			Wars.TryResolvePeaceByChance(world, _resources, Jan1, Jan2, new Random(1), settings, EmptyTopology(), EmptyCenters(), 100);
 
 			Assert.Equal(0, CountWars(world));
 			Assert.False(world.IsAlive(warEntity));
@@ -80,12 +82,12 @@ namespace GS.Game.Tests {
 
 			var settings = DefaultSettings();
 			var rng = new Random(0);
-			Wars.TryResolvePeaceByChance(world, Jan31, Feb1, rng, settings, EmptyTopology(), EmptyCenters(), 100);
-			WarSystem.Update(world, Jan31, Feb1, settings.AttackerWarProgressDecayPerMonth);
+			Wars.TryResolvePeaceByChance(world, _resources, Jan31, Feb1, rng, settings, EmptyTopology(), EmptyCenters(), 100);
+			WarSystem.Update(world, Jan31, Feb1, settings.AttackerWarProgressDecayPerMonth, _resources);
 
 			Assert.Equal(1, CountWars(world));
 			Assert.True(world.IsAlive(warEntity));
-			Assert.Equal(80 - 2.5, ResourceQuery.GetValue(world, "war_1", ResourceDefinitions.WarProgress));
+			Assert.Equal(80 - 2.5, _resources.GetValue(world, "war_1", ResourceDefinitions.WarProgress));
 		}
 
 		[Fact]
@@ -94,11 +96,11 @@ namespace GS.Game.Tests {
 			int warEntity = SeedWar(world, "war_1", "A", "B", 100, Jan1);
 			var settings = DefaultSettings();
 
-			Wars.TryResolvePeaceByChance(world, Jan1, Jan1Noon, new Random(1), settings, EmptyTopology(), EmptyCenters(), 100);
-			WarSystem.Update(world, Jan1, Jan1Noon, settings.AttackerWarProgressDecayPerMonth);
+			Wars.TryResolvePeaceByChance(world, _resources, Jan1, Jan1Noon, new Random(1), settings, EmptyTopology(), EmptyCenters(), 100);
+			WarSystem.Update(world, Jan1, Jan1Noon, settings.AttackerWarProgressDecayPerMonth, _resources);
 
 			Assert.Equal(1, CountWars(world));
-			Assert.Equal(100, ResourceQuery.GetValue(world, "war_1", ResourceDefinitions.WarProgress));
+			Assert.Equal(100, _resources.GetValue(world, "war_1", ResourceDefinitions.WarProgress));
 		}
 
 		[Fact]
@@ -107,11 +109,11 @@ namespace GS.Game.Tests {
 			int warEntity = SeedWar(world, "war_1", "A", "B", 0, Jan1);
 			var settings = DefaultSettings();
 
-			Wars.TryResolvePeaceByChance(world, Jan31, Feb1, new Random(1), settings, EmptyTopology(), EmptyCenters(), 100);
-			WarSystem.Update(world, Jan31, Feb1, settings.AttackerWarProgressDecayPerMonth);
+			Wars.TryResolvePeaceByChance(world, _resources, Jan31, Feb1, new Random(1), settings, EmptyTopology(), EmptyCenters(), 100);
+			WarSystem.Update(world, Jan31, Feb1, settings.AttackerWarProgressDecayPerMonth, _resources);
 
 			Assert.Equal(1, CountWars(world));
-			Assert.Equal(-2.5, ResourceQuery.GetValue(world, "war_1", ResourceDefinitions.WarProgress));
+			Assert.Equal(-2.5, _resources.GetValue(world, "war_1", ResourceDefinitions.WarProgress));
 		}
 	}
 }

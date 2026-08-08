@@ -2,6 +2,9 @@ using System.Collections.Generic;
 
 namespace GS.Game.Configs {
 	public class GameSettings {
+		// Displayed version, owned here rather than by PlayerSettings.bundleVersion: the Web build
+		// profile embeds its own PlayerSettings snapshot, so Application.version could ship stale.
+		public string Version { get; set; } = "0.0.0";
 		public int StartYear { get; set; } = 1880;
 		public int[] SpeedMultipliers { get; set; } = { 1, 24, 720 };
 		public string DefaultLocale { get; set; } = "en";
@@ -25,6 +28,7 @@ namespace GS.Game.Configs {
 		public double PeaceGoldPerMonth { get; set; } = 1000;
 		public double PeaceWinnerControlIncreaseFraction { get; set; } = 0.5;
 		public double PeaceLoserControlDecreaseFraction { get; set; } = 1.0;
+		public double DiscardGoldCost { get; set; } = 50;
 		public BaseIncomeSettings BaseIncome { get; set; } = new BaseIncomeSettings();
 		public WarBattleSettings WarBattles { get; set; } = new WarBattleSettings();
 		public string[] ResourceIdUpdateOrder { get; set; } = {

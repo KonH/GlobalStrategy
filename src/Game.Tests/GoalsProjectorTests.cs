@@ -5,8 +5,12 @@ using GS.Game.Configs;
 using GS.Main;
 using Xunit;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Tests {
 	public class GoalsProjectorTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		const string OrgA = "org-a";
 		const string OrgB = "org-b";
 
@@ -74,7 +78,7 @@ namespace GS.Game.Tests {
 				Leaf("total_control", 0.8),
 				Leaf("full_control_countries", 1),
 				Leaf("score_goal", 2000)));
-			List<GoalsOrgEntryState> orgs = GoalsProjector.Build(world, leaves, 100);
+			List<GoalsOrgEntryState> orgs = GoalsProjector.Build(world, leaves, 100, _resources);
 
 			Assert.Equal(2, orgs.Count);
 			GoalsOrgEntryState orgA = orgs.Find(o => o.OrgId == OrgA)!;
@@ -104,7 +108,7 @@ namespace GS.Game.Tests {
 			SeedOrganization(world, OrgB, 2);
 			var leaves = GoalsProjector.FlattenLeaves(Leaf("score_goal", 10));
 
-			List<GoalsOrgEntryState> orgs = GoalsProjector.Build(world, leaves, 100);
+			List<GoalsOrgEntryState> orgs = GoalsProjector.Build(world, leaves, 100, _resources);
 
 			Assert.Equal(2, orgs.Count);
 			Assert.Contains(orgs, o => o.OrgId == OrgA);
@@ -141,7 +145,7 @@ namespace GS.Game.Tests {
 				Leaf("total_control", 0.8),
 				Leaf("score_goal", 2000)));
 
-			GoalsOrgEntryState org = GoalsProjector.Build(world, leaves, 100)[0];
+			GoalsOrgEntryState org = GoalsProjector.Build(world, leaves, 100, _resources)[0];
 			Assert.True(org.Goals[0].Current / org.Goals[0].Target < 1.0);
 			Assert.True(org.Goals[1].Current / org.Goals[1].Target > 1.0);
 		}
@@ -154,7 +158,7 @@ namespace GS.Game.Tests {
 			AddControl(world, OrgA, "a", 50);
 			var config = Any(Leaf("total_control", 0.5), Leaf("score_goal", 100));
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, completionCondition: config, maxControlPool: 100);
+			var converter = new VisualStateConverter(state, _resources, _relations, completionCondition: config, maxControlPool: 100);
 
 			converter.UpdateGoals(world);
 

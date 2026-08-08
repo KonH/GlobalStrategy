@@ -8,6 +8,8 @@ using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Main;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Benchmarks {
 	[MemoryDiagnoser]
 	public class VisualStateConverterBenchmarks {
@@ -36,6 +38,8 @@ namespace GS.Game.Benchmarks {
 			_orgEntity = BenchmarkEntityLookup.FindEntityWith<Organization>(_world);
 			_converter = new VisualStateConverter(
 				logic.VisualState,
+				logic.Resources,
+				logic.Relations,
 				logic.ActionConfig,
 				hqCountryByOrgId,
 				countryConfig: logic.CountryConfig);

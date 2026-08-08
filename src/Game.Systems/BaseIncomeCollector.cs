@@ -11,8 +11,8 @@ namespace GS.Game.Systems {
 			_settings = settings;
 		}
 
-		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) {
-			return BaseIncomeFormula.Compute(world, ownerId, _settings).Total;
+		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world, ResourceQuery resources) {
+			return BaseIncomeFormula.Compute(world, ownerId, _settings, resources).Total;
 		}
 	}
 }

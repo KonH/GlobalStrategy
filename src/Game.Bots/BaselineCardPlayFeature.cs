@@ -27,9 +27,9 @@ namespace GS.Game.Bots {
 		bool TryPlay(IBotObservation obs, IBotCommandSink sink, BotCardView card) {
 			if (!card.IsPlayable || obs.Gold - card.GoldCost < _minGoldReserve) { return false; }
 			if (card.CountryId == "") {
-				sink.PlayOrgCard(card.ActionId);
+				sink.PlayOrgCard(card.ActionId, card.SlotIndex);
 			} else {
-				sink.PlayCountryCard(card.ActionId, card.CountryId);
+				sink.PlayCountryCard(card.ActionId, card.CountryId, card.SlotIndex, card.TargetCountryId);
 			}
 			return true;
 		}

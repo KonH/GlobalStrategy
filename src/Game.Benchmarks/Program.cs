@@ -7,6 +7,8 @@ using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Benchmarks {
 	static class Program {
 		static int Main(string[] args) {

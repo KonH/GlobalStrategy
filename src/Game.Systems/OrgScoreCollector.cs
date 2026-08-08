@@ -7,7 +7,7 @@ namespace GS.Game.Systems {
 	public sealed class OrgScoreCollector : IResourceCollector {
 		public const string Id = "org_score_formula";
 
-		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) {
+		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world, ResourceQuery resources) {
 			var controlByCountryId = new Dictionary<string, int>();
 			int[] required = { TypeId<ControlEffect>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
@@ -24,7 +24,7 @@ namespace GS.Game.Systems {
 
 			double total = 0;
 			foreach (var (countryId, control) in controlByCountryId) {
-				double countryScore = ResourceQuery.GetValue(world, countryId, ResourceDefinitions.CountryScore);
+				double countryScore = resources.GetValue(world, countryId, ResourceDefinitions.CountryScore);
 				total += (control / 100.0) * countryScore;
 			}
 			return total - currentValue;
