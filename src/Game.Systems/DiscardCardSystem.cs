@@ -10,7 +10,8 @@ namespace GS.Game.Systems {
 		Succeeded,
 		InvalidCommand,
 		CardNotFound,
-		InsufficientGold
+		InsufficientGold,
+		OfferAlreadyPending
 	}
 
 	public readonly struct DiscardCardResult {
@@ -37,18 +38,36 @@ namespace GS.Game.Systems {
 			}
 
 			var results = new List<DiscardCardResult>(commands.Count);
+			var successfulOrganizations = new HashSet<string>(StringComparer.Ordinal);
 			foreach (DiscardCardCommand command in commands.AsSpan()) {
-				results.Add(new DiscardCardResult(command, Process(world, command, goldCost, resources)));
+				DiscardCardOutcome outcome = Process(
+					world,
+					command,
+					goldCost,
+					resources,
+					successfulOrganizations.Contains(command.OrgId));
+				results.Add(new DiscardCardResult(command, outcome));
+				if (outcome == DiscardCardOutcome.Succeeded) {
+					successfulOrganizations.Add(command.OrgId);
+				}
 			}
 			return results;
 		}
 
-		static DiscardCardOutcome Process(World world, DiscardCardCommand command, double goldCost, ResourceQuery resources) {
+		static DiscardCardOutcome Process(
+			World world,
+			DiscardCardCommand command,
+			double goldCost,
+			ResourceQuery resources,
+			bool organizationAlreadyDiscarded) {
 			if (string.IsNullOrEmpty(command.OrgId)
 				|| string.IsNullOrEmpty(command.CountryId)
 				|| string.IsNullOrEmpty(command.ActionId)
 				|| command.SlotIndex < 0) {
 				return DiscardCardOutcome.InvalidCommand;
+			}
+			if (organizationAlreadyDiscarded || CountryCardDrawQuery.HasAnyOfferMarkers(world, command.OrgId)) {
+				return DiscardCardOutcome.OfferAlreadyPending;
 			}
 
 			int cardEntity = FindCard(world, command);

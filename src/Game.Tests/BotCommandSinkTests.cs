@@ -10,6 +10,11 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class BotCommandSinkTests {
+		sealed class CapturingCommandAccessor : IWriteOnlyCommandAccessor {
+			public List<ICommand> Commands = new();
+			public void Push<TCommand>(TCommand cmd) where TCommand : ICommand => Commands.Add(cmd);
+		}
+
 		sealed class CapturingLogger : IGameLogger {
 			public List<string> Infos = new();
 			public void LogError(string message) { }
@@ -126,53 +131,109 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void distinct_plays_in_same_phase_are_all_emitted() {
-			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
-			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 23, includeCountryCard: true);
-			var logic = new GameLogic(ctx);
-			logic.Update(0f);
-			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, logic.Commands, null);
+			var commands = new CapturingCommandAccessor();
+			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, commands, null);
 
-			double goldBefore = OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA);
-			int controlBefore = OrgMetrics.GetTotalControl(logic.World, MultiOrgTestSupport.OrgA);
 			sink.BeginDecisionPhase();
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId,
-				GetSlot(logic, MultiOrgTestSupport.OrgA, CardOwnerKind.Org, MultiOrgTestSupport.SpendGoldActionId));
-			sink.PlayCountryCard(MultiOrgTestSupport.CountryCardActionId, MultiOrgTestSupport.HqA,
-				GetSlot(logic, MultiOrgTestSupport.OrgA, CardOwnerKind.Country, MultiOrgTestSupport.CountryCardActionId), "");
-			logic.Update(0f);
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId, 0);
+			sink.PlayCountryCard(MultiOrgTestSupport.CountryCardActionId, MultiOrgTestSupport.HqA, 1, "");
 
-			Assert.Equal(goldBefore - 50.0 - MultiOrgTestSupport.CountryCardGoldCost, OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA));
-			Assert.True(OrgMetrics.GetTotalControl(logic.World, MultiOrgTestSupport.OrgA) > controlBefore);
+			Assert.Equal(2, commands.Commands.OfType<PlayCardActionCommand>().Count());
 		}
 
 		[Fact]
 		void begin_decision_phase_resets_duplicate_guard() {
-			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
-			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 24);
-			var logic = new GameLogic(ctx);
-			logic.Update(0f);
-			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, logic.Commands, null);
-
-			double goldStart = OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA);
+			var commands = new CapturingCommandAccessor();
+			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, commands, null);
 
 			sink.BeginDecisionPhase();
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId,
-				GetSlot(logic, MultiOrgTestSupport.OrgA, CardOwnerKind.Org, MultiOrgTestSupport.SpendGoldActionId));
-			logic.Update(0f);
-			Assert.Equal(goldStart - 50.0, OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA));
-
-			logic.Update(0f);
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId, 0);
 			sink.BeginDecisionPhase();
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId,
-				GetSlot(logic, MultiOrgTestSupport.OrgA, CardOwnerKind.Org, MultiOrgTestSupport.SpendGoldActionId));
-			logic.Update(0f);
-			Assert.Equal(goldStart - 100.0, OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA));
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId, 0);
+
+			Assert.Equal(2, commands.Commands.OfType<PlayCardActionCommand>().Count());
+		}
+
+		[Fact]
+		void acquisition_commands_are_org_stamped_and_do_not_emit_play_callbacks() {
+			var commands = new CapturingCommandAccessor();
+			var emissions = new List<(string ActionId, string CountryId)>();
+			var sink = new BotCommandSink(
+				MultiOrgTestSupport.OrgA,
+				commands,
+				null,
+				(actionId, countryId) => emissions.Add((actionId, countryId)));
+
+			sink.BeginDecisionPhase();
+			sink.DrawCountryCards();
+			sink.ReceiveCountryCard(2);
+
+			Assert.Collection(
+				commands.Commands,
+				command => Assert.Equal(MultiOrgTestSupport.OrgA, Assert.IsType<DrawCardsCommand>(command).OrgId),
+				command => {
+					var receive = Assert.IsType<ReceiveCardCommand>(command);
+					Assert.Equal(MultiOrgTestSupport.OrgA, receive.OrgId);
+					Assert.Equal(2, receive.ChoiceIndex);
+				});
+			Assert.Empty(emissions);
+		}
+
+		[Fact]
+		void duplicate_acquisition_commands_in_same_phase_are_ignored_and_logged() {
+			var commands = new CapturingCommandAccessor();
+			var logger = new CapturingLogger();
+			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, commands, logger);
+
+			sink.BeginDecisionPhase();
+			sink.DrawCountryCards();
+			sink.DrawCountryCards();
+			sink.ReceiveCountryCard(1);
+			sink.ReceiveCountryCard(1);
+
+			Assert.Equal(2, commands.Commands.Count);
+			Assert.Single(commands.Commands.OfType<DrawCardsCommand>());
+			Assert.Single(commands.Commands.OfType<ReceiveCardCommand>());
+			Assert.Equal(2, logger.Infos.Count(m => m.Contains("duplicate")));
+		}
+
+		[Fact]
+		void distinct_receive_choices_in_same_phase_are_not_duplicates() {
+			var commands = new CapturingCommandAccessor();
+			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, commands, null);
+
+			sink.BeginDecisionPhase();
+			sink.ReceiveCountryCard(0);
+			sink.ReceiveCountryCard(1);
+
+			Assert.Equal(new[] { 0, 1 }, commands.Commands.OfType<ReceiveCardCommand>().Select(command => command.ChoiceIndex));
+		}
+
+		[Fact]
+		void begin_decision_phase_resets_acquisition_duplicate_guards() {
+			var commands = new CapturingCommandAccessor();
+			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, commands, null);
+
+			sink.BeginDecisionPhase();
+			sink.DrawCountryCards();
+			sink.ReceiveCountryCard(0);
+			sink.BeginDecisionPhase();
+			sink.DrawCountryCards();
+			sink.ReceiveCountryCard(0);
+
+			Assert.Equal(2, commands.Commands.OfType<DrawCardsCommand>().Count());
+			Assert.Equal(2, commands.Commands.OfType<ReceiveCardCommand>().Count());
 		}
 
 		[Fact]
 		void sink_interface_exposes_only_whitelisted_members() {
 			var methods = typeof(IBotCommandSink).GetMethods();
-			Assert.Equal(2, methods.Length);
+			Assert.Equal(4, methods.Length);
+			Assert.Contains(methods, m =>
+				m.Name == "DrawCountryCards" && !m.IsGenericMethod && m.GetParameters().Length == 0);
+			Assert.Contains(methods, m =>
+				m.Name == "ReceiveCountryCard" && !m.IsGenericMethod &&
+				m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType == typeof(int));
 			Assert.Contains(methods, m =>
 				m.Name == "PlayOrgCard" && !m.IsGenericMethod &&
 				m.GetParameters().Length == 2

@@ -106,8 +106,7 @@ namespace GS.Game.Tests {
 			Assert.True(CardUsedThisTurn(world, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.SpendGoldActionId));
 			Assert.True(CardUsedThisTurn(world, MultiOrgTestSupport.OrgB, MultiOrgTestSupport.SpendGoldActionId));
 
-			// With one entity per action, the just-played card remains excluded for the rest of
-			// this tick and is eligible for the pending replacement draw on the following tick.
+			// Org-card behavior remains unchanged: each organization refills independently.
 			logic.Update(0f);
 			Assert.Equal(handABefore, CountHandCards(world, MultiOrgTestSupport.OrgA));
 			Assert.Equal(handBBefore, CountHandCards(world, MultiOrgTestSupport.OrgB));

@@ -665,7 +665,6 @@ namespace GS.Main {
 				world.Add(countryDeckEntity, new CardDeck { OrgId = orgId });
 				world.Add(countryDeckEntity, new CardOwnerType(CardOwnerKind.Country));
 				world.Add(countryDeckEntity, new CardHand { HandSize = handSize });
-				if (handSize > 0) { world.Add(countryDeckEntity, new CardDraw { Count = handSize }); }
 
 				foreach (var def in countryActions) {
 					if (def.DeckCopies <= 0
