@@ -16,6 +16,8 @@ namespace GS.Game.Tests {
 	// GameLogic.Update: war declaration, RevengeWarBonus attachment, and same-tick
 	// SettleCombatResources() visibility of the damage/durability multiplier.
 	public class RevengeCardGameLogicTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
@@ -51,7 +53,7 @@ namespace GS.Game.Tests {
 			},
 			Actions = new List<ActionDefinition> {
 				new ActionDefinition {
-					ActionId = "revenge",
+					ActionId = "declare_revenge_war",
 					OwnerType = "country",
 					TargetRole = "military_advisor",
 					DeckCopies = 1,
@@ -79,7 +81,7 @@ namespace GS.Game.Tests {
 						}
 					},
 					Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } },
-					EffectIds = new List<string> { "revenge_declare_war_effect" }
+					EffectIds = new List<string> { "declare_revenge_war_effect" }
 				}
 			}
 		};
@@ -87,7 +89,7 @@ namespace GS.Game.Tests {
 		static EffectConfig BuildEffectConfig() => new EffectConfig {
 			Effects = new List<ActionEffectDefinition> {
 				new DeclareRevengeWarEffectParams {
-					EffectId = "revenge_declare_war_effect",
+					EffectId = "declare_revenge_war_effect",
 					EffectType = "DeclareRevengeWar",
 					DamageBonusPercent = 10.0,
 					DurabilityBonusPercent = 5.0
@@ -156,7 +158,7 @@ namespace GS.Game.Tests {
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				CountryContext[] countries = arch.GetColumn<CountryContext>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (actions[i].ActionId == "revenge" && orgs[i].OrgId == orgId && countries[i].CountryId == countryId
+					if (actions[i].ActionId == "declare_revenge_war" && orgs[i].OrgId == orgId && countries[i].CountryId == countryId
 						&& world.Has<RevengeCardTarget>(arch.Entities[i])
 						&& world.Get<RevengeCardTarget>(arch.Entities[i]).TargetCountryId == targetCountryId) {
 						int entity = arch.Entities[i];
@@ -192,7 +194,7 @@ namespace GS.Game.Tests {
 			AddOpinion(logic.World, MilitaryAdvisorCharId, OrgId, 25);
 			PutRevengeCardInHand(logic.World, OrgId, HqCountryId, TargetCountryId);
 
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = HqCountryId, ActionId = "revenge", TargetCountryId = TargetCountryId });
+			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = HqCountryId, ActionId = "declare_revenge_war", TargetCountryId = TargetCountryId });
 			logic.Update(0f);
 
 			Assert.True(Wars.IsInWar(logic.World, HqCountryId));
@@ -207,12 +209,12 @@ namespace GS.Game.Tests {
 			// Same tick, no waiting for the next day boundary: SettleCombatResources() must have
 			// already re-run the Daily damage/durability collectors after CreateActionEffectSystem
 			// attached RevengeWarBonus.
-			Assert.Equal(HqBaseDamage * 1.10, ResourceQuery.GetValue(logic.World, HqCountryId, ResourceDefinitions.Damage), 6);
-			Assert.Equal(HqBaseDurability * 1.05, ResourceQuery.GetValue(logic.World, HqCountryId, ResourceDefinitions.Durability), 6);
+			Assert.Equal(HqBaseDamage * 1.10, _resources.GetValue(logic.World, HqCountryId, ResourceDefinitions.Damage), 6);
+			Assert.Equal(HqBaseDurability * 1.05, _resources.GetValue(logic.World, HqCountryId, ResourceDefinitions.Durability), 6);
 
 			// Defender is unaffected — the bonus is attacker-only.
-			Assert.Equal(TargetBaseDamage, ResourceQuery.GetValue(logic.World, TargetCountryId, ResourceDefinitions.Damage), 6);
-			Assert.Equal(TargetBaseDurability, ResourceQuery.GetValue(logic.World, TargetCountryId, ResourceDefinitions.Durability), 6);
+			Assert.Equal(TargetBaseDamage, _resources.GetValue(logic.World, TargetCountryId, ResourceDefinitions.Damage), 6);
+			Assert.Equal(TargetBaseDurability, _resources.GetValue(logic.World, TargetCountryId, ResourceDefinitions.Durability), 6);
 		}
 	}
 }

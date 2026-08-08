@@ -8,30 +8,33 @@ namespace GS.Game.Systems {
 
 		public static int EstimateAttackerWinPercent(
 			IReadOnlyWorld world,
+			ResourceQuery resources,
 			string attackerCountryId,
 			string defenderCountryId,
 			double pendingAttackerDamageBonusPercent = 0,
 			double pendingAttackerDurabilityBonusPercent = 0) {
-			double attackerRecruits = ResourceQuery.GetValue(world, attackerCountryId, ResourceDefinitions.Recruits);
+			double attackerRecruits = resources.GetValue(world, attackerCountryId, ResourceDefinitions.Recruits);
 			if (attackerRecruits == 0) {
 				return 1;
 			}
 
-			double defenderRecruits = ResourceQuery.GetValue(world, defenderCountryId, ResourceDefinitions.Recruits);
+			double defenderRecruits = resources.GetValue(world, defenderCountryId, ResourceDefinitions.Recruits);
 			double attackerDamage = EffectiveCombatStat(
 				world,
+				resources,
 				attackerCountryId,
 				ResourceDefinitions.Damage,
 				"damage",
 				pendingAttackerDamageBonusPercent);
 			double attackerDurability = EffectiveCombatStat(
 				world,
+				resources,
 				attackerCountryId,
 				ResourceDefinitions.Durability,
 				"durability",
 				pendingAttackerDurabilityBonusPercent);
-			double defenderDamage = ResourceQuery.GetValue(world, defenderCountryId, ResourceDefinitions.Damage);
-			double defenderDurability = ResourceQuery.GetValue(world, defenderCountryId, ResourceDefinitions.Durability);
+			double defenderDamage = resources.GetValue(world, defenderCountryId, ResourceDefinitions.Damage);
+			double defenderDurability = resources.GetValue(world, defenderCountryId, ResourceDefinitions.Durability);
 
 			double attackerStrength = SideStrength(attackerRecruits, attackerDamage, defenderDurability);
 			double defenderStrength = SideStrength(defenderRecruits, defenderDamage, attackerDurability);
@@ -52,11 +55,12 @@ namespace GS.Game.Systems {
 
 		static double EffectiveCombatStat(
 			IReadOnlyWorld world,
+			ResourceQuery resources,
 			string countryId,
 			string resourceId,
 			string revengeKind,
 			double pendingBonusPercent) {
-			double live = ResourceQuery.GetValue(world, countryId, resourceId);
+			double live = resources.GetValue(world, countryId, resourceId);
 			if (pendingBonusPercent <= 0) {
 				return live;
 			}

@@ -100,7 +100,8 @@ namespace GS.Game.Tests {
 				StartYear = 1880,
 				DefaultLocale = "en",
 				SpeedMultipliers = new[] { 1, 2, 4 },
-				AutoSaveInterval = "monthly"
+				AutoSaveInterval = "monthly",
+				FeatureFlags = new FeatureFlagSettings { EnableRuler = true }
 			};
 			var resourceConfig = new ResourceConfig { Resources = new List<ResourceDefinition>() };
 			var ctx = new GameLogicContext(

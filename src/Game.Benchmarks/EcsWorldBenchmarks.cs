@@ -1,6 +1,8 @@
 using BenchmarkDotNet.Attributes;
 using ECS;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Benchmarks;
 
 [MemoryDiagnoser]

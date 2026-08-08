@@ -9,7 +9,8 @@ namespace GS.Game.Systems {
 			World world,
 			int completionEntity,
 			ICompletionCondition condition,
-			int maxControlPool) {
+			int maxControlPool,
+			ResourceQuery resources) {
 			if (world == null) {
 				throw new ArgumentNullException(nameof(world));
 			}
@@ -39,7 +40,8 @@ namespace GS.Game.Systems {
 					world,
 					participant.OrganizationId,
 					countryIds,
-					maxControlPool);
+					maxControlPool,
+					resources);
 				if (condition.IsMet(context)) {
 					winner = participant;
 					break;

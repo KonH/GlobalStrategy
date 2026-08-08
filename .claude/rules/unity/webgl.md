@@ -5,6 +5,22 @@ paths:
 
 # Unity WebGL Build Gotchas
 
+## Saves need explicit IndexedDB sync
+
+`PersistentStorage` writes save JSON via `File.WriteAllText` under `Application.persistentDataPath`. On WebGL that path is Emscripten's MEMFS backed by IndexedDB — writes don't persist across reload until flushed.
+
+Two things keep this working; touching either one risks reintroducing "saves vanish after reload":
+- `Assets/WebGLTemplates/Minimal/index.html` (`PROJECT:Minimal`) sets `autoSyncPersistentDataPath: true`.
+- `PersistentStorage.Write`/`Delete` (`Assets/Scripts/Unity/Save/PersistentStorage.cs`) also call an explicit `FS.syncfs` flush via `Assets/Plugins/WebGL/PersistentStorageSync.jslib` right after every write/delete.
+
+Sync start/success/failure log to the browser console as `[PersistentStorage] FS.syncfs ...` — check there first if a save still doesn't persist.
+
+IndexedDB is per-origin and keyed by `companyName` + `productName` (Player Settings) — changing either, or opening a different host/port, looks like "no saves."
+
+## WebGL payload size
+
+Keep `webGLCompressionFormat` set to Brotli in both `ProjectSettings/ProjectSettings.asset` and the serialized PlayerSettings snapshot in `Assets/Settings/Build Profiles/Web - Desktop - Release.asset` (CI builds use that profile) — an uncompressed profile makes the `.data`/`.wasm` payloads substantially slower to download.
+
 ## StreamingAssets files are not TextAssets
 
 Files in `Assets/StreamingAssets/` are imported with `DefaultImporter` — they are raw blobs, not `TextAsset` objects. A `[SerializeField] TextAsset` field cannot hold a reference to them.

@@ -52,10 +52,11 @@ namespace GS.Game.Systems {
 				total);
 		}
 
-		public static BaseIncomeBreakdown Compute(IReadOnlyWorld world, string countryId, BaseIncomeSettings settings) {
-			double population = ResourceQuery.GetValue(world, countryId, ResourceDefinitions.CountryPopulation);
+		public static BaseIncomeBreakdown Compute(
+			IReadOnlyWorld world, string countryId, BaseIncomeSettings settings, ResourceQuery resources) {
+			double population = resources.GetValue(world, countryId, ResourceDefinitions.CountryPopulation);
 			int provinceCount = CountOwnedProvinces(world, countryId);
-			double advisorSkill = WartimeSkillQuery.GetSkill(world, countryId, "economic_advisor", "stinginess");
+			double advisorSkill = WartimeSkillQuery.GetSkill(world, countryId, "economic_advisor", "stinginess", resources);
 			return ComputeFromInputs(population, provinceCount, advisorSkill, settings);
 		}
 

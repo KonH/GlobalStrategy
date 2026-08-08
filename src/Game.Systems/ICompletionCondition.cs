@@ -12,12 +12,14 @@ namespace GS.Game.Systems {
 		public string OrganizationId { get; }
 		public IReadOnlyCollection<string> AvailableCountryIds { get; }
 		public int MaxControlPool { get; }
+		public ResourceQuery Resources { get; }
 
 		public CompletionConditionContext(
 			IReadOnlyWorld world,
 			string organizationId,
 			IEnumerable<string> availableCountryIds,
-			int maxControlPool) {
+			int maxControlPool,
+			ResourceQuery resources) {
 			World = world ?? throw new ArgumentNullException(nameof(world));
 			OrganizationId = organizationId ?? throw new ArgumentNullException(nameof(organizationId));
 			if (availableCountryIds == null) {
@@ -30,6 +32,7 @@ namespace GS.Game.Systems {
 
 			AvailableCountryIds = new HashSet<string>(availableCountryIds, StringComparer.Ordinal);
 			MaxControlPool = maxControlPool;
+			Resources = resources ?? throw new ArgumentNullException(nameof(resources));
 		}
 	}
 }

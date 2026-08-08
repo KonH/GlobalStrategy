@@ -28,8 +28,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.issue_handler import (  # noqa: E402
 	acquire_lock, candidate_branch, checkout_clean, claim_candidate, clear_in_progress,
-	find_candidates, limit_active, save_limit_retry_at, setup_logging,
+	determine_usage_stage_and_spec_dir, find_candidates, limit_active, save_limit_retry_at,
+	setup_logging,
 )
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
+from scripts.stats.collect_usage import diff_lines_for_branch, record_usage_row  # noqa: E402
 
 MODEL = "cursor-grok-4.5-high"
 LABEL = "cursor"
@@ -154,7 +157,57 @@ def run_cursor(prompt, args):
 	if result and (result.get("is_error") or str(result.get("subtype", "")).startswith("error")):
 		errors.append(str(result.get("result", "")))
 	logger.info("agent -p exited with code %s.", process.returncode)
-	return process.returncode, errors
+	return process.returncode, errors, result
+
+
+def current_branch():
+	"""The branch actually checked out right now - unlike `candidate_branch()`, which is only
+	the branch a run *started* from (always `main` for an issue candidate; the agent creates/
+	switches to its own `feature/<name>` branch during the run per `.cursor/commands/cursor-
+	issue.md`). Returns None on failure rather than raising - usage-stats attribution must
+	never abort the automation run."""
+	result = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"],
+		capture_output=True, text=True)
+	return result.stdout.strip() if result.returncode == 0 else None
+
+
+def record_cursor_usage_stats(candidate, since_iso, result, requested_model):
+	"""Best-effort post-run usage.csv row for one candidate. Silently records nothing when the
+	run's diff touched no Docs/Specs/<dir>/ path (most cursor-labeled issues are not spec
+	work) - see determine_usage_stage_and_spec_dir() for the attribution rules. Any failure
+	here is caught and logged, never raised, so a usage-stats hiccup can never fail the
+	candidate's own outcome.
+
+	`result` is the CLI's own final `type: "result"` stream-json event (same shape `claude -p
+	--output-format json` returns, since Cursor's CLI mirrors it) - `usage`/`session_id`/
+	`model` come from there, defensively via `.get()` since that shape isn't contractually
+	documented."""
+	try:
+		branch = current_branch()
+		if not branch:
+			logger.warning("Usage-stats: could not resolve the current branch after the run "
+				"for %s #%s - skipping.", candidate["kind"], candidate["number"])
+			return
+		spec_dir, stage = determine_usage_stage_and_spec_dir(
+			logger, candidate["number"], branch, Path.cwd())
+		if spec_dir is None:
+			return
+		usage = (result or {}).get("usage") or {}
+		record_usage_row(
+			provider="cursor", stage=stage, spec_dir=spec_dir, mode="automated",
+			session_id=(result or {}).get("session_id", ""),
+			model=(result or {}).get("model") or requested_model,
+			start=since_iso, end=datetime.now(timezone.utc).isoformat(),
+			input_tokens=usage.get("input_tokens", 0),
+			cached_input_tokens=usage.get("cache_read_input_tokens", 0),
+			output_tokens=usage.get("output_tokens", 0),
+			diff_lines=diff_lines_for_branch(branch, Path.cwd()),
+		)
+		logger.info("Usage-stats: recorded cursor '%s' row for spec '%s' (%s #%s).",
+			stage, spec_dir, candidate["kind"], candidate["number"])
+	except Exception as exc:
+		logger.warning("Usage-stats: failed to record cursor usage row for %s #%s: %s",
+			candidate["kind"], candidate["number"], exc)
 
 
 def process_claimed_candidate(candidate, args):
@@ -164,7 +217,8 @@ def process_claimed_candidate(candidate, args):
 	still clear `ai-in-progress` before the exit propagates (SystemExit is a BaseException).
 	"""
 	checkout_clean(logger, candidate_branch(candidate))
-	returncode, errors = run_cursor(build_prompt(candidate), args)
+	iteration_start = datetime.now(timezone.utc).isoformat()
+	returncode, errors, result = run_cursor(build_prompt(candidate), args)
 	limit_hit, retry_at = detect_session_limit(errors)
 	if limit_hit:
 		if retry_at is None:
@@ -175,6 +229,7 @@ def process_claimed_candidate(candidate, args):
 		sys.exit(0)
 	if returncode:
 		raise SystemExit(returncode)
+	record_cursor_usage_stats(candidate, iteration_start, result, args.model)
 
 
 def main():

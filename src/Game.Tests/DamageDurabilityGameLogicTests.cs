@@ -194,16 +194,16 @@ namespace GS.Game.Tests {
 			return new GameLogic(ctx);
 		}
 
-		static double ExpectedDamage(IReadOnlyWorld world, string countryId, int baseDamage) {
+		static double ExpectedDamage(IReadOnlyWorld world, string countryId, int baseDamage, ResourceQuery resources) {
 			return baseDamage
-				+ WartimeSkillQuery.GetSkill(world, countryId, "ruler", "power")
-				+ WartimeSkillQuery.GetSkill(world, countryId, "military_advisor", "power");
+				+ WartimeSkillQuery.GetSkill(world, countryId, "ruler", "power", resources)
+				+ WartimeSkillQuery.GetSkill(world, countryId, "military_advisor", "power", resources);
 		}
 
-		static double ExpectedDurability(IReadOnlyWorld world, string countryId, int baseDurability) {
+		static double ExpectedDurability(IReadOnlyWorld world, string countryId, int baseDurability, ResourceQuery resources) {
 			return baseDurability
-				+ WartimeSkillQuery.GetSkill(world, countryId, "ruler", "stinginess")
-				+ WartimeSkillQuery.GetSkill(world, countryId, "economic_advisor", "stinginess");
+				+ WartimeSkillQuery.GetSkill(world, countryId, "ruler", "stinginess", resources)
+				+ WartimeSkillQuery.GetSkill(world, countryId, "economic_advisor", "stinginess", resources);
 		}
 
 		static bool HasDailyCombatCollector(World world, string countryId, string resourceId, string collectorId) {
@@ -233,7 +233,7 @@ namespace GS.Game.Tests {
 
 		static void EnsureMilitaryPower(GameLogic logic, string countryId, double desiredPower) {
 			for (int i = 0; i < 2; i++) {
-				double power = WartimeSkillQuery.GetSkill(logic.World, countryId, "military_advisor", "power");
+				double power = WartimeSkillQuery.GetSkill(logic.World, countryId, "military_advisor", "power", logic.Resources);
 				if (Math.Abs(power - desiredPower) < 0.001) {
 					return;
 				}
@@ -253,17 +253,17 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			Assert.Equal(
-				ExpectedDamage(logic.World, Britain, BritainBaseDamage),
-				ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
+				ExpectedDamage(logic.World, Britain, BritainBaseDamage, logic.Resources),
+				logic.Resources.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
 			Assert.Equal(
-				ExpectedDurability(logic.World, Britain, BritainBaseDurability),
-				ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Durability));
+				ExpectedDurability(logic.World, Britain, BritainBaseDurability, logic.Resources),
+				logic.Resources.GetValue(logic.World, Britain, ResourceDefinitions.Durability));
 			Assert.Equal(
-				ExpectedDamage(logic.World, France, FranceBaseDamage),
-				ResourceQuery.GetValue(logic.World, France, ResourceDefinitions.Damage));
+				ExpectedDamage(logic.World, France, FranceBaseDamage, logic.Resources),
+				logic.Resources.GetValue(logic.World, France, ResourceDefinitions.Damage));
 			Assert.Equal(
-				ExpectedDurability(logic.World, France, FranceBaseDurability),
-				ResourceQuery.GetValue(logic.World, France, ResourceDefinitions.Durability));
+				ExpectedDurability(logic.World, France, FranceBaseDurability, logic.Resources),
+				logic.Resources.GetValue(logic.World, France, ResourceDefinitions.Durability));
 		}
 
 		[Fact]
@@ -272,9 +272,9 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 			EnsureMilitaryPower(logic, Britain, 10);
 
-			double damageBefore = ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage);
-			double durabilityBefore = ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Durability);
-			Assert.Equal(ExpectedDamage(logic.World, Britain, BritainBaseDamage), damageBefore);
+			double damageBefore = logic.Resources.GetValue(logic.World, Britain, ResourceDefinitions.Damage);
+			double durabilityBefore = logic.Resources.GetValue(logic.World, Britain, ResourceDefinitions.Durability);
+			Assert.Equal(ExpectedDamage(logic.World, Britain, BritainBaseDamage, logic.Resources), damageBefore);
 
 			logic.Commands.Push(new DebugCycleCharacterCommand {
 				OwnerId = Britain,
@@ -283,15 +283,15 @@ namespace GS.Game.Tests {
 			});
 			logic.Update(0f);
 
-			Assert.Equal(50, WartimeSkillQuery.GetSkill(logic.World, Britain, "military_advisor", "power"));
-			Assert.Equal(damageBefore + 40, ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
-			Assert.Equal(durabilityBefore, ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Durability));
+			Assert.Equal(50, WartimeSkillQuery.GetSkill(logic.World, Britain, "military_advisor", "power", logic.Resources));
+			Assert.Equal(damageBefore + 40, logic.Resources.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
+			Assert.Equal(durabilityBefore, logic.Resources.GetValue(logic.World, Britain, ResourceDefinitions.Durability));
 			Assert.Equal(
-				ExpectedDamage(logic.World, Britain, BritainBaseDamage),
-				ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
+				ExpectedDamage(logic.World, Britain, BritainBaseDamage, logic.Resources),
+				logic.Resources.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
 			Assert.Equal(
-				ExpectedDurability(logic.World, Britain, BritainBaseDurability),
-				ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Durability));
+				ExpectedDurability(logic.World, Britain, BritainBaseDurability, logic.Resources),
+				logic.Resources.GetValue(logic.World, Britain, ResourceDefinitions.Durability));
 		}
 
 		[Fact]
@@ -299,8 +299,8 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic();
 			logic.Update(0f);
 
-			double militaryPower = WartimeSkillQuery.GetSkill(logic.World, Britain, "military_advisor", "power");
-			double damageBefore = ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage);
+			double militaryPower = WartimeSkillQuery.GetSkill(logic.World, Britain, "military_advisor", "power", logic.Resources);
+			double damageBefore = logic.Resources.GetValue(logic.World, Britain, ResourceDefinitions.Damage);
 			Assert.True(militaryPower > 0);
 
 			logic.Commands.Push(new DebugDropCharacterCommand {
@@ -310,11 +310,11 @@ namespace GS.Game.Tests {
 			});
 			logic.Update(0f);
 
-			Assert.Equal(0, WartimeSkillQuery.GetSkill(logic.World, Britain, "military_advisor", "power"));
-			Assert.Equal(damageBefore - militaryPower, ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
+			Assert.Equal(0, WartimeSkillQuery.GetSkill(logic.World, Britain, "military_advisor", "power", logic.Resources));
+			Assert.Equal(damageBefore - militaryPower, logic.Resources.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
 			Assert.Equal(
-				ExpectedDamage(logic.World, Britain, BritainBaseDamage),
-				ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
+				ExpectedDamage(logic.World, Britain, BritainBaseDamage, logic.Resources),
+				logic.Resources.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
 		}
 
 		[Fact]
@@ -324,10 +324,10 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic(storage, serializer);
 			logic.Update(0f);
 
-			double britainDamage = ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage);
-			double britainDurability = ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Durability);
-			Assert.Equal(ExpectedDamage(logic.World, Britain, BritainBaseDamage), britainDamage);
-			Assert.Equal(ExpectedDurability(logic.World, Britain, BritainBaseDurability), britainDurability);
+			double britainDamage = logic.Resources.GetValue(logic.World, Britain, ResourceDefinitions.Damage);
+			double britainDurability = logic.Resources.GetValue(logic.World, Britain, ResourceDefinitions.Durability);
+			Assert.Equal(ExpectedDamage(logic.World, Britain, BritainBaseDamage, logic.Resources), britainDamage);
+			Assert.Equal(ExpectedDurability(logic.World, Britain, BritainBaseDurability, logic.Resources), britainDurability);
 			Assert.True(HasDailyCombatCollector(logic.World, Britain, ResourceDefinitions.Damage, DamageCollector.Id));
 			Assert.True(HasDailyCombatCollector(logic.World, Britain, ResourceDefinitions.Durability, DurabilityCollector.Id));
 
@@ -339,17 +339,17 @@ namespace GS.Game.Tests {
 			loaded.LoadState(saveName);
 
 			Assert.Equal(
-				ExpectedDamage(loaded.World, Britain, BritainBaseDamage),
-				ResourceQuery.GetValue(loaded.World, Britain, ResourceDefinitions.Damage));
+				ExpectedDamage(loaded.World, Britain, BritainBaseDamage, loaded.Resources),
+				loaded.Resources.GetValue(loaded.World, Britain, ResourceDefinitions.Damage));
 			Assert.Equal(
-				ExpectedDurability(loaded.World, Britain, BritainBaseDurability),
-				ResourceQuery.GetValue(loaded.World, Britain, ResourceDefinitions.Durability));
+				ExpectedDurability(loaded.World, Britain, BritainBaseDurability, loaded.Resources),
+				loaded.Resources.GetValue(loaded.World, Britain, ResourceDefinitions.Durability));
 			Assert.Equal(
-				ExpectedDamage(loaded.World, France, FranceBaseDamage),
-				ResourceQuery.GetValue(loaded.World, France, ResourceDefinitions.Damage));
+				ExpectedDamage(loaded.World, France, FranceBaseDamage, loaded.Resources),
+				loaded.Resources.GetValue(loaded.World, France, ResourceDefinitions.Damage));
 			Assert.Equal(
-				ExpectedDurability(loaded.World, France, FranceBaseDurability),
-				ResourceQuery.GetValue(loaded.World, France, ResourceDefinitions.Durability));
+				ExpectedDurability(loaded.World, France, FranceBaseDurability, loaded.Resources),
+				loaded.Resources.GetValue(loaded.World, France, ResourceDefinitions.Durability));
 			Assert.True(HasDailyCombatCollector(loaded.World, Britain, ResourceDefinitions.Damage, DamageCollector.Id));
 			Assert.True(HasDailyCombatCollector(loaded.World, Britain, ResourceDefinitions.Durability, DurabilityCollector.Id));
 			Assert.True(HasDailyCombatCollector(loaded.World, France, ResourceDefinitions.Damage, DamageCollector.Id));

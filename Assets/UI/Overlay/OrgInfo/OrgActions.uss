@@ -30,7 +30,7 @@
 /* Card shell */
 .action-card {
     width: 240px;
-    height: 300px;
+    height: 360px;
     flex-direction: column;
     border-width: 2px;
     border-radius: 4px;
@@ -39,7 +39,7 @@
 }
 
 .action-card--available {
-    border-color: rgb(136, 204, 255);
+    border-color: rgb(139, 109, 56);
 }
 
 .action-card--unavailable {
@@ -67,16 +67,17 @@
 
 /* Header bar */
 .action-card-header {
-    height: 32px;
+    min-height: 32px;
+    max-height: 48px;
     background-color: rgb(26, 42, 72);
     color: rgb(240, 232, 208);
     font-size: 20px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
-    padding: 0;
+    padding: 2px 4px;
     border-bottom-width: 1px;
     border-color: rgb(200, 160, 64);
-    white-space: nowrap;
+    white-space: normal;
     overflow: hidden;
     -unity-font-definition: url("/Assets/UI/Fonts/Cinzel-Bold SDF.asset");
 }
@@ -93,6 +94,28 @@
     width: 100%;
     height: 100%;
     -unity-background-scale-mode: scale-and-crop;
+}
+
+.action-card-playable-countries {
+    position: absolute;
+    top: 4px;
+    left: 6px;
+    height: 34px;
+    width: 40px;
+    flex-direction: row;
+    align-items: flex-start;
+    overflow: visible;
+}
+
+.action-card-playable-country-flag {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.action-card-playable-country-flag--stacked {
+    position: absolute;
 }
 
 .action-card-war-win-chance {
@@ -140,6 +163,29 @@
     -unity-font-definition: url("/Assets/UI/Fonts/IMFellEnglish-Regular SDF.asset");
 }
 
+.action-card-requirements {
+    width: 100%;
+    height: 60px;
+    min-height: 0;
+    flex-shrink: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+.action-card-requirement-row {
+    width: 100%;
+    min-height: 0;
+    flex-shrink: 0;
+    margin-top: 0;
+    margin-bottom: -2px;
+    padding: 0;
+    font-size: 20px;
+    white-space: normal;
+    overflow: hidden;
+    -unity-font-definition: url("/Assets/UI/Fonts/IMFellEnglish-Regular SDF.asset");
+}
+
 .action-card-success-pct {
     font-size: 16px;
     color: rgb(136, 136, 168);
@@ -177,6 +223,26 @@
     height: 16px;
     -unity-background-scale-mode: scale-to-fit;
     background-image: url("project://database/Assets/Textures/Icons/CardView/coin.png?fileID=2800000&guid=7fccafa14706457483a5f3c19e7c1746&type=3#coin");
+}
+
+.action-card-discard-hint {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    height: 32px;
+    padding: 3px 6px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-card-discard-hint-label {
+    margin-right: 4px;
+}
+
+.action-card-discard-hint-price {
+    margin-right: 4px;
 }
 
 /* Cooldown overlay */

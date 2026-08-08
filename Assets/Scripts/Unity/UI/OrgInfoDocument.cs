@@ -230,9 +230,9 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		void OnActionCardClicked(string actionId, VisualElement cardElement) {
+		void OnActionCardClicked(string actionId, int slotIndex, VisualElement cardElement) {
 			if (_cardPlayAnimator == null || _state == null || !_state.PlayerOrganization.IsValid) { return; }
-			_cardPlayAnimator.StartCardPlay(_state.PlayerOrganization.OrgId, actionId, cardElement);
+			_cardPlayAnimator.StartCardPlay(_state.PlayerOrganization.OrgId, actionId, slotIndex, cardElement);
 		}
 
 		void HandleOrgChanged(object sender, PropertyChangedEventArgs e) => Refresh();

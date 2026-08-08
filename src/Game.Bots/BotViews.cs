@@ -5,6 +5,7 @@ namespace GS.Game.Bots {
 		public string ActionId = "";
 		public int SlotIndex;
 		public string CountryId = "";
+		public string TargetCountryId = "";
 		public IReadOnlyList<BotCostView> Cost = System.Array.Empty<BotCostView>();
 		public double GoldCost;
 		public bool IsPlayable;

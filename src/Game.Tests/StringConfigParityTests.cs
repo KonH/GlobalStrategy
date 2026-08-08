@@ -55,6 +55,8 @@ namespace GS.Game.Tests {
 			Assert.Equal(fromFile.StartYear, fromString.StartYear);
 			Assert.Equal(fromFile.DefaultLocale, fromString.DefaultLocale);
 			Assert.Equal(fromFile.SpeedMultipliers, fromString.SpeedMultipliers);
+			Assert.Equal(50, fromFile.DiscardGoldCost);
+			Assert.Equal(fromFile.DiscardGoldCost, fromString.DiscardGoldCost);
 		}
 
 		[Fact]
@@ -119,7 +121,7 @@ namespace GS.Game.Tests {
 				ActionDefinition action = Assert.IsType<ActionDefinition>(config.Find("sell_arms"));
 				Assert.Equal("country", action.OwnerType);
 				Assert.Equal("military_advisor", action.TargetRole);
-				Assert.Equal(3, action.DeckCopies);
+				Assert.Equal(9, action.DeckCopies);
 				Assert.Equal(21, action.CooldownDays);
 				ActionCost cost = Assert.Single(action.Cost);
 				Assert.Equal("gold", cost.ResourceId);
@@ -170,13 +172,13 @@ namespace GS.Game.Tests {
 			var fromFile = new FileConfig<EffectConfig>(path).Load();
 			var fromString = new StringConfig<EffectConfig>(File.ReadAllText(path)).Load();
 
-			var ultimatumFromFile = Assert.IsType<ResolveWarEffectParams>(fromFile.Find("ultimatum_effect"));
-			var ultimatumFromString = Assert.IsType<ResolveWarEffectParams>(fromString.Find("ultimatum_effect"));
+			var ultimatumFromFile = Assert.IsType<ResolveWarEffectParams>(fromFile.Find("force_war_win_effect"));
+			var ultimatumFromString = Assert.IsType<ResolveWarEffectParams>(fromString.Find("force_war_win_effect"));
 			Assert.Equal(WarOutcome.Win, ultimatumFromFile.Outcome);
 			Assert.Equal(WarOutcome.Win, ultimatumFromString.Outcome);
 
-			var surrenderFromFile = Assert.IsType<ResolveWarEffectParams>(fromFile.Find("surrender_effect"));
-			var surrenderFromString = Assert.IsType<ResolveWarEffectParams>(fromString.Find("surrender_effect"));
+			var surrenderFromFile = Assert.IsType<ResolveWarEffectParams>(fromFile.Find("force_war_loss_effect"));
+			var surrenderFromString = Assert.IsType<ResolveWarEffectParams>(fromString.Find("force_war_loss_effect"));
 			Assert.Equal(WarOutcome.Lose, surrenderFromFile.Outcome);
 			Assert.Equal(WarOutcome.Lose, surrenderFromString.Outcome);
 		}
@@ -193,8 +195,8 @@ namespace GS.Game.Tests {
 				fromString.Find("sell_arms_damage_bonus_effect"));
 			Assert.Equal(ResourceDefinitions.TroopsDamageBonusPercent, modifierFromFile.ResourceId);
 			Assert.Equal(ResourceDefinitions.TroopsDamageBonusPercent, modifierFromString.ResourceId);
-			Assert.Equal(10.0, modifierFromFile.InitialValue);
-			Assert.Equal(10.0, modifierFromString.InitialValue);
+			Assert.Equal(20.0, modifierFromFile.InitialValue);
+			Assert.Equal(20.0, modifierFromString.InitialValue);
 			Assert.Equal(1.0, modifierFromFile.DecayPerMonth);
 			Assert.Equal(1.0, modifierFromString.DecayPerMonth);
 		}

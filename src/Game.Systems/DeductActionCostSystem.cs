@@ -5,7 +5,7 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class DeductActionCostSystem {
-		public static void Update(World world, ActionConfig config) {
+		public static void Update(World world, ActionConfig config, ResourceQuery resources) {
 			int[] required = { TypeId<GameAction>.Value, TypeId<ActionValid>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
 			var toProcess = new List<(string actionId, string orgId)>();
 
@@ -23,7 +23,7 @@ namespace GS.Game.Systems {
 				if (def == null) { continue; }
 
 				foreach (var cost in def.Cost) {
-					DeductResource(world, orgId, cost.ResourceId, cost.Amount);
+					DeductResource(world, resources, orgId, cost.ResourceId, cost.Amount);
 					int changeEntity = world.Create();
 					world.Add(changeEntity, new ResourceChange {
 						EffectId = $"cost_{orgId}_{actionId}_{cost.ResourceId}",
@@ -35,11 +35,13 @@ namespace GS.Game.Systems {
 			}
 		}
 
-		static void DeductResource(World world, string ownerId, string resourceId, double amount) {
-			int entity = ActionPlayability.FindResourceEntity(world, ownerId, resourceId);
+		static void DeductResource(
+			World world, ResourceQuery resources, string ownerId, string resourceId, double amount) {
+			int entity = resources.FindEntity(world, ownerId, resourceId);
 			if (entity >= 0) {
 				ref Resource r = ref world.Get<Resource>(entity);
 				r.Value -= amount;
+				resources.NotifyValue(ownerId, resourceId, r.Value, entity);
 			}
 		}
 	}

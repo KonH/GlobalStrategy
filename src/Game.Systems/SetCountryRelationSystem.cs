@@ -6,7 +6,7 @@ using GS.Game.Components;
 
 namespace GS.Game.Systems {
 	public static class SetCountryRelationSystem {
-		public static void Update(World world, int proximityEntity, Random rng) {
+		public static void Update(World world, CountryRelations relations, int proximityEntity, Random rng) {
 			int[] required = { TypeId<SetCountryRelationEffect>.Value };
 			var toProcess = new List<(int entity, string orgId, string countryId, RelationKind kind)>();
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
@@ -22,13 +22,14 @@ namespace GS.Game.Systems {
 			if (hasPm) { pm = world.Get<ProximityMapData>(proximityEntity); }
 
 			foreach (var (entity, orgId, countryId, kind) in toProcess) {
-				ResolveRelation(world, rng, orgId, countryId, kind, hasPm, pm);
+				ResolveRelation(world, relations, rng, orgId, countryId, kind, hasPm, pm);
 				world.Destroy(entity);
 			}
 		}
 
-		static void ResolveRelation(World world, Random rng, string orgId, string countryId, RelationKind kind, bool hasPm, ProximityMapData pm) {
-			var candidates = CountryRelations.GetSuitableRelationCandidates(world, countryId);
+		static void ResolveRelation(
+			World world, CountryRelations relations, Random rng, string orgId, string countryId, RelationKind kind, bool hasPm, ProximityMapData pm) {
+			var candidates = relations.GetSuitableRelationCandidates(world, countryId);
 			if (candidates.Count == 0) { return; }
 
 			string chosen;
@@ -38,7 +39,7 @@ namespace GS.Game.Systems {
 				chosen = candidates[rng.Next(candidates.Count)];
 			}
 
-			CountryRelations.SetRelation(world, countryId, chosen, kind);
+			relations.SetRelation(world, countryId, chosen, kind);
 
 			// Game Log event — separate sibling entity, not attached to SetCountryRelationEffect.
 			// See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.

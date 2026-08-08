@@ -7,6 +7,8 @@ using GS.Main;
 using ECS.Viewer;
 using ECS.Viewer.Server;
 
+using GS.Game.Systems;
+
 namespace GS.Game.ConsoleRunner {
 	public static class Program {
 		static int Main(string[] args) {

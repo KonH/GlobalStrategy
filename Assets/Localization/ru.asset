@@ -1734,38 +1734,62 @@ MonoBehaviour:
     Value: Нажмите для запуска
   - Key: action.tooltip.unaffordable_hint
     Value: Недостаточно золота
-  - Key: action.sphere_of_pressure.name
-    Value: Сфера влияния
-  - Key: action.sphere_of_pressure.desc
+  - Key: action.improve_control.name
+    Value: Улучшить контроль
+  - Key: action.improve_control.desc
     Value: Увеличить контроль.
-  - Key: action.letter_of_commendation_diplomacy_advisor.name
-    Value: Дипломатическое письмо
-  - Key: action.letter_of_commendation_diplomacy_advisor.desc
-    Value: Увеличить контроль и мнение дипломатического советника.
-  - Key: action.letter_of_commendation_economic_advisor.name
-    Value: Казначейский указ
-  - Key: action.letter_of_commendation_economic_advisor.desc
-    Value: Увеличить контроль и мнение экономического советника.
-  - Key: action.letter_of_commendation_military_advisor.name
-    Value: Боевой приказ
-  - Key: action.letter_of_commendation_military_advisor.desc
-    Value: Увеличить контроль и мнение военного советника.
-  - Key: action.letter_of_commendation_secret_advisor.name
-    Value: Теневой договор
-  - Key: action.letter_of_commendation_secret_advisor.desc
-    Value: Увеличить контроль и мнение советника разведки.
-  - Key: action.royal_audience.name
-    Value: Королевская аудиенция
-  - Key: action.royal_audience.desc
-    Value: Увеличить контроль и мнение правителя.
+  - Key: effect.improve_control_effect.name
+    Value: Улучшить контроль
+  - Key: effect.improve_control_effect.desc
+    Value: Увеличить контроль организации.
+  - Key: action.improve_diplomacy_advisor_opinion.name
+    Value: Улучшить мнение советника-дипломата
+  - Key: action.improve_diplomacy_advisor_opinion.desc
+    Value: Улучшить мнение советника-дипломата.
+  - Key: effect.improve_diplomacy_advisor_opinion_effect.name
+    Value: Улучшить мнение советника-дипломата
+  - Key: effect.improve_diplomacy_advisor_opinion_effect.desc
+    Value: Улучшить мнение советника-дипломата.
+  - Key: action.improve_economic_advisor_opinion.name
+    Value: Улучшить мнение советника-экономиста
+  - Key: action.improve_economic_advisor_opinion.desc
+    Value: Улучшить мнение советника-экономиста.
+  - Key: effect.improve_economic_advisor_opinion_effect.name
+    Value: Улучшить мнение советника-экономиста
+  - Key: effect.improve_economic_advisor_opinion_effect.desc
+    Value: Улучшить мнение советника-экономиста.
+  - Key: action.improve_military_advisor_opinion.name
+    Value: Улучшить мнение военного советника
+  - Key: action.improve_military_advisor_opinion.desc
+    Value: Улучшить мнение военного советника.
+  - Key: effect.improve_military_advisor_opinion_effect.name
+    Value: Улучшить мнение военного советника
+  - Key: effect.improve_military_advisor_opinion_effect.desc
+    Value: Улучшить мнение военного советника.
+  - Key: action.improve_secret_advisor_opinion.name
+    Value: Улучшить мнение тайного советника
+  - Key: action.improve_secret_advisor_opinion.desc
+    Value: Улучшить мнение тайного советника.
+  - Key: effect.improve_secret_advisor_opinion_effect.name
+    Value: Улучшить мнение тайного советника
+  - Key: effect.improve_secret_advisor_opinion_effect.desc
+    Value: Улучшить мнение тайного советника.
+  - Key: action.improve_ruler_opinion.name
+    Value: Улучшить мнение правителя
+  - Key: action.improve_ruler_opinion.desc
+    Value: Улучшить мнение правителя.
+  - Key: effect.improve_ruler_opinion_effect.name
+    Value: Улучшить мнение правителя
+  - Key: effect.improve_ruler_opinion_effect.desc
+    Value: Улучшить мнение правителя.
   - Key: action.make_friend.name
-    Value: Cordial Accord
+    Value: Подружиться
   - Key: action.make_friend.desc
-    Value: Mark new country as friend.
+    Value: Сделать новую страну другом.
   - Key: action.make_rival.name
-    Value: Declaration of Rivalry
+    Value: Сделать соперником
   - Key: action.make_rival.desc
-    Value: Mark new country as rival.
+    Value: Сделать новую страну соперником.
   - Key: action.stop_friendship.name
     Value: '{0} нам не друг!'
   - Key: action.stop_friendship.desc
@@ -1782,34 +1806,30 @@ MonoBehaviour:
     Value: Объявление войны
   - Key: effect.declare_war_effect.desc
     Value: Начать войну с выбранным соперником.
-  - Key: action.ultimatum.name
-    Value: Ультиматум
-  - Key: action.ultimatum.desc
+  - Key: action.force_war_win.name
+    Value: Принудительная победа
+  - Key: action.force_war_win.desc
     Value: Заставить эту страну победить в текущей войне.
-  - Key: action.surrender.name
-    Value: Капитуляция
-  - Key: action.surrender.desc
+  - Key: action.force_war_loss.name
+    Value: Принудительное поражение
+  - Key: action.force_war_loss.desc
     Value: Заставить эту страну проиграть текущую войну.
-  - Key: effect.ultimatum_effect.name
+  - Key: effect.force_war_win_effect.name
     Value: Принудительная победа в войне
-  - Key: effect.ultimatum_effect.desc
+  - Key: effect.force_war_win_effect.desc
     Value: Завершить текущую войну страны её победой.
-  - Key: effect.surrender_effect.name
+  - Key: effect.force_war_loss_effect.name
     Value: Принудительное поражение в войне
-  - Key: effect.surrender_effect.desc
+  - Key: effect.force_war_loss_effect.desc
     Value: Завершить текущую войну страны её поражением.
   - Key: action.decrease_enemy_control.name
-    Value: Подрыв влияния
+    Value: Снизить контроль врага
   - Key: action.decrease_enemy_control.desc
-    Value: Ослабить контроль соперника и усилить свой.
+    Value: Уменьшить контроль организации-соперника.
   - Key: effect.decrease_enemy_control_drain.name
     Value: Ослабление контроля соперника
   - Key: effect.decrease_enemy_control_drain.desc
     Value: Уменьшить контроль организации-соперника.
-  - Key: effect.decrease_enemy_control_gain.name
-    Value: Укрепление контроля
-  - Key: effect.decrease_enemy_control_gain.desc
-    Value: Увеличить контроль своей организации.
   - Key: action.sell_arms.name
     Value: Продажа оружия
   - Key: action.sell_arms.desc
@@ -1818,16 +1838,64 @@ MonoBehaviour:
     Value: Поставка вооружения
   - Key: effect.sell_arms_damage_bonus_effect.desc
     Value: Увеличивает урон войск этой страны, постепенно ослабевая со временем.
+  - Key: action.requirement.generic
+    Value: Требование карты выполнено
+  - Key: action.requirement.action_exists
+    Value: Действие карты существует
+  - Key: action.requirement.unavailable
+    Value: Карта недоступна
+  - Key: action.requirement.control_min
+    Value: Контроль не ниже {0}
+  - Key: action.requirement.enemy_control
+    Value: Есть контроль противника
+  - Key: action.requirement.opinion_min
+    Value: Мнение не ниже {0}
+  - Key: action.requirement.friend_candidate
+    Value: Есть кандидат в друзья
+  - Key: action.requirement.rival_candidate
+    Value: Есть кандидат в соперники
+  - Key: action.requirement.relation_friend
+    Value: Страны являются друзьями
+  - Key: action.requirement.relation_rival
+    Value: Страны являются соперниками
+  - Key: action.requirement.in_war
+    Value: Страна участвует в войне
+  - Key: action.requirement.war_progress_min
+    Value: Прогресс войны не ниже {0}
+  - Key: action.requirement.war_progress_max
+    Value: Прогресс войны не выше {0}
+  - Key: action.requirement.target_opinion_min
+    Value: Мнение цели не ниже {0}
+  - Key: action.requirement.neither_at_war
+    Value: Обе страны не воюют
+  - Key: action.requirement.war_free
+    Value: Страны не воюют друг с другом
+  - Key: action.requirement.revenge_target
+    Value: Есть цель для мести
+  - Key: action.requirement.primary_country
+    Value: Выберите страну {0}
+  - Key: action.requirement.control_capacity
+    Value: В пуле контроля есть место
+  - Key: action.requirement.cooldown_ready
+    Value: Карта готова
+  - Key: action.requirement.gold
+    Value: Иметь {0} золота
+  - Key: action.requirement.resource
+    Value: Иметь {0} ед. ресурса {2}
+  - Key: action.discard.hint
+    Value: Сбросить за
+  - Key: action.discard.no_gold
+    Value: Недостаточно золота
   - Key: action.country.unplayable.pool_full
     Value: Пул контроля переполнен
   - Key: action.country.unplayable.insufficient_control
-    Value: Requires {0} control
+    Value: Требуется контроль не ниже {0}
   - Key: action.country.unplayable.insufficient_opinion
     Value: Требуется {0} мнения у {1}
   - Key: action.country.unplayable.insufficient_target_opinion
     Value: Требуется мнение не ниже {0} у правителя или военного советника страны
   - Key: action.country.unplayable.no_suitable_target
-    Value: No suitable target country available
+    Value: Нет подходящей страны-цели
   - Key: action.country.unplayable.relation_no_longer_exists
     Value: Указанные отношения больше не существуют
   - Key: action.country.unplayable.already_at_war
@@ -1842,13 +1910,13 @@ MonoBehaviour:
     Value: Эта страна сейчас не участвует в войне
   - Key: action.country.unplayable.on_cooldown
     Value: На перезарядке
-  - Key: action.revenge.name
-    Value: "Месть против {0}"
-  - Key: action.revenge.desc
+  - Key: action.declare_revenge_war.name
+    Value: "Объявить войну мести стране {0}"
+  - Key: action.declare_revenge_war.desc
     Value: Объявить войну мести против этой страны с временными боевыми бонусами.
-  - Key: effect.revenge_declare_war.name
+  - Key: effect.declare_revenge_war_effect.name
     Value: Объявить войну мести
-  - Key: effect.revenge_declare_war.desc
+  - Key: effect.declare_revenge_war_effect.desc
     Value: Начать войну с временными бонусами к урону и стойкости для атакующего.
   - Key: action.country.unplayable.war_ended
     Value: Война окончена

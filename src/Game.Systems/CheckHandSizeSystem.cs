@@ -5,102 +5,79 @@ using GS.Game.Components;
 namespace GS.Game.Systems {
 	public static class CheckHandSizeSystem {
 		public static void Update(World world) {
-			var discards = new List<(string orgId, string countryId)>();
-
-			int[] discardOrgReq = { TypeId<CardDiscard>.Value, TypeId<OrgContext>.Value };
-			int[] excludeCountry = { TypeId<CountryContext>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(discardOrgReq, excludeCountry)) {
+			var discards = new List<(string orgId, CardOwnerKind ownerKind)>();
+			int[] required = {
+				TypeId<CardDiscard>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CardOwnerType>.Value
+			};
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					discards.Add((orgs[i].OrgId, ""));
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
+				for (int i = 0; i < arch.Count; i++) {
+					discards.Add((orgs[i].OrgId, owners[i].Value));
 				}
 			}
 
-			int[] discardCountryReq = { TypeId<CardDiscard>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(discardCountryReq, null)) {
-				OrgContext[] orgs = arch.GetColumn<OrgContext>();
-				CountryContext[] countries = arch.GetColumn<CountryContext>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					discards.Add((orgs[i].OrgId, countries[i].CountryId));
-				}
-			}
-
-			if (discards.Count == 0) { return; }
-
-			var processed = new HashSet<(string, string)>();
-			foreach (var (orgId, countryId) in discards) {
-				var key = (orgId, countryId);
-				if (!processed.Add(key)) { continue; }
-
-				int handSize = GetHandSize(world, orgId, countryId);
-				int currentHand = CountCardsInHand(world, orgId, countryId);
+			var processed = new HashSet<(string, CardOwnerKind)>();
+			foreach (var (orgId, ownerKind) in discards) {
+				if (!processed.Add((orgId, ownerKind))) { continue; }
+				int handSize = GetHandSize(world, orgId, ownerKind);
+				int currentHand = CountCardsInHand(world, orgId, ownerKind);
 				if (currentHand < handSize) {
-					AddCardDraw(world, orgId, countryId, handSize - currentHand);
+					AddCardDraw(world, orgId, ownerKind, handSize - currentHand);
 				}
 			}
 		}
 
-		static int GetHandSize(World world, string orgId, string countryId) {
-			int[] deckReq = { TypeId<CardDeck>.Value, TypeId<CardHand>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(deckReq, null)) {
+		static int GetHandSize(IReadOnlyWorld world, string orgId, CardOwnerKind ownerKind) {
+			int[] required = {
+				TypeId<CardDeck>.Value,
+				TypeId<CardOwnerType>.Value,
+				TypeId<CardHand>.Value
+			};
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				CardDeck[] decks = arch.GetColumn<CardDeck>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				CardHand[] hands = arch.GetColumn<CardHand>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (decks[i].OrgId == orgId && decks[i].CountryId == countryId) {
+				for (int i = 0; i < arch.Count; i++) {
+					if (decks[i].OrgId == orgId && owners[i].Value == ownerKind) {
 						return hands[i].HandSize;
 					}
 				}
 			}
-			return string.IsNullOrEmpty(countryId) ? 1 : 3;
+			return ownerKind == CardOwnerKind.Org ? 1 : 3;
 		}
 
-		static int CountCardsInHand(World world, string orgId, string countryId) {
+		static int CountCardsInHand(IReadOnlyWorld world, string orgId, CardOwnerKind ownerKind) {
 			int total = 0;
-			if (string.IsNullOrEmpty(countryId)) {
-				int[] req = { TypeId<OrgContext>.Value, TypeId<CardInHand>.Value };
-				int[] excludeCountry = { TypeId<CountryContext>.Value };
-				foreach (var arch in world.GetMatchingArchetypes(req, excludeCountry)) {
-					OrgContext[] orgs = arch.GetColumn<OrgContext>();
-					int count = arch.Count;
-					for (int i = 0; i < count; i++) {
-						if (orgs[i].OrgId == orgId) { total++; }
-					}
-				}
-			} else {
-				int[] req = { TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<CardInHand>.Value };
-				foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-					OrgContext[] orgs = arch.GetColumn<OrgContext>();
-					CountryContext[] countries = arch.GetColumn<CountryContext>();
-					int count = arch.Count;
-					for (int i = 0; i < count; i++) {
-						if (orgs[i].OrgId == orgId && countries[i].CountryId == countryId) { total++; }
-					}
+			int[] required = {
+				TypeId<OrgContext>.Value,
+				TypeId<CardOwnerType>.Value,
+				TypeId<CardInHand>.Value
+			};
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (orgs[i].OrgId == orgId && owners[i].Value == ownerKind) { total++; }
 				}
 			}
 			return total;
 		}
 
-		static void AddCardDraw(World world, string orgId, string countryId, int count) {
-			int[] deckReq = { TypeId<CardDeck>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(deckReq, null)) {
+		static void AddCardDraw(World world, string orgId, CardOwnerKind ownerKind, int count) {
+			int[] required = { TypeId<CardDeck>.Value, TypeId<CardOwnerType>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				CardDeck[] decks = arch.GetColumn<CardDeck>();
-				int dc = arch.Count;
-				for (int i = 0; i < dc; i++) {
-					if (decks[i].OrgId == orgId && decks[i].CountryId == countryId) {
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (decks[i].OrgId == orgId && owners[i].Value == ownerKind) {
 						world.Add(arch.Entities[i], new CardDraw { Count = count });
 						return;
 					}
 				}
 			}
-			int drawEntity = world.Create();
-			world.Add(drawEntity, new OrgContext { OrgId = orgId });
-			if (!string.IsNullOrEmpty(countryId)) {
-				world.Add(drawEntity, new CountryContext { CountryId = countryId });
-			}
-			world.Add(drawEntity, new CardDraw { Count = count });
 		}
 	}
 }
