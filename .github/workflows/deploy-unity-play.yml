@@ -58,7 +58,10 @@ jobs:
       - name: Resolve WebGL build directory
         id: webgl
         run: |
-          INDEX=$(find build -maxdepth 4 -name index.html -type f | sort | head -n 1)
+          # Shallowest index.html wins — StreamingAssets/EcsViewer ships its own,
+          # and it sorts before the player's index.html alphabetically.
+          INDEX=$(find build -maxdepth 4 -name index.html -type f -printf '%d\t%p\n' \
+            | sort -n -k1,1 | head -n 1 | cut -f2-)
           if [ -z "$INDEX" ]; then
             echo "::error::No index.html found under build/"
             find build -maxdepth 4
