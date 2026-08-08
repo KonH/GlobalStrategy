@@ -92,7 +92,7 @@ jobs:
           UNITY_PLAY_PROJECT_ID: ${{ secrets.UNITY_PLAY_PROJECT_ID }}
           UNITY_PLAY_TITLE: ${{ vars.UNITY_PLAY_TITLE }}
         run: |
-          PROJECT_ID="${UNITY_PLAY_PROJECT_ID:-790490b4-2b09-4c1c-8a2e-df23f6b43b47}"
+          PROJECT_ID="${UNITY_PLAY_PROJECT_ID:-e1953a2d-a3eb-40b1-b8ac-75282d4cf315}"
           TITLE="${UNITY_PLAY_TITLE:-Global Strategy}"
           python scripts/ci/deploy_unity_play.py \
             --build-dir "${{ steps.webgl.outputs.dir }}" \

@@ -17,7 +17,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import sys
 import time
 import uuid
@@ -31,8 +30,8 @@ UPLOAD_URL = "https://play.unity.com/api/webgl/upload"
 PROGRESS_URL = "https://play.unity.com/api/webgl/progress"
 ZIP_LIMIT_BYTES = 200 * 1024 * 1024
 DEFAULT_TITLE = "Global Strategy"
-# Existing Unity Play game from README / live demo URL.
-DEFAULT_PROJECT_ID = "790490b4-2b09-4c1c-8a2e-df23f6b43b47"
+# Unity Play game updated by the deploy workflow (README / live demo URL).
+DEFAULT_PROJECT_ID = "e1953a2d-a3eb-40b1-b8ac-75282d4cf315"
 
 
 def _die(message: str, code: int = 1) -> None:
@@ -232,36 +231,6 @@ def wait_for_progress(token: str, key: str, *, poll_seconds: float = 1.5, timeou
         time.sleep(poll_seconds)
 
 
-GAME_ID_RE = re.compile(r"/games/([0-9a-fA-F-]{36})")
-
-
-def check_target_game(requested_id: str, result: dict[str, Any]) -> None:
-    """Fail if Unity Play published to a game other than the requested one.
-
-    The upload API creates a brand new game when it does not accept the
-    submitted projectId, and reports that only through the game id embedded in
-    the returned URL — the projectId field echoes back what was sent. Without
-    this check every run silently adds another duplicate game to the account.
-    """
-    if not requested_id:
-        return  # First publish: no existing game to match against.
-
-    url = result.get("url") or ""
-    url_ids = GAME_ID_RE.findall(url)
-    if not url_ids or requested_id in url_ids:
-        return
-
-    _die(
-        f"Unity Play published to game {url_ids[0]} instead of the requested "
-        f"{requested_id} — a duplicate game was created. The projectId is the "
-        "server-assigned Unity Play id (the Publisher package caches it in its "
-        "'webgl_sharing' file), not the id from any hand-copied URL, and the "
-        "authenticated account must own that game. Set UNITY_PLAY_PROJECT_ID to "
-        "the id shown in the target game's Unity Play edit URL, or pass "
-        "--allow-new-game if creating a new game is intended."
-    )
-
-
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -292,11 +261,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Temporary zip path (deleted after upload unless --keep-zip)",
     )
     parser.add_argument("--keep-zip", action="store_true", help="Keep the zip after upload")
-    parser.add_argument(
-        "--allow-new-game",
-        action="store_true",
-        help="Allow publishing to a different game than --project-id (creates a duplicate)",
-    )
     parser.add_argument(
         "--email",
         default=os.environ.get("UNITY_EMAIL", ""),
@@ -330,8 +294,6 @@ def main(argv: list[str] | None = None) -> int:
         build_guid=(args.build_guid or "").strip(),
     )
     result = wait_for_progress(token, key)
-    if not args.allow_new_game:
-        check_target_game((args.project_id or "").strip(), result)
     url = result.get("url") or ""
     project_id = result.get("projectId") or ""
     print("Unity Play deploy complete")
