@@ -167,11 +167,17 @@ def upload(
     project_id: str,
     build_guid: str,
 ) -> str:
-    fields = {"title": title}
+    # Unity Play rejects the upload with HTTP 422 ("buildGUID must be a string")
+    # when the field is absent, so always send one. The Publisher package sends
+    # Application.buildGUID (32 hex chars); a fresh GUID per deploy matches that
+    # shape and keeps each upload distinct.
+    if not build_guid:
+        build_guid = uuid.uuid4().hex
+        print(f"no build GUID supplied; generated {build_guid}")
+
+    fields = {"title": title, "buildGUID": build_guid}
     if project_id:
         fields["projectId"] = project_id
-    if build_guid:
-        fields["buildGUID"] = build_guid
 
     body, boundary = _multipart_body(
         fields,
@@ -269,6 +275,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Keep progress prints interleaved with stderr correctly in CI logs.
+    sys.stdout.reconfigure(line_buffering=True)
     args = parse_args(argv)
     email = args.email.strip()
     password = args.password
