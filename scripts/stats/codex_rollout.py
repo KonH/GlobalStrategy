@@ -14,11 +14,22 @@ from scripts.stats.segmentation import split_into_substages
 # (regex fragment to search for in a user_message's text, stage). Checked in order;
 # first match wins. Ralph's own phases (create-prd/loop/complete-prd) are all part of
 # implementing an already-planned spec, so they all map to "implement".
+#
+# codex-issue/SKILL.md batch runs (scripts/automation/codex/handle_issues.py) are one
+# CLI invocation that may internally progress through /specify, /plan, or /implement
+# with no per-stage marker in the outer prompt - there is nothing finer to segment on,
+# so the whole rollout is treated as a single "implement"-labeled segment here. This
+# placeholder stage is never what actually reaches usage.csv for these runs: the
+# wrapper always calls record_usage_row_codex() with the real stage it observed via the
+# item's live ai-specify/ai-plan/ai-implement label, which overrides it. The important
+# part is that a row exists here at all - previously this entry mapped to `None` and
+# the whole session was silently dropped (see scripts/automation/common/issue_handler.py's
+# determine_usage_stage_and_spec_dir(), which the wrapper calls before recording).
 STAGE_MATCH_TABLE = [
     ("create-prd.md", "implement"),
     ("complete-prd.md", "implement"),
     ("follow these iteration instructions exactly", "implement"),
-    ("codex-issue/SKILL.md", None),  # batch handler - see module docstring below
+    ("codex-issue/SKILL.md", "implement"),
     ("/specify", "spec"),
     ("/plan", "plan"),
     ("/implement", "implement"),
@@ -43,10 +54,12 @@ def parse_codex_rollout(path, repo_dir_name="GlobalStrategy"):
 
     Filters out rollouts whose thread_source is "subagent" (internal judge-model calls
     with no relation to a spec/plan/implement stage) and rollouts whose cwd doesn't
-    match this repo. handle_issues.py-driven rollouts process a batch of issues that
-    may span multiple stages within one CLI invocation with no per-stage marker in the
-    outer prompt - those intentionally produce no rows from this per-file parser (they
-    still get attributed via the wrapper's own --record calls, see collect_usage.py).
+    match this repo. handle_issues.py-driven rollouts process one candidate per CLI
+    invocation that may internally progress through multiple stages with no per-stage
+    marker in the outer prompt, so this parser returns exactly one placeholder-staged
+    segment for the whole session (see the STAGE_MATCH_TABLE comment above) - the
+    wrapper's own record_usage_row_codex() call overrides that placeholder with the
+    real stage it read from the item's live ai-specify/ai-plan/ai-implement label.
     """
     path = Path(path)
     lines = path.read_text(encoding="utf-8").splitlines()
