@@ -14,6 +14,8 @@ Steps:
 3. `Edit` the file to replace `  bundleVersion: X.YYY` with `X.{YYY+1}` (keep the two leading spaces, keep `X` unchanged, no padding on the new `YYY+1`)
 4. Run `git add ProjectSettings/ProjectSettings.asset` via Bash
 
+**Also bump the displayed version.** `Assets/Configs/game_settings.json` has a top-level `"version"` field — this is what the main-menu version label shows (`MainMenuDocument` reads `GameSettings.Version`, not `Application.version`, because the Web build profile embeds its own PlayerSettings snapshot and could ship a stale `bundleVersion`). `Edit` it to the same new `X.YYY` value and `git add` it too, so the two stay in step.
+
 Always run this before committing so the version bump is included in the commit.
 
 ## Pre-commit step: build Release DLLs (if src/ changed)

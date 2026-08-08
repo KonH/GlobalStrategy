@@ -3,6 +3,8 @@ using System.IO;
 using System.Text;
 using System.Text.Json;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Benchmarks {
 	public static class SnapshotStore {
 		static readonly JsonSerializerOptions s_writeOptions = new JsonSerializerOptions {

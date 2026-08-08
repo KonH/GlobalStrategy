@@ -8,16 +8,16 @@ using GS.Game.Configs;
 	namespace GS.Game.Systems {
 	public static partial class WarBattleSystem {
 		static void FillSlots(
-			World world, WarInfo war, Random rng, ProvinceTopology topology,
+			World world, ResourceQuery resources, WarInfo war, Random rng, ProvinceTopology topology,
 			WarBattleSettings settings, DateTime currentTime) {
 			while (WarBattles.GetBattles(world, war.WarId, BattleState.Active).Count < war.Capacity) {
 				List<WarBattles.ParticipantInfo> participants = WarBattles.GetParticipants(world, war.WarId);
 				if (participants.Count == 0) {
 					return;
 				}
-				WarBattles.ParticipantInfo initiator = ChooseInitiator(world, participants, rng);
+				WarBattles.ParticipantInfo initiator = ChooseInitiator(world, resources, participants, rng);
 				RequireDelta(
-					world, initiator.CountryId, ResourceDefinitions.WarInitiative,
+					resources, world, initiator.CountryId, ResourceDefinitions.WarInitiative,
 					-settings.InitiationCost, double.MinValue, double.MaxValue,
 					$"war_initiation_{war.WarId}_{initiator.CountryId}",
 					$"charging battle initiation for war '{war.WarId}'");
@@ -31,7 +31,7 @@ using GS.Game.Configs;
 				string battleId = $"{war.WarId}_battle_{WarBattles.GetBattles(world, war.WarId).Count}";
 				foreach (WarBattles.ParticipantInfo participant in participants) {
 					double available = RequireResource(
-						world, participant.CountryId, ResourceDefinitions.Recruits,
+						resources, world, participant.CountryId, ResourceDefinitions.Recruits,
 						$"allocating forces for battle '{battleId}'");
 					available = Math.Max(0, available);
 					double baseRatio = 1.0 / (war.Capacity + settings.TroopDenominatorOffset);
@@ -39,7 +39,7 @@ using GS.Game.Configs;
 						* NextDouble(rng, settings.TroopRandomMin, settings.TroopRandomMax);
 					double troops = Math.Clamp(Math.Ceiling(available * randomizedRatio), 0, available);
 					RequireDelta(
-						world, participant.CountryId, ResourceDefinitions.Recruits,
+						resources, world, participant.CountryId, ResourceDefinitions.Recruits,
 						-troops, 0, double.MaxValue,
 						$"war_recruit_commit_{battleId}_{participant.CountryId}",
 						$"committing recruits to battle '{battleId}'");
@@ -78,12 +78,12 @@ using GS.Game.Configs;
 		}
 
 		static WarBattles.ParticipantInfo ChooseInitiator(
-			IReadOnlyWorld world, List<WarBattles.ParticipantInfo> participants, Random rng) {
+			IReadOnlyWorld world, ResourceQuery resources, List<WarBattles.ParticipantInfo> participants, Random rng) {
 			double maximum = double.MinValue;
 			var tied = new List<WarBattles.ParticipantInfo>();
 			foreach (WarBattles.ParticipantInfo participant in participants) {
 				double initiative = RequireResource(
-					world, participant.CountryId, ResourceDefinitions.WarInitiative,
+					resources, world, participant.CountryId, ResourceDefinitions.WarInitiative,
 					$"selecting the initiator for war '{participant.CountryId}'");
 				if (initiative > maximum) {
 					maximum = initiative;

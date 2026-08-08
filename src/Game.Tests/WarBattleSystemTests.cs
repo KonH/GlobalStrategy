@@ -9,6 +9,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class WarBattleSystemTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static readonly DateTime Start = new DateTime(1880, 1, 1);
 
 		static ProvinceConfig BuildProvinceConfig() {
@@ -108,11 +110,11 @@ namespace GS.Game.Tests {
 			var topology = new ProvinceTopology(BuildProvinceConfig());
 			var settings = new WarBattleSettings();
 
-			Assert.True(Wars.DeclareWar(world, "France", "Germany", Start, topology, settings));
+			Assert.True(Wars.DeclareWar(world, _resources, "France", "Germany", Start, topology, settings));
 
 			Assert.Equal(1, GetSingle<WarBattleCapacity>(world).MaxConcurrentBattleCount);
-			Assert.Equal(1, ResourceQuery.GetValue(world, "France", ResourceDefinitions.WarInitiative));
-			Assert.Equal(0, ResourceQuery.GetValue(world, "Germany", ResourceDefinitions.WarInitiative));
+			Assert.Equal(1, _resources.GetValue(world, "France", ResourceDefinitions.WarInitiative));
+			Assert.Equal(0, _resources.GetValue(world, "Germany", ResourceDefinitions.WarInitiative));
 		}
 
 		[Fact]
@@ -120,10 +122,9 @@ namespace GS.Game.Tests {
 			var world = BuildWorld(100, 0);
 			var topology = new ProvinceTopology(BuildProvinceConfig());
 			var settings = new WarBattleSettings();
-			Wars.DeclareWar(world, "France", "Germany", Start, topology, settings);
+			Wars.DeclareWar(world, _resources, "France", "Germany", Start, topology, settings);
 
-			WarBattleSystem.Update(
-				world, Start, Start.AddHours(1), new Random(7), topology, settings, WarProgressConfig());
+			WarBattleSystem.Update(world, Start, Start.AddHours(1), new Random(7), topology, settings, _resources, WarProgressConfig());
 
 			Assert.Equal(1, Count<Battle>(world));
 			Assert.Equal(2, Count<BattleForce>(world));
@@ -131,7 +132,7 @@ namespace GS.Game.Tests {
 			Assert.Equal(BattleState.Finished, battle.State);
 			Assert.Equal(WarParticipantKind.Attacker, battle.Winner);
 			string warId = GetSingle<War>(world).WarId;
-			Assert.Equal(10, ResourceQuery.GetValue(world, warId, ResourceDefinitions.WarProgress));
+			Assert.Equal(10, _resources.GetValue(world, warId, ResourceDefinitions.WarProgress));
 			Assert.Equal("France", ProvinceOccupationSystem.GetOccupier(world, "Germany__east"));
 		}
 
@@ -140,11 +141,10 @@ namespace GS.Game.Tests {
 			var world = BuildWorld(100, 0);
 			var topology = new ProvinceTopology(BuildProvinceConfig());
 			var settings = new WarBattleSettings();
-			Wars.DeclareWar(world, "France", "Germany", Start, topology, settings);
+			Wars.DeclareWar(world, _resources, "France", "Germany", Start, topology, settings);
 			string warId = GetSingle<War>(world).WarId;
 
-			WarBattleSystem.Update(
-				world, Start, Start.AddHours(1), new Random(7), topology, settings, WarProgressConfig());
+			WarBattleSystem.Update(world, Start, Start.AddHours(1), new Random(7), topology, settings, _resources, WarProgressConfig());
 
 			Battle battle = GetSingle<Battle>(world);
 			int[] required = {
@@ -175,10 +175,9 @@ namespace GS.Game.Tests {
 			var world = BuildWorld(100, 0);
 			var topology = new ProvinceTopology(BuildProvinceConfig());
 			var settings = new WarBattleSettings();
-			Wars.DeclareWar(world, "France", "Germany", Start, topology, settings);
+			Wars.DeclareWar(world, _resources, "France", "Germany", Start, topology, settings);
 
-			WarBattleSystem.Update(
-				world, Start, Start.AddHours(1), new Random(7), topology, settings, WarProgressConfig());
+			WarBattleSystem.Update(world, Start, Start.AddHours(1), new Random(7), topology, settings, _resources, WarProgressConfig());
 
 			List<ResourceChange> changes = GetAll<ResourceChange>(world);
 			Assert.NotEmpty(changes);

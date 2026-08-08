@@ -4,6 +4,8 @@ using BenchmarkDotNet.Attributes;
 using GS.Game.Commands;
 using GS.Main;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Benchmarks {
 	[MemoryDiagnoser]
 	public class ListVisualStateSetBenchmarks {

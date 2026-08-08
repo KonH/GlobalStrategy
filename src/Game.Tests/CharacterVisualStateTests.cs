@@ -104,7 +104,7 @@ namespace GS.Game.Tests {
 				DefaultLocale = "en",
 				SpeedMultipliers = new[] { 1, 2, 4 },
 				AutoSaveInterval = "monthly",
-				FeatureFlags = new FeatureFlagSettings { EnableSecretAdvisor = true }
+				FeatureFlags = new FeatureFlagSettings { EnableSecretAdvisor = true, EnableRuler = true }
 			};
 			var resourceConfig = new ResourceConfig {
 				Resources = new List<ResourceDefinition> {

@@ -9,57 +9,64 @@ namespace GS.Game.Systems {
 			foreach (var cmd in commands.AsSpan()) {
 				if (string.IsNullOrEmpty(cmd.OrgId)) { continue; }
 				if (string.IsNullOrEmpty(cmd.CountryId)) {
-					InitOrgCard(world, cmd.OrgId, cmd.ActionId);
+					InitCard(world, cmd.OrgId, CardOwnerKind.Org, "", cmd.ActionId, cmd.TargetCountryId, cmd.SlotIndex);
 				} else {
-					InitCountryCard(world, cmd.OrgId, cmd.CountryId, cmd.ActionId, cmd.TargetCountryId);
+					InitCard(world, cmd.OrgId, CardOwnerKind.Country, cmd.CountryId, cmd.ActionId, cmd.TargetCountryId, cmd.SlotIndex);
 				}
 			}
 		}
 
-		static void InitOrgCard(World world, string orgId, string actionId) {
-			int[] required = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardInHand>.Value };
-			int[] exclude = { TypeId<CountryContext>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(required, exclude)) {
-				GameAction[] actions = arch.GetColumn<GameAction>();
-				OrgContext[] orgs = arch.GetColumn<OrgContext>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (orgs[i].OrgId != orgId || actions[i].ActionId != actionId) { continue; }
-					int entity = arch.Entities[i];
-					if (world.Has<CardUse>(entity)) {
-						throw new InvalidOperationException($"Duplicate PlayCardActionCommand for org={orgId} action={actionId}");
-					}
-					world.Add(entity, new CardUse());
-					return;
-				}
-			}
-		}
-
-		static void InitCountryCard(World world, string orgId, string countryId, string actionId, string targetCountryId) {
-			int[] required = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<CardInHand>.Value };
+		static void InitCard(
+			World world,
+			string orgId,
+			CardOwnerKind ownerKind,
+			string selectedCountryId,
+			string actionId,
+			string targetCountryId,
+			int slotIndex) {
+			int[] required = {
+				TypeId<GameAction>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CardOwnerType>.Value,
+				TypeId<CardInHand>.Value
+			};
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
-				CountryContext[] countries = arch.GetColumn<CountryContext>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
+				CardInHand[] hands = arch.GetColumn<CardInHand>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					if (orgs[i].OrgId != orgId || countries[i].CountryId != countryId || actions[i].ActionId != actionId) { continue; }
+					if (orgs[i].OrgId != orgId
+						|| owners[i].Value != ownerKind
+						|| actions[i].ActionId != actionId) {
+						continue;
+					}
 					int entity = arch.Entities[i];
 					string cardTargetCountryId = world.Has<RelationCardTarget>(entity)
 						? world.Get<RelationCardTarget>(entity).TargetCountryId
 						: world.Has<RevengeCardTarget>(entity) ? world.Get<RevengeCardTarget>(entity).TargetCountryId : "";
-					if (!string.IsNullOrEmpty(cardTargetCountryId)) {
-						if (string.IsNullOrEmpty(targetCountryId) || cardTargetCountryId != targetCountryId) { continue; }
-					} else if (!string.IsNullOrEmpty(targetCountryId)) {
-						continue;
-					}
-					if (world.Has<CardUse>(entity)) {
-						throw new InvalidOperationException($"Duplicate PlayCardActionCommand for org={orgId} country={countryId} action={actionId}");
-					}
-					world.Add(entity, new CardUse());
+					if (cardTargetCountryId != (targetCountryId ?? "")) { continue; }
+					if (hands[i].SlotIndex != slotIndex) { continue; }
+					Activate(world, entity, orgId, ownerKind, selectedCountryId, actionId, slotIndex);
 					return;
 				}
 			}
+		}
+
+		static void Activate(
+			World world,
+			int entity,
+			string orgId,
+			CardOwnerKind ownerKind,
+			string selectedCountryId,
+			string actionId,
+			int slotIndex) {
+			if (world.Has<CardUse>(entity)) {
+				throw new InvalidOperationException(
+					$"Duplicate PlayCardActionCommand for org={orgId} owner={ownerKind} slot={slotIndex} action={actionId}");
+			}
+			world.Add(entity, new CardUse { CountryId = selectedCountryId });
 		}
 	}
 }

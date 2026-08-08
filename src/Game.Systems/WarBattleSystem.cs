@@ -22,6 +22,7 @@ using GS.Game.Configs;
 		public static void Update(
 			World world, DateTime previousTime, DateTime currentTime, Random rng,
 			ProvinceTopology topology, WarBattleSettings settings,
+			ResourceQuery resources,
 			ResourceConfig? resourceConfig = null) {
 			settings.Validate();
 			List<WarInfo> wars = GetWars(world);
@@ -38,18 +39,18 @@ using GS.Game.Configs;
 			for (long bucket = previousBucket + 1; bucket <= currentBucket; bucket++) {
 				processedBoundary = true;
 				foreach (WarInfo war in wars) {
-					FillSlots(world, war, rng, topology, settings, currentTime);
+					FillSlots(world, resources, war, rng, topology, settings, currentTime);
 					List<WarBattles.BattleInfo> active =
 						WarBattles.GetBattles(world, war.WarId, BattleState.Active);
 					foreach (WarBattles.BattleInfo battle in active) {
-						ProcessRound(world, war, battle, rng, settings, resourceConfig, currentTime);
+						ProcessRound(world, resources, war, battle, rng, settings, resourceConfig, currentTime);
 					}
 				}
 			}
 
 			if (!processedBoundary) {
 				foreach (WarInfo war in wars) {
-					FillSlots(world, war, rng, topology, settings, currentTime);
+					FillSlots(world, resources, war, rng, topology, settings, currentTime);
 				}
 			}
 		}

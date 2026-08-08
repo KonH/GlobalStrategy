@@ -88,7 +88,7 @@ namespace GS.Game.Tests {
 			};
 		}
 
-		static GameLogic BuildLogic(CharacterConfig characterConfig, string countryId = "Great_Britain", bool isAvailable = true, bool enableSecretAdvisor = true) {
+		static GameLogic BuildLogic(CharacterConfig characterConfig, string countryId = "Great_Britain", bool isAvailable = true, bool enableSecretAdvisor = true, bool enableRuler = true) {
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
 					new CountryEntry { CountryId = countryId, DisplayName = countryId, IsAvailable = isAvailable }
@@ -100,7 +100,7 @@ namespace GS.Game.Tests {
 				DefaultLocale = "en",
 				SpeedMultipliers = new[] { 1, 2, 4 },
 				AutoSaveInterval = "monthly",
-				FeatureFlags = new FeatureFlagSettings { EnableSecretAdvisor = enableSecretAdvisor }
+				FeatureFlags = new FeatureFlagSettings { EnableSecretAdvisor = enableSecretAdvisor, EnableRuler = enableRuler }
 			};
 			var resourceConfig = new ResourceConfig {
 				Resources = new List<ResourceDefinition> {
@@ -182,6 +182,20 @@ namespace GS.Game.Tests {
 			Assert.Equal(4, chars.Count);
 			Assert.DoesNotContain("secret_advisor", roles);
 			Assert.Contains("ruler", roles);
+			Assert.Contains("military_advisor", roles);
+			Assert.Contains("diplomacy_advisor", roles);
+			Assert.Contains("economic_advisor", roles);
+		}
+
+		[Fact]
+		void ruler_absent_when_feature_flag_disabled() {
+			var logic = BuildLogic(BuildCharacterConfig(), enableRuler: false);
+			logic.Update(0f);
+			var chars = GetCharacters(logic.World, "Great_Britain");
+			var roles = chars.Select(c => c.RoleId).ToHashSet();
+			Assert.Equal(4, chars.Count);
+			Assert.DoesNotContain("ruler", roles);
+			Assert.Contains("secret_advisor", roles);
 			Assert.Contains("military_advisor", roles);
 			Assert.Contains("diplomacy_advisor", roles);
 			Assert.Contains("economic_advisor", roles);

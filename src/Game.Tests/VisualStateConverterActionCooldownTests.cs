@@ -6,8 +6,12 @@ using GS.Game.Configs;
 using GS.Main;
 using Xunit;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Tests {
 	public class VisualStateConverterActionCooldownTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static readonly DateTime BaseTime = new DateTime(1880, 6, 1);
 
 		static ActionConfig BuildActionConfig(double cooldownDays = 7) {
@@ -39,6 +43,7 @@ namespace GS.Game.Tests {
 			int cardEntity = world.Create();
 			world.Add(cardEntity, new GameAction { ActionId = "declare_war" });
 			world.Add(cardEntity, new OrgContext { OrgId = "OrgA" });
+			world.Add(cardEntity, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(cardEntity, new CountryContext { CountryId = "Prussia" });
 			world.Add(cardEntity, new CardInHand { SlotIndex = 0 });
 
@@ -65,7 +70,7 @@ namespace GS.Game.Tests {
 			AddCooldownTracking(world, "OrgA", "declare_war", endTime);
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, config);
+			var converter = new VisualStateConverter(state, _resources, _relations, config);
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -85,7 +90,7 @@ namespace GS.Game.Tests {
 			var world = BuildWorldWithCard(out int gameTimeEntity, out int localeEntity, out int orgEntity, BaseTime);
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, config);
+			var converter = new VisualStateConverter(state, _resources, _relations, config);
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -103,7 +108,7 @@ namespace GS.Game.Tests {
 			AddCooldownTracking(world, "OrgA", "declare_war", endTime);
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, config);
+			var converter = new VisualStateConverter(state, _resources, _relations, config);
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 
@@ -120,7 +125,7 @@ namespace GS.Game.Tests {
 			AddCooldownTracking(world, "OrgA", "declare_war", endTime);
 
 			var state = new VisualState();
-			var converter = new VisualStateConverter(state, config);
+			var converter = new VisualStateConverter(state, _resources, _relations, config);
 
 			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
 

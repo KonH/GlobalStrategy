@@ -8,6 +8,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class DamageCollectorTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		[Fact]
 		void compute_sums_base_plus_ruler_and_military_power() {
 			var world = new World();
@@ -18,7 +20,7 @@ namespace GS.Game.Tests {
 			};
 			var collector = new DamageCollector(bases);
 
-			double delta = collector.Compute("France", 0.0, world);
+			double delta = collector.Compute("France", 0.0, world, _resources);
 
 			Assert.Equal(120.0, delta, 6);
 		}
@@ -32,7 +34,7 @@ namespace GS.Game.Tests {
 			};
 			var collector = new DamageCollector(bases);
 
-			double delta = collector.Compute("France", 0.0, world);
+			double delta = collector.Compute("France", 0.0, world, _resources);
 
 			Assert.Equal(105.0, delta, 6);
 		}
@@ -47,7 +49,7 @@ namespace GS.Game.Tests {
 			};
 			var collector = new DamageCollector(bases);
 
-			double delta = collector.Compute("France", 40.0, world);
+			double delta = collector.Compute("France", 40.0, world, _resources);
 
 			Assert.Equal(80.0, delta, 6);
 		}
@@ -57,7 +59,7 @@ namespace GS.Game.Tests {
 			var world = new World();
 			var collector = new DamageCollector(new Dictionary<string, CountryCombatBases>());
 
-			double delta = collector.Compute("Unknown", 0.0, world);
+			double delta = collector.Compute("Unknown", 0.0, world, _resources);
 
 			Assert.Equal(40.0, delta, 6);
 		}
@@ -75,7 +77,7 @@ namespace GS.Game.Tests {
 			};
 			var collector = new DamageCollector(bases);
 
-			double delta = collector.Compute("France", 0.0, world);
+			double delta = collector.Compute("France", 0.0, world, _resources);
 
 			Assert.Equal(132.0, delta, 6);
 		}
@@ -92,7 +94,7 @@ namespace GS.Game.Tests {
 			};
 			var collector = new DamageCollector(bases);
 
-			double delta = collector.Compute("France", 0.0, world);
+			double delta = collector.Compute("France", 0.0, world, _resources);
 
 			Assert.Equal(120.0 * 1.10, delta, 6);
 		}
@@ -112,7 +114,7 @@ namespace GS.Game.Tests {
 			};
 			var collector = new DamageCollector(bases);
 
-			double delta = collector.Compute("France", 0.0, world);
+			double delta = collector.Compute("France", 0.0, world, _resources);
 
 			Assert.Equal(120.0 * 1.10 * 1.10, delta, 6);
 		}
@@ -127,7 +129,7 @@ namespace GS.Game.Tests {
 			};
 			var collector = new DamageCollector(bases);
 
-			double delta = collector.Compute("France", 0.0, world);
+			double delta = collector.Compute("France", 0.0, world, _resources);
 
 			Assert.Equal(120.0, delta, 6);
 		}

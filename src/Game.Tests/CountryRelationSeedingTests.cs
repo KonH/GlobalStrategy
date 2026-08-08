@@ -10,6 +10,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class CountryRelationSeedingTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
@@ -71,8 +73,8 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			Assert.Equal(1, CountEntities<CountryRelation>(logic.World));
-			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(logic.World, "Great_Britain", "France"));
-			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(logic.World, "France", "Great_Britain"));
+			Assert.Equal(RelationKind.Friend, _relations.GetRelation(logic.World, "Great_Britain", "France"));
+			Assert.Equal(RelationKind.Friend, _relations.GetRelation(logic.World, "France", "Great_Britain"));
 		}
 
 		[Fact]
@@ -92,8 +94,8 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			Assert.Equal(1, CountEntities<CountryRelation>(logic.World));
-			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(logic.World, "Great_Britain", "France"));
-			Assert.Null(CountryRelations.GetRelation(logic.World, "Great_Britain", "Unavailable_Country"));
+			Assert.Equal(RelationKind.Friend, _relations.GetRelation(logic.World, "Great_Britain", "France"));
+			Assert.Null(_relations.GetRelation(logic.World, "Great_Britain", "Unavailable_Country"));
 		}
 
 		[Fact]
@@ -115,7 +117,7 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			Assert.Equal(1, CountEntities<CountryRelation>(logic.World));
-			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(logic.World, "Great_Britain", "France"));
+			Assert.Equal(RelationKind.Friend, _relations.GetRelation(logic.World, "Great_Britain", "France"));
 		}
 
 		[Fact]
@@ -136,8 +138,8 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			Assert.Equal(1, CountEntities<CountryRelation>(logic.World));
-			Assert.Null(CountryRelations.GetRelation(logic.World, "Great_Britain", "France"));
-			Assert.Equal(RelationKind.Rival, CountryRelations.GetRelation(logic.World, "Great_Britain", "Germany"));
+			Assert.Null(_relations.GetRelation(logic.World, "Great_Britain", "France"));
+			Assert.Equal(RelationKind.Rival, _relations.GetRelation(logic.World, "Great_Britain", "Germany"));
 		}
 	}
 }

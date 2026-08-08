@@ -18,7 +18,7 @@ namespace GS.Game.Tests {
 			readonly double _delta;
 			public TrackedStubCollector(double delta) { _delta = delta; }
 
-			public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) {
+			public double Compute(string ownerId, double currentValue, IReadOnlyWorld world, ResourceQuery resources) {
 				WasInvoked = true;
 				return _delta;
 			}
@@ -46,9 +46,7 @@ namespace GS.Game.Tests {
 		void resource_system_month_boundary_call_shape_actually_triggers_collector_resolve() {
 			var world = BuildMonthlyCollectorWorld(out int resourceEntity, out var stub, out var registry);
 
-			ResourceSystem.Update(
-				world, ResourceSystemBenchmarks.BoundaryPrevious, ResourceSystemBenchmarks.BoundaryCurrent,
-				registry, new[] { ResourceDefinitions.CountryPopulation });
+			ResourceSystem.Update(world, ResourceSystemBenchmarks.BoundaryPrevious, ResourceSystemBenchmarks.BoundaryCurrent, registry, new[] { ResourceDefinitions.CountryPopulation });
 
 			Assert.True(stub.WasInvoked);
 			Assert.Equal(110.0, world.Get<Resource>(resourceEntity).Value);
@@ -58,9 +56,7 @@ namespace GS.Game.Tests {
 		void resource_system_regular_day_call_shape_does_not_trigger_monthly_collectors() {
 			var world = BuildMonthlyCollectorWorld(out int resourceEntity, out var stub, out var registry);
 
-			ResourceSystem.Update(
-				world, ResourceSystemBenchmarks.RegularPrevious, ResourceSystemBenchmarks.RegularCurrent,
-				registry, new[] { ResourceDefinitions.CountryPopulation });
+			ResourceSystem.Update(world, ResourceSystemBenchmarks.RegularPrevious, ResourceSystemBenchmarks.RegularCurrent, registry, new[] { ResourceDefinitions.CountryPopulation });
 
 			Assert.False(stub.WasInvoked);
 			Assert.Equal(100.0, world.Get<Resource>(resourceEntity).Value);

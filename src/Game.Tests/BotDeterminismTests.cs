@@ -9,6 +9,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class BotDeterminismTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static readonly List<string> Participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
 
 		static (GameLogic Logic, Bot Bot) BuildWithBot(int seed) {
@@ -17,7 +19,7 @@ namespace GS.Game.Tests {
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, logic.Commands, null);
 			var rng = BotRng.Create(seed, MultiOrgTestSupport.OrgA);
 			var feature = new BaselineCardPlayFeature(new Dictionary<string, double>());
-			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, rng, sink);
+			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, rng, sink, logic.Resources, logic.Relations);
 			return (logic, bot);
 		}
 

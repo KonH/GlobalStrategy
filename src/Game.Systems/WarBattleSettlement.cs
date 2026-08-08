@@ -8,7 +8,7 @@ using GS.Game.Configs;
 	namespace GS.Game.Systems {
 	public static partial class WarBattleSystem {
 		static void FinishBattle(
-			World world, WarInfo war, WarBattles.BattleInfo battle,
+			ResourceQuery resources, World world, WarInfo war, WarBattles.BattleInfo battle,
 			WarParticipantKind winner, WarBattleSettings settings,
 			ResourceConfig? resourceConfig, DateTime currentTime) {
 			ResourceDefinition? progressDefinition =
@@ -17,17 +17,17 @@ using GS.Game.Configs;
 				? settings.BattleProgressGain
 				: -settings.BattleProgressGain;
 			ResourceMutations.TryApplyClampedDelta(
-				world, war.WarId, ResourceDefinitions.WarProgress, progressDelta,
+				resources, world, war.WarId, ResourceDefinitions.WarProgress, progressDelta,
 				progressDefinition, $"war_progress_battle_{battle.Value.BattleId}", currentTime,
 				-100, 100, out _);
 
 			List<WarBattles.ForceInfo> forces = WarBattles.GetForces(world, battle.Value.BattleId);
 			foreach (WarBattles.ForceInfo forceInfo in forces) {
 				ref BattleForce force = ref world.Get<BattleForce>(forceInfo.Entity);
-				ApplyPopulationCasualties(world, force.CountryId, force.Casualties);
+				ApplyPopulationCasualties(resources, world, force.CountryId, force.Casualties);
 				if (force.Troops > 0) {
 					RequireDelta(
-						world, force.CountryId, ResourceDefinitions.Recruits,
+						resources, world, force.CountryId, ResourceDefinitions.Recruits,
 						force.Troops, 0, double.MaxValue,
 						$"war_recruit_return_{battle.Value.BattleId}_{force.CountryId}",
 						$"returning survivors from battle '{battle.Value.BattleId}'");
@@ -43,7 +43,7 @@ using GS.Game.Configs;
 			WarBattles.PruneFinishedBattles(world, war.WarId, settings.MaxFinishedBattlesRetained);
 		}
 
-		static void ApplyPopulationCasualties(World world, string countryId, double casualties) {
+		static void ApplyPopulationCasualties(ResourceQuery resources, World world, string countryId, double casualties) {
 			double remaining = Math.Ceiling(Math.Max(0, casualties));
 			if (remaining <= 0) {
 				return;
@@ -57,7 +57,7 @@ using GS.Game.Configs;
 						continue;
 					}
 					double population = RequireResource(
-						world, ownerships[i].ProvinceId, ResourceDefinitions.Population,
+						resources, world, ownerships[i].ProvinceId, ResourceDefinitions.Population,
 						$"applying casualties for country '{countryId}'");
 					if (population > 0) {
 						provinces.Add((ownerships[i].ProvinceId, population));
@@ -78,7 +78,7 @@ using GS.Game.Configs;
 				double share = Math.Ceiling(casualtyBudget * province.Population / totalPopulation);
 				double deduction = Math.Min(remaining, Math.Min(province.Population, share));
 				RequireDelta(
-					world, province.ProvinceId, ResourceDefinitions.Population,
+					resources, world, province.ProvinceId, ResourceDefinitions.Population,
 					-deduction, 0, double.MaxValue,
 					$"war_population_casualty_{province.ProvinceId}",
 					$"deducting casualties from province '{province.ProvinceId}'");

@@ -6,6 +6,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class CountryPopulationCollectorTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static void SeedProvince(World world, string provinceId, string ownerId, double population) {
 			ProvinceOwnershipSystem.Seed(world, new ProvinceConfig {
 				Provinces = new System.Collections.Generic.List<ProvinceEntry> {
@@ -27,7 +29,7 @@ namespace GS.Game.Tests {
 			SeedProvince(world, "prov_2", "A", 2000.0);
 			var collector = new CountryPopulationCollector();
 
-			double delta = collector.Compute("A", 0.0, world);
+			double delta = collector.Compute("A", 0.0, world, _resources);
 
 			Assert.Equal(3000.0, delta);
 		}
@@ -39,8 +41,8 @@ namespace GS.Game.Tests {
 			ProvinceOwnershipSystem.ChangeOwner(world, "prov_1", "B");
 			var collector = new CountryPopulationCollector();
 
-			Assert.Equal(0.0, collector.Compute("A", 0.0, world));
-			Assert.Equal(1000.0, collector.Compute("B", 0.0, world));
+			Assert.Equal(0.0, collector.Compute("A", 0.0, world, _resources));
+			Assert.Equal(1000.0, collector.Compute("B", 0.0, world, _resources));
 		}
 
 		[Fact]
@@ -48,7 +50,7 @@ namespace GS.Game.Tests {
 			var world = new World();
 			var collector = new CountryPopulationCollector();
 
-			double delta = collector.Compute("A", 500.0, world);
+			double delta = collector.Compute("A", 500.0, world, _resources);
 
 			Assert.Equal(-500.0, delta);
 		}

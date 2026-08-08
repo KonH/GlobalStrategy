@@ -265,6 +265,58 @@ def get_item_label_names(number):
     return {entry["name"] for entry in labels}
 
 
+def determine_usage_stage_and_spec_dir(logger, number, branch, repo_root):
+    """Attributes one candidate's completed CLI run to a Docs/Specs/<dir>/usage.csv row's
+    (spec_dir, stage) for the Codex/Cursor `handle_issues.py` wrappers, whose single CLI
+    invocation may progress through /specify, /plan, or /implement with no per-stage
+    structural marker to segment on - unlike Ralph loop runs, which always know their own
+    stage directly (see scripts/automation/{claude,codex}/ralph.py).
+
+    `spec_dir` comes from diffing `branch` against its merge-base with `main` and reusing
+    the same Docs/Specs/<dir>/ write-path attribution `scripts/stats/attribution.py` uses
+    for interactive-session scans. This wrapper's own `feature/<name>` branch convention
+    never matches that module's `ralph/<spec_id>` fallback, so only the file-diff path
+    ever resolves a spec_dir here. `stage` comes from the item's live `ai-specify` /
+    `ai-plan` / `ai-implement` label (see AI_STAGE_LABELS above) - whichever the agent set
+    last and never cleared - falling back to `"implement"` if none survived (e.g. an
+    owner or a later run cleared it).
+
+    Returns `(None, None)` when the diff touches no `Docs/Specs/<dir>/` path - most
+    `codex`/`cursor`-labeled issues are not spec work, so that is the normal, silent case,
+    not an error. A `git`/`gh` failure along the way also returns `(None, None)`, logged as
+    a warning, so a usage-stats hiccup can never block or fail the caller's automation run.
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
+    from scripts.stats.attribution import attribute_segment  # noqa: E402
+
+    try:
+        merge_base = run_git(["merge-base", "main", branch])
+        changed_paths = run_git(["diff", "--name-only", merge_base, branch]).splitlines()
+    except Exception as exc:
+        logger.warning("Usage-stats: could not diff '%s' against main for spec attribution: %s",
+                        branch, exc)
+        return None, None
+
+    spec_dir = attribute_segment(changed_paths, None, repo_root)
+    if spec_dir is None:
+        return None, None
+
+    try:
+        live_labels = get_item_label_names(number)
+    except Exception as exc:
+        logger.warning("Usage-stats: could not read live labels on #%s: %s - defaulting stage "
+                        "to 'implement'.", number, exc)
+        live_labels = set()
+
+    stage = next(
+        (mapped for label, mapped in
+         ((AI_SPECIFY, "spec"), (AI_PLAN, "plan"), (AI_IMPLEMENT, "implement"))
+         if label in live_labels),
+        "implement",
+    )
+    return spec_dir, stage
+
+
 def verify_label_present(logger, number, name, attempts=3, initial_delay_seconds=1.0):
     """Wait briefly for `name` to show on the item after an add_label write.
 

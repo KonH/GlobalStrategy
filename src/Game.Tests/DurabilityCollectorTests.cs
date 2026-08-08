@@ -8,6 +8,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class DurabilityCollectorTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		[Fact]
 		void compute_sums_base_plus_ruler_and_economic_stinginess() {
 			var world = new World();
@@ -18,7 +20,7 @@ namespace GS.Game.Tests {
 			};
 			var collector = new DurabilityCollector(bases);
 
-			double delta = collector.Compute("France", 0.0, world);
+			double delta = collector.Compute("France", 0.0, world, _resources);
 
 			Assert.Equal(112.0, delta, 6);
 		}
@@ -32,7 +34,7 @@ namespace GS.Game.Tests {
 			};
 			var collector = new DurabilityCollector(bases);
 
-			double delta = collector.Compute("France", 0.0, world);
+			double delta = collector.Compute("France", 0.0, world, _resources);
 
 			Assert.Equal(100.0, delta, 6);
 		}
@@ -47,7 +49,7 @@ namespace GS.Game.Tests {
 			};
 			var collector = new DurabilityCollector(bases);
 
-			double delta = collector.Compute("France", 50.0, world);
+			double delta = collector.Compute("France", 50.0, world, _resources);
 
 			Assert.Equal(62.0, delta, 6);
 		}
@@ -57,7 +59,7 @@ namespace GS.Game.Tests {
 			var world = new World();
 			var collector = new DurabilityCollector(new Dictionary<string, CountryCombatBases>());
 
-			double delta = collector.Compute("Unknown", 0.0, world);
+			double delta = collector.Compute("Unknown", 0.0, world, _resources);
 
 			Assert.Equal(40.0, delta, 6);
 		}
@@ -74,7 +76,7 @@ namespace GS.Game.Tests {
 			};
 			var collector = new DurabilityCollector(bases);
 
-			double delta = collector.Compute("France", 0.0, world);
+			double delta = collector.Compute("France", 0.0, world, _resources);
 
 			Assert.Equal(112.0 * 1.05, delta, 6);
 		}
@@ -89,7 +91,7 @@ namespace GS.Game.Tests {
 			};
 			var collector = new DurabilityCollector(bases);
 
-			double delta = collector.Compute("France", 0.0, world);
+			double delta = collector.Compute("France", 0.0, world, _resources);
 
 			Assert.Equal(112.0, delta, 6);
 		}

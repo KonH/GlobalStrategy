@@ -6,18 +6,27 @@ namespace GS.Game.Configs {
 		public double Control { get; set; }
 		public double TotalCountryControl { get; set; }
 		public double Opinion { get; set; }
-		public double HasSuitableRelationTarget { get; set; }
-		public double RelationStillExists { get; set; }
+		public IReadOnlyDictionary<string, double> CountryRelations { get; set; }
+			= new Dictionary<string, double>(StringComparer.Ordinal);
 		public double IsInWar { get; set; }
 		public double WarProgress { get; set; }
 		public double TargetRulerOrMilitaryOpinion { get; set; }
 		public double NeitherSideAtWar { get; set; }
 		public double WarFree { get; set; }
 		public double RevengeEligible { get; set; }
+
+		public double GetCountryRelation(string relationKind) {
+			if (!CountryRelations.TryGetValue(relationKind, out double value)) {
+				throw new InvalidOperationException($"Missing country relation condition value for kind '{relationKind}'.");
+			}
+			return value;
+		}
 	}
 
 	public class ExpressionNode {
 		public string Type { get; set; } = "value";
+		public string RelationKind { get; set; } = "";
+		public string DesiredRelationKind { get; set; } = "";
 		public double Value { get; set; }
 		public List<ExpressionNode> Members { get; set; } = new();
 
@@ -65,11 +74,9 @@ namespace GS.Game.Configs {
 				case "opinion": {
 					return ctx.Opinion;
 				}
-				case "hasSuitableRelationTarget": {
-					return ctx.HasSuitableRelationTarget;
-				}
-				case "relationStillExists": {
-					return ctx.RelationStillExists;
+				case "hasCountryRelation": {
+					ValidateRelationOperand(node);
+					return ctx.GetCountryRelation(node.RelationKind);
 				}
 				case "isInWar": {
 					return ctx.IsInWar;
@@ -112,6 +119,19 @@ namespace GS.Game.Configs {
 				default: {
 					return node.Value;
 				}
+			}
+		}
+
+		public static void ValidateRelationOperand(ExpressionNode node) {
+			if (node.RelationKind != "none" && node.RelationKind != "friend" && node.RelationKind != "rival") {
+				throw new InvalidOperationException(
+					$"Expression type 'hasCountryRelation' requires relationKind none|friend|rival, got '{node.RelationKind}'.");
+			}
+			if (node.RelationKind == "none"
+				&& node.DesiredRelationKind != "friend"
+				&& node.DesiredRelationKind != "rival") {
+				throw new InvalidOperationException(
+					$"Expression type 'hasCountryRelation' with relationKind 'none' requires desiredRelationKind friend|rival, got '{node.DesiredRelationKind}'.");
 			}
 		}
 	}
