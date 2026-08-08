@@ -176,41 +176,41 @@ User Step.
 
 ## Agent Steps
 
-- [ ] **Confirm Part A surfaces** — verify (or land behind) `IsDestroyed`,
+- [x] **Confirm Part A surfaces** — verify (or land behind) `IsDestroyed`,
   `CountryDestroyedApplied`, and `VisualState.CountryDestroyedResults` FIFO +
   converter enqueue; do not duplicate queue creation in this plan. If Part A is
   not yet merged, stub only against the agreed names above.
 
-- [ ] **SelectCountrySystem guard** — skip if already implemented in the logic
+- [x] **SelectCountrySystem guard** — skip if already implemented in the logic
   plan; otherwise in `src/Game.Systems/SelectCountrySystem.cs`, skip adding
   `IsSelected` when the target country has `IsDestroyed`; keep empty-id
   deselect behaviour.
 
-- [ ] **CountryDestroyedWindow UXML/USS** — create
+- [x] **CountryDestroyedWindow UXML/USS** — create
   `Assets/UI/Modal/CountryDestroyedWindow/` with dark-themed panel: header, image
   slot, body, `btn-close`, confirm button; import `SharedStyles`; layout-only
   feature USS.
 
-- [ ] **Document + View** — `CountryDestroyedWindowDocument` /
+- [x] **Document + View** — `CountryDestroyedWindowDocument` /
   `CountryDestroyedWindowView`: FIFO open/hide, `ModalState` lock/unlock,
   `HideVisualOnly` on Awake (no ack), PointerUp + ContainsPoint on close and
   confirm (both → same user-dismiss Hide), `sortingOrder ≈ 515`, bind locale +
   country name + image; no pause logic.
 
-- [ ] **Immediate deselect wiring** — on `CountryDestroyedResults` + Part A
+- [x] **Immediate deselect wiring** — on `CountryDestroyedResults` + Part A
   destroyed-set `PropertyChanged` (and initial subscribe), push
   `SelectCountryCommand("")` when selected id is queued **or** in the persistent
   destroyed set; independent of whether the window opens now or later.
 
-- [ ] **DI registration** — `GameLifetimeScope.RegisterComponentInHierarchy<CountryDestroyedWindowDocument>()`.
+- [x] **DI registration** — `GameLifetimeScope.RegisterComponentInHierarchy<CountryDestroyedWindowDocument>()`.
 
-- [ ] **Localization** — EN keys under `country_destroyed.*`; run localization
+- [x] **Localization** — EN keys under `country_destroyed.*`; run localization
   skill for RU.
 
-- [ ] **Scene UIDocument wiring** — add GO + `UIDocument` + `HUDPanelSettings` in
+- [x] **Scene UIDocument wiring** — add GO + `UIDocument` + `HUDPanelSettings` in
   `Map.unity` (MCP or YAML); document User Step for Editor confirm.
 
-- [ ] **Tests + validate** — see Tests; run `dotnet test src/GlobalStrategy.Core.sln`
+- [x] **Tests + validate** — see Tests; run `dotnet test src/GlobalStrategy.Core.sln`
   and Release build for plugin DLLs after any `src/` change (per workflow).
 
 ## User Steps

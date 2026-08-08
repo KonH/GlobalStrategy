@@ -564,6 +564,12 @@ MonoBehaviour:
     Value: Провинции
   - Key: war_result.provinces_empty
     Value: Провинции не переданы
+  - Key: country_destroyed.header_format
+    Value: '{0} канула в прошлое...'
+  - Key: country_destroyed.body_format
+    Value: 'Её земли погрузились в тишину. {0} больше не числится среди народов этого мира.'
+  - Key: country_destroyed.confirm
+    Value: Продолжить
   - Key: select_org.base_control
     Value: 'Базовый контроль:'
   - Key: select_org.estimated_income
