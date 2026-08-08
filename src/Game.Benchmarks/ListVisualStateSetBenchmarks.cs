@@ -34,6 +34,8 @@ namespace GS.Game.Benchmarks {
 		List<ActionCardEntry> _countryHandBaseline = null!;
 		List<ActionCardEntry> _countryHandAlt = null!;
 		List<ActionCardEntry> _countryDeckBaseline = null!;
+		List<CardDrawChoiceEntry> _countryDrawChoicesBaseline = null!;
+		List<CardDrawChoiceEntry> _countryDrawChoicesAlt = null!;
 		List<LeaderboardEntryState> _leaderboardOrgsBaseline = null!;
 		List<LeaderboardEntryState> _leaderboardOrgsAlt = null!;
 		List<LeaderboardEntryState> _leaderboardCountriesBaseline = null!;
@@ -47,6 +49,8 @@ namespace GS.Game.Benchmarks {
 
 		int _orgActionsHandSize;
 		int _countryActionsHandSize;
+		bool _countryActionsHasPendingDraw;
+		bool _countryActionsCanStartDraw;
 		DateTime _countryActionsTime;
 		string _countryId = null!;
 
@@ -56,6 +60,7 @@ namespace GS.Game.Benchmarks {
 		bool _orgMapToggle;
 		bool _orgActionsToggle;
 		bool _countryActionsToggle;
+		bool _countryDrawChoicesToggle;
 		bool _leaderboardToggle;
 		bool _gameLogToggle;
 		bool _resourcesToggle;
@@ -111,6 +116,12 @@ namespace GS.Game.Benchmarks {
 				new ActionCardEntry("bench_action", 99, true)
 			};
 			_countryDeckBaseline = new List<ActionCardEntry>(_countryActions.Deck);
+			_countryDrawChoicesBaseline = new List<CardDrawChoiceEntry>(_countryActions.DrawChoices);
+			_countryDrawChoicesAlt = new List<CardDrawChoiceEntry>(_countryDrawChoicesBaseline) {
+				new CardDrawChoiceEntry(99, new ActionCardEntry("bench_action", -1, false))
+			};
+			_countryActionsHasPendingDraw = _countryActions.HasPendingDraw;
+			_countryActionsCanStartDraw = _countryActions.CanStartDraw;
 
 			_leaderboard = visualState.Leaderboard;
 			_leaderboardOrgsBaseline = new List<LeaderboardEntryState>(_leaderboard.Organizations);
@@ -143,7 +154,9 @@ namespace GS.Game.Benchmarks {
 			_orgCharacters.Set(_orgCharactersBaseline);
 			_orgMap.Set(_orgMapBaseline);
 			_orgActions.Set(_orgHandBaseline, _orgDeckBaseline, _orgActionsHandSize);
-			_countryActions.Set(_countryHandBaseline, _countryDeckBaseline, _countryActionsHandSize, _countryActionsTime);
+			_countryActions.Set(
+				_countryHandBaseline, _countryDeckBaseline, _countryDrawChoicesBaseline, _countryActionsHandSize,
+				_countryActionsHasPendingDraw, _countryActionsCanStartDraw, _countryActionsTime);
 			_leaderboard.Set(_leaderboardOrgsBaseline, _leaderboardCountriesBaseline);
 			_gameLog.Set(_gameLogBaseline);
 			_countryResources.Set(true, _countryId, _resourcesBaseline, _controlIncomesBaseline);
@@ -202,12 +215,39 @@ namespace GS.Game.Benchmarks {
 
 		[Benchmark]
 		public void CountryActionsState_NoOp() =>
-			_countryActions.Set(new List<ActionCardEntry>(_countryHandBaseline), new List<ActionCardEntry>(_countryDeckBaseline), _countryActionsHandSize, _countryActionsTime);
+			_countryActions.Set(
+				new List<ActionCardEntry>(_countryHandBaseline),
+				new List<ActionCardEntry>(_countryDeckBaseline),
+				new List<CardDrawChoiceEntry>(_countryDrawChoicesBaseline),
+				_countryActionsHandSize,
+				_countryActionsHasPendingDraw,
+				_countryActionsCanStartDraw,
+				_countryActionsTime);
 
 		[Benchmark]
 		public void CountryActionsState_Update() {
 			_countryActionsToggle = !_countryActionsToggle;
-			_countryActions.Set(_countryActionsToggle ? _countryHandAlt : _countryHandBaseline, _countryDeckBaseline, _countryActionsHandSize, _countryActionsTime);
+			_countryActions.Set(
+				_countryActionsToggle ? _countryHandAlt : _countryHandBaseline,
+				_countryDeckBaseline,
+				_countryDrawChoicesBaseline,
+				_countryActionsHandSize,
+				_countryActionsHasPendingDraw,
+				_countryActionsCanStartDraw,
+				_countryActionsTime);
+		}
+
+		[Benchmark]
+		public void CountryActionsState_DrawChoicesUpdate() {
+			_countryDrawChoicesToggle = !_countryDrawChoicesToggle;
+			_countryActions.Set(
+				_countryHandBaseline,
+				_countryDeckBaseline,
+				_countryDrawChoicesToggle ? _countryDrawChoicesAlt : _countryDrawChoicesBaseline,
+				_countryActionsHandSize,
+				_countryActionsHasPendingDraw,
+				_countryActionsCanStartDraw,
+				_countryActionsTime);
 		}
 
 		[Benchmark]

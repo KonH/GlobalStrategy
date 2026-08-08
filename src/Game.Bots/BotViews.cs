@@ -17,6 +17,17 @@ namespace GS.Game.Bots {
 		public double Amount;
 	}
 
+	public sealed class BotCardDrawChoiceView {
+		public int ChoiceIndex;
+		public string ActionId = "";
+		public string TargetCountryId = "";
+		public IReadOnlyList<BotCostView> Cost = System.Array.Empty<BotCostView>();
+		public double GoldCost;
+		public bool RaisesControl;
+		public bool IsPlayable;
+		public bool IsControlUsable;
+	}
+
 	public sealed class BotCountryView {
 		public string CountryId = "";
 		public int MyControl;

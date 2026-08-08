@@ -43,7 +43,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void world_discovery_mode_attaches_bot_after_init_and_ticks_it_on_the_next_update() {
+		void world_discovery_mode_attaches_bot_after_init_then_acquires_before_playing() {
 			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 2, includeCountryCard: true);
 			var logic = new GameLogic(ctx);
 			var observed = new List<(string OrgId, string FeatureId, string ActionId, string CountryId)>();
@@ -57,7 +57,14 @@ namespace GS.Game.Tests {
 			session.Update(0f);
 			Assert.Empty(observed);
 
-			// Second call: OrgB's bot now exists and is ticked before logic.Update runs.
+			// The next two calls use the production draw/receive commands. Acquisition is not
+			// reported as a played action.
+			session.Update(24f);
+			Assert.Empty(observed);
+			session.Update(24f);
+			Assert.Empty(observed);
+
+			// Once the received card is in hand, the existing control feature can play it.
 			session.Update(24f);
 			Assert.Single(observed);
 			Assert.Equal(MultiOrgTestSupport.OrgB, observed[0].OrgId);
@@ -80,13 +87,15 @@ namespace GS.Game.Tests {
 
 			session.Update(0f);
 			session.Update(24f);
+			session.Update(24f);
+			session.Update(24f);
 
 			Assert.Single(observed);
 			Assert.Equal(MultiOrgTestSupport.CountryCardActionId, observed[0]);
 		}
 
 		[Fact]
-		void update_ticks_the_bot_before_game_logic_update_so_the_play_is_visible_in_the_same_call() {
+		void update_processes_each_acquisition_command_then_the_play_in_its_emitting_call() {
 			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 4, includeCountryCard: true);
 			var logic = new GameLogic(ctx);
 			logic.Update(0f); // init only, no BotSession involved yet
@@ -96,9 +105,13 @@ namespace GS.Game.Tests {
 			var profiles = new List<BotProfile> { ControlProfile(MultiOrgTestSupport.OrgB) };
 			var session = BotSession.Create(logic, rngSeed: 4, explicitProfiles: profiles);
 
-			// A single Update() call must both decide (play a RaisesControl country card) and
-			// process that command (CreateActionEffectSystem/ControlSystem) in the same call —
-			// ControlFeature always raises control when a playable RaisesControl card remains.
+			// The first two calls process draw then receive. Neither acquisition command changes control.
+			session.Update(24f);
+			Assert.Equal(controlBefore, OrgMetrics.GetTotalControl(logic.World, MultiOrgTestSupport.OrgB));
+			session.Update(24f);
+			Assert.Equal(controlBefore, OrgMetrics.GetTotalControl(logic.World, MultiOrgTestSupport.OrgB));
+
+			// The third call emits and processes the play in that same call.
 			session.Update(24f);
 
 			Assert.True(OrgMetrics.GetTotalControl(logic.World, MultiOrgTestSupport.OrgB) > controlBefore);
@@ -116,10 +129,15 @@ namespace GS.Game.Tests {
 				observed.Add(actionId);
 			});
 
-			// Both calls use deltaTime 0 so the simulated day never advances between them — the
-			// first tick reads "day 1" (world time unmoved since manual init above), plays, and
-			// records _lastActedDate = day 1; the second tick reads the same "day 1" again (still
-			// unmoved), so day-gating inside Bot must suppress the second decision.
+			// Acquisition runs before the daily gate, so zero-delta updates can draw and receive
+			// successively without producing action callbacks.
+			session.Update(0f);
+			Assert.Empty(observed);
+
+			session.Update(0f);
+			Assert.Empty(observed);
+
+			// The received card can then be played once. A fourth same-day tick is gated.
 			session.Update(0f);
 			Assert.Single(observed);
 
@@ -149,6 +167,7 @@ namespace GS.Game.Tests {
 
 			// Drive only session A far enough to discover-and-attach its bot and let it act.
 			sessionA.Update(0f);
+			sessionA.Update(24f);
 			sessionA.Update(24f);
 			sessionA.Update(24f);
 

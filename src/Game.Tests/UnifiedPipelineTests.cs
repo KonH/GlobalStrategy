@@ -161,7 +161,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void pipeline_draws_replacement_card_after_play() {
+		void pipeline_draws_replacement_org_card_after_play() {
 			var actionConfig = new ActionConfig {
 				Defaults = new List<ActionOwnerDefaults> {
 					new ActionOwnerDefaults { OwnerType = "org", HandSize = 1 }
@@ -219,6 +219,8 @@ namespace GS.Game.Tests {
 			};
 			var logic = BuildLogic(actionConfig, effectConfig);
 			logic.Update(0f);
+			Assert.True(DrawCardSystem.ForceDrawCard(
+				logic.World, OrgId, OtherCountryId, "build_influence", ""));
 
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "build_influence" });
 			logic.Update(0f);
@@ -282,6 +284,8 @@ namespace GS.Game.Tests {
 			};
 			var logic = BuildLogic(actionConfig, effectConfig, characterConfig);
 			logic.Update(0f);
+			Assert.True(DrawCardSystem.ForceDrawCard(
+				logic.World, OrgId, OtherCountryId, "improve_opinion", ""));
 
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "improve_opinion" });
 			logic.Update(0f);

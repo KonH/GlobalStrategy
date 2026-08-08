@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ECS;
+using GS.Game.Commands;
 using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
@@ -196,6 +197,50 @@ namespace GS.Game.Tests {
 			return world.Has<CardInHand>(entity);
 		}
 
+		static void DrawToHandSize(World world, ActionConfig config, Random rng) {
+			int deckEntity = -1;
+			string orgId = "";
+			int handSize = 0;
+			int[] required = {
+				TypeId<CardDeck>.Value,
+				TypeId<CardOwnerType>.Value,
+				TypeId<CardHand>.Value
+			};
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				CardDeck[] decks = arch.GetColumn<CardDeck>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
+				CardHand[] hands = arch.GetColumn<CardHand>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].Value != CardOwnerKind.Country) {
+						continue;
+					}
+					Assert.Equal(-1, deckEntity);
+					deckEntity = arch.Entities[i];
+					orgId = decks[i].OrgId;
+					handSize = hands[i].HandSize;
+				}
+			}
+			Assert.True(deckEntity >= 0);
+
+			while (CountryCardDrawQuery.CountHandCards(world, orgId) < handSize) {
+				DrawCardSystem.Update(
+					world,
+					config,
+					rng,
+					new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = orgId } }),
+					Array.Empty<DiscardCardResult>());
+				IReadOnlyList<CountryCardDrawChoiceInfo> choices = CountryCardDrawQuery.GetChoices(world, orgId);
+				if (choices.Count == 0) {
+					break;
+				}
+				ReceiveCardSystem.Update(
+					world,
+					new ReadCommands<ReceiveCardCommand>(new[] {
+						new ReceiveCardCommand { OrgId = orgId, ChoiceIndex = choices[0].ChoiceIndex }
+					}));
+			}
+		}
+
 		[Fact]
 		void draw_ignores_make_friend_opinion_requirement() {
 			var config = BuildActionConfig();
@@ -208,8 +253,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 		}
@@ -227,8 +272,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 		}
@@ -245,8 +290,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 		}
@@ -264,8 +309,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 		}
@@ -283,8 +328,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 		}
@@ -299,8 +344,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 		}
@@ -315,8 +360,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 		}
@@ -333,8 +378,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 		}
@@ -348,8 +393,8 @@ namespace GS.Game.Tests {
 			int deck = world.Create();
 			world.Add(deck, new CardDeck { OrgId = "OrgA" });
 			world.Add(deck, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deck, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deck, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 		}
@@ -365,8 +410,8 @@ namespace GS.Game.Tests {
 			int peacefulDeck = lowOpinionPeaceful.Create();
 			lowOpinionPeaceful.Add(peacefulDeck, new CardDeck { OrgId = "OrgA" });
 			lowOpinionPeaceful.Add(peacefulDeck, new CardOwnerType(CardOwnerKind.Country));
-			lowOpinionPeaceful.Add(peacefulDeck, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(lowOpinionPeaceful, config, new Random(1));
+			lowOpinionPeaceful.Add(peacefulDeck, new CardHand { HandSize = 1 });
+			DrawToHandSize(lowOpinionPeaceful, config, new Random(1));
 
 			var lowOpinionWartime = new World();
 			AddAdvisor(lowOpinionWartime, "Prussia", "diplomat", "OrgA", "diplomacy_advisor", 100);
@@ -376,8 +421,8 @@ namespace GS.Game.Tests {
 			int wartimeDeck = lowOpinionWartime.Create();
 			lowOpinionWartime.Add(wartimeDeck, new CardDeck { OrgId = "OrgA" });
 			lowOpinionWartime.Add(wartimeDeck, new CardOwnerType(CardOwnerKind.Country));
-			lowOpinionWartime.Add(wartimeDeck, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(lowOpinionWartime, config, new Random(1));
+			lowOpinionWartime.Add(wartimeDeck, new CardHand { HandSize = 1 });
+			DrawToHandSize(lowOpinionWartime, config, new Random(1));
 
 			Assert.True(IsInHand(lowOpinionPeaceful, peacefulCard));
 			Assert.True(IsInHand(lowOpinionWartime, wartimeCard));
@@ -392,9 +437,9 @@ namespace GS.Game.Tests {
 			int deck = world.Create();
 			world.Add(deck, new CardDeck { OrgId = "OrgA" });
 			world.Add(deck, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deck, new CardDraw { Count = 1 });
+			world.Add(deck, new CardHand { HandSize = 1 });
 
-			DrawCardSystem.Update(world, config, new Random(1));
+			DrawToHandSize(world, config, new Random(1));
 			Assert.True(IsInHand(world, card));
 
 			Assert.True(ResourceMutations.TrySetValue(_resources, world, "general", "opinion_OrgA", 80, out _));
@@ -415,8 +460,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.False(IsInHand(world, card));
 		}
@@ -435,8 +480,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 		}
@@ -460,8 +505,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 2 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 2 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, stopFriendshipCard));
 			Assert.True(IsInHand(world, ultimatumCard));
@@ -481,8 +526,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 3 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 3 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 			Assert.Equal(0, world.Get<CardInHand>(card).SlotIndex);
@@ -500,17 +545,17 @@ namespace GS.Game.Tests {
 			AddControl(world, "OrgB", "Prussia", 10);
 			int relationCard = AddRelationDeckCard(world, "OrgA", "Prussia", "stop_friendship", "Austria", RelationKind.Friend);
 			int staticCard = AddDeckCard(world, "OrgA", "Prussia", "decrease_enemy_control");
+			int deckEntity = world.Create();
+			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
+			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
 
 			int wins = 0;
 			const int trials = 40;
 			for (int t = 0; t < trials; t++) {
 				if (world.Has<CardInHand>(relationCard)) { world.Remove<CardInHand>(relationCard); }
 				if (world.Has<CardInHand>(staticCard)) { world.Remove<CardInHand>(staticCard); }
-				int deckEntity = world.Create();
-				world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
-				world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-				world.Add(deckEntity, new CardDraw { Count = 1 });
-				DrawCardSystem.Update(world, config, new Random(t + 1));
+				DrawToHandSize(world, config, new Random(t + 1));
 				if (IsInHand(world, relationCard)) { wins++; }
 			}
 
@@ -587,7 +632,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void force_discard_triggers_replacement_draw_via_hand_size_check() {
+		void force_discard_does_not_trigger_production_draw() {
 			var config = BuildActionConfig();
 			var world = new World();
 			AddCountry(world, "Prussia");
@@ -604,17 +649,15 @@ namespace GS.Game.Tests {
 
 			Assert.True(RemoveCardFromHandSystem.ForceDiscard(
 				world, "OrgA", "Prussia", "make_friend", "", slotIndex: 0));
-			CheckHandSizeSystem.Update(world);
-			DrawCardSystem.Update(world, config, new Random(1));
 			CleanupCardDiscardSystem.Update(world);
 
 			Assert.False(IsInHand(world, handCard));
 			Assert.False(world.Has<CardDiscard>(handCard));
-			Assert.True(IsInHand(world, deckCard));
+			Assert.False(IsInHand(world, deckCard));
 		}
 
 		[Fact]
-		void unfilled_draw_request_survives_discard_exclusion_until_the_next_tick() {
+		void explicit_draw_can_be_retried_after_discard_cleanup() {
 			var config = BuildActionConfig();
 			var world = new World();
 			int card = AddDeckCard(world, "OrgA", "Prussia", "make_friend");
@@ -626,18 +669,16 @@ namespace GS.Game.Tests {
 
 			Assert.True(RemoveCardFromHandSystem.ForceDiscard(
 				world, "OrgA", "Prussia", "make_friend", "", slotIndex: 0));
-			CheckHandSizeSystem.Update(world);
-			DrawCardSystem.Update(world, config, new Random(1));
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.False(IsInHand(world, card));
-			Assert.True(world.Has<CardDraw>(deck));
-			Assert.Equal(1, world.Get<CardDraw>(deck).Count);
+			Assert.False(world.Has<PendingCardDraw>(deck));
 
 			CleanupCardDiscardSystem.Update(world);
-			DrawCardSystem.Update(world, config, new Random(1));
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
-			Assert.False(world.Has<CardDraw>(deck));
+			Assert.False(world.Has<PendingCardDraw>(deck));
 		}
 
 		[Fact]
@@ -651,8 +692,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 		}
@@ -668,8 +709,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 		}
@@ -686,8 +727,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 		}
@@ -703,8 +744,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 1 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, card));
 		}
@@ -724,8 +765,8 @@ namespace GS.Game.Tests {
 			int deckEntity = world.Create();
 			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
 			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardDraw { Count = 2 });
-			DrawCardSystem.Update(world, config, new Random(1));
+			world.Add(deckEntity, new CardHand { HandSize = 2 });
+			DrawToHandSize(world, config, new Random(1));
 
 			Assert.True(IsInHand(world, friendCard));
 			Assert.True(IsInHand(world, revengeCard));

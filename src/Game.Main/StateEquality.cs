@@ -95,12 +95,18 @@ namespace GS.Main {
 				&& a.IsUnplayable == b.IsUnplayable
 				&& a.UnplayableReason == b.UnplayableReason
 				&& ActionConditionDebugEntryNullableEquals(a.FirstFailure, b.FirstFailure)
+				&& a.CountryContextId == b.CountryContextId
 				&& a.TargetCountryId == b.TargetCountryId
 				&& ListEquals(a.PlayableCountryIds, b.PlayableCountryIds, (x, y) => x == y)
 				&& a.WarWinChancePercent == b.WarWinChancePercent
 				&& a.CooldownRemainingDays == b.CooldownRemainingDays
 				&& a.CooldownFractionRemaining == b.CooldownFractionRemaining
 				&& ListEquals(a.Conditions, b.Conditions, ActionConditionDebugEntryEquals);
+		}
+
+		public static bool CardDrawChoiceEntryEquals(CardDrawChoiceEntry a, CardDrawChoiceEntry b) {
+			return a.ChoiceIndex == b.ChoiceIndex
+				&& ActionCardEntryEquals(a.Card, b.Card);
 		}
 
 		public static bool ActionConditionDebugEntryEquals(ActionConditionDebugEntry a, ActionConditionDebugEntry b) {

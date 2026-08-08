@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ECS;
 using GS.Configs;
 using GS.Game.Bots;
 using GS.Game.Commands;
@@ -14,6 +15,31 @@ namespace GS.Game.Tests {
 	public class BotObservationTests {
 		readonly ResourceQuery _resources = new ResourceQuery();
 		readonly CountryRelations _relations = new CountryRelations();
+
+		static void PutCountryCardInHand(GameLogic logic, string orgId, string actionId) {
+			int[] required = {
+				TypeId<GameAction>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CardOwnerType>.Value
+			};
+			foreach (var archetype in logic.World.GetMatchingArchetypes(required, null)) {
+				GameAction[] actions = archetype.GetColumn<GameAction>();
+				OrgContext[] organizations = archetype.GetColumn<OrgContext>();
+				CardOwnerType[] owners = archetype.GetColumn<CardOwnerType>();
+				for (int i = 0; i < archetype.Count; i++) {
+					if (actions[i].ActionId == actionId
+						&& organizations[i].OrgId == orgId
+						&& owners[i].Value == CardOwnerKind.Country) {
+						int entity = archetype.Entities[i];
+						if (!logic.World.Has<CardInHand>(entity)) {
+							logic.World.Add(entity, new CardInHand { SlotIndex = 0 });
+						}
+						return;
+					}
+				}
+			}
+			throw new InvalidOperationException($"Country card not found: org={orgId} action={actionId}");
+		}
 		static void AssertCardEqual(BotCardView a, BotCardView b) {
 			Assert.Equal(a.ActionId, b.ActionId);
 			Assert.Equal(a.SlotIndex, b.SlotIndex);
@@ -47,14 +73,36 @@ namespace GS.Game.Tests {
 			}
 		}
 
+		static void AssertDrawChoiceEqual(BotCardDrawChoiceView a, BotCardDrawChoiceView b) {
+			Assert.Equal(a.ChoiceIndex, b.ChoiceIndex);
+			Assert.Equal(a.ActionId, b.ActionId);
+			Assert.Equal(a.TargetCountryId, b.TargetCountryId);
+			Assert.Equal(a.GoldCost, b.GoldCost);
+			Assert.Equal(a.RaisesControl, b.RaisesControl);
+			Assert.Equal(a.IsPlayable, b.IsPlayable);
+			Assert.Equal(a.IsControlUsable, b.IsControlUsable);
+			Assert.Equal(a.Cost.Count, b.Cost.Count);
+			for (int i = 0; i < a.Cost.Count; i++) {
+				Assert.Equal(a.Cost[i].ResourceId, b.Cost[i].ResourceId);
+				Assert.Equal(a.Cost[i].Amount, b.Cost[i].Amount);
+			}
+		}
+
 		static void AssertObservationsEqual(BotObservation a, BotObservation b) {
 			Assert.Equal(a.OrgId, b.OrgId);
 			Assert.Equal(a.CurrentDate, b.CurrentDate);
 			Assert.Equal(a.Gold, b.Gold);
 			Assert.Equal(a.OrgHandSize, b.OrgHandSize);
+			Assert.Equal(a.CountryHandCount, b.CountryHandCount);
+			Assert.Equal(a.CountryHandCapacity, b.CountryHandCapacity);
+			Assert.Equal(a.CanStartCountryCardDraw, b.CanStartCountryCardDraw);
 			Assert.Equal(a.TotalControl, b.TotalControl);
 			Assert.Equal(a.OrgHand.Count, b.OrgHand.Count);
 			for (int i = 0; i < a.OrgHand.Count; i++) { AssertCardEqual(a.OrgHand[i], b.OrgHand[i]); }
+			Assert.Equal(a.CountryCardDrawChoices.Count, b.CountryCardDrawChoices.Count);
+			for (int i = 0; i < a.CountryCardDrawChoices.Count; i++) {
+				AssertDrawChoiceEqual(a.CountryCardDrawChoices[i], b.CountryCardDrawChoices[i]);
+			}
 			Assert.Equal(a.CharacterSlots.Count, b.CharacterSlots.Count);
 			for (int i = 0; i < a.CharacterSlots.Count; i++) {
 				Assert.Equal(a.CharacterSlots[i].RoleId, b.CharacterSlots[i].RoleId);
@@ -72,6 +120,9 @@ namespace GS.Game.Tests {
 			}
 			for (int i = 1; i < obs.Countries.Count; i++) {
 				Assert.True(string.CompareOrdinal(obs.Countries[i - 1].CountryId, obs.Countries[i].CountryId) < 0);
+			}
+			for (int i = 1; i < obs.CountryCardDrawChoices.Count; i++) {
+				Assert.True(obs.CountryCardDrawChoices[i - 1].ChoiceIndex <= obs.CountryCardDrawChoices[i].ChoiceIndex);
 			}
 			foreach (var c in obs.Countries) {
 				for (int i = 1; i < c.ControlByOrg.Count; i++) {
@@ -155,6 +206,7 @@ namespace GS.Game.Tests {
 			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 14, includeCountryCard: true);
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
+			PutCountryCardInHand(logic, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.CountryCardActionId);
 
 			var obsBefore = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
 			var spendCard = obsBefore.OrgHand.First(c => c.ActionId == MultiOrgTestSupport.SpendGoldActionId);
@@ -347,6 +399,8 @@ namespace GS.Game.Tests {
 			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 21, includeCountryCard: true);
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
+			PutCountryCardInHand(logic, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.CountryCardActionId);
+			PutCountryCardInHand(logic, MultiOrgTestSupport.OrgB, MultiOrgTestSupport.CountryCardActionId);
 
 			DateTime currentTime = ReadCurrentTime(logic);
 			int cooldownEntity = logic.World.Create();

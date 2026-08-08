@@ -24,7 +24,7 @@ namespace GS.Game.Systems {
 		}
 
 		/// <summary>
-		/// Debug cheat: discard a specific hand card so CheckHandSizeSystem can trigger a replacement draw.
+		/// Debug cheat: discard a specific hand card without starting the production paid-discard offer flow.
 		/// </summary>
 		public static bool ForceDiscard(
 			World world,

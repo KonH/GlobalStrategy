@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using ECS;
 using GS.Configs;
 using GS.Game.Bots;
+using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
 using GS.Main;
@@ -19,6 +21,8 @@ namespace GS.Game.Tests {
 
 		sealed class RecordingSink : IBotCommandSink {
 			public List<(string ActionId, string CountryId)> Plays = new();
+			public void DrawCountryCards() { }
+			public void ReceiveCountryCard(int choiceIndex) { }
 			public void PlayOrgCard(string actionId, int slotIndex) => Plays.Add((actionId, ""));
 			public void PlayCountryCard(string actionId, string countryId, int slotIndex, string targetCountryId) {
 				Plays.Add((actionId, countryId));
@@ -26,6 +30,27 @@ namespace GS.Game.Tests {
 		}
 
 		static readonly List<string> Participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
+
+		static void PutCountryCardsInHand(GameLogic logic, string orgId) {
+			int nextSlot = 0;
+			int[] required = {
+				TypeId<GameAction>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CardOwnerType>.Value
+			};
+			foreach (var archetype in logic.World.GetMatchingArchetypes(required, null)) {
+				OrgContext[] organizations = archetype.GetColumn<OrgContext>();
+				CardOwnerType[] owners = archetype.GetColumn<CardOwnerType>();
+				for (int i = 0; i < archetype.Count; i++) {
+					int entity = archetype.Entities[i];
+					if (organizations[i].OrgId == orgId
+						&& owners[i].Value == CardOwnerKind.Country
+						&& !logic.World.Has<CardInHand>(entity)) {
+						logic.World.Add(entity, new CardInHand { SlotIndex = nextSlot++ });
+					}
+				}
+			}
+		}
 
 		static GameLogic BuildLogic(int seed) {
 			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: seed);
@@ -57,7 +82,8 @@ namespace GS.Game.Tests {
 
 		// Bespoke minimal config for order-of-scan tests: single org card whose affordability
 		// can be toggled via InitialGold, plus a country card cheap enough to always be affordable,
-		// dealt into two countries ("Austria" sorts before "Prussia" ordinally).
+		// explicitly placed in hand for the feature-only test ("Austria" sorts before
+		// "Prussia" ordinally).
 		static GameLogic BuildScanOrderLogic(double orgGold) {
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
@@ -108,6 +134,7 @@ namespace GS.Game.Tests {
 
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
+			PutCountryCardsInHand(logic, "Illuminati");
 			return logic;
 		}
 

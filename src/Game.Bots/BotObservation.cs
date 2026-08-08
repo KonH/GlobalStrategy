@@ -11,8 +11,12 @@ namespace GS.Game.Bots {
 		public DateTime CurrentDate { get; }
 		public double Gold { get; }
 		public int OrgHandSize { get; }
+		public int CountryHandCount { get; }
+		public int CountryHandCapacity { get; }
+		public bool CanStartCountryCardDraw { get; }
 		public int TotalControl { get; }
 		public IReadOnlyList<BotCardView> OrgHand { get; }
+		public IReadOnlyList<BotCardDrawChoiceView> CountryCardDrawChoices { get; }
 		public IReadOnlyList<BotCharacterSlotView> CharacterSlots { get; }
 		public IReadOnlyList<BotCountryView> Countries { get; }
 
@@ -23,16 +27,24 @@ namespace GS.Game.Bots {
 			DateTime currentDate,
 			double gold,
 			int orgHandSize,
+			int countryHandCount,
+			int countryHandCapacity,
+			bool canStartCountryCardDraw,
 			int totalControl,
 			IReadOnlyList<BotCardView> orgHand,
+			IReadOnlyList<BotCardDrawChoiceView> countryCardDrawChoices,
 			IReadOnlyList<BotCharacterSlotView> characterSlots,
 			IReadOnlyList<BotCountryView> countries) {
 			OrgId = orgId;
 			CurrentDate = currentDate;
 			Gold = gold;
 			OrgHandSize = orgHandSize;
+			CountryHandCount = countryHandCount;
+			CountryHandCapacity = countryHandCapacity;
+			CanStartCountryCardDraw = canStartCountryCardDraw;
 			TotalControl = totalControl;
 			OrgHand = orgHand;
+			CountryCardDrawChoices = countryCardDrawChoices;
 			CharacterSlots = characterSlots;
 			Countries = countries;
 			_countryById = new Dictionary<string, BotCountryView>();
@@ -196,6 +208,81 @@ namespace GS.Game.Bots {
 				}
 			}
 
+			int countryHandCount = 0;
+			int countryHandCapacity = 0;
+			bool canStartCountryCardDraw = false;
+			bool hasDrawStatus = CountryCardDrawQuery.TryGetStatus(
+				world, actionConfig, orgId, out CountryCardDrawStatus drawStatus);
+			if (hasDrawStatus) {
+				countryHandCount = drawStatus.HandCount;
+				countryHandCapacity = drawStatus.HandSize;
+				canStartCountryCardDraw = drawStatus.CanStartDraw;
+			}
+
+			var drawChoices = new List<BotCardDrawChoiceView>();
+			IReadOnlyList<CountryCardDrawChoiceInfo> coherentChoices = Array.Empty<CountryCardDrawChoiceInfo>();
+			if (hasDrawStatus
+				&& drawStatus.HasCoherentPendingDraw
+				&& CountryCardDrawQuery.TryGetCoherentChoices(world, orgId, out IReadOnlyList<CountryCardDrawChoiceInfo> choices)) {
+				coherentChoices = choices;
+			}
+			foreach (CountryCardDrawChoiceInfo choice in coherentChoices) {
+				if (!world.Has<GameAction>(choice.Entity)) {
+					continue;
+				}
+				string actionId = world.Get<GameAction>(choice.Entity).ActionId;
+				ActionDefinition? def = actionConfig.Find(actionId);
+				var costs = new List<BotCostView>();
+				double goldCost = 0;
+				if (def != null) {
+					foreach (ActionCost cost in def.Cost) {
+						costs.Add(new BotCostView { ResourceId = cost.ResourceId, Amount = cost.Amount });
+						if (cost.ResourceId == ResourceDefinitions.Gold) {
+							goldCost += cost.Amount;
+						}
+					}
+				}
+
+				bool raisesControl = ClassifyRaisesControl(def, effectConfigResolved);
+				bool isPlayable = false;
+				bool isControlUsable = false;
+				foreach (string countryId in countryIds) {
+					bool canPlay = ActionPlayability.Evaluate(
+						world, actionConfig, choice.Entity, actionId, orgId, countryId,
+						resources, relations, hqCountryByOrgId, currentDate, maxControlPool).CanPlay;
+					if (!canPlay) {
+						continue;
+					}
+					isPlayable = true;
+					int countryControl = 0;
+					if (controlByCountry.TryGetValue(countryId, out Dictionary<string, int>? byOrg)) {
+						foreach (int control in byOrg.Values) {
+							countryControl += control;
+						}
+					}
+					if (raisesControl && countryControl < maxControlPool) {
+						isControlUsable = true;
+						break;
+					}
+				}
+
+				string targetCountryId = world.Has<RelationCardTarget>(choice.Entity)
+					? world.Get<RelationCardTarget>(choice.Entity).TargetCountryId
+					: world.Has<RevengeCardTarget>(choice.Entity)
+						? world.Get<RevengeCardTarget>(choice.Entity).TargetCountryId
+						: "";
+				drawChoices.Add(new BotCardDrawChoiceView {
+					ChoiceIndex = choice.ChoiceIndex,
+					ActionId = actionId,
+					TargetCountryId = targetCountryId,
+					Cost = costs,
+					GoldCost = goldCost,
+					RaisesControl = raisesControl,
+					IsPlayable = isPlayable,
+					IsControlUsable = isControlUsable
+				});
+			}
+
 			var slots = new List<BotCharacterSlotView>();
 			int[] slotReq = { TypeId<CharacterSlot>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(slotReq, null)) {
@@ -279,8 +366,12 @@ namespace GS.Game.Bots {
 				currentDate,
 				gold,
 				orgHandSize,
+				countryHandCount,
+				countryHandCapacity,
+				canStartCountryCardDraw,
 				totalControl,
 				orgHandCards,
+				drawChoices,
 				slots,
 				countries);
 		}
