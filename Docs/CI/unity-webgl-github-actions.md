@@ -50,13 +50,13 @@ The `.ulf` is not tied to a specific Unity editor version or OS. Activating on y
 |---|---|
 | `UNITY_PLAY_PROJECT_ID` | Unity Play game id to **update** (default: `e1953a2d-a3eb-40b1-b8ac-75282d4cf315` from the live demo URL) |
 
-Leave unset to keep updating the existing Global Strategy listing. Set only if you intentionally publish/update a different Play game.
+Leave unset to keep updating the existing Shadow Dominions listing. Set only if you intentionally publish/update a different Play game.
 
 Optional repository variable (Settings → Secrets and variables → Actions → **Variables**):
 
 | Variable | Value |
 |---|---|
-| `UNITY_PLAY_TITLE` | Display title sent with the upload (default: `Global Strategy`) |
+| `UNITY_PLAY_TITLE` | Display title sent with the upload (default: `Shadow Dominions`) |
 
 ## Professional / Plus / Pro license (alternative)
 

@@ -63,7 +63,7 @@ namespace GS.Unity.UI {
 			_btnLoad = root.Q<Button>("btn-load");
 			_btnSettings = root.Q<Button>("btn-settings");
 			_btnExit = root.Q<Button>("btn-exit");
-			root.Q<Label>("title-label").text = "Global Strategy";
+			root.Q<Label>("title-label").text = "Shadow Dominions";
 			_versionNameLabel = root.Q<Label>("version-name");
 			if (_versionNameLabel != null) {
 				_versionNameLabel.text = _versionName;

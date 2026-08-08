@@ -29,7 +29,7 @@ LOGIN_URL = "https://api.unity.com/v1/core/api/login"
 UPLOAD_URL = "https://play.unity.com/api/webgl/upload"
 PROGRESS_URL = "https://play.unity.com/api/webgl/progress"
 ZIP_LIMIT_BYTES = 200 * 1024 * 1024
-DEFAULT_TITLE = "Global Strategy"
+DEFAULT_TITLE = "Shadow Dominions"
 # Unity Play game updated by the deploy workflow (README / live demo URL).
 DEFAULT_PROJECT_ID = "e1953a2d-a3eb-40b1-b8ac-75282d4cf315"
 
