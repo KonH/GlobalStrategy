@@ -1,6 +1,6 @@
 # UI Design Prototype
 
-Browser-based design workspace for iterating on the Shadow Dominions UI before touching Unity.
+Browser-based design workspace for iterating on the Hidden Council UI before touching Unity.
 
 ## Files
 

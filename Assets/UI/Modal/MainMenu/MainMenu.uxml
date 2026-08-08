@@ -4,7 +4,7 @@
     <ui:VisualElement name="main-menu-root" class="main-menu-root">
         <ui:VisualElement name="blackfade" class="gs-blackfade"/>
         <ui:VisualElement name="menu-panel" class="gs-panel menu-panel">
-            <ui:Label name="title-label" text="Shadow Dominions" class="gs-title menu-title"/>
+            <ui:Label name="title-label" text="Hidden Council" class="gs-title menu-title"/>
             <ui:Button name="btn-play" text="Play" class="gs-btn gs-btn--primary menu-button"/>
             <ui:Button name="btn-resume" text="Resume" class="gs-btn gs-btn--primary menu-button"/>
             <ui:Button name="btn-load" text="Load" class="gs-btn gs-btn--primary menu-button"/>
