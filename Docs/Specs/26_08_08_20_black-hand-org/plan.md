@@ -82,18 +82,18 @@ Config-driven only — no new ECS systems, UI Toolkit screens, or bot features. 
 
 ### Stage 1
 
-- [ ] **Enable Serbia in `country_config.json`** — Set Serbia `"isAvailable": true`. Apply assumed friends/rivals (`Russian_Empire` / `Austria_Hungary`+`Ottoman_Empire`) unless owner answered otherwise. Do not add `countryPools` in Stage 1 under the assumed empty-HQ-characters default.
-- [ ] **Map + download Serbia country flag** — Add Serbia to `COUNTRY_FLAGS` (+ fallback) in `scripts/utils/download_flags.py`; `check_flags.py` then `download_flags.py`; confirm `Assets/Textures/Flags/Countries/Serbia.png` has a valid PNG header.
-- [ ] **Wire Serbia `CountryVisualConfig` flag** — Import Serbia PNG as Sprite (MCP when available); set Serbia entry `flag` GUID. If MCP unavailable, leave assignment to User Steps.
-- [ ] **Add BlackHand to `organizations.json`** — Append org entry with `OrganizationId` `BlackHand`, `DisplayName` `Black Hand`, `HqCountryId` `Serbia`, `InitialGold` `750.0`, `InitialAgentSlots` `3` in `Assets/Configs/organizations.json`.
-- [ ] **Add BlackHand `orgPools` block** — In `Assets/Configs/character_config.json`, append Illuminati-mirrored master×3 / agent×6 pool with the nine `blackhand_*` ids and **full** `character.name.part.*` keys from Approach.
-- [ ] **Add EN locale keys** — In `Assets/Localization/en.asset`, add `organization_name.BlackHand` and the 18 new `character.name.part.*` keys with the EN values listed in Approach.
-- [ ] **Add real RU locale keys** — Follow `.claude/skills/localization/SKILL.md`: Haiku subagent translates the new EN keys; write results to `Assets/Localization/ru.asset` (no English placeholders).
-- [ ] **Map + download org emblem** — Add `BlackHand` → `File:Black_Hand,_logo.png` in `ORG_FLAGS` (`scripts/utils/download_flags.py`). Run `check_flags.py` then `download_flags.py` from project root (`.venv` Python). On primary failure, convert a PNG-capable source into `Assets/Textures/Flags/Orgs/BlackHand.png` (do not leave a JPG as the org asset). Confirm valid PNG header.
-- [ ] **Wire `OrgVisualConfig` + sprite** — Import `Textures/Flags/Orgs/BlackHand.png` as Sprite (Unity MCP `manage_texture` when Editor available). Append entry `orgId: BlackHand`, color `{r: 0.45, g: 0.06, b: 0.08, a: 1}`, flag GUID. If MCP unavailable, edit asset YAML with placeholder and leave sprite assignment to User Steps.
-- [ ] **Verify no blocking 2-org hardcodes** — Grep `Assets/Scripts/` and `src/` for assumptions that break a third org; fix only blockers. Confirm SelectOrg / `GameLifetimeScope` participation still iterates all `organizations.json` entries (`Count >= 2`).
-- [ ] **Add minimal BlackHand / Serbia presence tests** — Extend `StringConfigParityTests` (or a small sibling fact): load real `organizations.json` and assert BlackHand with `HqCountryId == "Serbia"`, `InitialGold == 750.0`, `InitialAgentSlots == 3`; assert `country_config.json` Serbia has `IsAvailable == true`; load `character_config.json` and assert `FindOrgPool("BlackHand")` has 3 masters + 6 agents (optionally first master id `blackhand_master_1`). Do not invent heavy new harnesses.
-- [ ] **Run tests + Release build if `src/` changed** — `dotnet-test` for `Game.Tests`. If any `src/` edit, also `/dotnet-build Release` per workflow.
+- [x] **Enable Serbia in `country_config.json`** — **Deferred to #147** (owner: "Serbia will be added in #147"). Not done in this PR; HQ `Serbia` remains on BlackHand config and depends on #147 / PR #148 landing.
+- [x] **Map + download Serbia country flag** — **Deferred to #147** (same as above).
+- [x] **Wire Serbia `CountryVisualConfig` flag** — **Deferred to #147** (same as above).
+- [x] **Add BlackHand to `organizations.json`** — Append org entry with `OrganizationId` `BlackHand`, `DisplayName` `Black Hand`, `HqCountryId` `Serbia`, `InitialGold` `750.0`, `InitialAgentSlots` `3` in `Assets/Configs/organizations.json`.
+- [x] **Add BlackHand `orgPools` block** — In `Assets/Configs/character_config.json`, append Illuminati-mirrored master×3 / agent×6 pool with the nine `blackhand_*` ids and **full** `character.name.part.*` keys from Approach.
+- [x] **Add EN locale keys** — In `Assets/Localization/en.asset`, add `organization_name.BlackHand` and the 18 new `character.name.part.*` keys with the EN values listed in Approach.
+- [x] **Add real RU locale keys** — Follow `.claude/skills/localization/SKILL.md`: Haiku subagent translates the new EN keys; write results to `Assets/Localization/ru.asset` (no English placeholders).
+- [x] **Map + download org emblem** — Add `BlackHand` → `File:Black_Hand,_logo.png` in `ORG_FLAGS` (`scripts/utils/download_flags.py`). Run `check_flags.py` then `download_flags.py` from project root (`.venv` Python). On primary failure, convert a PNG-capable source into `Assets/Textures/Flags/Orgs/BlackHand.png` (do not leave a JPG as the org asset). Confirm valid PNG header.
+- [x] **Wire `OrgVisualConfig` + sprite** — Import `Textures/Flags/Orgs/BlackHand.png` as Sprite (Unity MCP `manage_texture` when Editor available). Append entry `orgId: BlackHand`, color `{r: 0.45, g: 0.06, b: 0.08, a: 1}`, flag GUID. If MCP unavailable, edit asset YAML with placeholder and leave sprite assignment to User Steps.
+- [x] **Verify no blocking 2-org hardcodes** — Grep `Assets/Scripts/` and `src/` for assumptions that break a third org; fix only blockers. Confirm SelectOrg / `GameLifetimeScope` participation still iterates all `organizations.json` entries (`Count >= 2`).
+- [x] **Add minimal BlackHand / Serbia presence tests** — Extend `StringConfigParityTests` with BlackHand org + pool presence (HQ Serbia, gold 750, 3 masters / 6 agents). Serbia `IsAvailable` assertion omitted here — owned by #147.
+- [x] **Run tests + Release build if `src/` changed** — `dotnet-test` for `Game.Tests`. If any `src/` edit, also `/dotnet-build Release` per workflow.
 
 ### Stage 2 (deferred — do not run in first implement pass)
 

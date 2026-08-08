@@ -5115,6 +5115,60 @@
           }
         ]
       }
+    },
+    {
+      "orgId": "BlackHand",
+      "slots": {
+        "master": [
+          {
+            "characterId": "blackhand_master_1",
+            "namePartKeys": ["character.name.part.dragutin", "character.name.part.dimitrijevic"],
+            "skills": { "charm": { "minValue": 70, "maxValue": 95 } }
+          },
+          {
+            "characterId": "blackhand_master_2",
+            "namePartKeys": ["character.name.part.vojislav", "character.name.part.tankosic"],
+            "skills": { "charm": { "minValue": 65, "maxValue": 90 } }
+          },
+          {
+            "characterId": "blackhand_master_3",
+            "namePartKeys": ["character.name.part.bogdan", "character.name.part.radenkovic"],
+            "skills": { "charm": { "minValue": 68, "maxValue": 92 } }
+          }
+        ],
+        "agent": [
+          {
+            "characterId": "blackhand_agent_1",
+            "namePartKeys": ["character.name.part.gavrilo", "character.name.part.princip"],
+            "skills": { "intrigue": { "minValue": 60, "maxValue": 90 } }
+          },
+          {
+            "characterId": "blackhand_agent_2",
+            "namePartKeys": ["character.name.part.nedeljko", "character.name.part.cabrinovic"],
+            "skills": { "intrigue": { "minValue": 55, "maxValue": 85 } }
+          },
+          {
+            "characterId": "blackhand_agent_3",
+            "namePartKeys": ["character.name.part.trifko", "character.name.part.grabez"],
+            "skills": { "intrigue": { "minValue": 50, "maxValue": 80 } }
+          },
+          {
+            "characterId": "blackhand_agent_4",
+            "namePartKeys": ["character.name.part.danilo", "character.name.part.ilic"],
+            "skills": { "intrigue": { "minValue": 58, "maxValue": 88 } }
+          },
+          {
+            "characterId": "blackhand_agent_5",
+            "namePartKeys": ["character.name.part.veljko", "character.name.part.cubrilovic"],
+            "skills": { "intrigue": { "minValue": 52, "maxValue": 82 } }
+          },
+          {
+            "characterId": "blackhand_agent_6",
+            "namePartKeys": ["character.name.part.muhamed", "character.name.part.mehmedbasic"],
+            "skills": { "intrigue": { "minValue": 48, "maxValue": 78 } }
+          }
+        ]
+      }
     }
   ]
 }

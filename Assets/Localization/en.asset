@@ -360,6 +360,8 @@ MonoBehaviour:
     Value: Illuminati
   - Key: organization_name.Masons
     Value: Masons
+  - Key: organization_name.BlackHand
+    Value: Black Hand
   - Key: load.title
     Value: Load Game
   - Key: load.back
@@ -1720,6 +1722,42 @@ MonoBehaviour:
     Value: Isabelle
   - Key: character.name.part.girard
     Value: Girard
+  - Key: character.name.part.dragutin
+    Value: Dragutin
+  - Key: character.name.part.dimitrijevic
+    Value: Dimitrijević
+  - Key: character.name.part.vojislav
+    Value: Vojislav
+  - Key: character.name.part.tankosic
+    Value: Tankosić
+  - Key: character.name.part.bogdan
+    Value: Bogdan
+  - Key: character.name.part.radenkovic
+    Value: Radenković
+  - Key: character.name.part.gavrilo
+    Value: Gavrilo
+  - Key: character.name.part.princip
+    Value: Princip
+  - Key: character.name.part.nedeljko
+    Value: Nedeljko
+  - Key: character.name.part.cabrinovic
+    Value: Čabrinović
+  - Key: character.name.part.trifko
+    Value: Trifko
+  - Key: character.name.part.grabez
+    Value: Grabež
+  - Key: character.name.part.danilo
+    Value: Danilo
+  - Key: character.name.part.ilic
+    Value: Ilić
+  - Key: character.name.part.veljko
+    Value: Veljko
+  - Key: character.name.part.cubrilovic
+    Value: Čubrilović
+  - Key: character.name.part.muhamed
+    Value: Muhamed
+  - Key: character.name.part.mehmedbasic
+    Value: Mehmedbašić
   - Key: hud.org_characters
     Value: Characters
   - Key: hud.slot_empty
