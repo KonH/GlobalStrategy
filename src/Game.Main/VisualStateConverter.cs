@@ -523,8 +523,17 @@ namespace GS.Main {
 		}
 
 		void UpdateWorldCountries(IReadOnlyWorld world) {
-			var ids = new System.Collections.Generic.HashSet<string>(GetCountryIds(world));
-			_state.WorldCountries.Set(ids);
+			var ids = new HashSet<string>(GetCountryIds(world));
+			var destroyedIds = new HashSet<string>(StringComparer.Ordinal);
+			int[] required = { TypeId<Country>.Value, TypeId<IsDestroyed>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				Country[] countries = arch.GetColumn<Country>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					destroyedIds.Add(countries[i].CountryId);
+				}
+			}
+			_state.WorldCountries.Set(ids, destroyedIds);
 		}
 
 		void UpdateOrgActions(IReadOnlyWorld world) {
@@ -644,6 +653,35 @@ namespace GS.Main {
 			var def = _actionConfig?.Find(actionId);
 			if (def == null) { return null; }
 
+			string targetCountryId = world.Has<RelationCardTarget>(entity)
+				? world.Get<RelationCardTarget>(entity).TargetCountryId
+				: world.Has<RevengeCardTarget>(entity) ? world.Get<RevengeCardTarget>(entity).TargetCountryId : "";
+
+			string? destroyedCountryId = null;
+			if (!string.IsNullOrEmpty(countryId) && CountryDestroySystem.IsCountryDestroyed(world, countryId)) {
+				destroyedCountryId = countryId;
+			} else if (!string.IsNullOrEmpty(targetCountryId)
+				&& CountryDestroySystem.IsCountryDestroyed(world, targetCountryId)) {
+				destroyedCountryId = targetCountryId;
+			}
+			if (destroyedCountryId != null) {
+				var destroyedFailure = new ActionConditionDebugEntry(
+					$"country '{destroyedCountryId}' no longer exists",
+					false,
+					"action.country.unplayable.country_no_longer_exists",
+					new[] { destroyedCountryId },
+					"country_no_longer_exists");
+				string entryTargetCountryId = !string.IsNullOrEmpty(targetCountryId)
+					? targetCountryId
+					: destroyedCountryId;
+				return new ActionCardEntry(
+					actionId, slotIndex, isInHand, true,
+					"country_no_longer_exists", entryTargetCountryId,
+					new List<ActionConditionDebugEntry> { destroyedFailure },
+					null, null, null,
+					false, destroyedFailure, Array.Empty<string>());
+			}
+
 			ActionPlayabilityResult playability = ActionPlayability.Evaluate(
 				world, _actionConfig!, entity, actionId, orgId, countryId,
 				_resources, _relations, _hqCountryByOrgId, currentTime, _maxControlPool);
@@ -653,9 +691,6 @@ namespace GS.Main {
 			double? cooldownFractionRemaining = onCooldown && def.CooldownDays > 0
 				? Math.Round(Math.Clamp(remaining!.Value.TotalDays / def.CooldownDays, 0.0, 1.0), 2)
 				: (double?)null;
-			string targetCountryId = world.Has<RelationCardTarget>(entity)
-				? world.Get<RelationCardTarget>(entity).TargetCountryId
-				: world.Has<RevengeCardTarget>(entity) ? world.Get<RevengeCardTarget>(entity).TargetCountryId : "";
 
 			int? warWinChancePercent = null;
 			if ((actionId == "declare_war" || actionId == "declare_revenge_war") && !string.IsNullOrEmpty(targetCountryId)) {
@@ -990,6 +1025,16 @@ namespace GS.Main {
 					if (decision.Show && decision.Snapshot != null) {
 						_state.WarResults.Enqueue(decision.Snapshot);
 					}
+				}
+			}
+
+			int[] countryDestroyedReq = { TypeId<CountryDestroyedApplied>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(countryDestroyedReq, null)) {
+				CountryDestroyedApplied[] applied = arch.GetColumn<CountryDestroyedApplied>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					_state.CountryDestroyedResults.Enqueue(
+						new CountryDestroyedSnapshotState(applied[i].CountryId));
 				}
 			}
 

@@ -91,5 +91,19 @@ namespace GS.Game.Systems {
 			}
 			return result;
 		}
+
+		public static bool HasAnyProvince(IReadOnlyWorld world, string countryId) {
+			int[] required = { TypeId<ProvinceOwnership>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				ProvinceOwnership[] ownerships = arch.GetColumn<ProvinceOwnership>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (ownerships[i].OwnerId == countryId) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
 	}
 }

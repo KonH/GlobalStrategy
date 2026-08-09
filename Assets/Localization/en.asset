@@ -568,6 +568,12 @@ MonoBehaviour:
     Value: Provinces
   - Key: war_result.provinces_empty
     Value: No provinces transferred
+  - Key: country_destroyed.header_format
+    Value: '{0} is lost in the past...'
+  - Key: country_destroyed.body_format
+    Value: 'Its lands have fallen silent. {0} no longer appears among the nations of this world.'
+  - Key: country_destroyed.confirm
+    Value: Continue
   - Key: select_org.base_control
     Value: "Base Control:"
   - Key: select_org.estimated_income
@@ -2209,7 +2215,7 @@ MonoBehaviour:
   - Key: action.requirement.war_progress_max
     Value: War progress at most {0}
   - Key: action.requirement.target_opinion_min
-    Value: Target opinion at least {0}
+    Value: Military Advisor opinion at least {0}
   - Key: action.requirement.neither_at_war
     Value: Both countries are at peace
   - Key: action.requirement.war_free
@@ -2237,7 +2243,7 @@ MonoBehaviour:
   - Key: action.country.unplayable.insufficient_opinion
     Value: Requires {0} opinion with the {1}
   - Key: action.country.unplayable.insufficient_target_opinion
-    Value: Requires {0} opinion from the country's ruler or military advisor
+    Value: Requires {0} opinion from the country's military advisor
   - Key: action.country.unplayable.no_suitable_target
     Value: No suitable target country available
   - Key: action.country.unplayable.relation_no_longer_exists
@@ -2264,6 +2270,8 @@ MonoBehaviour:
     Value: Start a war with temporary damage and durability bonuses for the attacker.
   - Key: action.country.unplayable.war_ended
     Value: War has ended
+  - Key: action.country.unplayable.country_no_longer_exists
+    Value: "{0} doesn't exist"
   - Key: hud.actions
     Value: Actions
   - Key: hud.friends

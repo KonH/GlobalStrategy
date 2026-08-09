@@ -42,7 +42,7 @@ namespace GS.Game.Systems {
 		}
 
 		public double GetTarget(CompletionConditionContext context) {
-			return _requiredCountryCount;
+			return Math.Min(_requiredCountryCount, context.AvailableCountryIds.Count);
 		}
 	}
 }

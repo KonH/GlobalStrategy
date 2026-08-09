@@ -42,6 +42,20 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void get_available_country_ids_omits_destroyed_countries() {
+			var world = new World();
+			AddCountry(world, "Alive");
+			int destroyed = world.Create();
+			world.Add(destroyed, new Country { CountryId = "Dead" });
+			world.Add(destroyed, new IsDestroyed());
+
+			HashSet<string> available = GameCompletionSystem.GetAvailableCountryIds(world);
+
+			Assert.Contains("Alive", available);
+			Assert.DoesNotContain("Dead", available);
+		}
+
+		[Fact]
 		void no_countries_or_no_participants_leaves_the_game_in_progress() {
 			var noCountries = new World();
 			int noCountriesCompletion = AddCompletion(noCountries);

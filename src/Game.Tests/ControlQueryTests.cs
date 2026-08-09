@@ -95,5 +95,18 @@ namespace GS.Game.Tests {
 
 			Assert.Equal(0, GetTotal(world, "OrgB", "Prussia"));
 		}
+
+		[Fact]
+		void destroy_all_control_in_country_removes_every_org_effect_for_that_country() {
+			var world = new World();
+			AddControl(world, "OrgA", "Prussia", 20, "a");
+			AddControl(world, "OrgB", "Prussia", 10, "b");
+			AddControl(world, "OrgA", "Austria", 15, "keep");
+
+			ControlQuery.DestroyAllControlInCountry(world, "Prussia");
+
+			Assert.Equal(0, ControlQuery.GetTotalControlInCountry(world, "Prussia"));
+			Assert.Equal(15, ControlQuery.GetTotalControlInCountry(world, "Austria"));
+		}
 	}
 }
