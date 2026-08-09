@@ -5005,6 +5005,1475 @@
           }
         ]
       }
+    },
+    {
+      "countryId": "Serbia",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "serbia_ruler_1",
+            "namePartKeys": [
+              "character.name.part.milos",
+              "character.name.part.obrenovic_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "serbia_ruler_2",
+            "namePartKeys": [
+              "character.name.part.mihailo",
+              "character.name.part.obrenovic_iii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "serbia_ruler_3",
+            "namePartKeys": [
+              "character.name.part.milan",
+              "character.name.part.obrenovic"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "serbia_mil_1",
+            "namePartKeys": [
+              "character.name.part.kosta",
+              "character.name.part.protic"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "serbia_mil_2",
+            "namePartKeys": [
+              "character.name.part.jovan",
+              "character.name.part.belimarkovic"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "serbia_mil_3",
+            "namePartKeys": [
+              "character.name.part.djura",
+              "character.name.part.horvatovic"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "serbia_dip_1",
+            "namePartKeys": [
+              "character.name.part.jovan",
+              "character.name.part.ristic"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "serbia_dip_2",
+            "namePartKeys": [
+              "character.name.part.cedomilj",
+              "character.name.part.mijatovic"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "serbia_dip_3",
+            "namePartKeys": [
+              "character.name.part.milutin",
+              "character.name.part.garasanin"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "serbia_eco_1",
+            "namePartKeys": [
+              "character.name.part.kosta",
+              "character.name.part.cukic"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "serbia_eco_2",
+            "namePartKeys": [
+              "character.name.part.vladimir",
+              "character.name.part.jovanovic"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "serbia_eco_3",
+            "namePartKeys": [
+              "character.name.part.djordje",
+              "character.name.part.vajfert"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "serbia_sec_1",
+            "namePartKeys": [
+              "character.name.part.nikola",
+              "character.name.part.pasic"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "serbia_sec_2",
+            "namePartKeys": [
+              "character.name.part.pera",
+              "character.name.part.todorovic"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "serbia_sec_3",
+            "namePartKeys": [
+              "character.name.part.adam",
+              "character.name.part.bogosavljevic"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Bulgaria",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "bulgaria_ruler_1",
+            "namePartKeys": [
+              "character.name.part.alexander",
+              "character.name.part.battenberg"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "bulgaria_ruler_2",
+            "namePartKeys": [
+              "character.name.part.ferdinand",
+              "character.name.part.i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "bulgaria_ruler_3",
+            "namePartKeys": [
+              "character.name.part.stefan",
+              "character.name.part.stambolov"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "bulgaria_mil_1",
+            "namePartKeys": [
+              "character.name.part.sava",
+              "character.name.part.mutkurov"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bulgaria_mil_2",
+            "namePartKeys": [
+              "character.name.part.racho",
+              "character.name.part.petrov"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bulgaria_mil_3",
+            "namePartKeys": [
+              "character.name.part.danail",
+              "character.name.part.nikolaev"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "bulgaria_dip_1",
+            "namePartKeys": [
+              "character.name.part.marin",
+              "character.name.part.drinov"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bulgaria_dip_2",
+            "namePartKeys": [
+              "character.name.part.grigor",
+              "character.name.part.nachovich"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bulgaria_dip_3",
+            "namePartKeys": [
+              "character.name.part.konstantin",
+              "character.name.part.stoilov"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "bulgaria_eco_1",
+            "namePartKeys": [
+              "character.name.part.ivan",
+              "character.name.part.geshov"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bulgaria_eco_2",
+            "namePartKeys": [
+              "character.name.part.dragan",
+              "character.name.part.tsankov"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bulgaria_eco_3",
+            "namePartKeys": [
+              "character.name.part.todor",
+              "character.name.part.ikonomov"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "bulgaria_sec_1",
+            "namePartKeys": [
+              "character.name.part.zahari",
+              "character.name.part.stoyanov"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bulgaria_sec_2",
+            "namePartKeys": [
+              "character.name.part.panayot",
+              "character.name.part.volov"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bulgaria_sec_3",
+            "namePartKeys": [
+              "character.name.part.dimitar",
+              "character.name.part.rizov"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Bosnia_Herzegovina",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "bosnia_herzegovina_ruler_1",
+            "namePartKeys": [
+              "character.name.part.josip",
+              "character.name.part.filipovic"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "bosnia_herzegovina_ruler_2",
+            "namePartKeys": [
+              "character.name.part.hermann",
+              "character.name.part.dahlen"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "bosnia_herzegovina_ruler_3",
+            "namePartKeys": [
+              "character.name.part.benjamin",
+              "character.name.part.kallay"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "bosnia_herzegovina_mil_1",
+            "namePartKeys": [
+              "character.name.part.salih",
+              "character.name.part.vilajetovic"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bosnia_herzegovina_mil_2",
+            "namePartKeys": [
+              "character.name.part.anton",
+              "character.name.part.mollinary"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bosnia_herzegovina_mil_3",
+            "namePartKeys": [
+              "character.name.part.stevan",
+              "character.name.part.jovanovic"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "bosnia_herzegovina_dip_1",
+            "namePartKeys": [
+              "character.name.part.mustaj_beg_fadilpasic"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bosnia_herzegovina_dip_2",
+            "namePartKeys": [
+              "character.name.part.mehmed_beg_kapetanovic"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bosnia_herzegovina_dip_3",
+            "namePartKeys": [
+              "character.name.part.nikola",
+              "character.name.part.mandic"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "bosnia_herzegovina_eco_1",
+            "namePartKeys": [
+              "character.name.part.kosta",
+              "character.name.part.hormann"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bosnia_herzegovina_eco_2",
+            "namePartKeys": [
+              "character.name.part.kalman",
+              "character.name.part.thalloczy"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bosnia_herzegovina_eco_3",
+            "namePartKeys": [
+              "character.name.part.anto",
+              "character.name.part.sola"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "bosnia_herzegovina_sec_1",
+            "namePartKeys": [
+              "character.name.part.mico",
+              "character.name.part.ljubibratic"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bosnia_herzegovina_sec_2",
+            "namePartKeys": [
+              "character.name.part.gligor",
+              "character.name.part.jeftanovic"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "bosnia_herzegovina_sec_3",
+            "namePartKeys": [
+              "character.name.part.ibrahim_beg_basagic"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Montenegro",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "montenegro_ruler_1",
+            "namePartKeys": [
+              "character.name.part.petar",
+              "character.name.part.petrovic_njegos_ii"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "montenegro_ruler_2",
+            "namePartKeys": [
+              "character.name.part.danilo",
+              "character.name.part.petrovic_njegos_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "montenegro_ruler_3",
+            "namePartKeys": [
+              "character.name.part.nikola",
+              "character.name.part.petrovic_njegos_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "montenegro_mil_1",
+            "namePartKeys": [
+              "character.name.part.maso",
+              "character.name.part.vrbica"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "montenegro_mil_2",
+            "namePartKeys": [
+              "character.name.part.petar",
+              "character.name.part.vukotic"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "montenegro_mil_3",
+            "namePartKeys": [
+              "character.name.part.marko",
+              "character.name.part.miljanov"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "montenegro_dip_1",
+            "namePartKeys": [
+              "character.name.part.gavro",
+              "character.name.part.vukovic"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "montenegro_dip_2",
+            "namePartKeys": [
+              "character.name.part.ilija",
+              "character.name.part.plamenac"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "montenegro_dip_3",
+            "namePartKeys": [
+              "character.name.part.jovan",
+              "character.name.part.sundecic"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "montenegro_eco_1",
+            "namePartKeys": [
+              "character.name.part.bozo_petrovic_njegos"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "montenegro_eco_2",
+            "namePartKeys": [
+              "character.name.part.lazar",
+              "character.name.part.mijuskovic"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "montenegro_eco_3",
+            "namePartKeys": [
+              "character.name.part.simo",
+              "character.name.part.popovic"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "montenegro_sec_1",
+            "namePartKeys": [
+              "character.name.part.stanko",
+              "character.name.part.radonjic"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "montenegro_sec_2",
+            "namePartKeys": [
+              "character.name.part.peko",
+              "character.name.part.pavlovic"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "montenegro_sec_3",
+            "namePartKeys": [
+              "character.name.part.novica",
+              "character.name.part.cerovic"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Romania",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "romania_ruler_1",
+            "namePartKeys": [
+              "character.name.part.alexandru",
+              "character.name.part.cuza"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "romania_ruler_2",
+            "namePartKeys": [
+              "character.name.part.carol_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "romania_ruler_3",
+            "namePartKeys": [
+              "character.name.part.lascar",
+              "character.name.part.catargiu"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "romania_mil_1",
+            "namePartKeys": [
+              "character.name.part.gheorghe",
+              "character.name.part.manu"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "romania_mil_2",
+            "namePartKeys": [
+              "character.name.part.alexandru",
+              "character.name.part.cernat"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "romania_mil_3",
+            "namePartKeys": [
+              "character.name.part.mihail",
+              "character.name.part.cerchez"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "romania_dip_1",
+            "namePartKeys": [
+              "character.name.part.mihail",
+              "character.name.part.kogalniceanu"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "romania_dip_2",
+            "namePartKeys": [
+              "character.name.part.ion",
+              "character.name.part.bratianu"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "romania_dip_3",
+            "namePartKeys": [
+              "character.name.part.titu",
+              "character.name.part.maiorescu"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "romania_eco_1",
+            "namePartKeys": [
+              "character.name.part.ion",
+              "character.name.part.ghica"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "romania_eco_2",
+            "namePartKeys": [
+              "character.name.part.petre",
+              "character.name.part.aurelian"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "romania_eco_3",
+            "namePartKeys": [
+              "character.name.part.dionisie",
+              "character.name.part.martian"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "romania_sec_1",
+            "namePartKeys": [
+              "character.name.part.constantin",
+              "character.name.part.rosetti"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "romania_sec_2",
+            "namePartKeys": [
+              "character.name.part.vasile",
+              "character.name.part.boerescu"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "romania_sec_3",
+            "namePartKeys": [
+              "character.name.part.eugeniu",
+              "character.name.part.carada"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "countryId": "Greece",
+      "slots": {
+        "ruler": [
+          {
+            "characterId": "greece_ruler_1",
+            "namePartKeys": [
+              "character.name.part.otto"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "greece_ruler_2",
+            "namePartKeys": [
+              "character.name.part.george_i"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          },
+          {
+            "characterId": "greece_ruler_3",
+            "namePartKeys": [
+              "character.name.part.dimitrios",
+              "character.name.part.voulgaris"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "charm": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "stinginess": {
+                "minValue": 20,
+                "maxValue": 80
+              },
+              "intrigue": {
+                "minValue": 20,
+                "maxValue": 80
+              }
+            }
+          }
+        ],
+        "military_advisor": [
+          {
+            "characterId": "greece_mil_1",
+            "namePartKeys": [
+              "character.name.part.konstantinos",
+              "character.name.part.sapountzakis"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "greece_mil_2",
+            "namePartKeys": [
+              "character.name.part.timoleon",
+              "character.name.part.vassos"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "greece_mil_3",
+            "namePartKeys": [
+              "character.name.part.panos",
+              "character.name.part.koronaios"
+            ],
+            "skills": {
+              "power": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "diplomacy_advisor": [
+          {
+            "characterId": "greece_dip_1",
+            "namePartKeys": [
+              "character.name.part.charilaos",
+              "character.name.part.trikoupis"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "greece_dip_2",
+            "namePartKeys": [
+              "character.name.part.theodoros",
+              "character.name.part.deligiannis"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "greece_dip_3",
+            "namePartKeys": [
+              "character.name.part.alexandros",
+              "character.name.part.koumoundouros"
+            ],
+            "skills": {
+              "charm": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "economic_advisor": [
+          {
+            "characterId": "greece_eco_1",
+            "namePartKeys": [
+              "character.name.part.andreas",
+              "character.name.part.syngros"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "greece_eco_2",
+            "namePartKeys": [
+              "character.name.part.georgios",
+              "character.name.part.stavros"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "greece_eco_3",
+            "namePartKeys": [
+              "character.name.part.stefanos",
+              "character.name.part.skouloudis"
+            ],
+            "skills": {
+              "stinginess": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ],
+        "secret_advisor": [
+          {
+            "characterId": "greece_sec_1",
+            "namePartKeys": [
+              "character.name.part.epameinondas",
+              "character.name.part.deligeorgis"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "greece_sec_2",
+            "namePartKeys": [
+              "character.name.part.alexandros",
+              "character.name.part.rangavis"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          },
+          {
+            "characterId": "greece_sec_3",
+            "namePartKeys": [
+              "character.name.part.konstantinos",
+              "character.name.part.kanaris"
+            ],
+            "skills": {
+              "intrigue": {
+                "minValue": 30,
+                "maxValue": 90
+              }
+            }
+          }
+        ]
+      }
     }
   ],
   "orgPools": [
