@@ -362,6 +362,8 @@ MonoBehaviour:
     Value: Иллюминаты
   - Key: organization_name.Masons
     Value: Масоны
+  - Key: organization_name.BlackHand
+    Value: Чёрная рука
   - Key: load.title
     Value: Загрузить игру
   - Key: load.back
@@ -1722,6 +1724,42 @@ MonoBehaviour:
     Value: Изабель
   - Key: character.name.part.girard
     Value: Жирар
+  - Key: character.name.part.dragutin
+    Value: Драгутин
+  - Key: character.name.part.dimitrijevic
+    Value: Димитриевич
+  - Key: character.name.part.vojislav
+    Value: Воислав
+  - Key: character.name.part.tankosic
+    Value: Танкосич
+  - Key: character.name.part.bogdan
+    Value: Богдан
+  - Key: character.name.part.radenkovic
+    Value: Раденкович
+  - Key: character.name.part.gavrilo
+    Value: Гаврило
+  - Key: character.name.part.princip
+    Value: Принцип
+  - Key: character.name.part.nedeljko
+    Value: Неделько
+  - Key: character.name.part.cabrinovic
+    Value: Чабринович
+  - Key: character.name.part.trifko
+    Value: Трифко
+  - Key: character.name.part.grabez
+    Value: Грабеж
+  - Key: character.name.part.danilo
+    Value: Данило
+  - Key: character.name.part.ilic
+    Value: Илич
+  - Key: character.name.part.veljko
+    Value: Велько
+  - Key: character.name.part.cubrilovic
+    Value: Чубрилович
+  - Key: character.name.part.muhamed
+    Value: Мухамед
+  - Key: character.name.part.mehmedbasic
+    Value: Мехмедбашич
   - Key: character.name.part.milos
     Value: Милош
   - Key: character.name.part.obrenovic_i

@@ -13,6 +13,13 @@
       "HqCountryId": "France",
       "InitialGold": 1500.0,
       "InitialAgentSlots": 3
+    },
+    {
+      "OrganizationId": "BlackHand",
+      "DisplayName": "Black Hand",
+      "HqCountryId": "Serbia",
+      "InitialGold": 750.0,
+      "InitialAgentSlots": 3
     }
   ]
 }
