@@ -43,6 +43,8 @@ namespace GS.Unity.UI {
 		VisualElement _debugPanel;
 		Button _btnSelectedCountryDebugMenu;
 		VisualElement _selectedCountryDebugMenu;
+		Button _btnMyOrgDebugMenu;
+		VisualElement _myOrgDebugMenu;
 		Button _btnSelectedOrgDebugMenu;
 		VisualElement _selectedOrgDebugMenu;
 		Button _btnEcsViewer;
@@ -89,12 +91,14 @@ namespace GS.Unity.UI {
 		Button _btnSetCountryRival;
 		Button _btnClearCountryRelation;
 		readonly List<string> _relationDropdownCountryIds = new();
+		DebugCardAvailabilityView _myOrgCardDebug;
 		DebugCardAvailabilityView _selectedOrgCardDebug;
 		UIPointerState _pointerState;
 		CountryActionsVisibility _countryActionsVisibility;
+		DebugOrgCardVisibility _debugOrgCardVisibility;
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, GoalsWindowDocument goalsWindow, WarProgressWindowDocument warProgressWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig, IFlyTextNotifier flyText, GameSettings gameSettings, UIPointerState pointerState, ModalState modalState, CountryActionsVisibility countryActionsVisibility) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, GoalsWindowDocument goalsWindow, WarProgressWindowDocument warProgressWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig, IFlyTextNotifier flyText, GameSettings gameSettings, UIPointerState pointerState, ModalState modalState, CountryActionsVisibility countryActionsVisibility, DebugOrgCardVisibility debugOrgCardVisibility) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
@@ -117,6 +121,7 @@ namespace GS.Unity.UI {
 			_pointerState = pointerState;
 			_modalState = modalState;
 			_countryActionsVisibility = countryActionsVisibility;
+			_debugOrgCardVisibility = debugOrgCardVisibility;
 		}
 
 		void Awake() {
@@ -199,6 +204,8 @@ namespace GS.Unity.UI {
 			_debugPanel = root.Q("debug-panel");
 			_btnSelectedCountryDebugMenu = root.Q<Button>("btn-selected-country-debug-menu");
 			_selectedCountryDebugMenu = root.Q("selected-country-debug-menu");
+			_btnMyOrgDebugMenu = root.Q<Button>("btn-my-org-debug-menu");
+			_myOrgDebugMenu = root.Q("my-org-debug-menu");
 			_btnSelectedOrgDebugMenu = root.Q<Button>("btn-selected-org-debug-menu");
 			_selectedOrgDebugMenu = root.Q("selected-org-debug-menu");
 			_btnEcsViewer = root.Q<Button>("btn-ecs-viewer");
@@ -213,12 +220,19 @@ namespace GS.Unity.UI {
 			}
 			SetFpsEnabled(false);
 			RegisterDebugMenuToggle(_btnSelectedCountryDebugMenu, _selectedCountryDebugMenu, "Selected country");
+			RegisterDebugMenuToggle(_btnMyOrgDebugMenu, _myOrgDebugMenu, "My org");
 			RegisterDebugMenuToggle(_btnSelectedOrgDebugMenu, _selectedOrgDebugMenu, "Selected org");
 			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-country-characters"), root.Q("selected-country-characters"), "Characters");
 			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-country-relations"), root.Q("selected-country-relations"), "Relations");
-			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-org-characters"), root.Q("selected-org-characters"), "Characters");
-			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-org-deck"), root.Q("selected-org-deck"), "Deck");
-			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-org-hand"), root.Q("selected-org-hand"), "Hand");
+			RegisterDebugMenuToggle(root.Q<Button>("btn-my-org-characters"), root.Q("my-org-characters"), "Characters");
+			RegisterDebugMenuToggle(root.Q<Button>("btn-my-org-deck"), root.Q("my-org-deck"), "Deck",
+				open => _debugOrgCardVisibility.MyOrgDeckOpen = open);
+			RegisterDebugMenuToggle(root.Q<Button>("btn-my-org-hand"), root.Q("my-org-hand"), "Hand",
+				open => _debugOrgCardVisibility.MyOrgHandOpen = open);
+			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-org-deck"), root.Q("selected-org-deck"), "Deck",
+				open => _debugOrgCardVisibility.SelectedOrgDeckOpen = open);
+			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-org-hand"), root.Q("selected-org-hand"), "Hand",
+				open => _debugOrgCardVisibility.SelectedOrgHandOpen = open);
 #if UNITY_WEBGL && !UNITY_EDITOR
 			_btnEcsViewer.style.display = DisplayStyle.None;
 #endif
@@ -286,14 +300,23 @@ namespace GS.Unity.UI {
 			BuildProvinceDebugUi();
 			BuildRelationDebugUi();
 
-			// Shared country-card deck/hand lives on the org; surface it under Selected org debug.
-			_selectedOrgCardDebug = new DebugCardAvailabilityView(
-				root.Q("selected-org-deck"),
-				root.Q("selected-org-hand"),
+			// My org: player org's full card availability (org cards + country cards), always
+			// shown regardless of map selection; keeps the existing draw/discard debug cheats.
+			_myOrgCardDebug = new DebugCardAvailabilityView(
+				root.Q("my-org-deck"),
+				root.Q("my-org-hand"),
 				_loc,
 				_actionConfig,
 				PushDebugDrawCountryCardCommand,
 				PushDebugDiscardCountryCardCommand);
+
+			// Selected org: whichever org is dominant for the selected country under the org
+			// lens. Read-only - the draw/discard debug cheats are only wired for the player's org.
+			_selectedOrgCardDebug = new DebugCardAvailabilityView(
+				root.Q("selected-org-deck"),
+				root.Q("selected-org-hand"),
+				_loc,
+				_actionConfig);
 
 			int availableCountryCount = _countryConfig != null ? CountAvailableCountries(_countryConfig) : 0;
 			var (_, _, winConditionRows) = WinConditionHintProjector.Build(_gameSettings?.CompletionCondition, availableCountryCount);
@@ -304,7 +327,8 @@ namespace GS.Unity.UI {
 			RefreshSelectedProvinceDebugMenu();
 			RebuildRelationCountryDropdown();
 			RefreshRelationActionButtons();
-			RefreshDebugCardAvailability();
+			RefreshMyOrgCardAvailability();
+			RefreshSelectedOrgCardAvailability();
 			_started = true;
 			SubscribeViewEvents();
 			_countryInfo.ActionsView?.SetPresentationBusy(_cardPlayAnimator?.IsPlaying ?? false);
@@ -405,7 +429,7 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		void RegisterDebugMenuToggle(Button button, VisualElement menu, string label) {
+		void RegisterDebugMenuToggle(Button button, VisualElement menu, string label, System.Action<bool> onToggled = null) {
 			if (button == null || menu == null) {
 				return;
 			}
@@ -418,8 +442,10 @@ namespace GS.Unity.UI {
 				}
 
 				bool isOpen = menu.style.display != DisplayStyle.None;
-				menu.style.display = isOpen ? DisplayStyle.None : DisplayStyle.Flex;
-				button.text = $"{(isOpen ? ">" : "v")} {label}";
+				bool willOpen = !isOpen;
+				menu.style.display = willOpen ? DisplayStyle.Flex : DisplayStyle.None;
+				button.text = $"{(willOpen ? "v" : ">")} {label}";
+				onToggled?.Invoke(willOpen);
 			});
 		}
 
@@ -453,7 +479,8 @@ namespace GS.Unity.UI {
 			_state.MapLens.PropertyChanged            += HandleLensChanged;
 			_state.OrgMap.PropertyChanged             += HandleOrgMapChanged;
 			_state.PlayerOrganization.Characters.PropertyChanged += HandleOrgCharactersChanged;
-			_state.PlayerOrganization.Actions.PropertyChanged += HandleOrgActionsChanged;
+			_state.MyOrgCardAvailability.PropertyChanged += HandleMyOrgCardAvailabilityChanged;
+			_state.SelectedOrgCardAvailability.PropertyChanged += HandleSelectedOrgCardAvailabilityChanged;
 			_state.SelectedCountry.Control.UsedControl.PropertyChanged += HandleControlTickChanged;
 			_state.SelectedProvince.PropertyChanged += HandleSelectedProvinceChanged;
 			_state.SelectedProvince.Resources.PropertyChanged += HandleSelectedProvinceResourcesChanged;
@@ -464,6 +491,8 @@ namespace GS.Unity.UI {
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			_warIconsView?.Refresh(_state.WarIcons);
 			RefreshCountryViews();
+			RefreshMyOrgCardAvailability();
+			RefreshSelectedOrgCardAvailability();
 			RefreshProvinceInfoView();
 			RefreshControlDebugRow();
 			RefreshSelectedCountryCharacterDebugButtons();
@@ -503,7 +532,8 @@ namespace GS.Unity.UI {
 			_state.MapLens.PropertyChanged            -= HandleLensChanged;
 			_state.OrgMap.PropertyChanged             -= HandleOrgMapChanged;
 			_state.PlayerOrganization.Characters.PropertyChanged -= HandleOrgCharactersChanged;
-			_state.PlayerOrganization.Actions.PropertyChanged -= HandleOrgActionsChanged;
+			_state.MyOrgCardAvailability.PropertyChanged -= HandleMyOrgCardAvailabilityChanged;
+			_state.SelectedOrgCardAvailability.PropertyChanged -= HandleSelectedOrgCardAvailabilityChanged;
 			_state.SelectedCountry.Control.UsedControl.PropertyChanged -= HandleControlTickChanged;
 			_state.SelectedProvince.PropertyChanged -= HandleSelectedProvinceChanged;
 			_state.SelectedProvince.Resources.PropertyChanged -= HandleSelectedProvinceResourcesChanged;
@@ -601,7 +631,6 @@ namespace GS.Unity.UI {
 				}
 				_orgLensCountryView?.Hide();
 				_playerOrgView?.Refresh(_state.PlayerOrganization, _state.PlayerOrganization.Resources);
-				RefreshDebugCardAvailability();
 				return;
 			}
 			if (isOrgLens) {
@@ -621,19 +650,36 @@ namespace GS.Unity.UI {
 				}
 			}
 			_playerOrgView?.Refresh(_state.PlayerOrganization, _state.PlayerOrganization.Resources);
-			RefreshDebugCardAvailability();
 		}
 
-		void RefreshDebugCardAvailability() {
-			if (_state == null) {
+		void RefreshMyOrgCardAvailability() {
+			if (_state == null || _myOrgCardDebug == null) {
 				return;
 			}
-			double gold = GetPlayerGold();
-			if (_selectedOrgCardDebug != null) {
-				var countryActions = _state.SelectedCountry.CountryActions;
-				_selectedOrgCardDebug.RefreshDeck(countryActions.Deck);
-				_selectedOrgCardDebug.RefreshHand(countryActions.Hand, gold);
+			var availability = _state.MyOrgCardAvailability;
+			_myOrgCardDebug.RefreshDeck(availability.Deck);
+			_myOrgCardDebug.RefreshHand(availability.Hand, GetPlayerGold());
+		}
+
+		void RefreshSelectedOrgCardAvailability() {
+			if (_state == null || _selectedOrgCardDebug == null) {
+				return;
 			}
+			var availability = _state.SelectedOrgCardAvailability;
+			_selectedOrgCardDebug.RefreshDeck(availability.Deck);
+			_selectedOrgCardDebug.RefreshHand(availability.Hand, GetOrgLensGold());
+		}
+
+		double GetOrgLensGold() {
+			if (_state?.OrgLensOrganizationResources?.Resources == null) {
+				return 0;
+			}
+			foreach (var resource in _state.OrgLensOrganizationResources.Resources) {
+				if (resource.ResourceId == "gold") {
+					return resource.Value.Display;
+				}
+			}
+			return 0;
 		}
 
 		void PushDebugDrawCountryCardCommand(string actionId, string targetCountryId) {
@@ -829,14 +875,19 @@ namespace GS.Unity.UI {
 		void HandlePlayerResourcesChanged(object sender, PropertyChangedEventArgs e) {
 			_playerOrgView?.Refresh(_state.PlayerOrganization, _state.PlayerOrganization.Resources);
 			_countryInfo?.Refresh(_state.SelectedCountry, _state.SelectedCountry.Resources, _state.SelectedCountry.Control, _state.SelectedCountry.Characters, _state.SelectedCountry.CountryActions, _state.PlayerOrganization.Resources);
-			RefreshDebugCardAvailability();
+			RefreshMyOrgCardAvailability();
 		}
 
 		void HandleSelectedResourcesChanged(object sender, PropertyChangedEventArgs e) {
 			_countryInfo?.Refresh(_state.SelectedCountry, _state.SelectedCountry.Resources, _state.SelectedCountry.Control, _state.SelectedCountry.Characters, _state.SelectedCountry.CountryActions, _state.PlayerOrganization.Resources);
 		}
 
+		void HandleMyOrgCardAvailabilityChanged(object sender, PropertyChangedEventArgs e) => RefreshMyOrgCardAvailability();
+
+		void HandleSelectedOrgCardAvailabilityChanged(object sender, PropertyChangedEventArgs e) => RefreshSelectedOrgCardAvailability();
+
 		void HandleOrgLensResourcesChanged(object sender, PropertyChangedEventArgs e) {
+			RefreshSelectedOrgCardAvailability();
 			if (_state.MapLens.Lens != MapLens.Org) {
 				return;
 			}
@@ -855,8 +906,6 @@ namespace GS.Unity.UI {
 			RefreshCountryViews();
 			_cardDrawAnimator?.RestorePendingOfferIfIdle();
 		}
-
-		void HandleOrgActionsChanged(object sender, PropertyChangedEventArgs e) => RefreshDebugCardAvailability();
 
 		void HandleRelationsChanged(object sender, PropertyChangedEventArgs e) {
 			RefreshCountryViews();

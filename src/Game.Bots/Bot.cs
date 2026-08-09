@@ -15,6 +15,15 @@ namespace GS.Game.Bots {
 		readonly IReadOnlyDictionary<string, string>? _hqCountryByOrgId;
 		readonly int _maxControlPool;
 		DateTime? _lastActedDate;
+		DateTime? _pendingAcquisitionSinceDate;
+
+		// If a country-card draw offer can't be resolved (e.g. the hand stays full and
+		// ReceiveCardSystem keeps rejecting it) for this many calendar days in a row, stop
+		// letting it block the daily decision loop below - fall through to feature.Tick()
+		// anyway so the bot doesn't freeze forever. TryAcquireCountryCard keeps retrying the
+		// stuck offer on every subsequent tick regardless; a feature play may also free hand
+		// capacity and let a retry finally succeed.
+		const int AcquisitionStallDayLimit = 3;
 
 		public string OrgId { get; }
 		public string CurrentFeatureId { get; private set; } = "";
@@ -60,7 +69,15 @@ namespace GS.Game.Bots {
 			var observation = BotObservation.Build(
 				world, actionConfig, OrgId, _resources, _relations, _effectConfig, _hqCountryByOrgId, _maxControlPool);
 			if (TryAcquireCountryCard(observation)) {
-				return;
+				_pendingAcquisitionSinceDate ??= currentDate.Date;
+				bool acquisitionStalled =
+					(currentDate.Date - _pendingAcquisitionSinceDate.Value).Days >= AcquisitionStallDayLimit;
+				if (!acquisitionStalled) {
+					return;
+				}
+				// Stalled - fall through to the strategic tick below instead of returning.
+			} else {
+				_pendingAcquisitionSinceDate = null;
 			}
 
 			if (alreadyActedToday) {

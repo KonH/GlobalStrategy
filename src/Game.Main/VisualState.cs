@@ -333,6 +333,31 @@ namespace GS.Main {
 		}
 	}
 
+	// Not gated on any selected-country/selected-org validity the way CountryActionsState is -
+	// this always reflects the given org's full country-card + org-card deck/hand (see
+	// VisualStateConverter.BuildDebugOrgCardAvailability), independent of what's currently
+	// selected on the map. Debug-menu-only; feeds DebugCardAvailabilityView.
+	public class OrgCardAvailabilityState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public bool IsValid { get; private set; }
+		public string OrgId { get; private set; } = "";
+		public IReadOnlyList<ActionCardEntry> Hand { get; private set; } = Array.Empty<ActionCardEntry>();
+		public IReadOnlyList<ActionCardEntry> Deck { get; private set; } = Array.Empty<ActionCardEntry>();
+
+		public void Set(bool isValid, string orgId, List<ActionCardEntry> hand, List<ActionCardEntry> deck) {
+			if (IsValid == isValid && OrgId == orgId
+				&& StateEquality.ListEquals(Hand, hand, StateEquality.ActionCardEntryEquals)
+				&& StateEquality.ListEquals(Deck, deck, StateEquality.ActionCardEntryEquals)) {
+				return;
+			}
+			IsValid = isValid;
+			OrgId = orgId;
+			Hand = hand;
+			Deck = deck;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class VisualResourceChangeEffect {
 		public string EffectId { get; }
 		public string ResourceId { get; }
@@ -1088,5 +1113,7 @@ namespace GS.Main {
 		public GameLogState GameLog { get; } = new GameLogState();
 		public GameCompletionState GameCompletion { get; } = new GameCompletionState();
 		public WinConditionHintState WinConditionHint { get; } = new WinConditionHintState();
+		public OrgCardAvailabilityState MyOrgCardAvailability { get; } = new OrgCardAvailabilityState();
+		public OrgCardAvailabilityState SelectedOrgCardAvailability { get; } = new OrgCardAvailabilityState();
 	}
 }

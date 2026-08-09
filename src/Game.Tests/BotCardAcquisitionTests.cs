@@ -224,6 +224,54 @@ namespace GS.Game.Tests {
 			Assert.Equal(1, fallbackChoice.GoldCost);
 		}
 
+		[Fact]
+		void unresolvable_acquisition_stops_blocking_feature_tick_after_stall_limit() {
+			var (world, deckEntity) = BuildWorld(handSize: 1);
+			int handCard = AddCountryCard(world, PlayableActionId);
+			world.Add(handCard, new CardInHand { SlotIndex = 0 });
+			int choice = AddCountryCard(world, ControlUsableActionId, choiceIndex: 0);
+			world.Add(deckEntity, new PendingCardDraw { OptionCount = 1 });
+			var commands = new CapturingCommandAccessor();
+			var feature = new ScriptedPlayFeature();
+			Bot bot = BuildBot(world, commands, new[] { feature });
+			ActionConfig actionConfig = BuildActionConfig();
+			DateTime baseDate = world.Get<GameTime>(FindTimeEntity(world)).CurrentTime;
+
+			// The single hand slot is already occupied, so ReceiveCardSystem would reject this
+			// offer every time it's actually processed (not modeled here - the bot only reads
+			// state) - the choice/PendingCardDraw markers are left in place forever, exactly
+			// like a stuck offer. The bot must not stay frozen because of it.
+			for (int day = 0; day < 3; day++) {
+				SetCurrentDate(world, baseDate.AddDays(day));
+				bot.ExecuteDecisionTick(world, actionConfig);
+			}
+			Assert.Equal(0, feature.TickCount);
+			Assert.All(commands.Commands, cmd => Assert.IsType<ReceiveCardCommand>(cmd));
+
+			SetCurrentDate(world, baseDate.AddDays(3));
+			bot.ExecuteDecisionTick(world, actionConfig);
+
+			Assert.Equal(1, feature.TickCount);
+			// The stuck offer is still there and still retried in the background.
+			Assert.True(world.Has<PendingCardDraw>(deckEntity));
+			Assert.True(world.Has<CardDrawChoice>(choice));
+			Assert.Contains(commands.Commands, cmd => cmd is PlayCardActionCommand);
+		}
+
+		static int FindTimeEntity(IReadOnlyWorld world) {
+			int[] required = { TypeId<GameTime>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
+				if (arch.Count > 0) {
+					return arch.Entities[0];
+				}
+			}
+			throw new InvalidOperationException("GameTime entity not found.");
+		}
+
+		static void SetCurrentDate(World world, DateTime date) {
+			world.Get<GameTime>(FindTimeEntity(world)).CurrentTime = date;
+		}
+
 		[Theory]
 		[InlineData(false)]
 		[InlineData(true)]

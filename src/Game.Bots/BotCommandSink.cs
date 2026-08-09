@@ -13,6 +13,7 @@ namespace GS.Game.Bots {
 		readonly HashSet<(string actionId, string countryId, int slotIndex, string targetCountryId)> _playedThisPhase = new();
 		bool _drewThisPhase;
 		readonly HashSet<int> _receivedThisPhase = new();
+		bool _discardedThisPhase;
 
 		public BotCommandSink(string orgId, IWriteOnlyCommandAccessor commands, IGameLogger? logger, BotEmissionCallback? emissionCallback = null) {
 			_orgId = orgId;
@@ -45,10 +46,27 @@ namespace GS.Game.Bots {
 			TryEmit(actionId, countryId, slotIndex, targetCountryId);
 		}
 
+		public void DiscardCountryCard(string actionId, string countryId, int slotIndex, string targetCountryId) {
+			if (_discardedThisPhase) {
+				_logger?.LogInfo($"[BotCommandSink] warning: duplicate country-card discard ignored org={_orgId}");
+				return;
+			}
+			_discardedThisPhase = true;
+			_commands.Push(new DiscardCardCommand {
+				OrgId = _orgId,
+				CountryId = countryId,
+				ActionId = actionId,
+				TargetCountryId = targetCountryId,
+				SlotIndex = slotIndex
+			});
+			_logger?.LogInfo($"[BotCommandSink] discard country card org={_orgId} action={actionId} slot={slotIndex}");
+		}
+
 		public void BeginDecisionPhase() {
 			_playedThisPhase.Clear();
 			_drewThisPhase = false;
 			_receivedThisPhase.Clear();
+			_discardedThisPhase = false;
 		}
 
 		void TryEmit(string actionId, string countryId, int slotIndex, string targetCountryId) {

@@ -27,6 +27,7 @@ namespace GS.Game.Tests {
 			public void PlayCountryCard(string actionId, string countryId, int slotIndex, string targetCountryId) {
 				Plays.Add((actionId, countryId));
 			}
+			public void DiscardCountryCard(string actionId, string countryId, int slotIndex, string targetCountryId) { }
 		}
 
 		static readonly List<string> Participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };

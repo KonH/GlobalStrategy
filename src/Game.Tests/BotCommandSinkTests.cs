@@ -226,9 +226,34 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void duplicate_discard_in_same_phase_is_ignored() {
+			var commands = new CapturingCommandAccessor();
+			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, commands, null);
+
+			sink.BeginDecisionPhase();
+			sink.DiscardCountryCard("card_a", "Austria", 0, "");
+			sink.DiscardCountryCard("card_b", "Austria", 1, "");
+
+			Assert.Single(commands.Commands.OfType<DiscardCardCommand>());
+		}
+
+		[Fact]
+		void begin_decision_phase_resets_discard_duplicate_guard() {
+			var commands = new CapturingCommandAccessor();
+			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, commands, null);
+
+			sink.BeginDecisionPhase();
+			sink.DiscardCountryCard("card_a", "Austria", 0, "");
+			sink.BeginDecisionPhase();
+			sink.DiscardCountryCard("card_a", "Austria", 0, "");
+
+			Assert.Equal(2, commands.Commands.OfType<DiscardCardCommand>().Count());
+		}
+
+		[Fact]
 		void sink_interface_exposes_only_whitelisted_members() {
 			var methods = typeof(IBotCommandSink).GetMethods();
-			Assert.Equal(4, methods.Length);
+			Assert.Equal(5, methods.Length);
 			Assert.Contains(methods, m =>
 				m.Name == "DrawCountryCards" && !m.IsGenericMethod && m.GetParameters().Length == 0);
 			Assert.Contains(methods, m =>
@@ -241,6 +266,13 @@ namespace GS.Game.Tests {
 				&& m.GetParameters()[1].ParameterType == typeof(int));
 			Assert.Contains(methods, m =>
 				m.Name == "PlayCountryCard" && !m.IsGenericMethod &&
+				m.GetParameters().Length == 4
+				&& m.GetParameters()[0].ParameterType == typeof(string)
+				&& m.GetParameters()[1].ParameterType == typeof(string)
+				&& m.GetParameters()[2].ParameterType == typeof(int)
+				&& m.GetParameters()[3].ParameterType == typeof(string));
+			Assert.Contains(methods, m =>
+				m.Name == "DiscardCountryCard" && !m.IsGenericMethod &&
 				m.GetParameters().Length == 4
 				&& m.GetParameters()[0].ParameterType == typeof(string)
 				&& m.GetParameters()[1].ParameterType == typeof(string)

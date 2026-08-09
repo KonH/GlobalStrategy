@@ -19,7 +19,13 @@ namespace GS.Game.Bots {
 		}
 
 		public void Tick(IBotObservation obs, IBotCommandSink sink, Random rng) {
-			TryPlayControl(obs, sink);
+			if (TryPlayControl(obs, sink)) {
+				return;
+			}
+			// Nothing playable raises control this tick. Rather than sit idle with a hand full
+			// of cards that will never help, pay to discard one and roll a fresh draw offer -
+			// see TryDiscardForBetterHand for the capacity/affordability guards.
+			TryDiscardForBetterHand(obs, sink);
 		}
 
 		bool TryPlayControl(IBotObservation obs, IBotCommandSink sink) {
@@ -33,6 +39,39 @@ namespace GS.Game.Bots {
 				}
 			}
 			return false;
+		}
+
+		// Called only once TryPlayControl has already scanned every (card, acting-country)
+		// combination and found nothing playable that raises control. The same physical card
+		// shows up once per candidate acting country in obs.Countries[*].Hand (BotObservation
+		// re-evaluates playability per context) - track the lowest SlotIndex seen instead of
+		// the first entry so duplicates collapse onto one physical card deterministically.
+		// Affordability (DiscardGoldCost) is not pre-checked here - DiscardCardSystem rejects
+		// the command harmlessly if the org can't afford it, and ControlFeature naturally
+		// retries once a day (via Bot's once-per-day gate) until gold from monthly income
+		// covers the cost.
+		bool TryDiscardForBetterHand(IBotObservation obs, IBotCommandSink sink) {
+			if (obs.CountryHandCount < obs.CountryHandCapacity) {
+				// Room already exists - the acquisition phase (Bot.TryAcquireCountryCard) draws
+				// into it on its own; discarding here would waste a card for no reason.
+				return false;
+			}
+
+			BotCardView? discardCandidate = null;
+			foreach (var country in obs.Countries) {
+				foreach (var card in country.Hand) {
+					if (discardCandidate == null || card.SlotIndex < discardCandidate.SlotIndex) {
+						discardCandidate = card;
+					}
+				}
+			}
+			if (discardCandidate == null) {
+				return false;
+			}
+
+			sink.DiscardCountryCard(
+				discardCandidate.ActionId, discardCandidate.CountryId, discardCandidate.SlotIndex, discardCandidate.TargetCountryId);
+			return true;
 		}
 	}
 }
