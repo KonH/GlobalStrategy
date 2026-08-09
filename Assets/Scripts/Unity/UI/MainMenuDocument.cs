@@ -9,6 +9,8 @@ using VContainer;
 namespace GS.Unity.UI {
 	[RequireComponent(typeof(UIDocument))]
 	public class MainMenuDocument : MonoBehaviour {
+		const string AboutUrl = "https://github.com/KonH/GlobalStrategy/";
+
 		[SerializeField] string _versionName;
 
 		SaveFileManager _saveFileManager;
@@ -24,6 +26,7 @@ namespace GS.Unity.UI {
 		Button _btnResume;
 		Button _btnLoad;
 		Button _btnSettings;
+		Button _btnAbout;
 		Button _btnExit;
 		Label _versionNameLabel;
 		Label _versionNumberLabel;
@@ -62,6 +65,7 @@ namespace GS.Unity.UI {
 			_btnResume = root.Q<Button>("btn-resume");
 			_btnLoad = root.Q<Button>("btn-load");
 			_btnSettings = root.Q<Button>("btn-settings");
+			_btnAbout = root.Q<Button>("btn-about");
 			_btnExit = root.Q<Button>("btn-exit");
 			root.Q<Label>("title-label").text = "Hidden Council";
 			_versionNameLabel = root.Q<Label>("version-name");
@@ -77,6 +81,11 @@ namespace GS.Unity.UI {
 			_btnResume.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnResume.ContainsPoint(e.localPosition)) OnResume(); });
 			_btnLoad.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnLoad.ContainsPoint(e.localPosition)) _loadWindow?.Show(); });
 			_btnSettings.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnSettings.ContainsPoint(e.localPosition)) _settingsWindow?.Show(); });
+			_btnAbout.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button == 0 && _btnAbout.ContainsPoint(e.localPosition)) {
+					Application.OpenURL(AboutUrl);
+				}
+			});
 			_btnExit.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnExit.ContainsPoint(e.localPosition)) Application.Quit(); });
 
 			if (_loadWindow != null) {
@@ -102,6 +111,7 @@ namespace GS.Unity.UI {
 			_btnResume.text = _loc.Get("menu.resume");
 			_btnLoad.text = _loc.Get("menu.load");
 			_btnSettings.text = _loc.Get("menu.settings");
+			_btnAbout.text = _loc.Get("menu.about");
 			_btnExit.text = _loc.Get("menu.exit");
 		}
 

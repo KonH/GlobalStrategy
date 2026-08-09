@@ -346,6 +346,8 @@ MonoBehaviour:
     Value: Load
   - Key: menu.settings
     Value: Settings
+  - Key: menu.about
+    Value: About
   - Key: menu.exit
     Value: Exit
   - Key: select_org.hint
