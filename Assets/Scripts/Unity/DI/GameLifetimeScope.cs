@@ -82,6 +82,7 @@ namespace GS.Unity.DI {
 			builder.Register(c => c.Resolve<GameLogic>().EffectConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().ProvinceConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().GameSettings, Lifetime.Singleton);
+			builder.Register(c => c.Resolve<GameLogic>().CountryActionsVisibility, Lifetime.Singleton);
 			builder.RegisterInstance(_actionVisualConfig);
 
 			builder.RegisterInstance<IPersistentStorage>(storage);

@@ -52,6 +52,7 @@ namespace GS.Main {
 		public IReadOnlyList<BotFeatureConfigEntry> BotFeatures { get; private set; } = null!;
 		public IReadOnlyDictionary<string, string> HqCountryByOrgId => _hqCountryByOrgId;
 		public int MaxControlPool { get; private set; }
+		public CountryActionsVisibility CountryActionsVisibility { get; } = new CountryActionsVisibility();
 		public bool IsCompleted => _gameCompletionEntity >= 0
 			&& _world.Get<GameCompletion>(_gameCompletionEntity).IsCompleted;
 
@@ -85,7 +86,7 @@ namespace GS.Main {
 				VisualState, _resources, _relations, _actionConfig, _hqCountryByOrgId,
 				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig,
 				settings.EventNotifications, settings.CompletionCondition, settings.MaxControlPool, _effectConfig,
-				settings.BaseIncome);
+				settings.BaseIncome, CountryActionsVisibility);
 			_resources.OnCacheMissWarning = message => _context.Logger?.LogDebug(message);
 			_relations.OnCacheMissWarning = message => _context.Logger?.LogDebug(message);
 			_speedMultipliers = settings.SpeedMultipliers;

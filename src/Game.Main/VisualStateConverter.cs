@@ -27,6 +27,7 @@ namespace GS.Main {
 		readonly int _maxControlPool;
 		readonly IReadOnlyList<GoalsLeafDescriptor> _goalLeaves;
 		readonly BaseIncomeSettings _baseIncomeSettings;
+		readonly CountryActionsVisibility _actionsVisibility;
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
@@ -43,7 +44,8 @@ namespace GS.Main {
 			CompletionConditionConfig? completionCondition = null,
 			int maxControlPool = 100,
 			EffectConfig? effectConfig = null,
-			BaseIncomeSettings? baseIncomeSettings = null) {
+			BaseIncomeSettings? baseIncomeSettings = null,
+			CountryActionsVisibility? actionsVisibility = null) {
 			_state = state;
 			_resources = resources;
 			_relations = relations;
@@ -57,6 +59,7 @@ namespace GS.Main {
 			_goalLeaves = GoalsProjector.FlattenLeaves(completionCondition);
 			_effectConfig = effectConfig;
 			_baseIncomeSettings = baseIncomeSettings ?? new BaseIncomeSettings();
+			_actionsVisibility = actionsVisibility ?? new CountryActionsVisibility();
 		}
 
 		public void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
@@ -610,8 +613,20 @@ namespace GS.Main {
 			int[] excludeHandAndChoices = { TypeId<CardInHand>.Value, TypeId<CardDrawChoice>.Value };
 
 			IReadOnlyList<string> playableCountryOrder = GetPlayableCountryEvaluationOrder(world);
+			// Built at most once per Update() call, and only if actually needed (hand detail or
+			// draw choices below end up requesting it) - reused across every BuildEntry/
+			// ActionPlayability check so each unplayable card re-checking playability against
+			// every candidate country doesn't rescan every ControlEffect/WarParticipant entity
+			// in the world per check.
+			ControlWarSnapshot? snapshotOrNull = null;
+			ControlWarSnapshot GetSnapshot() => snapshotOrNull ??= ControlWarSnapshot.Build(world);
 
-			// Hand cards
+			// Hand cards. Full per-card ActionPlayability detail (needed for the card visuals,
+			// cost/cooldown borders, and the "playable in these countries" tooltip) is only
+			// built while the actions sub-panel is actually open - while collapsed, nothing
+			// reads more than the count (toggle-button visibility), so fall back to cheap
+			// placeholder entries that skip ActionPlayability entirely.
+			bool buildHandDetail = _actionsVisibility.ActionsPanelOpen;
 			foreach (var arch in world.GetMatchingArchetypes(handReq, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
@@ -620,14 +635,19 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || owners[i].Value != CardOwnerKind.Country) { continue; }
-					var entry = BuildEntry(
-						world, orgId, countryId, arch.Entities[i], actions[i].ActionId, hands[i].SlotIndex, true,
-						true, currentTime, playableCountryOrder);
+					var entry = buildHandDetail
+						? BuildEntry(
+							world, orgId, countryId, arch.Entities[i], actions[i].ActionId, hands[i].SlotIndex, true,
+							true, currentTime, playableCountryOrder, GetSnapshot())
+						: BuildCheapEntry(actions[i].ActionId, hands[i].SlotIndex, true);
 					if (entry != null) { hand.Add(entry); }
 				}
 			}
 
-			// Deck cards
+			// Deck cards - only ever rendered as a pile with a shadow-stack count (and, in the
+			// debug menu, a per-card breakdown that's a developer-only convenience). Never worth
+			// a full ActionPlayability evaluation per card; use cheap placeholder entries so
+			// deck.Count stays correct without the cost.
 			foreach (var arch in world.GetMatchingArchetypes(baseReq, excludeHandAndChoices)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
@@ -635,9 +655,7 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || owners[i].Value != CardOwnerKind.Country) { continue; }
-					var entry = BuildEntry(
-						world, orgId, countryId, arch.Entities[i], actions[i].ActionId, -1, false,
-						false, currentTime, playableCountryOrder);
+					var entry = BuildCheapEntry(actions[i].ActionId, -1, false);
 					if (entry != null) { deck.Add(entry); }
 				}
 			}
@@ -654,7 +672,7 @@ namespace GS.Main {
 					if (!world.Has<GameAction>(choice.Entity)) { continue; }
 					var entry = BuildEntry(
 						world, orgId, countryId, choice.Entity, world.Get<GameAction>(choice.Entity).ActionId,
-						-1, false, true, currentTime, playableCountryOrder);
+						-1, false, true, currentTime, playableCountryOrder, GetSnapshot());
 					if (entry != null) {
 						drawChoices.Add(new CardDrawChoiceEntry(choice.ChoiceIndex, entry));
 					}
@@ -669,12 +687,20 @@ namespace GS.Main {
 				hand, deck, drawChoices, countryHandSize, hasPendingDraw, canStartDraw, currentTime);
 		}
 
+		// No ActionPlayability evaluation at all - just enough for callers that only ever read
+		// .Count / .ActionId (deck pile, and hand while the actions sub-panel is collapsed).
+		// Matches null-on-unknown-actionId behavior of BuildEntry.
+		ActionCardEntry? BuildCheapEntry(string actionId, int slotIndex, bool isInHand) {
+			return _actionConfig?.Find(actionId) == null ? null : new ActionCardEntry(actionId, slotIndex, isInHand);
+		}
+
 		ActionCardEntry? BuildEntry(
 			IReadOnlyWorld world, string orgId, string countryId, int entity,
 			string actionId, int slotIndex, bool isInHand,
 			bool includePlayableCountryIds,
 			DateTime currentTime,
-			IReadOnlyList<string> playableCountryOrder) {
+			IReadOnlyList<string> playableCountryOrder,
+			ControlWarSnapshot snapshot) {
 			var def = _actionConfig?.Find(actionId);
 			if (def == null) { return null; }
 
@@ -709,7 +735,8 @@ namespace GS.Main {
 
 			ActionPlayabilityResult playability = ActionPlayability.Evaluate(
 				world, _actionConfig!, entity, actionId, orgId, countryId,
-				_resources, _relations, _hqCountryByOrgId, currentTime, _maxControlPool);
+				_resources, _relations, _hqCountryByOrgId, currentTime, _maxControlPool,
+				ActionPlayabilityGateSet.All, snapshot);
 			TimeSpan? remaining = ActionCooldownQuery.GetRemaining(world, orgId, actionId, currentTime);
 			bool onCooldown = remaining.HasValue;
 			double? cooldownRemainingDays = onCooldown ? Math.Ceiling(remaining!.Value.TotalDays) : (double?)null;
@@ -739,10 +766,10 @@ namespace GS.Main {
 			var playableCountryIds = new List<string>();
 			if (includePlayableCountryIds && !playability.CanPlay) {
 				foreach (string candidateCountryId in playableCountryOrder) {
-					if (ActionPlayability.Evaluate(
+					if (ActionPlayability.CanPlayFast(
 						world, _actionConfig!, entity, actionId, orgId, candidateCountryId,
 						_resources, _relations, _hqCountryByOrgId, currentTime, _maxControlPool,
-						ActionPlayabilityGateSet.HardOnly).CanPlay) {
+						ActionPlayabilityGateSet.HardOnly, snapshot)) {
 						playableCountryIds.Add(candidateCountryId);
 					}
 				}

@@ -40,6 +40,7 @@ namespace GS.Unity.UI {
 		bool _charsOpen;
 		bool _actionsOpen;
 		string? _lastCountryId;
+		readonly CountryActionsVisibility _actionsVisibility;
 
 		public event Action<bool>? OnSubPanelOpened;
 		public event Action<string, string, int, VisualElement, ActionCardBuilder.CountryCardFace>? OnCountryActionCardClicked;
@@ -55,9 +56,14 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CountryVisualConfig? countryVisualConfig = null, OrgVisualConfig? orgVisualConfig = null, GameSettings? gameSettings = null) {
+		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CountryVisualConfig? countryVisualConfig = null, OrgVisualConfig? orgVisualConfig = null, GameSettings? gameSettings = null, CountryActionsVisibility? actionsVisibility = null) {
 			_root = root;
 			_gameSettings = gameSettings;
+			// Defaults ActionsPanelOpen to false to match _actionsOpen's own default - keeps
+			// VisualStateConverter from building full per-card hand detail before the first
+			// real SetActionsOpen call (country selection / toggle click) can sync them.
+			_actionsVisibility = actionsVisibility ?? new CountryActionsVisibility();
+			_actionsVisibility.ActionsPanelOpen = false;
 			_name = root.Q<Label>("country-name");
 			_flagElement = root.Q("country-flag");
 			_countryVisualConfig = countryVisualConfig;
@@ -211,6 +217,7 @@ namespace GS.Unity.UI {
 		void SetActionsOpen(bool open) {
 			if (open) { SetCharsOpen(false); }
 			_actionsOpen = open;
+			_actionsVisibility.ActionsPanelOpen = open;
 			if (_actionsSlide != null) {
 				if (open) {
 					_actionsSlide.AddToClassList("actions-slide--open");
