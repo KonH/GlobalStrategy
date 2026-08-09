@@ -166,7 +166,8 @@ Output path `Assets/Textures/Characters/PortraitCard/{characterId}.png`, 512×51
 - **Romania**: `romania_ruler_1`, `romania_ruler_2`, `romania_ruler_3`, `romania_mil_1`, `romania_mil_2`, `romania_mil_3`, `romania_dip_1`, `romania_dip_2`, `romania_dip_3`, `romania_eco_1`, `romania_eco_2`, `romania_eco_3`, `romania_sec_1`, `romania_sec_2`, `romania_sec_3`
 - **Greece**: `greece_ruler_1`, `greece_ruler_2`, `greece_ruler_3`, `greece_mil_1`, `greece_mil_2`, `greece_mil_3`, `greece_dip_1`, `greece_dip_2`, `greece_dip_3`, `greece_eco_1`, `greece_eco_2`, `greece_eco_3`, `greece_sec_1`, `greece_sec_2`, `greece_sec_3`
 
-**Remaining (Section 2 User Steps — Unity Editor / MCP / ComfyUI required, unavailable in this automation environment):**
-1. Import the 6 flag PNGs as Sprites and wire their GUIDs into `CountryVisualConfig.asset`.
+**User Step 1 — done (2026-08-09, interactive session with Unity MCP connected):** all 6 flag PNGs were already Sprite-imported locally (leftover from a prior session that hit its limit before committing); verified each flag's content against its Wikimedia Commons source page — Bosnia_Herzegovina/Greece/Montenegro use genuine era-accurate c.1878 designs distinct from their modern national flags, not download mismatches — then wired all 6 GUIDs into `Assets/Configs/CountryVisualConfig.asset` via `manage_scriptable_object`. No console errors. Committed in `4caf204`.
+
+**Remaining (Section 2 User Steps — Unity Editor / ComfyUI required):**
 2. Generate the 90 character portraits (recipe above) via the `image-generation` skill once ComfyUI is available — explicitly deferred by the issue to a separate pass regardless.
-3. In-Editor Play Mode verification of spawning/rendering/roster/relations/flags.
+3. In-Editor Play Mode verification of spawning/rendering/roster/relations/flags — not run by the agent per project policy (no self-triggered Play mode testing); needs the user to confirm in-Editor.
