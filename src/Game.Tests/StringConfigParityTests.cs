@@ -125,6 +125,8 @@ namespace GS.Game.Tests {
 			Assert.Equal(fromFile.Actions.Count, fromString.Actions.Count);
 			Assert.Equal(fromFile.Actions[0].ActionId, fromString.Actions[0].ActionId);
 			Assert.Equal(fromFile.Actions[0].EffectIds, fromString.Actions[0].EffectIds);
+			Assert.Equal(8, fromFile.GetHandSize("country"));
+			Assert.Equal(8, fromString.GetHandSize("country"));
 		}
 
 		[Fact]

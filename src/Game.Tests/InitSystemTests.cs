@@ -264,6 +264,79 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void country_hand_starts_empty_with_configured_capacity() {
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 8 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition { ActionId = "build_influence", OwnerType = "country", DeckCopies = 1 }
+				}
+			};
+			var logic = BuildLogic(actionConfigOverride: actionConfig);
+
+			logic.Update(0f);
+
+			Assert.True(CountryCardDrawQuery.TryGetStatus(
+				logic.World, actionConfig, "Illuminati", out CountryCardDrawStatus status));
+			Assert.Equal(0, status.HandCount);
+			Assert.Equal(8, status.HandSize);
+			Assert.False(status.HasPendingDraw);
+			Assert.True(status.CanStartDraw);
+		}
+
+		[Fact]
+		void load_reconciles_country_hand_capacity_without_moving_saved_card() {
+			var storage = new MemoryStorage();
+			var serializer = new CapturingSerializer();
+			var oldConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 5 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition { ActionId = "build_influence", OwnerType = "country", DeckCopies = 1 }
+				}
+			};
+			var logic = BuildLogic(storage, serializer, actionConfigOverride: oldConfig);
+			logic.Update(0f);
+			Assert.True(DrawCardSystem.ForceDrawCard(
+				logic.World, "Illuminati", "Great_Britain", "build_influence", ""));
+			int cardEntity = FindCardEntity(logic.World, "build_influence");
+			logic.World.Get<CardInHand>(cardEntity).SlotIndex = 4;
+			logic.Commands.Push(new SaveGameCommand());
+			logic.Update(0f);
+
+			var currentConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 8 }
+				},
+				Actions = oldConfig.Actions
+			};
+			var loaded = BuildLogic(storage, serializer, actionConfigOverride: currentConfig);
+			loaded.LoadState(serializer.LastSaveName);
+
+			Assert.True(CountryCardDrawQuery.TryGetStatus(
+				loaded.World, currentConfig, "Illuminati", out CountryCardDrawStatus status));
+			Assert.Equal(8, status.HandSize);
+			Assert.Equal(1, status.HandCount);
+			int loadedCardEntity = FindCardEntity(loaded.World, "build_influence");
+			Assert.Equal(4, loaded.World.Get<CardInHand>(loadedCardEntity).SlotIndex);
+		}
+
+		static int FindCardEntity(IReadOnlyWorld world, string actionId) {
+			int[] required = { TypeId<GameAction>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (actions[i].ActionId == actionId) {
+						return arch.Entities[i];
+					}
+				}
+			}
+			throw new InvalidOperationException($"Card entity not found: action={actionId}");
+		}
+
+		[Fact]
 		void province_ownership_seeded_once_from_config() {
 			var logic = BuildLogic();
 			logic.Update(0f);
@@ -459,7 +532,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void make_friend_and_make_rival_can_populate_initial_hand_before_requirements_are_met() {
+		void make_friend_and_make_rival_exist_in_deck_while_initial_hand_is_empty() {
 			const string targetRole = "diplomacy_advisor";
 			var characterConfig = new CharacterConfig {
 				Roles = new List<CharacterRoleDefinition> { new CharacterRoleDefinition { RoleId = targetRole } },
@@ -518,18 +591,23 @@ namespace GS.Game.Tests {
 				}
 			};
 
-			// Opening draws intentionally ignore both authored requirements.
 			var logic = BuildLogic(actionConfigOverride: actionConfig, characterConfigOverride: characterConfig);
 			logic.Update(0f);
 
 			bool foundMakeFriend = false;
 			bool foundMakeRival = false;
-			int[] handReq = { TypeId<GameAction>.Value, TypeId<CardInHand>.Value, TypeId<CardOwnerType>.Value };
-			foreach (var arch in logic.World.GetMatchingArchetypes(handReq, null)) {
+			int[] cardReq = { TypeId<GameAction>.Value, TypeId<CardOwnerType>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(cardReq, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (actions[i].ActionId == "make_friend") { foundMakeFriend = true; }
-					if (actions[i].ActionId == "make_rival") { foundMakeRival = true; }
+					if (actions[i].ActionId == "make_friend") {
+						foundMakeFriend = true;
+						Assert.False(logic.World.Has<CardInHand>(arch.Entities[i]));
+					}
+					if (actions[i].ActionId == "make_rival") {
+						foundMakeRival = true;
+						Assert.False(logic.World.Has<CardInHand>(arch.Entities[i]));
+					}
 				}
 			}
 			Assert.True(foundMakeFriend);
@@ -537,7 +615,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void ordinary_cards_draw_without_requirements_but_unsynced_revenge_does_not_exist() {
+		void ordinary_cards_exist_in_empty_hand_deck_but_unsynced_revenge_does_not_exist() {
 			const string diplomacyRole = "diplomacy_advisor";
 			const string militaryRole = "military_advisor";
 			var characterConfig = new CharacterConfig {
@@ -602,17 +680,19 @@ namespace GS.Game.Tests {
 				}
 			};
 
-			// Ordinary cards can draw before requirements pass; revenge cards remain event-synced.
 			var logic = BuildLogic(actionConfigOverride: actionConfig, characterConfigOverride: characterConfig);
 			logic.Update(0f);
 
 			bool foundMakeFriend = false;
 			bool foundRevenge = false;
-			int[] handReq = { TypeId<GameAction>.Value, TypeId<CardInHand>.Value, TypeId<CardOwnerType>.Value };
-			foreach (var arch in logic.World.GetMatchingArchetypes(handReq, null)) {
+			int[] cardReq = { TypeId<GameAction>.Value, TypeId<CardOwnerType>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(cardReq, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (actions[i].ActionId == "make_friend") { foundMakeFriend = true; }
+					if (actions[i].ActionId == "make_friend") {
+						foundMakeFriend = true;
+						Assert.False(logic.World.Has<CardInHand>(arch.Entities[i]));
+					}
 					if (actions[i].ActionId == "declare_revenge_war") { foundRevenge = true; }
 				}
 			}
@@ -709,7 +789,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void decrease_enemy_control_can_populate_initial_hand_when_another_org_has_control() {
+		void decrease_enemy_control_exists_in_deck_for_each_org_with_empty_initial_hand() {
 			var actionConfig = new ActionConfig {
 				Defaults = new List<ActionOwnerDefaults> {
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
@@ -763,8 +843,7 @@ namespace GS.Game.Tests {
 			int[] required = {
 				TypeId<GameAction>.Value,
 				TypeId<OrgContext>.Value,
-				TypeId<CardOwnerType>.Value,
-				TypeId<CardInHand>.Value
+				TypeId<CardOwnerType>.Value
 			};
 			bool found = false;
 			foreach (var arch in logic.World.GetMatchingArchetypes(required, null)) {
@@ -776,6 +855,7 @@ namespace GS.Game.Tests {
 						&& orgs[i].OrgId == "Illuminati"
 						&& owners[i].Value == CardOwnerKind.Country) {
 						found = true;
+						Assert.False(logic.World.Has<CardInHand>(arch.Entities[i]));
 					}
 				}
 			}
@@ -784,7 +864,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void initial_hand_fill_ignores_diplomacy_and_military_requirements() {
+		void country_cards_begin_in_deck_despite_diplomacy_and_military_requirements() {
 			const string diplomacyRole = "diplomacy_advisor";
 			const string militaryRole = "military_advisor";
 			var characterConfig = new CharacterConfig {
@@ -869,7 +949,7 @@ namespace GS.Game.Tests {
 			};
 			var logic = BuildLogic(actionConfigOverride: actionConfig, characterConfigOverride: characterConfig);
 
-			// Seed opposite advisor states to confirm neither requirement filters the opening draw.
+			// Seed opposite advisor states to confirm deck creation is independent of current playability.
 			int diploResEntity = logic.World.Create();
 			logic.World.Add(diploResEntity, new ResourceOwner("diplo_gb", OwnerType.Character));
 			logic.World.Add(diploResEntity, new Resource { ResourceId = "opinion_Illuminati", Value = 50 });
@@ -889,14 +969,15 @@ namespace GS.Game.Tests {
 
 			bool foundMakeFriend = false;
 			bool foundUltimatum = false;
-			int[] handReq = { TypeId<GameAction>.Value, TypeId<CardOwnerType>.Value, TypeId<CardInHand>.Value };
-			foreach (var arch in logic.World.GetMatchingArchetypes(handReq, null)) {
+			int[] cardReq = { TypeId<GameAction>.Value, TypeId<CardOwnerType>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(cardReq, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				for (int i = 0; i < arch.Count; i++) {
 					if (owners[i].Value != CardOwnerKind.Country) { continue; }
 					if (actions[i].ActionId == "make_friend") { foundMakeFriend = true; }
 					if (actions[i].ActionId == "force_war_win") { foundUltimatum = true; }
+					Assert.False(logic.World.Has<CardInHand>(arch.Entities[i]));
 				}
 			}
 
@@ -943,7 +1024,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void opening_country_hand_draws_relation_synced_cards_from_the_shared_deck() {
+		void opening_country_hand_is_empty_after_relation_cards_are_synchronized() {
 			var actionConfig = new ActionConfig {
 				Defaults = new List<ActionOwnerDefaults> {
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
@@ -959,22 +1040,22 @@ namespace GS.Game.Tests {
 
 			logic.Update(0f);
 
-			int handCards = 0;
+			int relationCards = 0;
 			int[] required = {
 				TypeId<GameAction>.Value,
-				TypeId<CardOwnerType>.Value,
-				TypeId<CardInHand>.Value
+				TypeId<CardOwnerType>.Value
 			};
 			foreach (var arch in logic.World.GetMatchingArchetypes(required, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				for (int i = 0; i < arch.Count; i++) {
 					if (actions[i].ActionId == "stop_friendship" && owners[i].Value == CardOwnerKind.Country) {
-						handCards++;
+						relationCards++;
+						Assert.False(logic.World.Has<CardInHand>(arch.Entities[i]));
 					}
 				}
 			}
-			Assert.Equal(1, handCards);
+			Assert.True(relationCards > 0);
 		}
 
 		[Fact]

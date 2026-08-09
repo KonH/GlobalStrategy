@@ -2238,6 +2238,10 @@ MonoBehaviour:
     Value: Discard for
   - Key: action.discard.no_gold
     Value: Not enough gold
+  - Key: action.draw.button
+    Value: Draw
+  - Key: action.draw.hand_size
+    Value: 'Hand: {0}/{1}'
   - Key: action.country.unplayable.pool_full
     Value: No control pool space remaining
   - Key: action.country.unplayable.insufficient_control

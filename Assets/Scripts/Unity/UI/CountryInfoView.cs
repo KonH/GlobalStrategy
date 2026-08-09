@@ -49,6 +49,11 @@ namespace GS.Unity.UI {
 		public event Action<string>? OnRelatedCountryFlagClicked;
 		public CountryActionsView? ActionsView => _actionsView;
 		public void OpenChars() => SetCharsOpen(true);
+		public void EnsureActionsOpen() {
+			if (!_actionsOpen) {
+				SetActionsOpen(true);
+			}
+		}
 
 		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CountryVisualConfig? countryVisualConfig = null, OrgVisualConfig? orgVisualConfig = null, GameSettings? gameSettings = null) {
 			_root = root;
@@ -154,7 +159,11 @@ namespace GS.Unity.UI {
 				_charsToggleBtn.style.display = hasChars ? DisplayStyle.Flex : DisplayStyle.None;
 			}
 
-			bool hasActions = countryActions != null && (countryActions.Hand.Count > 0 || countryActions.Deck.Count > 0);
+			bool hasActions = countryActions != null
+				&& (countryActions.Hand.Count > 0
+					|| countryActions.Deck.Count > 0
+					|| countryActions.HasPendingDraw
+					|| countryActions.DrawChoices.Count > 0);
 			if (_actionsToggleBtn != null) {
 				_actionsToggleBtn.style.display = hasActions ? DisplayStyle.Flex : DisplayStyle.None;
 			}

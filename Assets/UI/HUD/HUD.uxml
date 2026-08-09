@@ -89,6 +89,9 @@
                 <ui:VisualElement name="card-test-card" class="action-card action-card--available" style="width: 240px;" />
             </ui:VisualElement>
         </ui:VisualElement>
+        <ui:VisualElement name="card-draw-overlay" class="gs-modal-root card-draw-overlay" style="display: none;">
+            <ui:VisualElement name="card-draw-row" class="card-draw-row" picking-mode="Ignore" />
+        </ui:VisualElement>
         <ui:VisualElement name="card-transition-overlay" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;" />
     </ui:VisualElement>
 </ui:UXML>

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using ECS;
 using GS.Configs;
 using GS.Game.Bots;
+using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
 using GS.Main;
@@ -13,6 +15,8 @@ namespace GS.Game.Tests {
 		readonly CountryRelations _relations = new CountryRelations();
 		sealed class RecordingSink : IBotCommandSink {
 			public List<(string ActionId, string CountryId)> Plays = new();
+			public void DrawCountryCards() { }
+			public void ReceiveCountryCard(int choiceIndex) { }
 			public void PlayOrgCard(string actionId, int slotIndex) => Plays.Add((actionId, ""));
 			public void PlayCountryCard(string actionId, string countryId, int slotIndex, string targetCountryId) {
 				Plays.Add((actionId, countryId));
@@ -23,9 +27,30 @@ namespace GS.Game.Tests {
 		const string OpinionCardId = "opinion_card";
 		const string OrgDistractorCardId = "org_distractor_card";
 
+		static void PutCountryCardsInHand(GameLogic logic, string orgId) {
+			int nextSlot = 0;
+			int[] required = {
+				TypeId<GameAction>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CardOwnerType>.Value
+			};
+			foreach (var archetype in logic.World.GetMatchingArchetypes(required, null)) {
+				OrgContext[] organizations = archetype.GetColumn<OrgContext>();
+				CardOwnerType[] owners = archetype.GetColumn<CardOwnerType>();
+				for (int i = 0; i < archetype.Count; i++) {
+					int entity = archetype.Entities[i];
+					if (organizations[i].OrgId == orgId
+						&& owners[i].Value == CardOwnerKind.Country
+						&& !logic.World.Has<CardInHand>(entity)) {
+						logic.World.Add(entity, new CardInHand { SlotIndex = nextSlot++ });
+					}
+				}
+			}
+		}
+
 		// Bespoke minimal config for priority-order tests: a free org distractor plus two
 		// always-affordable country cards (a positive ControlChangeEffectParams card and an
-		// OpinionModifierEffectParams distractor) dealt into every country hand from init.
+		// OpinionModifierEffectParams distractor) explicitly placed in hand for feature-only tests.
 		static GameLogic BuildPriorityLogic(double orgGold) {
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
@@ -76,6 +101,7 @@ namespace GS.Game.Tests {
 
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
+			PutCountryCardsInHand(logic, "Illuminati");
 			return logic;
 		}
 

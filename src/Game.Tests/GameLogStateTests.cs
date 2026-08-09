@@ -493,6 +493,7 @@ namespace GS.Game.Tests {
 			// control-raising cards instead. See MultiControlActionConfig.
 			var logic = BuildLogic(MultiControlActionConfig("raise_control_1", "raise_control_2"), ControlEffectConfig(5));
 			logic.Update(0f);
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "raise_control_1");
 
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control_1",
@@ -504,6 +505,7 @@ namespace GS.Game.Tests {
 			Assert.Equal(5, controls[0].Delta);
 			Assert.Equal(5, controls[0].Total);
 
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "raise_control_2");
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control_2",
 				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "raise_control_2")
@@ -539,10 +541,12 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			// Second org raises control in the shared target country first.
+			PutCountryCardInHand(logic.World, OrgBId, OtherCountryId, "raise_control");
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgBId, CountryId = OtherCountryId, ActionId = "raise_control" });
 			logic.Update(0f);
 
 			// First org raises control in the same country next.
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "raise_control");
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control" });
 			logic.Update(0f);
 
@@ -655,6 +659,7 @@ namespace GS.Game.Tests {
 			};
 			var logic = BuildLogic(actionConfig, effectConfig, characterConfig);
 			logic.Update(0f);
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "improve_opinion");
 
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId, CountryId = OtherCountryId, ActionId = "improve_opinion",
@@ -673,6 +678,7 @@ namespace GS.Game.Tests {
 			for (int day = 0; day < 31; day++) { logic.Update(24f); }
 			Assert.Equal(countBeforeDecay, Entries(logic).Count);
 
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "improve_opinion");
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId, CountryId = OtherCountryId, ActionId = "improve_opinion",
 				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "improve_opinion")
@@ -788,11 +794,13 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			// Player org (Illuminati, the initialOrganizationId) control — suppressed.
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "raise_control");
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control" });
 			logic.Update(0f);
 			Assert.Empty(Entries(logic).Where(e => e.Kind == GameLogEntryKind.Control));
 
 			// AI org control — still appears.
+			PutCountryCardInHand(logic.World, OrgBId, OtherCountryId, "raise_control");
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgBId, CountryId = OtherCountryId, ActionId = "raise_control" });
 			logic.Update(0f);
 			Assert.Single(Entries(logic).Where(e => e.Kind == GameLogEntryKind.Control && e.OrgId == OrgBId));
@@ -825,16 +833,19 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic(actionConfig, ControlEffectConfig(5), gameSettings: gameSettings, countryConfig: countryConfig);
 			logic.Update(0f);
 
+			PutCountryCardInHand(logic.World, OrgId, CountryA, "raise_control_a");
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId, CountryId = CountryA, ActionId = "raise_control_a",
 				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "raise_control_a")
 			});
 			logic.Update(0f);
+			PutCountryCardInHand(logic.World, OrgId, CountryB, "raise_control_b");
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId, CountryId = CountryB, ActionId = "raise_control_b",
 				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "raise_control_b")
 			});
 			logic.Update(0f);
+			PutCountryCardInHand(logic.World, OrgId, CountryC, "raise_control_c");
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId, CountryId = CountryC, ActionId = "raise_control_c",
 				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "raise_control_c")

@@ -134,7 +134,65 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void discard_pipeline_refills_same_slot_with_different_entity_before_cleanup() {
+		void pending_offer_rejects_discard_without_charging_or_removing_card() {
+			var world = new World();
+			int gold = AddGold(world, 100);
+			int card = AddCard(world);
+			int deck = world.Create();
+			world.Add(deck, new CardDeck { OrgId = OrgId });
+			world.Add(deck, new PendingCardDraw { OptionCount = 1 });
+
+			IReadOnlyList<DiscardCardResult> results = Run(world, Command());
+
+			Assert.Equal(DiscardCardOutcome.OfferAlreadyPending, Assert.Single(results).Outcome);
+			Assert.Equal(100, world.Get<Resource>(gold).Value);
+			Assert.True(world.Has<CardInHand>(card));
+			Assert.False(world.Has<CardDiscard>(card));
+		}
+
+		[Fact]
+		void orphan_choice_marker_rejects_discard_without_charging_or_removing_card() {
+			var world = new World();
+			int gold = AddGold(world, 100);
+			int card = AddCard(world);
+			world.Add(card, new CardDrawChoice { ChoiceIndex = 0 });
+
+			IReadOnlyList<DiscardCardResult> results = Run(world, Command());
+
+			Assert.Equal(DiscardCardOutcome.OfferAlreadyPending, Assert.Single(results).Outcome);
+			Assert.Equal(100, world.Get<Resource>(gold).Value);
+			Assert.True(world.Has<CardInHand>(card));
+			Assert.False(world.Has<CardDiscard>(card));
+		}
+
+		[Fact]
+		void second_same_org_discard_in_batch_is_rejected_after_first_succeeds() {
+			var world = new World();
+			int gold = AddGold(world, 200);
+			int first = AddCard(world, slotIndex: 0, actionId: ActionId);
+			int second = AddCard(world, slotIndex: 1, actionId: "improve_opinion");
+			var commands = new[] {
+				Command(slotIndex: 0, actionId: ActionId),
+				Command(slotIndex: 1, actionId: "improve_opinion")
+			};
+
+			IReadOnlyList<DiscardCardResult> results = DiscardCardSystem.Update(
+				world,
+				new ReadCommands<DiscardCardCommand>(commands),
+				DiscardCost,
+				_resources);
+
+			Assert.Equal(DiscardCardOutcome.Succeeded, results[0].Outcome);
+			Assert.Equal(DiscardCardOutcome.OfferAlreadyPending, results[1].Outcome);
+			Assert.Equal(150, world.Get<Resource>(gold).Value);
+			Assert.False(world.Has<CardInHand>(first));
+			Assert.True(world.Has<CardDiscard>(first));
+			Assert.True(world.Has<CardInHand>(second));
+			Assert.False(world.Has<CardDiscard>(second));
+		}
+
+		[Fact]
+		void discard_pipeline_creates_offer_before_cleanup_and_receives_into_same_slot() {
 			var world = new World();
 			AddGold(world, 100);
 			int discarded = AddCard(world, slotIndex: 0);
@@ -154,19 +212,31 @@ namespace GS.Game.Tests {
 				}
 			};
 
-			Assert.Equal(DiscardCardOutcome.Succeeded, Assert.Single(Run(world, Command(slotIndex: 0))).Outcome);
-			CheckHandSizeSystem.Update(world);
-			DrawCardSystem.Update(world, config, new Random(1));
+			IReadOnlyList<DiscardCardResult> results = Run(world, Command(slotIndex: 0));
+			Assert.Equal(DiscardCardOutcome.Succeeded, Assert.Single(results).Outcome);
+			DrawCardSystem.Update(
+				world,
+				config,
+				new Random(1),
+				new ReadCommands<DrawCardsCommand>(Array.Empty<DrawCardsCommand>()),
+				results);
 
 			Assert.False(world.Has<CardInHand>(discarded));
 			Assert.True(world.Has<CardDiscard>(discarded));
+			Assert.True(world.Has<CardDrawChoice>(replacement));
+			Assert.False(world.Has<CardInHand>(replacement));
+			ReceiveCardSystem.Update(
+				world,
+				new ReadCommands<ReceiveCardCommand>(new[] {
+					new ReceiveCardCommand { OrgId = OrgId, ChoiceIndex = 0 }
+				}));
 			Assert.True(world.Has<CardInHand>(replacement));
 			Assert.Equal(0, world.Get<CardInHand>(replacement).SlotIndex);
 			CleanupCardDiscardSystem.Update(world);
 		}
 
 		[Fact]
-		void game_logic_orders_discard_before_hand_refill_and_cleanup() {
+		void game_logic_orders_discard_before_offer_creation_and_cleanup() {
 			GameLogicContext context = MultiOrgTestSupport.BuildContext(includeCountryCard: true, rngSeed: 7);
 			ActionConfig actionConfig = context.Action.Load();
 			actionConfig.Actions.Add(new ActionDefinition {
@@ -180,6 +250,16 @@ namespace GS.Game.Tests {
 				DeckCopies = 1
 			});
 			var logic = new GameLogic(context);
+			logic.Update(0);
+			logic.Commands.Push(new DrawCardsCommand { OrgId = MultiOrgTestSupport.OrgA });
+			logic.Update(0);
+			CountryCardDrawChoiceInfo initialChoice = Assert.Single(
+				CountryCardDrawQuery.GetChoices(logic.World, MultiOrgTestSupport.OrgA),
+				choice => choice.ChoiceIndex == 0);
+			logic.Commands.Push(new ReceiveCardCommand {
+				OrgId = MultiOrgTestSupport.OrgA,
+				ChoiceIndex = initialChoice.ChoiceIndex
+			});
 			logic.Update(0);
 
 			(int discardedEntity, string actionId, int slotIndex) = FindFirstCountryHandCard(
@@ -203,10 +283,11 @@ namespace GS.Game.Tests {
 				logic.Resources.GetValue(logic.World, MultiOrgTestSupport.OrgA, ResourceDefinitions.Gold));
 			Assert.False(logic.World.Has<CardInHand>(discardedEntity));
 			Assert.False(logic.World.Has<CardDiscard>(discardedEntity));
-			Assert.NotEqual(discardedEntity, FindCountryHandCardInSlot(
+			Assert.Equal(-1, FindCountryHandCardInSlot(
 				logic.World,
 				MultiOrgTestSupport.OrgA,
 				slotIndex));
+			Assert.NotEmpty(CountryCardDrawQuery.GetChoices(logic.World, MultiOrgTestSupport.OrgA));
 		}
 
 		static (int Entity, string ActionId, int SlotIndex) FindFirstCountryHandCard(World world, string orgId) {

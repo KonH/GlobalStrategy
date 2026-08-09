@@ -41,15 +41,19 @@ namespace GS.Game.Bots {
 		}
 
 		public void ExecuteDecisionTick(IReadOnlyWorld world, ActionConfig actionConfig) {
-			DateTime currentDate = BotObservation.ReadCurrentDate(world);
+			_sink.BeginDecisionPhase();
+			var observation = BotObservation.Build(
+				world, actionConfig, OrgId, _resources, _relations, _effectConfig, _hqCountryByOrgId, _maxControlPool);
+			if (TryAcquireCountryCard(observation)) {
+				return;
+			}
+
+			DateTime currentDate = observation.CurrentDate;
 			if (_lastActedDate.HasValue && currentDate.Date == _lastActedDate.Value.Date) {
 				return;
 			}
 			_lastActedDate = currentDate;
 
-			_sink.BeginDecisionPhase();
-			var observation = BotObservation.Build(
-				world, actionConfig, OrgId, _resources, _relations, _effectConfig, _hqCountryByOrgId, _maxControlPool);
 			foreach (var feature in _features) {
 				CurrentFeatureId = feature.FeatureId;
 				try {
@@ -60,6 +64,42 @@ namespace GS.Game.Bots {
 					CurrentFeatureId = "";
 				}
 			}
+		}
+
+		bool TryAcquireCountryCard(IBotObservation observation) {
+			if (observation.CountryCardDrawChoices.Count > 0) {
+				BotCardDrawChoiceView selected = observation.CountryCardDrawChoices[0];
+				int selectedPriority = GetChoicePriority(selected);
+				for (int i = 1; i < observation.CountryCardDrawChoices.Count; i++) {
+					BotCardDrawChoiceView candidate = observation.CountryCardDrawChoices[i];
+					int candidatePriority = GetChoicePriority(candidate);
+					if (candidatePriority < selectedPriority
+						|| candidatePriority == selectedPriority && candidate.ChoiceIndex < selected.ChoiceIndex) {
+						selected = candidate;
+						selectedPriority = candidatePriority;
+					}
+				}
+				_sink.ReceiveCountryCard(selected.ChoiceIndex);
+				return true;
+			}
+			if (observation.CanStartCountryCardDraw) {
+				_sink.DrawCountryCards();
+				return true;
+			}
+			return false;
+		}
+
+		static int GetChoicePriority(BotCardDrawChoiceView choice) {
+			if (choice.IsControlUsable) {
+				return 0;
+			}
+			if (choice.RaisesControl) {
+				return 1;
+			}
+			if (choice.IsPlayable) {
+				return 2;
+			}
+			return 3;
 		}
 	}
 

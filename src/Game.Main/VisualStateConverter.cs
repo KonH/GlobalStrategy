@@ -590,7 +590,8 @@ namespace GS.Main {
 				_state.SelectedCountry.CountryActions.Set(
 					new List<ActionCardEntry>(),
 					new List<ActionCardEntry>(),
-					0, DateTime.MinValue);
+					new List<CardDrawChoiceEntry>(),
+					0, false, false, DateTime.MinValue);
 				return;
 			}
 			string orgId = _state.PlayerOrganization.OrgId;
@@ -602,10 +603,11 @@ namespace GS.Main {
 
 			var hand = new List<ActionCardEntry>();
 			var deck = new List<ActionCardEntry>();
+			var drawChoices = new List<CardDrawChoiceEntry>();
 
 			int[] baseReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardOwnerType>.Value };
 			int[] handReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardOwnerType>.Value, TypeId<CardInHand>.Value };
-			int[] excludeHand = { TypeId<CardInHand>.Value };
+			int[] excludeHandAndChoices = { TypeId<CardInHand>.Value, TypeId<CardDrawChoice>.Value };
 
 			IReadOnlyList<string> playableCountryOrder = GetPlayableCountryEvaluationOrder(world);
 
@@ -620,13 +622,13 @@ namespace GS.Main {
 					if (orgs[i].OrgId != orgId || owners[i].Value != CardOwnerKind.Country) { continue; }
 					var entry = BuildEntry(
 						world, orgId, countryId, arch.Entities[i], actions[i].ActionId, hands[i].SlotIndex, true,
-						currentTime, playableCountryOrder);
+						true, currentTime, playableCountryOrder);
 					if (entry != null) { hand.Add(entry); }
 				}
 			}
 
 			// Deck cards
-			foreach (var arch in world.GetMatchingArchetypes(baseReq, excludeHand)) {
+			foreach (var arch in world.GetMatchingArchetypes(baseReq, excludeHandAndChoices)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
@@ -635,19 +637,42 @@ namespace GS.Main {
 					if (orgs[i].OrgId != orgId || owners[i].Value != CardOwnerKind.Country) { continue; }
 					var entry = BuildEntry(
 						world, orgId, countryId, arch.Entities[i], actions[i].ActionId, -1, false,
-						currentTime, playableCountryOrder);
+						false, currentTime, playableCountryOrder);
 					if (entry != null) { deck.Add(entry); }
 				}
 			}
 
+			CountryCardDrawStatus drawStatus;
+			bool hasDrawStatus = CountryCardDrawQuery.TryGetStatus(world, _actionConfig, orgId, out drawStatus);
+			if (hasDrawStatus
+				&& drawStatus.HasCoherentPendingDraw
+				&& CountryCardDrawQuery.TryGetCoherentChoices(
+					world,
+					orgId,
+					out IReadOnlyList<CountryCardDrawChoiceInfo> coherentChoices)) {
+				foreach (CountryCardDrawChoiceInfo choice in coherentChoices) {
+					if (!world.Has<GameAction>(choice.Entity)) { continue; }
+					var entry = BuildEntry(
+						world, orgId, countryId, choice.Entity, world.Get<GameAction>(choice.Entity).ActionId,
+						-1, false, true, currentTime, playableCountryOrder);
+					if (entry != null) {
+						drawChoices.Add(new CardDrawChoiceEntry(choice.ChoiceIndex, entry));
+					}
+				}
+			}
+
 			hand.Sort((a, b) => a.SlotIndex.CompareTo(b.SlotIndex));
-			int countryHandSize = _actionConfig?.GetHandSize("country") ?? 3;
-			_state.SelectedCountry.CountryActions.Set(hand, deck, countryHandSize, currentTime);
+			int countryHandSize = hasDrawStatus ? drawStatus.HandSize : 0;
+			bool hasPendingDraw = hasDrawStatus && drawStatus.HasCoherentPendingDraw;
+			bool canStartDraw = hasDrawStatus && drawStatus.CanStartDraw;
+			_state.SelectedCountry.CountryActions.Set(
+				hand, deck, drawChoices, countryHandSize, hasPendingDraw, canStartDraw, currentTime);
 		}
 
 		ActionCardEntry? BuildEntry(
 			IReadOnlyWorld world, string orgId, string countryId, int entity,
 			string actionId, int slotIndex, bool isInHand,
+			bool includePlayableCountryIds,
 			DateTime currentTime,
 			IReadOnlyList<string> playableCountryOrder) {
 			var def = _actionConfig?.Find(actionId);
@@ -691,6 +716,9 @@ namespace GS.Main {
 			double? cooldownFractionRemaining = onCooldown && def.CooldownDays > 0
 				? Math.Round(Math.Clamp(remaining!.Value.TotalDays / def.CooldownDays, 0.0, 1.0), 2)
 				: (double?)null;
+			string countryContextId = world.Has<CountryContext>(entity)
+				? world.Get<CountryContext>(entity).CountryId
+				: "";
 
 			int? warWinChancePercent = null;
 			if ((actionId == "declare_war" || actionId == "declare_revenge_war") && !string.IsNullOrEmpty(targetCountryId)) {
@@ -709,7 +737,7 @@ namespace GS.Main {
 			}
 
 			var playableCountryIds = new List<string>();
-			if (isInHand && !playability.CanPlay) {
+			if (includePlayableCountryIds && !playability.CanPlay) {
 				foreach (string candidateCountryId in playableCountryOrder) {
 					if (ActionPlayability.Evaluate(
 						world, _actionConfig!, entity, actionId, orgId, candidateCountryId,
@@ -724,7 +752,7 @@ namespace GS.Main {
 				actionId, slotIndex, isInHand, !playability.CanPlay,
 				playability.FirstFailure?.ReasonCode ?? "", targetCountryId, playability.Entries,
 				warWinChancePercent, cooldownRemainingDays, cooldownFractionRemaining,
-				playability.CanPlay, playability.FirstFailure, playableCountryIds);
+				playability.CanPlay, playability.FirstFailure, playableCountryIds, countryContextId);
 		}
 
 		IReadOnlyList<string> GetPlayableCountryEvaluationOrder(IReadOnlyWorld world) {

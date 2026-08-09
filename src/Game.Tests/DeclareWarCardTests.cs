@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ECS;
+using GS.Game.Commands;
 using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
@@ -245,22 +246,34 @@ namespace GS.Game.Tests {
 			int deck = world.Create();
 			world.Add(deck, new CardDeck { OrgId = OrgId });
 			world.Add(deck, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deck, new CardDraw { Count = 1 });
+			world.Add(deck, new CardHand { HandSize = 1 });
 
-			DrawCardSystem.Update(world, BuildActionConfig(), new Random(1));
+			DrawAndReceive(world);
 			Assert.True(world.Has<CardInHand>(card));
 
 			world.Get<Resource>(opinionResource).Value = 50;
 			world.Remove<CardInHand>(card);
-			world.Add(deck, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, BuildActionConfig(), new Random(1));
+			DrawAndReceive(world);
 			Assert.True(world.Has<CardInHand>(card));
 
 			world.Remove<CardInHand>(card);
 			Wars.DeclareWar(world, _resources, AttackerId, "Germany", CurrentTime);
-			world.Add(deck, new CardDraw { Count = 1 });
-			DrawCardSystem.Update(world, BuildActionConfig(), new Random(1));
+			DrawAndReceive(world);
 			Assert.True(world.Has<CardInHand>(card));
+		}
+
+		static void DrawAndReceive(World world) {
+			DrawCardSystem.Update(
+				world,
+				BuildActionConfig(),
+				new Random(1),
+				new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = OrgId } }),
+				Array.Empty<DiscardCardResult>());
+			ReceiveCardSystem.Update(
+				world,
+				new ReadCommands<ReceiveCardCommand>(new[] {
+					new ReceiveCardCommand { OrgId = OrgId, ChoiceIndex = 0 }
+				}));
 		}
 
 		[Fact]

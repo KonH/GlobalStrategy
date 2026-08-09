@@ -2238,6 +2238,10 @@ MonoBehaviour:
     Value: Сбросить за
   - Key: action.discard.no_gold
     Value: Недостаточно золота
+  - Key: action.draw.button
+    Value: Взять карту
+  - Key: action.draw.hand_size
+    Value: 'Рука: {0}/{1}'
   - Key: action.country.unplayable.pool_full
     Value: Пул контроля переполнен
   - Key: action.country.unplayable.insufficient_control

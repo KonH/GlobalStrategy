@@ -269,6 +269,7 @@ namespace GS.Main {
 		public bool   IsUnplayable    { get; }
 		public string UnplayableReason { get; }
 		public ActionConditionDebugEntry? FirstFailure { get; }
+		public string CountryContextId { get; }
 		public string TargetCountryId { get; }
 		public IReadOnlyList<string> PlayableCountryIds { get; }
 		public int?   WarWinChancePercent { get; }
@@ -288,17 +289,29 @@ namespace GS.Main {
 			double? cooldownFractionRemaining = null,
 			bool? canPlay = null,
 			ActionConditionDebugEntry? firstFailure = null,
-			IReadOnlyList<string>? playableCountryIds = null) {
+			IReadOnlyList<string>? playableCountryIds = null,
+			string countryContextId = "") {
 			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
 			CanPlay = canPlay ?? !isUnplayable;
 			IsUnplayable = !CanPlay; UnplayableReason = unplayableReason;
 			FirstFailure = firstFailure;
+			CountryContextId = countryContextId;
 			TargetCountryId = targetCountryId;
 			PlayableCountryIds = playableCountryIds ?? Array.Empty<string>();
 			WarWinChancePercent = warWinChancePercent;
 			CooldownRemainingDays = cooldownRemainingDays;
 			CooldownFractionRemaining = cooldownFractionRemaining;
 			Conditions = conditions ?? Array.Empty<ActionConditionDebugEntry>();
+		}
+	}
+
+	public class CardDrawChoiceEntry {
+		public int ChoiceIndex { get; }
+		public ActionCardEntry Card { get; }
+
+		public CardDrawChoiceEntry(int choiceIndex, ActionCardEntry card) {
+			ChoiceIndex = choiceIndex;
+			Card = card;
 		}
 	}
 
@@ -356,17 +369,35 @@ namespace GS.Main {
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public IReadOnlyList<ActionCardEntry> Hand { get; private set; } = Array.Empty<ActionCardEntry>();
 		public IReadOnlyList<ActionCardEntry> Deck { get; private set; } = Array.Empty<ActionCardEntry>();
+		public IReadOnlyList<CardDrawChoiceEntry> DrawChoices { get; private set; } = Array.Empty<CardDrawChoiceEntry>();
 		public int HandSize { get; private set; }
+		public bool HasPendingDraw { get; private set; }
+		public bool CanStartDraw { get; private set; }
 		public DateTime CurrentTime { get; private set; }
 
-		public void Set(List<ActionCardEntry> hand, List<ActionCardEntry> deck, int handSize, DateTime currentTime) {
-			HandSize = handSize;
+		public void Set(
+			List<ActionCardEntry> hand,
+			List<ActionCardEntry> deck,
+			List<CardDrawChoiceEntry> drawChoices,
+			int handSize,
+			bool hasPendingDraw,
+			bool canStartDraw,
+			DateTime currentTime) {
 			CurrentTime = currentTime;
 			if (StateEquality.ListEquals(Hand, hand, StateEquality.ActionCardEntryEquals)
-				&& StateEquality.ListEquals(Deck, deck, StateEquality.ActionCardEntryEquals)) {
+				&& StateEquality.ListEquals(Deck, deck, StateEquality.ActionCardEntryEquals)
+				&& StateEquality.ListEquals(DrawChoices, drawChoices, StateEquality.CardDrawChoiceEntryEquals)
+				&& HandSize == handSize
+				&& HasPendingDraw == hasPendingDraw
+				&& CanStartDraw == canStartDraw) {
 				return;
 			}
-			Hand = hand; Deck = deck;
+			Hand = hand;
+			Deck = deck;
+			DrawChoices = drawChoices;
+			HandSize = handSize;
+			HasPendingDraw = hasPendingDraw;
+			CanStartDraw = canStartDraw;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}

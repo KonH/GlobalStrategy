@@ -291,12 +291,17 @@ namespace GS.Main {
 			SetCountryRelationSystem.Update(_world, _relations);
 			ClearCountryRelationSystem.Update(_world, _relations);
 			RemoveCardFromHandSystem.Update(_world);
-			DiscardCardSystem.Update(
+			IReadOnlyList<DiscardCardResult> discardResults = DiscardCardSystem.Update(
 				_world, _commandAccessor.ReadDiscardCardCommand(), GameSettings.DiscardGoldCost, _resources);
-			CheckHandSizeSystem.Update(_world);
+			ReceiveCardSystem.Update(_world, _commandAccessor.ReadReceiveCardCommand());
 			RelationCardSyncSystem.Update(_world, _relations, _actionConfig);
 			RevengeCardSyncSystem.Update(_world, _actionConfig);
-			DrawCardSystem.Update(_world, _actionConfig, _rng);
+			DrawCardSystem.Update(
+				_world,
+				_actionConfig,
+				_rng,
+				_commandAccessor.ReadDrawCardsCommand(),
+				discardResults);
 			CleanupCardDiscardSystem.Update(_world);
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool, _resources);
 
@@ -319,6 +324,7 @@ namespace GS.Main {
 			}
 			RefreshSingletonEntities();
 			ReconcileLoadedCompletionState();
+			ReconcileLoadedCountryHandSize();
 			RefreshSingletonEntities();
 			CountryDestroySystem.DestroyAllZeroProvinceCountries(_world, _relations);
 			_previousTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
@@ -393,6 +399,24 @@ namespace GS.Main {
 				});
 				savedOrders.Add(nextOrder);
 				nextOrder++;
+			}
+		}
+
+		void ReconcileLoadedCountryHandSize() {
+			int configuredHandSize = _actionConfig.GetHandSize("country");
+			int[] required = {
+				TypeId<CardDeck>.Value,
+				TypeId<CardOwnerType>.Value,
+				TypeId<CardHand>.Value
+			};
+			foreach (Archetype archetype in _world.GetMatchingArchetypes(required, null)) {
+				CardOwnerType[] owners = archetype.GetColumn<CardOwnerType>();
+				CardHand[] hands = archetype.GetColumn<CardHand>();
+				for (int i = 0; i < archetype.Count; i++) {
+					if (owners[i].Value == CardOwnerKind.Country) {
+						hands[i].HandSize = configuredHandSize;
+					}
+				}
 			}
 		}
 

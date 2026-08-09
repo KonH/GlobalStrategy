@@ -248,6 +248,39 @@
     transition-duration: 0.4s;
 }
 
+.card-draw-overlay {
+    overflow: visible;
+}
+
+.card-draw-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+}
+
+.card-draw-slot {
+    width: 240px;
+    height: 360px;
+    flex-shrink: 0;
+}
+
+.card-draw-card-copy {
+    position: absolute;
+    width: 240px;
+    height: 360px;
+    overflow: visible;
+}
+
+.card-draw-card-face,
+.card-draw-card-back {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 240px;
+    height: 360px;
+}
+
 .character-hint-rows {
     flex-direction: column;
     margin-top: 6px;
