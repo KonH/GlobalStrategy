@@ -346,6 +346,8 @@ MonoBehaviour:
     Value: Загрузить
   - Key: menu.settings
     Value: Параметры
+  - Key: menu.about
+    Value: О проекте
   - Key: menu.exit
     Value: Выход
   - Key: select_org.hint
