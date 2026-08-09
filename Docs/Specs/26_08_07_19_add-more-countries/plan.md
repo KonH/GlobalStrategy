@@ -168,6 +168,7 @@ Output path `Assets/Textures/Characters/PortraitCard/{characterId}.png`, 512×51
 
 **User Step 1 — done (2026-08-09, interactive session with Unity MCP connected):** all 6 flag PNGs were already Sprite-imported locally (leftover from a prior session that hit its limit before committing); verified each flag's content against its Wikimedia Commons source page — Bosnia_Herzegovina/Greece/Montenegro use genuine era-accurate c.1878 designs distinct from their modern national flags, not download mismatches — then wired all 6 GUIDs into `Assets/Configs/CountryVisualConfig.asset` via `manage_scriptable_object`. No console errors. Committed in `4caf204`.
 
-**Remaining (Section 2 User Steps — Unity Editor / ComfyUI required):**
-2. Generate the 90 character portraits (recipe above) via the `image-generation` skill once ComfyUI is available — explicitly deferred by the issue to a separate pass regardless.
-3. In-Editor Play Mode verification of spawning/rendering/roster/relations/flags — not run by the agent per project policy (no self-triggered Play mode testing); needs the user to confirm in-Editor.
+**User Step 2 — done (2026-08-09, ComfyUI + Unity MCP available):** started ComfyUI via the `setup-comfy-ui` skill, then built `.tmp/images.json` for all 90 characters — 72 used their bespoke prompt already written in `character_roster.md`, the remaining 18 (`diplomacy_advisor` role, config-only, no roster subsection) used the `image-generation` skill's generic template with names resolved from `character_config.json` `namePartKeys` + `en.asset`. Ran `generate_images_batch.py`; all 90 PNGs saved to `Assets/Textures/Characters/PortraitCard/`, Unity-imported via `refresh_unity`, and committed with their `.meta` files in `25449a7`.
+
+**Remaining (Section 2 User Step 3 — Unity Editor required):**
+3. In-Editor Play Mode verification of spawning/rendering/roster/relations/flags/portraits — not run by the agent per project policy (no self-triggered Play mode testing); needs the user to confirm in-Editor.
