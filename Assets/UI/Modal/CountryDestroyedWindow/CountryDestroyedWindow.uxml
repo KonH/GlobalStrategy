@@ -1,0 +1,16 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/Modal/CountryDestroyedWindow/CountryDestroyedWindow.uss"/>
+    <ui:VisualElement name="country-destroyed-root" class="country-destroyed-root">
+        <ui:VisualElement name="blackfade" class="gs-blackfade"/>
+        <ui:VisualElement name="country-destroyed-panel" class="gs-panel country-destroyed-panel">
+            <ui:VisualElement class="country-destroyed-header">
+                <ui:Label name="country-destroyed-title" text="" class="gs-title country-destroyed-title"/>
+            </ui:VisualElement>
+            <ui:Button name="btn-close" text="X" class="gs-btn country-destroyed-close"/>
+            <ui:VisualElement name="country-destroyed-image" class="country-destroyed-image"/>
+            <ui:Label name="country-destroyed-body" text="" class="gs-content country-destroyed-body"/>
+            <ui:Button name="btn-confirm" text="" class="gs-btn gs-btn--primary country-destroyed-confirm"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

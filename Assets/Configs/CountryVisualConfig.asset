@@ -96,7 +96,7 @@ MonoBehaviour:
   - countryId: Bosnia_Herzegovina
     displayName: Bosnia-Herzegovina
     color: {r: 0.8, g: 0.7352518, b: 0.44000003, a: 1}
-    flag: {fileID: 0}
+    flag: {fileID: 21300000, guid: 73e56a2ce15af224791a2eb20e989c62, type: 3}
   - countryId: British_Guiana
     displayName: British Guiana
     color: {r: 0.8, g: 0.7507914, b: 0.44000003, a: 1}
@@ -116,7 +116,7 @@ MonoBehaviour:
   - countryId: Bulgaria
     displayName: Bulgaria
     color: {r: 0.78705037, g: 0.8, b: 0.44000003, a: 1}
-    flag: {fileID: 0}
+    flag: {fileID: 21300000, guid: 52955f1b3a788c84b998af6b14cb7da2, type: 3}
   - countryId: Bunyoro
     displayName: Bunyoro
     color: {r: 0.7715108, g: 0.8, b: 0.44000003, a: 1}
@@ -240,7 +240,7 @@ MonoBehaviour:
   - countryId: Greece
     displayName: Greece
     color: {r: 0.44000003, g: 0.8, b: 0.54359716, a: 1}
-    flag: {fileID: 0}
+    flag: {fileID: 21300000, guid: 5a193a369d44aef43a409694c2886ff8, type: 3}
   - countryId: Griqualand_West
     displayName: Griqualand West
     color: {r: 0.44000003, g: 0.8, b: 0.55913675, a: 1}
@@ -368,7 +368,7 @@ MonoBehaviour:
   - countryId: Montenegro
     displayName: Montenegro
     color: {r: 0.44000003, g: 0.621295, b: 0.8, a: 1}
-    flag: {fileID: 0}
+    flag: {fileID: 21300000, guid: b99d59a321eb87347bc51af8f686db7d, type: 3}
   - countryId: Montserrat
     displayName: Montserrat
     color: {r: 0.44000003, g: 0.60575545, b: 0.8, a: 1}
@@ -492,7 +492,7 @@ MonoBehaviour:
   - countryId: Romania
     displayName: Romania
     color: {r: 0.69381297, g: 0.44000003, b: 0.8, a: 1}
-    flag: {fileID: 0}
+    flag: {fileID: 21300000, guid: 7adee19caf8bd4a4c8d89fb67220f13d, type: 3}
   - countryId: Russian_Empire
     displayName: Russian Empire
     color: {r: 0.627451, g: 0.78431374, b: 0.47843137, a: 1}
@@ -520,7 +520,7 @@ MonoBehaviour:
   - countryId: Serbia
     displayName: Serbia
     color: {r: 0.7870504, g: 0.44000003, b: 0.8, a: 1}
-    flag: {fileID: 0}
+    flag: {fileID: 21300000, guid: da163645dbc79d442825204709c4cc09, type: 3}
   - countryId: Shona
     displayName: Shona
     color: {r: 0.8, g: 0.44000003, b: 0.7974101, a: 1}

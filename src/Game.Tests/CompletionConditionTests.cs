@@ -86,7 +86,7 @@ namespace GS.Game.Tests {
 			Assert.Equal(0, new TotalControlCondition(0.8).GetCurrent(context));
 			Assert.Equal(0, new TotalControlCondition(0.8).GetTarget(context));
 			Assert.Equal(0, new FullControlCondition(15).GetCurrent(context));
-			Assert.Equal(15, new FullControlCondition(15).GetTarget(context));
+			Assert.Equal(0, new FullControlCondition(15).GetTarget(context));
 		}
 
 		[Fact]
@@ -126,6 +126,26 @@ namespace GS.Game.Tests {
 			AddControl(world, OrgA, countries[14], 1);
 			Assert.Equal(15, condition.GetCurrent(context));
 			Assert.True(condition.IsMet(context));
+		}
+
+		[Fact]
+		void full_control_target_uses_min_of_configured_and_available_count() {
+			var world = new World();
+			var fourteen = new List<string>();
+			for (int i = 0; i < 14; i++) {
+				fourteen.Add($"country-{i}");
+			}
+			var twenty = new List<string>(fourteen);
+			twenty.Add("country-14");
+			twenty.Add("country-15");
+			twenty.Add("country-16");
+			twenty.Add("country-17");
+			twenty.Add("country-18");
+			twenty.Add("country-19");
+			var condition = new FullControlCondition(15);
+
+			Assert.Equal(14, condition.GetTarget(new CompletionConditionContext(world, OrgA, fourteen, 100, _resources)));
+			Assert.Equal(15, condition.GetTarget(new CompletionConditionContext(world, OrgA, twenty, 100, _resources)));
 		}
 
 		[Fact]

@@ -346,6 +346,8 @@ MonoBehaviour:
     Value: Загрузить
   - Key: menu.settings
     Value: Параметры
+  - Key: menu.about
+    Value: О проекте
   - Key: menu.exit
     Value: Выход
   - Key: select_org.hint
@@ -360,6 +362,8 @@ MonoBehaviour:
     Value: Иллюминаты
   - Key: organization_name.Masons
     Value: Масоны
+  - Key: organization_name.BlackHand
+    Value: Чёрная рука
   - Key: load.title
     Value: Загрузить игру
   - Key: load.back
@@ -564,6 +568,12 @@ MonoBehaviour:
     Value: Провинции
   - Key: war_result.provinces_empty
     Value: Провинции не переданы
+  - Key: country_destroyed.header_format
+    Value: '{0} канула в прошлое...'
+  - Key: country_destroyed.body_format
+    Value: 'Её земли погрузились в тишину. {0} больше не числится среди народов этого мира.'
+  - Key: country_destroyed.confirm
+    Value: Продолжить
   - Key: select_org.base_control
     Value: 'Базовый контроль:'
   - Key: select_org.estimated_income
@@ -1720,6 +1730,346 @@ MonoBehaviour:
     Value: Изабель
   - Key: character.name.part.girard
     Value: Жирар
+  - Key: character.name.part.dragutin
+    Value: Драгутин
+  - Key: character.name.part.dimitrijevic
+    Value: Димитриевич
+  - Key: character.name.part.vojislav
+    Value: Воислав
+  - Key: character.name.part.tankosic
+    Value: Танкосич
+  - Key: character.name.part.bogdan
+    Value: Богдан
+  - Key: character.name.part.radenkovic
+    Value: Раденкович
+  - Key: character.name.part.gavrilo
+    Value: Гаврило
+  - Key: character.name.part.princip
+    Value: Принцип
+  - Key: character.name.part.nedeljko
+    Value: Неделько
+  - Key: character.name.part.cabrinovic
+    Value: Чабринович
+  - Key: character.name.part.trifko
+    Value: Трифко
+  - Key: character.name.part.grabez
+    Value: Грабеж
+  - Key: character.name.part.danilo
+    Value: Данило
+  - Key: character.name.part.ilic
+    Value: Илич
+  - Key: character.name.part.veljko
+    Value: Велько
+  - Key: character.name.part.cubrilovic
+    Value: Чубрилович
+  - Key: character.name.part.muhamed
+    Value: Мухамед
+  - Key: character.name.part.mehmedbasic
+    Value: Мехмедбашич
+  - Key: character.name.part.milos
+    Value: Милош
+  - Key: character.name.part.obrenovic_i
+    Value: Обренович-I
+  - Key: character.name.part.mihailo
+    Value: Михаило
+  - Key: character.name.part.obrenovic_iii
+    Value: Обренович-III
+  - Key: character.name.part.milan
+    Value: Милан
+  - Key: character.name.part.obrenovic
+    Value: Обренович
+  - Key: character.name.part.kosta
+    Value: Коста
+  - Key: character.name.part.protic
+    Value: Протич
+  - Key: character.name.part.jovan
+    Value: Йован
+  - Key: character.name.part.belimarkovic
+    Value: Белимаркович
+  - Key: character.name.part.djura
+    Value: Джура
+  - Key: character.name.part.horvatovic
+    Value: Хорватович
+  - Key: character.name.part.ristic
+    Value: Ристич
+  - Key: character.name.part.cedomilj
+    Value: Чедомиль
+  - Key: character.name.part.mijatovic
+    Value: Миятович
+  - Key: character.name.part.milutin
+    Value: Милутин
+  - Key: character.name.part.garasanin
+    Value: Гарашанин
+  - Key: character.name.part.cukic
+    Value: Цукич
+  - Key: character.name.part.vladimir
+    Value: Владимир
+  - Key: character.name.part.jovanovic
+    Value: Йованович
+  - Key: character.name.part.djordje
+    Value: Джордже
+  - Key: character.name.part.vajfert
+    Value: Вайферт
+  - Key: character.name.part.nikola
+    Value: Никола
+  - Key: character.name.part.pasic
+    Value: Пашич
+  - Key: character.name.part.pera
+    Value: Пера
+  - Key: character.name.part.todorovic
+    Value: Тодорович
+  - Key: character.name.part.bogosavljevic
+    Value: Богосавлевич
+  - Key: character.name.part.battenberg
+    Value: Баттенберг
+  - Key: character.name.part.stefan
+    Value: Стефан
+  - Key: character.name.part.stambolov
+    Value: Стамболов
+  - Key: character.name.part.sava
+    Value: Сава
+  - Key: character.name.part.mutkurov
+    Value: Муткуров
+  - Key: character.name.part.racho
+    Value: Рачо
+  - Key: character.name.part.petrov
+    Value: Петров
+  - Key: character.name.part.danail
+    Value: Данаил
+  - Key: character.name.part.nikolaev
+    Value: Николаев
+  - Key: character.name.part.marin
+    Value: Марин
+  - Key: character.name.part.drinov
+    Value: Дринов
+  - Key: character.name.part.grigor
+    Value: Григор
+  - Key: character.name.part.nachovich
+    Value: Начович
+  - Key: character.name.part.stoilov
+    Value: Стойлов
+  - Key: character.name.part.ivan
+    Value: Иван
+  - Key: character.name.part.geshov
+    Value: Гешов
+  - Key: character.name.part.dragan
+    Value: Драган
+  - Key: character.name.part.tsankov
+    Value: Цанков
+  - Key: character.name.part.todor
+    Value: Тодор
+  - Key: character.name.part.ikonomov
+    Value: Икономов
+  - Key: character.name.part.zahari
+    Value: Захари
+  - Key: character.name.part.stoyanov
+    Value: Стоянов
+  - Key: character.name.part.panayot
+    Value: Панайот
+  - Key: character.name.part.volov
+    Value: Волов
+  - Key: character.name.part.dimitar
+    Value: Димитар
+  - Key: character.name.part.rizov
+    Value: Ризов
+  - Key: character.name.part.josip
+    Value: Йосип
+  - Key: character.name.part.filipovic
+    Value: Филипович
+  - Key: character.name.part.hermann
+    Value: Герман
+  - Key: character.name.part.dahlen
+    Value: Далень
+  - Key: character.name.part.kallay
+    Value: Каллай
+  - Key: character.name.part.salih
+    Value: Салих
+  - Key: character.name.part.vilajetovic
+    Value: Виляетович
+  - Key: character.name.part.anton
+    Value: Антон
+  - Key: character.name.part.mollinary
+    Value: Молинари
+  - Key: character.name.part.stevan
+    Value: Стеван
+  - Key: character.name.part.mustaj_beg_fadilpasic
+    Value: Мустай-бег-Фадилпашич
+  - Key: character.name.part.mehmed_beg_kapetanovic
+    Value: Мехмед-бег-Капетанович
+  - Key: character.name.part.mandic
+    Value: Мандич
+  - Key: character.name.part.hormann
+    Value: Хёрманн
+  - Key: character.name.part.kalman
+    Value: Калман
+  - Key: character.name.part.thalloczy
+    Value: Таллочи
+  - Key: character.name.part.anto
+    Value: Анто
+  - Key: character.name.part.sola
+    Value: Шола
+  - Key: character.name.part.mico
+    Value: Мично
+  - Key: character.name.part.ljubibratic
+    Value: Любибратич
+  - Key: character.name.part.gligor
+    Value: Глигор
+  - Key: character.name.part.jeftanovic
+    Value: Йефтанович
+  - Key: character.name.part.ibrahim_beg_basagic
+    Value: Ибрахим-бег-Башагич
+  - Key: character.name.part.petar
+    Value: Петар
+  - Key: character.name.part.petrovic_njegos_ii
+    Value: Петрович-Негош-II
+  - Key: character.name.part.danilo
+    Value: Данило
+  - Key: character.name.part.petrovic_njegos_i
+    Value: Петрович-Негош-I
+  - Key: character.name.part.maso
+    Value: Машо
+  - Key: character.name.part.vrbica
+    Value: Врбица
+  - Key: character.name.part.vukotic
+    Value: Вукотич
+  - Key: character.name.part.marko
+    Value: Марко
+  - Key: character.name.part.miljanov
+    Value: Мильянов
+  - Key: character.name.part.gavro
+    Value: Гавро
+  - Key: character.name.part.vukovic
+    Value: Вукович
+  - Key: character.name.part.ilija
+    Value: Илия
+  - Key: character.name.part.plamenac
+    Value: Пламенац
+  - Key: character.name.part.sundecic
+    Value: Сундечич
+  - Key: character.name.part.bozo_petrovic_njegos
+    Value: Божо-Петрович-Негош
+  - Key: character.name.part.lazar
+    Value: Лазар
+  - Key: character.name.part.mijuskovic
+    Value: Миюшкович
+  - Key: character.name.part.simo
+    Value: Симо
+  - Key: character.name.part.popovic
+    Value: Попович
+  - Key: character.name.part.stanko
+    Value: Станко
+  - Key: character.name.part.radonjic
+    Value: Радончич
+  - Key: character.name.part.peko
+    Value: Пеко
+  - Key: character.name.part.pavlovic
+    Value: Павлович
+  - Key: character.name.part.novica
+    Value: Новица
+  - Key: character.name.part.cerovic
+    Value: Церович
+  - Key: character.name.part.alexandru
+    Value: Александру
+  - Key: character.name.part.cuza
+    Value: Куза
+  - Key: character.name.part.carol_i
+    Value: Карол-I
+  - Key: character.name.part.lascar
+    Value: Ласкар
+  - Key: character.name.part.catargiu
+    Value: Катаржи
+  - Key: character.name.part.gheorghe
+    Value: Георге
+  - Key: character.name.part.manu
+    Value: Ману
+  - Key: character.name.part.cernat
+    Value: Чернат
+  - Key: character.name.part.mihail
+    Value: Михаил
+  - Key: character.name.part.cerchez
+    Value: Чергез
+  - Key: character.name.part.kogalniceanu
+    Value: Когэлничану
+  - Key: character.name.part.ion
+    Value: Йон
+  - Key: character.name.part.bratianu
+    Value: Братяну
+  - Key: character.name.part.titu
+    Value: Титу
+  - Key: character.name.part.maiorescu
+    Value: Майореску
+  - Key: character.name.part.ghica
+    Value: Гика
+  - Key: character.name.part.petre
+    Value: Петре
+  - Key: character.name.part.aurelian
+    Value: Аурелиан
+  - Key: character.name.part.dionisie
+    Value: Дионисие
+  - Key: character.name.part.martian
+    Value: Марциан
+  - Key: character.name.part.constantin
+    Value: Константин
+  - Key: character.name.part.rosetti
+    Value: Росети
+  - Key: character.name.part.vasile
+    Value: Василе
+  - Key: character.name.part.boerescu
+    Value: Бэреску
+  - Key: character.name.part.eugeniu
+    Value: Евгений
+  - Key: character.name.part.carada
+    Value: Карада
+  - Key: character.name.part.george_i
+    Value: Георгий-I
+  - Key: character.name.part.dimitrios
+    Value: Димитриос
+  - Key: character.name.part.voulgaris
+    Value: Вулгарис
+  - Key: character.name.part.konstantinos
+    Value: Константинос
+  - Key: character.name.part.sapountzakis
+    Value: Сапунцакис
+  - Key: character.name.part.timoleon
+    Value: Тимолеон
+  - Key: character.name.part.vassos
+    Value: Вассос
+  - Key: character.name.part.panos
+    Value: Панос
+  - Key: character.name.part.koronaios
+    Value: Коронаиос
+  - Key: character.name.part.charilaos
+    Value: Харилаос
+  - Key: character.name.part.trikoupis
+    Value: Трикупис
+  - Key: character.name.part.theodoros
+    Value: Теодорос
+  - Key: character.name.part.deligiannis
+    Value: Дельиянис
+  - Key: character.name.part.alexandros
+    Value: Александрос
+  - Key: character.name.part.koumoundouros
+    Value: Кумундурос
+  - Key: character.name.part.andreas
+    Value: Андреас
+  - Key: character.name.part.syngros
+    Value: Сингрос
+  - Key: character.name.part.georgios
+    Value: Георгиос
+  - Key: character.name.part.stavros
+    Value: Ставрос
+  - Key: character.name.part.stefanos
+    Value: Стефанос
+  - Key: character.name.part.skouloudis
+    Value: Скулудис
+  - Key: character.name.part.epameinondas
+    Value: Эпаминондас
+  - Key: character.name.part.deligeorgis
+    Value: Дельигеоргис
+  - Key: character.name.part.rangavis
+    Value: Рангавис
+  - Key: character.name.part.kanaris
+    Value: Канарис
   - Key: hud.org_characters
     Value: Персонажи
   - Key: hud.slot_empty
@@ -1865,7 +2215,7 @@ MonoBehaviour:
   - Key: action.requirement.war_progress_max
     Value: Прогресс войны не выше {0}
   - Key: action.requirement.target_opinion_min
-    Value: Мнение цели не ниже {0}
+    Value: Мнение военного советника не ниже {0}
   - Key: action.requirement.neither_at_war
     Value: Обе страны не воюют
   - Key: action.requirement.war_free
@@ -1893,7 +2243,7 @@ MonoBehaviour:
   - Key: action.country.unplayable.insufficient_opinion
     Value: Требуется {0} мнения у {1}
   - Key: action.country.unplayable.insufficient_target_opinion
-    Value: Требуется мнение не ниже {0} у правителя или военного советника страны
+    Value: Требуется мнение не ниже {0} у военного советника страны
   - Key: action.country.unplayable.no_suitable_target
     Value: Нет подходящей страны-цели
   - Key: action.country.unplayable.relation_no_longer_exists
@@ -1920,6 +2270,8 @@ MonoBehaviour:
     Value: Начать войну с временными бонусами к урону и стойкости для атакующего.
   - Key: action.country.unplayable.war_ended
     Value: Война окончена
+  - Key: action.country.unplayable.country_no_longer_exists
+    Value: "{0} не существует"
   - Key: hud.actions
     Value: Действия
   - Key: hud.friends

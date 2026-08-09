@@ -12,6 +12,20 @@ namespace GS.Game.Systems {
 			var span = commands.AsSpan();
 			string targetId = span[span.Length - 1].CountryId;
 
+			if (!string.IsNullOrEmpty(targetId)) {
+				bool targetDestroyed = false;
+				bool targetFound = false;
+				world.Query<Country>((int e, ref Country c) => {
+					if (c.CountryId == targetId) {
+						targetFound = true;
+						targetDestroyed = world.Has<IsDestroyed>(e);
+					}
+				});
+				if (targetFound && targetDestroyed) {
+					return;
+				}
+			}
+
 			// Collect before modifying to avoid archetype-iteration issues
 			var toSelect = new List<int>();
 			var toDeselect = new List<int>();
