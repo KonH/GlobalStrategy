@@ -10,13 +10,11 @@
 
 .country-destroyed-panel {
     position: relative;
-    width: 56%;
-    max-width: 720px;
-    min-height: 420px;
+    width: 84%;
+    max-width: 1080px;
+    min-height: 630px;
     padding: 28px 36px 32px;
     align-items: center;
-    background-color: rgba(10, 12, 18, 0.96);
-    border-color: rgb(96, 72, 48);
 }
 
 .country-destroyed-header {
@@ -51,8 +49,6 @@
     height: 220px;
     margin-bottom: 18px;
     background-color: rgba(0, 0, 0, 0.35);
-    border-width: 1px;
-    border-color: rgb(72, 56, 40);
     -unity-background-scale-mode: scale-to-fit;
     background-image: url("project://database/Assets/Textures/Events/country_destroy.png?fileID=-2064606585841019640&guid=6d8cda9888878cd4a8a1d301eb75db59&type=3#country_destroy_0");
 }

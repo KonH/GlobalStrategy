@@ -2215,7 +2215,7 @@ MonoBehaviour:
   - Key: action.requirement.war_progress_max
     Value: Прогресс войны не выше {0}
   - Key: action.requirement.target_opinion_min
-    Value: Мнение цели не ниже {0}
+    Value: Мнение военного советника не ниже {0}
   - Key: action.requirement.neither_at_war
     Value: Обе страны не воюют
   - Key: action.requirement.war_free
@@ -2243,7 +2243,7 @@ MonoBehaviour:
   - Key: action.country.unplayable.insufficient_opinion
     Value: Требуется {0} мнения у {1}
   - Key: action.country.unplayable.insufficient_target_opinion
-    Value: Требуется мнение не ниже {0} у правителя или военного советника страны
+    Value: Требуется мнение не ниже {0} у военного советника страны
   - Key: action.country.unplayable.no_suitable_target
     Value: Нет подходящей страны-цели
   - Key: action.country.unplayable.relation_no_longer_exists

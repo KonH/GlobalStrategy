@@ -2215,7 +2215,7 @@ MonoBehaviour:
   - Key: action.requirement.war_progress_max
     Value: War progress at most {0}
   - Key: action.requirement.target_opinion_min
-    Value: Target opinion at least {0}
+    Value: Military Advisor opinion at least {0}
   - Key: action.requirement.neither_at_war
     Value: Both countries are at peace
   - Key: action.requirement.war_free
@@ -2243,7 +2243,7 @@ MonoBehaviour:
   - Key: action.country.unplayable.insufficient_opinion
     Value: Requires {0} opinion with the {1}
   - Key: action.country.unplayable.insufficient_target_opinion
-    Value: Requires {0} opinion from the country's ruler or military advisor
+    Value: Requires {0} opinion from the country's military advisor
   - Key: action.country.unplayable.no_suitable_target
     Value: No suitable target country available
   - Key: action.country.unplayable.relation_no_longer_exists

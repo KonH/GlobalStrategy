@@ -48,6 +48,7 @@ namespace GS.Unity.UI {
 			_doc.sortingOrder = SortingOrder;
 			_root = _doc.rootVisualElement;
 			_tooltip = new TooltipSystem(_root);
+			_modalState.Unlocked += HandleModalUnlocked;
 			Button closeButton = _root.Q<Button>("btn-close");
 			closeButton?.RegisterCallback<PointerUpEvent>(e => {
 				if (e.button == 0 && closeButton.ContainsPoint(e.localPosition)) {
@@ -74,6 +75,12 @@ namespace GS.Unity.UI {
 
 		void OnDisable() {
 			Unsubscribe();
+		}
+
+		void OnDestroy() {
+			if (_modalState != null) {
+				_modalState.Unlocked -= HandleModalUnlocked;
+			}
 		}
 
 		public bool IsVisible => _root != null && _root.style.display == DisplayStyle.Flex;
@@ -104,6 +111,8 @@ namespace GS.Unity.UI {
 
 		public void Hide() {
 			HideVisualOnly();
+			// Unlock fires ModalState.Unlocked → both this and any other modal window (e.g.
+			// CountryDestroyedWindowDocument) re-check whether they can open now.
 			_modalState.Unlock(this);
 
 			// AcknowledgeCurrent raises PropertyChanged → TryOpenIfQueued → OpenCurrent for the
@@ -186,9 +195,19 @@ namespace GS.Unity.UI {
 			if (IsVisible) {
 				return;
 			}
-			if (_state != null && _state.WarResults.TryPeek(out _)) {
-				OpenCurrent();
+			if (_state == null || !_state.WarResults.TryPeek(out _)) {
+				return;
 			}
+			// Any other modal window (e.g. CountryDestroyedWindow) currently holding the lock keeps
+			// this one queued until it closes — mutual exclusion between modal windows by default.
+			if (_modalState.IsLocked()) {
+				return;
+			}
+			OpenCurrent();
+		}
+
+		void HandleModalUnlocked() {
+			TryOpenIfQueued();
 		}
 
 		void HandleTimeChanged(object sender, PropertyChangedEventArgs e) {
