@@ -43,18 +43,18 @@
 }
 
 .country-destroyed-image {
-    flex-shrink: 0;
+    flex-grow: 1;
     width: 100%;
-    max-width: 520px;
-    height: 220px;
+    height: 0;
     margin-bottom: 18px;
-    background-color: rgba(0, 0, 0, 0.35);
     -unity-background-scale-mode: scale-to-fit;
     background-image: url("project://database/Assets/Textures/Events/country_destroy.png?fileID=-2064606585841019640&guid=6d8cda9888878cd4a8a1d301eb75db59&type=3#country_destroy_0");
 }
 
 .country-destroyed-body {
     align-self: stretch;
+    flex-shrink: 0;
+    margin-top: 8px;
     margin-bottom: 24px;
     font-size: 20px;
     color: rgb(188, 176, 148);
@@ -67,4 +67,5 @@
     height: 52px;
     font-size: 24px;
     flex-shrink: 0;
+    margin-bottom: 8px;
 }
