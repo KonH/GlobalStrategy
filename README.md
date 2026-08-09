@@ -1,4 +1,4 @@
-# Global Strategy
+# Hidden Council
 
 ## Summary
 

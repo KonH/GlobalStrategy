@@ -93,6 +93,22 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void black_hand_org_config_and_pool_are_present() {
+			var organizations = new FileConfig<OrganizationConfig>(FindRepoRootConfigPath("organizations.json")).Load();
+			OrganizationEntry blackHand = Assert.Single(organizations.Organizations, o => o.OrganizationId == "BlackHand");
+			Assert.Equal("Serbia", blackHand.HqCountryId);
+			Assert.Equal(750.0, blackHand.InitialGold);
+			Assert.Equal(3, blackHand.InitialAgentSlots);
+
+			var characters = new FileConfig<CharacterConfig>(FindRepoRootConfigPath("character_config.json")).Load();
+			OrgCharacterPool? pool = characters.FindOrgPool("BlackHand");
+			Assert.NotNull(pool);
+			Assert.Equal(3, pool.Slots["master"].Count);
+			Assert.Equal(6, pool.Slots["agent"].Count);
+			Assert.Equal("blackhand_master_1", pool.Slots["master"][0].CharacterId);
+		}
+
+		[Fact]
 		void character_config_parity() {
 			string path = FindRepoRootConfigPath("character_config.json");
 			var fromFile = new FileConfig<CharacterConfig>(path).Load();
