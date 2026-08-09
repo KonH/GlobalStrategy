@@ -103,24 +103,24 @@ MonoBehaviour:
     portrait: {fileID: 8305957366706475723, guid: 8b56fd3aaeb84654b8ce304d3d07c395, type: 3}
   - characterId: belgium_sec_3
     portrait: {fileID: -1315365267741938047, guid: 09d634b9244b4a64f86c5875ae116523, type: 3}
-  - characterId: bosnia_herzegovina_dip_1
-    portrait: {fileID: 1502710877734079335, guid: 88f7345cadf616f47953f94e4faf5205, type: 3}
-  - characterId: bosnia_herzegovina_dip_2
-    portrait: {fileID: 2437078563000837812, guid: 175596e3882c5c6459dd2f82de86e75f, type: 3}
-  - characterId: bosnia_herzegovina_dip_3
-    portrait: {fileID: 2981748007075634643, guid: 0ecab256c7d92e141ba6413ac205b0fa, type: 3}
-  - characterId: bosnia_herzegovina_eco_1
-    portrait: {fileID: -3403547123794419280, guid: c6dfd385dc1285b47a661a7ed8a57d45, type: 3}
-  - characterId: bosnia_herzegovina_eco_2
-    portrait: {fileID: 4864810937583941882, guid: 2739d304b50ffd848a0d9c5bb6673503, type: 3}
-  - characterId: bosnia_herzegovina_eco_3
-    portrait: {fileID: 4892808283051376799, guid: cbb3b2a02f126d645983a971ec058f72, type: 3}
-  - characterId: bosnia_herzegovina_mil_1
-    portrait: {fileID: -2956808082015816141, guid: 69a620b4218e1bc4989dca37c539813b, type: 3}
-  - characterId: bosnia_herzegovina_mil_2
-    portrait: {fileID: -4905815621294512591, guid: d2223101c35a66a4f9b98911941e45ad, type: 3}
-  - characterId: bosnia_herzegovina_mil_3
-    portrait: {fileID: 1064539122807111617, guid: d7a61e4eb5b800e48be5ffd9331bfa53, type: 3}
+  - characterId: blackhand_master_1
+    portrait: {fileID: 21300000, guid: 5333a2e0f9d785e4e985a7277c310ea8, type: 3}
+  - characterId: blackhand_master_2
+    portrait: {fileID: 21300000, guid: 0df16ac4682a2f444a6301d6a325bd0e, type: 3}
+  - characterId: blackhand_master_3
+    portrait: {fileID: 21300000, guid: f570439715988194e8d32fab78196c7d, type: 3}
+  - characterId: blackhand_agent_1
+    portrait: {fileID: 21300000, guid: 9a99bd0b9b9f2fb43a7b8f4b37fe4e38, type: 3}
+  - characterId: blackhand_agent_2
+    portrait: {fileID: 21300000, guid: 74b38a0b86fae504da59cac48d744055, type: 3}
+  - characterId: blackhand_agent_3
+    portrait: {fileID: 21300000, guid: 90c1260246232704ab101e7a635c5a05, type: 3}
+  - characterId: blackhand_agent_4
+    portrait: {fileID: 21300000, guid: b5a06966b566d1644945b071055e2e49, type: 3}
+  - characterId: blackhand_agent_5
+    portrait: {fileID: 21300000, guid: 28debb3f863bc824986ba93c9e0106a3, type: 3}
+  - characterId: blackhand_agent_6
+    portrait: {fileID: 21300000, guid: b8f89c73d1f211f43b9b11b676c5eb94, type: 3}
   - characterId: bosnia_herzegovina_ruler_1
     portrait: {fileID: 1173305336537554774, guid: a4cf678ed926f63428d02ea7d98d2679, type: 3}
   - characterId: bosnia_herzegovina_ruler_2
