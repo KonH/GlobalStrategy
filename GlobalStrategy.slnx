@@ -6,6 +6,8 @@
   <Project Path="GS.Editor.Utils.csproj" />
   <Project Path="GS.Editor.Characters.csproj" />
   <Project Path="GS.Unity.EcsViewer.csproj" />
+  <Project Path="GS.Editor.Textures.csproj" />
   <Project Path="GS.Unity.Save.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
   <Project Path="GS.Editor.Map.csproj" />
 </Solution>

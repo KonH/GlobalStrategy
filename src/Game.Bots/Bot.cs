@@ -41,6 +41,21 @@ namespace GS.Game.Bots {
 		}
 
 		public void ExecuteDecisionTick(IReadOnlyWorld world, ActionConfig actionConfig) {
+			DateTime currentDate = BotObservation.ReadCurrentDate(world);
+
+			// A full observation rebuild is a cards x countries ActionPlayability scan -
+			// expensive, and only two things can ever make it worthwhile: an unresolved
+			// country-card acquisition step (draw/receive), or today's strategic decision not
+			// having been made yet (feature.Tick() below only ever runs once per calendar day,
+			// gated by _lastActedDate). Once today's decision is made and there's no acquisition
+			// work pending, nothing can change again until the day rolls over or a new draw
+			// becomes available - skip the rebuild entirely rather than recomputing it and
+			// immediately discarding the result every frame.
+			bool alreadyActedToday = _lastActedDate.HasValue && currentDate.Date == _lastActedDate.Value.Date;
+			if (alreadyActedToday && !HasPendingAcquisitionWork(world, actionConfig)) {
+				return;
+			}
+
 			_sink.BeginDecisionPhase();
 			var observation = BotObservation.Build(
 				world, actionConfig, OrgId, _resources, _relations, _effectConfig, _hqCountryByOrgId, _maxControlPool);
@@ -48,8 +63,7 @@ namespace GS.Game.Bots {
 				return;
 			}
 
-			DateTime currentDate = observation.CurrentDate;
-			if (_lastActedDate.HasValue && currentDate.Date == _lastActedDate.Value.Date) {
+			if (alreadyActedToday) {
 				return;
 			}
 			_lastActedDate = currentDate;
@@ -64,6 +78,11 @@ namespace GS.Game.Bots {
 					CurrentFeatureId = "";
 				}
 			}
+		}
+
+		bool HasPendingAcquisitionWork(IReadOnlyWorld world, ActionConfig actionConfig) {
+			return CountryCardDrawQuery.TryGetStatus(world, actionConfig, OrgId, out CountryCardDrawStatus status)
+				&& (status.CanStartDraw || status.HasCoherentPendingDraw);
 		}
 
 		bool TryAcquireCountryCard(IBotObservation observation) {
