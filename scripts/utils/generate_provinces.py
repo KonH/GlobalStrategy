@@ -35,7 +35,9 @@ Output:
         isMainTerritory (True if the majority of the province's area falls within the
         country's mainMapFeatureIds geometry, False for secondaryMapFeatureIds/colonial
         holdings), population (density sampled from a per-country deterministic RNG x
-        region density range, multiplied by the province's post-simplify polygon area)
+        region density range, scaled by COUNTRY_POPULATION_CALIBRATION_1880 where a
+        researched real-world circa-1880 figure exists for that country, multiplied by
+        the province's post-simplify polygon area)
 
 See Docs/Specs/26_07_10_18_province-division/plan.md for the full design and
 .claude/rules/unity/province_config_generator.md for the rule-doc summary.
@@ -178,6 +180,38 @@ COUNTRY_REGION = {
     "Ecuador": "SouthAmerica", "French_Guiana": "SouthAmerica", "Kingdom_of_Brazil": "SouthAmerica",
     "Paraguay": "SouthAmerica", "Peru": "SouthAmerica", "Uruguay": "SouthAmerica",
     "Venezuela": "SouthAmerica",
+}
+
+# Per-country multiplier applied on top of the region density sample, calibrating a
+# country's total generated population to a researched real-world circa-1880 figure
+# (census where one exists for that era, otherwise a documented historical estimate —
+# see Docs/Specs/ for the exact source per country). Computed as
+# target_population / population_generated_with_multiplier_1.0, so re-running the
+# pipeline reproduces the calibrated totals instead of the original uncalibrated
+# region-band estimates. Only covers countries with isAvailable=true in
+# country_config.json as of this calibration; the remaining countries still use the
+# uncalibrated region bands below.
+COUNTRY_POPULATION_CALIBRATION_1880 = {
+    "Argentina": 0.116069,
+    "Austria_Hungary": 0.518618,
+    "Belgium": 1.856772,
+    "Egypt": 0.224165,
+    "Ethiopia": 1.037025,
+    "France": 0.500666,
+    "Germany": 0.813834,
+    "Imperial_Japan": 1.056531,
+    "Italy": 1.285585,
+    "Kingdom_of_Brazil": 0.159481,
+    "Manchu_Empire": 0.336409,
+    "Netherlands": 0.022239,
+    "Ottoman_Empire": 0.310257,
+    "Persia": 0.245940,
+    "Portugal": 0.323680,
+    "Russian_Empire": 0.183085,
+    "Spain": 0.412825,
+    "SwedenNorway": 0.193694,
+    "United_Kingdom_of_Great_Britain_and_Ireland": 0.096660,
+    "United_States_of_America": 0.682400,
 }
 
 # region -> (min_people_per_km2, max_people_per_km2)
@@ -904,8 +938,9 @@ def run(force_download=False):
 
         region = COUNTRY_REGION.get(country_id, "Default")
         density_range = REGION_DENSITY_RANGES[region]
+        calibration = COUNTRY_POPULATION_CALIBRATION_1880.get(country_id, 1.0)
         for prov in provinces:
-            prov["_density"] = rng.uniform(*density_range)
+            prov["_density"] = rng.uniform(*density_range) * calibration
 
         for prov in provinces:
             all_features.append({
