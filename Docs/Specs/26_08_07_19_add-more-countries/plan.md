@@ -170,5 +170,7 @@ Output path `Assets/Textures/Characters/PortraitCard/{characterId}.png`, 512×51
 
 **User Step 2 — done (2026-08-09, ComfyUI + Unity MCP available):** started ComfyUI via the `setup-comfy-ui` skill, then built `.tmp/images.json` for all 90 characters — 72 used their bespoke prompt already written in `character_roster.md`, the remaining 18 (`diplomacy_advisor` role, config-only, no roster subsection) used the `image-generation` skill's generic template with names resolved from `character_config.json` `namePartKeys` + `en.asset`. Ran `generate_images_batch.py`; all 90 PNGs saved to `Assets/Textures/Characters/PortraitCard/`, Unity-imported via `refresh_unity`, and committed with their `.meta` files in `25449a7`.
 
+**Follow-up fix (2026-08-09):** portraits weren't appearing in the in-game character-selection screen after generation — `CharacterVisualConfig.asset` (a separate characterId→portrait Sprite lookup from `CountryVisualConfig`, populated by the `GS/Tools/Populate Character Visual Config` editor menu item) hadn't been rebuilt. Ran the menu item via Unity MCP; it rescans `Assets/Textures/Characters/PortraitCard` and regenerated all 408 entries (all countries, not just the new 6). Committed in `69f9a23`.
+
 **Remaining (Section 2 User Step 3 — Unity Editor required):**
 3. In-Editor Play Mode verification of spawning/rendering/roster/relations/flags/portraits — not run by the agent per project policy (no self-triggered Play mode testing); needs the user to confirm in-Editor.
