@@ -54,8 +54,9 @@ namespace GS.Game.Tests {
 		static GameLogic BuildLogic(
 			IPersistentStorage? storage = null, ISnapshotSerializer? serializer = null, GameSettings? gameSettingsOverride = null,
 			ActionConfig? actionConfigOverride = null, CharacterConfig? characterConfigOverride = null,
-			OrganizationConfig? organizationConfigOverride = null, IReadOnlyList<string>? participatingOrganizationIds = null) {
-			var countryConfig = new CountryConfig {
+			OrganizationConfig? organizationConfigOverride = null, IReadOnlyList<string>? participatingOrganizationIds = null,
+			CountryConfig? countryConfigOverride = null) {
+			var countryConfig = countryConfigOverride ?? new CountryConfig {
 				Countries = new List<CountryEntry> {
 					new CountryEntry { CountryId = "Great_Britain", DisplayName = "Great Britain", IsAvailable = true },
 					new CountryEntry { CountryId = "France", DisplayName = "France", IsAvailable = true }
@@ -1078,6 +1079,78 @@ namespace GS.Game.Tests {
 					Assert.NotEqual("make_friend", actions[i].ActionId);
 				}
 			}
+		}
+
+		[Fact]
+		void make_friend_and_make_rival_create_one_relation_card_target_instance_per_available_country() {
+			const string targetRole = "diplomacy_advisor";
+			var countryConfig = new CountryConfig {
+				Countries = new List<CountryEntry> {
+					new CountryEntry { CountryId = "Great_Britain", DisplayName = "Great Britain", IsAvailable = true },
+					new CountryEntry { CountryId = "France", DisplayName = "France", IsAvailable = true },
+					new CountryEntry { CountryId = "Prussia", DisplayName = "Prussia", IsAvailable = true }
+				}
+			};
+			var characterConfig = new CharacterConfig {
+				Roles = new List<CharacterRoleDefinition> { new CharacterRoleDefinition { RoleId = targetRole } },
+				CountryPools = new List<CountryCharacterPool> {
+					new CountryCharacterPool {
+						CountryId = "Great_Britain",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[targetRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "advisor_gb" } }
+						}
+					}
+				}
+			};
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition { ActionId = "make_friend", OwnerType = "country", TargetRole = targetRole, DeckCopies = 1 },
+					new ActionDefinition { ActionId = "make_rival", OwnerType = "country", TargetRole = targetRole, DeckCopies = 1 }
+				}
+			};
+
+			var logic = BuildLogic(
+				actionConfigOverride: actionConfig, characterConfigOverride: characterConfig, countryConfigOverride: countryConfig);
+			logic.Update(0f);
+
+			int makeFriendCount = 0;
+			int makeRivalCount = 0;
+			var makeFriendTargets = new HashSet<string>();
+			var makeRivalTargets = new HashSet<string>();
+			int[] targetReq = { TypeId<GameAction>.Value, TypeId<RelationCardTarget>.Value, TypeId<OrgContext>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(targetReq, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				RelationCardTarget[] targets = arch.GetColumn<RelationCardTarget>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (orgs[i].OrgId != "Illuminati") { continue; }
+					if (actions[i].ActionId == "make_friend") {
+						makeFriendCount++;
+						makeFriendTargets.Add(targets[i].TargetCountryId);
+					} else if (actions[i].ActionId == "make_rival") {
+						makeRivalCount++;
+						makeRivalTargets.Add(targets[i].TargetCountryId);
+					}
+				}
+			}
+
+			// One instance per IsAvailable country, including the org's own HQ country — no
+			// self-exclusion at creation time; self-targeting is rejected at the condition-context
+			// level instead (see CountryActionConditionContextTests.build_treats_self_target_as_no_relation_of_any_kind).
+			Assert.Equal(3, makeFriendCount);
+			Assert.Equal(3, makeRivalCount);
+			Assert.Equal(new HashSet<string> { "Great_Britain", "France", "Prussia" }, makeFriendTargets);
+			Assert.Equal(new HashSet<string> { "Great_Britain", "France", "Prussia" }, makeRivalTargets);
+
+			var disabledLogic = BuildLogic(
+				gameSettingsOverride: new GameSettings { FeatureFlags = new FeatureFlagSettings { EnableFriendsRelation = false } },
+				actionConfigOverride: actionConfig, characterConfigOverride: characterConfig, countryConfigOverride: countryConfig);
+			disabledLogic.Update(0f);
+			Assert.Equal(0, CountActionEntities(disabledLogic.World, "make_friend"));
+			Assert.Equal(3, CountActionEntities(disabledLogic.World, "make_rival"));
 		}
 	}
 }

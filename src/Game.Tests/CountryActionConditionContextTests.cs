@@ -193,5 +193,31 @@ namespace GS.Game.Tests {
 			Assert.Equal(0, beforeRelation.GetCountryRelation("friend"));
 			Assert.Equal(1, afterRelation.GetCountryRelation("friend"));
 		}
+
+		[Fact]
+		void build_treats_self_target_as_no_relation_of_any_kind() {
+			var world = new World();
+			int card = world.Create();
+			world.Add(card, new RelationCardTarget {
+				TargetCountryId = "Prussia",
+				Kind = RelationKind.Friend
+			});
+
+			ExpressionContext context = CountryActionConditionContext.Build(
+				world,
+				Definition("diplomacy_advisor"),
+				"OrgA",
+				"Prussia",
+				_resources,
+				_relations,
+				card);
+
+			// A country can never target itself — "none" must be hard-false here, not the
+			// trivially-true result CountryRelations.GetRelation's equal-id self-check would
+			// otherwise produce for a same-country pair.
+			Assert.Equal(0, context.GetCountryRelation("none"));
+			Assert.Equal(0, context.GetCountryRelation("friend"));
+			Assert.Equal(0, context.GetCountryRelation("rival"));
+		}
 	}
 }

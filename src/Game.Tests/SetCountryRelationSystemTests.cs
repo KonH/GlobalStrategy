@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Common;
@@ -8,7 +7,6 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class SetCountryRelationSystemTests {
-		readonly ResourceQuery _resources = new ResourceQuery();
 		readonly CountryRelations _relations = new CountryRelations();
 		static int AddCountry(World world, string countryId) {
 			int e = world.Create();
@@ -16,9 +14,9 @@ namespace GS.Game.Tests {
 			return e;
 		}
 
-		static int AddMarker(World world, string orgId, string countryId, RelationKind kind) {
+		static int AddMarker(World world, string orgId, string countryId, string targetCountryId, RelationKind kind) {
 			int e = world.Create();
-			world.Add(e, new SetCountryRelationEffect { EffectId = "make_friend_effect", OrgId = orgId, CountryId = countryId, Kind = kind });
+			world.Add(e, new SetCountryRelationEffect { EffectId = "make_friend_effect", OrgId = orgId, CountryId = countryId, TargetCountryId = targetCountryId, Kind = kind });
 			return e;
 		}
 
@@ -46,9 +44,9 @@ namespace GS.Game.Tests {
 			var world = new World();
 			AddCountry(world, "A");
 			AddCountry(world, "B");
-			int markerEntity = AddMarker(world, "OrgA", "A", RelationKind.Friend);
+			int markerEntity = AddMarker(world, "OrgA", "A", "B", RelationKind.Friend);
 
-			SetCountryRelationSystem.Update(world, _relations, -1, new Random(1));
+			SetCountryRelationSystem.Update(world, _relations);
 
 			Assert.Equal(RelationKind.Friend, _relations.GetRelation(world, "A", "B"));
 			Assert.False(world.TryGet<SetCountryRelationEffect>(markerEntity, out _));
@@ -60,9 +58,9 @@ namespace GS.Game.Tests {
 			var world = new World();
 			AddCountry(world, "A");
 			AddCountry(world, "B");
-			AddMarker(world, "OrgA", "A", RelationKind.Rival);
+			AddMarker(world, "OrgA", "A", "B", RelationKind.Rival);
 
-			SetCountryRelationSystem.Update(world, _relations, -1, new Random(1));
+			SetCountryRelationSystem.Update(world, _relations);
 
 			var applied = GetRelationSetApplied(world);
 			Assert.Single(applied);
@@ -74,71 +72,19 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void excludes_source_country_and_countries_already_related() {
+		void sets_the_relation_on_the_exact_named_target_even_when_other_candidates_exist() {
 			var world = new World();
 			AddCountry(world, "A");
 			AddCountry(world, "B");
 			AddCountry(world, "C");
-			// B is already a Friend of A, so only C is a suitable candidate.
-			_relations.SetRelation(world, "A", "B", RelationKind.Friend);
-			AddMarker(world, "OrgA", "A", RelationKind.Rival);
+			// B and C are both unrelated to A — a random/proximity pick could have chosen either.
+			// There is no candidate search anymore: the marker's own TargetCountryId is authoritative.
+			AddMarker(world, "OrgA", "A", "C", RelationKind.Rival);
 
-			SetCountryRelationSystem.Update(world, _relations, -1, new Random(1));
+			SetCountryRelationSystem.Update(world, _relations);
 
 			Assert.Equal(RelationKind.Rival, _relations.GetRelation(world, "A", "C"));
-			// The pre-existing Friend relation with B must be untouched.
-			Assert.Equal(RelationKind.Friend, _relations.GetRelation(world, "A", "B"));
-		}
-
-		[Fact]
-		void no_suitable_candidate_is_a_safe_noop() {
-			var world = new World();
-			AddCountry(world, "A");
-			AddCountry(world, "B");
-			// Every other available country is already related to A -> no suitable candidate.
-			_relations.SetRelation(world, "A", "B", RelationKind.Friend);
-			int markerEntity = AddMarker(world, "OrgA", "A", RelationKind.Rival);
-
-			SetCountryRelationSystem.Update(world, _relations, -1, new Random(1));
-
-			Assert.Equal(RelationKind.Friend, _relations.GetRelation(world, "A", "B"));
-			Assert.False(world.TryGet<SetCountryRelationEffect>(markerEntity, out _));
-			Assert.Empty(GetRelationSetApplied(world));
-		}
-
-		[Fact]
-		void proximity_weighting_favors_the_nearer_candidate_over_many_runs() {
-			int nearChosenCount = 0;
-			const int trials = 200;
-			for (int seed = 0; seed < trials; seed++) {
-				var world = new World();
-				AddCountry(world, "Anchor");
-				AddCountry(world, "Near");
-				AddCountry(world, "Far");
-
-				var pmEntity = world.Create();
-				var distances = new Dictionary<(string, string), float> {
-					[Order("Anchor", "Near")] = 0.001f,
-					[Order("Anchor", "Far")] = 1000f,
-					[Order("Near", "Far")] = 1000f
-				};
-				world.Add(pmEntity, new ProximityMapData { Distances = distances });
-
-				AddMarker(world, "OrgA", "Anchor", RelationKind.Friend);
-				SetCountryRelationSystem.Update(world, _relations, pmEntity, new Random(seed));
-
-				if (_relations.GetRelation(world, "Anchor", "Near") == RelationKind.Friend) {
-					nearChosenCount++;
-				}
-			}
-
-			// Expected share ~= 0.5 (uniform half, 50/50) + 0.5 (proximity half, heavily weighted to Near)
-			// ~= 0.75. Assert it's clearly above the 0.5 a pure coin-flip-only pick would produce.
-			Assert.True(nearChosenCount > trials * 0.6, $"Near candidate was chosen {nearChosenCount}/{trials} times, expected clear majority.");
-		}
-
-		static (string, string) Order(string a, string b) {
-			return string.CompareOrdinal(a, b) <= 0 ? (a, b) : (b, a);
+			Assert.Null(_relations.GetRelation(world, "A", "B"));
 		}
 	}
 }
