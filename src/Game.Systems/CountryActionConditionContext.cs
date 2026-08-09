@@ -60,9 +60,15 @@ namespace GS.Game.Systems {
 			string relationTargetCountryId = cardEntity >= 0 && world.Has<RelationCardTarget>(cardEntity)
 				? world.Get<RelationCardTarget>(cardEntity).TargetCountryId
 				: "";
+			// A country can never target itself — hard-false for every relation kind, regardless
+			// of what CountryRelations.MatchesCondition would otherwise resolve (it treats a
+			// self-pair's "none" check as trivially true via CountryRelations.GetRelation's own
+			// equal-id null special-case).
+			bool sameCountry = !string.IsNullOrEmpty(relationTargetCountryId) && countryId == relationTargetCountryId;
 			var relationValues = new Dictionary<string, double>();
 			foreach (string relationKind in new[] { "none", "friend", "rival" }) {
 				relationValues[relationKind] = !string.IsNullOrEmpty(countryId)
+					&& !sameCountry
 					&& relations.MatchesCondition(world, countryId, relationTargetCountryId, relationKind)
 					? 1.0
 					: 0.0;

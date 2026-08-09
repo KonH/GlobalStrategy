@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: KonH
-  productName: GlobalStrategy
+  productName: Hidden Council
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -148,7 +148,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 1.183
+  bundleVersion: 1.186
   preloadedAssets:
   - {fileID: 2100000, guid: fe0925a90b731404ab778cdf7f98f1fa, type: 2}
   - {fileID: 2100000, guid: 3c0ae1fc5042ff640bf55417c325a3d4, type: 2}

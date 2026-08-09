@@ -522,8 +522,14 @@ namespace GS.Unity.UI {
 			if (condition.LocaleKey == "action.requirement.primary_country" && arguments.Count > 0) {
 				result[0] = localization.Get($"country_name.{arguments[0]}");
 			}
+			if (condition.LocaleKey == "action.country.unplayable.country_no_longer_exists" && arguments.Count > 0) {
+				result[0] = localization.Get($"country_name.{arguments[0]}");
+			}
 			if (condition.LocaleKey == "action.requirement.resource" && arguments.Count > 2) {
 				result[2] = localization.Get($"resource.{arguments[2]}.name");
+			}
+			if (condition.LocaleKey == "action.requirement.opinion_min_role" && arguments.Count > 0) {
+				result[0] = localization.Get($"character.role.{arguments[0]}.name");
 			}
 			return result;
 		}

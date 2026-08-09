@@ -28,16 +28,18 @@ namespace GS.Game.Configs {
 	public static class ActionConditionDebug {
 		public static List<ActionConditionDebugEntry> EvaluateAll(
 			IReadOnlyList<ExpressionNode> conditions,
-			ExpressionContext ctx) {
+			ExpressionContext ctx,
+			string targetRole = "") {
 			var results = new List<ActionConditionDebugEntry>();
 			if (conditions == null) { return results; }
 			foreach (var condition in conditions) {
-				results.Add(Evaluate(condition, ctx));
+				results.Add(Evaluate(condition, ctx, targetRole));
 			}
 			return results;
 		}
 
-		public static ActionConditionDebugEntry Evaluate(ExpressionNode condition, ExpressionContext ctx) {
+		public static ActionConditionDebugEntry Evaluate(
+			ExpressionNode condition, ExpressionContext ctx, string targetRole = "") {
 			bool passed = ExpressionNode.Evaluate(condition, ctx) != 0.0;
 			ExpressionNode operand = FindPresentationOperand(condition);
 			string threshold = TryGetThreshold(condition, out double value) ? FormatNumber(value) : "";
@@ -49,7 +51,10 @@ namespace GS.Game.Configs {
 				case "totalCountryControl":
 					return Entry("action.requirement.enemy_control", "no_enemy_control");
 				case "opinion":
-					return Entry("action.requirement.opinion_min", "insufficient_opinion", threshold, current);
+					return string.IsNullOrEmpty(targetRole)
+						? Entry("action.requirement.opinion_min", "insufficient_opinion", threshold, current)
+						: Entry(
+							"action.requirement.opinion_min_role", "insufficient_opinion", targetRole, threshold, current);
 				case "hasCountryRelation": {
 					ExpressionNode.ValidateRelationOperand(operand);
 					if (operand.RelationKind == "none") {

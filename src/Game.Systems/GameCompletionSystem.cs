@@ -70,6 +70,9 @@ namespace GS.Game.Systems {
 			foreach (Archetype archetype in world.GetMatchingArchetypes(required, null)) {
 				Country[] countries = archetype.GetColumn<Country>();
 				for (int i = 0; i < archetype.Count; i++) {
+					if (world.Has<IsDestroyed>(archetype.Entities[i])) {
+						continue;
+					}
 					countryIds.Add(countries[i].CountryId);
 				}
 			}

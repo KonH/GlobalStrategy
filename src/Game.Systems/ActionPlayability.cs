@@ -62,6 +62,32 @@ namespace GS.Game.Systems {
 			}
 
 			string selectedCountryId = countryId ?? "";
+			string? destroyedTargetId = null;
+			if (!string.IsNullOrEmpty(selectedCountryId)
+				&& CountryDestroySystem.IsCountryDestroyed(world, selectedCountryId)) {
+				destroyedTargetId = selectedCountryId;
+			} else if (entity >= 0) {
+				string relationTargetId = "";
+				if (world.Has<RelationCardTarget>(entity)) {
+					relationTargetId = world.Get<RelationCardTarget>(entity).TargetCountryId;
+				} else if (world.Has<RevengeCardTarget>(entity)) {
+					relationTargetId = world.Get<RevengeCardTarget>(entity).TargetCountryId;
+				}
+				if (!string.IsNullOrEmpty(relationTargetId)
+					&& CountryDestroySystem.IsCountryDestroyed(world, relationTargetId)) {
+					destroyedTargetId = relationTargetId;
+				}
+			}
+			if (destroyedTargetId != null) {
+				entries.Add(new ActionConditionDebugEntry(
+					$"country '{destroyedTargetId}' no longer exists",
+					false,
+					"action.country.unplayable.country_no_longer_exists",
+					new[] { destroyedTargetId },
+					"country_no_longer_exists"));
+				return new ActionPlayabilityResult(entries);
+			}
+
 			ExpressionContext context = CountryActionConditionContext.Build(
 				world,
 				definition,
@@ -76,7 +102,7 @@ namespace GS.Game.Systems {
 				if (gateSet == ActionPlayabilityGateSet.HardOnly && IsSoftCondition(condition)) {
 					continue;
 				}
-				entries.Add(ActionConditionDebug.Evaluate(condition, context));
+				entries.Add(ActionConditionDebug.Evaluate(condition, context, definition.TargetRole));
 			}
 
 			if (gateSet == ActionPlayabilityGateSet.All) {
