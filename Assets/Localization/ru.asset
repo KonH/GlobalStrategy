@@ -2133,11 +2133,11 @@ MonoBehaviour:
   - Key: effect.improve_ruler_opinion_effect.desc
     Value: Улучшить мнение правителя.
   - Key: action.make_friend.name
-    Value: Подружиться
+    Value: '{0} нам друг!'
   - Key: action.make_friend.desc
     Value: Сделать новую страну другом.
   - Key: action.make_rival.name
-    Value: Сделать соперником
+    Value: '{0} нам враг!'
   - Key: action.make_rival.desc
     Value: Сделать новую страну соперником.
   - Key: action.stop_friendship.name
@@ -2200,6 +2200,8 @@ MonoBehaviour:
     Value: Есть контроль противника
   - Key: action.requirement.opinion_min
     Value: Мнение не ниже {0}
+  - Key: action.requirement.opinion_min_role
+    Value: "{0}: мнение не ниже {1}"
   - Key: action.requirement.friend_candidate
     Value: Есть кандидат в друзья
   - Key: action.requirement.rival_candidate

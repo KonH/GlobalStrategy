@@ -2133,11 +2133,11 @@ MonoBehaviour:
   - Key: effect.improve_ruler_opinion_effect.desc
     Value: Improve the ruler's opinion.
   - Key: action.make_friend.name
-    Value: Make Friend
+    Value: 'Make {0} friend!'
   - Key: action.make_friend.desc
     Value: Mark new country as friend.
   - Key: action.make_rival.name
-    Value: Make Rival
+    Value: 'Make {0} rival!'
   - Key: action.make_rival.desc
     Value: Mark new country as rival.
   - Key: action.stop_friendship.name
@@ -2200,6 +2200,8 @@ MonoBehaviour:
     Value: Enemy control exists
   - Key: action.requirement.opinion_min
     Value: Opinion at least {0}
+  - Key: action.requirement.opinion_min_role
+    Value: "{0} opinion at least {1}"
   - Key: action.requirement.friend_candidate
     Value: Friend candidate exists
   - Key: action.requirement.rival_candidate

@@ -101,9 +101,10 @@ namespace GS.Game.Systems {
 							MaxTotal = opinionParams.InitialValue,
 							ClampToZero = true
 						});
-					} else if (effectDef is SetCountryRelationEffectParams relationParams && !string.IsNullOrEmpty(countryId)) {
+					} else if (effectDef is SetCountryRelationEffectParams relationParams && !string.IsNullOrEmpty(countryId) && world.Has<RelationCardTarget>(entity)) {
+						string targetCountryId = world.Get<RelationCardTarget>(entity).TargetCountryId;
 						int e = world.Create();
-						world.Add(e, new SetCountryRelationEffect { EffectId = effectId, OrgId = orgId, CountryId = countryId, Kind = relationParams.Kind });
+						world.Add(e, new SetCountryRelationEffect { EffectId = effectId, OrgId = orgId, CountryId = countryId, TargetCountryId = targetCountryId, Kind = relationParams.Kind });
 					} else if (effectDef is ClearCountryRelationEffectParams && !string.IsNullOrEmpty(countryId) && world.Has<RelationCardTarget>(entity)) {
 						string targetCountryId = world.Get<RelationCardTarget>(entity).TargetCountryId;
 						int e = world.Create();

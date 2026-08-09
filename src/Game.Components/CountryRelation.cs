@@ -15,6 +15,7 @@ namespace GS.Game.Components {
 		public string EffectId;
 		public string OrgId;
 		public string CountryId;
+		public string TargetCountryId;
 		public RelationKind Kind;
 	}
 }

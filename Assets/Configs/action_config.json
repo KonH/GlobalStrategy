@@ -202,7 +202,7 @@
       "nameKey": "action.make_friend.name",
       "descKey": "action.make_friend.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 9,
+      "deckCopies": 1,
       "cooldownDays": 30,
       "conditions": [
         {
@@ -249,7 +249,7 @@
       "nameKey": "action.make_rival.name",
       "descKey": "action.make_rival.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 15,
+      "deckCopies": 1,
       "cooldownDays": 21,
       "conditions": [
         {

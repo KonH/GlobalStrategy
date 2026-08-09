@@ -288,7 +288,7 @@ namespace GS.Main {
 			if (hasSucceededCardActions) {
 				SettleCombatResources();
 			}
-			SetCountryRelationSystem.Update(_world, _relations, _proximityEntity, _rng);
+			SetCountryRelationSystem.Update(_world, _relations);
 			ClearCountryRelationSystem.Update(_world, _relations);
 			RemoveCardFromHandSystem.Update(_world);
 			DiscardCardSystem.Update(
