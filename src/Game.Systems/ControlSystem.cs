@@ -6,12 +6,17 @@ using GS.Game.Configs;
 
 namespace GS.Game.Systems {
 	public static class ControlSystem {
-		public static void Update(World world, DateTime previousTime, DateTime currentTime) {
+		public static void Update(
+			World world, DateTime previousTime, DateTime currentTime,
+			BaseIncomeSettings? baseIncomeSettings = null,
+			ResourceQuery? resources = null) {
 			bool isMonthBoundary = previousTime.Month != currentTime.Month
 				|| previousTime.Year != currentTime.Year;
 			if (!isMonthBoundary) {
 				return;
 			}
+
+			var incomeSettings = baseIncomeSettings ?? new BaseIncomeSettings();
 
 			// Group control effects by country → (org → totalValue)
 			var byCountry = new Dictionary<string, Dictionary<string, int>>();
@@ -36,13 +41,12 @@ namespace GS.Game.Systems {
 				return;
 			}
 
-			int[] resourceRequired = {
-				TypeId<ResourceOwner>.Value,
-				TypeId<Resource>.Value
-			};
+			if (resources == null) {
+				throw new InvalidOperationException("ControlSystem.Update requires a ResourceQuery instance.");
+			}
 
 			foreach (var (countryId, orgMap) in byCountry) {
-				double countryBaseIncome = ComputeBaseMonthlyGold(world, countryId);
+				double countryBaseIncome = ComputeBaseMonthlyGold(world, countryId, incomeSettings, resources);
 				if (countryBaseIncome <= 0) {
 					continue;
 				}
@@ -72,23 +76,27 @@ namespace GS.Game.Systems {
 
 				// Apply gains
 				foreach (var (orgId, gain) in orgGains) {
-					MutateResource(world, orgId, ResourceDefinitions.Gold, gain, resourceRequired);
+					resources.ApplyDelta(world, orgId, ResourceDefinitions.Gold, gain, OwnerType.Org);
 				}
-				MutateResource(world, countryId, ResourceDefinitions.Gold, -totalGain, resourceRequired);
+				resources.ApplyDelta(world, countryId, ResourceDefinitions.Gold, -totalGain, OwnerType.Country);
 			}
 		}
 
-		public static double ComputeBaseMonthlyGold(IReadOnlyWorld world, string countryId) {
+		public static double ComputeBaseMonthlyGold(
+			IReadOnlyWorld world, string countryId, BaseIncomeSettings? baseIncomeSettings, ResourceQuery resources) {
+			var incomeSettings = baseIncomeSettings ?? new BaseIncomeSettings();
 			int[] effectRequired = {
 				TypeId<ResourceOwner>.Value,
 				TypeId<ResourceLink>.Value,
 				TypeId<ResourceEffect>.Value
 			};
 			double total = 0;
+			bool sawLiveBaseIncome = false;
 			foreach (Archetype arch in world.GetMatchingArchetypes(effectRequired, null)) {
 				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
 				ResourceLink[] links = arch.GetColumn<ResourceLink>();
 				ResourceEffect[] effects = arch.GetColumn<ResourceEffect>();
+				int[] entities = arch.Entities;
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (owners[i].OwnerId != countryId) {
@@ -98,6 +106,15 @@ namespace GS.Game.Systems {
 						continue;
 					}
 					if (effects[i].PayType != PayType.Monthly) {
+						continue;
+					}
+					bool useLiveFormula = effects[i].EffectId == BaseIncomeFormula.EffectId
+						&& world.Has<ResourceCollector>(entities[i]);
+					if (useLiveFormula) {
+						if (!sawLiveBaseIncome) {
+							total += BaseIncomeFormula.Compute(world, countryId, incomeSettings, resources).Total;
+							sawLiveBaseIncome = true;
+						}
 						continue;
 					}
 					if (effects[i].Value > 0) {
@@ -151,18 +168,5 @@ namespace GS.Game.Systems {
 			}
 		}
 
-		static void MutateResource(
-			World world, string ownerId, string resourceId, double delta, int[] resourceRequired) {
-			foreach (Archetype arch in world.GetMatchingArchetypes(resourceRequired, null)) {
-				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
-				Resource[] resources = arch.GetColumn<Resource>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (owners[i].OwnerId == ownerId && resources[i].ResourceId == resourceId) {
-						resources[i].Value += delta;
-					}
-				}
-			}
-		}
 	}
 }

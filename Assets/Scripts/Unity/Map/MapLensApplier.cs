@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using UnityEngine;
 using VContainer;
@@ -27,13 +28,13 @@ namespace GS.Unity.Map {
 			}
 			_state.MapLens.PropertyChanged += HandleLensChanged;
 			_state.OrgMap.PropertyChanged  += HandleOrgMapChanged;
-			_state.DiscoveredCountries.PropertyChanged += HandleDiscoveredChanged;
+			_state.WorldCountries.PropertyChanged += HandleWorldCountriesChanged;
 			_state.ProvinceOwnership.PropertyChanged += HandleProvinceOwnershipChanged;
 			_state.ProvinceOccupation.PropertyChanged += HandleProvinceOccupationChanged;
 		}
 
 		void Start() {
-			ApplyLens(_state?.MapLens.Lens ?? MapLens.Political);
+			ApplyLens(_state?.MapLens.Lens ?? MapLens.Political, rebuildCountryOrgBorders: true);
 		}
 
 		void OnDisable() {
@@ -42,65 +43,105 @@ namespace GS.Unity.Map {
 			}
 			_state.MapLens.PropertyChanged -= HandleLensChanged;
 			_state.OrgMap.PropertyChanged  -= HandleOrgMapChanged;
-			_state.DiscoveredCountries.PropertyChanged -= HandleDiscoveredChanged;
+			_state.WorldCountries.PropertyChanged -= HandleWorldCountriesChanged;
 			_state.ProvinceOwnership.PropertyChanged -= HandleProvinceOwnershipChanged;
 			_state.ProvinceOccupation.PropertyChanged -= HandleProvinceOccupationChanged;
 		}
 
 		void HandleLensChanged(object sender, PropertyChangedEventArgs e) {
-			ApplyLens(_state.MapLens.Lens);
+			ApplyLens(_state.MapLens.Lens, rebuildCountryOrgBorders: true);
 		}
 
 		void HandleOrgMapChanged(object sender, PropertyChangedEventArgs e) {
 			if (_state.MapLens.Lens == MapLens.Org) {
-				ApplyLens(MapLens.Org);
+				ApplyLens(MapLens.Org, rebuildCountryOrgBorders: true);
 			}
 		}
 
-		void HandleDiscoveredChanged(object sender, PropertyChangedEventArgs e) {
-			ApplyLens(_state.MapLens.Lens);
+		void HandleWorldCountriesChanged(object sender, PropertyChangedEventArgs e) {
+			ApplyLens(_state.MapLens.Lens, rebuildCountryOrgBorders: true);
 		}
 
 		void HandleProvinceOwnershipChanged(object sender, PropertyChangedEventArgs e) {
-			ApplyLens(_state.MapLens.Lens);
+			ApplyLens(_state.MapLens.Lens, rebuildCountryOrgBorders: true);
 		}
 
 		void HandleProvinceOccupationChanged(object sender, PropertyChangedEventArgs e) {
-			ApplyLens(_state.MapLens.Lens);
+			ApplyLens(_state.MapLens.Lens, rebuildCountryOrgBorders: false);
 		}
 
-		void ApplyLens(MapLens lens) {
-			var provinceRenderer = _mapController?.ActiveProvinceRenderer;
-			if (provinceRenderer == null) {
+		void ApplyLens(MapLens lens, bool rebuildCountryOrgBorders) {
+			if (_mapController == null) {
 				return;
 			}
 
 			bool showBorders = lens == MapLens.Province;
+			bool showCountryOrgBorders = lens == MapLens.Political || lens == MapLens.Org;
+			var ownerByProvinceIdResolved = new Dictionary<string, string>();
+			var visibleProvinceIds = new HashSet<string>();
 
-			foreach (var go in provinceRenderer.FeatureObjects) {
-				if (go == null) {
+			foreach (var provinceRenderer in _mapController.ProvinceRenderers) {
+				if (provinceRenderer == null) {
 					continue;
 				}
-				var identifier = go.GetComponent<ProvinceIdentifier>();
-				var fillRenderer = go.GetComponent<MeshRenderer>();
-				if (identifier == null || fillRenderer == null) {
-					continue;
+
+				foreach (var go in provinceRenderer.FeatureObjects) {
+					if (go == null) {
+						continue;
+					}
+					var identifier = go.GetComponent<ProvinceIdentifier>();
+					var fillRenderer = go.GetComponent<MeshRenderer>();
+					if (identifier == null || fillRenderer == null) {
+						continue;
+					}
+
+					string ownerId = ResolveOwner(identifier);
+					string occupierId = ResolveOccupier(identifier.ProvinceId);
+					bool inWorld = IsCountryInWorld(ownerId);
+					bool visiblyOccupied = inWorld && occupierId != "" && occupierId != ownerId;
+
+					ownerByProvinceIdResolved[identifier.ProvinceId] = ownerId;
+					if (inWorld) {
+						visibleProvinceIds.Add(identifier.ProvinceId);
+					}
+
+					fillRenderer.enabled = inWorld;
+					SetBorderRenderersEnabled(go, inWorld && showBorders);
+					SetOccupationHatchEnabled(go, visiblyOccupied, GetOccupationColor(occupierId));
+
+					if (!inWorld) {
+						continue;
+					}
+					fillRenderer.material.color = GetColor(lens, ownerId);
 				}
 
-				string ownerId = ResolveOwner(identifier);
-				string occupierId = ResolveOccupier(identifier.ProvinceId);
-				bool discovered = IsCountryDiscovered(ownerId);
-				bool visiblyOccupied = discovered && occupierId != "" && occupierId != ownerId;
-
-				fillRenderer.enabled = discovered;
-				SetBorderRenderersEnabled(go, discovered && showBorders);
-				SetOccupationHatchEnabled(go, visiblyOccupied, GetOccupationColor(occupierId));
-
-				if (!discovered) {
-					continue;
+				if (showCountryOrgBorders) {
+					if (rebuildCountryOrgBorders) {
+						provinceRenderer.RebuildCountryOrgBorders(
+							lens,
+							ownerByProvinceIdResolved,
+							BuildTopOrgLookup(),
+							visibleProvinceIds);
+					}
+				} else {
+					provinceRenderer.DisableCountryOrgBorders();
 				}
-				fillRenderer.material.color = GetColor(lens, ownerId);
 			}
+		}
+
+		Dictionary<string, string> BuildTopOrgLookup() {
+			var result = new Dictionary<string, string>();
+			var entries = _state?.OrgMap?.Entries;
+			if (entries == null) {
+				return result;
+			}
+			foreach (var e in entries) {
+				if (string.IsNullOrEmpty(e.CountryId) || string.IsNullOrEmpty(e.TopOrgId)) {
+					continue;
+				}
+				result[e.CountryId] = e.TopOrgId;
+			}
+			return result;
 		}
 
 		string ResolveOwner(ProvinceIdentifier identifier) {
@@ -147,8 +188,8 @@ namespace GS.Unity.Map {
 			}
 		}
 
-		bool IsCountryDiscovered(string countryId) {
-			var ids = _state?.DiscoveredCountries?.CountryIds;
+		bool IsCountryInWorld(string countryId) {
+			var ids = _state?.WorldCountries?.CountryIds;
 			if (ids == null) { return true; }
 			return ids.Contains(countryId);
 		}

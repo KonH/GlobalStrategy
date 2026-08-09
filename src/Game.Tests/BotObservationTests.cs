@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ECS;
 using GS.Configs;
 using GS.Game.Bots;
 using GS.Game.Commands;
@@ -12,12 +13,40 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class BotObservationTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
+
+		static void PutCountryCardInHand(GameLogic logic, string orgId, string actionId) {
+			int[] required = {
+				TypeId<GameAction>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CardOwnerType>.Value
+			};
+			foreach (var archetype in logic.World.GetMatchingArchetypes(required, null)) {
+				GameAction[] actions = archetype.GetColumn<GameAction>();
+				OrgContext[] organizations = archetype.GetColumn<OrgContext>();
+				CardOwnerType[] owners = archetype.GetColumn<CardOwnerType>();
+				for (int i = 0; i < archetype.Count; i++) {
+					if (actions[i].ActionId == actionId
+						&& organizations[i].OrgId == orgId
+						&& owners[i].Value == CardOwnerKind.Country) {
+						int entity = archetype.Entities[i];
+						if (!logic.World.Has<CardInHand>(entity)) {
+							logic.World.Add(entity, new CardInHand { SlotIndex = 0 });
+						}
+						return;
+					}
+				}
+			}
+			throw new InvalidOperationException($"Country card not found: org={orgId} action={actionId}");
+		}
 		static void AssertCardEqual(BotCardView a, BotCardView b) {
 			Assert.Equal(a.ActionId, b.ActionId);
 			Assert.Equal(a.SlotIndex, b.SlotIndex);
 			Assert.Equal(a.CountryId, b.CountryId);
 			Assert.Equal(a.GoldCost, b.GoldCost);
 			Assert.Equal(a.IsPlayable, b.IsPlayable);
+			Assert.Equal(a.RaisesControl, b.RaisesControl);
 			Assert.Equal(a.Cost.Count, b.Cost.Count);
 			for (int i = 0; i < a.Cost.Count; i++) {
 				Assert.Equal(a.Cost[i].ResourceId, b.Cost[i].ResourceId);
@@ -44,15 +73,36 @@ namespace GS.Game.Tests {
 			}
 		}
 
+		static void AssertDrawChoiceEqual(BotCardDrawChoiceView a, BotCardDrawChoiceView b) {
+			Assert.Equal(a.ChoiceIndex, b.ChoiceIndex);
+			Assert.Equal(a.ActionId, b.ActionId);
+			Assert.Equal(a.TargetCountryId, b.TargetCountryId);
+			Assert.Equal(a.GoldCost, b.GoldCost);
+			Assert.Equal(a.RaisesControl, b.RaisesControl);
+			Assert.Equal(a.IsPlayable, b.IsPlayable);
+			Assert.Equal(a.IsControlUsable, b.IsControlUsable);
+			Assert.Equal(a.Cost.Count, b.Cost.Count);
+			for (int i = 0; i < a.Cost.Count; i++) {
+				Assert.Equal(a.Cost[i].ResourceId, b.Cost[i].ResourceId);
+				Assert.Equal(a.Cost[i].Amount, b.Cost[i].Amount);
+			}
+		}
+
 		static void AssertObservationsEqual(BotObservation a, BotObservation b) {
 			Assert.Equal(a.OrgId, b.OrgId);
 			Assert.Equal(a.CurrentDate, b.CurrentDate);
 			Assert.Equal(a.Gold, b.Gold);
 			Assert.Equal(a.OrgHandSize, b.OrgHandSize);
+			Assert.Equal(a.CountryHandCount, b.CountryHandCount);
+			Assert.Equal(a.CountryHandCapacity, b.CountryHandCapacity);
+			Assert.Equal(a.CanStartCountryCardDraw, b.CanStartCountryCardDraw);
 			Assert.Equal(a.TotalControl, b.TotalControl);
-			Assert.Equal(a.DiscoveredCountryIds, b.DiscoveredCountryIds);
 			Assert.Equal(a.OrgHand.Count, b.OrgHand.Count);
 			for (int i = 0; i < a.OrgHand.Count; i++) { AssertCardEqual(a.OrgHand[i], b.OrgHand[i]); }
+			Assert.Equal(a.CountryCardDrawChoices.Count, b.CountryCardDrawChoices.Count);
+			for (int i = 0; i < a.CountryCardDrawChoices.Count; i++) {
+				AssertDrawChoiceEqual(a.CountryCardDrawChoices[i], b.CountryCardDrawChoices[i]);
+			}
 			Assert.Equal(a.CharacterSlots.Count, b.CharacterSlots.Count);
 			for (int i = 0; i < a.CharacterSlots.Count; i++) {
 				Assert.Equal(a.CharacterSlots[i].RoleId, b.CharacterSlots[i].RoleId);
@@ -70,6 +120,9 @@ namespace GS.Game.Tests {
 			}
 			for (int i = 1; i < obs.Countries.Count; i++) {
 				Assert.True(string.CompareOrdinal(obs.Countries[i - 1].CountryId, obs.Countries[i].CountryId) < 0);
+			}
+			for (int i = 1; i < obs.CountryCardDrawChoices.Count; i++) {
+				Assert.True(obs.CountryCardDrawChoices[i - 1].ChoiceIndex <= obs.CountryCardDrawChoices[i].ChoiceIndex);
 			}
 			foreach (var c in obs.Countries) {
 				for (int i = 1; i < c.ControlByOrg.Count; i++) {
@@ -91,21 +144,18 @@ namespace GS.Game.Tests {
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
 
-			int e = logic.World.Create();
-			logic.World.Add(e, new DiscoveredCountry { OrgId = MultiOrgTestSupport.OrgB, CountryId = MultiOrgTestSupport.ExtraCountry2 });
+			var obsA = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
 
-			var obsA = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA);
-
-			Assert.DoesNotContain(MultiOrgTestSupport.ExtraCountry2, obsA.DiscoveredCountryIds);
-			Assert.Null(obsA.GetCountry(MultiOrgTestSupport.ExtraCountry2));
-			Assert.DoesNotContain(obsA.Countries, c => c.CountryId == MultiOrgTestSupport.ExtraCountry2);
+			// All world countries are visible; private state still means gold is own-org only.
+			Assert.NotNull(obsA.GetCountry(MultiOrgTestSupport.ExtraCountry2));
+			Assert.Contains(obsA.Countries, c => c.CountryId == MultiOrgTestSupport.ExtraCountry2);
 
 			Assert.Equal(OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA), obsA.Gold);
 			Assert.NotEqual(OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgB), obsA.Gold);
 		}
 
 		[Fact]
-		void undiscovered_country_control_breakdown_is_hidden() {
+		void all_world_countries_expose_public_control_breakdown() {
 			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
 			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 12);
 			var logic = new GameLogic(ctx);
@@ -114,27 +164,30 @@ namespace GS.Game.Tests {
 			int e = logic.World.Create();
 			logic.World.Add(e, new ControlEffect { OrgId = MultiOrgTestSupport.OrgB, CountryId = MultiOrgTestSupport.ExtraCountry1, Value = 20, EffectId = "test_control" });
 
-			var obsA = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA);
+			var obsA = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
+			var view = obsA.GetCountry(MultiOrgTestSupport.ExtraCountry1);
 
-			Assert.Null(obsA.GetCountry(MultiOrgTestSupport.ExtraCountry1));
-			Assert.DoesNotContain(obsA.Countries, c => c.CountryId == MultiOrgTestSupport.ExtraCountry1);
+			Assert.NotNull(view);
+			Assert.Equal(0, view!.MyControl);
+			Assert.Equal(20, view.TotalControl);
+			Assert.Single(view.ControlByOrg);
+			Assert.Equal(MultiOrgTestSupport.OrgB, view.ControlByOrg[0].OrgId);
+			Assert.Equal(20, view.ControlByOrg[0].Control);
 		}
 
 		[Fact]
-		void discovered_country_shows_full_public_control_breakdown() {
+		void country_shows_full_public_control_breakdown() {
 			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
 			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 13);
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
 
-			int discEntity = logic.World.Create();
-			logic.World.Add(discEntity, new DiscoveredCountry { OrgId = MultiOrgTestSupport.OrgA, CountryId = MultiOrgTestSupport.ExtraCountry1 });
 			int ceA = logic.World.Create();
 			logic.World.Add(ceA, new ControlEffect { OrgId = MultiOrgTestSupport.OrgA, CountryId = MultiOrgTestSupport.ExtraCountry1, Value = 30, EffectId = "a" });
 			int ceB = logic.World.Create();
 			logic.World.Add(ceB, new ControlEffect { OrgId = MultiOrgTestSupport.OrgB, CountryId = MultiOrgTestSupport.ExtraCountry1, Value = 15, EffectId = "b" });
 
-			var obsA = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA);
+			var obsA = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
 			var view = obsA.GetCountry(MultiOrgTestSupport.ExtraCountry1);
 
 			Assert.NotNull(view);
@@ -153,19 +206,20 @@ namespace GS.Game.Tests {
 			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 14, includeCountryCard: true);
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
+			PutCountryCardInHand(logic, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.CountryCardActionId);
 
-			var obsBefore = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA);
+			var obsBefore = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
 			var spendCard = obsBefore.OrgHand.First(c => c.ActionId == MultiOrgTestSupport.SpendGoldActionId);
-			bool expectedSpendPlayable = ActionPlayability.Evaluate(logic.World, logic.ActionConfig, -1, MultiOrgTestSupport.SpendGoldActionId, MultiOrgTestSupport.OrgA, null);
+			bool expectedSpendPlayable = ActionPlayability.Evaluate(logic.World, logic.ActionConfig, -1, MultiOrgTestSupport.SpendGoldActionId, MultiOrgTestSupport.OrgA, null, _resources, _relations);
 			Assert.Equal(expectedSpendPlayable, spendCard.IsPlayable);
 			Assert.True(spendCard.IsPlayable);
 
 			logic.Commands.Push(new DebugChangeGoldCommand { OrgId = MultiOrgTestSupport.OrgA, Amount = -995.0 });
 			logic.Update(0f);
 
-			var obsAfter = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA);
+			var obsAfter = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
 			var countryCard = obsAfter.GetCountry(MultiOrgTestSupport.HqA)!.Hand.First(c => c.ActionId == MultiOrgTestSupport.CountryCardActionId);
-			bool expectedCountryPlayable = ActionPlayability.Evaluate(logic.World, logic.ActionConfig, -1, MultiOrgTestSupport.CountryCardActionId, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.HqA);
+			bool expectedCountryPlayable = ActionPlayability.Evaluate(logic.World, logic.ActionConfig, -1, MultiOrgTestSupport.CountryCardActionId, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.HqA, _resources, _relations);
 			Assert.Equal(expectedCountryPlayable, countryCard.IsPlayable);
 			Assert.False(countryCard.IsPlayable);
 		}
@@ -177,12 +231,10 @@ namespace GS.Game.Tests {
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
 
-			int e = logic.World.Create();
-			logic.World.Add(e, new DiscoveredCountry { OrgId = MultiOrgTestSupport.OrgA, CountryId = MultiOrgTestSupport.ExtraCountry1 });
 			int ce = logic.World.Create();
 			logic.World.Add(ce, new ControlEffect { OrgId = MultiOrgTestSupport.OrgA, CountryId = MultiOrgTestSupport.ExtraCountry1, Value = 5, EffectId = "extra" });
 
-			var obs = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
 			var expectedByCountry = OrgMetrics.GetControlByCountry(logic.World, MultiOrgTestSupport.OrgA);
 
 			Assert.Equal(OrgMetrics.GetGold(logic.World, MultiOrgTestSupport.OrgA), obs.Gold);
@@ -200,18 +252,13 @@ namespace GS.Game.Tests {
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
 
-			int eA = logic.World.Create();
-			logic.World.Add(eA, new DiscoveredCountry { OrgId = MultiOrgTestSupport.OrgA, CountryId = MultiOrgTestSupport.ExtraCountry1 });
-			int eB = logic.World.Create();
-			logic.World.Add(eB, new DiscoveredCountry { OrgId = MultiOrgTestSupport.OrgA, CountryId = MultiOrgTestSupport.ExtraCountry2 });
-
-			var obsA1 = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA);
-			var obsA2 = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA);
+			var obsA1 = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
+			var obsA2 = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
 			AssertObservationsEqual(obsA1, obsA2);
 			AssertOrdered(obsA1);
 
-			var obsB1 = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgB);
-			var obsB2 = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgB);
+			var obsB1 = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgB, logic.Resources, logic.Relations);
+			var obsB2 = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgB, logic.Resources, logic.Relations);
 			AssertObservationsEqual(obsB1, obsB2);
 			AssertOrdered(obsB1);
 		}
@@ -235,7 +282,7 @@ namespace GS.Game.Tests {
 			int char2Entity = logic.World.Create();
 			logic.World.Add(char2Entity, new Character { CharacterId = "char2", CountryId = MultiOrgTestSupport.HqA, OrgId = "", RoleId = "diplomat", NamePartKeys = Array.Empty<string>() });
 
-			var obsA = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA);
+			var obsA = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
 			var country = obsA.GetCountry(MultiOrgTestSupport.HqA);
 
 			Assert.NotNull(country);
@@ -246,9 +293,8 @@ namespace GS.Game.Tests {
 		}
 
 		// Bespoke minimal config for effect-classification tests: a single org hand with
-		// four cards, each wired to an effect (or lack thereof) exercising one branch of
-		// BotObservation.ClassifyCard.
-		const string DiscoverCardId = "discover_card";
+		// three cards, each wired to an effect (or lack thereof) exercising one branch of
+		// BotObservation.ClassifyRaisesControl.
 		const string ControlPosCardId = "control_pos_card";
 		const string ControlNegCardId = "control_neg_card";
 		const string UnrelatedCardId = "unrelated_card";
@@ -256,7 +302,6 @@ namespace GS.Game.Tests {
 		static EffectConfig BuildClassificationEffectConfig() {
 			return new EffectConfig {
 				Effects = new List<ActionEffectDefinition> {
-					new DiscoverCountryEffectParams { EffectId = "discover", EffectType = "DiscoverCountry" },
 					new ControlChangeEffectParams { EffectId = "control_pos", EffectType = "ControlChange", Amount = 5 },
 					new ControlChangeEffectParams { EffectId = "control_neg", EffectType = "ControlChange", Amount = -3 }
 				}
@@ -280,14 +325,13 @@ namespace GS.Game.Tests {
 			};
 			var actionConfig = new ActionConfig {
 				Defaults = new List<ActionOwnerDefaults> {
-					new ActionOwnerDefaults { OwnerType = "org", HandSize = 4 },
+					new ActionOwnerDefaults { OwnerType = "org", HandSize = 3 },
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = 0 }
 				},
 				OrgPools = new List<OrgActionPool> {
-					new OrgActionPool { OrgId = "Illuminati", ActionIds = new List<string> { DiscoverCardId, ControlPosCardId, ControlNegCardId, UnrelatedCardId } }
+					new OrgActionPool { OrgId = "Illuminati", ActionIds = new List<string> { ControlPosCardId, ControlNegCardId, UnrelatedCardId } }
 				},
 				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = DiscoverCardId, OwnerType = "org", EffectIds = new List<string> { "discover" } },
 					new ActionDefinition { ActionId = ControlPosCardId, OwnerType = "org", EffectIds = new List<string> { "control_pos" } },
 					new ActionDefinition { ActionId = ControlNegCardId, OwnerType = "org", EffectIds = new List<string> { "control_neg" } },
 					new ActionDefinition { ActionId = UnrelatedCardId, OwnerType = "org", EffectIds = new List<string>() }
@@ -312,24 +356,12 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void discover_country_effect_sets_discovers_country_flag_only() {
+		void positive_control_change_effect_sets_raises_control_flag() {
 			var logic = BuildClassificationLogic();
 			var effectConfig = BuildClassificationEffectConfig();
-			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", effectConfig);
-
-			var card = obs.OrgHand.First(c => c.ActionId == DiscoverCardId);
-			Assert.True(card.DiscoversCountry);
-			Assert.False(card.RaisesControl);
-		}
-
-		[Fact]
-		void positive_control_change_effect_sets_raises_control_flag_only() {
-			var logic = BuildClassificationLogic();
-			var effectConfig = BuildClassificationEffectConfig();
-			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", effectConfig);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations, effectConfig);
 
 			var card = obs.OrgHand.First(c => c.ActionId == ControlPosCardId);
-			Assert.False(card.DiscoversCountry);
 			Assert.True(card.RaisesControl);
 		}
 
@@ -337,22 +369,55 @@ namespace GS.Game.Tests {
 		void negative_control_change_effect_does_not_set_raises_control_flag() {
 			var logic = BuildClassificationLogic();
 			var effectConfig = BuildClassificationEffectConfig();
-			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", effectConfig);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations, effectConfig);
 
 			var card = obs.OrgHand.First(c => c.ActionId == ControlNegCardId);
-			Assert.False(card.DiscoversCountry);
 			Assert.False(card.RaisesControl);
 		}
 
 		[Fact]
-		void card_with_no_effects_leaves_both_classification_flags_false() {
+		void card_with_no_effects_leaves_raises_control_false() {
 			var logic = BuildClassificationLogic();
 			var effectConfig = BuildClassificationEffectConfig();
-			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", effectConfig);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations, effectConfig);
 
 			var card = obs.OrgHand.First(c => c.ActionId == UnrelatedCardId);
-			Assert.False(card.DiscoversCountry);
 			Assert.False(card.RaisesControl);
+		}
+
+		static DateTime ReadCurrentTime(GS.Main.GameLogic logic) {
+			int[] required = { ECS.TypeId<GameTime>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(required, null)) {
+				if (arch.Count > 0) { return arch.GetColumn<GameTime>()[0].CurrentTime; }
+			}
+			return default;
+		}
+
+		[Fact]
+		void country_card_on_cooldown_is_unplayable_for_that_org_only() {
+			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
+			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 21, includeCountryCard: true);
+			var logic = new GameLogic(ctx);
+			logic.Update(0f);
+			PutCountryCardInHand(logic, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.CountryCardActionId);
+			PutCountryCardInHand(logic, MultiOrgTestSupport.OrgB, MultiOrgTestSupport.CountryCardActionId);
+
+			DateTime currentTime = ReadCurrentTime(logic);
+			int cooldownEntity = logic.World.Create();
+			logic.World.Add(cooldownEntity, new ActionCooldownState {
+				OrgId = MultiOrgTestSupport.OrgA,
+				ActionId = MultiOrgTestSupport.CountryCardActionId,
+				EndTime = currentTime.AddDays(7)
+			});
+
+			var obsA = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
+			var cardA = obsA.GetCountry(MultiOrgTestSupport.HqA)!.Hand.First(c => c.ActionId == MultiOrgTestSupport.CountryCardActionId);
+			Assert.False(cardA.IsPlayable);
+
+			// A different org holding the same ActionId in the same country is unaffected.
+			var obsB = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgB, logic.Resources, logic.Relations);
+			var cardB = obsB.GetCountry(MultiOrgTestSupport.HqA)!.Hand.First(c => c.ActionId == MultiOrgTestSupport.CountryCardActionId);
+			Assert.True(cardB.IsPlayable);
 		}
 	}
 }

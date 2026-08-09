@@ -12,7 +12,9 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class WarsTests {
-		sealed class StaticConfig<T> : IConfigSource<T> {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
+		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;
@@ -76,7 +78,7 @@ namespace GS.Game.Tests {
 		void declare_war_creates_war_with_zero_progress_and_both_participants() {
 			var world = new World();
 
-			bool result = Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			bool result = Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime);
 
 			Assert.True(result);
 			Assert.True(Wars.IsInWar(world, "Great_Britain"));
@@ -85,7 +87,7 @@ namespace GS.Game.Tests {
 			Assert.Equal(2, CountEntities<WarParticipant>(world));
 
 			string warId = GetSingle<War>(world).WarId;
-			Assert.Equal(0, ResourceQuery.GetValue(world, warId, ResourceDefinitions.WarProgress));
+			Assert.Equal(0, _resources.GetValue(world, warId, ResourceDefinitions.WarProgress));
 			Assert.Equal(1, CountWarProgressResources(world));
 			ResourceHistory history = GetWarProgressHistory(world, warId);
 			Assert.NotNull(history.History);
@@ -95,7 +97,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void get_opponent_country_ids_returns_the_other_participant_for_each_side() {
 			var world = new World();
-			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime);
 
 			Assert.Equal(new[] { "France" }, Wars.GetOpponentCountryIds(world, "Great_Britain"));
 			Assert.Equal(new[] { "Great_Britain" }, Wars.GetOpponentCountryIds(world, "France"));
@@ -104,7 +106,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void get_opponent_country_ids_returns_empty_for_country_not_at_war() {
 			var world = new World();
-			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime);
 
 			Assert.Empty(Wars.GetOpponentCountryIds(world, "Germany"));
 		}
@@ -112,9 +114,9 @@ namespace GS.Game.Tests {
 		[Fact]
 		void declare_war_again_for_same_pair_is_a_no_op() {
 			var world = new World();
-			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime);
 
-			bool result = Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime.AddDays(1));
+			bool result = Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime.AddDays(1));
 
 			Assert.False(result);
 			Assert.Equal(1, CountEntities<War>(world));
@@ -125,7 +127,7 @@ namespace GS.Game.Tests {
 		void declare_war_rejects_self_war() {
 			var world = new World();
 
-			bool result = Wars.DeclareWar(world, "Great_Britain", "Great_Britain", DeclareTime);
+			bool result = Wars.DeclareWar(world, _resources, "Great_Britain", "Great_Britain", DeclareTime);
 
 			Assert.False(result);
 			Assert.Equal(0, CountEntities<War>(world));
@@ -134,9 +136,9 @@ namespace GS.Game.Tests {
 		[Fact]
 		void declare_war_blocks_country_already_in_any_war_regardless_of_side() {
 			var world = new World();
-			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime);
 
-			bool result = Wars.DeclareWar(world, "Germany", "Great_Britain", DeclareTime.AddDays(1));
+			bool result = Wars.DeclareWar(world, _resources, "Germany", "Great_Britain", DeclareTime.AddDays(1));
 
 			Assert.False(result);
 			Assert.Equal(1, CountEntities<War>(world));
@@ -146,11 +148,9 @@ namespace GS.Game.Tests {
 		[Fact]
 		void stop_war_hard_deletes_war_and_both_participants() {
 			var world = new World();
-			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime);
 
-			bool result = Wars.StopWar(
-				world,
-				"Great_Britain",
+			bool result = Wars.StopWar(world, _resources, "Great_Britain",
 				DeclareTime,
 				new Random(1),
 				new GameSettings(),
@@ -169,13 +169,11 @@ namespace GS.Game.Tests {
 		[Fact]
 		void stop_war_with_nonzero_progress_grants_the_loser_revenge_eligibility() {
 			var world = new World();
-			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime);
 			string warId = GetSingle<War>(world).WarId;
-			ResourceMutations.TrySetValue(world, warId, ResourceDefinitions.WarProgress, -30, out _);
+			ResourceMutations.TrySetValue(_resources, world, warId, ResourceDefinitions.WarProgress, -30, out _);
 
-			Wars.StopWar(
-				world,
-				"Great_Britain",
+			Wars.StopWar(world, _resources, "Great_Britain",
 				DeclareTime,
 				new Random(1),
 				new GameSettings(),
@@ -192,9 +190,7 @@ namespace GS.Game.Tests {
 		void stop_war_on_country_not_in_any_war_is_a_no_op() {
 			var world = new World();
 
-			bool result = Wars.StopWar(
-				world,
-				"Great_Britain",
+			bool result = Wars.StopWar(world, _resources, "Great_Britain",
 				DeclareTime,
 				new Random(1),
 				new GameSettings(),
@@ -208,11 +204,9 @@ namespace GS.Game.Tests {
 		[Fact]
 		void resolve_war_with_win_outcome_makes_named_country_the_winner_and_hard_deletes_the_war() {
 			var world = new World();
-			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime);
 
-			bool result = Wars.ResolveWar(
-				world,
-				"Great_Britain",
+			bool result = Wars.ResolveWar(world, _resources, "Great_Britain",
 				WarOutcome.Win,
 				DeclareTime,
 				new Random(1),
@@ -237,8 +231,15 @@ namespace GS.Game.Tests {
 				}
 			}
 			Assert.Single(applied);
+			Assert.Equal("Great_Britain", applied[0].AttackerCountryId);
+			Assert.Equal("France", applied[0].DefenderCountryId);
 			Assert.Equal("Great_Britain", applied[0].WinnerCountryId);
 			Assert.Equal("France", applied[0].LoserCountryId);
+			Assert.NotNull(applied[0].GoldRecipients);
+			Assert.NotNull(applied[0].ControlDeltas);
+			Assert.NotNull(applied[0].TransferredProvinces);
+			Assert.NotNull(applied[0].History);
+			Assert.NotNull(applied[0].Battles);
 
 			Assert.True(RevengeEligibilityQuery.IsEligible(world, "France", "Great_Britain"));
 			Assert.False(RevengeEligibilityQuery.IsEligible(world, "Great_Britain", "France"));
@@ -247,11 +248,9 @@ namespace GS.Game.Tests {
 		[Fact]
 		void resolve_war_with_lose_outcome_makes_named_country_the_loser() {
 			var world = new World();
-			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime);
 
-			bool result = Wars.ResolveWar(
-				world,
-				"Great_Britain",
+			bool result = Wars.ResolveWar(world, _resources, "Great_Britain",
 				WarOutcome.Lose,
 				DeclareTime,
 				new Random(1),
@@ -281,11 +280,9 @@ namespace GS.Game.Tests {
 		void resolve_war_clears_the_winners_eligibility_when_it_had_previously_lost_to_the_loser() {
 			var world = new World();
 			RevengeEligibilityQuery.SetEligible(world, "Great_Britain", "France");
-			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime);
 
-			Wars.ResolveWar(
-				world,
-				"Great_Britain",
+			Wars.ResolveWar(world, _resources, "Great_Britain",
 				WarOutcome.Win,
 				DeclareTime,
 				new Random(1),
@@ -302,9 +299,7 @@ namespace GS.Game.Tests {
 		void resolve_war_on_country_not_in_any_war_is_a_no_op_returning_false() {
 			var world = new World();
 
-			bool result = Wars.ResolveWar(
-				world,
-				"Great_Britain",
+			bool result = Wars.ResolveWar(world, _resources, "Great_Britain",
 				WarOutcome.Win,
 				DeclareTime,
 				new Random(1),
@@ -320,11 +315,11 @@ namespace GS.Game.Tests {
 		[Fact]
 		void get_own_war_progress_returns_value_directly_for_the_attacker() {
 			var world = new World();
-			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime);
 			string warId = GetSingle<War>(world).WarId;
-			ResourceMutations.TrySetValue(world, warId, ResourceDefinitions.WarProgress, -30, out _);
+			ResourceMutations.TrySetValue(_resources, world, warId, ResourceDefinitions.WarProgress, -30, out _);
 
-			double progress = Wars.GetOwnWarProgress(world, "Great_Britain");
+			double progress = Wars.GetOwnWarProgress(world, _resources, "Great_Britain");
 
 			Assert.Equal(-30, progress);
 		}
@@ -332,11 +327,11 @@ namespace GS.Game.Tests {
 		[Fact]
 		void get_own_war_progress_returns_negated_value_for_the_defender() {
 			var world = new World();
-			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime);
 			string warId = GetSingle<War>(world).WarId;
-			ResourceMutations.TrySetValue(world, warId, ResourceDefinitions.WarProgress, -30, out _);
+			ResourceMutations.TrySetValue(_resources, world, warId, ResourceDefinitions.WarProgress, -30, out _);
 
-			double progress = Wars.GetOwnWarProgress(world, "France");
+			double progress = Wars.GetOwnWarProgress(world, _resources, "France");
 
 			Assert.Equal(30, progress);
 		}
@@ -345,7 +340,7 @@ namespace GS.Game.Tests {
 		void get_own_war_progress_returns_zero_when_not_in_any_war() {
 			var world = new World();
 
-			double progress = Wars.GetOwnWarProgress(world, "Great_Britain");
+			double progress = Wars.GetOwnWarProgress(world, _resources, "Great_Britain");
 
 			Assert.Equal(0, progress);
 		}
@@ -359,7 +354,7 @@ namespace GS.Game.Tests {
 				ResourceId = ResourceDefinitions.Recruits,
 				Value = 5
 			});
-			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime);
 			string warId = GetSingle<War>(world).WarId;
 			int activeBattle = world.Create();
 			world.Add(activeBattle, new Battle {
@@ -390,9 +385,7 @@ namespace GS.Game.Tests {
 				Troops = 9
 			});
 
-			Assert.True(Wars.StopWar(
-				world,
-				"Great_Britain",
+			Assert.True(Wars.StopWar(world, _resources, "Great_Britain",
 				DeclareTime,
 				new Random(1),
 				new GameSettings(),
@@ -400,12 +393,10 @@ namespace GS.Game.Tests {
 				new Dictionary<string, (double Lon, double Lat)>(),
 				100));
 
-			Assert.Equal(12, ResourceQuery.GetValue(world, "Great_Britain", ResourceDefinitions.Recruits));
+			Assert.Equal(12, _resources.GetValue(world, "Great_Britain", ResourceDefinitions.Recruits));
 			Assert.Equal(0, CountEntities<Battle>(world));
 			Assert.Equal(0, CountEntities<BattleForce>(world));
-			Assert.False(Wars.StopWar(
-				world,
-				"Great_Britain",
+			Assert.False(Wars.StopWar(world, _resources, "Great_Britain",
 				DeclareTime,
 				new Random(1),
 				new GameSettings(),
@@ -470,7 +461,7 @@ namespace GS.Game.Tests {
 		void declare_war_out_overload_returns_generated_war_id_on_success() {
 			var world = new World();
 
-			bool result = Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime, out string? warId);
+			bool result = Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime, out string? warId);
 
 			Assert.True(result);
 			Assert.NotNull(warId);
@@ -481,9 +472,9 @@ namespace GS.Game.Tests {
 		[Fact]
 		void declare_war_out_overload_returns_null_warid_on_no_op() {
 			var world = new World();
-			Wars.DeclareWar(world, "Great_Britain", "France", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "France", DeclareTime);
 
-			bool result = Wars.DeclareWar(world, "Germany", "Great_Britain", DeclareTime.AddDays(1), out string? warId);
+			bool result = Wars.DeclareWar(world, _resources, "Germany", "Great_Britain", DeclareTime.AddDays(1), out string? warId);
 
 			Assert.False(result);
 			Assert.Null(warId);
@@ -499,7 +490,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void is_war_free_false_when_country_at_war() {
 			var world = new World();
-			Wars.DeclareWar(world, "France", "Germany", DeclareTime);
+			Wars.DeclareWar(world, _resources, "France", "Germany", DeclareTime);
 
 			Assert.False(Wars.IsWarFree(world, "France", "Great_Britain"));
 		}
@@ -507,7 +498,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void is_war_free_false_when_hq_country_at_war() {
 			var world = new World();
-			Wars.DeclareWar(world, "Great_Britain", "Germany", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "Germany", DeclareTime);
 
 			Assert.False(Wars.IsWarFree(world, "France", "Great_Britain"));
 		}
@@ -515,7 +506,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void is_war_free_true_when_hq_country_by_org_id_missing_entry() {
 			var world = new World();
-			Wars.DeclareWar(world, "Great_Britain", "Germany", DeclareTime);
+			Wars.DeclareWar(world, _resources, "Great_Britain", "Germany", DeclareTime);
 			var hqCountryByOrgId = new Dictionary<string, string>();
 
 			Assert.True(Wars.IsWarFree(world, "France", "Illuminati", hqCountryByOrgId));

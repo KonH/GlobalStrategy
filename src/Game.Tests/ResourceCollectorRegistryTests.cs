@@ -6,7 +6,7 @@ using Xunit;
 namespace GS.Game.Tests {
 	public class ResourceCollectorRegistryTests {
 		sealed class StubCollector : IResourceCollector {
-			public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) => 0.0;
+			public double Compute(string ownerId, double currentValue, IReadOnlyWorld world, ResourceQuery resources) => 0.0;
 		}
 
 		[Fact]

@@ -8,7 +8,7 @@ using GS.Game.Configs;
 	namespace GS.Game.Systems {
 	public static partial class WarBattleSystem {
 		static void ProcessRound(
-			World world, WarInfo war, WarBattles.BattleInfo battle,
+			World world, ResourceQuery resources, WarInfo war, WarBattles.BattleInfo battle,
 			Random rng, WarBattleSettings settings,
 			ResourceConfig? resourceConfig, DateTime currentTime) {
 			WarParticipantKind firstSide = rng.Next(2) == 0
@@ -16,29 +16,29 @@ using GS.Game.Configs;
 				: WarParticipantKind.Defender;
 			WarParticipantKind responseSide = Opposite(firstSide);
 
-			double firstInflicted = Strike(world, battle.Value.BattleId, firstSide, responseSide, rng, settings);
-			double responseInflicted = Strike(world, battle.Value.BattleId, responseSide, firstSide, rng, settings);
+			double firstInflicted = Strike(world, resources, battle.Value.BattleId, firstSide, responseSide, rng, settings);
+			double responseInflicted = Strike(world, resources, battle.Value.BattleId, responseSide, firstSide, rng, settings);
 
 			bool responseExhausted = GetSideTroops(world, battle.Value.BattleId, responseSide) <= 0;
 			bool firstExhausted = GetSideTroops(world, battle.Value.BattleId, firstSide) <= 0;
 			if (responseExhausted) {
-				FinishBattle(world, war, battle, firstSide, settings, resourceConfig, currentTime);
+				FinishBattle(resources, world, war, battle, firstSide, settings, resourceConfig, currentTime);
 				return;
 			}
 			if (firstExhausted) {
-				FinishBattle(world, war, battle, responseSide, settings, resourceConfig, currentTime);
+				FinishBattle(resources, world, war, battle, responseSide, settings, resourceConfig, currentTime);
 				return;
 			}
 
 			if (firstInflicted > responseInflicted) {
-				AwardInitiative(world, battle.Value.BattleId, firstSide, settings.RoundWinnerInitiativeGain);
+				AwardInitiative(world, resources, battle.Value.BattleId, firstSide, settings.RoundWinnerInitiativeGain);
 			} else if (responseInflicted > firstInflicted) {
-				AwardInitiative(world, battle.Value.BattleId, responseSide, settings.RoundWinnerInitiativeGain);
+				AwardInitiative(world, resources, battle.Value.BattleId, responseSide, settings.RoundWinnerInitiativeGain);
 			}
 		}
 
 		static double Strike(
-			World world, string battleId, WarParticipantKind dealerSide,
+			World world, ResourceQuery resources, string battleId, WarParticipantKind dealerSide,
 			WarParticipantKind takerSide, Random rng, WarBattleSettings settings) {
 			List<WarBattles.ForceInfo> dealers = WarBattles.GetForces(world, battleId);
 			double inflicted = 0;
@@ -57,10 +57,10 @@ using GS.Game.Configs;
 					}
 					ref BattleForce target = ref world.Get<BattleForce>(targetInfo.Entity);
 					double damage = RequireResource(
-						world, dealer.CountryId, ResourceDefinitions.Damage,
+						resources, world, dealer.CountryId, ResourceDefinitions.Damage,
 						$"resolving battle '{battleId}' damage");
 					double durability = RequireResource(
-						world, target.CountryId, ResourceDefinitions.Durability,
+						resources, world, target.CountryId, ResourceDefinitions.Durability,
 						$"resolving battle '{battleId}' durability");
 					if (durability <= 0) {
 						throw new InvalidOperationException(
@@ -97,11 +97,11 @@ using GS.Game.Configs;
 		}
 
 		static void AwardInitiative(
-			World world, string battleId, WarParticipantKind side, double gain) {
+			World world, ResourceQuery resources, string battleId, WarParticipantKind side, double gain) {
 			foreach (WarBattles.ForceInfo force in WarBattles.GetForces(world, battleId)) {
 				if (force.Value.Side == side) {
 					RequireDelta(
-						world, force.Value.CountryId, ResourceDefinitions.WarInitiative,
+						resources, world, force.Value.CountryId, ResourceDefinitions.WarInitiative,
 						gain, double.MinValue, double.MaxValue,
 						$"war_round_initiative_{battleId}_{force.Value.CountryId}",
 						$"awarding round initiative for battle '{battleId}'");

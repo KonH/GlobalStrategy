@@ -35,19 +35,25 @@ COUNTRY_FLAGS = {
     "Argentina":                                    "File:Flag_of_Argentina_(1818).svg",
     "Austria_Hungary":                              "File:Flag_of_Austria-Hungary_(1869-1918).svg",
     "Belgium":                                      "File:Flag_of_Belgium_(civil).svg",
+    "Bosnia_Herzegovina":                           "File:Flag_of_Bosnia_(1878–1908).svg",
+    "Bulgaria":                                     "File:Flag_of_Bulgaria_(1878-1944).svg",
     "Egypt":                                        "File:Flag_of_Egypt_(1882-1922).svg",
     "Ethiopia":                                     "File:Flag_of_Ethiopia_(1897-1914).svg",
     "France":                                       "File:Flag_of_France.svg",
     "Germany":                                      "File:Flag_of_the_German_Empire.svg",
+    "Greece":                                       "File:Flag_of_Greece_(1822-1978).svg",
     "Imperial_Japan":                               "File:Flag_of_Japan.svg",
     "Italy":                                        "File:Flag_of_Italy_(1861-1946).svg",
     "Kingdom_of_Brazil":                            "File:Flag_of_Empire_of_Brazil_(1870-1889).svg",
     "Manchu_Empire":                                "File:Flag_of_the_Qing_Dynasty_(1862-1889).svg",
+    "Montenegro":                                   "File:Krstaš-barjak.svg",
     "Netherlands":                                  "File:Flag_of_the_Netherlands.svg",
     "Ottoman_Empire":                               "File:Flag_of_the_Ottoman_Empire.svg",
     "Persia":                                       "File:Flag_of_Persia_(1910).svg",
     "Portugal":                                     "File:Flag_of_Portugal_(1830).svg",
+    "Romania":                                      "File:Flag_of_Romania.svg",
     "Russian_Empire":                               "File:Flag_of_Russia.svg",
+    "Serbia":                                       "File:Flag_of_Serbia_(1882-1918).svg",
     "Spain":                                        "File:Flag_of_Spain.svg",
     "SwedenNorway":                                 "File:Flag_of_Sweden.svg",
     "United_Kingdom_of_Great_Britain_and_Ireland":  "File:Flag_of_the_United_Kingdom.svg",
@@ -68,6 +74,7 @@ COUNTRY_FLAGS_FALLBACK = {
 ORG_FLAGS = {
     "Illuminati": "File:Eye_of_Providence.svg",
     "Masons": "File:Square_compasses.svg",
+    "BlackHand": "File:Black_Hand,_logo.png",
 }
 
 # ---------------------------------------------------------------------------

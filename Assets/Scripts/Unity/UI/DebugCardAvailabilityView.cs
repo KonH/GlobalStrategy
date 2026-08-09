@@ -13,6 +13,8 @@ namespace GS.Unity.UI {
 		readonly ActionConfig _actionConfig;
 		readonly Action<string, string> _onDrawDeckCard;
 		readonly Action<string, string, int> _onDiscardHandCard;
+		readonly HashSet<string> _expandedDeckKeys = new();
+		readonly HashSet<string> _expandedHandKeys = new();
 
 		public DebugCardAvailabilityView(
 			VisualElement deckContainer,
@@ -36,42 +38,43 @@ namespace GS.Unity.UI {
 				return;
 			}
 
-			int eligibleTotal = 0;
-			foreach (var card in deck) {
-				if (!card.IsUnplayable) {
-					eligibleTotal++;
-				}
-			}
-
 			var groups = new List<DeckGroup>();
 			var indexByKey = new Dictionary<string, int>();
+			int totalDrawWeight = 0;
 			foreach (var card in deck) {
+				int drawWeight = GetDrawWeight(card);
+				totalDrawWeight += drawWeight;
 				string key = $"{card.ActionId}|{card.TargetCountryId}";
 				if (!indexByKey.TryGetValue(key, out int index)) {
 					index = groups.Count;
 					indexByKey[key] = index;
-					groups.Add(new DeckGroup(card));
+					groups.Add(new DeckGroup());
 				}
-				groups[index].Add(card);
+				groups[index].Add(card, drawWeight);
 			}
 
 			foreach (var group in groups) {
-				int chancePercent = eligibleTotal > 0
-					? (int)System.Math.Round(100.0 * group.EligibleCount / eligibleTotal)
+				int chancePercent = totalDrawWeight > 0
+					? (int)System.Math.Round(100.0 * group.DrawWeight / totalDrawWeight)
 					: 0;
 				string title = $"{ResolveCardName(group.Representative)} x{group.TotalCount} ({chancePercent}%)";
 				bool available = group.EligibleCount > 0;
 				string actionId = group.Representative.ActionId;
 				string targetCountryId = group.Representative.TargetCountryId ?? "";
+				string expandKey = $"{actionId}|{targetCountryId}";
 				_deckContainer.Add(BuildExpandableCard(
 					title,
+					expandKey,
+					_expandedDeckKeys,
 					available,
 					group.Representative.Conditions,
-					includeCost: false,
-					goldCost: 0,
-					canAffordGold: true,
 					onDraw: _onDrawDeckCard == null ? null : () => _onDrawDeckCard(actionId, targetCountryId)));
 			}
+		}
+
+		int GetDrawWeight(ActionCardEntry card) {
+			ActionDefinition definition = _actionConfig?.Find(card.ActionId);
+			return definition != null && definition.DeckCopies > 0 ? definition.DeckCopies : 0;
 		}
 
 		public void RefreshHand(IReadOnlyList<ActionCardEntry> hand, double availableGold) {
@@ -82,21 +85,39 @@ namespace GS.Unity.UI {
 			}
 
 			foreach (var card in hand) {
-				var def = _actionConfig?.Find(card.ActionId);
-				double goldCost = GetGoldCost(def);
-				bool canAffordGold = goldCost <= 0 || availableGold >= goldCost;
-				bool available = !card.IsUnplayable && canAffordGold;
+				var conditions = new List<ActionConditionDebugEntry>(card.Conditions);
+				bool hasProjectedGold = false;
+				foreach (var condition in conditions) {
+					if (condition.LocaleKey == "action.requirement.gold") {
+						hasProjectedGold = true;
+						break;
+					}
+				}
+				bool canAffordLegacyCost = true;
+				if (!hasProjectedGold) {
+					double goldCost = GetGoldCost(_actionConfig?.Find(card.ActionId));
+					if (goldCost > 0) {
+						canAffordLegacyCost = availableGold >= goldCost;
+						conditions.Add(new ActionConditionDebugEntry(
+							$"gold ({FormatNumber(availableGold)}) >= {FormatNumber(goldCost)}",
+							canAffordLegacyCost,
+							"action.requirement.gold",
+							new[] { FormatNumber(goldCost), FormatNumber(availableGold), "gold" },
+							"unaffordable"));
+					}
+				}
+				bool available = card.CanPlay && canAffordLegacyCost;
 				string title = ResolveCardName(card);
 				string actionId = card.ActionId;
 				string targetCountryId = card.TargetCountryId ?? "";
 				int slotIndex = card.SlotIndex;
+				string expandKey = $"{actionId}|{targetCountryId}|{slotIndex}";
 				_handContainer.Add(BuildExpandableCard(
 					title,
+					expandKey,
+					_expandedHandKeys,
 					available,
-					card.Conditions,
-					includeCost: goldCost > 0,
-					goldCost: goldCost,
-					canAffordGold: canAffordGold,
+					conditions,
 					onDiscard: _onDiscardHandCard == null
 						? null
 						: () => _onDiscardHandCard(actionId, targetCountryId, slotIndex)));
@@ -105,46 +126,49 @@ namespace GS.Unity.UI {
 
 		VisualElement BuildExpandableCard(
 			string title,
+			string expandKey,
+			HashSet<string> expandedKeys,
 			bool available,
 			IReadOnlyList<ActionConditionDebugEntry> conditions,
-			bool includeCost,
-			double goldCost,
-			bool canAffordGold,
 			Action onDraw = null,
 			Action onDiscard = null) {
 			var block = new VisualElement();
 			block.AddToClassList("debug-card-block");
 
+			var headerRow = new VisualElement();
+			headerRow.AddToClassList("debug-card-header-row");
+
 			var header = new Button();
-			header.text = $"▶ {title}";
+			header.text = $"> {title}";
 			header.AddToClassList("gs-btn");
 			header.AddToClassList("gs-btn--small");
 			header.AddToClassList("debug-panel-button");
 			header.AddToClassList(available ? "debug-card-available" : "debug-card-unavailable");
+			headerRow.Add(header);
+
+			// Keep Draw/Discard outside the collapsible details so refresh/expand
+			// state cannot swallow the click while the game is unpaused.
+			if (onDraw != null) {
+				headerRow.Add(CreateActionButton("Draw", onDraw));
+			}
+			if (onDiscard != null) {
+				headerRow.Add(CreateActionButton("Discard", onDiscard));
+			}
 
 			var details = new VisualElement();
 			details.AddToClassList("debug-card-details");
-			details.style.display = DisplayStyle.None;
-
-			if (onDraw != null) {
-				details.Add(CreateActionButton("Draw", onDraw));
-			}
-			if (onDiscard != null) {
-				details.Add(CreateActionButton("Discard", onDiscard));
-			}
+			bool startOpen = expandedKeys.Contains(expandKey);
+			details.style.display = startOpen ? DisplayStyle.Flex : DisplayStyle.None;
+			header.text = $"{(startOpen ? "v" : ">")} {title}";
 
 			bool hasRows = false;
 			if (conditions != null) {
 				foreach (var condition in conditions) {
-					details.Add(CreateConditionLabel(condition.Label, condition.Passed));
+					details.Add(CreateConditionLabel(ActionConditionText.Localize(_loc, condition), condition.Passed));
 					hasRows = true;
 				}
 			}
-			if (includeCost) {
-				details.Add(CreateConditionLabel($"gold >= {FormatNumber(goldCost)}", canAffordGold));
-				hasRows = true;
-			}
-			if (!hasRows && onDraw == null && onDiscard == null) {
+			if (!hasRows) {
 				details.Add(CreateMutedLabel("(no conditions)"));
 			}
 
@@ -154,19 +178,28 @@ namespace GS.Unity.UI {
 				}
 				bool isOpen = details.style.display != DisplayStyle.None;
 				details.style.display = isOpen ? DisplayStyle.None : DisplayStyle.Flex;
-				header.text = $"{(isOpen ? "▶" : "▼")} {title}";
+				header.text = $"{(isOpen ? ">" : "v")} {title}";
+				if (isOpen) {
+					expandedKeys.Remove(expandKey);
+				} else {
+					expandedKeys.Add(expandKey);
+				}
+				e.StopPropagation();
 			});
 
-			block.Add(header);
+			block.Add(headerRow);
 			block.Add(details);
 			return block;
 		}
 
 		static Button CreateActionButton(string text, Action onClick) {
-			var button = new Button(onClick) { text = text };
+			var button = new Button(() => onClick()) { text = text };
 			button.AddToClassList("gs-btn");
 			button.AddToClassList("gs-btn--small");
 			button.AddToClassList("debug-panel-button");
+			button.AddToClassList("debug-card-action-button");
+			button.RegisterCallback<PointerUpEvent>(e => e.StopPropagation());
+			button.RegisterCallback<PointerDownEvent>(e => e.StopPropagation());
 			return button;
 		}
 
@@ -196,11 +229,11 @@ namespace GS.Unity.UI {
 			return label;
 		}
 
-		static double GetGoldCost(ActionDefinition def) {
-			if (def == null) {
+		static double GetGoldCost(ActionDefinition definition) {
+			if (definition == null) {
 				return 0;
 			}
-			foreach (var cost in def.Cost) {
+			foreach (var cost in definition.Cost) {
 				if (cost.ResourceId == "gold") {
 					return cost.Amount;
 				}
@@ -208,22 +241,18 @@ namespace GS.Unity.UI {
 			return 0;
 		}
 
-		static string FormatNumber(double value) {
-			return value == System.Math.Floor(value) ? $"{(int)value}" : $"{value:0.##}";
-		}
+		static string FormatNumber(double value) =>
+			value == System.Math.Floor(value) ? $"{(int)value}" : $"{value:0.##}";
 
 		sealed class DeckGroup {
 			public ActionCardEntry Representative { get; private set; }
 			public int TotalCount { get; private set; }
 			public int EligibleCount { get; private set; }
+			public int DrawWeight { get; private set; }
 
-			public DeckGroup(ActionCardEntry first) {
-				Representative = first;
-				Add(first);
-			}
-
-			public void Add(ActionCardEntry card) {
+			public void Add(ActionCardEntry card, int drawWeight) {
 				TotalCount++;
+				DrawWeight += drawWeight;
 				if (!card.IsUnplayable) {
 					EligibleCount++;
 					Representative = card;

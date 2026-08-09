@@ -15,6 +15,7 @@ namespace GS.Unity.UI {
 		SceneLoader _sceneLoader;
 		ILocalization _loc;
 		IFlyTextNotifier _flyText;
+		ModalState _modalState;
 		UIDocument _doc;
 		VisualElement _root;
 
@@ -24,16 +25,22 @@ namespace GS.Unity.UI {
 		Button _btnExit;
 
 		[Inject]
-		void Construct(IWriteOnlyCommandAccessor commands, VisualState visualState, SceneLoader sceneLoader, ILocalization loc, IFlyTextNotifier flyText) {
+		void Construct(IWriteOnlyCommandAccessor commands, VisualState visualState, SceneLoader sceneLoader, ILocalization loc, IFlyTextNotifier flyText, ModalState modalState) {
 			_commands = commands;
 			_visualState = visualState;
 			_sceneLoader = sceneLoader;
 			_loc = loc;
 			_flyText = flyText;
+			_modalState = modalState;
 		}
+
+		// Explicit sortingOrder, not scene-authoring order — see .claude/rules/unity/uitoolkit.md
+		// Above modals (Leaderboard 500 / Goals 505 / War 510), just below FlyText (1000), below EndGame (1100).
+		const int SortingOrder = 990;
 
 		void Awake() {
 			_doc = GetComponent<UIDocument>();
+			_doc.sortingOrder = SortingOrder;
 		}
 
 		void OnEnable() {
@@ -77,7 +84,9 @@ namespace GS.Unity.UI {
 			}
 			if (keyboard.escapeKey.wasPressedThisFrame) {
 				if (_root.style.display == DisplayStyle.None) {
-					Show();
+					if (!_modalState.IsLocked()) {
+						Show();
+					}
 				} else {
 					Hide();
 				}
@@ -85,15 +94,20 @@ namespace GS.Unity.UI {
 		}
 
 		public void Show() {
+			if (_root == null
+				|| _root.style.display != DisplayStyle.None
+				|| _modalState.IsLocked()) {
+				return;
+			}
 			_commands?.Push(new PauseCommand());
-			ModalState.IsModalOpen = true;
+			_modalState.Lock(this);
 			RefreshTexts();
 			_root.style.display = DisplayStyle.Flex;
 		}
 
 		void Hide() {
 			_commands?.Push(new UnpauseCommand());
-			ModalState.IsModalOpen = false;
+			_modalState.Unlock(this);
 			_root.style.display = DisplayStyle.None;
 		}
 

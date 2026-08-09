@@ -8,7 +8,7 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class OrgCharacterTests {
-		sealed class StaticConfig<T> : IConfigSource<T> {
+		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;
@@ -100,7 +100,8 @@ namespace GS.Game.Tests {
 				StartYear = 1880,
 				DefaultLocale = "en",
 				SpeedMultipliers = new[] { 1, 2, 4 },
-				AutoSaveInterval = "monthly"
+				AutoSaveInterval = "monthly",
+				FeatureFlags = new FeatureFlagSettings { EnableRuler = true }
 			};
 			var resourceConfig = new ResourceConfig { Resources = new List<ResourceDefinition>() };
 			var ctx = new GameLogicContext(

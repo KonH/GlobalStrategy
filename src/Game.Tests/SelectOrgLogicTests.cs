@@ -7,7 +7,7 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class SelectOrgLogicTests {
-		sealed class StaticConfig<T> : IConfigSource<T> {
+		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;
@@ -32,11 +32,36 @@ namespace GS.Game.Tests {
 			};
 			var resourceConfig = new ResourceConfig();
 			var gameSettings = new GameSettings();
+			var provinceConfig = new ProvinceConfig {
+				Provinces = new List<ProvinceEntry> {
+					new ProvinceEntry { ProvinceId = "gb_1", CountryId = "Great_Britain", Population = 2_000_000 },
+					new ProvinceEntry { ProvinceId = "gb_2", CountryId = "Great_Britain", Population = 3_000_000 }
+				}
+			};
+			var characterConfig = new CharacterConfig {
+				CountryPools = new List<CountryCharacterPool> {
+					new CountryCharacterPool {
+						CountryId = "Great_Britain",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							["economic_advisor"] = new List<CharacterEntry> {
+								new CharacterEntry {
+									CharacterId = "gb_eco_1",
+									Skills = new Dictionary<string, SkillSettings> {
+										["stinginess"] = new SkillSettings { MinValue = 40, MaxValue = 60 }
+									}
+								}
+							}
+						}
+					}
+				}
+			};
 			return new SelectOrgLogic(
 				new StaticConfig<CountryConfig>(countryConfig),
 				new StaticConfig<OrganizationConfig>(orgConfig),
 				resourceConfig,
-				new StaticConfig<GameSettings>(gameSettings));
+				new StaticConfig<GameSettings>(gameSettings),
+				provinceConfig,
+				characterConfig);
 		}
 
 		[Fact]
@@ -74,7 +99,15 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic();
 			Assert.True(logic.VisualState.WinConditionHint.IsAvailable);
 			Assert.True(logic.VisualState.WinConditionHint.IsAlternativeGroup);
-			Assert.Equal(2, logic.VisualState.WinConditionHint.Rows.Count);
+			Assert.Equal(3, logic.VisualState.WinConditionHint.Rows.Count);
+		}
+
+		[Fact]
+		void estimated_income_uses_hq_country_population_provinces_and_advisor() {
+			var logic = BuildLogic();
+			// flat 10 + pop 0.5*(5M/1M)*0.1=0.25 + prov 0.3*2*0.05=0.03 + adv 0.2*50=10 => 20.28
+			// base control default 10% => 2.028
+			Assert.Equal(2.028, logic.ComputeBaseControlIncome("Illuminati"), 6);
 		}
 	}
 }

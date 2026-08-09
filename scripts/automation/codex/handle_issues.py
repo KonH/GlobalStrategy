@@ -17,6 +17,9 @@ The label set is the whole state machine (no local state file, no timestamps):
   ai-in-progress         a run is actively working it (skipped by discovery; shared)
   ai-need-attention      waiting on the owner (skipped by discovery; shared)
   ai-complete            prompt fully done (skipped by discovery; shared)
+  ai-specify/ai-plan/
+  ai-implement           informational /specify|/plan|/implement progress (shared; not
+                         discovery status — agents set these)
 
 A candidate is any open, configured-contributor-authored, `codex`-labeled issue/PR carrying none of the three
 shared `ai-*` status labels. The owner resumes a need-attention/complete item by replying and removing that
@@ -33,20 +36,18 @@ doing anything else. If a previous run is still in flight when the next cron tic
 run exits immediately instead of racing it - the lock releases automatically even if a prior
 run crashed, since it's tied to the OS file descriptor, not manually cleared state.
 
-Stale-run reclaim: because the lock guarantees no other run of this provider is active, any of
-this provider's items still labeled `ai-in-progress` at startup is leftover from a
-crashed/interrupted run. It's re-queued (the label removed, a `<!-- codex-automation:reclaim -->`
-comment posted as the attempt counter) up to twice; a third consecutive crash parks it with
-`ai-need-attention` instead of retrying forever. A real owner comment resets the counter.
+Cross-instance claim: each candidate is claimed via `claim_candidate` (sets `ai-in-progress`)
+before checkout/CLI. After the CLI returns - success or non-limit failure - this wrapper clears
+that item's `ai-in-progress` in a `finally` block. Hard-kill before that clear can leave the
+label stuck; recovery is manual owner removal (no automatic reclaim).
 
 Usage limits are NOT crashes: when the run's error output reports a usage/rate limit, this
 script records a retry time (prefer parseable `try again at Aug 5th, 2026 9:31 AM` from the
 production message, else now + --limit-backoff-minutes) as an aware-UTC timestamp in
-Logs/auto_ai_provider_state.json under the `codex` provider key, silently removes the
-`ai-in-progress` labels the interrupted run left behind (no reclaim comment, no crash-retry
-consumed, no error noise on the item), and exits 0. Every later run compares that timestamp
-against the current time - both aware UTC, so the machine's local timezone never skews it -
-and skips entirely (before any GitHub call) until the window has passed.
+Logs/auto_ai_provider_state.json under the `codex` provider key, clears `ai-in-progress` for
+the claimed item only, and exits 0. Every later run compares that timestamp against the
+current time - both aware UTC, so the machine's local timezone never skews it - and skips
+entirely (before any GitHub call) until the window has passed.
 
 Requires `gh` authenticated as the repo owner (`gh auth login`), the labels above already
 created in the repo (see handle_issues.sh for the `gh label create` commands), and
@@ -63,7 +64,7 @@ Usage (from project root):
   python scripts/automation/codex/handle_issues.py
   python scripts/automation/codex/handle_issues.py --model gpt-5.6-sol --effort high
 
-Shared discovery/locking/reclaim logic lives in scripts/automation/common/issue_handler.py -
+Shared discovery/locking/claim/clear logic lives in scripts/automation/common/issue_handler.py -
 this file only supplies what's specific to driving Codex: CLI invocation, exec --json event
 parsing, and prompt text.
 """
@@ -81,9 +82,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.issue_handler import (  # noqa: E402
-    acquire_lock, candidate_branch, checkout_clean, claim_candidate, find_candidates,
-    handle_limit_pause, limit_active, reclaim_stale_in_progress, setup_logging,
+    acquire_lock, candidate_branch, checkout_clean, claim_candidate, clear_in_progress,
+    determine_usage_stage_and_spec_dir, find_candidates, handle_limit_pause, limit_active,
+    setup_logging,
 )
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
+from scripts.stats.collect_usage import diff_lines_for_branch, record_usage_row_codex  # noqa: E402
 
 MODEL = "gpt-5.6-sol"
 EFFORT = "high"
@@ -155,6 +159,44 @@ def detect_session_limit(error_texts):
 
 def find_codex_executable():
     return shutil.which("codex") or "codex"
+
+
+def current_branch():
+    """The branch actually checked out right now - unlike `candidate_branch()`, which is
+    only the branch a run *started* from (always `main` for an issue candidate; the agent
+    creates/switches to its own `feature/<name>` branch during the run per
+    `.codex/skills/codex-issue/SKILL.md`). Returns None on failure rather than raising -
+    usage-stats attribution must never abort the automation run."""
+    result = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                             capture_output=True, text=True)
+    return result.stdout.strip() if result.returncode == 0 else None
+
+
+def record_codex_usage_stats(candidate, since_iso):
+    """Best-effort post-run usage.csv row for one candidate. Silently records nothing when
+    the run's diff touched no Docs/Specs/<dir>/ path (most codex-labeled issues are not
+    spec work) - see determine_usage_stage_and_spec_dir() for the attribution rules. Any
+    failure here is caught and logged, never raised, so a usage-stats hiccup can never fail
+    the candidate's own outcome."""
+    try:
+        branch = current_branch()
+        if not branch:
+            logger.warning("Usage-stats: could not resolve the current branch after the run "
+                            "for %s #%s - skipping.", candidate["kind"], candidate["number"])
+            return
+        spec_dir, stage = determine_usage_stage_and_spec_dir(
+            logger, candidate["number"], branch, Path.cwd())
+        if spec_dir is None:
+            return
+        record_usage_row_codex(
+            spec_dir=spec_dir, stage=stage, mode="automated", since_iso=since_iso,
+            diff_lines=diff_lines_for_branch(branch, Path.cwd()),
+        )
+        logger.info("Usage-stats: recorded codex '%s' row for spec '%s' (%s #%s).",
+                    stage, spec_dir, candidate["kind"], candidate["number"])
+    except Exception as exc:
+        logger.warning("Usage-stats: failed to record codex usage row for %s #%s: %s",
+                        candidate["kind"], candidate["number"], exc)
 
 
 def build_codex_arguments(model, effort, sandbox):
@@ -237,7 +279,6 @@ def main():
     if limit_active(logger, args.provider_state_file, LABEL):
         return
 
-    reclaim_stale_in_progress(logger, LABEL, MARKER)
     candidates = find_candidates(LABEL)
 
     if not candidates:
@@ -250,19 +291,27 @@ def main():
         if not claim_candidate(logger, LABEL, MARKER, candidate):
             logger.info(f"Lost claim race for {candidate['kind']} #{candidate['number']} - skipping.")
             continue
-        branch = candidate_branch(candidate)
-        checkout_clean(logger, branch)
-        logger.info(f"Processing {candidate['kind']} #{candidate['number']} from clean "
-                    f"'{branch}' - invoking codex exec.")
-        returncode, error_texts = run_codex(build_prompt(candidate), args)
-        if returncode != 0:
-            exit_code = returncode
-        limit_hit, retry_at = detect_session_limit(error_texts)
-        if limit_hit:
-            if retry_at is None:
-                retry_at = datetime.now(timezone.utc) + timedelta(minutes=args.limit_backoff_minutes)
-            handle_limit_pause(logger, LABEL, MARKER, candidate, args.provider_state_file, retry_at)
-            sys.exit(0)
+        try:
+            branch = candidate_branch(candidate)
+            checkout_clean(logger, branch)
+            logger.info(f"Processing {candidate['kind']} #{candidate['number']} from clean "
+                        f"'{branch}' - invoking codex exec.")
+            iteration_start = datetime.now(timezone.utc).isoformat()
+            returncode, error_texts = run_codex(build_prompt(candidate), args)
+            if returncode != 0:
+                exit_code = returncode
+            limit_hit, retry_at = detect_session_limit(error_texts)
+            if limit_hit:
+                if retry_at is None:
+                    retry_at = datetime.now(timezone.utc) + timedelta(
+                        minutes=args.limit_backoff_minutes)
+                handle_limit_pause(
+                    logger, LABEL, MARKER, candidate, args.provider_state_file, retry_at)
+                sys.exit(0)
+            if returncode == 0:
+                record_codex_usage_stats(candidate, iteration_start)
+        finally:
+            clear_in_progress(logger, candidate["number"])
     sys.exit(exit_code)
 
 

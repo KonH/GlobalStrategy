@@ -7,6 +7,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class ClearCountryRelationSystemTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static int AddCountry(World world, string countryId) {
 			int e = world.Create();
 			world.Add(e, new Country(countryId));
@@ -34,12 +36,12 @@ namespace GS.Game.Tests {
 			var world = new World();
 			AddCountry(world, "A");
 			AddCountry(world, "B");
-			CountryRelations.SetRelation(world, "A", "B", RelationKind.Friend);
+			_relations.SetRelation(world, "A", "B", RelationKind.Friend);
 			AddMarker(world, "OrgA", "A", "B");
 
-			ClearCountryRelationSystem.Update(world);
+			ClearCountryRelationSystem.Update(world, _relations);
 
-			Assert.Null(CountryRelations.GetRelation(world, "A", "B"));
+			Assert.Null(_relations.GetRelation(world, "A", "B"));
 		}
 
 		[Fact]
@@ -47,10 +49,10 @@ namespace GS.Game.Tests {
 			var world = new World();
 			AddCountry(world, "A");
 			AddCountry(world, "B");
-			CountryRelations.SetRelation(world, "A", "B", RelationKind.Rival);
+			_relations.SetRelation(world, "A", "B", RelationKind.Rival);
 			AddMarker(world, "OrgA", "A", "B");
 
-			ClearCountryRelationSystem.Update(world);
+			ClearCountryRelationSystem.Update(world, _relations);
 
 			var applied = GetRelationClearedApplied(world);
 			Assert.Single(applied);
@@ -65,10 +67,10 @@ namespace GS.Game.Tests {
 			var world = new World();
 			AddCountry(world, "A");
 			AddCountry(world, "B");
-			CountryRelations.SetRelation(world, "A", "B", RelationKind.Friend);
+			_relations.SetRelation(world, "A", "B", RelationKind.Friend);
 			int markerEntity = AddMarker(world, "OrgA", "A", "B");
 
-			ClearCountryRelationSystem.Update(world);
+			ClearCountryRelationSystem.Update(world, _relations);
 
 			Assert.True(world.TryGet<ClearCountryRelationEffect>(markerEntity, out _));
 		}
@@ -79,14 +81,14 @@ namespace GS.Game.Tests {
 			AddCountry(world, "A");
 			AddCountry(world, "B");
 			AddCountry(world, "C");
-			CountryRelations.SetRelation(world, "A", "B", RelationKind.Friend);
-			CountryRelations.SetRelation(world, "A", "C", RelationKind.Rival);
+			_relations.SetRelation(world, "A", "B", RelationKind.Friend);
+			_relations.SetRelation(world, "A", "C", RelationKind.Rival);
 			AddMarker(world, "OrgA", "A", "B");
 
-			ClearCountryRelationSystem.Update(world);
+			ClearCountryRelationSystem.Update(world, _relations);
 
-			Assert.Null(CountryRelations.GetRelation(world, "A", "B"));
-			Assert.Equal(RelationKind.Rival, CountryRelations.GetRelation(world, "A", "C"));
+			Assert.Null(_relations.GetRelation(world, "A", "B"));
+			Assert.Equal(RelationKind.Rival, _relations.GetRelation(world, "A", "C"));
 		}
 
 		[Fact]
@@ -94,11 +96,11 @@ namespace GS.Game.Tests {
 			var world = new World();
 			AddCountry(world, "A");
 			AddCountry(world, "B");
-			CountryRelations.SetRelation(world, "A", "B", RelationKind.Friend);
+			_relations.SetRelation(world, "A", "B", RelationKind.Friend);
 
-			ClearCountryRelationSystem.Update(world);
+			ClearCountryRelationSystem.Update(world, _relations);
 
-			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(world, "A", "B"));
+			Assert.Equal(RelationKind.Friend, _relations.GetRelation(world, "A", "B"));
 			Assert.Empty(GetRelationClearedApplied(world));
 		}
 	}

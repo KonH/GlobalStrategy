@@ -17,7 +17,7 @@ namespace GS.Game.Tests {
 				new ExpressionNode {
 					Type = "gte",
 					Members = {
-						new ExpressionNode { Type = "relationStillExists" },
+						new ExpressionNode { Type = "hasCountryRelation", RelationKind = "rival" },
 						new ExpressionNode { Type = "value", Value = 1 }
 					}
 				},
@@ -31,7 +31,11 @@ namespace GS.Game.Tests {
 			};
 			var ctx = new ExpressionContext {
 				TargetRulerOrMilitaryOpinion = 40,
-				RelationStillExists = 1,
+				CountryRelations = new Dictionary<string, double> {
+					["none"] = 0,
+					["friend"] = 0,
+					["rival"] = 1
+				},
 				NeitherSideAtWar = 0
 			};
 
@@ -40,7 +44,7 @@ namespace GS.Game.Tests {
 			Assert.Equal(3, results.Count);
 			Assert.Equal("targetRulerOrMilitaryOpinion (40) >= 50", results[0].Label);
 			Assert.False(results[0].Passed);
-			Assert.Equal("relationStillExists (1) >= 1", results[1].Label);
+			Assert.Equal("hasCountryRelation[rival:] (1) >= 1", results[1].Label);
 			Assert.True(results[1].Passed);
 			Assert.Equal("neitherSideAtWar (0) >= 1", results[2].Label);
 			Assert.False(results[2].Passed);
@@ -70,6 +74,33 @@ namespace GS.Game.Tests {
 
 			Assert.Equal("(totalCountryControl (12) - control (4)) > 0", label);
 			Assert.Equal(1.0, ExpressionNode.Evaluate(cond, ctx));
+		}
+
+		[Theory]
+		[InlineData("friend", "action.requirement.friend_candidate", "no_friend_candidate")]
+		[InlineData("rival", "action.requirement.rival_candidate", "no_rival_candidate")]
+		void missing_relation_candidate_uses_desired_kind_specific_player_wording(
+			string desiredKind, string localeKey, string reasonCode) {
+			var condition = new ExpressionNode {
+				Type = "gte",
+				Members = {
+					new ExpressionNode {
+						Type = "hasCountryRelation", RelationKind = "none", DesiredRelationKind = desiredKind
+					},
+					new ExpressionNode { Type = "value", Value = 1 }
+				}
+			};
+			var ctx = new ExpressionContext {
+				CountryRelations = new Dictionary<string, double> {
+					["none"] = 0, ["friend"] = 0, ["rival"] = 0
+				}
+			};
+
+			ActionConditionDebugEntry result = ActionConditionDebug.Evaluate(condition, ctx);
+
+			Assert.False(result.Passed);
+			Assert.Equal(localeKey, result.LocaleKey);
+			Assert.Equal(reasonCode, result.ReasonCode);
 		}
 	}
 }

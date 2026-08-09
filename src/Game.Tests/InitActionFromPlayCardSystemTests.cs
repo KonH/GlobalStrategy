@@ -15,9 +15,10 @@ namespace GS.Game.Tests {
 			int e = world.Create();
 			world.Add(e, new GameAction { ActionId = actionId });
 			world.Add(e, new OrgContext { OrgId = orgId });
-			world.Add(e, new CountryContext { CountryId = countryId });
+			world.Add(e, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(e, new CardInHand { SlotIndex = slotIndex });
 			if (!string.IsNullOrEmpty(targetCountryId)) {
+				world.Add(e, new CountryContext { CountryId = countryId });
 				world.Add(e, new RelationCardTarget { TargetCountryId = targetCountryId, Kind = RelationKind.Friend });
 			}
 			return e;
@@ -33,7 +34,7 @@ namespace GS.Game.Tests {
 			int franceCard = AddCountryCardInHand(world, OrgId, CountryId, ActionId, 0, "France");
 			int germanyCard = AddCountryCardInHand(world, OrgId, CountryId, ActionId, 1, "Germany");
 
-			RunCommand(world, new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryId, ActionId = ActionId, TargetCountryId = "France" });
+			RunCommand(world, new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryId, ActionId = ActionId, TargetCountryId = "France", SlotIndex = 0 });
 
 			Assert.True(world.Has<CardUse>(franceCard));
 			Assert.False(world.Has<CardUse>(germanyCard));
@@ -45,7 +46,7 @@ namespace GS.Game.Tests {
 			int franceCard = AddCountryCardInHand(world, OrgId, CountryId, ActionId, 0, "France");
 			int germanyCard = AddCountryCardInHand(world, OrgId, CountryId, ActionId, 1, "Germany");
 
-			RunCommand(world, new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryId, ActionId = ActionId, TargetCountryId = "Germany" });
+			RunCommand(world, new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryId, ActionId = ActionId, TargetCountryId = "Germany", SlotIndex = 1 });
 
 			Assert.False(world.Has<CardUse>(franceCard));
 			Assert.True(world.Has<CardUse>(germanyCard));
@@ -66,9 +67,26 @@ namespace GS.Game.Tests {
 			var world = new World();
 			int plainCard = AddCountryCardInHand(world, OrgId, CountryId, "raise_control", 0);
 
-			RunCommand(world, new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryId, ActionId = "raise_control" });
+			RunCommand(world, new PlayCardActionCommand { OrgId = OrgId, CountryId = CountryId, ActionId = "raise_control", SlotIndex = 0 });
 
 			Assert.True(world.Has<CardUse>(plainCard));
+			Assert.Equal(CountryId, world.Get<CardUse>(plainCard).CountryId);
+		}
+
+		[Fact]
+		void slot_disambiguates_same_action_and_target_with_different_primary_countries() {
+			var world = new World();
+			int homeCard = AddCountryCardInHand(world, OrgId, "Home", ActionId, 0, "France");
+			int awayCard = AddCountryCardInHand(world, OrgId, "Away", ActionId, 1, "France");
+
+			RunCommand(world, new PlayCardActionCommand {
+				OrgId = OrgId, CountryId = "Away", ActionId = ActionId,
+				TargetCountryId = "France", SlotIndex = 1
+			});
+
+			Assert.False(world.Has<CardUse>(homeCard));
+			Assert.True(world.Has<CardUse>(awayCard));
+			Assert.Equal("Away", world.Get<CardUse>(awayCard).CountryId);
 		}
 	}
 }

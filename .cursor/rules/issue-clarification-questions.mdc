@@ -1,0 +1,20 @@
+---
+description: Format for clarification questions posted in GitHub issue/PR handoff comments
+alwaysApply: true
+---
+
+# Clarification Questions in Issue / PR Comments
+
+When asking the owner for decisions on a GitHub issue or PR, put the questions in the handoff comment itself.
+
+## Required format
+
+1. **Always write the questions in the comment** — do not only point at a spec Ambiguities section or say “open clarifications remain.”
+2. **Number them `0`–`9` (then `10+`)** so the owner can answer with `N: answer`.
+3. **Show the full question text** for each item, with enough context to decide without opening another file. Assumed defaults may follow in parentheses.
+
+## Anti-patterns
+
+- Abbreviated titles only (“influence definition”, “FIFO vs merge”)
+- “See spec Ambiguities” without repeating the questions
+- Unnumbered bullets the owner cannot cite

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ECS;
 using GS.Configs;
 using GS.Game.Commands;
+using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
@@ -11,7 +12,9 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class InitSystemTests {
-		sealed class StaticConfig<T> : IConfigSource<T> {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
+		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;
@@ -51,8 +54,9 @@ namespace GS.Game.Tests {
 		static GameLogic BuildLogic(
 			IPersistentStorage? storage = null, ISnapshotSerializer? serializer = null, GameSettings? gameSettingsOverride = null,
 			ActionConfig? actionConfigOverride = null, CharacterConfig? characterConfigOverride = null,
-			OrganizationConfig? organizationConfigOverride = null, IReadOnlyList<string>? participatingOrganizationIds = null) {
-			var countryConfig = new CountryConfig {
+			OrganizationConfig? organizationConfigOverride = null, IReadOnlyList<string>? participatingOrganizationIds = null,
+			CountryConfig? countryConfigOverride = null) {
+			var countryConfig = countryConfigOverride ?? new CountryConfig {
 				Countries = new List<CountryEntry> {
 					new CountryEntry { CountryId = "Great_Britain", DisplayName = "Great Britain", IsAvailable = true },
 					new CountryEntry { CountryId = "France", DisplayName = "France", IsAvailable = true }
@@ -115,6 +119,18 @@ namespace GS.Game.Tests {
 			int[] req = { TypeId<T>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
 				count += arch.Count;
+			}
+			return count;
+		}
+
+		static int CountActionEntities(World world, string actionId) {
+			int count = 0;
+			int[] req = { TypeId<GameAction>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (actions[i].ActionId == actionId) { count++; }
+				}
 			}
 			return count;
 		}
@@ -245,6 +261,79 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			Assert.Equal(countAfterInit, CountEntities<Country>(logic.World));
+		}
+
+		[Fact]
+		void country_hand_starts_empty_with_configured_capacity() {
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 8 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition { ActionId = "build_influence", OwnerType = "country", DeckCopies = 1 }
+				}
+			};
+			var logic = BuildLogic(actionConfigOverride: actionConfig);
+
+			logic.Update(0f);
+
+			Assert.True(CountryCardDrawQuery.TryGetStatus(
+				logic.World, actionConfig, "Illuminati", out CountryCardDrawStatus status));
+			Assert.Equal(0, status.HandCount);
+			Assert.Equal(8, status.HandSize);
+			Assert.False(status.HasPendingDraw);
+			Assert.True(status.CanStartDraw);
+		}
+
+		[Fact]
+		void load_reconciles_country_hand_capacity_without_moving_saved_card() {
+			var storage = new MemoryStorage();
+			var serializer = new CapturingSerializer();
+			var oldConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 5 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition { ActionId = "build_influence", OwnerType = "country", DeckCopies = 1 }
+				}
+			};
+			var logic = BuildLogic(storage, serializer, actionConfigOverride: oldConfig);
+			logic.Update(0f);
+			Assert.True(DrawCardSystem.ForceDrawCard(
+				logic.World, "Illuminati", "Great_Britain", "build_influence", ""));
+			int cardEntity = FindCardEntity(logic.World, "build_influence");
+			logic.World.Get<CardInHand>(cardEntity).SlotIndex = 4;
+			logic.Commands.Push(new SaveGameCommand());
+			logic.Update(0f);
+
+			var currentConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 8 }
+				},
+				Actions = oldConfig.Actions
+			};
+			var loaded = BuildLogic(storage, serializer, actionConfigOverride: currentConfig);
+			loaded.LoadState(serializer.LastSaveName);
+
+			Assert.True(CountryCardDrawQuery.TryGetStatus(
+				loaded.World, currentConfig, "Illuminati", out CountryCardDrawStatus status));
+			Assert.Equal(8, status.HandSize);
+			Assert.Equal(1, status.HandCount);
+			int loadedCardEntity = FindCardEntity(loaded.World, "build_influence");
+			Assert.Equal(4, loaded.World.Get<CardInHand>(loadedCardEntity).SlotIndex);
+		}
+
+		static int FindCardEntity(IReadOnlyWorld world, string actionId) {
+			int[] required = { TypeId<GameAction>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (actions[i].ActionId == actionId) {
+						return arch.Entities[i];
+					}
+				}
+			}
+			throw new InvalidOperationException($"Card entity not found: action={actionId}");
 		}
 
 		[Fact]
@@ -443,7 +532,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void make_friend_and_make_rival_never_populate_initial_hand_since_opinion_starts_at_zero() {
+		void make_friend_and_make_rival_exist_in_deck_while_initial_hand_is_empty() {
 			const string targetRole = "diplomacy_advisor";
 			var characterConfig = new CharacterConfig {
 				Roles = new List<CharacterRoleDefinition> { new CharacterRoleDefinition { RoleId = targetRole } },
@@ -502,23 +591,31 @@ namespace GS.Game.Tests {
 				}
 			};
 
-			// Must not throw now that ExpressionContext.Opinion/.HasSuitableRelationTarget are
-			// wired into CreateCountryActionEntities.
 			var logic = BuildLogic(actionConfigOverride: actionConfig, characterConfigOverride: characterConfig);
 			logic.Update(0f);
 
-			int[] handReq = { TypeId<GameAction>.Value, TypeId<CardInHand>.Value };
-			foreach (var arch in logic.World.GetMatchingArchetypes(handReq, null)) {
+			bool foundMakeFriend = false;
+			bool foundMakeRival = false;
+			int[] cardReq = { TypeId<GameAction>.Value, TypeId<CardOwnerType>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(cardReq, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				for (int i = 0; i < arch.Count; i++) {
-					Assert.NotEqual("make_friend", actions[i].ActionId);
-					Assert.NotEqual("make_rival", actions[i].ActionId);
+					if (actions[i].ActionId == "make_friend") {
+						foundMakeFriend = true;
+						Assert.False(logic.World.Has<CardInHand>(arch.Entities[i]));
+					}
+					if (actions[i].ActionId == "make_rival") {
+						foundMakeRival = true;
+						Assert.False(logic.World.Has<CardInHand>(arch.Entities[i]));
+					}
 				}
 			}
+			Assert.True(foundMakeFriend);
+			Assert.True(foundMakeRival);
 		}
 
 		[Fact]
-		void revenge_and_make_friend_never_populate_initial_hand_since_opinion_starts_at_zero() {
+		void ordinary_cards_exist_in_empty_hand_deck_but_unsynced_revenge_does_not_exist() {
 			const string diplomacyRole = "diplomacy_advisor";
 			const string militaryRole = "military_advisor";
 			var characterConfig = new CharacterConfig {
@@ -558,7 +655,7 @@ namespace GS.Game.Tests {
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } }
 					},
 					new ActionDefinition {
-						ActionId = "revenge",
+						ActionId = "declare_revenge_war",
 						OwnerType = "country",
 						TargetRole = militaryRole,
 						DeckCopies = 3,
@@ -583,19 +680,24 @@ namespace GS.Game.Tests {
 				}
 			};
 
-			// Must not throw now that revenge resolves Opinion via TargetRole=military_advisor
-			// (mixed-role regression alongside make_friend's diplomacy_advisor) in the same init pass.
 			var logic = BuildLogic(actionConfigOverride: actionConfig, characterConfigOverride: characterConfig);
 			logic.Update(0f);
 
-			int[] handReq = { TypeId<GameAction>.Value, TypeId<CardInHand>.Value };
-			foreach (var arch in logic.World.GetMatchingArchetypes(handReq, null)) {
+			bool foundMakeFriend = false;
+			bool foundRevenge = false;
+			int[] cardReq = { TypeId<GameAction>.Value, TypeId<CardOwnerType>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(cardReq, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				for (int i = 0; i < arch.Count; i++) {
-					Assert.NotEqual("make_friend", actions[i].ActionId);
-					Assert.NotEqual("revenge", actions[i].ActionId);
+					if (actions[i].ActionId == "make_friend") {
+						foundMakeFriend = true;
+						Assert.False(logic.World.Has<CardInHand>(arch.Entities[i]));
+					}
+					if (actions[i].ActionId == "declare_revenge_war") { foundRevenge = true; }
 				}
 			}
+			Assert.True(foundMakeFriend);
+			Assert.False(foundRevenge);
 		}
 
 		[Fact]
@@ -618,7 +720,7 @@ namespace GS.Game.Tests {
 				},
 				Actions = new List<ActionDefinition> {
 					new ActionDefinition {
-						ActionId = "revenge",
+						ActionId = "declare_revenge_war",
 						OwnerType = "country",
 						TargetRole = militaryRole,
 						DeckCopies = 1,
@@ -666,7 +768,7 @@ namespace GS.Game.Tests {
 			int[] required = {
 				TypeId<GameAction>.Value,
 				TypeId<OrgContext>.Value,
-				TypeId<CountryContext>.Value,
+				TypeId<CardOwnerType>.Value,
 				TypeId<CardInHand>.Value
 			};
 			bool found = false;
@@ -675,7 +777,7 @@ namespace GS.Game.Tests {
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				CountryContext[] countries = arch.GetColumn<CountryContext>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (actions[i].ActionId == "revenge"
+					if (actions[i].ActionId == "declare_revenge_war"
 						&& orgs[i].OrgId == "Illuminati"
 						&& countries[i].CountryId == "Great_Britain") {
 						found = true;
@@ -687,7 +789,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void decrease_enemy_control_can_populate_initial_hand_when_another_org_has_control() {
+		void decrease_enemy_control_exists_in_deck_for_each_org_with_empty_initial_hand() {
 			var actionConfig = new ActionConfig {
 				Defaults = new List<ActionOwnerDefaults> {
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
@@ -741,19 +843,19 @@ namespace GS.Game.Tests {
 			int[] required = {
 				TypeId<GameAction>.Value,
 				TypeId<OrgContext>.Value,
-				TypeId<CountryContext>.Value,
-				TypeId<CardInHand>.Value
+				TypeId<CardOwnerType>.Value
 			};
 			bool found = false;
 			foreach (var arch in logic.World.GetMatchingArchetypes(required, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
-				CountryContext[] countries = arch.GetColumn<CountryContext>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				for (int i = 0; i < arch.Count; i++) {
 					if (actions[i].ActionId == "decrease_enemy_control"
 						&& orgs[i].OrgId == "Illuminati"
-						&& countries[i].CountryId == "Great_Britain") {
+						&& owners[i].Value == CardOwnerKind.Country) {
 						found = true;
+						Assert.False(logic.World.Has<CardInHand>(arch.Entities[i]));
 					}
 				}
 			}
@@ -762,7 +864,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void diplomacy_and_military_gated_cards_resolve_opinion_independently_per_role_at_initial_hand_fill() {
+		void country_cards_begin_in_deck_despite_diplomacy_and_military_requirements() {
 			const string diplomacyRole = "diplomacy_advisor";
 			const string militaryRole = "military_advisor";
 			var characterConfig = new CharacterConfig {
@@ -808,7 +910,7 @@ namespace GS.Game.Tests {
 						}
 					},
 					new ActionDefinition {
-						ActionId = "ultimatum",
+						ActionId = "force_war_win",
 						OwnerType = "country",
 						TargetRole = militaryRole,
 						DeckCopies = 1,
@@ -847,21 +949,19 @@ namespace GS.Game.Tests {
 			};
 			var logic = BuildLogic(actionConfigOverride: actionConfig, characterConfigOverride: characterConfig);
 
-			// Seed both advisors' opinion before init runs: diplomacy advisor satisfies make_friend's
-			// gate, military advisor does not satisfy ultimatum's — proving the two cards' own-role
-			// opinion is resolved independently rather than off one shared value.
+			// Seed opposite advisor states to confirm deck creation is independent of current playability.
 			int diploResEntity = logic.World.Create();
 			logic.World.Add(diploResEntity, new ResourceOwner("diplo_gb", OwnerType.Character));
 			logic.World.Add(diploResEntity, new Resource { ResourceId = "opinion_Illuminati", Value = 50 });
 			int milResEntity = logic.World.Create();
 			logic.World.Add(milResEntity, new ResourceOwner("mil_gb", OwnerType.Character));
 			logic.World.Add(milResEntity, new Resource { ResourceId = "opinion_Illuminati", Value = 10 });
-			Wars.DeclareWar(logic.World, "Great_Britain", "France", new DateTime(1880, 1, 1));
+			Wars.DeclareWar(logic.World, logic.Resources, "Great_Britain", "France", new DateTime(1880, 1, 1));
 			int[] warReq = { TypeId<War>.Value };
 			foreach (var arch in logic.World.GetMatchingArchetypes(warReq, null)) {
 				var wars = arch.GetColumn<War>();
 				for (int i = 0; i < arch.Count; i++) {
-					ResourceMutations.TrySetValue(logic.World, wars[i].WarId, ResourceDefinitions.WarProgress, 50, out _);
+					ResourceMutations.TrySetValue(logic.Resources, logic.World, wars[i].WarId, ResourceDefinitions.WarProgress, 50, out _);
 				}
 			}
 
@@ -869,19 +969,269 @@ namespace GS.Game.Tests {
 
 			bool foundMakeFriend = false;
 			bool foundUltimatum = false;
-			int[] handReq = { TypeId<GameAction>.Value, TypeId<CountryContext>.Value, TypeId<CardInHand>.Value };
-			foreach (var arch in logic.World.GetMatchingArchetypes(handReq, null)) {
+			int[] cardReq = { TypeId<GameAction>.Value, TypeId<CardOwnerType>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(cardReq, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
-				CountryContext[] countries = arch.GetColumn<CountryContext>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (countries[i].CountryId != "Great_Britain") { continue; }
+					if (owners[i].Value != CardOwnerKind.Country) { continue; }
 					if (actions[i].ActionId == "make_friend") { foundMakeFriend = true; }
-					if (actions[i].ActionId == "ultimatum") { foundUltimatum = true; }
+					if (actions[i].ActionId == "force_war_win") { foundUltimatum = true; }
+					Assert.False(logic.World.Has<CardInHand>(arch.Entities[i]));
 				}
 			}
 
 			Assert.True(foundMakeFriend);
-			Assert.False(foundUltimatum);
+			Assert.True(foundUltimatum);
+		}
+
+		[Fact]
+		void country_actions_use_one_marked_deck_and_one_weighted_entity_per_action() {
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
+						ActionId = "weighted_country_action", OwnerType = "country", DeckCopies = 5
+					}
+				}
+			};
+			var logic = BuildLogic(actionConfigOverride: actionConfig);
+
+			logic.Update(0f);
+
+			int countryDeckCount = 0;
+			int[] deckReq = { TypeId<CardDeck>.Value, TypeId<CardOwnerType>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(deckReq, null)) {
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (owners[i].Value == CardOwnerKind.Country) { countryDeckCount++; }
+				}
+			}
+			Assert.Equal(1, countryDeckCount);
+			Assert.Equal(1, CountActionEntities(logic.World, "weighted_country_action"));
+
+			int[] cardReq = { TypeId<GameAction>.Value, TypeId<CardOwnerType>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(cardReq, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (actions[i].ActionId == "weighted_country_action") {
+						Assert.False(logic.World.Has<CountryContext>(arch.Entities[i]));
+					}
+				}
+			}
+		}
+
+		[Fact]
+		void opening_country_hand_is_empty_after_relation_cards_are_synchronized() {
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
+						ActionId = "stop_friendship", OwnerType = "country", DeckCopies = 1
+					}
+				}
+			};
+			var logic = BuildLogic(actionConfigOverride: actionConfig);
+			_relations.SetRelation(logic.World, "Great_Britain", "France", RelationKind.Friend);
+
+			logic.Update(0f);
+
+			int relationCards = 0;
+			int[] required = {
+				TypeId<GameAction>.Value,
+				TypeId<CardOwnerType>.Value
+			};
+			foreach (var arch in logic.World.GetMatchingArchetypes(required, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (actions[i].ActionId == "stop_friendship" && owners[i].Value == CardOwnerKind.Country) {
+						relationCards++;
+						Assert.False(logic.World.Has<CardInHand>(arch.Entities[i]));
+					}
+				}
+			}
+			Assert.True(relationCards > 0);
+		}
+
+		[Fact]
+		void secret_advisor_card_entity_follows_feature_flag_and_is_not_physically_duplicated() {
+			const string actionId = "improve_secret_advisor_opinion";
+			const string roleId = "secret_advisor";
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
+						ActionId = actionId, OwnerType = "country", TargetRole = roleId, DeckCopies = 4
+					}
+				}
+			};
+			var characterConfig = new CharacterConfig {
+				Roles = new List<CharacterRoleDefinition> {
+					new CharacterRoleDefinition { RoleId = roleId }
+				},
+				CountryPools = new List<CountryCharacterPool> {
+					new CountryCharacterPool {
+						CountryId = "Great_Britain",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[roleId] = new List<CharacterEntry> {
+								new CharacterEntry { CharacterId = "gb_secret" }
+							}
+						}
+					}
+				}
+			};
+			var disabledSettings = new GameSettings {
+				FeatureFlags = new FeatureFlagSettings { EnableSecretAdvisor = false }
+			};
+			var enabledSettings = new GameSettings {
+				FeatureFlags = new FeatureFlagSettings { EnableSecretAdvisor = true }
+			};
+			var disabled = BuildLogic(
+				gameSettingsOverride: disabledSettings,
+				actionConfigOverride: actionConfig,
+				characterConfigOverride: characterConfig);
+			var enabled = BuildLogic(
+				gameSettingsOverride: enabledSettings,
+				actionConfigOverride: actionConfig,
+				characterConfigOverride: characterConfig);
+
+			disabled.Update(0f);
+			enabled.Update(0f);
+
+			Assert.Equal(0, CountActionEntities(disabled.World, actionId));
+			Assert.Equal(1, CountActionEntities(enabled.World, actionId));
+		}
+
+		[Fact]
+		void make_friend_is_never_created_when_friends_relation_is_disabled() {
+			const string targetRole = "diplomacy_advisor";
+			var characterConfig = new CharacterConfig {
+				Roles = new List<CharacterRoleDefinition> { new CharacterRoleDefinition { RoleId = targetRole } },
+				CountryPools = new List<CountryCharacterPool> {
+					new CountryCharacterPool {
+						CountryId = "Great_Britain",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[targetRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "advisor_gb" } }
+						}
+					},
+					new CountryCharacterPool {
+						CountryId = "France",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[targetRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "advisor_fr" } }
+						}
+					}
+				}
+			};
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 3 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
+						ActionId = "make_friend",
+						OwnerType = "country",
+						TargetRole = targetRole,
+						DeckCopies = 3
+					}
+				}
+			};
+			var gameSettings = new GameSettings {
+				StartYear = 1880,
+				DefaultLocale = "en",
+				SpeedMultipliers = new[] { 1, 2, 4 },
+				AutoSaveInterval = "monthly",
+				FeatureFlags = new FeatureFlagSettings { EnableFriendsRelation = false }
+			};
+
+			var logic = BuildLogic(gameSettingsOverride: gameSettings, actionConfigOverride: actionConfig, characterConfigOverride: characterConfig);
+			logic.Update(0f);
+
+			int[] req = { TypeId<GameAction>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(req, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				for (int i = 0; i < arch.Count; i++) {
+					Assert.NotEqual("make_friend", actions[i].ActionId);
+				}
+			}
+		}
+
+		[Fact]
+		void make_friend_and_make_rival_create_one_relation_card_target_instance_per_available_country() {
+			const string targetRole = "diplomacy_advisor";
+			var countryConfig = new CountryConfig {
+				Countries = new List<CountryEntry> {
+					new CountryEntry { CountryId = "Great_Britain", DisplayName = "Great Britain", IsAvailable = true },
+					new CountryEntry { CountryId = "France", DisplayName = "France", IsAvailable = true },
+					new CountryEntry { CountryId = "Prussia", DisplayName = "Prussia", IsAvailable = true }
+				}
+			};
+			var characterConfig = new CharacterConfig {
+				Roles = new List<CharacterRoleDefinition> { new CharacterRoleDefinition { RoleId = targetRole } },
+				CountryPools = new List<CountryCharacterPool> {
+					new CountryCharacterPool {
+						CountryId = "Great_Britain",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[targetRole] = new List<CharacterEntry> { new CharacterEntry { CharacterId = "advisor_gb" } }
+						}
+					}
+				}
+			};
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition { ActionId = "make_friend", OwnerType = "country", TargetRole = targetRole, DeckCopies = 1 },
+					new ActionDefinition { ActionId = "make_rival", OwnerType = "country", TargetRole = targetRole, DeckCopies = 1 }
+				}
+			};
+
+			var logic = BuildLogic(
+				actionConfigOverride: actionConfig, characterConfigOverride: characterConfig, countryConfigOverride: countryConfig);
+			logic.Update(0f);
+
+			int makeFriendCount = 0;
+			int makeRivalCount = 0;
+			var makeFriendTargets = new HashSet<string>();
+			var makeRivalTargets = new HashSet<string>();
+			int[] targetReq = { TypeId<GameAction>.Value, TypeId<RelationCardTarget>.Value, TypeId<OrgContext>.Value };
+			foreach (var arch in logic.World.GetMatchingArchetypes(targetReq, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				RelationCardTarget[] targets = arch.GetColumn<RelationCardTarget>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (orgs[i].OrgId != "Illuminati") { continue; }
+					if (actions[i].ActionId == "make_friend") {
+						makeFriendCount++;
+						makeFriendTargets.Add(targets[i].TargetCountryId);
+					} else if (actions[i].ActionId == "make_rival") {
+						makeRivalCount++;
+						makeRivalTargets.Add(targets[i].TargetCountryId);
+					}
+				}
+			}
+
+			// One instance per IsAvailable country, including the org's own HQ country — no
+			// self-exclusion at creation time; self-targeting is rejected at the condition-context
+			// level instead (see CountryActionConditionContextTests.build_treats_self_target_as_no_relation_of_any_kind).
+			Assert.Equal(3, makeFriendCount);
+			Assert.Equal(3, makeRivalCount);
+			Assert.Equal(new HashSet<string> { "Great_Britain", "France", "Prussia" }, makeFriendTargets);
+			Assert.Equal(new HashSet<string> { "Great_Britain", "France", "Prussia" }, makeRivalTargets);
+
+			var disabledLogic = BuildLogic(
+				gameSettingsOverride: new GameSettings { FeatureFlags = new FeatureFlagSettings { EnableFriendsRelation = false } },
+				actionConfigOverride: actionConfig, characterConfigOverride: characterConfig, countryConfigOverride: countryConfig);
+			disabledLogic.Update(0f);
+			Assert.Equal(0, CountActionEntities(disabledLogic.World, "make_friend"));
+			Assert.Equal(3, CountActionEntities(disabledLogic.World, "make_rival"));
 		}
 	}
 }

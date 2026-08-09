@@ -84,13 +84,15 @@ namespace GS.Game.Bots {
 				_onAction?.Invoke(orgId, featureId, actionId, countryId);
 			};
 			var sink = new BotCommandSink(orgId, _logic.Commands, _logger, callback);
-			bot = new Bot(orgId, features, rng, sink, _logic.EffectConfig);
+			bot = new Bot(
+				orgId, features, rng, sink, _logic.Resources, _logic.Relations, _logic.EffectConfig,
+				_logic.HqCountryByOrgId, _logic.MaxControlPool);
 			_botsByOrgId[orgId] = bot;
 		}
 
 		// Feature set for auto-attached (world-discovered) bots comes from
 		// GameSettings.BotFeatures (Assets/Configs/game_settings.json), not a
-		// hardcoded literal here - the eval-validated discoverAndControl threshold lives
+		// hardcoded literal here - the eval-validated control feature lives
 		// in config so it can be tuned without a code change.
 		BotProfile DefaultProfile(string orgId) {
 			var features = new List<BotFeatureSetting>();

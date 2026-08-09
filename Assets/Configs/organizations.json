@@ -4,14 +4,21 @@
       "OrganizationId": "Illuminati",
       "DisplayName": "Illuminati",
       "HqCountryId": "United_Kingdom_of_Great_Britain_and_Ireland",
-      "InitialGold": 5000.0,
+      "InitialGold": 1000.0,
       "InitialAgentSlots": 3
     },
     {
       "OrganizationId": "Masons",
       "DisplayName": "Masons",
       "HqCountryId": "France",
-      "InitialGold": 5000.0,
+      "InitialGold": 1500.0,
+      "InitialAgentSlots": 3
+    },
+    {
+      "OrganizationId": "BlackHand",
+      "DisplayName": "Black Hand",
+      "HqCountryId": "Serbia",
+      "InitialGold": 750.0,
       "InitialAgentSlots": 3
     }
   ]

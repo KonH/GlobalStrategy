@@ -5,16 +5,27 @@ namespace GS.Game.Bots {
 		public string ActionId = "";
 		public int SlotIndex;
 		public string CountryId = "";
+		public string TargetCountryId = "";
 		public IReadOnlyList<BotCostView> Cost = System.Array.Empty<BotCostView>();
 		public double GoldCost;
 		public bool IsPlayable;
-		public bool DiscoversCountry;
 		public bool RaisesControl;
 	}
 
 	public sealed class BotCostView {
 		public string ResourceId = "";
 		public double Amount;
+	}
+
+	public sealed class BotCardDrawChoiceView {
+		public int ChoiceIndex;
+		public string ActionId = "";
+		public string TargetCountryId = "";
+		public IReadOnlyList<BotCostView> Cost = System.Array.Empty<BotCostView>();
+		public double GoldCost;
+		public bool RaisesControl;
+		public bool IsPlayable;
+		public bool IsControlUsable;
 	}
 
 	public sealed class BotCountryView {

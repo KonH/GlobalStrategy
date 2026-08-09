@@ -177,10 +177,10 @@ namespace GS.Game.WebClient.Services {
 
 		// Adapter: ConfigProvider parses geojson_world.json once via GeoJsonParser.Parse
 		// at fetch time and hands back a plain List<MapFeature>, but GameLogicContext
-		// wants an IConfigSource<List<MapFeature>> - this just returns the
+		// wants an IReadOnlyConfigSource<List<MapFeature>> - this just returns the
 		// already-parsed list, mirroring Game.ConsoleRunner/MapGeometryFileConfig.cs
 		// without re-parsing from disk.
-		sealed class InMemoryMapGeometryConfig : IConfigSource<List<MapFeature>> {
+		sealed class InMemoryMapGeometryConfig : IReadOnlyConfigSource<List<MapFeature>> {
 			readonly List<MapFeature> _geometry;
 
 			public InMemoryMapGeometryConfig(List<MapFeature> geometry) {

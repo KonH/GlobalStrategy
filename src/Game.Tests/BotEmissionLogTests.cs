@@ -4,8 +4,12 @@ using GS.Game.Bots;
 using GS.Main;
 using Xunit;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Tests {
 	public class BotEmissionLogTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		sealed record EmissionEntry(string FeatureId, string ActionId, string CountryId, string Date, int Tick);
 
 		sealed class ScriptedFeature : IBotFeature {
@@ -17,7 +21,7 @@ namespace GS.Game.Tests {
 				_actionId = actionId;
 			}
 
-			public void Tick(IBotObservation observation, IBotCommandSink sink, Random rng) => sink.PlayOrgCard(_actionId);
+			public void Tick(IBotObservation observation, IBotCommandSink sink, Random rng) => sink.PlayOrgCard(_actionId, 0);
 		}
 
 		static (List<EmissionEntry> emissions, Bot bot, BotCommandSink sink) BuildHost(GameLogic logic, string orgId, IReadOnlyList<IBotFeature> features, string date, int tick) {
@@ -26,7 +30,7 @@ namespace GS.Game.Tests {
 			BotEmissionCallback callback = (actionId, countryId) =>
 				emissions.Add(new EmissionEntry(bot.CurrentFeatureId, actionId, countryId, date, tick));
 			var sink = new BotCommandSink(orgId, logic.Commands, null, callback);
-			bot = new Bot(orgId, features, new Random(1), sink);
+			bot = new Bot(orgId, features, new Random(1), sink, logic.Resources, logic.Relations);
 			return (emissions, bot, sink);
 		}
 
@@ -41,8 +45,8 @@ namespace GS.Game.Tests {
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, logic.Commands, null, callback);
 
 			sink.BeginDecisionPhase();
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId);
-			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId); // duplicate — suppressed, no callback
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId, 0);
+			sink.PlayOrgCard(MultiOrgTestSupport.SpendGoldActionId, 0); // duplicate — suppressed, no callback
 
 			Assert.Single(calls);
 		}
@@ -55,7 +59,7 @@ namespace GS.Game.Tests {
 
 			var features = new List<IBotFeature> {
 				new ScriptedFeature("featureOne", MultiOrgTestSupport.SpendGoldActionId),
-				new ScriptedFeature("featureTwo", MultiOrgTestSupport.DiscoverActionId)
+				new ScriptedFeature("featureTwo", MultiOrgTestSupport.SampleOrgActionId)
 			};
 			var (emissions, bot, _) = BuildHost(logic, MultiOrgTestSupport.OrgA, features, "1880-02-14", 44);
 
@@ -67,14 +71,14 @@ namespace GS.Game.Tests {
 			Assert.Equal("1880-02-14", emissions[0].Date);
 			Assert.Equal(44, emissions[0].Tick);
 			Assert.Equal("featureTwo", emissions[1].FeatureId);
-			Assert.Equal(MultiOrgTestSupport.DiscoverActionId, emissions[1].ActionId);
+			Assert.Equal(MultiOrgTestSupport.SampleOrgActionId, emissions[1].ActionId);
 		}
 
 		[Fact]
 		void identical_decision_sequences_produce_element_wise_identical_logs() {
 			var features = new List<IBotFeature> {
 				new ScriptedFeature("featureOne", MultiOrgTestSupport.SpendGoldActionId),
-				new ScriptedFeature("featureTwo", MultiOrgTestSupport.DiscoverActionId)
+				new ScriptedFeature("featureTwo", MultiOrgTestSupport.SampleOrgActionId)
 			};
 
 			var ctx1 = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: new List<string> { MultiOrgTestSupport.OrgA });

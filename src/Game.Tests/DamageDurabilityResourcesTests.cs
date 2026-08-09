@@ -12,6 +12,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class DamageDurabilityResourcesTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		const string Britain = "Great_Britain";
 		const string France = "France";
 		const int BritainBaseDamage = 70;
@@ -19,7 +21,7 @@ namespace GS.Game.Tests {
 		const int FranceBaseDamage = 80;
 		const int FranceBaseDurability = 75;
 
-		sealed class StaticConfig<T> : IConfigSource<T> {
+		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;
@@ -186,16 +188,16 @@ namespace GS.Game.Tests {
 			return result;
 		}
 
-		static double ExpectedDamage(IReadOnlyWorld world, string countryId, int baseDamage) {
+		double ExpectedDamage(IReadOnlyWorld world, string countryId, int baseDamage) {
 			return baseDamage
-				+ WartimeSkillQuery.GetSkill(world, countryId, "ruler", "power")
-				+ WartimeSkillQuery.GetSkill(world, countryId, "military_advisor", "power");
+				+ WartimeSkillQuery.GetSkill(world, countryId, "ruler", "power", _resources)
+				+ WartimeSkillQuery.GetSkill(world, countryId, "military_advisor", "power", _resources);
 		}
 
-		static double ExpectedDurability(IReadOnlyWorld world, string countryId, int baseDurability) {
+		double ExpectedDurability(IReadOnlyWorld world, string countryId, int baseDurability) {
 			return baseDurability
-				+ WartimeSkillQuery.GetSkill(world, countryId, "ruler", "stinginess")
-				+ WartimeSkillQuery.GetSkill(world, countryId, "economic_advisor", "stinginess");
+				+ WartimeSkillQuery.GetSkill(world, countryId, "ruler", "stinginess", _resources)
+				+ WartimeSkillQuery.GetSkill(world, countryId, "economic_advisor", "stinginess", _resources);
 		}
 
 		static bool HasCountryResource(World world, string countryId, string resourceId) {
@@ -236,10 +238,10 @@ namespace GS.Game.Tests {
 				&& c.PayType == PayType.Daily && c.CollectorId == DurabilityCollector.Id);
 			Assert.Equal(
 				ExpectedDamage(logic.World, Britain, BritainBaseDamage),
-				ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
+				_resources.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
 			Assert.Equal(
 				ExpectedDurability(logic.World, Britain, BritainBaseDurability),
-				ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Durability));
+				_resources.GetValue(logic.World, Britain, ResourceDefinitions.Durability));
 		}
 
 		[Fact]
@@ -252,8 +254,8 @@ namespace GS.Game.Tests {
 			});
 			logic.Update(0f);
 
-			double britainDamage = ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage);
-			double britainDurability = ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Durability);
+			double britainDamage = _resources.GetValue(logic.World, Britain, ResourceDefinitions.Damage);
+			double britainDurability = _resources.GetValue(logic.World, Britain, ResourceDefinitions.Durability);
 
 			logic.Commands.Push(new DebugStopWarCommand { CountryId = Britain });
 			logic.Update(0f);
@@ -261,8 +263,8 @@ namespace GS.Game.Tests {
 			Assert.False(Wars.IsInWar(logic.World, Britain));
 			Assert.True(HasCountryResource(logic.World, Britain, ResourceDefinitions.Damage));
 			Assert.True(HasCountryResource(logic.World, Britain, ResourceDefinitions.Durability));
-			Assert.Equal(britainDamage, ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
-			Assert.Equal(britainDurability, ResourceQuery.GetValue(logic.World, Britain, ResourceDefinitions.Durability));
+			Assert.Equal(britainDamage, _resources.GetValue(logic.World, Britain, ResourceDefinitions.Damage));
+			Assert.Equal(britainDurability, _resources.GetValue(logic.World, Britain, ResourceDefinitions.Durability));
 		}
 
 		[Fact]

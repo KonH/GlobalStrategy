@@ -8,18 +8,19 @@ using GS.Game.Systems;
 
 namespace GS.Main {
 	static class InitSystem {
-		public static bool Update(World world, GameLogicContext context, Random rng) {
+		public static bool Update(
+			World world, GameLogicContext context, Random rng, ResourceQuery resources, CountryRelations relations) {
 			int[] required = { TypeId<IsInitialized>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				if (arch.Count > 0) {
 					return false;
 				}
 			}
-			Run(world, context, rng);
+			Run(world, context, rng, resources, relations);
 			return true;
 		}
 
-		static void Run(World world, GameLogicContext context, Random rng) {
+		static void Run(World world, GameLogicContext context, Random rng, ResourceQuery resources, CountryRelations relations) {
 			var countryConfig = context.Country.Load();
 			var resourceConfig = context.Resource.Load();
 
@@ -29,13 +30,18 @@ namespace GS.Main {
 				}
 				int entity = world.Create();
 				world.Add(entity, new Country(entry.CountryId));
-				CreateCountryResourceEntities(world, entry, resourceConfig);
+				CreateCountryResourceEntities(world, resources, entry, resourceConfig);
 			}
 
-			SeedCountryRelations(world, countryConfig);
+			var settings = context.GameSettings.Load();
+			var enableSecretAdvisor = settings.FeatureFlags.EnableSecretAdvisor;
+			var enableRuler = settings.FeatureFlags.EnableRuler;
+			var enableFriendsRelation = settings.FeatureFlags.EnableFriendsRelation;
 
 			int countryRelationsVersionEntity = world.Create();
 			world.Add(countryRelationsVersionEntity, new CountryRelationsVersion { Value = 0 });
+
+			SeedCountryRelations(world, relations, countryConfig, enableFriendsRelation);
 
 			int relationCardSyncStateEntity = world.Create();
 			world.Add(relationCardSyncStateEntity, new RelationCardSyncState { LastSyncedVersion = -1 });
@@ -45,9 +51,8 @@ namespace GS.Main {
 			// ProvinceOwnershipSystem.Seed once, gated by this same Update()'s IsInitialized
 			// return flag. See ecs_patterns.md's "no system-to-system calls" rule.
 			var provinceConfig = context.Province.Load();
-			CreateProvinceResourceEntities(world, provinceConfig, resourceConfig);
+			CreateProvinceResourceEntities(world, resources, provinceConfig, resourceConfig);
 
-			var settings = context.GameSettings.Load();
 			var startTime = new DateTime(settings.StartYear, 1, 1);
 
 			int gameTimeEntity = world.Create();
@@ -57,12 +62,14 @@ namespace GS.Main {
 				MultiplierIndex = 0
 			});
 
+			string locale = string.IsNullOrEmpty(context.InitialLocale) ? settings.DefaultLocale : context.InitialLocale;
+
 			int localeEntity = world.Create();
-			world.Add(localeEntity, new Locale { Value = settings.DefaultLocale });
+			world.Add(localeEntity, new Locale { Value = locale });
 
 			int settingsEntity = world.Create();
 			world.Add(settingsEntity, new AppSettings {
-				Locale = settings.DefaultLocale,
+				Locale = locale,
 				AutoSaveInterval = ParseAutoSaveInterval(settings.AutoSaveInterval)
 			});
 
@@ -99,11 +106,9 @@ namespace GS.Main {
 				// OrganizationEntry even though generic gold is country-targeted.
 				// Dynamic opinion_<orgId> resources are likewise not dispatched here;
 				// actions and save loading create those runtime-only IDs explicitly.
-				int orgGoldEntity = world.Create();
-				world.Add(orgGoldEntity, new ResourceOwner(orgEntry.OrganizationId));
-				world.Add(orgGoldEntity, new Resource { ResourceId = ResourceDefinitions.Gold, Value = orgEntry.InitialGold });
+				resources.Set(world, orgEntry.OrganizationId, ResourceDefinitions.Gold, orgEntry.InitialGold);
 
-				CreateOrgResourceEntities(world, orgEntry.OrganizationId, resourceConfig);
+				CreateOrgResourceEntities(world, resources, orgEntry.OrganizationId, resourceConfig);
 
 				int controlEntity = world.Create();
 				world.Add(controlEntity, new ControlEffect {
@@ -116,10 +121,9 @@ namespace GS.Main {
 
 			BuildProximityMap(world, context);
 			CreateActionEntities(world, context, rng, participating);
-			CreateOrgCharacterEntities(world, context, resourceConfig, rng, participating);
-			CreateCharacterEntities(world, context, resourceConfig, rng);
-			CreateCountryActionEntities(world, context, rng, participating);
-			DiscoverInitialCountries(world, participating);
+			CreateOrgCharacterEntities(world, context, resourceConfig, rng, participating, resources);
+			CreateCharacterEntities(world, context, resourceConfig, rng, enableSecretAdvisor, enableRuler, resources);
+			CreateCountryActionEntities(world, context, participating, enableFriendsRelation, enableSecretAdvisor, countryConfig);
 
 			// InitSystem does not call ResourceSystem.Update itself — it only creates the raw
 			// Resource/ResourceEffect/ResourceCollector entities above. GameLogic.Update calls
@@ -162,7 +166,9 @@ namespace GS.Main {
 			return result;
 		}
 
-		static void CreateCharacterEntities(World world, GameLogicContext context, ResourceConfig resourceConfig, Random rng) {
+		static void CreateCharacterEntities(
+			World world, GameLogicContext context, ResourceConfig resourceConfig, Random rng, bool enableSecretAdvisor,
+			bool enableRuler, ResourceQuery resources) {
 			var characterConfig = context.Character.Load();
 			if (characterConfig.Roles.Count == 0) {
 				return;
@@ -180,6 +186,12 @@ namespace GS.Main {
 					if (!pool.Slots.TryGetValue(role.RoleId, out var slotList) || slotList.Count == 0) {
 						continue;
 					}
+					if (role.RoleId == "secret_advisor" && !enableSecretAdvisor) {
+						continue;
+					}
+					if (role.RoleId == "ruler" && !enableRuler) {
+						continue;
+					}
 					var charEntry = slotList[rng.Next(slotList.Count)];
 					int charEntity = world.Create();
 					var namePartKeys = new string[charEntry.NamePartKeys.Count];
@@ -193,12 +205,14 @@ namespace GS.Main {
 						RoleId = role.RoleId,
 						NamePartKeys = namePartKeys
 					});
-					CreateCharacterResourceEntities(world, resourceConfig, characterConfig, charEntry, rng, charEntry.CharacterId, null);
+					CreateCharacterResourceEntities(
+						world, resources, resourceConfig, characterConfig, charEntry, rng, charEntry.CharacterId, null);
 				}
 			}
 		}
 
-		static void SeedCountryRelations(World world, CountryConfig config) {
+		static void SeedCountryRelations(
+			World world, CountryRelations relations, CountryConfig config, bool enableFriendsRelation) {
 			var availableCountryIds = new HashSet<string>();
 			foreach (var entry in config.Countries) {
 				if (entry.IsAvailable) {
@@ -211,13 +225,15 @@ namespace GS.Main {
 				if (!entry.IsAvailable) {
 					continue;
 				}
-				SeedRelationsForEntry(world, entry.CountryId, entry.HistoricalFriends, RelationKind.Friend, availableCountryIds, seenPairs);
-				SeedRelationsForEntry(world, entry.CountryId, entry.HistoricalRivals, RelationKind.Rival, availableCountryIds, seenPairs);
+				if (enableFriendsRelation) {
+					SeedRelationsForEntry(world, relations, entry.CountryId, entry.HistoricalFriends, RelationKind.Friend, availableCountryIds, seenPairs);
+				}
+				SeedRelationsForEntry(world, relations, entry.CountryId, entry.HistoricalRivals, RelationKind.Rival, availableCountryIds, seenPairs);
 			}
 		}
 
 		static void SeedRelationsForEntry(
-			World world, string countryId, List<string> otherIds, RelationKind kind,
+			World world, CountryRelations relations, string countryId, List<string> otherIds, RelationKind kind,
 			HashSet<string> availableCountryIds, HashSet<(string, string)> seenPairs) {
 			foreach (var otherId in otherIds) {
 				if (otherId == countryId || !availableCountryIds.Contains(otherId)) {
@@ -228,14 +244,10 @@ namespace GS.Main {
 				if (string.CompareOrdinal(a, b) > 0) {
 					(a, b) = (b, a);
 				}
-				// First-declared-wins: config file order is stable, so if this pair was already
-				// seeded (as friend or rival) by an earlier entry, a later conflicting declaration
-				// is silently skipped rather than overwritten.
 				if (!seenPairs.Add((a, b))) {
 					continue;
 				}
-				int entity = world.Create();
-				world.Add(entity, new CountryRelation { Kind = kind, LeftCountryId = a, RightCountryId = b });
+				relations.SetRelation(world, a, b, kind);
 			}
 		}
 
@@ -319,15 +331,14 @@ namespace GS.Main {
 			world.Add(dailyEffectEntity, new ResourceCollector { CollectorId = OrgScoreCollector.Id });
 		}
 
-		static void CreateProvinceResourceEntities(World world, ProvinceConfig config, ResourceConfig resourceConfig) {
+		static void CreateProvinceResourceEntities(
+			World world, ResourceQuery resources, ProvinceConfig config, ResourceConfig resourceConfig) {
 			foreach (var entry in config.Provinces) {
 				foreach (var resourceDef in resourceConfig.FindResources(ResourceSeedTarget.Province)) {
 					if (resourceDef.ResourceId != ResourceDefinitions.Population) {
 						ThrowUnsupportedResource(resourceDef);
 					}
-					int entity = world.Create();
-					world.Add(entity, new ResourceOwner(entry.ProvinceId, OwnerType.Province));
-					world.Add(entity, new Resource { ResourceId = resourceDef.ResourceId, Value = entry.Population });
+					resources.Set(world, entry.ProvinceId, resourceDef.ResourceId, entry.Population, OwnerType.Province);
 
 					int growthEffectEntity = world.Create();
 					world.Add(growthEffectEntity, new ResourceOwner(entry.ProvinceId, OwnerType.Province));
@@ -341,7 +352,8 @@ namespace GS.Main {
 			}
 		}
 
-		static void CreateCountryResourceEntities(World world, CountryEntry entry, ResourceConfig resourceConfig) {
+		static void CreateCountryResourceEntities(
+			World world, ResourceQuery resources, CountryEntry entry, ResourceConfig resourceConfig) {
 			foreach (var resourceDef in resourceConfig.FindResources(ResourceSeedTarget.Country)) {
 				double initialValue = resourceDef.DefaultInitialValue;
 				if (resourceDef.ResourceId == ResourceDefinitions.CountryPopulation ||
@@ -362,9 +374,7 @@ namespace GS.Main {
 					}
 				}
 
-				int resourceEntity = world.Create();
-				world.Add(resourceEntity, new ResourceOwner(entry.CountryId, OwnerType.Country));
-				world.Add(resourceEntity, new Resource { ResourceId = resourceDef.ResourceId, Value = initialValue });
+				resources.Set(world, entry.CountryId, resourceDef.ResourceId, initialValue, OwnerType.Country);
 
 				if (resourceDef.ResourceId == ResourceDefinitions.CountryPopulation) {
 					AttachCollectorDrivenCountryEffects(world, entry.CountryId, resourceDef.ResourceId, CountryPopulationCollector.Id);
@@ -387,23 +397,26 @@ namespace GS.Main {
 						Value = effectDef.Value,
 						PayType = Enum.Parse<PayType>(effectDef.PayType, ignoreCase: true)
 					});
+					if (!string.IsNullOrEmpty(effectDef.CollectorId)) {
+						world.Add(effectEntity, new ResourceCollector { CollectorId = effectDef.CollectorId });
+					}
 				}
 			}
 		}
 
-		static void CreateOrgResourceEntities(World world, string orgId, ResourceConfig resourceConfig) {
+		static void CreateOrgResourceEntities(World world, ResourceQuery resources, string orgId, ResourceConfig resourceConfig) {
 			foreach (var resourceDef in resourceConfig.FindResources(ResourceSeedTarget.Org)) {
 				if (resourceDef.ResourceId != ResourceDefinitions.OrgScore) {
 					ThrowUnsupportedResource(resourceDef);
 				}
-				int resourceEntity = world.Create();
-				world.Add(resourceEntity, new ResourceOwner(orgId));
-				world.Add(resourceEntity, new Resource { ResourceId = resourceDef.ResourceId, Value = 0 });
+				resources.Set(world, orgId, resourceDef.ResourceId, 0);
 				AttachOrgScoreEffects(world, orgId);
 			}
 		}
 
-		static void CreateOrgCharacterEntities(World world, GameLogicContext context, ResourceConfig resourceConfig, Random rng, List<OrganizationEntry> participating) {
+		static void CreateOrgCharacterEntities(
+			World world, GameLogicContext context, ResourceConfig resourceConfig, Random rng,
+			List<OrganizationEntry> participating, ResourceQuery resources) {
 			var characterConfig = context.Character.Load();
 
 			foreach (var orgEntry in participating) {
@@ -411,17 +424,17 @@ namespace GS.Main {
 				bool isPlayerOrg = true;
 				var pool = characterConfig.FindOrgPool(orgId);
 
-				CreateOrgSlots(world, resourceConfig, characterConfig, rng, orgId, "master", 1, pool, isPlayerOrg);
+				CreateOrgSlots(world, resources, resourceConfig, characterConfig, rng, orgId, "master", 1, pool, isPlayerOrg);
 
 				int agentSlots = orgEntry.InitialAgentSlots;
 				if (agentSlots > 0) {
-					CreateOrgSlots(world, resourceConfig, characterConfig, rng, orgId, "agent", agentSlots, pool, isPlayerOrg);
+					CreateOrgSlots(world, resources, resourceConfig, characterConfig, rng, orgId, "agent", agentSlots, pool, isPlayerOrg);
 				}
 			}
 		}
 
 		static void CreateOrgSlots(
-			World world, ResourceConfig resourceConfig, CharacterConfig characterConfig, Random rng,
+			World world, ResourceQuery resources, ResourceConfig resourceConfig, CharacterConfig characterConfig, Random rng,
 			string orgId, string roleId, int totalSlots,
 			OrgCharacterPool? pool, bool isPlayerOrg) {
 
@@ -456,7 +469,8 @@ namespace GS.Main {
 						? new System.Collections.Generic.HashSet<string>(roleDef.SkillIds)
 						: new System.Collections.Generic.HashSet<string>();
 
-					CreateCharacterResourceEntities(world, resourceConfig, characterConfig, charEntry, rng, charId, roleSkillIds);
+					CreateCharacterResourceEntities(
+						world, resources, resourceConfig, characterConfig, charEntry, rng, charId, roleSkillIds);
 				}
 
 				int slotEntity = world.Create();
@@ -471,7 +485,7 @@ namespace GS.Main {
 		}
 
 		static void CreateCharacterResourceEntities(
-			World world, ResourceConfig resourceConfig, CharacterConfig characterConfig,
+			World world, ResourceQuery resources, ResourceConfig resourceConfig, CharacterConfig characterConfig,
 			CharacterEntry characterEntry, Random rng, string characterId, HashSet<string>? allowedSkillIds) {
 			foreach (var resourceDef in resourceConfig.FindResources(ResourceSeedTarget.Character)) {
 				var skillDef = characterConfig.FindSkill(resourceDef.ResourceId);
@@ -487,9 +501,7 @@ namespace GS.Main {
 				} else {
 					skillValue = rng.Next(5, 31);
 				}
-				int skillEntity = world.Create();
-				world.Add(skillEntity, new ResourceOwner(characterId, OwnerType.Character));
-				world.Add(skillEntity, new Resource { ResourceId = resourceDef.ResourceId, Value = skillValue });
+				resources.Set(world, characterId, resourceDef.ResourceId, skillValue, OwnerType.Character);
 			}
 		}
 
@@ -597,7 +609,8 @@ namespace GS.Main {
 				if (pool == null || pool.Count == 0) { continue; }
 
 				int deckEntity = world.Create();
-				world.Add(deckEntity, new CardDeck { OrgId = orgId, CountryId = "" });
+				world.Add(deckEntity, new CardDeck { OrgId = orgId });
+				world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Org));
 				world.Add(deckEntity, new CardHand { HandSize = handSize });
 
 				var deckEntities = new List<int>();
@@ -605,6 +618,7 @@ namespace GS.Main {
 					int cardEntity = world.Create();
 					world.Add(cardEntity, new GameAction { ActionId = pool[i] });
 					world.Add(cardEntity, new OrgContext { OrgId = orgId });
+					world.Add(cardEntity, new CardOwnerType(CardOwnerKind.Org));
 					deckEntities.Add(cardEntity);
 				}
 
@@ -618,7 +632,13 @@ namespace GS.Main {
 			}
 		}
 
-		static void CreateCountryActionEntities(World world, GameLogicContext context, Random rng, List<OrganizationEntry> participating) {
+		static void CreateCountryActionEntities(
+			World world,
+			GameLogicContext context,
+			List<OrganizationEntry> participating,
+			bool enableFriendsRelation,
+			bool enableSecretAdvisor,
+			CountryConfig countryConfig) {
 			var actionConfig = context.Action.Load();
 			var countryActions = new List<ActionDefinition>();
 			foreach (var a in actionConfig.Actions) {
@@ -626,136 +646,60 @@ namespace GS.Main {
 			}
 			if (countryActions.Count == 0) { return; }
 			if (participating.Count == 0) { return; }
-			var countryConfig = context.Country.Load();
 
-			// Build char lookup: countryId -> roleId -> list of charIds
-			var charsByCountryAndRole = new Dictionary<string, Dictionary<string, List<string>>>();
+			var availableTargetRoles = new HashSet<string>();
 			int[] charReq = { TypeId<Character>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(charReq, null)) {
 				Character[] chars = arch.GetColumn<Character>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
-					string cid = chars[i].CountryId;
-					string rid = chars[i].RoleId;
-					string charId = chars[i].CharacterId;
-					if (string.IsNullOrEmpty(cid)) { continue; }
-					if (!charsByCountryAndRole.TryGetValue(cid, out var byRole)) {
-						byRole = new Dictionary<string, List<string>>();
-						charsByCountryAndRole[cid] = byRole;
+					if (!string.IsNullOrEmpty(chars[i].CountryId) && !string.IsNullOrEmpty(chars[i].RoleId)) {
+						availableTargetRoles.Add(chars[i].RoleId);
 					}
-					if (!byRole.TryGetValue(rid, out var list)) {
-						list = new List<string>();
-						byRole[rid] = list;
-					}
-					list.Add(charId);
 				}
 			}
 
 			int handSize = actionConfig.GetHandSize("country");
-			var hqCountryByOrgId = new Dictionary<string, string>();
 			foreach (var orgEntry in participating) {
-				hqCountryByOrgId[orgEntry.OrganizationId] = orgEntry.HqCountryId;
-			}
+				string orgId = orgEntry.OrganizationId;
+				int countryDeckEntity = world.Create();
+				world.Add(countryDeckEntity, new CardDeck { OrgId = orgId });
+				world.Add(countryDeckEntity, new CardOwnerType(CardOwnerKind.Country));
+				world.Add(countryDeckEntity, new CardHand { HandSize = handSize });
 
-			foreach (var entry in countryConfig.Countries) {
-				if (!entry.IsAvailable) { continue; }
+				foreach (var def in countryActions) {
+					if (def.DeckCopies <= 0
+						|| RelationCardSyncSystem.IsSyncedAction(def.ActionId)
+						|| def.ActionId == "declare_revenge_war") {
+						continue;
+					}
+					if (def.ActionId == "make_friend" && !enableFriendsRelation) { continue; }
+					if (def.TargetRole == "secret_advisor" && !enableSecretAdvisor) { continue; }
+					if (!string.IsNullOrEmpty(def.TargetRole) && !availableTargetRoles.Contains(def.TargetRole)) { continue; }
 
-				foreach (var orgEntry in participating) {
-					string orgId = orgEntry.OrganizationId;
-					var createdEntities = new List<(int entity, string actionId)>();
-
-					foreach (var def in countryActions) {
-						// Relation-synced cards are created by RelationCardSyncSystem (one per
-						// relation). DeckCopies on those rows is a draw weight, not a static
-						// copy count — skip them here so weight > 0 does not spawn untargeted entities.
-						if (RelationCardSyncSystem.IsSyncedAction(def.ActionId) || def.ActionId == "revenge") { continue; }
-
-						// Determine targets
-						var targets = new List<string>();
-						if (def.TargetRole == "") {
-							targets.Add("");
-						} else {
-							charsByCountryAndRole.TryGetValue(entry.CountryId, out var byRole);
-							if (byRole != null && byRole.TryGetValue(def.TargetRole, out var charIds)) {
-								targets.AddRange(charIds);
-							}
+					if (def.ActionId == "make_friend" || def.ActionId == "make_rival") {
+						RelationKind kind = def.ActionId == "make_friend" ? RelationKind.Friend : RelationKind.Rival;
+						foreach (var targetEntry in countryConfig.Countries) {
+							if (!targetEntry.IsAvailable) { continue; }
+							// No self-exclusion here — a country targeting itself is always
+							// unplayable via CountryActionConditionContext.Build's guard, for
+							// whichever org/country ends up being selected.
+							int targetEntity = world.Create();
+							world.Add(targetEntity, new GameAction { ActionId = def.ActionId });
+							world.Add(targetEntity, new OrgContext { OrgId = orgId });
+							world.Add(targetEntity, new CardOwnerType(CardOwnerKind.Country));
+							world.Add(targetEntity, new RelationCardTarget { TargetCountryId = targetEntry.CountryId, Kind = kind });
 						}
-
-						for (int copyIndex = 0; copyIndex < def.DeckCopies; copyIndex++) {
-							foreach (string targetCharId in targets) {
-								int e = world.Create();
-								world.Add(e, new GameAction { ActionId = def.ActionId });
-								world.Add(e, new OrgContext { OrgId = orgId });
-								world.Add(e, new CountryContext { CountryId = entry.CountryId });
-								createdEntities.Add((e, def.ActionId));
-							}
-						}
+						continue;
 					}
 
-					int countryDeckEntity = world.Create();
-					world.Add(countryDeckEntity, new CardDeck { OrgId = orgId, CountryId = entry.CountryId });
-					world.Add(countryDeckEntity, new CardHand { HandSize = handSize });
-
-					// Populate initial hand
-					if (handSize > 0 && createdEntities.Count > 0) {
-						var eligibleEntities = new List<int>();
-						foreach (var (e, actionId) in createdEntities) {
-							var d = actionConfig.Find(actionId);
-							if (d == null) { continue; }
-							bool eligible = true;
-							ExpressionContext ctx = CountryActionConditionContext.Build(
-								world,
-								d,
-								orgId,
-								entry.CountryId,
-								e,
-								hqCountryByOrgId);
-							foreach (var cond in d.Conditions) {
-								if (ExpressionNode.Evaluate(cond, ctx) == 0.0) {
-									eligible = false;
-									break;
-								}
-							}
-							if (eligible) { eligibleEntities.Add(e); }
-						}
-
-						// Fisher-Yates shuffle
-						for (int i = eligibleEntities.Count - 1; i > 0; i--) {
-							int j = rng.Next(i + 1);
-							(eligibleEntities[i], eligibleEntities[j]) = (eligibleEntities[j], eligibleEntities[i]);
-						}
-
-						for (int slot = 0; slot < handSize && slot < eligibleEntities.Count; slot++) {
-							world.Add(eligibleEntities[slot], new CardInHand { SlotIndex = slot });
-						}
-					}
-				}
-			}
-		}
-
-		static void DiscoverInitialCountries(World world, List<OrganizationEntry> participating) {
-			if (participating.Count == 0) { return; }
-
-			var availableCountryIds = new HashSet<string>();
-			int[] countryReq = { TypeId<Country>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(countryReq, null)) {
-				Country[] countries = arch.GetColumn<Country>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					availableCountryIds.Add(countries[i].CountryId);
-				}
-			}
-
-			foreach (var orgEntry in participating) {
-				var toDiscover = new HashSet<string>();
-				if (!string.IsNullOrEmpty(orgEntry.HqCountryId) && availableCountryIds.Contains(orgEntry.HqCountryId)) {
-					toDiscover.Add(orgEntry.HqCountryId);
-				}
-				foreach (string countryId in toDiscover) {
 					int entity = world.Create();
-					world.Add(entity, new DiscoveredCountry { OrgId = orgEntry.OrganizationId, CountryId = countryId });
+					world.Add(entity, new GameAction { ActionId = def.ActionId });
+					world.Add(entity, new OrgContext { OrgId = orgId });
+					world.Add(entity, new CardOwnerType(CardOwnerKind.Country));
 				}
 			}
 		}
+
 	}
 }

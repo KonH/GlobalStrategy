@@ -34,20 +34,36 @@ namespace GS.Unity.UI {
 		readonly CountryVisualConfig? _countryVisualConfig;
 		readonly OrgVisualConfig? _orgVisualConfig;
 		readonly TooltipSystem _tooltip;
+		readonly GameSettings? _gameSettings;
 		CountryActionsView? _actionsView;
 		CountryControlState? _controlState;
 		bool _charsOpen;
 		bool _actionsOpen;
 		string? _lastCountryId;
+		readonly CountryActionsVisibility _actionsVisibility;
 
 		public event Action<bool>? OnSubPanelOpened;
-		public event Action<string, string, VisualElement>? OnCountryActionCardClicked;
+		public event Action<string, string, int, VisualElement, ActionCardBuilder.CountryCardFace>? OnCountryActionCardClicked;
+		public event Action<string, string, int, VisualElement, ActionCardBuilder.CountryCardFace>? OnCountryActionCardDiscarded;
+		public event Action<ActionConditionDebugEntry>? OnUnplayableCountryActionCardReleased;
+		public event Action? OnCountryActionCardDiscardUnaffordable;
 		public event Action<string>? OnRelatedCountryFlagClicked;
 		public CountryActionsView? ActionsView => _actionsView;
 		public void OpenChars() => SetCharsOpen(true);
+		public void EnsureActionsOpen() {
+			if (!_actionsOpen) {
+				SetActionsOpen(true);
+			}
+		}
 
-		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CountryVisualConfig? countryVisualConfig = null, OrgVisualConfig? orgVisualConfig = null) {
+		public CountryInfoView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, TooltipSystem tooltip, CharacterVisualConfig characterVisualConfig, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CountryVisualConfig? countryVisualConfig = null, OrgVisualConfig? orgVisualConfig = null, GameSettings? gameSettings = null, CountryActionsVisibility? actionsVisibility = null) {
 			_root = root;
+			_gameSettings = gameSettings;
+			// Defaults ActionsPanelOpen to false to match _actionsOpen's own default - keeps
+			// VisualStateConverter from building full per-card hand detail before the first
+			// real SetActionsOpen call (country selection / toggle click) can sync them.
+			_actionsVisibility = actionsVisibility ?? new CountryActionsVisibility();
+			_actionsVisibility.ActionsPanelOpen = false;
 			_name = root.Q<Label>("country-name");
 			_flagElement = root.Q("country-flag");
 			_countryVisualConfig = countryVisualConfig;
@@ -84,9 +100,20 @@ namespace GS.Unity.UI {
 				if (actionsInstance != null && actionConfig != null) {
 					_actionsView = new CountryActionsView(
 						actionsInstance.Q("hand-container"),
-						loc, actionConfig, actionVisualConfig, tooltip);
-					_actionsView.OnCardClicked = (actionId, targetCharId, el) =>
-						OnCountryActionCardClicked?.Invoke(actionId, targetCharId, el);
+						loc,
+						actionConfig,
+						actionVisualConfig,
+						countryVisualConfig,
+						tooltip,
+						gameSettings?.DiscardGoldCost ?? 50);
+					_actionsView.OnCardClicked = (actionId, targetCountryId, slotIndex, element, face) =>
+						OnCountryActionCardClicked?.Invoke(actionId, targetCountryId, slotIndex, element, face);
+					_actionsView.OnCardDiscarded = (actionId, targetCountryId, slotIndex, element, faceData) =>
+						OnCountryActionCardDiscarded?.Invoke(actionId, targetCountryId, slotIndex, element, faceData);
+					_actionsView.OnUnplayableCardReleased = condition =>
+						OnUnplayableCountryActionCardReleased?.Invoke(condition);
+					_actionsView.OnDiscardUnaffordable = () =>
+						OnCountryActionCardDiscardUnaffordable?.Invoke();
 				}
 			}
 			if (_charsToggleBtn != null) {
@@ -117,7 +144,12 @@ namespace GS.Unity.UI {
 				if (_friendsHeader != null) { _friendsHeader.text = _loc.Get("hud.friends"); }
 				if (_rivalsHeader != null) { _rivalsHeader.text = _loc.Get("hud.rivals"); }
 				if (_warsHeader != null) { _warsHeader.text = _loc.Get("hud.wars"); }
-				BuildRelationsRow(_friendsFlags, _friendsRowBlock, selected.Relations.Friends, "relation");
+				bool enableFriendsRelation = _gameSettings?.FeatureFlags?.EnableFriendsRelation ?? true;
+				if (enableFriendsRelation) {
+					BuildRelationsRow(_friendsFlags, _friendsRowBlock, selected.Relations.Friends, "relation");
+				} else if (_friendsRowBlock != null) {
+					_friendsRowBlock.style.display = DisplayStyle.None;
+				}
 				BuildRelationsRow(_rivalsFlags, _rivalsRowBlock, selected.Relations.Rivals, "relation");
 				BuildRelationsRow(_warsFlags, _warsRowBlock, selected.Wars.Opponents, "war");
 			}
@@ -133,7 +165,11 @@ namespace GS.Unity.UI {
 				_charsToggleBtn.style.display = hasChars ? DisplayStyle.Flex : DisplayStyle.None;
 			}
 
-			bool hasActions = countryActions != null && (countryActions.Hand.Count > 0 || countryActions.Deck.Count > 0);
+			bool hasActions = countryActions != null
+				&& (countryActions.Hand.Count > 0
+					|| countryActions.Deck.Count > 0
+					|| countryActions.HasPendingDraw
+					|| countryActions.DrawChoices.Count > 0);
 			if (_actionsToggleBtn != null) {
 				_actionsToggleBtn.style.display = hasActions ? DisplayStyle.Flex : DisplayStyle.None;
 			}
@@ -146,6 +182,7 @@ namespace GS.Unity.UI {
 			if (countryActions != null) {
 				_actionsView?.Refresh(countryActions, playerResources ?? resources);
 			}
+			if (!_actionsOpen && _actionsSlide != null) { SetPickingModeRecursive(_actionsSlide, PickingMode.Ignore); }
 		}
 
 		void ToggleChars() {
@@ -180,13 +217,15 @@ namespace GS.Unity.UI {
 		void SetActionsOpen(bool open) {
 			if (open) { SetCharsOpen(false); }
 			_actionsOpen = open;
+			_actionsVisibility.ActionsPanelOpen = open;
 			if (_actionsSlide != null) {
 				if (open) {
 					_actionsSlide.AddToClassList("actions-slide--open");
-					_actionsSlide.pickingMode = PickingMode.Position;
+					SetPickingModeRecursive(_actionsSlide, PickingMode.Position);
 				} else {
 					_actionsSlide.RemoveFromClassList("actions-slide--open");
-					_actionsSlide.pickingMode = PickingMode.Ignore;
+					SetPickingModeRecursive(_actionsSlide, PickingMode.Ignore);
+					_tooltip?.HideAll();
 				}
 			}
 			if (_actionsToggleBtn != null) {

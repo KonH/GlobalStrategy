@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Configs;
@@ -11,7 +12,7 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class UnifiedPipelineTests {
-		sealed class StaticConfig<T> : IConfigSource<T> {
+		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;
@@ -44,7 +45,8 @@ namespace GS.Game.Tests {
 				StartYear = 1880,
 				DefaultLocale = "en",
 				SpeedMultipliers = new[] { 1, 2, 4 },
-				AutoSaveInterval = "monthly"
+				AutoSaveInterval = "monthly",
+				FeatureFlags = new FeatureFlagSettings { EnableRuler = true }
 			};
 			var resourceConfig = new ResourceConfig { Resources = new List<ResourceDefinition>() };
 			var geoJson = new GeoJsonConfig();
@@ -159,32 +161,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void pipeline_discovers_country_on_org_action_success() {
-			var actionConfig = SingleOrgActionConfig("spread_rumors", 0.0, new List<string> { "discover" });
-			var effectConfig = new EffectConfig {
-				Effects = new List<ActionEffectDefinition> {
-					new DiscoverCountryEffectParams { EffectId = "discover", EffectType = "DiscoverCountry" }
-				}
-			};
-			var logic = BuildLogic(actionConfig, effectConfig);
-			logic.Update(0f);
-
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, ActionId = "spread_rumors" });
-			logic.Update(0f);
-
-			bool discovered = false;
-			int[] discReq = { TypeId<DiscoveredCountry>.Value };
-			foreach (var arch in logic.World.GetMatchingArchetypes(discReq, null)) {
-				DiscoveredCountry[] dcs = arch.GetColumn<DiscoveredCountry>();
-				for (int i = 0; i < arch.Count; i++) {
-					if (dcs[i].OrgId == OrgId && dcs[i].CountryId == OtherCountryId) { discovered = true; }
-				}
-			}
-			Assert.True(discovered);
-		}
-
-		[Fact]
-		void pipeline_draws_replacement_card_after_play() {
+		void pipeline_draws_replacement_org_card_after_play() {
 			var actionConfig = new ActionConfig {
 				Defaults = new List<ActionOwnerDefaults> {
 					new ActionOwnerDefaults { OwnerType = "org", HandSize = 1 }
@@ -242,6 +219,8 @@ namespace GS.Game.Tests {
 			};
 			var logic = BuildLogic(actionConfig, effectConfig);
 			logic.Update(0f);
+			Assert.True(DrawCardSystem.ForceDrawCard(
+				logic.World, OrgId, OtherCountryId, "build_influence", ""));
 
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "build_influence" });
 			logic.Update(0f);
@@ -305,6 +284,8 @@ namespace GS.Game.Tests {
 			};
 			var logic = BuildLogic(actionConfig, effectConfig, characterConfig);
 			logic.Update(0f);
+			Assert.True(DrawCardSystem.ForceDrawCard(
+				logic.World, OrgId, OtherCountryId, "improve_opinion", ""));
 
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "improve_opinion" });
 			logic.Update(0f);
@@ -326,12 +307,8 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void cleanup_system_removes_prior_frame_components() {
-			var actionConfig = SingleOrgActionConfig("spread_rumors", 0.0, new List<string> { "discover" });
-			var effectConfig = new EffectConfig {
-				Effects = new List<ActionEffectDefinition> {
-					new DiscoverCountryEffectParams { EffectId = "discover", EffectType = "DiscoverCountry" }
-				}
-			};
+			var actionConfig = SingleOrgActionConfig("spread_rumors", 0.0, new List<string>());
+			var effectConfig = new EffectConfig();
 			var logic = BuildLogic(actionConfig, effectConfig);
 			logic.Update(0f);
 
@@ -351,11 +328,6 @@ namespace GS.Game.Tests {
 			Assert.False(logic.World.Has<ActionSucceeded>(cardEntity));
 			Assert.False(logic.World.Has<CardUse>(cardEntity));
 			Assert.False(logic.World.Has<ActionValid>(cardEntity));
-
-			int[] discoverReq = { TypeId<DiscoverCountryEffect>.Value };
-			int discoverCount = 0;
-			foreach (var arch in logic.World.GetMatchingArchetypes(discoverReq, null)) { discoverCount += arch.Count; }
-			Assert.Equal(0, discoverCount);
 		}
 
 		// Covers Docs/Specs/26_07_24_13_stop-friendship-rivalry-cards/plan.md's Tests-section
@@ -403,6 +375,7 @@ namespace GS.Game.Tests {
 						OwnerType = "country",
 						TargetRole = TargetRole,
 						DeckCopies = 0,
+						CooldownDays = 7,
 						Conditions = new List<ExpressionNode> {
 							new ExpressionNode {
 								Type = "gte",
@@ -410,7 +383,10 @@ namespace GS.Game.Tests {
 							},
 							new ExpressionNode {
 								Type = "gte",
-								Members = new List<ExpressionNode> { new ExpressionNode { Type = "relationStillExists" }, new ExpressionNode { Type = "value", Value = 1 } }
+								Members = new List<ExpressionNode> {
+									new ExpressionNode { Type = "hasCountryRelation", RelationKind = "friend" },
+									new ExpressionNode { Type = "value", Value = 1 }
+								}
 							}
 						},
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 100.0 } },
@@ -432,14 +408,15 @@ namespace GS.Game.Tests {
 			logic.World.Add(opinionEntity, new ResourceOwner(DiplomacyAdvisorId, OwnerType.Character));
 			logic.World.Add(opinionEntity, new Resource { ResourceId = $"opinion_{OrgId}", Value = 80.0 });
 
-			CountryRelations.SetRelation(logic.World, SelectedCountryId, OtherCountryId, RelationKind.Friend);
-			CountryRelations.SetRelation(logic.World, SelectedCountryId, GermanyId, RelationKind.Friend);
+			logic.Relations.SetRelation(logic.World, SelectedCountryId, OtherCountryId, RelationKind.Friend);
+			logic.Relations.SetRelation(logic.World, SelectedCountryId, GermanyId, RelationKind.Friend);
 
 			// Seed both instances directly into hand rather than relying on RelationCardSyncSystem +
 			// random draw luck — see plan Tests section / spec.md acceptance criterion.
 			int franceCard = logic.World.Create();
 			logic.World.Add(franceCard, new GameAction { ActionId = "stop_friendship" });
 			logic.World.Add(franceCard, new OrgContext { OrgId = OrgId });
+			logic.World.Add(franceCard, new CardOwnerType(CardOwnerKind.Country));
 			logic.World.Add(franceCard, new CountryContext { CountryId = SelectedCountryId });
 			logic.World.Add(franceCard, new CardInHand { SlotIndex = 0 });
 			logic.World.Add(franceCard, new RelationCardTarget { TargetCountryId = OtherCountryId, Kind = RelationKind.Friend });
@@ -447,27 +424,36 @@ namespace GS.Game.Tests {
 			int germanyCard = logic.World.Create();
 			logic.World.Add(germanyCard, new GameAction { ActionId = "stop_friendship" });
 			logic.World.Add(germanyCard, new OrgContext { OrgId = OrgId });
+			logic.World.Add(germanyCard, new CardOwnerType(CardOwnerKind.Country));
 			logic.World.Add(germanyCard, new CountryContext { CountryId = SelectedCountryId });
 			logic.World.Add(germanyCard, new CardInHand { SlotIndex = 1 });
 			logic.World.Add(germanyCard, new RelationCardTarget { TargetCountryId = GermanyId, Kind = RelationKind.Friend });
 
 			logic.Commands.Push(new PlayCardActionCommand {
-				OrgId = OrgId, CountryId = SelectedCountryId, ActionId = "stop_friendship", TargetCountryId = OtherCountryId
+				OrgId = OrgId, CountryId = SelectedCountryId, ActionId = "stop_friendship",
+				TargetCountryId = OtherCountryId, SlotIndex = 0
 			});
 			logic.Update(0f);
 
 			// The France instance played and succeeded; only the France relation was cleared.
 			Assert.True(logic.World.Has<ActionSucceeded>(franceCard));
-			Assert.Null(CountryRelations.GetRelation(logic.World, SelectedCountryId, OtherCountryId));
-			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(logic.World, SelectedCountryId, GermanyId));
+			Assert.Null(logic.Relations.GetRelation(logic.World, SelectedCountryId, OtherCountryId));
+			Assert.Equal(RelationKind.Friend, logic.Relations.GetRelation(logic.World, SelectedCountryId, GermanyId));
 
 			// The Germany instance was never touched by InitActionFromPlayCardSystem's matching —
-			// it must not have been marked used, must still be in hand, and must still evaluate as
-			// playable (proves this isn't a false-positive from a fixture that merely never looked
-			// at the Germany entity).
+			// it must not have been marked used and must still be in hand (proves this isn't a
+			// false-positive from a fixture that merely never looked at the Germany entity).
 			Assert.False(logic.World.Has<CardUse>(germanyCard));
 			Assert.True(logic.World.Has<CardInHand>(germanyCard));
-			Assert.True(ActionPlayability.Evaluate(logic.World, actionConfig, germanyCard, "stop_friendship", OrgId, SelectedCountryId));
+
+			// It is, however, now unplayable: playing the France instance starts a shared
+			// (OrgId, "stop_friendship") cooldown that covers every instance of that ActionId for
+			// the org — including this untouched Germany copy — per
+			// Docs/Specs/26_08_04_17_card-cooldown/spec.md. It becomes playable again once the
+			// cooldown elapses.
+			var currentTime = new DateTime(1880, 1, 1);
+			Assert.False(ActionPlayability.Evaluate(logic.World, actionConfig, germanyCard, "stop_friendship", OrgId, SelectedCountryId, logic.Resources, logic.Relations, currentTime: currentTime));
+			Assert.True(ActionPlayability.Evaluate(logic.World, actionConfig, germanyCard, "stop_friendship", OrgId, SelectedCountryId, logic.Resources, logic.Relations, currentTime: currentTime.AddDays(8)));
 
 			// Exactly one RelationClearedApplied event, naming France — not a second one for Germany.
 			var clearedEvents = new List<RelationClearedApplied>();

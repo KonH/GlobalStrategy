@@ -138,6 +138,26 @@ class CodexRolloutTests(unittest.TestCase):
         self.assertEqual(1, len(rows))
         self.assertEqual("implement", rows[0]["stage"])
 
+    def test_codex_issue_batch_prompt_produces_one_row_not_dropped(self):
+        # Regression guard: a handle_issues.py-driven codex-issue/SKILL.md session used to
+        # match a `None` stage and be silently dropped entirely (no row at all), even
+        # though the wrapper's own record_usage_row_codex() call needs at least one row to
+        # aggregate - see the STAGE_MATCH_TABLE comment in codex_rollout.py.
+        path = write_rollout([
+            session_meta("s1", REPO_CWD),
+            user_message("Read and follow .codex/skills/codex-issue/SKILL.md.\n\n"
+                         "[ISSUE #42] https://github.com/KonH/GlobalStrategy/issues/42\n"
+                         "Some issue title\n\nSome issue body"),
+            token_count(500, 0, 200, timestamp="2026-01-01T00:00:02Z"),
+            agent_message(),
+        ])
+
+        rows = parse_codex_rollout(path)
+
+        self.assertEqual(1, len(rows))
+        self.assertEqual(500, rows[0]["input_tokens"])
+        self.assertEqual(200, rows[0]["output_tokens"])
+
     def test_effort_is_captured_from_thread_settings(self):
         path = write_rollout([
             session_meta("s1", REPO_CWD),

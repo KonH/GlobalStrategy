@@ -15,17 +15,16 @@ from scripts.automation.cursor.handle_issues import (
     detect_session_limit as detect_cursor_session_limit,
 )
 from scripts.automation.common.issue_handler import (
-    AI_IN_PROGRESS, SALVAGE_COMMIT_MESSAGE, SALVAGE_GIT_IDENTITY, candidate_branch,
-    checkout_clean, claim_candidate, configured_contributors,
-    count_reclaims_since_owner_comment, delete_comment, find_candidates,
-    handle_limit_pause, limit_active, load_limit_retry_at, reclaim_stale_in_progress,
-    release_in_progress_silently, reroute_auto_item_after_limit, salvage_uncommitted_work,
+    AI_IMPLEMENT, AI_IN_PROGRESS, AI_PLAN, AI_SPECIFY, SALVAGE_COMMIT_MESSAGE,
+    SALVAGE_GIT_IDENTITY, candidate_branch, checkout_clean, claim_candidate,
+    clear_in_progress, configured_contributors, delete_comment,
+    determine_usage_stage_and_spec_dir, find_candidates, handle_limit_pause, limit_active,
+    load_limit_retry_at, reroute_auto_item_after_limit, salvage_uncommitted_work,
     save_limit_retry_at,
 )
 
 MARKER = "<!-- claude-automation -->"
 MARKER_PREFIX = "<!-- claude-automation"
-RECLAIM_MARKER = "<!-- claude-automation:reclaim -->"
 
 
 def item(number, labels, **extra):
@@ -81,6 +80,18 @@ class FindCandidatesTests(unittest.TestCase):
                    side_effect=[[item(1, ["claude", "bug", "enhancement"])], []]):
             self.assertEqual(1, len(find_candidates("claude")))
 
+    def test_stage_labels_do_not_exclude(self):
+        issues = [
+            item(1, ["claude", "ai-specify"]),
+            item(2, ["claude", "ai-plan"]),
+            item(3, ["claude", "ai-implement"]),
+            item(4, ["claude", "ai-implement", "ai-complete"]),
+        ]
+        with patch("scripts.automation.common.issue_handler.run_gh_json",
+                   side_effect=[issues, []]):
+            candidates = find_candidates("claude")
+        self.assertEqual([1, 2, 3], [c["number"] for c in candidates])
+
     def test_discovery_queries_every_configured_contributor_for_issues_and_prs(self):
         with patch("scripts.automation.common.issue_handler.configured_contributors",
                    return_value=("KonH", "collaborator")), \
@@ -91,52 +102,21 @@ class FindCandidatesTests(unittest.TestCase):
         self.assertEqual(["KonH", "collaborator", "KonH", "collaborator"], authors)
 
 
-class CountReclaimsTests(unittest.TestCase):
-    def count(self):
-        return count_reclaims_since_owner_comment(MARKER_PREFIX, RECLAIM_MARKER, 1)
+class ClearInProgressTests(unittest.TestCase):
+    def test_calls_remove_label_for_the_claimed_number_only(self):
+        logger = MagicMock()
+        with patch("scripts.automation.common.issue_handler.remove_label") as remove, \
+             patch("scripts.automation.common.issue_handler.list_labeled_items") as listed:
+            clear_in_progress(logger, 42)
+        remove.assert_called_once_with(42, AI_IN_PROGRESS)
+        listed.assert_not_called()
 
-    def test_counts_reclaim_marker_comments(self):
-        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
-            comment(f"{RECLAIM_MARKER}\nretry 1"),
-            comment(f"{RECLAIM_MARKER}\nretry 2"),
-        ]):
-            self.assertEqual(2, self.count())
-
-    def test_configured_contributor_comment_resets_the_counter(self):
-        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
-            comment(f"{RECLAIM_MARKER}\nretry 1"),
-            comment(f"{RECLAIM_MARKER}\nretry 2"),
-            comment("here is more guidance, try again", author="collaborator"),
-            comment(f"{RECLAIM_MARKER}\nretry 1"),
-        ]), patch("scripts.automation.common.issue_handler.configured_contributors",
-                  return_value=("KonH", "collaborator")):
-            self.assertEqual(1, self.count())
-
-    def test_bot_marker_comment_does_not_reset(self):
-        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
-            comment(f"{RECLAIM_MARKER}\nretry 1"),
-            comment(f"{MARKER}\nsummary of a previous run"),
-            comment(f"{RECLAIM_MARKER}\nretry 2"),
-        ]):
-            self.assertEqual(2, self.count())
-
-    def test_non_owner_comment_does_not_reset(self):
-        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
-            comment(f"{RECLAIM_MARKER}\nretry 1"),
-            comment("drive-by comment", author="someone-else"),
-            comment(f"{RECLAIM_MARKER}\nretry 2"),
-        ]):
-            self.assertEqual(2, self.count())
-
-    def test_leftover_claim_comment_does_not_reset_the_counter(self):
-        claim_body = (f"{MARKER_PREFIX}:claim:deadbeef: claiming this issue "
-                      "for automated processing. -->")
-        with patch("scripts.automation.common.issue_handler.run_gh_json", return_value=[
-            comment(f"{RECLAIM_MARKER}\nretry 1"),
-            comment(claim_body),
-            comment(f"{RECLAIM_MARKER}\nretry 2"),
-        ]):
-            self.assertEqual(2, self.count())
+    def test_swallows_remove_failure_and_logs(self):
+        logger = MagicMock()
+        with patch("scripts.automation.common.issue_handler.remove_label",
+                   side_effect=RuntimeError("HTTP 404")):
+            clear_in_progress(logger, 42)
+        logger.warning.assert_called()
 
 
 class ClaimCandidateTests(unittest.TestCase):
@@ -300,47 +280,6 @@ class ClaimCandidateTests(unittest.TestCase):
         self.assertFalse(result)
         mocks["delete"].assert_not_called()
         mocks["remove_label"].assert_not_called()
-
-
-class ReclaimStaleInProgressTests(unittest.TestCase):
-    def reclaim(self, items, reclaims):
-        logger = MagicMock()
-        with patch("scripts.automation.common.issue_handler.list_labeled_items", return_value=items), \
-             patch("scripts.automation.common.issue_handler.count_reclaims_since_owner_comment",
-                   return_value=reclaims), \
-             patch("scripts.automation.common.issue_handler.post_comment") as post, \
-             patch("scripts.automation.common.issue_handler.add_label") as add, \
-             patch("scripts.automation.common.issue_handler.remove_label") as remove:
-            reclaim_stale_in_progress(logger, "claude", MARKER)
-        return post, add, remove
-
-    def test_first_crash_requeues_with_a_reclaim_comment(self):
-        stale = item(5, ["claude", "ai-in-progress"], kind="issue")
-        post, add, remove = self.reclaim([stale], reclaims=0)
-        self.assertTrue(post.call_args[0][1].startswith(RECLAIM_MARKER))
-        add.assert_not_called()
-        remove.assert_called_once_with(5, "ai-in-progress")
-
-    def test_third_crash_escalates_to_needs_attention(self):
-        stale = item(5, ["claude", "ai-in-progress"], kind="issue")
-        post, add, remove = self.reclaim([stale], reclaims=2)
-        self.assertTrue(post.call_args[0][1].startswith(MARKER))
-        add.assert_called_once_with(5, "ai-need-attention")
-        remove.assert_called_once_with(5, "ai-in-progress")
-
-    def test_needs_attention_items_are_left_untouched(self):
-        parked = item(5, ["claude", "ai-in-progress", "ai-need-attention"], kind="issue")
-        post, add, remove = self.reclaim([parked], reclaims=2)
-        post.assert_not_called()
-        add.assert_not_called()
-        remove.assert_not_called()
-
-    def test_provider_items_without_in_progress_are_skipped(self):
-        idle = item(5, ["claude", "ai-complete"], kind="issue")
-        post, add, remove = self.reclaim([idle], reclaims=0)
-        post.assert_not_called()
-        add.assert_not_called()
-        remove.assert_not_called()
 
 
 class CandidateBranchTests(unittest.TestCase):
@@ -700,7 +639,7 @@ class HandleLimitPauseTests(unittest.TestCase):
     def test_success_path_releases_then_reroutes_then_posts_note(self):
         with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
                    return_value=("committed", SALVAGE_COMMIT_MESSAGE)), \
-             patch("scripts.automation.common.issue_handler.release_in_progress_silently") as release, \
+             patch("scripts.automation.common.issue_handler.clear_in_progress") as clear, \
              patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit",
                    return_value=None) as reroute, \
              patch("scripts.automation.common.issue_handler.post_comment") as post, \
@@ -708,7 +647,7 @@ class HandleLimitPauseTests(unittest.TestCase):
              patch("scripts.automation.common.issue_handler.remove_label") as remove:
             handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
                                self.limit_file, self.retry_at)
-        release.assert_called_once()
+        clear.assert_called_once_with(self.logger, 84)
         reroute.assert_called_once_with(self.logger, "claude", self.candidate, self.limit_file)
         add.assert_not_called()
         remove.assert_not_called()
@@ -720,7 +659,7 @@ class HandleLimitPauseTests(unittest.TestCase):
     def test_success_path_note_mentions_reroute_when_a_new_provider_is_picked(self):
         with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
                    return_value=("clean", "working tree clean")), \
-             patch("scripts.automation.common.issue_handler.release_in_progress_silently"), \
+             patch("scripts.automation.common.issue_handler.clear_in_progress"), \
              patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit",
                    return_value="codex"), \
              patch("scripts.automation.common.issue_handler.post_comment") as post:
@@ -732,69 +671,56 @@ class HandleLimitPauseTests(unittest.TestCase):
     def test_clean_path_still_releases_and_notes(self):
         with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
                    return_value=("clean", "working tree clean")), \
-             patch("scripts.automation.common.issue_handler.release_in_progress_silently") as release, \
+             patch("scripts.automation.common.issue_handler.clear_in_progress") as clear, \
              patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit",
                    return_value=None), \
              patch("scripts.automation.common.issue_handler.post_comment") as post:
             handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
                                self.limit_file, self.retry_at)
-        release.assert_called_once()
+        clear.assert_called_once_with(self.logger, 84)
         self.assertIn("clean", post.call_args[0][1])
 
     def test_failure_path_needs_attention_direct_remove_not_silent_release(self):
         with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
                    return_value=("failed", "push rejected")), \
-             patch("scripts.automation.common.issue_handler.release_in_progress_silently") as release, \
+             patch("scripts.automation.common.issue_handler.clear_in_progress") as clear, \
              patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit") as reroute, \
              patch("scripts.automation.common.issue_handler.post_comment") as post, \
-             patch("scripts.automation.common.issue_handler.add_label") as add, \
-             patch("scripts.automation.common.issue_handler.remove_label") as remove:
+             patch("scripts.automation.common.issue_handler.add_label") as add:
             handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
                                self.limit_file, self.retry_at)
-        release.assert_not_called()
+        clear.assert_called_once_with(self.logger, 84)
         reroute.assert_not_called()
         add.assert_called_once_with(84, "ai-need-attention")
-        remove.assert_called_once_with(84, "ai-in-progress")
         self.assertIn("ai-need-attention", post.call_args[0][1])
         self.assertTrue(self.limit_file.exists())
 
     def test_post_comment_failure_after_release_does_not_raise(self):
         with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
                    return_value=("clean", "working tree clean")), \
-             patch("scripts.automation.common.issue_handler.release_in_progress_silently") as release, \
+             patch("scripts.automation.common.issue_handler.clear_in_progress") as clear, \
              patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit",
                    return_value=None), \
              patch("scripts.automation.common.issue_handler.post_comment",
                    side_effect=RuntimeError("gh failed")):
             handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
                                self.limit_file, self.retry_at)
-        release.assert_called_once()
+        clear.assert_called_once_with(self.logger, 84)
         self.assertTrue(self.limit_file.exists())
 
-
-class ReleaseInProgressSilentlyTests(unittest.TestCase):
-    def test_releases_without_any_comment(self):
-        stale = item(5, ["claude", "ai-in-progress"], kind="issue")
-        with patch("scripts.automation.common.issue_handler.list_labeled_items", return_value=[stale]), \
-             patch("scripts.automation.common.issue_handler.post_comment") as post, \
-             patch("scripts.automation.common.issue_handler.remove_label") as remove:
-            release_in_progress_silently(MagicMock(), "claude")
-        post.assert_not_called()
-        remove.assert_called_once_with(5, "ai-in-progress")
-
-    def test_needs_attention_items_are_left_untouched(self):
-        parked = item(5, ["claude", "ai-in-progress", "ai-need-attention"], kind="issue")
-        with patch("scripts.automation.common.issue_handler.list_labeled_items", return_value=[parked]), \
-             patch("scripts.automation.common.issue_handler.remove_label") as remove:
-            release_in_progress_silently(MagicMock(), "claude")
-        remove.assert_not_called()
-
-    def test_skips_items_without_in_progress(self):
-        idle = item(5, ["claude"], kind="issue")
-        with patch("scripts.automation.common.issue_handler.list_labeled_items", return_value=[idle]), \
-             patch("scripts.automation.common.issue_handler.remove_label") as remove:
-            release_in_progress_silently(MagicMock(), "claude")
-        remove.assert_not_called()
+    def test_limit_clear_targets_only_the_claimed_number(self):
+        """Peer-steal regression: limit path must not scan/clear sibling live claims."""
+        with patch("scripts.automation.common.issue_handler.salvage_uncommitted_work",
+                   return_value=("clean", "working tree clean")), \
+             patch("scripts.automation.common.issue_handler.remove_label") as remove, \
+             patch("scripts.automation.common.issue_handler.list_labeled_items") as listed, \
+             patch("scripts.automation.common.issue_handler.reroute_auto_item_after_limit",
+                   return_value=None), \
+             patch("scripts.automation.common.issue_handler.post_comment"):
+            handle_limit_pause(self.logger, "claude", MARKER, self.candidate,
+                               self.limit_file, self.retry_at)
+        listed.assert_not_called()
+        remove.assert_called_once_with(84, AI_IN_PROGRESS)
 
 
 class RerouteAutoItemAfterLimitTests(unittest.TestCase):
@@ -868,6 +794,156 @@ class VerifyLabelPresentTests(unittest.TestCase):
             from scripts.automation.common.issue_handler import verify_label_present
             self.assertFalse(verify_label_present(logger, 9, "claude"))
         self.assertEqual(2, sleep.call_count)
+        logger.warning.assert_called()
+
+
+class WrapperClearLifecycleTests(unittest.TestCase):
+    def test_wrappers_do_not_import_reclaim_stale_in_progress(self):
+        import scripts.automation.claude.handle_issues as claude_mod
+        import scripts.automation.codex.handle_issues as codex_mod
+        import scripts.automation.cursor.handle_issues as cursor_mod
+        for mod in (claude_mod, codex_mod, cursor_mod):
+            self.assertFalse(hasattr(mod, "reclaim_stale_in_progress"))
+            source = Path(mod.__file__).read_text(encoding="utf-8")
+            self.assertNotIn("reclaim_stale_in_progress", source)
+
+    def test_lost_claim_does_not_call_clear_in_progress(self):
+        """Guards the claim-inside-try footgun: a lost claim must not clear the winner."""
+        cleared = []
+
+        def fake_clear(logger, number):
+            cleared.append(number)
+
+        claimed = []
+
+        def fake_claim(logger, label, marker, candidate):
+            claimed.append(candidate["number"])
+            return candidate["number"] != 1  # lose #1, win #2
+
+        candidates = [
+            {"number": 1, "kind": "issue", "title": "a", "body": "", "url": "u"},
+            {"number": 2, "kind": "issue", "title": "b", "body": "", "url": "u"},
+        ]
+        processed = []
+        for candidate in candidates:
+            if not fake_claim(None, "cursor", MARKER, candidate):
+                continue
+            try:
+                processed.append(candidate["number"])
+            finally:
+                fake_clear(None, candidate["number"])
+        self.assertEqual([1, 2], claimed)
+        self.assertEqual([2], processed)
+        self.assertEqual([2], cleared)
+
+    def test_cursor_systemexit_after_claim_still_clears(self):
+        from scripts.automation.cursor import handle_issues as cursor_mod
+
+        candidate = {"number": 99, "kind": "issue", "title": "t", "body": "", "url": "u"}
+        args = MagicMock(limit_backoff_minutes=60, provider_state_file=Path("/tmp/x"))
+        with patch.object(cursor_mod, "checkout_clean"), \
+             patch.object(cursor_mod, "run_cursor", return_value=(1, [], None)), \
+             patch.object(cursor_mod, "detect_session_limit", return_value=(False, None)), \
+             patch.object(cursor_mod, "clear_in_progress") as clear:
+            try:
+                try:
+                    cursor_mod.process_claimed_candidate(candidate, args)
+                finally:
+                    cursor_mod.clear_in_progress(cursor_mod.logger, candidate["number"])
+            except SystemExit as exc:
+                self.assertEqual(1, exc.code)
+            else:
+                self.fail("expected SystemExit")
+        clear.assert_called_once_with(cursor_mod.logger, 99)
+
+
+class DetermineUsageStageAndSpecDirTests(unittest.TestCase):
+    """Codex/Cursor handle_issues.py's post-run usage-stats attribution: a spec_dir from
+    the run's file diff, a stage from whichever ai-specify/ai-plan/ai-implement label
+    survived on the item. See scripts/stats/26_07_22_17_spec-dev-stats for the row shape
+    this feeds (through record_usage_row_codex / record_usage_row(provider="cursor"))."""
+
+    def _repo_with_spec_dir(self, spec_name="26_01_01_00_example"):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        root = Path(tmp.name)
+        (root / "Docs" / "Specs" / spec_name).mkdir(parents=True)
+        return root, spec_name
+
+    def test_diff_touching_no_spec_dir_returns_none_none(self):
+        root, _ = self._repo_with_spec_dir()
+        with patch("scripts.automation.common.issue_handler.run_git",
+                    side_effect=["base-sha", "src/Foo.cs\nREADME.md"]):
+            spec_dir, stage = determine_usage_stage_and_spec_dir(
+                MagicMock(), 42, "feature/foo", root)
+        self.assertIsNone(spec_dir)
+        self.assertIsNone(stage)
+
+    def test_attributes_spec_dir_from_diff_and_stage_from_live_label(self):
+        root, spec_name = self._repo_with_spec_dir()
+        with patch("scripts.automation.common.issue_handler.run_git",
+                    side_effect=["base-sha", f"Docs/Specs/{spec_name}/plan.md\nsrc/Foo.cs"]), \
+             patch("scripts.automation.common.issue_handler.get_item_label_names",
+                   return_value={AI_PLAN}):
+            spec_dir, stage = determine_usage_stage_and_spec_dir(
+                MagicMock(), 42, "feature/foo", root)
+        self.assertEqual(spec_name, spec_dir)
+        self.assertEqual("plan", stage)
+
+    def test_ai_specify_label_maps_to_spec_stage(self):
+        root, spec_name = self._repo_with_spec_dir()
+        with patch("scripts.automation.common.issue_handler.run_git",
+                    side_effect=["base-sha", f"Docs/Specs/{spec_name}/spec.md"]), \
+             patch("scripts.automation.common.issue_handler.get_item_label_names",
+                   return_value={AI_SPECIFY}):
+            spec_dir, stage = determine_usage_stage_and_spec_dir(
+                MagicMock(), 42, "feature/foo", root)
+        self.assertEqual(spec_name, spec_dir)
+        self.assertEqual("spec", stage)
+
+    def test_ai_implement_label_maps_to_implement_stage(self):
+        root, spec_name = self._repo_with_spec_dir()
+        with patch("scripts.automation.common.issue_handler.run_git",
+                    side_effect=["base-sha", f"Docs/Specs/{spec_name}/spec.md"]), \
+             patch("scripts.automation.common.issue_handler.get_item_label_names",
+                   return_value={AI_IMPLEMENT}):
+            spec_dir, stage = determine_usage_stage_and_spec_dir(
+                MagicMock(), 42, "feature/foo", root)
+        self.assertEqual("implement", stage)
+
+    def test_no_surviving_stage_label_defaults_to_implement(self):
+        root, spec_name = self._repo_with_spec_dir()
+        with patch("scripts.automation.common.issue_handler.run_git",
+                    side_effect=["base-sha", f"Docs/Specs/{spec_name}/spec.md"]), \
+             patch("scripts.automation.common.issue_handler.get_item_label_names",
+                   return_value=set()):
+            spec_dir, stage = determine_usage_stage_and_spec_dir(
+                MagicMock(), 42, "feature/foo", root)
+        self.assertEqual(spec_name, spec_dir)
+        self.assertEqual("implement", stage)
+
+    def test_git_failure_returns_none_none_without_raising(self):
+        root, _ = self._repo_with_spec_dir()
+        logger = MagicMock()
+        with patch("scripts.automation.common.issue_handler.run_git",
+                    side_effect=RuntimeError("git merge-base failed")):
+            spec_dir, stage = determine_usage_stage_and_spec_dir(
+                logger, 42, "feature/foo", root)
+        self.assertIsNone(spec_dir)
+        self.assertIsNone(stage)
+        logger.warning.assert_called()
+
+    def test_label_read_failure_still_attributes_spec_dir_with_implement_default(self):
+        root, spec_name = self._repo_with_spec_dir()
+        logger = MagicMock()
+        with patch("scripts.automation.common.issue_handler.run_git",
+                    side_effect=["base-sha", f"Docs/Specs/{spec_name}/spec.md"]), \
+             patch("scripts.automation.common.issue_handler.get_item_label_names",
+                   side_effect=RuntimeError("gh api failed")):
+            spec_dir, stage = determine_usage_stage_and_spec_dir(
+                logger, 42, "feature/foo", root)
+        self.assertEqual(spec_name, spec_dir)
+        self.assertEqual("implement", stage)
         logger.warning.assert_called()
 
 

@@ -5,6 +5,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class RecruitsSeedCollectorTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		[Fact]
 		void compute_returns_initial_percent_of_country_population() {
 			var world = new World();
@@ -13,7 +15,7 @@ namespace GS.Game.Tests {
 			world.Add(entity, new Resource { ResourceId = "country_population", Value = 2000.0 });
 			var collector = new RecruitsSeedCollector(5.0);
 
-			double delta = collector.Compute("A", 0.0, world);
+			double delta = collector.Compute("A", 0.0, world, _resources);
 
 			Assert.Equal(100.0, delta, 6);
 		}

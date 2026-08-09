@@ -27,10 +27,37 @@
     margin-right: 40px;
 }
 
+.action-deck-controls {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 24px;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.action-deck-draw-button {
+    height: 42px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.action-deck-hand-size {
+    margin-top: 6px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.85);
+    color: rgb(240, 232, 208);
+    font-size: 22px;
+    -unity-font-style: bold;
+    text-shadow: 1px 1px 2px rgb(0, 0, 0);
+    -unity-text-align: middle-center;
+}
+
 /* Card shell */
 .action-card {
     width: 240px;
-    height: 300px;
+    height: 360px;
     flex-direction: column;
     border-width: 2px;
     border-radius: 4px;
@@ -39,11 +66,21 @@
 }
 
 .action-card--available {
-    border-color: rgb(136, 204, 255);
+    border-color: rgb(139, 109, 56);
 }
 
 .action-card--unavailable {
     border-color: rgb(139, 109, 56);
+}
+
+.action-card-content {
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+/* Dims only the card face, not the cooldown overlay layered on top of it,
+   so the remaining-time label stays fully legible on a greyed-out card. */
+.action-card--unavailable .action-card-content {
     opacity: 0.55;
 }
 
@@ -57,16 +94,17 @@
 
 /* Header bar */
 .action-card-header {
-    height: 32px;
+    min-height: 32px;
+    max-height: 48px;
     background-color: rgb(26, 42, 72);
     color: rgb(240, 232, 208);
     font-size: 20px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
-    padding: 0;
+    padding: 2px 4px;
     border-bottom-width: 1px;
     border-color: rgb(200, 160, 64);
-    white-space: nowrap;
+    white-space: normal;
     overflow: hidden;
     -unity-font-definition: url("/Assets/UI/Fonts/Cinzel-Bold SDF.asset");
 }
@@ -85,6 +123,56 @@
     -unity-background-scale-mode: scale-and-crop;
 }
 
+.action-card-playable-countries {
+    position: absolute;
+    top: 4px;
+    left: 6px;
+    height: 34px;
+    width: 40px;
+    flex-direction: row;
+    align-items: flex-start;
+    overflow: visible;
+}
+
+.action-card-playable-country-flag {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.action-card-playable-country-flag--stacked {
+    position: absolute;
+}
+
+.action-card-war-win-chance {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    justify-content: center;
+    align-items: center;
+    -unity-text-align: middle-center;
+    font-size: 16px;
+    color: rgb(255, 255, 255);
+    -unity-font-definition: url("/Assets/UI/Fonts/Cinzel-Bold SDF.asset");
+    -unity-font-style: bold;
+}
+
+.action-card-war-win-chance--low {
+    background-color: rgb(176, 40, 40);
+}
+
+.action-card-war-win-chance--mid {
+    background-color: rgb(196, 160, 32);
+}
+
+.action-card-war-win-chance--high {
+    background-color: rgb(40, 140, 56);
+}
+
 /* Body */
 .action-card-body {
     padding: 5px 6px;
@@ -98,6 +186,29 @@
     white-space: normal;
     flex: 1;
     min-height: 0;
+    overflow: hidden;
+    -unity-font-definition: url("/Assets/UI/Fonts/IMFellEnglish-Regular SDF.asset");
+}
+
+.action-card-requirements {
+    width: 100%;
+    height: 60px;
+    min-height: 0;
+    flex-shrink: 0;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+.action-card-requirement-row {
+    width: 100%;
+    min-height: 0;
+    flex-shrink: 0;
+    margin-top: 0;
+    margin-bottom: -2px;
+    padding: 0;
+    font-size: 20px;
+    white-space: normal;
     overflow: hidden;
     -unity-font-definition: url("/Assets/UI/Fonts/IMFellEnglish-Regular SDF.asset");
 }
@@ -139,4 +250,49 @@
     height: 16px;
     -unity-background-scale-mode: scale-to-fit;
     background-image: url("project://database/Assets/Textures/Icons/CardView/coin.png?fileID=2800000&guid=7fccafa14706457483a5f3c19e7c1746&type=3#coin");
+}
+
+.action-card-discard-hint {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    height: 32px;
+    padding: 3px 6px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-card-discard-hint-label {
+    margin-right: 4px;
+}
+
+.action-card-discard-hint-price {
+    margin-right: 4px;
+}
+
+/* Cooldown overlay */
+.action-card-cooldown-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-card-cooldown-radial {
+    flex-shrink: 0;
+}
+
+.action-card-cooldown-label {
+    color: rgb(240, 232, 208);
+    font-size: 16px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    background-color: rgb(0, 0, 0);
+    padding: 2px 8px;
+    border-radius: 4px;
 }

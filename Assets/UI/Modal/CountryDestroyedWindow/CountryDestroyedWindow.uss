@@ -1,0 +1,71 @@
+.country-destroyed-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.country-destroyed-panel {
+    position: relative;
+    width: 84%;
+    max-width: 1080px;
+    min-height: 630px;
+    padding: 28px 36px 32px;
+    align-items: center;
+}
+
+.country-destroyed-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    margin-bottom: 18px;
+    padding-right: 56px;
+}
+
+.country-destroyed-title {
+    font-size: 32px;
+    color: rgb(220, 200, 160);
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.country-destroyed-close {
+    position: absolute;
+    top: 26px;
+    right: 32px;
+    width: 52px;
+    height: 46px;
+    font-size: 24px;
+}
+
+.country-destroyed-image {
+    flex-grow: 1;
+    width: 100%;
+    height: 0;
+    margin-bottom: 18px;
+    -unity-background-scale-mode: scale-to-fit;
+    background-image: url("project://database/Assets/Textures/Events/country_destroy.png?fileID=-2064606585841019640&guid=6d8cda9888878cd4a8a1d301eb75db59&type=3#country_destroy_0");
+}
+
+.country-destroyed-body {
+    align-self: stretch;
+    flex-shrink: 0;
+    margin-top: 8px;
+    margin-bottom: 24px;
+    font-size: 20px;
+    color: rgb(188, 176, 148);
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.country-destroyed-confirm {
+    width: 240px;
+    height: 52px;
+    font-size: 24px;
+    flex-shrink: 0;
+    margin-bottom: 8px;
+}

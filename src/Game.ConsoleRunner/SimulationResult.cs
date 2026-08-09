@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
+using GS.Game.Systems;
+
 namespace GS.Game.ConsoleRunner {
 	public class SimulationParameters {
 		public List<string> OrgIds { get; set; } = new();

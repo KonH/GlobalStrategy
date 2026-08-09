@@ -43,7 +43,6 @@ namespace GS.Game.ConsoleRunner {
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
 
-			logic.Commands.Push(new DebugDiscoverAllCountriesCommand());
 			foreach (var country in logic.CountryConfig.Countries) {
 				logic.Commands.Push(new ChangeControlCommand {
 					OrgId = winnerOrgId,
@@ -69,8 +68,8 @@ namespace GS.Game.ConsoleRunner {
 			// the pre-command control state — ResourceQuery.GetValue would then read a stale, one-tick-
 			// lagged org_score forever, since Update short-circuits once IsCompleted. Settle it directly
 			// via the same collector formula ResourceSystem would apply on the next (never-run) tick.
-			double currentScore = ResourceQuery.GetValue(logic.World, options.OrgId, ResourceDefinitions.OrgScore);
-			double scoreDelta = new OrgScoreCollector().Compute(options.OrgId, currentScore, logic.World);
+			double currentScore = logic.Resources.GetValue(logic.World, options.OrgId, ResourceDefinitions.OrgScore);
+			double scoreDelta = new OrgScoreCollector().Compute(options.OrgId, currentScore, logic.World, logic.Resources);
 
 			var result = new CalibrationResult {
 				Scenario = options.Scenario,

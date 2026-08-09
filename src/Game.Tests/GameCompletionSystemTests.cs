@@ -6,6 +6,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class GameCompletionSystemTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		sealed class QualifyingOrganizations : ICompletionCondition {
 			readonly HashSet<string> _organizationIds;
 
@@ -40,17 +42,31 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void get_available_country_ids_omits_destroyed_countries() {
+			var world = new World();
+			AddCountry(world, "Alive");
+			int destroyed = world.Create();
+			world.Add(destroyed, new Country { CountryId = "Dead" });
+			world.Add(destroyed, new IsDestroyed());
+
+			HashSet<string> available = GameCompletionSystem.GetAvailableCountryIds(world);
+
+			Assert.Contains("Alive", available);
+			Assert.DoesNotContain("Dead", available);
+		}
+
+		[Fact]
 		void no_countries_or_no_participants_leaves_the_game_in_progress() {
 			var noCountries = new World();
 			int noCountriesCompletion = AddCompletion(noCountries);
 			AddParticipant(noCountries, "A", 0);
-			GameCompletionSystem.Update(noCountries, noCountriesCompletion, new QualifyingOrganizations("A"), 100);
+			GameCompletionSystem.Update(noCountries, noCountriesCompletion, new QualifyingOrganizations("A"), 100, _resources);
 			Assert.False(noCountries.Get<GameCompletion>(noCountriesCompletion).IsCompleted);
 
 			var noParticipants = new World();
 			int noParticipantsCompletion = AddCompletion(noParticipants);
 			AddCountry(noParticipants, "Country");
-			GameCompletionSystem.Update(noParticipants, noParticipantsCompletion, new QualifyingOrganizations("A"), 100);
+			GameCompletionSystem.Update(noParticipants, noParticipantsCompletion, new QualifyingOrganizations("A"), 100, _resources);
 			Assert.False(noParticipants.Get<GameCompletion>(noParticipantsCompletion).IsCompleted);
 		}
 
@@ -62,7 +78,7 @@ namespace GS.Game.Tests {
 			int first = AddParticipant(world, "A", 0);
 			int second = AddParticipant(world, "B", 1);
 
-			GameCompletionSystem.Update(world, completion, new QualifyingOrganizations(), 100);
+			GameCompletionSystem.Update(world, completion, new QualifyingOrganizations(), 100, _resources);
 
 			Assert.False(world.Get<GameCompletion>(completion).IsCompleted);
 			Assert.Equal(OrganizationGameResult.InProgress, world.Get<OrganizationGameOutcome>(first).Result);
@@ -78,7 +94,7 @@ namespace GS.Game.Tests {
 			int first = AddParticipant(world, "B", 0);
 			int other = AddParticipant(world, "C", 2);
 
-			GameCompletionSystem.Update(world, completion, new QualifyingOrganizations("A", "B"), 100);
+			GameCompletionSystem.Update(world, completion, new QualifyingOrganizations("A", "B"), 100, _resources);
 
 			Assert.True(world.Get<GameCompletion>(completion).IsCompleted);
 			Assert.Equal("B", world.Get<GameCompletion>(completion).WinnerOrganizationId);
@@ -94,9 +110,9 @@ namespace GS.Game.Tests {
 			AddCountry(world, "Country");
 			int first = AddParticipant(world, "A", 0);
 			int second = AddParticipant(world, "B", 1);
-			GameCompletionSystem.Update(world, completion, new QualifyingOrganizations("A"), 100);
+			GameCompletionSystem.Update(world, completion, new QualifyingOrganizations("A"), 100, _resources);
 
-			GameCompletionSystem.Update(world, completion, new QualifyingOrganizations("B"), 100);
+			GameCompletionSystem.Update(world, completion, new QualifyingOrganizations("B"), 100, _resources);
 
 			Assert.Equal("A", world.Get<GameCompletion>(completion).WinnerOrganizationId);
 			Assert.Equal(OrganizationGameResult.Winner, world.Get<OrganizationGameOutcome>(first).Result);

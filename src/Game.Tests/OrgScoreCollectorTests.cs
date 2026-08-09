@@ -6,6 +6,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class OrgScoreCollectorTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		static void SeedCountryScore(World world, string countryId, double score) {
 			int entity = world.Create();
 			world.Add(entity, new ResourceOwner(countryId, OwnerType.Country));
@@ -31,7 +33,7 @@ namespace GS.Game.Tests {
 			AddControl(world, "Org1", "B", 50);
 			var collector = new OrgScoreCollector();
 
-			double delta = collector.Compute("Org1", 0.0, world);
+			double delta = collector.Compute("Org1", 0.0, world, _resources);
 
 			Assert.Equal(65.0, delta, 6);
 		}
@@ -42,7 +44,7 @@ namespace GS.Game.Tests {
 			SeedCountryScore(world, "A", 200);
 			var collector = new OrgScoreCollector();
 
-			double delta = collector.Compute("Org1", 0.0, world);
+			double delta = collector.Compute("Org1", 0.0, world, _resources);
 
 			Assert.Equal(0.0, delta);
 		}
@@ -53,7 +55,7 @@ namespace GS.Game.Tests {
 			AddControl(world, "Org1", "A", 50); // no Resource entity at all for A
 			var collector = new OrgScoreCollector();
 
-			double delta = collector.Compute("Org1", 0.0, world);
+			double delta = collector.Compute("Org1", 0.0, world, _resources);
 
 			Assert.Equal(0.0, delta);
 		}
@@ -66,7 +68,7 @@ namespace GS.Game.Tests {
 			AddControl(world, "Org1", "A", 20, "permanent_Org1_A");
 			var collector = new OrgScoreCollector();
 
-			double delta = collector.Compute("Org1", 0.0, world);
+			double delta = collector.Compute("Org1", 0.0, world, _resources);
 
 			Assert.Equal(30.0, delta, 6);
 		}
@@ -79,7 +81,7 @@ namespace GS.Game.Tests {
 			AddControl(world, "Org2", "A", 40);
 			var collector = new OrgScoreCollector();
 
-			double delta = collector.Compute("Org1", 0.0, world);
+			double delta = collector.Compute("Org1", 0.0, world, _resources);
 
 			Assert.Equal(30.0, delta, 6);
 		}
@@ -91,7 +93,7 @@ namespace GS.Game.Tests {
 			AddControl(world, "Org1", "A", 50);
 			var collector = new OrgScoreCollector();
 
-			double delta = collector.Compute("Org1", 40.0, world);
+			double delta = collector.Compute("Org1", 40.0, world, _resources);
 
 			Assert.Equal(10.0, delta, 6);
 		}

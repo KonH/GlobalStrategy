@@ -14,25 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: GS.Unity.Common::GS.Unity.Common.ActionVisualConfig
   defaultBackImage: {fileID: -2458957394299649226, guid: 1c6106ccfe009cd4791bf7e52d8378d4, type: 3}
   entries:
-  - actionId: discover_country
-    frontImage: {fileID: -1664331322968743427, guid: 53e256e9cfdcced4692382c9e7a8c2ca, type: 3}
-    backImage: {fileID: -2458957394299649226, guid: 1c6106ccfe009cd4791bf7e52d8378d4, type: 3}
-  - actionId: sphere_of_pressure
+  - actionId: improve_control
     frontImage: {fileID: 21300000, guid: 4b8bfcc96ac545940b794e72d2f11059, type: 3}
     backImage: {fileID: 0}
-  - actionId: letter_of_commendation_diplomacy_advisor
+  - actionId: improve_diplomacy_advisor_opinion
     frontImage: {fileID: 21300000, guid: 1ca4ade9507ac7b45ac7fe28fae7b772, type: 3}
     backImage: {fileID: 0}
-  - actionId: letter_of_commendation_economic_advisor
+  - actionId: improve_economic_advisor_opinion
     frontImage: {fileID: 21300000, guid: f2fad8d8ab667124cab519ceb080ee18, type: 3}
     backImage: {fileID: 0}
-  - actionId: letter_of_commendation_military_advisor
+  - actionId: improve_military_advisor_opinion
     frontImage: {fileID: 21300000, guid: e2c0dc778bc029844bc982b8c45e9082, type: 3}
     backImage: {fileID: 0}
-  - actionId: letter_of_commendation_secret_advisor
+  - actionId: improve_secret_advisor_opinion
     frontImage: {fileID: 21300000, guid: aa88f44cb1a9bd74ab0ea8c2861d38dc, type: 3}
     backImage: {fileID: 0}
-  - actionId: royal_audience
+  - actionId: improve_ruler_opinion
     frontImage: {fileID: 21300000, guid: 3896d7d1a84fe5646b68f2d9ec73a23f, type: 3}
     backImage: {fileID: 0}
   - actionId: make_friend
@@ -56,12 +53,12 @@ MonoBehaviour:
   - actionId: declare_war
     frontImage: {fileID: 21300000, guid: 6bf70291f6fdd5f48b51c6e816b200c0, type: 3}
     backImage: {fileID: 0}
-  - actionId: ultimatum
+  - actionId: force_war_win
     frontImage: {fileID: 21300000, guid: 08d59b08199b75c4280b40311eba31d0, type: 3}
     backImage: {fileID: 0}
-  - actionId: surrender
+  - actionId: force_war_loss
     frontImage: {fileID: 21300000, guid: 7188917c53336b34cbbe31421718a3ed, type: 3}
     backImage: {fileID: 0}
-  - actionId: revenge
+  - actionId: declare_revenge_war
     frontImage: {fileID: 8466993183105239378, guid: 44fad9397734b8942aa06bb5fa466b9c, type: 3}
     backImage: {fileID: 0}

@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using GS.Main;
 using Xunit;
 
+using GS.Game.Systems;
+
 namespace GS.Game.Tests {
 	public class VisualStateChangeNotificationTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		[Fact]
 		public void time_state_no_op_set_does_not_fire_property_changed() {
 			var state = new TimeState();
@@ -94,24 +98,23 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		public void discovered_countries_state_no_op_and_recently_discovered_ignored_in_equality_check() {
-			var state = new DiscoveredCountriesState();
+		public void world_countries_state_no_op_set_does_not_fire_property_changed() {
+			var state = new WorldCountriesState();
 			var ids = new HashSet<string> { "Great_Britain", "France" };
-			state.Set(ids, "France");
+			state.Set(ids);
 			int fireCount = 0;
 			state.PropertyChanged += (_, __) => fireCount++;
 
 			var reordered = new HashSet<string> { "France", "Great_Britain" };
-			state.Set(reordered, "Great_Britain");
+			state.Set(reordered);
 			Assert.Equal(0, fireCount);
-			Assert.Equal("Great_Britain", state.RecentlyDiscovered);
 
 			var added = new HashSet<string> { "France", "Great_Britain", "Germany" };
-			state.Set(added, "Germany");
+			state.Set(added);
 			Assert.Equal(1, fireCount);
 
 			var removed = new HashSet<string> { "France", "Great_Britain" };
-			state.Set(removed, "Germany");
+			state.Set(removed);
 			Assert.Equal(2, fireCount);
 		}
 
@@ -136,6 +139,45 @@ namespace GS.Game.Tests {
 			var changedRivals = new List<string> { "Russia" };
 			state.Set(changedFriends, changedRivals);
 			Assert.Equal(2, fireCount);
+		}
+
+		[Fact]
+		public void country_actions_state_notifies_for_each_projected_draw_state_change() {
+			var state = new CountryActionsState();
+			var hand = new List<ActionCardEntry>();
+			var deck = new List<ActionCardEntry>();
+			var choices = new List<CardDrawChoiceEntry>();
+			var time = new DateTime(1880, 1, 1);
+			state.Set(hand, deck, choices, 8, false, true, time);
+			int fireCount = 0;
+			state.PropertyChanged += (_, __) => fireCount++;
+
+			state.Set(new List<ActionCardEntry>(), new List<ActionCardEntry>(), new List<CardDrawChoiceEntry>(), 8, false, true, time);
+			Assert.Equal(0, fireCount);
+
+			state.Set(hand, deck, choices, 7, false, true, time);
+			Assert.Equal(1, fireCount);
+
+			var offeredCard = new ActionCardEntry("make_friend", -1, false, countryContextId: "Prussia");
+			var offeredChoices = new List<CardDrawChoiceEntry> { new CardDrawChoiceEntry(0, offeredCard) };
+			state.Set(hand, deck, offeredChoices, 7, false, true, time);
+			Assert.Equal(2, fireCount);
+
+			state.Set(hand, deck, offeredChoices, 7, true, true, time);
+			Assert.Equal(3, fireCount);
+
+			state.Set(hand, deck, offeredChoices, 7, true, false, time);
+			Assert.Equal(4, fireCount);
+
+			var offeredCardWithDifferentCountries = new ActionCardEntry(
+				"make_friend", -1, false,
+				playableCountryIds: new[] { "Austria", "Prussia" },
+				countryContextId: "Prussia");
+			var choicesWithDifferentCountries = new List<CardDrawChoiceEntry> {
+				new CardDrawChoiceEntry(0, offeredCardWithDifferentCountries)
+			};
+			state.Set(hand, deck, choicesWithDifferentCountries, 7, true, false, time);
+			Assert.Equal(5, fireCount);
 		}
 	}
 }

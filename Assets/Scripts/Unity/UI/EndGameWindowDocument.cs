@@ -20,16 +20,17 @@ namespace GS.Unity.UI {
 		VisualElement _root;
 		Button _btnExit;
 		EndGameWindowView _view;
-		bool _ownsModalState;
+		ModalState _modalState;
 		bool _subscribed;
 
 		[Inject]
-		void Construct(VisualState state, GameSettings gameSettings, ILocalization loc, OrgVisualConfig orgVisualConfig, SceneLoader sceneLoader) {
+		void Construct(VisualState state, GameSettings gameSettings, ILocalization loc, OrgVisualConfig orgVisualConfig, SceneLoader sceneLoader, ModalState modalState) {
 			_state = state;
 			_gameSettings = gameSettings;
 			_loc = loc;
 			_orgVisualConfig = orgVisualConfig;
 			_sceneLoader = sceneLoader;
+			_modalState = modalState;
 		}
 
 		void Awake() {
@@ -91,15 +92,11 @@ namespace GS.Unity.UI {
 				return;
 			}
 			if (!_state.GameCompletion.IsCompleted) {
-				if (_ownsModalState) {
-					ModalState.IsModalOpen = false;
-					_ownsModalState = false;
-				}
+				_modalState.Unlock(this);
 				_root.style.display = DisplayStyle.None;
 				return;
 			}
-			ModalState.IsModalOpen = true;
-			_ownsModalState = true;
+			_modalState.Lock(this);
 			_root.style.display = DisplayStyle.Flex;
 			_view.Refresh(_state.GameCompletion, _state.Leaderboard, _state.PlayerOrganization, _gameSettings.EndGameComparisons);
 		}

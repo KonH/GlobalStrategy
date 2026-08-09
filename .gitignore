@@ -65,6 +65,10 @@ BenchmarkDotNet.Artifacts/
 # Packages lock (optional: keep if you want reproducible builds)
 # Packages/packages-lock.json
 .claude/settings.local.json
+# Leftover on-disk clone from the old claude-tools submodule (dropped in favour
+# of the github-source marketplace in .claude/settings.json). Removing the
+# gitlink left the nested checkout behind in existing worktrees.
+.claude/vendor/
 .venv
 ComfyUI/
 Packages/com.unity.ide.rider

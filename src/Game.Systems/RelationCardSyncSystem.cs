@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Common;
@@ -12,7 +13,7 @@ namespace GS.Game.Systems {
 				|| actionId == "declare_war";
 		}
 
-		public static void Update(World world, ActionConfig config) {
+		public static void Update(World world, CountryRelations relations, ActionConfig config) {
 			int versionEntity = EnsureSingleton<CountryRelationsVersion>(world, new CountryRelationsVersion { Value = 0 });
 			int syncStateEntity = EnsureSingleton<RelationCardSyncState>(world, new RelationCardSyncState { LastSyncedVersion = -1 });
 
@@ -20,25 +21,35 @@ namespace GS.Game.Systems {
 			ref RelationCardSyncState syncState = ref world.Get<RelationCardSyncState>(syncStateEntity);
 			if (syncState.LastSyncedVersion == currentVersion) { return; }
 
-			var countryDecks = new List<(string orgId, string countryId)>();
-			int[] deckReq = { TypeId<CardDeck>.Value };
+			var orgIds = new SortedSet<string>(StringComparer.Ordinal);
+			int[] deckReq = { TypeId<CardDeck>.Value, TypeId<CardOwnerType>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(deckReq, null)) {
 				CardDeck[] decks = arch.GetColumn<CardDeck>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (decks[i].CountryId != "") {
-						countryDecks.Add((decks[i].OrgId, decks[i].CountryId));
+					if (owners[i].Value == CardOwnerKind.Country) {
+						orgIds.Add(decks[i].OrgId);
 					}
 				}
 			}
 
-			foreach (var (orgId, countryId) in countryDecks) {
-				var (friends, rivals) = CountryRelations.GetRelationsByCountryId(world, countryId);
-				foreach (string otherCountryId in friends) {
-					EnsureCardInstance(world, config, orgId, countryId, otherCountryId, RelationKind.Friend, "stop_friendship");
-				}
-				foreach (string otherCountryId in rivals) {
-					EnsureCardInstance(world, config, orgId, countryId, otherCountryId, RelationKind.Rival, "stop_rivalry");
-					EnsureCardInstance(world, config, orgId, countryId, otherCountryId, RelationKind.Rival, "declare_war");
+			var countryIds = new SortedSet<string>(StringComparer.Ordinal);
+			int[] countryReq = { TypeId<Country>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(countryReq, null)) {
+				Country[] countries = arch.GetColumn<Country>();
+				for (int i = 0; i < arch.Count; i++) { countryIds.Add(countries[i].CountryId); }
+			}
+
+			foreach (string orgId in orgIds) {
+				foreach (string countryId in countryIds) {
+					var (friends, rivals) = relations.GetRelationsByCountryId(world, countryId);
+					foreach (string otherCountryId in friends) {
+						EnsureCardInstance(world, config, orgId, countryId, otherCountryId, RelationKind.Friend, "stop_friendship");
+					}
+					foreach (string otherCountryId in rivals) {
+						EnsureCardInstance(world, config, orgId, countryId, otherCountryId, RelationKind.Rival, "stop_rivalry");
+						EnsureCardInstance(world, config, orgId, countryId, otherCountryId, RelationKind.Rival, "declare_war");
+					}
 				}
 			}
 
@@ -77,6 +88,7 @@ namespace GS.Game.Systems {
 			int e = world.Create();
 			world.Add(e, new GameAction { ActionId = actionId });
 			world.Add(e, new OrgContext { OrgId = orgId });
+			world.Add(e, new CardOwnerType(CardOwnerKind.Country));
 			world.Add(e, new CountryContext { CountryId = countryId });
 			world.Add(e, new RelationCardTarget { TargetCountryId = targetCountryId, Kind = kind });
 		}

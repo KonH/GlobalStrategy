@@ -24,7 +24,7 @@ namespace GS.Game.Systems {
 		}
 
 		/// <summary>
-		/// Debug cheat: discard a specific hand card so CheckHandSizeSystem can trigger a replacement draw.
+		/// Debug cheat: discard a specific hand card without starting the production paid-discard offer flow.
 		/// </summary>
 		public static bool ForceDiscard(
 			World world,
@@ -56,35 +56,22 @@ namespace GS.Game.Systems {
 			string actionId,
 			string targetCountryId,
 			int slotIndex) {
-			if (string.IsNullOrEmpty(countryId)) {
-				int[] req = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardInHand>.Value };
-				int[] excludeCountry = { TypeId<CountryContext>.Value };
-				foreach (var arch in world.GetMatchingArchetypes(req, excludeCountry)) {
-					GameAction[] actions = arch.GetColumn<GameAction>();
-					OrgContext[] orgs = arch.GetColumn<OrgContext>();
-					CardInHand[] hands = arch.GetColumn<CardInHand>();
-					int count = arch.Count;
-					for (int i = 0; i < count; i++) {
-						if (orgs[i].OrgId == orgId
-							&& actions[i].ActionId == actionId
-							&& hands[i].SlotIndex == slotIndex) {
-							return arch.Entities[i];
-						}
-					}
-				}
-				return -1;
-			}
-
-			int[] countryReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<CardInHand>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(countryReq, null)) {
+			CardOwnerKind ownerKind = string.IsNullOrEmpty(countryId) ? CardOwnerKind.Org : CardOwnerKind.Country;
+			int[] required = {
+				TypeId<GameAction>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CardOwnerType>.Value,
+				TypeId<CardInHand>.Value
+			};
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
-				CountryContext[] countries = arch.GetColumn<CountryContext>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				CardInHand[] hands = arch.GetColumn<CardInHand>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId
-						|| countries[i].CountryId != countryId
+						|| owners[i].Value != ownerKind
 						|| actions[i].ActionId != actionId
 						|| hands[i].SlotIndex != slotIndex) {
 						continue;

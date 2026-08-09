@@ -10,14 +10,41 @@ namespace GS.Main {
 		public PayType PayType { get; }
 		public double MaxTotal { get; }
 		public string OrgDisplayName { get; }
+		public BaseIncomeBreakdownState? BaseIncomeBreakdown { get; }
 
 		public EffectStateEntry(
-			string effectId, double value, PayType payType, double maxTotal = 0, string orgDisplayName = "") {
+			string effectId, double value, PayType payType, double maxTotal = 0, string orgDisplayName = "",
+			BaseIncomeBreakdownState? baseIncomeBreakdown = null) {
 			EffectId = effectId;
 			Value = value;
 			PayType = payType;
 			MaxTotal = maxTotal;
 			OrgDisplayName = orgDisplayName;
+			BaseIncomeBreakdown = baseIncomeBreakdown;
+		}
+	}
+
+	public class BaseIncomeBreakdownState {
+		public double FlatBase { get; }
+		public double Population { get; }
+		public double PopulationContribution { get; }
+		public int ProvinceCount { get; }
+		public double ProvinceContribution { get; }
+		public double AdvisorSkill { get; }
+		public double AdvisorContribution { get; }
+
+		public BaseIncomeBreakdownState(
+			double flatBase,
+			double population, double populationContribution,
+			int provinceCount, double provinceContribution,
+			double advisorSkill, double advisorContribution) {
+			FlatBase = flatBase;
+			Population = population;
+			PopulationContribution = populationContribution;
+			ProvinceCount = provinceCount;
+			ProvinceContribution = provinceContribution;
+			AdvisorSkill = advisorSkill;
+			AdvisorContribution = advisorContribution;
 		}
 	}
 

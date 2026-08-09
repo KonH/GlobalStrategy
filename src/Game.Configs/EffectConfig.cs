@@ -5,10 +5,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace GS.Game.Configs {
-	public class DiscoverCountryEffectParams : ActionEffectDefinition {
-		public double MinCountryChance { get; set; }
-	}
-
 	public class ControlChangeEffectParams : ActionEffectDefinition {
 		public int Amount { get; set; }
 	}
@@ -67,7 +63,6 @@ namespace GS.Game.Configs {
 				string effectType = obj["effectType"]?.Value<string>() ?? "";
 				ActionEffectDefinition item;
 				switch (effectType) {
-					case "DiscoverCountry": item = obj.ToObject<DiscoverCountryEffectParams>(serializer)!; break;
 					case "ControlChange": item = obj.ToObject<ControlChangeEffectParams>(serializer)!; break;
 					case "OpinionModifier": item = obj.ToObject<OpinionModifierEffectParams>(serializer)!; break;
 					case "SetCountryRelation": item = obj.ToObject<SetCountryRelationEffectParams>(serializer)!; break;

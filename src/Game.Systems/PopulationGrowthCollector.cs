@@ -10,7 +10,7 @@ namespace GS.Game.Systems {
 			_percentPerMonth = percentPerMonth;
 		}
 
-		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world) {
+		public double Compute(string ownerId, double currentValue, IReadOnlyWorld world, ResourceQuery resources) {
 			return currentValue * _percentPerMonth / 100.0;
 		}
 	}

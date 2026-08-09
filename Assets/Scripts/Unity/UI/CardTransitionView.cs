@@ -39,32 +39,18 @@ namespace GS.Unity.UI {
 		}
 
 		public async UniTask ShowCountry(
-			string actionId,
+			ActionCardBuilder.CountryCardFace faceData,
 			Rect fromRect,
 			VisualElement toElement,
-			float duration,
-			ActionConfig actionConfig,
-			ActionVisualConfig visualConfig,
-			ILocalization loc,
-			string targetCountryId = "") {
+			float duration) {
+			if (faceData == null) {
+				throw new System.ArgumentNullException(nameof(faceData));
+			}
 			if (_cardCopy != null) {
 				_overlay.Remove(_cardCopy);
 			}
 
-			var def = actionConfig?.Find(actionId);
-			string nameText;
-			if (def == null) {
-				nameText = actionId;
-			} else if (!string.IsNullOrEmpty(targetCountryId)) {
-				nameText = string.Format(loc.Get(def.NameKey), loc.Get($"country_name.{targetCountryId}"));
-			} else {
-				nameText = loc.Get(def.NameKey);
-			}
-			string descText = def != null ? loc.Get(def.DescKey) : "";
-			string goldCostText = GetGoldCostText(def);
-			var sprite = visualConfig?.FindFront(actionId);
-
-			var built = ActionCardBuilder.Build(nameText, descText, goldCostText, sprite);
+			var built = ActionCardBuilder.Build(faceData, false);
 			_cardCopy = built.Card;
 			_cardCopy.AddToClassList("action-card--available");
 			await PlaceAndAnimate(fromRect, toElement, duration);
@@ -73,7 +59,7 @@ namespace GS.Unity.UI {
 		async UniTask PlaceAndAnimate(Rect fromRect, VisualElement toElement, float duration) {
 			_cardCopy.style.position = Position.Absolute;
 			_cardCopy.style.width = 240f;
-			_cardCopy.style.height = 320f;
+			_cardCopy.style.height = 360f;
 
 			var fromLocal = _overlay.WorldToLocal(new Vector2(fromRect.x, fromRect.y));
 			_cardCopy.style.left = fromLocal.x;

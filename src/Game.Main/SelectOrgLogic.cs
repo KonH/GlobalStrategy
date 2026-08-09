@@ -11,19 +11,24 @@ namespace GS.Main {
 		readonly World _world = new World();
 		readonly CommandAccessor _commandAccessor = new CommandAccessor();
 		readonly Dictionary<string, OrganizationEntry> _hqToOrg = new Dictionary<string, OrganizationEntry>();
-		readonly ResourceConfig _resourceConfig;
+		readonly ProvinceConfig _provinceConfig;
+		readonly CharacterConfig? _characterConfig;
+		readonly BaseIncomeSettings _baseIncomeSettings;
 
 		public VisualState VisualState { get; } = new VisualState();
 		public IWriteOnlyCommandAccessor Commands { get; }
 		public IReadOnlyList<string> HqCountryIds { get; }
 
 		public SelectOrgLogic(
-			IConfigSource<GS.Game.Configs.CountryConfig> countryConfig,
-			IConfigSource<OrganizationConfig> orgConfig,
+			IReadOnlyConfigSource<GS.Game.Configs.CountryConfig> countryConfig,
+			IReadOnlyConfigSource<OrganizationConfig> orgConfig,
 			ResourceConfig resourceConfig,
-			IConfigSource<GameSettings> gameSettingsConfig) {
+			IReadOnlyConfigSource<GameSettings> gameSettingsConfig,
+			ProvinceConfig provinceConfig,
+			CharacterConfig? characterConfig = null) {
 			Commands = (IWriteOnlyCommandAccessor)_commandAccessor;
-			_resourceConfig = resourceConfig;
+			_provinceConfig = provinceConfig;
+			_characterConfig = characterConfig;
 
 			var config = countryConfig.Load();
 			int availableCountryCount = 0;
@@ -44,6 +49,7 @@ namespace GS.Main {
 			HqCountryIds = hqIds;
 
 			var gameSettings = gameSettingsConfig.Load();
+			_baseIncomeSettings = gameSettings.BaseIncome;
 			var (isAvailable, isAlternativeGroup, rows) = WinConditionHintProjector.Build(
 				gameSettings.CompletionCondition, availableCountryCount);
 			VisualState.WinConditionHint.Set(isAvailable, isAlternativeGroup, rows);
@@ -74,15 +80,8 @@ namespace GS.Main {
 				return 0;
 			}
 
-			double hqBaseIncome = 0;
-			var goldDef = _resourceConfig.FindResource(ResourceDefinitions.Gold);
-			if (goldDef != null) {
-				foreach (var effect in goldDef.DefaultEffects) {
-					if (effect.PayType.Equals("Monthly", StringComparison.OrdinalIgnoreCase) && effect.Value > 0) {
-						hqBaseIncome += effect.Value;
-					}
-				}
-			}
+			double hqBaseIncome = BaseIncomeFormula.ComputeFromConfig(
+				_provinceConfig, _characterConfig, orgEntry.HqCountryId, _baseIncomeSettings);
 			return (orgEntry.BaseControl / 100.0) * hqBaseIncome;
 		}
 

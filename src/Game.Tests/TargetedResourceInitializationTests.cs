@@ -12,7 +12,7 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class TargetedResourceInitializationTests {
-		sealed class StaticConfig<T> : IConfigSource<T> {
+		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 
 			public StaticConfig(T value) => _value = value;
@@ -127,7 +127,9 @@ namespace GS.Game.Tests {
 				new StaticConfig<GeoJsonConfig>(new GeoJsonConfig()),
 				new StaticConfig<MapEntryConfig>(new MapEntryConfig()),
 				new StaticConfig<CountryConfig>(countryConfig),
-				new StaticConfig<GameSettings>(new GameSettings()),
+				new StaticConfig<GameSettings>(new GameSettings {
+					FeatureFlags = new FeatureFlagSettings { EnableRuler = true }
+				}),
 				new StaticConfig<ResourceConfig>(resourceConfig ?? BuildResourceConfig()),
 				new StaticConfig<OrganizationConfig>(organizationConfig),
 				initialOrganizationId: "org_a",

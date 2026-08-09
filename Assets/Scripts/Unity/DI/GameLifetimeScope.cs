@@ -33,6 +33,7 @@ namespace GS.Unity.DI {
 		protected override void Configure(IContainerBuilder builder) {
 			var storage = new PersistentStorage();
 			var serializer = new NewtonsoftSnapshotSerializer();
+			var settingsStorage = new SettingsStorage(storage);
 
 			string initialOrgId = SceneTransitionArgs.OrganizationId ?? "";
 
@@ -63,7 +64,8 @@ namespace GS.Unity.DI {
 				effect: _effectConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.EffectConfig>(_effectConfigAsset) : null,
 				mapGeometry: new MapGeometryConfig(_geoJsonConfig),
 				province: new TextAssetConfig<GS.Game.Configs.ProvinceConfig>(_provinceConfigAsset),
-				participatingOrganizationIds: participatingOrgIds
+				participatingOrganizationIds: participatingOrgIds,
+				initialLocale: settingsStorage.Locale
 			);
 
 			var domainCountryConfig = new TextAssetConfig<GS.Game.Configs.CountryConfig>(_countryConfigAsset).Load();
@@ -80,6 +82,8 @@ namespace GS.Unity.DI {
 			builder.Register(c => c.Resolve<GameLogic>().EffectConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().ProvinceConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().GameSettings, Lifetime.Singleton);
+			builder.Register(c => c.Resolve<GameLogic>().CountryActionsVisibility, Lifetime.Singleton);
+			builder.Register(c => c.Resolve<GameLogic>().DebugOrgCardVisibility, Lifetime.Singleton);
 			builder.RegisterInstance(_actionVisualConfig);
 
 			builder.RegisterInstance<IPersistentStorage>(storage);
@@ -98,12 +102,17 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<TimeInputHandler>();
 
 			builder.Register<ECS.Viewer.PauseToken>(VContainer.Lifetime.Singleton);
+			builder.Register<ModalState>(Lifetime.Singleton);
+			builder.Register<UIPointerState>(Lifetime.Singleton);
 			builder.RegisterEntryPoint<GameLoopRunner>();
 			builder.RegisterComponentInHierarchy<EcsViewerBridge>();
 
 			builder.RegisterComponentInHierarchy<GameMenuDocument>();
 			builder.RegisterComponentInHierarchy<LeaderboardWindowDocument>();
+			builder.RegisterComponentInHierarchy<GoalsWindowDocument>();
 			builder.RegisterComponentInHierarchy<WarProgressWindowDocument>();
+			builder.RegisterComponentInHierarchy<WarResultWindowDocument>();
+			builder.RegisterComponentInHierarchy<CountryDestroyedWindowDocument>();
 			builder.RegisterComponentInHierarchy<SettingsWindowDocument>();
 			builder.RegisterComponentInHierarchy<OrgInfoDocument>();
 			builder.RegisterComponentInHierarchy<CardPlayAnimator>();

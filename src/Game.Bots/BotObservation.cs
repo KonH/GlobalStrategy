@@ -11,9 +11,12 @@ namespace GS.Game.Bots {
 		public DateTime CurrentDate { get; }
 		public double Gold { get; }
 		public int OrgHandSize { get; }
+		public int CountryHandCount { get; }
+		public int CountryHandCapacity { get; }
+		public bool CanStartCountryCardDraw { get; }
 		public int TotalControl { get; }
 		public IReadOnlyList<BotCardView> OrgHand { get; }
-		public IReadOnlyList<string> DiscoveredCountryIds { get; }
+		public IReadOnlyList<BotCardDrawChoiceView> CountryCardDrawChoices { get; }
 		public IReadOnlyList<BotCharacterSlotView> CharacterSlots { get; }
 		public IReadOnlyList<BotCountryView> Countries { get; }
 
@@ -24,18 +27,24 @@ namespace GS.Game.Bots {
 			DateTime currentDate,
 			double gold,
 			int orgHandSize,
+			int countryHandCount,
+			int countryHandCapacity,
+			bool canStartCountryCardDraw,
 			int totalControl,
 			IReadOnlyList<BotCardView> orgHand,
-			IReadOnlyList<string> discoveredCountryIds,
+			IReadOnlyList<BotCardDrawChoiceView> countryCardDrawChoices,
 			IReadOnlyList<BotCharacterSlotView> characterSlots,
 			IReadOnlyList<BotCountryView> countries) {
 			OrgId = orgId;
 			CurrentDate = currentDate;
 			Gold = gold;
 			OrgHandSize = orgHandSize;
+			CountryHandCount = countryHandCount;
+			CountryHandCapacity = countryHandCapacity;
+			CanStartCountryCardDraw = canStartCountryCardDraw;
 			TotalControl = totalControl;
 			OrgHand = orgHand;
-			DiscoveredCountryIds = discoveredCountryIds;
+			CountryCardDrawChoices = countryCardDrawChoices;
 			CharacterSlots = characterSlots;
 			Countries = countries;
 			_countryById = new Dictionary<string, BotCountryView>();
@@ -60,19 +69,24 @@ namespace GS.Game.Bots {
 			return currentDate;
 		}
 
-		static (bool discoversCountry, bool raisesControl) ClassifyCard(ActionDefinition? def, EffectConfig effectConfig) {
-			bool discovers = false, raises = false;
-			if (def != null) {
-				foreach (var effectId in def.EffectIds) {
-					var effect = effectConfig.Find(effectId);
-					if (effect is DiscoverCountryEffectParams) { discovers = true; }
-					if (effect is ControlChangeEffectParams ccp && ccp.Amount > 0) { raises = true; }
-				}
+		static bool ClassifyRaisesControl(ActionDefinition? def, EffectConfig effectConfig) {
+			if (def == null) { return false; }
+			foreach (var effectId in def.EffectIds) {
+				var effect = effectConfig.Find(effectId);
+				if (effect is ControlChangeEffectParams ccp && ccp.Amount > 0) { return true; }
 			}
-			return (discovers, raises);
+			return false;
 		}
 
-		public static BotObservation Build(IReadOnlyWorld world, ActionConfig actionConfig, string orgId, EffectConfig? effectConfig = null) {
+		public static BotObservation Build(
+			IReadOnlyWorld world,
+			ActionConfig actionConfig,
+			string orgId,
+			ResourceQuery resources,
+			CountryRelations relations,
+			EffectConfig? effectConfig = null,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
+			int maxControlPool = 100) {
 			var effectConfigResolved = effectConfig ?? new EffectConfig();
 			DateTime currentDate = ReadCurrentDate(world);
 
@@ -80,49 +94,36 @@ namespace GS.Game.Bots {
 			int totalControl = OrgMetrics.GetTotalControl(world, orgId);
 			Dictionary<string, int> myControlByCountry = OrgMetrics.GetControlByCountry(world, orgId);
 
-			var discovered = new SortedSet<string>(StringComparer.Ordinal);
-			int[] discReq = { TypeId<DiscoveredCountry>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(discReq, null)) {
-				DiscoveredCountry[] dcs = arch.GetColumn<DiscoveredCountry>();
+			var countryIds = new SortedSet<string>(StringComparer.Ordinal);
+			int[] countryReq = { TypeId<Country>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(countryReq, null)) {
+				Country[] countryColumn = arch.GetColumn<Country>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (dcs[i].OrgId == orgId) { discovered.Add(dcs[i].CountryId); }
+					countryIds.Add(countryColumn[i].CountryId);
 				}
 			}
 
-			var controlByCountry = new Dictionary<string, Dictionary<string, int>>();
-			int[] controlReq = { TypeId<ControlEffect>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(controlReq, null)) {
-				ControlEffect[] effects = arch.GetColumn<ControlEffect>();
-				for (int i = 0; i < arch.Count; i++) {
-					string countryId = effects[i].CountryId;
-					if (!discovered.Contains(countryId)) { continue; }
-					if (!controlByCountry.TryGetValue(countryId, out var byOrg)) {
-						byOrg = new Dictionary<string, int>();
-						controlByCountry[countryId] = byOrg;
-					}
-					byOrg.TryGetValue(effects[i].OrgId, out int existing);
-					byOrg[effects[i].OrgId] = existing + effects[i].Value;
-				}
-			}
+			// Precomputed once per Build() call so the cards x countries ActionPlayability.CanPlayFast
+			// scan below doesn't rescan every ControlEffect/WarParticipant entity in the world for
+			// each (card, country) pair (see .tmp/performance.md Fix 1).
+			ControlWarSnapshot snapshot = ControlWarSnapshot.Build(world, countryIds);
+			IReadOnlyDictionary<string, Dictionary<string, int>> controlByCountry = snapshot.ControlByCountry;
 
 			var orgHandCards = new List<BotCardView>();
 			var countryHandCards = new Dictionary<string, List<BotCardView>>();
+			var countryHandEntities = new List<(int entity, string actionId, int slotIndex, string targetCountryId, List<BotCostView> costs, double goldCost, bool raisesControl)>();
 
-			int[] cardReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardInHand>.Value };
+			int[] cardReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardOwnerType>.Value, TypeId<CardInHand>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(cardReq, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgContexts = arch.GetColumn<OrgContext>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				CardInHand[] inHands = arch.GetColumn<CardInHand>();
 				for (int i = 0; i < arch.Count; i++) {
 					if (orgContexts[i].OrgId != orgId) { continue; }
 					int entity = arch.Entities[i];
 					string actionId = actions[i].ActionId;
 					int slotIndex = inHands[i].SlotIndex;
-					string? countryId = null;
-					if (world.TryGet<CountryContext>(entity, out var cc)) {
-						countryId = cc.CountryId;
-					}
-
 					var def = actionConfig.Find(actionId);
 					var costs = new List<BotCostView>();
 					double goldCost = 0;
@@ -133,51 +134,141 @@ namespace GS.Game.Bots {
 						}
 					}
 
-					bool isPlayable = ActionPlayability.Evaluate(world, actionConfig, entity, actionId, orgId, countryId);
-					var (discoversCountry, raisesControl) = ClassifyCard(def, effectConfigResolved);
+					bool raisesControl = ClassifyRaisesControl(def, effectConfigResolved);
+					string targetCountryId = world.Has<RelationCardTarget>(entity)
+						? world.Get<RelationCardTarget>(entity).TargetCountryId
+						: world.Has<RevengeCardTarget>(entity)
+							? world.Get<RevengeCardTarget>(entity).TargetCountryId
+							: "";
 
-					if (countryId == null) {
+					if (owners[i].Value == CardOwnerKind.Org) {
+						bool isPlayable = ActionPlayability.CanPlayFast(
+							world, actionConfig, entity, actionId, orgId, null,
+							resources, relations, hqCountryByOrgId, currentDate, maxControlPool,
+							ActionPlayabilityGateSet.All, snapshot);
 						orgHandCards.Add(new BotCardView {
 							ActionId = actionId,
 							SlotIndex = slotIndex,
 							CountryId = "",
+							TargetCountryId = targetCountryId,
 							Cost = costs,
 							GoldCost = goldCost,
 							IsPlayable = isPlayable,
-							DiscoversCountry = discoversCountry,
 							RaisesControl = raisesControl
 						});
-					} else if (discovered.Contains(countryId)) {
-						if (!countryHandCards.TryGetValue(countryId, out var list)) {
-							list = new List<BotCardView>();
-							countryHandCards[countryId] = list;
-						}
-						list.Add(new BotCardView {
-							ActionId = actionId,
-							SlotIndex = slotIndex,
-							CountryId = countryId,
-							Cost = costs,
-							GoldCost = goldCost,
-							IsPlayable = isPlayable,
-							DiscoversCountry = discoversCountry,
-							RaisesControl = raisesControl
-						});
+					} else {
+						countryHandEntities.Add((entity, actionId, slotIndex, targetCountryId, costs, goldCost, raisesControl));
 					}
+				}
+			}
+
+			foreach (var card in countryHandEntities) {
+				foreach (string candidateCountryId in countryIds) {
+					if (!countryHandCards.TryGetValue(candidateCountryId, out var list)) {
+						list = new List<BotCardView>();
+						countryHandCards[candidateCountryId] = list;
+					}
+					bool isPlayable = ActionPlayability.CanPlayFast(
+						world, actionConfig, card.entity, card.actionId, orgId, candidateCountryId,
+						resources, relations, hqCountryByOrgId, currentDate, maxControlPool,
+						ActionPlayabilityGateSet.All, snapshot);
+					list.Add(new BotCardView {
+						ActionId = card.actionId,
+						SlotIndex = card.slotIndex,
+						CountryId = candidateCountryId,
+						TargetCountryId = card.targetCountryId,
+						Cost = card.costs,
+						GoldCost = card.goldCost,
+						IsPlayable = isPlayable,
+						RaisesControl = card.raisesControl
+					});
 				}
 			}
 			orgHandCards.Sort((a, b) => a.SlotIndex.CompareTo(b.SlotIndex));
 
 			int orgHandSize = 0;
-			int[] deckReq = { TypeId<CardDeck>.Value, TypeId<CardHand>.Value };
+			int[] deckReq = { TypeId<CardDeck>.Value, TypeId<CardOwnerType>.Value, TypeId<CardHand>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(deckReq, null)) {
 				CardDeck[] decks = arch.GetColumn<CardDeck>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				CardHand[] hands = arch.GetColumn<CardHand>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (decks[i].OrgId == orgId && string.IsNullOrEmpty(decks[i].CountryId)) {
+					if (decks[i].OrgId == orgId && owners[i].Value == CardOwnerKind.Org) {
 						orgHandSize = hands[i].HandSize;
 						break;
 					}
 				}
+			}
+
+			int countryHandCount = 0;
+			int countryHandCapacity = 0;
+			bool canStartCountryCardDraw = false;
+			bool hasDrawStatus = CountryCardDrawQuery.TryGetStatus(
+				world, actionConfig, orgId, out CountryCardDrawStatus drawStatus);
+			if (hasDrawStatus) {
+				countryHandCount = drawStatus.HandCount;
+				countryHandCapacity = drawStatus.HandSize;
+				canStartCountryCardDraw = drawStatus.CanStartDraw;
+			}
+
+			var drawChoices = new List<BotCardDrawChoiceView>();
+			IReadOnlyList<CountryCardDrawChoiceInfo> coherentChoices = Array.Empty<CountryCardDrawChoiceInfo>();
+			if (hasDrawStatus
+				&& drawStatus.HasCoherentPendingDraw
+				&& CountryCardDrawQuery.TryGetCoherentChoices(world, orgId, out IReadOnlyList<CountryCardDrawChoiceInfo> choices)) {
+				coherentChoices = choices;
+			}
+			foreach (CountryCardDrawChoiceInfo choice in coherentChoices) {
+				if (!world.Has<GameAction>(choice.Entity)) {
+					continue;
+				}
+				string actionId = world.Get<GameAction>(choice.Entity).ActionId;
+				ActionDefinition? def = actionConfig.Find(actionId);
+				var costs = new List<BotCostView>();
+				double goldCost = 0;
+				if (def != null) {
+					foreach (ActionCost cost in def.Cost) {
+						costs.Add(new BotCostView { ResourceId = cost.ResourceId, Amount = cost.Amount });
+						if (cost.ResourceId == ResourceDefinitions.Gold) {
+							goldCost += cost.Amount;
+						}
+					}
+				}
+
+				bool raisesControl = ClassifyRaisesControl(def, effectConfigResolved);
+				bool isPlayable = false;
+				bool isControlUsable = false;
+				foreach (string countryId in countryIds) {
+					bool canPlay = ActionPlayability.CanPlayFast(
+						world, actionConfig, choice.Entity, actionId, orgId, countryId,
+						resources, relations, hqCountryByOrgId, currentDate, maxControlPool,
+						ActionPlayabilityGateSet.All, snapshot);
+					if (!canPlay) {
+						continue;
+					}
+					isPlayable = true;
+					int countryControl = snapshot.GetTotalControl(countryId);
+					if (raisesControl && countryControl < maxControlPool) {
+						isControlUsable = true;
+						break;
+					}
+				}
+
+				string targetCountryId = world.Has<RelationCardTarget>(choice.Entity)
+					? world.Get<RelationCardTarget>(choice.Entity).TargetCountryId
+					: world.Has<RevengeCardTarget>(choice.Entity)
+						? world.Get<RevengeCardTarget>(choice.Entity).TargetCountryId
+						: "";
+				drawChoices.Add(new BotCardDrawChoiceView {
+					ChoiceIndex = choice.ChoiceIndex,
+					ActionId = actionId,
+					TargetCountryId = targetCountryId,
+					Cost = costs,
+					GoldCost = goldCost,
+					RaisesControl = raisesControl,
+					IsPlayable = isPlayable,
+					IsControlUsable = isControlUsable
+				});
 			}
 
 			var slots = new List<BotCharacterSlotView>();
@@ -206,10 +297,10 @@ namespace GS.Game.Bots {
 				Character[] chars = arch.GetColumn<Character>();
 				for (int i = 0; i < arch.Count; i++) {
 					string countryId = chars[i].CountryId;
-					if (string.IsNullOrEmpty(countryId) || !discovered.Contains(countryId)) { continue; }
+					if (string.IsNullOrEmpty(countryId) || !countryIds.Contains(countryId)) { continue; }
 
 					double opinion = 0.0;
-					int resourceEntity = ActionPlayability.FindResourceEntity(world, chars[i].CharacterId, opinionResourceId);
+					int resourceEntity = resources.FindEntity(world, chars[i].CharacterId, opinionResourceId);
 					if (resourceEntity >= 0) {
 						opinion = world.Get<Resource>(resourceEntity).Value;
 					}
@@ -230,7 +321,7 @@ namespace GS.Game.Bots {
 			}
 
 			var countries = new List<BotCountryView>();
-			foreach (string countryId in discovered) {
+			foreach (string countryId in countryIds) {
 				int myControl = myControlByCountry.TryGetValue(countryId, out int mc) ? mc : 0;
 
 				var shares = new List<BotControlShare>();
@@ -263,9 +354,12 @@ namespace GS.Game.Bots {
 				currentDate,
 				gold,
 				orgHandSize,
+				countryHandCount,
+				countryHandCapacity,
+				canStartCountryCardDraw,
 				totalControl,
 				orgHandCards,
-				new List<string>(discovered),
+				drawChoices,
 				slots,
 				countries);
 		}

@@ -91,14 +91,35 @@ namespace GS.Main {
 			return a.ActionId == b.ActionId
 				&& a.SlotIndex == b.SlotIndex
 				&& a.IsInHand == b.IsInHand
+				&& a.CanPlay == b.CanPlay
 				&& a.IsUnplayable == b.IsUnplayable
 				&& a.UnplayableReason == b.UnplayableReason
+				&& ActionConditionDebugEntryNullableEquals(a.FirstFailure, b.FirstFailure)
+				&& a.CountryContextId == b.CountryContextId
 				&& a.TargetCountryId == b.TargetCountryId
+				&& ListEquals(a.PlayableCountryIds, b.PlayableCountryIds, (x, y) => x == y)
+				&& a.WarWinChancePercent == b.WarWinChancePercent
+				&& a.CooldownRemainingDays == b.CooldownRemainingDays
+				&& a.CooldownFractionRemaining == b.CooldownFractionRemaining
 				&& ListEquals(a.Conditions, b.Conditions, ActionConditionDebugEntryEquals);
 		}
 
+		public static bool CardDrawChoiceEntryEquals(CardDrawChoiceEntry a, CardDrawChoiceEntry b) {
+			return a.ChoiceIndex == b.ChoiceIndex
+				&& ActionCardEntryEquals(a.Card, b.Card);
+		}
+
 		public static bool ActionConditionDebugEntryEquals(ActionConditionDebugEntry a, ActionConditionDebugEntry b) {
-			return a.Label == b.Label && a.Passed == b.Passed;
+			return a.Label == b.Label
+				&& a.Passed == b.Passed
+				&& a.LocaleKey == b.LocaleKey
+				&& a.ReasonCode == b.ReasonCode
+				&& ListEquals(a.LocaleArguments, b.LocaleArguments, (x, y) => x == y);
+		}
+
+		static bool ActionConditionDebugEntryNullableEquals(ActionConditionDebugEntry? a, ActionConditionDebugEntry? b) {
+			if (a == null || b == null) { return a == null && b == null; }
+			return ActionConditionDebugEntryEquals(a, b);
 		}
 
 		public static bool VisualResourceChangeEffectEquals(VisualResourceChangeEffect a, VisualResourceChangeEffect b) {
@@ -113,6 +134,19 @@ namespace GS.Main {
 				&& a.EntityId == b.EntityId
 				&& a.DisplayName == b.DisplayName
 				&& a.Score == b.Score;
+		}
+
+		public static bool GoalProgressEntryStateEquals(GoalProgressEntryState a, GoalProgressEntryState b) {
+			return a.Kind == b.Kind
+				&& a.ConfigValue == b.ConfigValue
+				&& a.Current == b.Current
+				&& a.Target == b.Target
+				&& a.AvailableCountryCount == b.AvailableCountryCount;
+		}
+
+		public static bool GoalsOrgEntryStateEquals(GoalsOrgEntryState a, GoalsOrgEntryState b) {
+			return a.OrgId == b.OrgId
+				&& ListEquals(a.Goals, b.Goals, GoalProgressEntryStateEquals);
 		}
 
 		public static bool WarIconEntryStateEquals(WarIconEntryState a, WarIconEntryState b) {
@@ -178,7 +212,24 @@ namespace GS.Main {
 				&& a.Value == b.Value
 				&& a.PayType == b.PayType
 				&& a.MaxTotal == b.MaxTotal
-				&& a.OrgDisplayName == b.OrgDisplayName;
+				&& a.OrgDisplayName == b.OrgDisplayName
+				&& BaseIncomeBreakdownEquals(a.BaseIncomeBreakdown, b.BaseIncomeBreakdown);
+		}
+
+		static bool BaseIncomeBreakdownEquals(BaseIncomeBreakdownState? a, BaseIncomeBreakdownState? b) {
+			if (a == null && b == null) {
+				return true;
+			}
+			if (a == null || b == null) {
+				return false;
+			}
+			return a.FlatBase == b.FlatBase
+				&& a.Population == b.Population
+				&& a.PopulationContribution == b.PopulationContribution
+				&& a.ProvinceCount == b.ProvinceCount
+				&& a.ProvinceContribution == b.ProvinceContribution
+				&& a.AdvisorSkill == b.AdvisorSkill
+				&& a.AdvisorContribution == b.AdvisorContribution;
 		}
 
 		public static bool ResourceStateEntryEquals(ResourceStateEntry a, ResourceStateEntry b) {

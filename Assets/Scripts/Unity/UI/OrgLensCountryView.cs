@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using GS.Main;
+using GS.Game.Configs;
 using GS.Unity.Map;
 
 namespace GS.Unity.UI {
@@ -10,18 +11,29 @@ namespace GS.Unity.UI {
 		readonly Label _orgName;
 		readonly Label _orgNoDominant;
 		readonly VisualElement? _flagElement;
+		readonly ResourcesView _resourcesView;
 		readonly OrgVisualConfig? _orgVisualConfig;
 
-		public OrgLensCountryView(VisualElement root, OrgVisualConfig? orgVisualConfig = null) {
+		public OrgLensCountryView(
+			VisualElement root,
+			ILocalization loc,
+			ResourceConfig resourceConfig,
+			TooltipSystem tooltip,
+			OrgVisualConfig? orgVisualConfig = null) {
 			_root = root;
 			_orgName = root.Q<Label>("org-name");
 			_orgNoDominant = root.Q<Label>("org-no-dominant");
 			_flagElement = root.Q("org-flag");
+			_resourcesView = new ResourcesView(root.Q("resources-container"), loc, resourceConfig, tooltip);
 			_orgVisualConfig = orgVisualConfig;
 			_root.style.display = DisplayStyle.None;
 		}
 
-		public void Refresh(SelectedCountryState country, OrgMapState orgMap, CountryControlState control) {
+		public void Refresh(
+			SelectedCountryState country,
+			OrgMapState orgMap,
+			CountryControlState control,
+			CountryResourcesState resources) {
 			if (!country.IsValid) {
 				_root.style.display = DisplayStyle.None;
 				return;
@@ -61,6 +73,7 @@ namespace GS.Unity.UI {
 				if (_flagElement != null) { _flagElement.style.display = DisplayStyle.None; }
 			}
 
+			_resourcesView.Refresh(resources);
 			_root.style.display = DisplayStyle.Flex;
 		}
 

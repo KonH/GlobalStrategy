@@ -28,8 +28,11 @@ namespace GS.Game.Tests {
 				Control = control,
 				TotalCountryControl = totalCountryControl,
 				Opinion = opinion,
-				HasSuitableRelationTarget = hasSuitableRelationTarget,
-				RelationStillExists = relationStillExists,
+				CountryRelations = new Dictionary<string, double> {
+					["none"] = hasSuitableRelationTarget,
+					["friend"] = relationStillExists,
+					["rival"] = relationStillExists
+				},
 				IsInWar = isInWar,
 				WarProgress = warProgress,
 				WarFree = warFree
@@ -66,15 +69,15 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		public void has_suitable_relation_target_node_returns_context_value() {
-			var node = new ExpressionNode { Type = "hasSuitableRelationTarget" };
+		public void no_relation_candidate_node_returns_context_value() {
+			var node = new ExpressionNode { Type = "hasCountryRelation", RelationKind = "none", DesiredRelationKind = "friend" };
 			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(hasSuitableRelationTarget: 1.0)));
 			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx(hasSuitableRelationTarget: 0.0)));
 		}
 
 		[Fact]
-		public void relation_still_exists_node_returns_context_value() {
-			var node = new ExpressionNode { Type = "relationStillExists" };
+		public void country_relation_node_returns_context_value() {
+			var node = new ExpressionNode { Type = "hasCountryRelation", RelationKind = "friend" };
 			Assert.Equal(1.0, ExpressionNode.Evaluate(node, Ctx(relationStillExists: 1.0)));
 			Assert.Equal(0.0, ExpressionNode.Evaluate(node, Ctx(relationStillExists: 0.0)));
 		}

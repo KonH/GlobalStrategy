@@ -7,9 +7,12 @@ namespace GS.Game.Bots {
 		DateTime CurrentDate { get; }
 		double Gold { get; }
 		int OrgHandSize { get; }
+		int CountryHandCount { get; }
+		int CountryHandCapacity { get; }
+		bool CanStartCountryCardDraw { get; }
 		int TotalControl { get; }
 		IReadOnlyList<BotCardView> OrgHand { get; }
-		IReadOnlyList<string> DiscoveredCountryIds { get; }
+		IReadOnlyList<BotCardDrawChoiceView> CountryCardDrawChoices { get; }
 		IReadOnlyList<BotCharacterSlotView> CharacterSlots { get; }
 		IReadOnlyList<BotCountryView> Countries { get; }
 		BotCountryView? GetCountry(string countryId);

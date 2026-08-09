@@ -56,6 +56,27 @@ namespace GS.Game.Tests {
 			return total;
 		}
 
+		static int GetOrgCardSlot(World world, string orgId, string actionId) {
+			int[] req = {
+				TypeId<GameAction>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CardOwnerType>.Value,
+				TypeId<CardInHand>.Value
+			};
+			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
+				CardInHand[] hands = arch.GetColumn<CardInHand>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (orgs[i].OrgId == orgId && owners[i].Value == CardOwnerKind.Org && actions[i].ActionId == actionId) {
+						return hands[i].SlotIndex;
+					}
+				}
+			}
+			throw new KeyNotFoundException($"Org card not found: org={orgId} action={actionId}");
+		}
+
 		[Fact]
 		void two_orgs_play_cards_independently_without_cross_interference() {
 			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
@@ -69,8 +90,14 @@ namespace GS.Game.Tests {
 			int handABefore = CountHandCards(world, MultiOrgTestSupport.OrgA);
 			int handBBefore = CountHandCards(world, MultiOrgTestSupport.OrgB);
 
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = MultiOrgTestSupport.OrgA, ActionId = MultiOrgTestSupport.SpendGoldActionId });
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = MultiOrgTestSupport.OrgB, ActionId = MultiOrgTestSupport.SpendGoldActionId });
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = MultiOrgTestSupport.OrgA, ActionId = MultiOrgTestSupport.SpendGoldActionId,
+				SlotIndex = GetOrgCardSlot(world, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.SpendGoldActionId)
+			});
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = MultiOrgTestSupport.OrgB, ActionId = MultiOrgTestSupport.SpendGoldActionId,
+				SlotIndex = GetOrgCardSlot(world, MultiOrgTestSupport.OrgB, MultiOrgTestSupport.SpendGoldActionId)
+			});
 			logic.Update(0f);
 
 			Assert.Equal(goldABefore - 50.0, GetGold(world, MultiOrgTestSupport.OrgA));
@@ -79,7 +106,8 @@ namespace GS.Game.Tests {
 			Assert.True(CardUsedThisTurn(world, MultiOrgTestSupport.OrgA, MultiOrgTestSupport.SpendGoldActionId));
 			Assert.True(CardUsedThisTurn(world, MultiOrgTestSupport.OrgB, MultiOrgTestSupport.SpendGoldActionId));
 
-			// Hand sizes are refilled back up to their configured size after redraw.
+			// Org-card behavior remains unchanged: each organization refills independently.
+			logic.Update(0f);
 			Assert.Equal(handABefore, CountHandCards(world, MultiOrgTestSupport.OrgA));
 			Assert.Equal(handBBefore, CountHandCards(world, MultiOrgTestSupport.OrgB));
 		}

@@ -11,6 +11,8 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class CompletionConditionTests {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
 		const string OrgA = "org-a";
 		const string OrgB = "org-b";
 
@@ -55,9 +57,9 @@ namespace GS.Game.Tests {
 			}
 			var condition = new FullControlCondition(15);
 
-			Assert.False(condition.IsMet(new CompletionConditionContext(world, OrgA, countries, 100)));
+			Assert.False(condition.IsMet(new CompletionConditionContext(world, OrgA, countries, 100, _resources)));
 			AddControl(world, OrgA, countries[14], 1);
-			Assert.True(condition.IsMet(new CompletionConditionContext(world, OrgA, countries, 100)));
+			Assert.True(condition.IsMet(new CompletionConditionContext(world, OrgA, countries, 100, _resources)));
 		}
 
 		[Fact]
@@ -77,10 +79,73 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void leaves_fail_safely_when_no_countries_are_available() {
-			var context = new CompletionConditionContext(new World(), OrgA, Array.Empty<string>(), 100);
+			var context = new CompletionConditionContext(new World(), OrgA, Array.Empty<string>(), 100, _resources);
 
 			Assert.False(new TotalControlCondition(0.8).IsMet(context));
 			Assert.False(new FullControlCondition(15).IsMet(context));
+			Assert.Equal(0, new TotalControlCondition(0.8).GetCurrent(context));
+			Assert.Equal(0, new TotalControlCondition(0.8).GetTarget(context));
+			Assert.Equal(0, new FullControlCondition(15).GetCurrent(context));
+			Assert.Equal(0, new FullControlCondition(15).GetTarget(context));
+		}
+
+		[Fact]
+		void total_control_current_and_target_match_is_met_boundary() {
+			var world = new World();
+			AddControl(world, OrgA, "a", 100);
+			AddControl(world, OrgA, "b", 60);
+			var condition = new TotalControlCondition(0.8);
+			CompletionConditionContext context = Context(world, "a", "b");
+
+			Assert.Equal(160, condition.GetCurrent(context));
+			Assert.Equal(160, condition.GetTarget(context));
+			Assert.True(condition.IsMet(context));
+
+			CompletionConditionContext withZero = Context(world, "a", "b", "zero");
+			Assert.Equal(160, condition.GetCurrent(withZero));
+			Assert.Equal(240, condition.GetTarget(withZero), 1e-9);
+			Assert.False(condition.IsMet(withZero));
+		}
+
+		[Fact]
+		void full_control_current_and_target_match_is_met_boundary() {
+			var world = new World();
+			var countries = new List<string>();
+			for (int i = 0; i < 15; i++) {
+				string country = $"country-{i}";
+				countries.Add(country);
+				AddControl(world, OrgA, country, i == 14 ? 99 : 100);
+			}
+			var condition = new FullControlCondition(15);
+			var context = new CompletionConditionContext(world, OrgA, countries, 100, _resources);
+
+			Assert.Equal(14, condition.GetCurrent(context));
+			Assert.Equal(15, condition.GetTarget(context));
+			Assert.False(condition.IsMet(context));
+
+			AddControl(world, OrgA, countries[14], 1);
+			Assert.Equal(15, condition.GetCurrent(context));
+			Assert.True(condition.IsMet(context));
+		}
+
+		[Fact]
+		void full_control_target_uses_min_of_configured_and_available_count() {
+			var world = new World();
+			var fourteen = new List<string>();
+			for (int i = 0; i < 14; i++) {
+				fourteen.Add($"country-{i}");
+			}
+			var twenty = new List<string>(fourteen);
+			twenty.Add("country-14");
+			twenty.Add("country-15");
+			twenty.Add("country-16");
+			twenty.Add("country-17");
+			twenty.Add("country-18");
+			twenty.Add("country-19");
+			var condition = new FullControlCondition(15);
+
+			Assert.Equal(14, condition.GetTarget(new CompletionConditionContext(world, OrgA, fourteen, 100, _resources)));
+			Assert.Equal(15, condition.GetTarget(new CompletionConditionContext(world, OrgA, twenty, 100, _resources)));
 		}
 
 		[Fact]
@@ -171,6 +236,8 @@ namespace GS.Game.Tests {
 		[InlineData("total_control", 1.01)]
 		[InlineData("full_control_countries", 0)]
 		[InlineData("full_control_countries", 1.5)]
+		[InlineData("score_goal", 0)]
+		[InlineData("score_goal", -1)]
 		void factory_reports_context_for_invalid_thresholds(string type, double value) {
 			ArgumentException exception = Assert.Throws<ArgumentException>(() =>
 				CompletionConditionFactory.Create(new CompletionConditionConfig { Type = type, Value = value }, 100));
@@ -180,11 +247,34 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void factory_builds_score_goal_condition_that_is_met_at_and_above_threshold() {
+			var world = new World();
+			AddScore(world, OrgA, 100);
+			var condition = CompletionConditionFactory.Create(new CompletionConditionConfig { Type = "score_goal", Value = 100 }, 100);
+
+			Assert.True(condition.IsMet(Context(world, "a")));
+		}
+
+		[Fact]
+		void three_member_any_is_met_when_only_score_goal_qualifies() {
+			var config = Any(
+				new CompletionConditionConfig { Type = "total_control", Value = 0.8 },
+				new CompletionConditionConfig { Type = "full_control_countries", Value = 15 },
+				new CompletionConditionConfig { Type = "score_goal", Value = 100 });
+			ICompletionCondition condition = CompletionConditionFactory.Create(config, 100);
+			var world = new World();
+			AddControl(world, OrgA, "a", 1);
+			AddScore(world, OrgA, 100);
+
+			Assert.True(condition.IsMet(Context(world, "a")));
+		}
+
+		[Fact]
 		void factory_and_context_reject_non_positive_capacity() {
 			Assert.Throws<ArgumentOutOfRangeException>(() => CompletionConditionFactory.Create(
 				new CompletionConditionConfig { Type = "total_control", Value = 0.8 }, 0));
 			Assert.Throws<ArgumentOutOfRangeException>(() =>
-				new CompletionConditionContext(new World(), OrgA, new[] { "a" }, 0));
+				new CompletionConditionContext(new World(), OrgA, new[] { "a" }, 0, _resources));
 		}
 
 		static CompletionConditionConfig Any(params CompletionConditionConfig[] members) {
@@ -194,8 +284,8 @@ namespace GS.Game.Tests {
 			};
 		}
 
-		static CompletionConditionContext Context(World world, params string[] countries) {
-			return new CompletionConditionContext(world, OrgA, countries, 100);
+		CompletionConditionContext Context(World world, params string[] countries) {
+			return new CompletionConditionContext(world, OrgA, countries, 100, _resources);
 		}
 
 		static void AddControl(World world, string orgId, string countryId, int value) {
@@ -206,6 +296,12 @@ namespace GS.Game.Tests {
 				Value = value,
 				EffectId = $"{orgId}-{countryId}-{entity}"
 			});
+		}
+
+		static void AddScore(World world, string orgId, double value) {
+			int entity = world.Create();
+			world.Add(entity, new ResourceOwner(orgId));
+			world.Add(entity, new Resource { ResourceId = ResourceDefinitions.OrgScore, Value = value });
 		}
 
 		static void AssertRecursiveConfig(CompletionConditionConfig config) {
@@ -230,6 +326,10 @@ namespace GS.Game.Tests {
 				member => {
 					Assert.Equal("full_control_countries", member.Type);
 					Assert.Equal(15, member.Value);
+				},
+				member => {
+					Assert.Equal("score_goal", member.Type);
+					Assert.Equal(275592, member.Value);
 				});
 		}
 	}

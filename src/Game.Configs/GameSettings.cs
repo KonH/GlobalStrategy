@@ -2,6 +2,9 @@ using System.Collections.Generic;
 
 namespace GS.Game.Configs {
 	public class GameSettings {
+		// Displayed version, owned here rather than by PlayerSettings.bundleVersion: the Web build
+		// profile embeds its own PlayerSettings snapshot, so Application.version could ship stale.
+		public string Version { get; set; } = "0.0.0";
 		public int StartYear { get; set; } = 1880;
 		public int[] SpeedMultipliers { get; set; } = { 1, 24, 720 };
 		public string DefaultLocale { get; set; } = "en";
@@ -22,14 +25,16 @@ namespace GS.Game.Configs {
 		public double PeaceChanceMaxPercent { get; set; } = 100;
 		public double PeaceProvinceTransferMinPercent { get; set; } = 10;
 		public double PeaceProvinceTransferMaxPercent { get; set; } = 30;
-		public double PeaceGoldPerMonth { get; set; } = 100;
-		public double PeaceWinnerControlIncreaseFraction { get; set; } = 0.05;
-		public double PeaceLoserControlDecreaseFraction { get; set; } = 0.10;
+		public double PeaceGoldPerMonth { get; set; } = 1000;
+		public double PeaceWinnerControlIncreaseFraction { get; set; } = 0.5;
+		public double PeaceLoserControlDecreaseFraction { get; set; } = 1.0;
+		public double DiscardGoldCost { get; set; } = 50;
+		public BaseIncomeSettings BaseIncome { get; set; } = new BaseIncomeSettings();
 		public WarBattleSettings WarBattles { get; set; } = new WarBattleSettings();
 		public string[] ResourceIdUpdateOrder { get; set; } = {
 			ResourceDefinitions.Population, ResourceDefinitions.CountryPopulation, ResourceDefinitions.CountryScore,
 			ResourceDefinitions.Recruits, ResourceDefinitions.OrgScore,
-			ResourceDefinitions.Damage, ResourceDefinitions.Durability
+			ResourceDefinitions.Damage, ResourceDefinitions.Durability, ResourceDefinitions.Gold
 		};
 		public int BotActionLogRetentionCap { get; set; } = 500;
 		public int MaxControlPool { get; set; } = 100;
@@ -37,23 +42,31 @@ namespace GS.Game.Configs {
 			Type = "any",
 			Members = new List<CompletionConditionConfig> {
 				new CompletionConditionConfig { Type = "total_control", Value = 0.8 },
-				new CompletionConditionConfig { Type = "full_control_countries", Value = 15 }
+				new CompletionConditionConfig { Type = "full_control_countries", Value = 15 },
+				new CompletionConditionConfig { Type = "score_goal", Value = 275592 }
 			}
 		};
 		public GameLogSettings GameLog { get; set; } = new GameLogSettings();
+		public EventNotificationSettings EventNotifications { get; set; } = new();
+		public FeatureFlagSettings FeatureFlags { get; set; } = new();
 		public List<EndGameComparisonEntry> EndGameComparisons { get; set; } = new List<EndGameComparisonEntry>();
 
-		// discoveredCountriesAvailableControl: 0 is the eval-validated threshold (see
-		// Docs/BotFeatures/discoverAndControl/eval_summary.md) - it beats the feature's
-		// raw discover-first default (double.MaxValue, applied when a profile omits the
-		// parameter entirely) by a wide margin.
 		public List<BotFeatureConfigEntry> BotFeatures { get; set; } = new List<BotFeatureConfigEntry> {
 			new BotFeatureConfigEntry {
-				FeatureId = "discoverAndControl",
+				FeatureId = "control",
 				Enabled = true,
-				Parameters = new Dictionary<string, double> { ["discoveredCountriesAvailableControl"] = 0 }
+				Parameters = new Dictionary<string, double>()
 			}
 		};
+	}
+
+	public class BaseIncomeSettings {
+		public double FlatBase { get; set; } = 10.0;
+		public double PopulationWeight { get; set; } = 0.5;
+		public double PopulationGoldPerMillion { get; set; } = 0.1;
+		public double ProvinceWeight { get; set; } = 0.3;
+		public double ProvinceGoldPerProvince { get; set; } = 0.05;
+		public double AdvisorWeight { get; set; } = 0.2;
 	}
 
 	public class WarBattleSettings {

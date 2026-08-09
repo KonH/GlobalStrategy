@@ -1,4 +1,4 @@
-# Global Strategy
+# Hidden Council
 
 ## Summary
 
@@ -8,7 +8,7 @@ This repository is both a game and a case study in **structured AI-driven softwa
 
 ## Demos
 
-**▶ [Play the game in your browser (Unity WebGL)](https://play.unity.com/en/games/790490b4-2b09-4c1c-8a2e-df23f6b43b47/global-strategy)**
+**▶ [Play the game in your browser (Unity WebGL)](https://play.unity.com/en/games/e1953a2d-a3eb-40b1-b8ac-75282d4cf315/global-strategy)**
 
 **▶ [Run the debug web client (experimental)](https://konh.github.io/GlobalStrategy/)**
 

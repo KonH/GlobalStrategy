@@ -4,7 +4,7 @@ using GS.Game.Components;
 
 namespace GS.Game.Systems {
 	public static class ClearCountryRelationSystem {
-		public static void Update(World world) {
+		public static void Update(World world, CountryRelations relations) {
 			int[] required = { TypeId<ClearCountryRelationEffect>.Value };
 			var toProcess = new List<(string orgId, string countryId, string targetCountryId)>();
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
@@ -16,8 +16,8 @@ namespace GS.Game.Systems {
 			if (toProcess.Count == 0) { return; }
 
 			foreach (var (orgId, countryId, targetCountryId) in toProcess) {
-				var kind = CountryRelations.GetRelation(world, countryId, targetCountryId);
-				CountryRelations.RemoveRelation(world, countryId, targetCountryId);
+				var kind = relations.GetRelation(world, countryId, targetCountryId);
+				relations.RemoveRelation(world, countryId, targetCountryId);
 
 				// Game Log event — separate sibling entity, not attached to
 				// ClearCountryRelationEffect. See
@@ -32,8 +32,8 @@ namespace GS.Game.Systems {
 			}
 
 			// Marker entities are deliberately not destroyed here — CleanupActionEffectsSystem
-			// removes ClearCountryRelationEffect on the next tick, mirroring DiscoverCountrySystem's
-			// treatment of DiscoverCountryEffect. See ecs_patterns.md's "no system-to-system calls"
+			// removes ClearCountryRelationEffect on the next tick. See ecs_patterns.md's
+			// "no system-to-system calls"
 			// rule and the ordering note above.
 		}
 	}

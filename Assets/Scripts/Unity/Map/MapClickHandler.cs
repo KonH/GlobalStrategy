@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using VContainer;
 using GS.Main;
@@ -16,16 +15,20 @@ namespace GS.Unity.Map {
 		MapController _mapController;
 		IWriteOnlyCommandAccessor _commands;
 		VisualState _state;
+		ModalState _modalState;
+		UIPointerState _pointerState;
 		bool _pressing;
 		Vector2 _pressScreenPos;
 		bool _pressIsTouch;
 		int _pressTouchId;
 
 		[Inject]
-		void Construct(MapController mapController, IWriteOnlyCommandAccessor commands, VisualState state) {
+		void Construct(MapController mapController, IWriteOnlyCommandAccessor commands, VisualState state, ModalState modalState, UIPointerState pointerState) {
 			_mapController = mapController;
 			_commands = commands;
 			_state = state;
+			_modalState = modalState;
+			_pointerState = pointerState;
 		}
 
 		void Awake() {
@@ -53,11 +56,19 @@ namespace GS.Unity.Map {
 				return;
 			}
 			_pressing = false;
-			if (ModalState.IsModalOpen) {
+			if (_modalState.IsLocked()) {
 				return;
 			}
 
 			if (Vector2.Distance(_pressScreenPos, releasePos) > ClickDragThresholdPixels) {
+				return;
+			}
+
+			// Re-check at release, not just at press: a hand refresh (e.g. a cooldown card's
+			// fraction ticking) can rebuild UI elements between press and release, leaving the
+			// press-time Pick() briefly stale. Re-checking here closes that race instead of
+			// letting the click fall through to the map underneath.
+			if (_pointerState.IsPointerOverUI(releasePos)) {
 				return;
 			}
 
@@ -93,10 +104,9 @@ namespace GS.Unity.Map {
 			_pressScreenPos = screenPos;
 			_pressIsTouch = isTouch;
 			_pressTouchId = pointerId;
-			_pressing = !ModalState.IsModalOpen
-				&& !(EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(pointerId));
+			_pressing = !_modalState.IsLocked() && !_pointerState.IsPointerOverUI(screenPos);
 			if (!_pressing) {
-				Debug.Log("[MapClick] Blocked by UI (IsPointerOverGameObject)");
+				Debug.Log("[MapClick] Blocked by UI");
 			}
 		}
 

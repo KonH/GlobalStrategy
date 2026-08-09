@@ -3,8 +3,10 @@ using System.IO;
 using GS.Configs;
 using GS.Core.Map;
 
+using GS.Game.Systems;
+
 namespace GS.Game.ConsoleRunner {
-	public class MapGeometryFileConfig : IConfigSource<List<MapFeature>> {
+	public class MapGeometryFileConfig : IReadOnlyConfigSource<List<MapFeature>> {
 		readonly string _filePath;
 
 		public MapGeometryFileConfig(string filePath) {

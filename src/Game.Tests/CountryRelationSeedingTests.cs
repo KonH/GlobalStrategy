@@ -10,13 +10,15 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class CountryRelationSeedingTests {
-		sealed class StaticConfig<T> : IConfigSource<T> {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
+		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;
 		}
 
-		static GameLogic BuildLogic(CountryConfig countryConfig) {
+		static GameLogic BuildLogic(CountryConfig countryConfig, bool enableFriendsRelation = true) {
 			var orgConfig = new OrganizationConfig {
 				Organizations = new List<OrganizationEntry> {
 					new OrganizationEntry {
@@ -31,7 +33,8 @@ namespace GS.Game.Tests {
 				StartYear = 1880,
 				DefaultLocale = "en",
 				SpeedMultipliers = new[] { 1, 2, 4 },
-				AutoSaveInterval = "monthly"
+				AutoSaveInterval = "monthly",
+				FeatureFlags = new FeatureFlagSettings { EnableFriendsRelation = enableFriendsRelation }
 			};
 			var ctx = new GameLogicContext(
 				new StaticConfig<GeoJsonConfig>(new GeoJsonConfig()),
@@ -70,8 +73,8 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			Assert.Equal(1, CountEntities<CountryRelation>(logic.World));
-			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(logic.World, "Great_Britain", "France"));
-			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(logic.World, "France", "Great_Britain"));
+			Assert.Equal(RelationKind.Friend, _relations.GetRelation(logic.World, "Great_Britain", "France"));
+			Assert.Equal(RelationKind.Friend, _relations.GetRelation(logic.World, "France", "Great_Britain"));
 		}
 
 		[Fact]
@@ -91,8 +94,8 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			Assert.Equal(1, CountEntities<CountryRelation>(logic.World));
-			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(logic.World, "Great_Britain", "France"));
-			Assert.Null(CountryRelations.GetRelation(logic.World, "Great_Britain", "Unavailable_Country"));
+			Assert.Equal(RelationKind.Friend, _relations.GetRelation(logic.World, "Great_Britain", "France"));
+			Assert.Null(_relations.GetRelation(logic.World, "Great_Britain", "Unavailable_Country"));
 		}
 
 		[Fact]
@@ -114,7 +117,29 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			Assert.Equal(1, CountEntities<CountryRelation>(logic.World));
-			Assert.Equal(RelationKind.Friend, CountryRelations.GetRelation(logic.World, "Great_Britain", "France"));
+			Assert.Equal(RelationKind.Friend, _relations.GetRelation(logic.World, "Great_Britain", "France"));
+		}
+
+		[Fact]
+		void friends_relation_disabled_skips_historical_friend_seeding_but_keeps_rivals() {
+			var countryConfig = new CountryConfig {
+				Countries = new List<CountryEntry> {
+					new CountryEntry {
+						CountryId = "Great_Britain", DisplayName = "Great Britain", IsAvailable = true,
+						HistoricalFriends = new List<string> { "France" },
+						HistoricalRivals = new List<string> { "Germany" }
+					},
+					new CountryEntry { CountryId = "France", DisplayName = "France", IsAvailable = true },
+					new CountryEntry { CountryId = "Germany", DisplayName = "Germany", IsAvailable = true }
+				}
+			};
+			var logic = BuildLogic(countryConfig, enableFriendsRelation: false);
+
+			logic.Update(0f);
+
+			Assert.Equal(1, CountEntities<CountryRelation>(logic.World));
+			Assert.Null(_relations.GetRelation(logic.World, "Great_Britain", "France"));
+			Assert.Equal(RelationKind.Rival, _relations.GetRelation(logic.World, "Great_Britain", "Germany"));
 		}
 	}
 }

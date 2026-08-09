@@ -5,6 +5,22 @@ paths:
 
 # Unity WebGL Build Gotchas
 
+## Saves need explicit IndexedDB sync
+
+`PersistentStorage` writes save JSON via `File.WriteAllText` under `Application.persistentDataPath`. On WebGL that path is Emscripten's MEMFS backed by IndexedDB — writes don't persist across reload until flushed.
+
+Two things keep this working; touching either one risks reintroducing "saves vanish after reload":
+- `Assets/WebGLTemplates/Minimal/index.html` (`PROJECT:Minimal`) sets `autoSyncPersistentDataPath: true`.
+- `PersistentStorage.Write`/`Delete` (`Assets/Scripts/Unity/Save/PersistentStorage.cs`) also call an explicit `FS.syncfs` flush via `Assets/Plugins/WebGL/PersistentStorageSync.jslib` right after every write/delete.
+
+Sync start/success/failure log to the browser console as `[PersistentStorage] FS.syncfs ...` — check there first if a save still doesn't persist.
+
+IndexedDB is per-origin and keyed by `companyName` + `productName` (Player Settings) — changing either, or opening a different host/port, looks like "no saves."
+
+## WebGL payload size
+
+Keep `webGLCompressionFormat` set to Brotli in both `ProjectSettings/ProjectSettings.asset` and the serialized PlayerSettings snapshot in `Assets/Settings/Build Profiles/Web - Desktop - Release.asset` (CI builds use that profile) — an uncompressed profile makes the `.data`/`.wasm` payloads substantially slower to download.
+
 ## StreamingAssets files are not TextAssets
 
 Files in `Assets/StreamingAssets/` are imported with `DefaultImporter` — they are raw blobs, not `TextAsset` objects. A `[SerializeField] TextAsset` field cannot hold a reference to them.
@@ -18,6 +34,19 @@ Unity's bundled WebGL font (LiberationSans) only covers ASCII and basic Latin. A
 Replace with ASCII-safe alternatives, or bundle a Unicode font and apply it via `font-family` in USS / PanelSettings.
 
 **Do not use emoji or Unicode symbol glyphs (▲▼●■ etc.) in UI text at all, even outside WebGL.** For state indicators (expanded/collapsed, on/off), prefer a visual state on the control itself — e.g. toggle the `gs-toggle-on`/`gs-toggle-off` classes on the button for a pressed/unpressed look — over encoding state in the label text. If an icon is genuinely needed, generate a proper image asset (see `.claude/rules/image_generation.md` and `.claude/rules/flag_assets.md`) and reference it via `background-image` in USS, rather than relying on a font glyph.
+
+## Decorative SDF fonts lack Cyrillic glyphs — RU text renders as tofu
+
+`Assets/UI/Fonts/Cinzel-*` and `IMFellEnglish-*` are Latin-only Google Fonts — their source `.ttf` files contain zero Cyrillic codepoints (verified via cmap inspection), so any text styled with those SDF font assets renders as tofu in the `ru` locale, in every build (not just WebGL). `PlayfairDisplay-*` is the only bundled family with Cyrillic coverage.
+
+Each `TMP_FontAsset`/`FontAsset` `.asset` file has an `m_FallbackFontAssetTable` field — a plain YAML list — that TMP consults at runtime when the primary font lacks a requested glyph. Since these fonts use `m_AtlasPopulationMode: 1` (Dynamic, not DynamicOS) and their source `.ttf` import settings have `includeFontData: 1`, missing glyphs are rasterized on demand from the fallback's source font at runtime, including in WebGL builds — no Editor/Font Asset Creator re-bake is required. Wire a Cyrillic-capable fallback (e.g. the matching-weight `PlayfairDisplay-* SDF` asset) into `m_FallbackFontAssetTable` for any Latin-only font asset used where localized text can appear:
+
+```yaml
+m_FallbackFontAssetTable:
+- {fileID: 11400000, guid: <guid-of-fallback-.asset>, type: 2}
+```
+
+This is a visual/typography change (RU text falls back to a different font family than the EN headline font) — always ask the owner to confirm the look in-Editor or in a build after making this kind of change.
 
 ## Shader stripping: use preloadedAssets, not Shader.Find fallbacks
 

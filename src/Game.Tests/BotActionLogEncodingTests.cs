@@ -23,8 +23,8 @@ namespace GS.Game.Tests {
 			var world = new World();
 			int entity = world.Create();
 			var entries = new[] {
-				"2026-07-17 | Illuminati | DiscoverAndControl/spread_rumors -> France",
-				"2026-07-18 | Illuminati | DiscoverAndControl/spend_gold"
+				"2026-07-17 | Illuminati | control/improve_control -> France",
+				"2026-07-18 | Illuminati | baselineCardPlay/spend_gold"
 			};
 			world.Add(entity, new BotActionLog { Entries = entries });
 

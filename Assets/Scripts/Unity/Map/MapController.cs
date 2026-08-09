@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
 
@@ -10,6 +11,17 @@ namespace GS.Unity.Map {
 		Map _forward;
 
 		public ProvinceRenderer ActiveProvinceRenderer => _current != null ? _current.ProvinceRenderer : null;
+
+		public IEnumerable<ProvinceRenderer> ProvinceRenderers {
+			get {
+				if (_current != null && _current.ProvinceRenderer != null) {
+					yield return _current.ProvinceRenderer;
+				}
+				if (_forward != null && _forward.ProvinceRenderer != null) {
+					yield return _forward.ProvinceRenderer;
+				}
+			}
+		}
 
 		[Inject]
 		void Construct(MapLoader loader, Camera camera) {

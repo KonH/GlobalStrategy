@@ -57,12 +57,13 @@ namespace GS.Game.Tests {
 		}
 
 		static bool HasOrgDeckAndHand(World world, string orgId) {
-			int[] req = { TypeId<CardDeck>.Value, TypeId<CardHand>.Value };
+			int[] req = { TypeId<CardDeck>.Value, TypeId<CardOwnerType>.Value, TypeId<CardHand>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
 				CardDeck[] decks = arch.GetColumn<CardDeck>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				CardHand[] hands = arch.GetColumn<CardHand>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (decks[i].OrgId == orgId && decks[i].CountryId == "" && hands[i].HandSize > 0) { return true; }
+					if (decks[i].OrgId == orgId && owners[i].Value == CardOwnerKind.Org && hands[i].HandSize > 0) { return true; }
 				}
 			}
 			return false;
@@ -70,23 +71,24 @@ namespace GS.Game.Tests {
 
 		static int CountCardsInHand(World world, string orgId) {
 			int count = 0;
-			int[] req = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardInHand>.Value };
-			int[] exclude = { TypeId<CountryContext>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, exclude)) {
+			int[] req = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardOwnerType>.Value, TypeId<CardInHand>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (orgs[i].OrgId == orgId) { count++; }
+					if (orgs[i].OrgId == orgId && owners[i].Value == CardOwnerKind.Org) { count++; }
 				}
 			}
 			return count;
 		}
 
 		static bool HasCountryDeckForOrg(World world, string orgId, string countryId) {
-			int[] req = { TypeId<CardDeck>.Value };
+			int[] req = { TypeId<CardDeck>.Value, TypeId<CardOwnerType>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
 				CardDeck[] decks = arch.GetColumn<CardDeck>();
+				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				for (int i = 0; i < arch.Count; i++) {
-					if (decks[i].OrgId == orgId && decks[i].CountryId == countryId) { return true; }
+					if (decks[i].OrgId == orgId && owners[i].Value == CardOwnerKind.Country) { return true; }
 				}
 			}
 			return false;
@@ -152,15 +154,10 @@ namespace GS.Game.Tests {
 			Assert.Equal(-1, FindOrgEntity(world, MultiOrgTestSupport.OrgB));
 			Assert.Equal(1000.0, GetGold(world, MultiOrgTestSupport.OrgA));
 
-			var discovered = new HashSet<string>();
-			int[] req = { TypeId<DiscoveredCountry>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				DiscoveredCountry[] dcs = arch.GetColumn<DiscoveredCountry>();
-				for (int i = 0; i < arch.Count; i++) {
-					if (dcs[i].OrgId == MultiOrgTestSupport.OrgA) { discovered.Add(dcs[i].CountryId); }
-				}
-			}
-			Assert.Equal(new HashSet<string> { MultiOrgTestSupport.HqA }, discovered);
+			Assert.Contains(MultiOrgTestSupport.HqA, logic.VisualState.WorldCountries.CountryIds);
+			Assert.Contains(MultiOrgTestSupport.HqB, logic.VisualState.WorldCountries.CountryIds);
+			Assert.Contains(MultiOrgTestSupport.ExtraCountry1, logic.VisualState.WorldCountries.CountryIds);
+			Assert.Contains(MultiOrgTestSupport.ExtraCountry2, logic.VisualState.WorldCountries.CountryIds);
 		}
 
 		[Fact]

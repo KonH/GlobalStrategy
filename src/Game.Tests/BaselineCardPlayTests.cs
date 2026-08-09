@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ECS;
 using GS.Configs;
 using GS.Game.Bots;
 using GS.Game.Components;
@@ -10,7 +11,9 @@ using Xunit;
 
 namespace GS.Game.Tests {
 	public class BaselineCardPlayTests {
-		sealed class StaticConfig<T> : IConfigSource<T> {
+		readonly ResourceQuery _resources = new ResourceQuery();
+		readonly CountryRelations _relations = new CountryRelations();
+		sealed class StaticConfig<T> : IReadOnlyConfigSource<T> {
 			readonly T _value;
 			public StaticConfig(T value) => _value = value;
 			public T Load() => _value;
@@ -18,11 +21,37 @@ namespace GS.Game.Tests {
 
 		sealed class RecordingSink : IBotCommandSink {
 			public List<(string ActionId, string CountryId)> Plays = new();
-			public void PlayOrgCard(string actionId) => Plays.Add((actionId, ""));
-			public void PlayCountryCard(string actionId, string countryId) => Plays.Add((actionId, countryId));
+			public void DrawCountryCards() { }
+			public void ReceiveCountryCard(int choiceIndex) { }
+			public void PlayOrgCard(string actionId, int slotIndex) => Plays.Add((actionId, ""));
+			public void PlayCountryCard(string actionId, string countryId, int slotIndex, string targetCountryId) {
+				Plays.Add((actionId, countryId));
+			}
+			public void DiscardCountryCard(string actionId, string countryId, int slotIndex, string targetCountryId) { }
 		}
 
 		static readonly List<string> Participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
+
+		static void PutCountryCardsInHand(GameLogic logic, string orgId) {
+			int nextSlot = 0;
+			int[] required = {
+				TypeId<GameAction>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CardOwnerType>.Value
+			};
+			foreach (var archetype in logic.World.GetMatchingArchetypes(required, null)) {
+				OrgContext[] organizations = archetype.GetColumn<OrgContext>();
+				CardOwnerType[] owners = archetype.GetColumn<CardOwnerType>();
+				for (int i = 0; i < archetype.Count; i++) {
+					int entity = archetype.Entities[i];
+					if (organizations[i].OrgId == orgId
+						&& owners[i].Value == CardOwnerKind.Country
+						&& !logic.World.Has<CardInHand>(entity)) {
+						logic.World.Add(entity, new CardInHand { SlotIndex = nextSlot++ });
+					}
+				}
+			}
+		}
 
 		static GameLogic BuildLogic(int seed) {
 			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: seed);
@@ -54,7 +83,8 @@ namespace GS.Game.Tests {
 
 		// Bespoke minimal config for order-of-scan tests: single org card whose affordability
 		// can be toggled via InitialGold, plus a country card cheap enough to always be affordable,
-		// discovered in two countries ("Austria" sorts before "Prussia" ordinally).
+		// explicitly placed in hand for the feature-only test ("Austria" sorts before
+		// "Prussia" ordinally).
 		static GameLogic BuildScanOrderLogic(double orgGold) {
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
@@ -105,12 +135,7 @@ namespace GS.Game.Tests {
 
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
-
-			int e1 = logic.World.Create();
-			logic.World.Add(e1, new DiscoveredCountry { OrgId = "Illuminati", CountryId = "Austria" });
-			int e2 = logic.World.Create();
-			logic.World.Add(e2, new DiscoveredCountry { OrgId = "Illuminati", CountryId = "Prussia" });
-
+			PutCountryCardsInHand(logic, "Illuminati");
 			return logic;
 		}
 
@@ -123,7 +148,7 @@ namespace GS.Game.Tests {
 			var withBot = BuildLogic(seed);
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, withBot.Commands, null);
 			var feature = new BaselineCardPlayFeature(new Dictionary<string, double>());
-			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink);
+			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, withBot.Resources, withBot.Relations);
 			RunWithBot(withBot, bot, 60);
 
 			Assert.NotEqual(OrgMetrics.GetGold(passive.World, MultiOrgTestSupport.OrgA), OrgMetrics.GetGold(withBot.World, MultiOrgTestSupport.OrgA));
@@ -134,7 +159,7 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic(1);
 			logic.Update(0f);
 
-			var obs = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
 			var sink = new RecordingSink();
 			var feature = new BaselineCardPlayFeature(new Dictionary<string, double>());
 			feature.Tick(obs, sink, new Random(1));
@@ -148,15 +173,15 @@ namespace GS.Game.Tests {
 
 			// Org hand playable -> the org-hand card is chosen.
 			var logicPlayable = BuildScanOrderLogic(orgGold: 1000.0);
-			var obsPlayable = BotObservation.Build(logicPlayable.World, logicPlayable.ActionConfig, "Illuminati");
+			var obsPlayable = BotObservation.Build(logicPlayable.World, logicPlayable.ActionConfig, "Illuminati", logicPlayable.Resources, logicPlayable.Relations);
 			var sinkPlayable = new RecordingSink();
 			feature.Tick(obsPlayable, sinkPlayable, new Random(1));
 			Assert.Single(sinkPlayable.Plays);
 			Assert.Equal(("expensive_org_card", ""), sinkPlayable.Plays[0]);
 
-			// Org hand unplayable -> the ordinal-first discovered country's card is chosen.
+			// Org hand unplayable -> the ordinal-first country's card is chosen.
 			var logicUnplayable = BuildScanOrderLogic(orgGold: 5.0);
-			var obsUnplayable = BotObservation.Build(logicUnplayable.World, logicUnplayable.ActionConfig, "Illuminati");
+			var obsUnplayable = BotObservation.Build(logicUnplayable.World, logicUnplayable.ActionConfig, "Illuminati", logicUnplayable.Resources, logicUnplayable.Relations);
 			var sinkUnplayable = new RecordingSink();
 			feature.Tick(obsUnplayable, sinkUnplayable, new Random(1));
 			Assert.Single(sinkUnplayable.Plays);
@@ -172,7 +197,7 @@ namespace GS.Game.Tests {
 			var withBot = BuildLogic(seed);
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, withBot.Commands, null);
 			var feature = new BaselineCardPlayFeature(new Dictionary<string, double> { ["minGoldReserve"] = 1_000_000_000.0 });
-			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink);
+			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, withBot.Resources, withBot.Relations);
 			RunWithBot(withBot, bot, 60);
 
 			AssertIdenticalEndState(passive, withBot, Participants);
@@ -186,7 +211,7 @@ namespace GS.Game.Tests {
 
 			var withDisabledBot = BuildLogic(seed);
 			var sink = new BotCommandSink(MultiOrgTestSupport.OrgA, withDisabledBot.Commands, null);
-			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature>(), BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink);
+			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature>(), BotRng.Create(seed, MultiOrgTestSupport.OrgA), sink, withDisabledBot.Resources, withDisabledBot.Relations);
 			RunWithBot(withDisabledBot, bot, 60);
 
 			AssertIdenticalEndState(passive, withDisabledBot, Participants);

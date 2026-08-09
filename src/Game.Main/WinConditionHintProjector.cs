@@ -33,6 +33,9 @@ namespace GS.Main {
 				case CompletionConditionType.FullControlCountries:
 					rows.Add(new WinConditionHintRowState(WinConditionHintKind.FullControlCountries, condition.Value, availableCountryCount));
 					break;
+				case CompletionConditionType.ScoreGoal:
+					rows.Add(new WinConditionHintRowState(WinConditionHintKind.ScoreGoal, condition.Value, availableCountryCount));
+					break;
 			}
 		}
 	}

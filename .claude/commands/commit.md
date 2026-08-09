@@ -14,7 +14,20 @@ Steps:
 3. `Edit` the file to replace `  bundleVersion: X.YYY` with `X.{YYY+1}` (keep the two leading spaces, keep `X` unchanged, no padding on the new `YYY+1`)
 4. Run `git add ProjectSettings/ProjectSettings.asset` via Bash
 
+**Also bump the displayed version.** `Assets/Configs/game_settings.json` has a top-level `"version"` field — this is what the main-menu version label shows (`MainMenuDocument` reads `GameSettings.Version`, not `Application.version`, because the Web build profile embeds its own PlayerSettings snapshot and could ship a stale `bundleVersion`). `Edit` it to the same new `X.YYY` value and `git add` it too, so the two stay in step.
+
 Always run this before committing so the version bump is included in the commit.
+
+## Pre-commit step: build Release DLLs (if src/ changed)
+
+Run `git diff --cached --name-only` (or check the already-known staged file list). If any staged path is under `src/` (e.g. `.cs`/`.csproj` changes), the `Assets/Plugins/Core/*.dll` files are now stale and must be rebuilt before committing:
+
+1. Run `dotnet build src/GlobalStrategy.Core.sln -c Release > .tmp/dotnet-build.log 2>&1` (see the `dotnet-build` skill; no `cd`, `dangerouslyDisableSandbox: true`). Release output goes straight to `Assets/Plugins/Core/` per `.claude/rules/unity/plugins.md`.
+2. Read `.tmp/dotnet-build.log`. If the build failed, stop and report the errors instead of committing.
+3. `git add Assets/Plugins/Core/*.dll` to stage the rebuilt DLLs.
+4. Delete `.tmp/dotnet-build.log` as a separate Bash call.
+
+Skip this step entirely if no staged file is under `src/`.
 
 ## Usage stats catch-all scan (best-effort)
 
