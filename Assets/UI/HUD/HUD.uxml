@@ -26,6 +26,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="top-center" class="top-center-panel" picking-mode="Ignore">
             <ui:Button name="btn-debug-toggle" text="DEBUG" class="gs-btn hud-debug-toggle"/>
+            <ui:Label name="fps-label" text="FPS: 0" class="gs-label hud-fps-label" style="display: none;"/>
         </ui:VisualElement>
         <ui:VisualElement name="top-right-panel" class="top-right-panel">
             <ui:Instance template="Time" name="time-panel" class="time-panel"/>
@@ -36,6 +37,7 @@
                 <ui:VisualElement class="debug-panel-inner">
                     <ui:Label text="Common options" class="gs-label debug-panel-menu-title" />
                     <ui:Button name="btn-ecs-viewer" text="ECS Viewer" class="gs-btn debug-panel-button"/>
+                    <ui:Button name="btn-fps-toggle" text="FPS" class="gs-btn gs-toggle-off debug-panel-button"/>
                 </ui:VisualElement>
                 <ui:Button name="btn-selected-country-debug-menu" text="Selected country" class="gs-btn debug-panel-menu-toggle" />
                 <ui:VisualElement name="selected-country-debug-menu" class="debug-panel-inner" style="display: none;">

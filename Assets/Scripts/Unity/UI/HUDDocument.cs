@@ -48,6 +48,10 @@ namespace GS.Unity.UI {
 		Button _btnEcsViewer;
 		VisualElement _controlDebugRow;
 		bool _debugPanelOpen;
+		Button _btnFpsToggle;
+		Label _fpsLabel;
+		bool _fpsEnabled;
+		readonly Queue<float> _fpsFrameTimestamps = new();
 		OrgInfoDocument _orgInfoDocument;
 		VisualElement _root;
 		VisualElement _countryInfoRoot;
@@ -199,6 +203,13 @@ namespace GS.Unity.UI {
 
 			_btnDebugToggle.clicked += ToggleDebugPanel;
 			_btnEcsViewer.clicked += OpenEcsViewer;
+
+			_btnFpsToggle = root.Q<Button>("btn-fps-toggle");
+			_fpsLabel = root.Q<Label>("fps-label");
+			if (_btnFpsToggle != null) {
+				_btnFpsToggle.clicked += ToggleFpsDisplay;
+			}
+			SetFpsEnabled(false);
 			RegisterDebugMenuToggle(_btnSelectedCountryDebugMenu, _selectedCountryDebugMenu, "Selected country");
 			RegisterDebugMenuToggle(_btnSelectedOrgDebugMenu, _selectedOrgDebugMenu, "Selected org");
 			RegisterDebugMenuToggle(root.Q<Button>("btn-selected-country-characters"), root.Q("selected-country-characters"), "Characters");
@@ -359,6 +370,37 @@ namespace GS.Unity.UI {
 		void ToggleDebugPanel() {
 			_debugPanelOpen = !_debugPanelOpen;
 			_debugPanel.style.display = _debugPanelOpen ? DisplayStyle.Flex : DisplayStyle.None;
+		}
+
+		void ToggleFpsDisplay() {
+			SetFpsEnabled(!_fpsEnabled);
+		}
+
+		void SetFpsEnabled(bool isEnabled) {
+			_fpsEnabled = isEnabled;
+			if (_btnFpsToggle != null) {
+				_btnFpsToggle.RemoveFromClassList(isEnabled ? "gs-toggle-off" : "gs-toggle-on");
+				_btnFpsToggle.AddToClassList(isEnabled ? "gs-toggle-on" : "gs-toggle-off");
+			}
+			if (_fpsLabel != null) {
+				_fpsLabel.style.display = isEnabled ? DisplayStyle.Flex : DisplayStyle.None;
+			}
+			if (!isEnabled) {
+				_fpsFrameTimestamps.Clear();
+			}
+		}
+
+		void UpdateFpsCounter() {
+			float now = Time.unscaledTime;
+			_fpsFrameTimestamps.Enqueue(now);
+			while (_fpsFrameTimestamps.Count > 1 && now - _fpsFrameTimestamps.Peek() > 1f) {
+				_fpsFrameTimestamps.Dequeue();
+			}
+			float windowDuration = now - _fpsFrameTimestamps.Peek();
+			int fps = windowDuration > 0f ? Mathf.CeilToInt(_fpsFrameTimestamps.Count / windowDuration) : 0;
+			if (_fpsLabel != null) {
+				_fpsLabel.text = $"FPS: {fps}";
+			}
 		}
 
 		void RegisterDebugMenuToggle(Button button, VisualElement menu, string label) {
@@ -533,6 +575,9 @@ namespace GS.Unity.UI {
 
 		void Update() {
 			_tooltip?.Update(Time.deltaTime);
+			if (_fpsEnabled) {
+				UpdateFpsCounter();
+			}
 			if (_orgPanelOpen) {
 				var mouse = UnityEngine.InputSystem.Mouse.current;
 				if (mouse != null && mouse.leftButton.wasPressedThisFrame) {
