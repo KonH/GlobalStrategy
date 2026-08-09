@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using GS.Game.Configs;
 using GS.Main;
+using GS.Unity.Common;
 
 namespace GS.Unity.UI {
 	class CardDrawView {
