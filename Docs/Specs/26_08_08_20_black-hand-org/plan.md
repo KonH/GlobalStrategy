@@ -95,11 +95,11 @@ Config-driven only — no new ECS systems, UI Toolkit screens, or bot features. 
 - [x] **Add minimal BlackHand / Serbia presence tests** — Extend `StringConfigParityTests` with BlackHand org + pool presence (HQ Serbia, gold 750, 3 masters / 6 agents). Serbia `IsAvailable` assertion omitted here — owned by #147.
 - [x] **Run tests + Release build if `src/` changed** — `dotnet-test` for `Game.Tests`. If any `src/` edit, also `/dotnet-build Release` per workflow.
 
-### Stage 2 (deferred — do not run in first implement pass)
+### Stage 2
 
-- [ ] **Generate nine Black Hand portraits** — Via image-generation / ComfyUI (`generate_images_batch.py` or per-id `generate_image.py`) to `Assets/Textures/Characters/PortraitCard/blackhand_{master,agent}_N.png` at 512×512. Override the skill template century to early-20th-century Serbian revolutionary / Balkan wording.
-- [ ] **Wire `CharacterVisualConfig`** — Import portrait sprites; add nine `characterId` → sprite entries in `Assets/Configs/CharacterVisualConfig.asset` beside existing `illuminati_*` / `masons_*` rows.
-- [ ] **Confirm portrait display path** — After Unity refresh, ensure FindPortrait resolves for all nine ids (User Steps if visual check needed).
+- [x] **Generate nine Black Hand portraits** — Via image-generation / ComfyUI (`generate_images_batch.py`) to `Assets/Textures/Characters/PortraitCard/blackhand_{master,agent}_N.png` at 512×512. Used the early-20th-century (c. 1910) Serbian nationalist-revolutionary / Balkan wording in place of the skill's default 19th-century line.
+- [x] **Wire `CharacterVisualConfig`** — Imported all nine PNGs as sprites (Unity MCP `manage_texture` `set_import_settings`, `as_sprite: true`), then appended nine `characterId` → sprite entries to `Assets/Configs/CharacterVisualConfig.asset` (alphabetically between `belgium_sec_3` and `bosnia_herzegovina_ruler_1`) via `manage_scriptable_object` patches, matching the `illuminati_*` / `masons_*` pattern.
+- [ ] **Confirm portrait display path** — After Unity refresh, ensure FindPortrait resolves for all nine ids (User Steps — visual check in Editor still needed).
 
 ## User Steps
 
