@@ -102,7 +102,7 @@ namespace GS.Game.Systems {
 				if (gateSet == ActionPlayabilityGateSet.HardOnly && IsSoftCondition(condition)) {
 					continue;
 				}
-				entries.Add(ActionConditionDebug.Evaluate(condition, context));
+				entries.Add(ActionConditionDebug.Evaluate(condition, context, definition.TargetRole));
 			}
 
 			if (gateSet == ActionPlayabilityGateSet.All) {

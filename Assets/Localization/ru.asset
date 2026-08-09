@@ -2200,6 +2200,8 @@ MonoBehaviour:
     Value: Есть контроль противника
   - Key: action.requirement.opinion_min
     Value: Мнение не ниже {0}
+  - Key: action.requirement.opinion_min_role
+    Value: "{0}: мнение не ниже {1}"
   - Key: action.requirement.friend_candidate
     Value: Есть кандидат в друзья
   - Key: action.requirement.rival_candidate
