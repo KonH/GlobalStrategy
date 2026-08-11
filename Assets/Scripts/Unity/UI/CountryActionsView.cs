@@ -50,6 +50,7 @@ namespace GS.Unity.UI {
 			_countryVisualConfig = countryVisualConfig;
 			_tooltip = tooltip;
 			_discardGoldCost = Math.Max(0, discardGoldCost);
+			_handContainer.AddToClassList("hand-container--split");
 		}
 
 		public void Refresh(CountryActionsState state, CountryResourcesState playerResources) {
@@ -64,10 +65,18 @@ namespace GS.Unity.UI {
 			}
 			_renderedCardsBySlot.Clear();
 			_handContainer.Clear();
-			_handContainer.Add(BuildDeckPile(state));
+
+			var deckColumn = new VisualElement();
+			deckColumn.AddToClassList("hand-deck-column");
+			deckColumn.Add(BuildDeckPile(state));
+			_handContainer.Add(deckColumn);
+
+			var cardsGrid = new VisualElement();
+			cardsGrid.AddToClassList("hand-cards-grid");
 			foreach (var card in state.Hand) {
-				_handContainer.Add(BuildHandCard(card, playerResources));
+				cardsGrid.Add(BuildHandCard(card, playerResources));
 			}
+			_handContainer.Add(cardsGrid);
 		}
 
 		public void SetPresentationBusy(bool busy) {
