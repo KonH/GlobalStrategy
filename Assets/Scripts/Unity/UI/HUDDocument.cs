@@ -346,22 +346,37 @@ namespace GS.Unity.UI {
 			_provinceCountryDropdown.RegisterValueChangedCallback(_ => RefreshProvinceActionButtons());
 			_provinceDebugContainer.Add(_provinceCountryDropdown);
 
-			_btnChangeProvinceOwner = new Button(PushChangeProvinceOwnerCommand) { text = "Change owner" };
+			_btnChangeProvinceOwner = new Button { text = "Change owner" };
 			_btnChangeProvinceOwner.AddToClassList("gs-btn");
 			_btnChangeProvinceOwner.AddToClassList("gs-btn--small");
 			_btnChangeProvinceOwner.AddToClassList("debug-panel-button");
+			_btnChangeProvinceOwner.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button == 0 && _btnChangeProvinceOwner.enabledSelf && _btnChangeProvinceOwner.ContainsPoint(e.localPosition)) {
+					PushChangeProvinceOwnerCommand();
+				}
+			});
 			_provinceDebugContainer.Add(_btnChangeProvinceOwner);
 
-			_btnChangeProvinceOccupation = new Button(PushSetProvinceOccupationCommand) { text = "Change occupation" };
+			_btnChangeProvinceOccupation = new Button { text = "Change occupation" };
 			_btnChangeProvinceOccupation.AddToClassList("gs-btn");
 			_btnChangeProvinceOccupation.AddToClassList("gs-btn--small");
 			_btnChangeProvinceOccupation.AddToClassList("debug-panel-button");
+			_btnChangeProvinceOccupation.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button == 0 && _btnChangeProvinceOccupation.enabledSelf && _btnChangeProvinceOccupation.ContainsPoint(e.localPosition)) {
+					PushSetProvinceOccupationCommand();
+				}
+			});
 			_provinceDebugContainer.Add(_btnChangeProvinceOccupation);
 
-			_btnResetProvinceOccupation = new Button(PushClearProvinceOccupationCommand) { text = "Reset occupation" };
+			_btnResetProvinceOccupation = new Button { text = "Reset occupation" };
 			_btnResetProvinceOccupation.AddToClassList("gs-btn");
 			_btnResetProvinceOccupation.AddToClassList("gs-btn--small");
 			_btnResetProvinceOccupation.AddToClassList("debug-panel-button");
+			_btnResetProvinceOccupation.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button == 0 && _btnResetProvinceOccupation.enabledSelf && _btnResetProvinceOccupation.ContainsPoint(e.localPosition)) {
+					PushClearProvinceOccupationCommand();
+				}
+			});
 			_provinceDebugContainer.Add(_btnResetProvinceOccupation);
 		}
 
