@@ -4,7 +4,7 @@
 
 Source: `Docs/Specs/26_08_11_09_org-destroy-ui/spec.md` (approved; owner
 clarifications baked in — shown for every destruction including the player's
-own, `OrgInfoDocument` hides/grays out for the player's own destruction, and
+own, `OrgInfoDocument` closes permanently for the player's own destruction, and
 `EndGameWindow` must sequence after `OrgDestroyedWindow`).
 
 When Part A marks an org destroyed, show a `CountryDestroyedWindow`-style modal
@@ -12,7 +12,8 @@ When Part A marks an org destroyed, show a `CountryDestroyedWindow`-style modal
 `country_destroy.png` art, close + confirm) that blocks all UI via
 `ModalState`, consumes an independent FIFO queue on `VisualState` (same
 `Enqueue`/`TryPeek`/`AcknowledgeCurrent` pattern as `WarResultWindow`/
-`CountryDestroyedWindow`). Hide/gray out `OrgInfoDocument` when the destroyed
+`CountryDestroyedWindow`). Immediately hide `OrgInfoDocument`, close its
+subpanels, reset the HUD open flag, and prevent reopening when the destroyed
 org is the player's own. Fix `EndGameWindowDocument` — which today opens
 unconditionally and immediately on `GameCompletion.IsCompleted`, ignoring
 `ModalState` entirely — to participate in the same "wait your turn" convention
@@ -38,25 +39,35 @@ new, but still Part A's responsibility per that plan's §10).
 
 Acceptance criteria (condensed):
 - **Modal** — open from FIFO via `TryOpenIfQueued`/`OpenCurrent`;
-  `ModalState.Lock(this)` on open; close + confirm both `Hide` → unlock +
-  `AcknowledgeCurrent`.
+  `ModalState.Lock(this)` on open; close + confirm both hide visually, then
+  `AcknowledgeCurrent()` while the window still owns `ModalState`, then
+  `Unlock(this)`.
 - **Chrome** — flavor header/body naming the destroyed org (conspiracy-of-other-orgs
   framing), reused `country_destroy.png` image, close + confirm; dark theme;
   UI Toolkit only; shown for every destruction including the player's own.
 - **Blocking** — full UI lock like `WarResult`/`CountryDestroyed` (not
   map-only).
-- **`OrgInfoDocument`** — hides/grays out when the destroyed org is the
-  player's own (`PlayerOrganization.IsDestroyed`).
-- **`EndGameWindow` sequencing** — gate opening on `!ModalState.IsLocked()`;
-  subscribe to `ModalState.Unlocked`; opens immediately as today when nothing
-  else is queued/open.
+- **`OrgInfoDocument`** — immediately hides when the destroyed org is the
+  player's own (`PlayerOrganization.IsDestroyed`), closes both subpanels,
+  resets `HUDDocument._orgPanelOpen = false`, and cannot reopen. There is no
+  gray-out alternative.
+- **`EndGameWindow` sequencing** — gate opening on both
+  `!ModalState.IsLocked()` and no pending
+  `VisualState.OrgDestroyedResults.TryPeek`; subscribe to
+  `ModalState.Unlocked`; opens immediately as today only when neither an open
+  modal nor an org-destroy notification awaiting its turn blocks it.
 - **Locale** — `en.asset`/`ru.asset` keys under `org_destroyed.*`; interpolate
   `organization_name.{OrgId}`.
+- **Last-org-standing presentation** — consume Part A's projected
+  `WinConditionHintKind.LastOrgStanding` in `SelectOrgDocument` and
+  `GoalsWindowView`, with EN/RU text and runtime progress shown as destroyed
+  opponents / total opponents.
 
 ## Goal
 
 Ship a `CountryDestroyedWindow`-style FIFO notification modal for org
-destruction, an `OrgInfoDocument` destroyed-state visual, and a fix so
+destruction, permanent player-org panel closure, last-org-standing presentation,
+and a fix so
 `EndGameWindow` no longer stacks on top of any still-open notification window
 — without touching Part A's destroy math, `VisualState` queue/projection
 creation (already Part A's), or map rendering.
@@ -80,10 +91,16 @@ document self-drives from this queue (`CountryDestroyedWindow` style) — no HUD
 click forwarder, no pause/`ShouldPause`, no Events notification config.
 
 **Modal coexistence:** `OrgDestroyedResults` is independent of `WarResults`/
-`CountryDestroyedResults`. All three may hold `ModalState` locks; do not merge
-queues or redesign stacking. `OrgDestroyedWindow` does not pause or unpause.
+`CountryDestroyedResults`. Keep the existing per-type FIFOs plus shared
+`ModalState`; do not add a global/cross-window queue. Part A guarantees the
+org-destroy FIFO publishes before completion in the same converter pass; this
+plan consumes that order and gates on both lock state and pending org work.
+This second guard is required when another modal already owns `ModalState`:
+after it unlocks, `EndGameWindowDocument` and `OrgDestroyedWindowDocument`
+subscribers may run in either order, but EndGame still sees the pending org
+snapshot and yields. `OrgDestroyedWindow` does not pause or unpause.
 
-### 2. UXML / USS / Document / View — clone `CountryDestroyedWindow` 1:1
+### 2. UXML / USS / Document / View — follow `CountryDestroyedWindow`
 
 | Asset / type | Path |
 |---|---|
@@ -91,8 +108,8 @@ queues or redesign stacking. `OrgDestroyedWindow` does not pause or unpause.
 | Document | `Assets/Scripts/Unity/UI/OrgDestroyedWindowDocument.cs` |
 | View | `Assets/Scripts/Unity/UI/OrgDestroyedWindowView.cs` |
 
-Clone `CountryDestroyedWindowDocument.cs`/`CountryDestroyedWindowView.cs`/
-`.uxml`/`.uss` verbatim, renaming `country-destroyed-*` → `org-destroyed-*`,
+Use `CountryDestroyedWindowDocument.cs`/`CountryDestroyedWindowView.cs`/
+`.uxml`/`.uss` as the structural baseline, renaming `country-destroyed-*` → `org-destroyed-*`,
 `CountryDestroyedWindowDocument/View` → `OrgDestroyedWindowDocument/View`,
 `country_destroyed.*` locale keys → `org_destroyed.*`, `CountryDestroyedResults`
 → `OrgDestroyedResults`, `CountryDestroyedSnapshotState` →
@@ -107,7 +124,13 @@ drop deselect):
 - `sortingOrder = 515` — same band as `CountryDestroyedWindow`; both sit below
   `EndGameWindow` (1100).
 - `HideVisualOnly()` on `Awake` (no unlock/acknowledge); `ModalState.Lock(this)`
-  in `OpenCurrent`; `Hide()` = unlock + `AcknowledgeCurrent`.
+  in `OpenCurrent`. For user dismissal, `Hide()` must perform this exact order:
+  hide the root, `AcknowledgeCurrent()` **while this document still owns the
+  modal lock**, then `_modalState.Unlock(this)`. Do not clone the current
+  country-window unlock-before-ack order. Acknowledge-before-unlock ensures all
+  `Unlocked` subscribers observe the post-dismissal queue: EndGame opens after
+  the final org notification, while another queued org notification gets the
+  next turn without reopening the just-acknowledged snapshot.
 - Subscribe to `OrgDestroyedResults.PropertyChanged` + `Locale`; `Start()` and
   `HandleModalUnlocked` both call `TryOpenIfQueued()`.
 - Close/confirm: `PointerUpEvent` + `ContainsPoint` (Unity 6000.4.1 hit-test
@@ -127,19 +150,19 @@ keep their own copy rather than sharing one — follow that precedent). Bind
 header/body via `string.Format` on locale formats + the org name; set confirm
 button label from locale.
 
-### 3. `OrgInfoDocument` — hide/gray out on player's own destruction
+### 3. Player org panel — close immediately and permanently
 
-`OrgInfoDocument` (`Assets/Scripts/Unity/UI/OrgInfoDocument.cs`) is bound
-solely to `VisualState.PlayerOrganization`; its `Refresh()`
-(`OrgInfoDocument.cs:137-169`) already gates several elements off
-`org.IsValid`. Add an `org.IsDestroyed` branch there — apply a
-`gs-*--destroyed` USS class (or equivalent) toggled via `EnableInClassList`
-(follow the existing toggle-state pattern already used elsewhere in this file,
-lines ~221-224) rather than fully removing/hiding the panel, so the player can
-still see their org's final state rather than the panel vanishing outright.
-`HandleOrgChanged` already fires `Refresh()` on `PlayerOrganization.PropertyChanged`
-— no new subscription needed once Part A's `IsDestroyed` becomes part of that
-state's `Set()`/change-notification.
+`OrgInfoDocument` is bound solely to `VisualState.PlayerOrganization`. When
+`IsDestroyed` changes true, call `Hide()` immediately; that existing method
+also calls `SetCharsOpen(false)` and `SetActionsOpen(false)`, closing the
+character and action subpanels and their picking/tooltip state. `Show()` must
+refuse while the player org is destroyed as a defensive guard.
+
+`HUDDocument.HandlePlayerOrgChanged` must detect `IsDestroyed`, set
+`_orgPanelOpen = false`, call `_orgInfoDocument.Hide()`, and refresh the country
+view. `ToggleOrgInfo()` must return early while `PlayerOrganization.IsDestroyed`
+so subsequent clicks on the player-org control cannot reopen it. Do not add a
+destroyed USS class or leave a grayed final-state panel visible.
 
 No change needed for non-player destroyed orgs — `OrgInfoDocument` is never
 bound to any org but the player's own.
@@ -161,6 +184,7 @@ Change:
   void TryOpenIfQueued() {
       if (IsVisible) { return; }
       if (_state == null || !_state.GameCompletion.IsCompleted) { return; }
+      if (_state.OrgDestroyedResults.TryPeek(out _)) { return; }
       if (_modalState.IsLocked()) { return; }
       OpenCurrent();
   }
@@ -171,8 +195,11 @@ Change:
       _view.Refresh(_state.GameCompletion, _state.Leaderboard, _state.PlayerOrganization, _gameSettings.EndGameComparisons);
   }
   ```
-  Keep the existing "not completed → unlock + hide" branch in
-  `HandleStateChanged` unchanged (that path is unaffected by the gating fix).
+  The pending-org check is independent of lock state and must happen before
+  opening; it makes subscriber invocation order irrelevant when some other
+  modal releases the lock. Keep the existing "not completed → unlock + hide"
+  branch in `HandleStateChanged` unchanged (that path is unaffected by the
+  gating fix).
 - In `Subscribe()`: add `_modalState.Unlocked += HandleModalUnlocked;`
   (`HandleModalUnlocked` calls `TryOpenIfQueued()`); unsubscribe in
   `Unsubscribe()`/`OnDisable` (mirror `CountryDestroyedWindowDocument.OnDestroy`,
@@ -189,7 +216,24 @@ Change:
 - `EndGameWindowView.Refresh(...)` and all other view/visual behavior is
   **unchanged** — only the open-gating logic in the Document changes.
 
-### 5. Locale
+### 5. `LastOrgStanding` presentation
+
+Part A adds `WinConditionHintKind.LastOrgStanding` and projects the runtime
+goal's `Current`/`Target` as destroyed opponents / total opponents. Consume
+those values only:
+
+- `SelectOrgDocument.FormatGoalHintRow` adds a `LastOrgStanding` case using a
+  localized description such as "Be the last organization standing"; it does
+  not derive participant counts.
+- `GoalsWindowView.FormatDescription` adds the same kind using a localized
+  runtime description such as "Destroy every rival organization". Its existing
+  progress bar and `current/target` number render Part A's values; keep numeric
+  formatting as integer counts.
+
+Do not parse completion config or duplicate destroyed-opponent calculations in
+Unity UI code.
+
+### 6. Locale
 
 Add EN keys (`Assets/Localization/en.asset`, insert beside the existing
 `country_destroyed.*` block, `en.asset:571-576`):
@@ -209,7 +253,13 @@ naturally for any of the three. Use the **localization** skill for real
 Russian in `ru.asset` (not an English placeholder), mirroring
 `country_destroyed.*`'s `ru.asset` entries.
 
-### 6. Scene wiring
+Also add real EN/RU entries for
+`select_org.win_conditions.last_org_standing` (pre-game hint) and a goals
+description key such as `goals.last_org_standing` (runtime row). Both
+`SelectOrgDocument` and `GoalsWindowView` must use localization keys, not
+hardcoded fallback-only English.
+
+### 7. Scene wiring
 
 Add a `Map.unity` GameObject `OrgDestroyedWindowUI` (`Transform` +
 `OrgDestroyedWindowDocument` + `UIDocument`, same `HUDPanelSettings`
@@ -232,25 +282,30 @@ Step.
 
 - [ ] **Document + View** — `OrgDestroyedWindowDocument`/`OrgDestroyedWindowView`:
   FIFO open/hide, `ModalState` lock/unlock, `HideVisualOnly` on `Awake` (no
-  ack), PointerUp + `ContainsPoint` on close and confirm, `sortingOrder = 515`,
-  bind locale + org name (own `GetOrgName` copy) + image; no deselect logic, no
-  pause logic.
+  ack), and dismissal ordered visual hide → acknowledge current snapshot while
+  still locked → unlock; PointerUp + `ContainsPoint` on close and confirm,
+  `sortingOrder = 515`, bind locale + org name (own `GetOrgName` copy) + image;
+  no deselect logic, no pause logic.
 
-- [ ] **`OrgInfoDocument` destroyed-state** — add `org.IsDestroyed` branch in
-  `Refresh()`; toggle a destroyed-state USS class rather than hard-hiding the
-  panel.
+- [ ] **Close the player org panel** — on `PlayerOrganization.IsDestroyed`,
+  call `OrgInfoDocument.Hide()` to close both subpanels; in `HUDDocument` reset
+  `_orgPanelOpen = false` and guard `ToggleOrgInfo()`/`Show()` against reopen.
 
 - [ ] **`EndGameWindowDocument` sequencing fix** — split `HandleStateChanged`
   into state-tracking + `TryOpenIfQueued()`/`OpenCurrent()`; subscribe to
-  `ModalState.Unlocked`; verify the "not completed" unlock/hide branch and
-  `EndGameWindowView` itself are unchanged.
+  `ModalState.Unlocked`; return while either `ModalState` is locked or
+  `OrgDestroyedResults.TryPeek` reports pending work; rely on Part A's
+  queue-before-completion publication; verify the "not completed" unlock/hide
+  branch and `EndGameWindowView` itself are unchanged. Keep per-type FIFOs +
+  `ModalState`; add no global queue.
 
 - [ ] **DI registration** —
   `GameLifetimeScope.RegisterComponentInHierarchy<OrgDestroyedWindowDocument>()`
   right after `CountryDestroyedWindowDocument`.
 
-- [ ] **Localization** — EN keys under `org_destroyed.*`; run localization
-  skill for RU.
+- [ ] **Last-standing views + localization** — add cases to
+  `SelectOrgDocument` and `GoalsWindowView`; add EN/RU keys for those views and
+  EN/RU `org_destroyed.*` copy (real Russian, no placeholders).
 
 - [ ] **Scene UIDocument wiring** — add GO + `UIDocument` + `HUDPanelSettings`
   in `Map.unity` (MCP or YAML); document User Step for Editor confirm.
@@ -279,33 +334,49 @@ reused `country_destroy.png` image visible; map and other UI blocked; Close
 and Confirm both dismiss, unlock, and advance FIFO if another notification is
 queued.
 
-### 3. `OrgInfoDocument` destroyed state
+### 3. Player org panel closure
 
-Destroy the player's own org (debug path). Confirm `OrgInfoDocument` visibly
-reflects the destroyed state (grayed/marked) rather than looking unchanged.
+Open `OrgInfoDocument` and each subpanel, then destroy the player's own org.
+Confirm the document hides immediately, the character/action subpanel closes,
+the HUD no longer considers the org panel open, and repeated player-org-control
+clicks cannot reopen it. No grayed panel remains visible.
 
 ### 4. `EndGameWindow` sequencing
 
 Force a scenario where the player's own org is destroyed and the session ends
-immediately (not last-org-standing) while another notification window
-(`OrgDestroyedWindow`, or a `WarResultWindow`/`CountryDestroyedWindow` that
-happens to be queued the same tick) is open or queued. Confirm
-`OrgDestroyedWindow` (or whichever fired first) shows and dismisses normally,
-and `EndGameWindow` appears immediately after — not stacked on top of a
-still-open window. Also confirm the common case (no notification pending) is
-unaffected: `EndGameWindow` still opens immediately on a normal win.
+immediately (not last-org-standing) while a `WarResultWindow` or
+`CountryDestroyedWindow` already owns `ModalState`. Dismiss that first modal
+and confirm the pending `OrgDestroyedWindow` opens next regardless of event
+subscriber order; EndGame must not take the newly released lock. With two org
+destroy snapshots queued, confirm Close/Confirm acknowledges the visible item
+before unlock, the second org window opens next, and `EndGameWindow` opens only
+after the final org snapshot is acknowledged. Confirm there is no flash,
+reopen of an acknowledged snapshot, or stacked modal. Also confirm the common
+case (no modal lock and no pending org notification) is unaffected:
+`EndGameWindow` still opens immediately on a normal win.
+
+### 5. Last-org-standing presentation
+
+On `SelectOrg`, confirm the alternative win-condition list includes the
+localized last-org-standing description in EN and RU. In the Goals window,
+confirm the same condition shows integer destroyed-opponent progress over total
+opponents and updates after an opponent is destroyed.
 
 ## Tests
 
-Automated coverage is limited for UI Toolkit documents; focus on the one
-non-visual behavior this plan changes:
+Automated coverage is limited for UI Toolkit documents; focus on the
+deterministic sequencing behaviors this plan changes:
 
-- **No new `src/` logic in this plan** — all destroy-condition/goal/completion
-  tests belong to Part A's plan. If `OrgInfoDocument`'s `Refresh()` gains any
-  extractable pure logic (unlikely, given it's a straightforward class-toggle),
-  add a focused test; otherwise this plan's behavior (FIFO open/close, modal
-  lock ordering, `EndGameWindow` gating) has no automated UI Toolkit test
-  harness in this project and is covered by User Steps.
+- **No new `src/` logic in this plan** — parser/projection/progress tests and
+  the converter regression asserting queue publication before completion
+  belong to Part A's plan. This plan's document behavior (FIFO open/close,
+  modal gating, permanent player-panel closure, and view formatting) has no
+  automated UI Toolkit harness and is covered by User Steps. If document-level
+  tests are introduced while implementing, cover both deterministic races:
+  (1) dismissal mutates the FIFO before firing `ModalState.Unlocked`, and (2)
+  EndGame refuses to open when the lock is free but
+  `OrgDestroyedResults.TryPeek` is still true, including both possible
+  `Unlocked` subscriber orders.
 - Full suite after any `src/` edits made alongside this plan (should be none):
   `dotnet test src/GlobalStrategy.Core.sln` + Release build for plugin DLLs.
 
