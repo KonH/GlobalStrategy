@@ -151,5 +151,42 @@ namespace GS.Game.Tests {
 			var settings = new FeatureFlagSettings();
 			Assert.True(settings.EnableFriendsRelation);
 		}
+
+		[Fact]
+		void enableForceWarCards_round_trips_from_json() {
+			const string json = @"{
+				""startYear"": 1880,
+				""defaultLocale"": ""en"",
+				""autoSaveInterval"": ""monthly"",
+				""featureFlags"": {
+					""enableForceWarCards"": true
+				}
+			}";
+
+			var settings = JsonConvert.DeserializeObject<GameSettings>(json);
+
+			Assert.NotNull(settings);
+			Assert.True(settings!.FeatureFlags.EnableForceWarCards);
+		}
+
+		[Fact]
+		void enableForceWarCards_defaults_to_false_when_absent_from_json() {
+			const string json = @"{
+				""startYear"": 1880,
+				""defaultLocale"": ""en"",
+				""autoSaveInterval"": ""monthly""
+			}";
+
+			var settings = JsonConvert.DeserializeObject<GameSettings>(json);
+
+			Assert.NotNull(settings);
+			Assert.False(settings!.FeatureFlags.EnableForceWarCards);
+		}
+
+		[Fact]
+		void featureFlagSettings_class_default_enableForceWarCards_is_false() {
+			var settings = new FeatureFlagSettings();
+			Assert.False(settings.EnableForceWarCards);
+		}
 	}
 }

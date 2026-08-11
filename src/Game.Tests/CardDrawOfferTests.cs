@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ECS;
 using GS.Game.Commands;
+using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
@@ -29,7 +30,11 @@ namespace GS.Game.Tests {
 					new ActionDefinition { ActionId = "a", OwnerType = "country", DeckCopies = 1 },
 					new ActionDefinition { ActionId = "b", OwnerType = "country", DeckCopies = 2 },
 					new ActionDefinition { ActionId = "c", OwnerType = "country", DeckCopies = 3 },
-					new ActionDefinition { ActionId = "d", OwnerType = "country", DeckCopies = 0 }
+					new ActionDefinition { ActionId = "d", OwnerType = "country", DeckCopies = 0 },
+					new ActionDefinition { ActionId = "make_rival", OwnerType = "country", DeckCopies = 1 },
+					new ActionDefinition { ActionId = "stop_rivalry", OwnerType = "country", DeckCopies = 1 },
+					new ActionDefinition { ActionId = "declare_war", OwnerType = "country", DeckCopies = 1 },
+					new ActionDefinition { ActionId = "declare_revenge_war", OwnerType = "country", DeckCopies = 1 }
 				}
 			};
 		}
@@ -47,6 +52,41 @@ namespace GS.Game.Tests {
 			world.Add(entity, new GameAction { ActionId = actionId });
 			world.Add(entity, new OrgContext { OrgId = orgId });
 			world.Add(entity, new CardOwnerType(CardOwnerKind.Country));
+			return entity;
+		}
+
+		static int AddCountry(World world, string countryId, bool destroyed = false) {
+			int entity = world.Create();
+			world.Add(entity, new Country { CountryId = countryId });
+			if (destroyed) {
+				world.Add(entity, new IsDestroyed());
+			}
+			return entity;
+		}
+
+		static int AddRelationTargetCard(
+			World world,
+			string orgId,
+			string actionId,
+			string? countryContextId,
+			string targetCountryId,
+			RelationKind kind) {
+			int entity = AddCard(world, orgId, actionId);
+			if (!string.IsNullOrEmpty(countryContextId)) {
+				world.Add(entity, new CountryContext { CountryId = countryContextId });
+			}
+			world.Add(entity, new RelationCardTarget { TargetCountryId = targetCountryId, Kind = kind });
+			return entity;
+		}
+
+		static int AddRevengeTargetCard(
+			World world,
+			string orgId,
+			string countryContextId,
+			string targetCountryId) {
+			int entity = AddCard(world, orgId, "declare_revenge_war");
+			world.Add(entity, new CountryContext { CountryId = countryContextId });
+			world.Add(entity, new RevengeCardTarget { TargetCountryId = targetCountryId });
 			return entity;
 		}
 
@@ -192,6 +232,71 @@ namespace GS.Game.Tests {
 			Assert.False(world.Has<CardDrawChoice>(inHand));
 			Assert.False(world.Has<CardDrawChoice>(discarded));
 			Assert.False(world.Has<CardDrawChoice>(foreign));
+		}
+
+		[Fact]
+		void get_drawable_cards_excludes_country_targeted_cards_for_destroyed_countries() {
+			var world = new World();
+			AddDeck(world, "OrgA");
+			AddCountry(world, "Prussia");
+			AddCountry(world, "France", destroyed: true);
+			AddCountry(world, "Austria");
+
+			int makeRivalDead = AddRelationTargetCard(
+				world, "OrgA", "make_rival", null, "France", RelationKind.Rival);
+			int stopRivalryDead = AddRelationTargetCard(
+				world, "OrgA", "stop_rivalry", "Prussia", "France", RelationKind.Rival);
+			int declareWarDead = AddRelationTargetCard(
+				world, "OrgA", "declare_war", "Prussia", "France", RelationKind.Rival);
+			int revengeDead = AddRevengeTargetCard(world, "OrgA", "Prussia", "France");
+			int homeDestroyed = AddRelationTargetCard(
+				world, "OrgA", "stop_rivalry", "France", "Austria", RelationKind.Rival);
+
+			int makeRivalLive = AddRelationTargetCard(
+				world, "OrgA", "make_rival", null, "Austria", RelationKind.Rival);
+			int ordinary = AddCard(world, "OrgA", "a");
+
+			IReadOnlyList<CountryCardDrawCandidate> drawable = CountryCardDrawQuery.GetDrawableCards(
+				world, BuildConfig(), "OrgA");
+			var entities = new HashSet<int>(drawable.Select(candidate => candidate.Entity));
+
+			Assert.DoesNotContain(makeRivalDead, entities);
+			Assert.DoesNotContain(stopRivalryDead, entities);
+			Assert.DoesNotContain(declareWarDead, entities);
+			Assert.DoesNotContain(revengeDead, entities);
+			Assert.DoesNotContain(homeDestroyed, entities);
+			Assert.Contains(makeRivalLive, entities);
+			Assert.Contains(ordinary, entities);
+		}
+
+		[Fact]
+		void draw_offer_skips_destroyed_country_targets_and_leaves_hand_cards() {
+			var world = new World();
+			AddDeck(world, "OrgA");
+			AddCountry(world, "Prussia");
+			AddCountry(world, "France", destroyed: true);
+			AddCountry(world, "Austria");
+
+			int deadTarget = AddRelationTargetCard(
+				world, "OrgA", "make_rival", null, "France", RelationKind.Rival);
+			int liveTarget = AddRelationTargetCard(
+				world, "OrgA", "make_rival", null, "Austria", RelationKind.Rival);
+			int handCard = AddRelationTargetCard(
+				world, "OrgA", "declare_war", "Prussia", "France", RelationKind.Rival);
+			world.Add(handCard, new CardInHand { SlotIndex = 0 });
+
+			DrawCardSystem.Update(
+				world,
+				BuildConfig(),
+				new Random(1),
+				new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = "OrgA" } }),
+				Array.Empty<DiscardCardResult>());
+
+			CountryCardDrawChoiceInfo choice = Assert.Single(CountryCardDrawQuery.GetChoices(world, "OrgA"));
+			Assert.Equal(liveTarget, choice.Entity);
+			Assert.False(world.Has<CardDrawChoice>(deadTarget));
+			Assert.True(world.Has<CardInHand>(handCard));
+			Assert.False(world.Has<CardDrawChoice>(handCard));
 		}
 
 		[Fact]
