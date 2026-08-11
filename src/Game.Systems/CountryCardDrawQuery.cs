@@ -119,10 +119,33 @@ namespace GS.Game.Systems {
 					if (definition == null || definition.DeckCopies <= 0) {
 						continue;
 					}
-					candidates.Add(new CountryCardDrawCandidate(arch.Entities[i], definition.DeckCopies));
+					int entity = arch.Entities[i];
+					if (TargetsDestroyedCountry(world, entity)) {
+						continue;
+					}
+					candidates.Add(new CountryCardDrawCandidate(entity, definition.DeckCopies));
 				}
 			}
 			return candidates;
+		}
+
+		/// <summary>
+		/// Country-targeted deck cards (relation / revenge) stay in the deck after a country is
+		/// destroyed, but must not enter draw offers. Hand copies are left alone.
+		/// </summary>
+		static bool TargetsDestroyedCountry(IReadOnlyWorld world, int entity) {
+			if (world.Has<CountryContext>(entity)
+				&& CountryDestroySystem.IsCountryDestroyed(world, world.Get<CountryContext>(entity).CountryId)) {
+				return true;
+			}
+			if (world.Has<RelationCardTarget>(entity)
+				&& CountryDestroySystem.IsCountryDestroyed(
+					world, world.Get<RelationCardTarget>(entity).TargetCountryId)) {
+				return true;
+			}
+			return world.Has<RevengeCardTarget>(entity)
+				&& CountryDestroySystem.IsCountryDestroyed(
+					world, world.Get<RevengeCardTarget>(entity).TargetCountryId);
 		}
 
 		public static IReadOnlyList<CountryCardDrawChoiceInfo> GetChoices(IReadOnlyWorld world, string orgId) {
