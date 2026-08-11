@@ -38,39 +38,65 @@ namespace GS.Unity.UI {
 				return;
 			}
 
-			var groups = new List<DeckGroup>();
-			var indexByKey = new Dictionary<string, int>();
+			var groups = new List<DeckActionGroup>();
+			var indexByActionId = new Dictionary<string, int>();
 			int totalDrawWeight = 0;
 			foreach (var card in deck) {
 				int drawWeight = GetDrawWeight(card);
 				totalDrawWeight += drawWeight;
-				string key = $"{card.ActionId}|{card.TargetCountryId}";
-				if (!indexByKey.TryGetValue(key, out int index)) {
+				if (!indexByActionId.TryGetValue(card.ActionId, out int index)) {
 					index = groups.Count;
-					indexByKey[key] = index;
-					groups.Add(new DeckGroup());
+					indexByActionId[card.ActionId] = index;
+					groups.Add(new DeckActionGroup(card.ActionId));
 				}
 				groups[index].Add(card, drawWeight);
 			}
 
-			foreach (var group in groups) {
-				int chancePercent = totalDrawWeight > 0
-					? (int)System.Math.Round(100.0 * group.DrawWeight / totalDrawWeight)
-					: 0;
-				string title = $"{ResolveCardName(group.Representative)} x{group.TotalCount} ({chancePercent}%)";
-				bool available = group.EligibleCount > 0;
-				string actionId = group.Representative.ActionId;
-				string targetCountryId = group.Representative.TargetCountryId ?? "";
-				string expandKey = $"{actionId}|{targetCountryId}";
-				_deckContainer.Add(BuildExpandableCard(
-					title,
-					expandKey,
-					_expandedDeckKeys,
-					available,
-					group.Representative.Conditions,
-					onDraw: _onDrawDeckCard == null ? null : () => _onDrawDeckCard(actionId, targetCountryId)));
+			foreach (var actionGroup in groups) {
+				if (actionGroup.UntargetedGroup != null) {
+					_deckContainer.Add(BuildDeckCard(actionGroup.UntargetedGroup, totalDrawWeight));
+				}
+
+				if (actionGroup.TargetGroups.Count > 0) {
+					_deckContainer.Add(BuildTargetedDeckGroup(actionGroup, totalDrawWeight));
+				}
 			}
 		}
+
+		VisualElement BuildDeckCard(DeckGroup group, int totalDrawWeight) {
+			int chancePercent = CalculateChancePercent(group.DrawWeight, totalDrawWeight);
+			string title = $"{ResolveCardName(group.Representative)} x{group.TotalCount} ({chancePercent}%)";
+			string actionId = group.Representative.ActionId;
+			string targetCountryId = group.Representative.TargetCountryId ?? "";
+			string expandKey = $"{actionId}|{targetCountryId}";
+			return BuildExpandableCard(
+				title,
+				expandKey,
+				_expandedDeckKeys,
+				group.EligibleCount > 0,
+				group.Representative.Conditions,
+				onDraw: _onDrawDeckCard == null ? null : () => _onDrawDeckCard(actionId, targetCountryId));
+		}
+
+		VisualElement BuildTargetedDeckGroup(DeckActionGroup actionGroup, int totalDrawWeight) {
+			int chancePercent = CalculateChancePercent(actionGroup.TargetDrawWeight, totalDrawWeight);
+			string title = $"{FormatActionId(actionGroup.ActionId)} x{actionGroup.TargetCount} ({chancePercent}%)";
+			var children = new List<VisualElement>();
+			foreach (var targetGroup in actionGroup.TargetGroups) {
+				children.Add(BuildDeckCard(targetGroup, totalDrawWeight));
+			}
+
+			return BuildExpandableGroup(
+				title,
+				$"target-group|{actionGroup.ActionId}",
+				actionGroup.TargetEligibleCount > 0,
+				children);
+		}
+
+		static int CalculateChancePercent(int drawWeight, int totalDrawWeight) =>
+			totalDrawWeight > 0 ? (int)System.Math.Round(100.0 * drawWeight / totalDrawWeight) : 0;
+
+		static string FormatActionId(string actionId) => actionId.Replace('_', ' ');
 
 		int GetDrawWeight(ActionCardEntry card) {
 			ActionDefinition definition = _actionConfig?.Find(card.ActionId);
@@ -192,6 +218,49 @@ namespace GS.Unity.UI {
 			return block;
 		}
 
+		VisualElement BuildExpandableGroup(
+			string title,
+			string expandKey,
+			bool available,
+			IReadOnlyList<VisualElement> children) {
+			var block = new VisualElement();
+			block.AddToClassList("debug-card-block");
+
+			var header = new Button();
+			header.AddToClassList("gs-btn");
+			header.AddToClassList("gs-btn--small");
+			header.AddToClassList("debug-panel-button");
+			header.AddToClassList(available ? "debug-card-available" : "debug-card-unavailable");
+
+			var details = new VisualElement();
+			details.AddToClassList("debug-card-details");
+			foreach (var child in children) {
+				details.Add(child);
+			}
+
+			bool startOpen = _expandedDeckKeys.Contains(expandKey);
+			details.style.display = startOpen ? DisplayStyle.Flex : DisplayStyle.None;
+			header.text = $"{(startOpen ? "v" : ">")} {title}";
+			header.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button != 0 || !header.ContainsPoint(e.localPosition)) {
+					return;
+				}
+				bool isOpen = details.style.display != DisplayStyle.None;
+				details.style.display = isOpen ? DisplayStyle.None : DisplayStyle.Flex;
+				header.text = $"{(isOpen ? ">" : "v")} {title}";
+				if (isOpen) {
+					_expandedDeckKeys.Remove(expandKey);
+				} else {
+					_expandedDeckKeys.Add(expandKey);
+				}
+				e.StopPropagation();
+			});
+
+			block.Add(header);
+			block.Add(details);
+			return block;
+		}
+
 		static Button CreateActionButton(string text, Action onClick) {
 			var button = new Button(() => onClick()) { text = text };
 			button.AddToClassList("gs-btn");
@@ -258,6 +327,42 @@ namespace GS.Unity.UI {
 					Representative = card;
 				} else if (EligibleCount == 0) {
 					Representative = card;
+				}
+			}
+		}
+
+		sealed class DeckActionGroup {
+			readonly List<DeckGroup> _targetGroups = new();
+			readonly Dictionary<string, int> _targetIndexByCountryId = new();
+
+			public string ActionId { get; }
+			public DeckGroup UntargetedGroup { get; private set; }
+			public IReadOnlyList<DeckGroup> TargetGroups => _targetGroups;
+			public int TargetCount { get; private set; }
+			public int TargetEligibleCount { get; private set; }
+			public int TargetDrawWeight { get; private set; }
+
+			public DeckActionGroup(string actionId) {
+				ActionId = actionId;
+			}
+
+			public void Add(ActionCardEntry card, int drawWeight) {
+				if (string.IsNullOrEmpty(card.TargetCountryId)) {
+					UntargetedGroup ??= new DeckGroup();
+					UntargetedGroup.Add(card, drawWeight);
+					return;
+				}
+
+				if (!_targetIndexByCountryId.TryGetValue(card.TargetCountryId, out int index)) {
+					index = _targetGroups.Count;
+					_targetIndexByCountryId[card.TargetCountryId] = index;
+					_targetGroups.Add(new DeckGroup());
+				}
+				_targetGroups[index].Add(card, drawWeight);
+				TargetCount++;
+				TargetDrawWeight += drawWeight;
+				if (!card.IsUnplayable) {
+					TargetEligibleCount++;
 				}
 			}
 		}
