@@ -4,5 +4,6 @@ namespace GS.Game.Configs {
 		public bool EnableSecretAdvisor { get; set; } = false;
 		public bool EnableRuler { get; set; } = false;
 		public bool EnableFriendsRelation { get; set; } = true;
+		public bool EnableForceWarCards { get; set; } = false;
 	}
 }

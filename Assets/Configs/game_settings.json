@@ -77,7 +77,8 @@
     "showPlayerOrgControls": false,
     "enableSecretAdvisor": false,
     "enableRuler": false,
-    "enableFriendsRelation": false
+    "enableFriendsRelation": false,
+    "enableForceWarCards": false
   },
   "eventNotifications": {
     "events": [
