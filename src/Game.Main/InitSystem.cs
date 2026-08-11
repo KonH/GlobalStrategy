@@ -37,6 +37,7 @@ namespace GS.Main {
 			var enableSecretAdvisor = settings.FeatureFlags.EnableSecretAdvisor;
 			var enableRuler = settings.FeatureFlags.EnableRuler;
 			var enableFriendsRelation = settings.FeatureFlags.EnableFriendsRelation;
+			var enableForceWarCards = settings.FeatureFlags.EnableForceWarCards;
 
 			int countryRelationsVersionEntity = world.Create();
 			world.Add(countryRelationsVersionEntity, new CountryRelationsVersion { Value = 0 });
@@ -123,7 +124,7 @@ namespace GS.Main {
 			CreateActionEntities(world, context, rng, participating);
 			CreateOrgCharacterEntities(world, context, resourceConfig, rng, participating, resources);
 			CreateCharacterEntities(world, context, resourceConfig, rng, enableSecretAdvisor, enableRuler, resources);
-			CreateCountryActionEntities(world, context, participating, enableFriendsRelation, enableSecretAdvisor, countryConfig);
+			CreateCountryActionEntities(world, context, participating, enableFriendsRelation, enableSecretAdvisor, enableForceWarCards, countryConfig);
 
 			// InitSystem does not call ResourceSystem.Update itself — it only creates the raw
 			// Resource/ResourceEffect/ResourceCollector entities above. GameLogic.Update calls
@@ -638,6 +639,7 @@ namespace GS.Main {
 			List<OrganizationEntry> participating,
 			bool enableFriendsRelation,
 			bool enableSecretAdvisor,
+			bool enableForceWarCards,
 			CountryConfig countryConfig) {
 			var actionConfig = context.Action.Load();
 			var countryActions = new List<ActionDefinition>();
@@ -675,6 +677,7 @@ namespace GS.Main {
 					}
 					if (def.ActionId == "make_friend" && !enableFriendsRelation) { continue; }
 					if (def.TargetRole == "secret_advisor" && !enableSecretAdvisor) { continue; }
+					if ((def.ActionId == "force_war_win" || def.ActionId == "force_war_loss") && !enableForceWarCards) { continue; }
 					if (!string.IsNullOrEmpty(def.TargetRole) && !availableTargetRoles.Contains(def.TargetRole)) { continue; }
 
 					if (def.ActionId == "make_friend" || def.ActionId == "make_rival") {

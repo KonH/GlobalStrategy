@@ -1,5 +1,5 @@
 {
-  "version": "1.191",
+  "version": "1.192",
   "startYear": 1880,
   "speedMultipliers": [1, 24, 720],
   "defaultLocale": "en",
@@ -77,7 +77,8 @@
     "showPlayerOrgControls": false,
     "enableSecretAdvisor": false,
     "enableRuler": false,
-    "enableFriendsRelation": false
+    "enableFriendsRelation": false,
+    "enableForceWarCards": false
   },
   "eventNotifications": {
     "events": [
