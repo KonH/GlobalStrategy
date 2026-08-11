@@ -37,7 +37,7 @@
       "nameKey": "action.improve_diplomacy_advisor_opinion.name",
       "descKey": "action.improve_diplomacy_advisor_opinion.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 9,
+      "deckCopies": 16,
       "cooldownDays": 21,
       "conditions": [
         {
@@ -103,7 +103,7 @@
       "nameKey": "action.improve_military_advisor_opinion.name",
       "descKey": "action.improve_military_advisor_opinion.desc",
       "targetRole": "military_advisor",
-      "deckCopies": 6,
+      "deckCopies": 16,
       "cooldownDays": 21,
       "conditions": [
         {
