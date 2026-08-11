@@ -64,8 +64,8 @@ namespace GS.Unity.UI {
 		}
 
 		VisualElement BuildDeckCard(DeckGroup group, int totalDrawWeight) {
-			int chancePercent = CalculateChancePercent(group.DrawWeight, totalDrawWeight);
-			string title = $"{ResolveCardName(group.Representative)} x{group.TotalCount} ({chancePercent}%)";
+			double chancePercent = CalculateChancePercent(group.DrawWeight, totalDrawWeight);
+			string title = $"{ResolveCardName(group.Representative)} x{group.TotalCount} ({FormatNumber(chancePercent)}%)";
 			string actionId = group.Representative.ActionId;
 			string targetCountryId = group.Representative.TargetCountryId ?? "";
 			string expandKey = $"{actionId}|{targetCountryId}";
@@ -79,8 +79,8 @@ namespace GS.Unity.UI {
 		}
 
 		VisualElement BuildTargetedDeckGroup(DeckActionGroup actionGroup, int totalDrawWeight) {
-			int chancePercent = CalculateChancePercent(actionGroup.TargetDrawWeight, totalDrawWeight);
-			string title = $"{FormatActionId(actionGroup.ActionId)} x{actionGroup.TargetCount} ({chancePercent}%)";
+			double chancePercent = CalculateChancePercent(actionGroup.TargetDrawWeight, totalDrawWeight);
+			string title = $"{FormatActionId(actionGroup.ActionId)} x{actionGroup.TargetCount} ({FormatNumber(chancePercent)}%)";
 			var children = new List<VisualElement>();
 			foreach (var targetGroup in actionGroup.TargetGroups) {
 				children.Add(BuildDeckCard(targetGroup, totalDrawWeight));
@@ -93,12 +93,22 @@ namespace GS.Unity.UI {
 				children);
 		}
 
-		static int CalculateChancePercent(int drawWeight, int totalDrawWeight) =>
-			totalDrawWeight > 0 ? (int)System.Math.Round(100.0 * drawWeight / totalDrawWeight) : 0;
+		// Returns fractional percent (not pre-rounded to a whole number): with many targets
+		// (e.g. one relation/revenge card per country) a single destroyed-country card's weight
+		// is a small fraction of the group/deck total, and whole-number rounding was hiding that
+		// its exclusion actually lowered the group's accumulated chance.
+		static double CalculateChancePercent(int drawWeight, int totalDrawWeight) =>
+			totalDrawWeight > 0 ? System.Math.Round(100.0 * drawWeight / totalDrawWeight, 2) : 0;
 
 		static string FormatActionId(string actionId) => actionId.Replace('_', ' ');
 
 		int GetDrawWeight(ActionCardEntry card) {
+			// Cards targeting a destroyed country are excluded from draw offers
+			// (CountryCardDrawQuery.GetDrawableCards) - keep this weight consistent with that,
+			// so their shown chance is 0% instead of a stale nonzero share of the deck.
+			if (card.UnplayableReason == "country_no_longer_exists") {
+				return 0;
+			}
 			ActionDefinition definition = _actionConfig?.Find(card.ActionId);
 			return definition != null && definition.DeckCopies > 0 ? definition.DeckCopies : 0;
 		}
