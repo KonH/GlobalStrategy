@@ -8,10 +8,31 @@ using ECS.Viewer;
 using ECS.Viewer.Server;
 
 using GS.Game.Systems;
+using GS.Game.ConsoleRunner.WarSim;
 
 namespace GS.Game.ConsoleRunner {
 	public static class Program {
 		static int Main(string[] args) {
+			if (args.Length > 0 && args[0] == "war-scenarios") {
+				try {
+					return WarScenarioCli.Run(args);
+				} catch (Exception ex) {
+					Console.Error.WriteLine($"War scenario run failed: {ex.Message}");
+					Console.Error.WriteLine(ex.StackTrace);
+					return 1;
+				}
+			}
+
+			if (args.Length > 0 && args[0] == "war-idea") {
+				try {
+					return WarIdeaCli.Run(args);
+				} catch (Exception ex) {
+					Console.Error.WriteLine($"War idea run failed: {ex.Message}");
+					Console.Error.WriteLine(ex.StackTrace);
+					return 1;
+				}
+			}
+
 			if (args.Length > 0 && args[0] == "calibrate-end-game") {
 				try {
 					var calibrationOptions = CalibrationOptions.Parse(args);

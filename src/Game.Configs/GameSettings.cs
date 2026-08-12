@@ -88,6 +88,15 @@ namespace GS.Game.Configs {
 		public double CasualtyRandomMax { get; set; } = 1.1;
 		public double MinimumCasualtyFraction { get; set; } = 0.01;
 		public double MinimumAbsoluteCasualties { get; set; } = 1;
+		// Multiplies every round's computed casualties before the minimum-casualty floor is applied.
+		// 1.0 is a no-op (default); < 1.0 spreads a battle's total losses over more rounds, so a war
+		// resolving by peace chance before either side is fully wiped out ends with fewer total
+		// casualties than at 1.0.
+		public double CasualtyCoefficient { get; set; } = 1.0;
+		// Percentage of a country's current recruits held back as a standing reserve every time
+		// forces are allocated to a new battle — that share is excluded from the committable pool,
+		// so it never risks becoming a casualty. 0 is a no-op (default).
+		public double ReservePercent { get; set; } = 0;
 		public int MaxFinishedBattlesRetained { get; set; } = 30;
 
 		public void Validate() {
@@ -114,6 +123,12 @@ namespace GS.Game.Configs {
 			}
 			if (MinimumCasualtyFraction < 0 || MinimumAbsoluteCasualties < 0) {
 				throw new System.InvalidOperationException("War battle casualty minimums cannot be negative.");
+			}
+			if (CasualtyCoefficient <= 0) {
+				throw new System.InvalidOperationException("WarBattles.CasualtyCoefficient must be positive.");
+			}
+			if (ReservePercent < 0 || ReservePercent >= 100) {
+				throw new System.InvalidOperationException("WarBattles.ReservePercent must be in [0, 100).");
 			}
 			if (MaxFinishedBattlesRetained <= 0) {
 				throw new System.InvalidOperationException("WarBattles.MaxFinishedBattlesRetained must be positive.");
