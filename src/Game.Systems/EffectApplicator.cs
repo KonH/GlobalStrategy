@@ -22,7 +22,8 @@ namespace GS.Game.Systems {
 			CountryConfig? countryConfig = null,
 			int contextEntity = -1,
 			string correlationId = "",
-			string targetRole = "") {
+			string targetRole = "",
+			List<string>? territoryLosers = null) {
 			if (effectIds == null || effectIds.Count == 0) { return; }
 
 			foreach (var effectId in effectIds) {
@@ -85,9 +86,17 @@ namespace GS.Game.Systems {
 						MaxTotal = opinionParams.InitialValue,
 						ClampToZero = true
 					});
-				} else if (effectDef is SetCountryRelationEffectParams relationParams && !string.IsNullOrEmpty(countryId)) {
+				} else if (effectDef is SetCountryRelationEffectParams relationParams && !string.IsNullOrEmpty(countryId)
+					&& contextEntity >= 0 && world.Has<RelationCardTarget>(contextEntity)) {
+					string targetCountryId = world.Get<RelationCardTarget>(contextEntity).TargetCountryId;
 					int e = world.Create();
-					world.Add(e, new SetCountryRelationEffect { EffectId = effectId, OrgId = orgId, CountryId = countryId, Kind = relationParams.Kind });
+					world.Add(e, new SetCountryRelationEffect {
+						EffectId = effectId,
+						OrgId = orgId,
+						CountryId = countryId,
+						TargetCountryId = targetCountryId,
+						Kind = relationParams.Kind
+					});
 				} else if (effectDef is ClearCountryRelationEffectParams && !string.IsNullOrEmpty(countryId)
 					&& contextEntity >= 0 && world.Has<RelationCardTarget>(contextEntity)) {
 					string targetCountryId = world.Get<RelationCardTarget>(contextEntity).TargetCountryId;
@@ -149,7 +158,7 @@ namespace GS.Game.Systems {
 				} else if (effectDef is ResolveWarEffectParams resolveWarParams && !string.IsNullOrEmpty(countryId)) {
 					Wars.ResolveWar(
 						world, resources, countryId, resolveWarParams.Outcome, currentTime,
-						rng, settings, topology, provinceCenters, maxControlPool, countryConfig);
+						rng, settings, topology, provinceCenters, maxControlPool, countryConfig, territoryLosers);
 				} else if (effectDef is CountryResourceModifierEffectParams resourceModifierParams) {
 					if (string.IsNullOrEmpty(countryId)) { continue; }
 					AddToExistingResource(

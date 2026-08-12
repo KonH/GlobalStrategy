@@ -85,6 +85,8 @@ namespace GS.Unity.DI {
 			builder.Register(c => c.Resolve<GameLogic>().TasksConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().ProvinceConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().GameSettings, Lifetime.Singleton);
+			builder.Register(c => c.Resolve<GameLogic>().CountryActionsVisibility, Lifetime.Singleton);
+			builder.Register(c => c.Resolve<GameLogic>().DebugOrgCardVisibility, Lifetime.Singleton);
 			builder.RegisterInstance(_actionVisualConfig);
 
 			builder.RegisterInstance<IPersistentStorage>(storage);
@@ -113,6 +115,7 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<GoalsWindowDocument>();
 			builder.RegisterComponentInHierarchy<WarProgressWindowDocument>();
 			builder.RegisterComponentInHierarchy<WarResultWindowDocument>();
+			builder.RegisterComponentInHierarchy<CountryDestroyedWindowDocument>();
 			builder.RegisterComponentInHierarchy<SettingsWindowDocument>();
 			builder.RegisterComponentInHierarchy<OrgInfoDocument>();
 			builder.RegisterComponentInHierarchy<CardPlayAnimator>();

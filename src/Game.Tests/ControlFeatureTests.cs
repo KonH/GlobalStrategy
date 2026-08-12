@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using ECS;
 using GS.Configs;
 using GS.Game.Bots;
+using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
 using GS.Main;
@@ -13,9 +15,15 @@ namespace GS.Game.Tests {
 		readonly CountryRelations _relations = new CountryRelations();
 		sealed class RecordingSink : IBotCommandSink {
 			public List<(string ActionId, string CountryId)> Plays = new();
+			public List<(string ActionId, int SlotIndex)> Discards = new();
+			public void DrawCountryCards() { }
+			public void ReceiveCountryCard(int choiceIndex) { }
 			public void PlayOrgCard(string actionId, int slotIndex) => Plays.Add((actionId, ""));
 			public void PlayCountryCard(string actionId, string countryId, int slotIndex, string targetCountryId) {
 				Plays.Add((actionId, countryId));
+			}
+			public void DiscardCountryCard(string actionId, string countryId, int slotIndex, string targetCountryId) {
+				Discards.Add((actionId, slotIndex));
 			}
 		}
 
@@ -23,9 +31,30 @@ namespace GS.Game.Tests {
 		const string OpinionCardId = "opinion_card";
 		const string OrgDistractorCardId = "org_distractor_card";
 
+		static void PutCountryCardsInHand(GameLogic logic, string orgId) {
+			int nextSlot = 0;
+			int[] required = {
+				TypeId<GameAction>.Value,
+				TypeId<OrgContext>.Value,
+				TypeId<CardOwnerType>.Value
+			};
+			foreach (var archetype in logic.World.GetMatchingArchetypes(required, null)) {
+				OrgContext[] organizations = archetype.GetColumn<OrgContext>();
+				CardOwnerType[] owners = archetype.GetColumn<CardOwnerType>();
+				for (int i = 0; i < archetype.Count; i++) {
+					int entity = archetype.Entities[i];
+					if (organizations[i].OrgId == orgId
+						&& owners[i].Value == CardOwnerKind.Country
+						&& !logic.World.Has<CardInHand>(entity)) {
+						logic.World.Add(entity, new CardInHand { SlotIndex = nextSlot++ });
+					}
+				}
+			}
+		}
+
 		// Bespoke minimal config for priority-order tests: a free org distractor plus two
 		// always-affordable country cards (a positive ControlChangeEffectParams card and an
-		// OpinionModifierEffectParams distractor) dealt into every country hand from init.
+		// OpinionModifierEffectParams distractor) explicitly placed in hand for feature-only tests.
 		static GameLogic BuildPriorityLogic(double orgGold) {
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
@@ -76,7 +105,99 @@ namespace GS.Game.Tests {
 
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
+			PutCountryCardsInHand(logic, "Illuminati");
 			return logic;
+		}
+
+		// Bespoke config for the discard-fallback tests: only an OpinionModifierEffectParams
+		// card exists (no control-raising card at all), so ControlFeature can never find
+		// anything to play - the only thing left to test is whether/when it discards instead.
+		static GameLogic BuildNoControlCardLogic(int countryHandSize) {
+			var countryConfig = new CountryConfig {
+				Countries = new List<CountryEntry> {
+					new CountryEntry { CountryId = "HQ", DisplayName = "HQ", IsAvailable = true },
+					new CountryEntry { CountryId = "Austria", DisplayName = "Austria", IsAvailable = true }
+				}
+			};
+			var orgConfig = new OrganizationConfig {
+				Organizations = new List<OrganizationEntry> {
+					new OrganizationEntry { OrganizationId = "Illuminati", DisplayName = "Illuminati", HqCountryId = "HQ", InitialGold = 1000.0, BaseControl = 10, InitialAgentSlots = 1 }
+				}
+			};
+			var gameSettings = new GameSettings { StartYear = 1880, DefaultLocale = "en", SpeedMultipliers = new[] { 1, 24, 720 }, AutoSaveInterval = "monthly" };
+			var resourceConfig = new ResourceConfig {
+				Resources = new List<ResourceDefinition> { new ResourceDefinition { ResourceId = "gold", DefaultInitialValue = 0.0 } }
+			};
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "org", HandSize = 1 },
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = countryHandSize }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition { ActionId = OpinionCardId, OwnerType = "country", DeckCopies = 1, EffectIds = new List<string> { "opinion" } }
+				}
+			};
+			var effectConfig = new EffectConfig {
+				Effects = new List<ActionEffectDefinition> {
+					new OpinionModifierEffectParams { EffectId = "opinion", EffectType = "OpinionModifier" }
+				}
+			};
+
+			var ctx = new GameLogicContext(
+				new MultiOrgTestSupport.StaticConfig<GeoJsonConfig>(new GeoJsonConfig()),
+				new MultiOrgTestSupport.StaticConfig<MapEntryConfig>(new MapEntryConfig()),
+				new MultiOrgTestSupport.StaticConfig<CountryConfig>(countryConfig),
+				new MultiOrgTestSupport.StaticConfig<GameSettings>(gameSettings),
+				new MultiOrgTestSupport.StaticConfig<ResourceConfig>(resourceConfig),
+				new MultiOrgTestSupport.StaticConfig<OrganizationConfig>(orgConfig),
+				initialOrganizationId: "Illuminati",
+				action: new MultiOrgTestSupport.StaticConfig<ActionConfig>(actionConfig),
+				effect: new MultiOrgTestSupport.StaticConfig<EffectConfig>(effectConfig));
+
+			var logic = new GameLogic(ctx);
+			logic.Update(0f);
+			int cardEntity = -1;
+			int[] required = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardOwnerType>.Value };
+			foreach (var archetype in logic.World.GetMatchingArchetypes(required, null)) {
+				OrgContext[] organizations = archetype.GetColumn<OrgContext>();
+				CardOwnerType[] owners = archetype.GetColumn<CardOwnerType>();
+				for (int i = 0; i < archetype.Count; i++) {
+					if (organizations[i].OrgId == "Illuminati" && owners[i].Value == CardOwnerKind.Country) {
+						cardEntity = archetype.Entities[i];
+					}
+				}
+			}
+			logic.World.Add(cardEntity, new CardInHand { SlotIndex = 0 });
+			return logic;
+		}
+
+		[Fact]
+		void discards_a_card_when_hand_is_full_and_nothing_raises_control() {
+			var logic = BuildNoControlCardLogic(countryHandSize: 1);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations, logic.EffectConfig);
+			var sink = new RecordingSink();
+			var feature = new ControlFeature(new Dictionary<string, double>(), 100);
+
+			feature.Tick(obs, sink, new Random(1));
+
+			Assert.Empty(sink.Plays);
+			Assert.Single(sink.Discards);
+			Assert.Equal((OpinionCardId, 0), sink.Discards[0]);
+		}
+
+		[Fact]
+		void does_not_discard_while_hand_still_has_room() {
+			var logic = BuildNoControlCardLogic(countryHandSize: 2);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations, logic.EffectConfig);
+			var sink = new RecordingSink();
+			var feature = new ControlFeature(new Dictionary<string, double>(), 100);
+
+			feature.Tick(obs, sink, new Random(1));
+
+			Assert.Empty(sink.Plays);
+			// One of two country-hand slots is still free - the acquisition phase draws into it
+			// on its own, so discarding the one card already in hand would be wasteful.
+			Assert.Empty(sink.Discards);
 		}
 
 		static void RunPassive(GameLogic logic, int tickCount) {

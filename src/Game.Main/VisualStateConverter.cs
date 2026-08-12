@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ECS;
+using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Systems;
 using GS.Game.Configs;
@@ -28,6 +29,8 @@ namespace GS.Main {
 		readonly int _maxControlPool;
 		readonly IReadOnlyList<GoalsLeafDescriptor> _goalLeaves;
 		readonly BaseIncomeSettings _baseIncomeSettings;
+		readonly CountryActionsVisibility _actionsVisibility;
+		readonly DebugOrgCardVisibility _debugOrgCardVisibility;
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
@@ -45,7 +48,9 @@ namespace GS.Main {
 			int maxControlPool = 100,
 			EffectConfig? effectConfig = null,
 			BaseIncomeSettings? baseIncomeSettings = null,
-			TasksConfig? tasksConfig = null) {
+			TasksConfig? tasksConfig = null,
+			CountryActionsVisibility? actionsVisibility = null,
+			DebugOrgCardVisibility? debugOrgCardVisibility = null) {
 			_state = state;
 			_resources = resources;
 			_relations = relations;
@@ -60,6 +65,8 @@ namespace GS.Main {
 			_effectConfig = effectConfig;
 			_baseIncomeSettings = baseIncomeSettings ?? new BaseIncomeSettings();
 			_tasksConfig = tasksConfig;
+			_actionsVisibility = actionsVisibility ?? new CountryActionsVisibility();
+			_debugOrgCardVisibility = debugOrgCardVisibility ?? new DebugOrgCardVisibility();
 		}
 
 		public void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
@@ -79,6 +86,7 @@ namespace GS.Main {
 			UpdateWorldCountries(world);
 			UpdateOrgActions(world);
 			UpdateCountryActions(world, gameTimeEntity);
+			UpdateDebugOrgCardAvailability(world, gameTimeEntity);
 			UpdateCountryRelations(world);
 			UpdateCountryWars(world);
 			UpdateProvinceOwnership(world);
@@ -527,8 +535,17 @@ namespace GS.Main {
 		}
 
 		void UpdateWorldCountries(IReadOnlyWorld world) {
-			var ids = new System.Collections.Generic.HashSet<string>(GetCountryIds(world));
-			_state.WorldCountries.Set(ids);
+			var ids = new HashSet<string>(GetCountryIds(world));
+			var destroyedIds = new HashSet<string>(StringComparer.Ordinal);
+			int[] required = { TypeId<Country>.Value, TypeId<IsDestroyed>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
+				Country[] countries = arch.GetColumn<Country>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					destroyedIds.Add(countries[i].CountryId);
+				}
+			}
+			_state.WorldCountries.Set(ids, destroyedIds);
 		}
 
 		void UpdateOrgActions(IReadOnlyWorld world) {
@@ -585,7 +602,8 @@ namespace GS.Main {
 				_state.SelectedCountry.CountryActions.Set(
 					new List<ActionCardEntry>(),
 					new List<ActionCardEntry>(),
-					0, DateTime.MinValue);
+					new List<CardDrawChoiceEntry>(),
+					0, false, false, DateTime.MinValue);
 				return;
 			}
 			string orgId = _state.PlayerOrganization.OrgId;
@@ -597,14 +615,27 @@ namespace GS.Main {
 
 			var hand = new List<ActionCardEntry>();
 			var deck = new List<ActionCardEntry>();
+			var drawChoices = new List<CardDrawChoiceEntry>();
 
 			int[] baseReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardOwnerType>.Value };
 			int[] handReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardOwnerType>.Value, TypeId<CardInHand>.Value };
-			int[] excludeHand = { TypeId<CardInHand>.Value };
+			int[] excludeHandAndChoices = { TypeId<CardInHand>.Value, TypeId<CardDrawChoice>.Value };
 
 			IReadOnlyList<string> playableCountryOrder = GetPlayableCountryEvaluationOrder(world);
+			// Built at most once per Update() call, and only if actually needed (hand detail or
+			// draw choices below end up requesting it) - reused across every BuildEntry/
+			// ActionPlayability check so each unplayable card re-checking playability against
+			// every candidate country doesn't rescan every ControlEffect/WarParticipant entity
+			// in the world per check.
+			ControlWarSnapshot? snapshotOrNull = null;
+			ControlWarSnapshot GetSnapshot() => snapshotOrNull ??= ControlWarSnapshot.Build(world);
 
-			// Hand cards
+			// Hand cards. Full per-card ActionPlayability detail (needed for the card visuals,
+			// cost/cooldown borders, and the "playable in these countries" tooltip) is only
+			// built while the actions sub-panel is actually open - while collapsed, nothing
+			// reads more than the count (toggle-button visibility), so fall back to cheap
+			// placeholder entries that skip ActionPlayability entirely.
+			bool buildHandDetail = _actionsVisibility.ActionsPanelOpen;
 			foreach (var arch in world.GetMatchingArchetypes(handReq, null)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
@@ -613,53 +644,199 @@ namespace GS.Main {
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || owners[i].Value != CardOwnerKind.Country) { continue; }
-					var entry = BuildEntry(
-						world, orgId, countryId, arch.Entities[i], actions[i].ActionId, hands[i].SlotIndex, true,
-						currentTime, playableCountryOrder);
+					var entry = buildHandDetail
+						? BuildEntry(
+							world, orgId, countryId, arch.Entities[i], actions[i].ActionId, hands[i].SlotIndex, true,
+							true, currentTime, playableCountryOrder, GetSnapshot())
+						: BuildCheapEntry(actions[i].ActionId, hands[i].SlotIndex, true);
 					if (entry != null) { hand.Add(entry); }
 				}
 			}
 
-			// Deck cards
-			foreach (var arch in world.GetMatchingArchetypes(baseReq, excludeHand)) {
+			// Deck cards - only ever rendered as a pile with a shadow-stack count (and, in the
+			// debug menu, a per-card breakdown that's a developer-only convenience). Never worth
+			// a full ActionPlayability evaluation per card; use cheap placeholder entries so
+			// deck.Count stays correct without the cost.
+			foreach (var arch in world.GetMatchingArchetypes(baseReq, excludeHandAndChoices)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] orgs = arch.GetColumn<OrgContext>();
 				CardOwnerType[] owners = arch.GetColumn<CardOwnerType>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
 					if (orgs[i].OrgId != orgId || owners[i].Value != CardOwnerKind.Country) { continue; }
+					var entry = BuildCheapEntry(actions[i].ActionId, -1, false);
+					if (entry != null) { deck.Add(entry); }
+				}
+			}
+
+			CountryCardDrawStatus drawStatus;
+			bool hasDrawStatus = CountryCardDrawQuery.TryGetStatus(world, _actionConfig, orgId, out drawStatus);
+			if (hasDrawStatus
+				&& drawStatus.HasCoherentPendingDraw
+				&& CountryCardDrawQuery.TryGetCoherentChoices(
+					world,
+					orgId,
+					out IReadOnlyList<CountryCardDrawChoiceInfo> coherentChoices)) {
+				foreach (CountryCardDrawChoiceInfo choice in coherentChoices) {
+					if (!world.Has<GameAction>(choice.Entity)) { continue; }
 					var entry = BuildEntry(
-						world, orgId, countryId, arch.Entities[i], actions[i].ActionId, -1, false,
-						currentTime, playableCountryOrder);
+						world, orgId, countryId, choice.Entity, world.Get<GameAction>(choice.Entity).ActionId,
+						-1, false, true, currentTime, playableCountryOrder, GetSnapshot());
+					if (entry != null) {
+						drawChoices.Add(new CardDrawChoiceEntry(choice.ChoiceIndex, entry));
+					}
+				}
+			}
+
+			hand.Sort((a, b) => a.SlotIndex.CompareTo(b.SlotIndex));
+			int countryHandSize = hasDrawStatus ? drawStatus.HandSize : 0;
+			bool hasPendingDraw = hasDrawStatus && drawStatus.HasCoherentPendingDraw;
+			bool canStartDraw = hasDrawStatus && drawStatus.CanStartDraw;
+			_state.SelectedCountry.CountryActions.Set(
+				hand, deck, drawChoices, countryHandSize, hasPendingDraw, canStartDraw, currentTime);
+		}
+
+		// Debug-menu-only: "My org" and "Selected org" each show one org's full card availability
+		// (org-owned cards, e.g. master/agent recruitment, merged with country-owned cards, e.g.
+		// relation/control actions) regardless of what's currently selected on the map - unlike
+		// UpdateCountryActions above, which resets to empty without a selected country and only
+		// ever reflects the player's own org.
+		void UpdateDebugOrgCardAvailability(IReadOnlyWorld world, int gameTimeEntity) {
+			DateTime currentTime = gameTimeEntity >= 0
+				? world.Get<GameTime>(gameTimeEntity).CurrentTime
+				: DateTime.MinValue;
+
+			string myOrgId = _state.PlayerOrganization.IsValid ? _state.PlayerOrganization.OrgId : "";
+			BuildDebugOrgCardAvailability(
+				world, myOrgId, currentTime,
+				_debugOrgCardVisibility.MyOrgDeckOpen, _debugOrgCardVisibility.MyOrgHandOpen,
+				_state.MyOrgCardAvailability);
+
+			// "Selected org" = the org dominating the currently selected country while the org
+			// lens is active (same resolution UpdateResources uses for OrgLensOrganizationResources).
+			string selectedOrgId = _state.MapLens.Lens == MapLens.Org && _state.OrgLensOrganizationResources.IsValid
+				? _state.OrgLensOrganizationResources.CountryId
+				: "";
+			BuildDebugOrgCardAvailability(
+				world, selectedOrgId, currentTime,
+				_debugOrgCardVisibility.SelectedOrgDeckOpen, _debugOrgCardVisibility.SelectedOrgHandOpen,
+				_state.SelectedOrgCardAvailability);
+		}
+
+		void BuildDebugOrgCardAvailability(
+			IReadOnlyWorld world, string orgId, DateTime currentTime,
+			bool deckDetailOpen, bool handDetailOpen, OrgCardAvailabilityState target) {
+			if (string.IsNullOrEmpty(orgId) || _actionConfig == null) {
+				target.Set(false, "", new List<ActionCardEntry>(), new List<ActionCardEntry>());
+				return;
+			}
+
+			string countryContextId = _hqCountryByOrgId.TryGetValue(orgId, out string hqCountryId) ? hqCountryId : "";
+			ControlWarSnapshot? snapshotOrNull = null;
+			ControlWarSnapshot GetSnapshot() => snapshotOrNull ??= ControlWarSnapshot.Build(world);
+
+			var hand = new List<ActionCardEntry>();
+			var deck = new List<ActionCardEntry>();
+
+			// No CardOwnerType filter - org cards (master/agent recruitment, ...) and country
+			// cards (relation/control actions, ...) are merged into the same debug listing.
+			int[] handReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardOwnerType>.Value, TypeId<CardInHand>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(handReq, null)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				CardInHand[] hands = arch.GetColumn<CardInHand>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (orgs[i].OrgId != orgId) { continue; }
+					var entry = handDetailOpen
+						? BuildEntry(
+							world, orgId, countryContextId, arch.Entities[i], actions[i].ActionId, hands[i].SlotIndex, true,
+							false, currentTime, Array.Empty<string>(), GetSnapshot())
+						: BuildCheapEntry(actions[i].ActionId, hands[i].SlotIndex, true);
+					if (entry != null) { hand.Add(entry); }
+				}
+			}
+
+			int[] deckReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardOwnerType>.Value };
+			int[] excludeInHandOrChoice = { TypeId<CardInHand>.Value, TypeId<CardDrawChoice>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(deckReq, excludeInHandOrChoice)) {
+				GameAction[] actions = arch.GetColumn<GameAction>();
+				OrgContext[] orgs = arch.GetColumn<OrgContext>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (orgs[i].OrgId != orgId) { continue; }
+					var entry = deckDetailOpen
+						? BuildEntry(
+							world, orgId, countryContextId, arch.Entities[i], actions[i].ActionId, -1, false,
+							false, currentTime, Array.Empty<string>(), GetSnapshot())
+						: BuildCheapEntry(actions[i].ActionId, -1, false);
 					if (entry != null) { deck.Add(entry); }
 				}
 			}
 
 			hand.Sort((a, b) => a.SlotIndex.CompareTo(b.SlotIndex));
-			int countryHandSize = _actionConfig?.GetHandSize("country") ?? 3;
-			_state.SelectedCountry.CountryActions.Set(hand, deck, countryHandSize, currentTime);
+			target.Set(true, orgId, hand, deck);
+		}
+
+		// No ActionPlayability evaluation at all - just enough for callers that only ever read
+		// .Count / .ActionId (deck pile, and hand while the actions sub-panel is collapsed).
+		// Matches null-on-unknown-actionId behavior of BuildEntry.
+		ActionCardEntry? BuildCheapEntry(string actionId, int slotIndex, bool isInHand) {
+			return _actionConfig?.Find(actionId) == null ? null : new ActionCardEntry(actionId, slotIndex, isInHand);
 		}
 
 		ActionCardEntry? BuildEntry(
 			IReadOnlyWorld world, string orgId, string countryId, int entity,
 			string actionId, int slotIndex, bool isInHand,
+			bool includePlayableCountryIds,
 			DateTime currentTime,
-			IReadOnlyList<string> playableCountryOrder) {
+			IReadOnlyList<string> playableCountryOrder,
+			ControlWarSnapshot snapshot) {
 			var def = _actionConfig?.Find(actionId);
 			if (def == null) { return null; }
 
+			string targetCountryId = world.Has<RelationCardTarget>(entity)
+				? world.Get<RelationCardTarget>(entity).TargetCountryId
+				: world.Has<RevengeCardTarget>(entity) ? world.Get<RevengeCardTarget>(entity).TargetCountryId : "";
+
+			string? destroyedCountryId = null;
+			if (!string.IsNullOrEmpty(countryId) && CountryDestroySystem.IsCountryDestroyed(world, countryId)) {
+				destroyedCountryId = countryId;
+			} else if (!string.IsNullOrEmpty(targetCountryId)
+				&& CountryDestroySystem.IsCountryDestroyed(world, targetCountryId)) {
+				destroyedCountryId = targetCountryId;
+			}
+			if (destroyedCountryId != null) {
+				var destroyedFailure = new ActionConditionDebugEntry(
+					$"country '{destroyedCountryId}' no longer exists",
+					false,
+					"action.country.unplayable.country_no_longer_exists",
+					new[] { destroyedCountryId },
+					"country_no_longer_exists");
+				string entryTargetCountryId = !string.IsNullOrEmpty(targetCountryId)
+					? targetCountryId
+					: destroyedCountryId;
+				return new ActionCardEntry(
+					actionId, slotIndex, isInHand, true,
+					"country_no_longer_exists", entryTargetCountryId,
+					new List<ActionConditionDebugEntry> { destroyedFailure },
+					null, null, null,
+					false, destroyedFailure, Array.Empty<string>());
+			}
+
 			ActionPlayabilityResult playability = ActionPlayability.Evaluate(
 				world, _actionConfig!, entity, actionId, orgId, countryId,
-				_resources, _relations, _hqCountryByOrgId, currentTime, _maxControlPool);
+				_resources, _relations, _hqCountryByOrgId, currentTime, _maxControlPool,
+				ActionPlayabilityGateSet.All, snapshot);
 			TimeSpan? remaining = ActionCooldownQuery.GetRemaining(world, orgId, actionId, currentTime);
 			bool onCooldown = remaining.HasValue;
 			double? cooldownRemainingDays = onCooldown ? Math.Ceiling(remaining!.Value.TotalDays) : (double?)null;
 			double? cooldownFractionRemaining = onCooldown && def.CooldownDays > 0
 				? Math.Round(Math.Clamp(remaining!.Value.TotalDays / def.CooldownDays, 0.0, 1.0), 2)
 				: (double?)null;
-			string targetCountryId = world.Has<RelationCardTarget>(entity)
-				? world.Get<RelationCardTarget>(entity).TargetCountryId
-				: world.Has<RevengeCardTarget>(entity) ? world.Get<RevengeCardTarget>(entity).TargetCountryId : "";
+			string countryContextId = world.Has<CountryContext>(entity)
+				? world.Get<CountryContext>(entity).CountryId
+				: "";
 
 			int? warWinChancePercent = null;
 			if ((actionId == "declare_war" || actionId == "declare_revenge_war") && !string.IsNullOrEmpty(targetCountryId)) {
@@ -678,12 +855,12 @@ namespace GS.Main {
 			}
 
 			var playableCountryIds = new List<string>();
-			if (isInHand && !playability.CanPlay) {
+			if (includePlayableCountryIds && !playability.CanPlay) {
 				foreach (string candidateCountryId in playableCountryOrder) {
-					if (ActionPlayability.Evaluate(
+					if (ActionPlayability.CanPlayFast(
 						world, _actionConfig!, entity, actionId, orgId, candidateCountryId,
 						_resources, _relations, _hqCountryByOrgId, currentTime, _maxControlPool,
-						ActionPlayabilityGateSet.HardOnly).CanPlay) {
+						ActionPlayabilityGateSet.HardOnly, snapshot)) {
 						playableCountryIds.Add(candidateCountryId);
 					}
 				}
@@ -693,7 +870,7 @@ namespace GS.Main {
 				actionId, slotIndex, isInHand, !playability.CanPlay,
 				playability.FirstFailure?.ReasonCode ?? "", targetCountryId, playability.Entries,
 				warWinChancePercent, cooldownRemainingDays, cooldownFractionRemaining,
-				playability.CanPlay, playability.FirstFailure, playableCountryIds);
+				playability.CanPlay, playability.FirstFailure, playableCountryIds, countryContextId);
 		}
 
 		IReadOnlyList<string> GetPlayableCountryEvaluationOrder(IReadOnlyWorld world) {
@@ -1020,6 +1197,16 @@ namespace GS.Main {
 					if (decision.Show && decision.Snapshot != null) {
 						_state.WarResults.Enqueue(decision.Snapshot);
 					}
+				}
+			}
+
+			int[] countryDestroyedReq = { TypeId<CountryDestroyedApplied>.Value };
+			foreach (Archetype arch in world.GetMatchingArchetypes(countryDestroyedReq, null)) {
+				CountryDestroyedApplied[] applied = arch.GetColumn<CountryDestroyedApplied>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					_state.CountryDestroyedResults.Enqueue(
+						new CountryDestroyedSnapshotState(applied[i].CountryId));
 				}
 			}
 

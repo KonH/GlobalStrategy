@@ -88,6 +88,23 @@ namespace GS.Game.Systems {
 			}
 		}
 
+		public static void DestroyAllControlInCountry(World world, string countryId) {
+			var toDestroy = new List<int>();
+			int[] required = { TypeId<ControlEffect>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
+				ControlEffect[] controls = arch.GetColumn<ControlEffect>();
+				int count = arch.Count;
+				for (int i = 0; i < count; i++) {
+					if (controls[i].CountryId == countryId) {
+						toDestroy.Add(arch.Entities[i]);
+					}
+				}
+			}
+			foreach (int entity in toDestroy) {
+				world.Destroy(entity);
+			}
+		}
+
 		static Dictionary<string, int> GetOtherOrgControlTotals(IReadOnlyWorld world, string orgId, string countryId) {
 			var totals = new Dictionary<string, int>(StringComparer.Ordinal);
 			int[] required = { TypeId<ControlEffect>.Value };

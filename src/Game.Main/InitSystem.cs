@@ -37,6 +37,7 @@ namespace GS.Main {
 			var enableSecretAdvisor = settings.FeatureFlags.EnableSecretAdvisor;
 			var enableRuler = settings.FeatureFlags.EnableRuler;
 			var enableFriendsRelation = settings.FeatureFlags.EnableFriendsRelation;
+			var enableForceWarCards = settings.FeatureFlags.EnableForceWarCards;
 
 			int countryRelationsVersionEntity = world.Create();
 			world.Add(countryRelationsVersionEntity, new CountryRelationsVersion { Value = 0 });
@@ -123,7 +124,7 @@ namespace GS.Main {
 			CreateActionEntities(world, context, rng, participating);
 			CreateOrgCharacterEntities(world, context, resourceConfig, rng, participating, resources);
 			CreateCharacterEntities(world, context, resourceConfig, rng, enableSecretAdvisor, enableRuler, resources);
-			CreateCountryActionEntities(world, context, participating, enableFriendsRelation, enableSecretAdvisor);
+			CreateCountryActionEntities(world, context, participating, enableFriendsRelation, enableSecretAdvisor, enableForceWarCards, countryConfig);
 
 			// InitSystem does not call ResourceSystem.Update itself — it only creates the raw
 			// Resource/ResourceEffect/ResourceCollector entities above. GameLogic.Update calls
@@ -637,7 +638,9 @@ namespace GS.Main {
 			GameLogicContext context,
 			List<OrganizationEntry> participating,
 			bool enableFriendsRelation,
-			bool enableSecretAdvisor) {
+			bool enableSecretAdvisor,
+			bool enableForceWarCards,
+			CountryConfig countryConfig) {
 			var actionConfig = context.Action.Load();
 			var countryActions = new List<ActionDefinition>();
 			foreach (var a in actionConfig.Actions) {
@@ -665,7 +668,6 @@ namespace GS.Main {
 				world.Add(countryDeckEntity, new CardDeck { OrgId = orgId });
 				world.Add(countryDeckEntity, new CardOwnerType(CardOwnerKind.Country));
 				world.Add(countryDeckEntity, new CardHand { HandSize = handSize });
-				if (handSize > 0) { world.Add(countryDeckEntity, new CardDraw { Count = handSize }); }
 
 				foreach (var def in countryActions) {
 					if (def.DeckCopies <= 0
@@ -675,7 +677,24 @@ namespace GS.Main {
 					}
 					if (def.ActionId == "make_friend" && !enableFriendsRelation) { continue; }
 					if (def.TargetRole == "secret_advisor" && !enableSecretAdvisor) { continue; }
+					if ((def.ActionId == "force_war_win" || def.ActionId == "force_war_loss") && !enableForceWarCards) { continue; }
 					if (!string.IsNullOrEmpty(def.TargetRole) && !availableTargetRoles.Contains(def.TargetRole)) { continue; }
+
+					if (def.ActionId == "make_friend" || def.ActionId == "make_rival") {
+						RelationKind kind = def.ActionId == "make_friend" ? RelationKind.Friend : RelationKind.Rival;
+						foreach (var targetEntry in countryConfig.Countries) {
+							if (!targetEntry.IsAvailable) { continue; }
+							// No self-exclusion here — a country targeting itself is always
+							// unplayable via CountryActionConditionContext.Build's guard, for
+							// whichever org/country ends up being selected.
+							int targetEntity = world.Create();
+							world.Add(targetEntity, new GameAction { ActionId = def.ActionId });
+							world.Add(targetEntity, new OrgContext { OrgId = orgId });
+							world.Add(targetEntity, new CardOwnerType(CardOwnerKind.Country));
+							world.Add(targetEntity, new RelationCardTarget { TargetCountryId = targetEntry.CountryId, Kind = kind });
+						}
+						continue;
+					}
 
 					int entity = world.Create();
 					world.Add(entity, new GameAction { ActionId = def.ActionId });

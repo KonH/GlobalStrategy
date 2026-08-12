@@ -96,12 +96,16 @@ namespace GS.Game.Tests {
 
 		static IReadOnlyList<GameLogEntry> Entries(GameLogic logic) => logic.VisualState.GameLog.Entries;
 
+		// DeckCopies = 0 so InitSystem creates no per-target make_friend instances automatically —
+		// tests using this config seed their own single RelationCardTarget-bearing instance
+		// directly into hand, for a deterministic outcome independent of which of the ~N per-target
+		// instances an initial random draw would otherwise pick.
 		static ActionConfig RelationActionConfig() => new ActionConfig {
 			Defaults = new List<ActionOwnerDefaults> {
 				new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
 			},
 			Actions = new List<ActionDefinition> {
-				new ActionDefinition { ActionId = "make_friend", OwnerType = "country", DeckCopies = 1, EffectIds = new List<string> { "make_friend_effect" } }
+				new ActionDefinition { ActionId = "make_friend", OwnerType = "country", DeckCopies = 0, EffectIds = new List<string> { "make_friend_effect" } }
 			}
 		};
 
@@ -204,7 +208,14 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic(
 				WarResolutionActionConfig(),
 				WarResolutionEffectConfig(),
-				WarResolutionCharacterConfig());
+				WarResolutionCharacterConfig(),
+				gameSettings: new GameSettings {
+					StartYear = 1880,
+					DefaultLocale = "en",
+					SpeedMultipliers = new[] { 1, 24, 720 },
+					AutoSaveInterval = "monthly",
+					FeatureFlags = new FeatureFlagSettings { EnableRuler = true, EnableForceWarCards = true }
+				});
 			logic.Update(0f);
 
 			AddControl(logic.World, OrgId, OtherCountryId, 20, "war_resolution_control");
@@ -229,15 +240,26 @@ namespace GS.Game.Tests {
 		}
 
 		// Covers the Relation game-log/fly-text wiring: RelationSetApplied -> GameLogEntryKind.Relation.
-		// Only two available countries exist in the default CountryConfig (HqCountryId, OtherCountryId),
-		// so the candidate pool for a relation played from OtherCountryId is exactly {HqCountryId} —
-		// deterministic regardless of the 50/50 proximity/uniform pick inside SetCountryRelationSystem.
+		// make_friend/make_rival cards are now per-target instances (RelationCardTarget, no
+		// CountryContext — the primary side stays dynamic), so this seeds a single instance
+		// directly into hand rather than relying on which of the ~N per-target instances an
+		// initial random draw would pick — see RelationActionConfig's DeckCopies = 0.
 		[Fact]
 		void relation_produces_exactly_one_entry_with_target_and_kind_and_no_extra_on_a_passive_tick() {
 			var logic = BuildLogic(RelationActionConfig(), RelationEffectConfig());
 			logic.Update(0f);
 
-			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "make_friend" });
+			int cardEntity = logic.World.Create();
+			logic.World.Add(cardEntity, new GameAction { ActionId = "make_friend" });
+			logic.World.Add(cardEntity, new OrgContext { OrgId = OrgId });
+			logic.World.Add(cardEntity, new CardOwnerType(CardOwnerKind.Country));
+			logic.World.Add(cardEntity, new RelationCardTarget { TargetCountryId = HqCountryId, Kind = RelationKind.Friend });
+			logic.World.Add(cardEntity, new CardInHand { SlotIndex = 0 });
+
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId, CountryId = OtherCountryId, ActionId = "make_friend",
+				TargetCountryId = HqCountryId, SlotIndex = 0
+			});
 			logic.Update(0f);
 
 			var relations = Entries(logic).Where(e => e.Kind == GameLogEntryKind.Relation).ToList();
@@ -251,6 +273,30 @@ namespace GS.Game.Tests {
 			// RelationSetApplied was swept by CleanupEffectNotificationsSystem like the other *Applied events.
 			logic.Update(0f);
 			Assert.Single(Entries(logic).Where(e => e.Kind == GameLogEntryKind.Relation));
+		}
+
+		// Defends CreateActionEffectSystem's SetCountryRelationEffectParams guard: a make_friend-shaped
+		// card entity with no RelationCardTarget (not reachable in production after this feature — every
+		// make_friend/make_rival instance InitSystem creates always carries one) must create no
+		// SetCountryRelationEffect marker at all, rather than falling back to any implicit target.
+		[Fact]
+		void set_country_relation_effect_is_not_created_without_a_relation_card_target() {
+			var logic = BuildLogic(RelationActionConfig(), RelationEffectConfig());
+			logic.Update(0f);
+
+			int cardEntity = logic.World.Create();
+			logic.World.Add(cardEntity, new GameAction { ActionId = "make_friend" });
+			logic.World.Add(cardEntity, new OrgContext { OrgId = OrgId });
+			logic.World.Add(cardEntity, new CardOwnerType(CardOwnerKind.Country));
+			logic.World.Add(cardEntity, new CardInHand { SlotIndex = 0 });
+
+			logic.Commands.Push(new PlayCardActionCommand {
+				OrgId = OrgId, CountryId = OtherCountryId, ActionId = "make_friend", SlotIndex = 0
+			});
+			logic.Update(0f);
+
+			Assert.Empty(Entries(logic).Where(e => e.Kind == GameLogEntryKind.Relation));
+			Assert.Null(logic.Relations.GetRelation(logic.World, OtherCountryId, HqCountryId));
 		}
 
 		[Fact]
@@ -454,6 +500,7 @@ namespace GS.Game.Tests {
 			// control-raising cards instead. See MultiControlActionConfig.
 			var logic = BuildLogic(MultiControlActionConfig("raise_control_1", "raise_control_2"), ControlEffectConfig(5));
 			logic.Update(0f);
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "raise_control_1");
 
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control_1",
@@ -465,6 +512,7 @@ namespace GS.Game.Tests {
 			Assert.Equal(5, controls[0].Delta);
 			Assert.Equal(5, controls[0].Total);
 
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "raise_control_2");
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control_2",
 				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "raise_control_2")
@@ -500,10 +548,12 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			// Second org raises control in the shared target country first.
+			PutCountryCardInHand(logic.World, OrgBId, OtherCountryId, "raise_control");
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgBId, CountryId = OtherCountryId, ActionId = "raise_control" });
 			logic.Update(0f);
 
 			// First org raises control in the same country next.
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "raise_control");
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control" });
 			logic.Update(0f);
 
@@ -616,6 +666,7 @@ namespace GS.Game.Tests {
 			};
 			var logic = BuildLogic(actionConfig, effectConfig, characterConfig);
 			logic.Update(0f);
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "improve_opinion");
 
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId, CountryId = OtherCountryId, ActionId = "improve_opinion",
@@ -634,6 +685,7 @@ namespace GS.Game.Tests {
 			for (int day = 0; day < 31; day++) { logic.Update(24f); }
 			Assert.Equal(countBeforeDecay, Entries(logic).Count);
 
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "improve_opinion");
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId, CountryId = OtherCountryId, ActionId = "improve_opinion",
 				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "improve_opinion")
@@ -749,11 +801,13 @@ namespace GS.Game.Tests {
 			logic.Update(0f);
 
 			// Player org (Illuminati, the initialOrganizationId) control — suppressed.
+			PutCountryCardInHand(logic.World, OrgId, OtherCountryId, "raise_control");
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgId, CountryId = OtherCountryId, ActionId = "raise_control" });
 			logic.Update(0f);
 			Assert.Empty(Entries(logic).Where(e => e.Kind == GameLogEntryKind.Control));
 
 			// AI org control — still appears.
+			PutCountryCardInHand(logic.World, OrgBId, OtherCountryId, "raise_control");
 			logic.Commands.Push(new PlayCardActionCommand { OrgId = OrgBId, CountryId = OtherCountryId, ActionId = "raise_control" });
 			logic.Update(0f);
 			Assert.Single(Entries(logic).Where(e => e.Kind == GameLogEntryKind.Control && e.OrgId == OrgBId));
@@ -786,16 +840,19 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic(actionConfig, ControlEffectConfig(5), gameSettings: gameSettings, countryConfig: countryConfig);
 			logic.Update(0f);
 
+			PutCountryCardInHand(logic.World, OrgId, CountryA, "raise_control_a");
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId, CountryId = CountryA, ActionId = "raise_control_a",
 				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "raise_control_a")
 			});
 			logic.Update(0f);
+			PutCountryCardInHand(logic.World, OrgId, CountryB, "raise_control_b");
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId, CountryId = CountryB, ActionId = "raise_control_b",
 				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "raise_control_b")
 			});
 			logic.Update(0f);
+			PutCountryCardInHand(logic.World, OrgId, CountryC, "raise_control_c");
 			logic.Commands.Push(new PlayCardActionCommand {
 				OrgId = OrgId, CountryId = CountryC, ActionId = "raise_control_c",
 				SlotIndex = FindCountryCardSlot(logic.World, OrgId, "raise_control_c")

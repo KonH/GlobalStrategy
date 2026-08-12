@@ -93,6 +93,22 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void black_hand_org_config_and_pool_are_present() {
+			var organizations = new FileConfig<OrganizationConfig>(FindRepoRootConfigPath("organizations.json")).Load();
+			OrganizationEntry blackHand = Assert.Single(organizations.Organizations, o => o.OrganizationId == "BlackHand");
+			Assert.Equal("Serbia", blackHand.HqCountryId);
+			Assert.Equal(750.0, blackHand.InitialGold);
+			Assert.Equal(3, blackHand.InitialAgentSlots);
+
+			var characters = new FileConfig<CharacterConfig>(FindRepoRootConfigPath("character_config.json")).Load();
+			OrgCharacterPool? pool = characters.FindOrgPool("BlackHand");
+			Assert.NotNull(pool);
+			Assert.Equal(3, pool.Slots["master"].Count);
+			Assert.Equal(6, pool.Slots["agent"].Count);
+			Assert.Equal("blackhand_master_1", pool.Slots["master"][0].CharacterId);
+		}
+
+		[Fact]
 		void character_config_parity() {
 			string path = FindRepoRootConfigPath("character_config.json");
 			var fromFile = new FileConfig<CharacterConfig>(path).Load();
@@ -109,6 +125,8 @@ namespace GS.Game.Tests {
 			Assert.Equal(fromFile.Actions.Count, fromString.Actions.Count);
 			Assert.Equal(fromFile.Actions[0].ActionId, fromString.Actions[0].ActionId);
 			Assert.Equal(fromFile.Actions[0].EffectIds, fromString.Actions[0].EffectIds);
+			Assert.Equal(8, fromFile.GetHandSize("country"));
+			Assert.Equal(8, fromString.GetHandSize("country"));
 		}
 
 		[Fact]
@@ -195,10 +213,10 @@ namespace GS.Game.Tests {
 				fromString.Find("sell_arms_damage_bonus_effect"));
 			Assert.Equal(ResourceDefinitions.TroopsDamageBonusPercent, modifierFromFile.ResourceId);
 			Assert.Equal(ResourceDefinitions.TroopsDamageBonusPercent, modifierFromString.ResourceId);
-			Assert.Equal(20.0, modifierFromFile.InitialValue);
-			Assert.Equal(20.0, modifierFromString.InitialValue);
-			Assert.Equal(1.0, modifierFromFile.DecayPerMonth);
-			Assert.Equal(1.0, modifierFromString.DecayPerMonth);
+			Assert.Equal(30.0, modifierFromFile.InitialValue);
+			Assert.Equal(30.0, modifierFromString.InitialValue);
+			Assert.Equal(2.0, modifierFromFile.DecayPerMonth);
+			Assert.Equal(2.0, modifierFromString.DecayPerMonth);
 		}
 
 		[Fact]

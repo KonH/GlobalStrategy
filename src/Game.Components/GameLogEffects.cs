@@ -52,4 +52,11 @@ namespace GS.Game.Components {
 		public WarSideStatsSnapshot Defender;
 		public List<WarBattleRowSnapshot> Battles;
 	}
+
+	// Not [Savable] — one-shot destroy notification; created on destroy, read by
+	// VisualStateConverter same tick, swept next tick by
+	// CleanupEffectNotificationsSystem.UpdateCountryDestroyed (beside UpdateWarResolved).
+	public struct CountryDestroyedApplied {
+		public string CountryId;
+	}
 }

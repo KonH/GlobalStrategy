@@ -408,9 +408,13 @@
           "value": 50
         }
       ],
-      "isAvailable": false,
-      "historicalFriends": [],
-      "historicalRivals": [],
+      "isAvailable": true,
+      "historicalFriends": [
+        "Austria_Hungary"
+      ],
+      "historicalRivals": [
+        "Ottoman_Empire"
+      ],
       "baseDamage": 40,
       "baseDurability": 40
     },
@@ -503,9 +507,13 @@
           "value": 50
         }
       ],
-      "isAvailable": false,
-      "historicalFriends": [],
-      "historicalRivals": [],
+      "isAvailable": true,
+      "historicalFriends": [
+        "Russian_Empire"
+      ],
+      "historicalRivals": [
+        "Ottoman_Empire"
+      ],
       "baseDamage": 40,
       "baseDurability": 40
     },
@@ -1116,9 +1124,11 @@
           "value": 75
         }
       ],
-      "isAvailable": false,
+      "isAvailable": true,
       "historicalFriends": [],
-      "historicalRivals": [],
+      "historicalRivals": [
+        "Ottoman_Empire"
+      ],
       "baseDamage": 40,
       "baseDurability": 40
     },
@@ -1741,9 +1751,11 @@
           "value": 50
         }
       ],
-      "isAvailable": false,
+      "isAvailable": true,
       "historicalFriends": [],
-      "historicalRivals": [],
+      "historicalRivals": [
+        "Ottoman_Empire"
+      ],
       "baseDamage": 40,
       "baseDurability": 40
     },
@@ -2355,9 +2367,13 @@
           "value": 75
         }
       ],
-      "isAvailable": false,
-      "historicalFriends": [],
-      "historicalRivals": [],
+      "isAvailable": true,
+      "historicalFriends": [
+        "Austria_Hungary"
+      ],
+      "historicalRivals": [
+        "Ottoman_Empire"
+      ],
       "baseDamage": 40,
       "baseDurability": 40
     },
@@ -2497,9 +2513,13 @@
           "value": 75
         }
       ],
-      "isAvailable": false,
-      "historicalFriends": [],
-      "historicalRivals": [],
+      "isAvailable": true,
+      "historicalFriends": [
+        "Austria_Hungary"
+      ],
+      "historicalRivals": [
+        "Ottoman_Empire"
+      ],
       "baseDamage": 40,
       "baseDurability": 40
     },

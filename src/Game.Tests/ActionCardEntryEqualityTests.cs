@@ -52,5 +52,44 @@ namespace GS.Game.Tests {
 
 			Assert.False(StateEquality.ActionCardEntryEquals(a, b));
 		}
+
+		[Fact]
+		void differing_primary_country_context_is_not_equal() {
+			var a = new ActionCardEntry(
+				"make_friend", 0, true, countryContextId: "Prussia", targetCountryId: "Austria");
+			var b = new ActionCardEntry(
+				"make_friend", 0, true, countryContextId: "France", targetCountryId: "Austria");
+
+			Assert.False(StateEquality.ActionCardEntryEquals(a, b));
+		}
+
+		[Fact]
+		void draw_choice_equality_includes_choice_index_and_card() {
+			var card = new ActionCardEntry("make_friend", -1, false, countryContextId: "Prussia");
+			var equalCard = new ActionCardEntry("make_friend", -1, false, countryContextId: "Prussia");
+			var differentCard = new ActionCardEntry("make_friend", -1, false, countryContextId: "France");
+
+			Assert.True(StateEquality.CardDrawChoiceEntryEquals(
+				new CardDrawChoiceEntry(0, card),
+				new CardDrawChoiceEntry(0, equalCard)));
+			Assert.False(StateEquality.CardDrawChoiceEntryEquals(
+				new CardDrawChoiceEntry(0, card),
+				new CardDrawChoiceEntry(1, equalCard)));
+			Assert.False(StateEquality.CardDrawChoiceEntryEquals(
+				new CardDrawChoiceEntry(0, card),
+				new CardDrawChoiceEntry(0, differentCard)));
+		}
+
+		[Fact]
+		void draw_choice_equality_includes_playable_country_ids() {
+			var card = new ActionCardEntry(
+				"make_friend", -1, false, playableCountryIds: new[] { "Austria", "Prussia" });
+			var differentCountries = new ActionCardEntry(
+				"make_friend", -1, false, playableCountryIds: new[] { "Austria", "France" });
+
+			Assert.False(StateEquality.CardDrawChoiceEntryEquals(
+				new CardDrawChoiceEntry(0, card),
+				new CardDrawChoiceEntry(0, differentCountries)));
+		}
 	}
 }

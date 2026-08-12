@@ -31,6 +31,7 @@
         </ui:VisualElement>
         <ui:VisualElement name="top-center" class="top-center-panel" picking-mode="Ignore">
             <ui:Button name="btn-debug-toggle" text="DEBUG" class="gs-btn hud-debug-toggle"/>
+            <ui:Label name="fps-label" text="FPS: 0" class="gs-label hud-fps-label" style="display: none;"/>
         </ui:VisualElement>
         <ui:VisualElement name="top-right-panel" class="top-right-panel">
             <ui:Instance template="Time" name="time-panel" class="time-panel"/>
@@ -41,6 +42,7 @@
                 <ui:VisualElement class="debug-panel-inner">
                     <ui:Label text="Common options" class="gs-label debug-panel-menu-title" />
                     <ui:Button name="btn-ecs-viewer" text="ECS Viewer" class="gs-btn debug-panel-button"/>
+                    <ui:Button name="btn-fps-toggle" text="FPS" class="gs-btn gs-toggle-off debug-panel-button"/>
                 </ui:VisualElement>
                 <ui:Button name="btn-selected-country-debug-menu" text="Selected country" class="gs-btn debug-panel-menu-toggle" />
                 <ui:VisualElement name="selected-country-debug-menu" class="debug-panel-inner" style="display: none;">
@@ -61,20 +63,31 @@
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
-                <ui:Button name="btn-selected-org-debug-menu" text="Selected org" class="gs-btn debug-panel-menu-toggle" />
-                <ui:VisualElement name="selected-org-debug-menu" class="debug-panel-inner" style="display: none;">
+                <ui:Button name="btn-my-org-debug-menu" text="My org" class="gs-btn debug-panel-menu-toggle" />
+                <ui:VisualElement name="my-org-debug-menu" class="debug-panel-inner" style="display: none;">
                     <ui:VisualElement style="flex-direction: row;">
                         <ui:Button name="btn-gold-plus" text="+1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
                         <ui:Button name="btn-gold-minus" text="-1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
                     </ui:VisualElement>
                     <ui:VisualElement class="debug-panel-two-col">
                         <ui:VisualElement class="debug-panel-col">
-                            <ui:Button name="btn-selected-org-characters" text="Characters" class="gs-btn debug-panel-menu-toggle" />
-                            <ui:VisualElement name="selected-org-characters" class="debug-panel-inner-section" style="display: none;">
+                            <ui:Button name="btn-my-org-characters" text="Characters" class="gs-btn debug-panel-menu-toggle" />
+                            <ui:VisualElement name="my-org-characters" class="debug-panel-inner-section" style="display: none;">
                                 <ui:VisualElement name="org-char-debug-container" style="flex-direction: column;" />
                             </ui:VisualElement>
                             <ui:VisualElement name="org-misc-debug-container" style="flex-direction: column;" />
                         </ui:VisualElement>
+                        <ui:VisualElement class="debug-panel-col">
+                            <ui:Button name="btn-my-org-deck" text="Deck" class="gs-btn debug-panel-menu-toggle" />
+                            <ui:VisualElement name="my-org-deck" class="debug-panel-inner-section" style="display: none;" />
+                            <ui:Button name="btn-my-org-hand" text="Hand" class="gs-btn debug-panel-menu-toggle" />
+                            <ui:VisualElement name="my-org-hand" class="debug-panel-inner-section" style="display: none;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Button name="btn-selected-org-debug-menu" text="Selected org" class="gs-btn debug-panel-menu-toggle" />
+                <ui:VisualElement name="selected-org-debug-menu" class="debug-panel-inner" style="display: none;">
+                    <ui:VisualElement class="debug-panel-two-col">
                         <ui:VisualElement class="debug-panel-col">
                             <ui:Button name="btn-selected-org-deck" text="Deck" class="gs-btn debug-panel-menu-toggle" />
                             <ui:VisualElement name="selected-org-deck" class="debug-panel-inner-section" style="display: none;" />
@@ -93,6 +106,9 @@
             <ui:VisualElement name="card-test-inner" style="flex-direction: row; align-items: center; justify-content: center;">
                 <ui:VisualElement name="card-test-card" class="action-card action-card--available" style="width: 240px;" />
             </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="card-draw-overlay" class="gs-modal-root card-draw-overlay" style="display: none;">
+            <ui:VisualElement name="card-draw-row" class="card-draw-row" picking-mode="Ignore" />
         </ui:VisualElement>
         <ui:VisualElement name="card-transition-overlay" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;" />
     </ui:VisualElement>

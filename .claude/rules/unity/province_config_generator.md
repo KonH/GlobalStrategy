@@ -56,6 +56,11 @@ re-run this script.
      via rejection sampling with a **deterministic RNG seeded from an MD5 hash of
      `countryId`** (never unseeded — required for reproducible re-runs), build a
      `scipy.spatial.Voronoi` tessellation, clip each cell to the country polygon,
+     (population density is separately scaled per-country by
+     `COUNTRY_POPULATION_CALIBRATION_1880`, a dict of `countryId -> multiplier` that
+     calibrates the total generated population of `isAvailable=true` countries to a
+     researched real-world circa-1880 figure; countries without an entry keep the
+     uncalibrated region-band estimate — see step 7 below),
      and name each province from the nearest `ne_10m_populated_places` point —
      search is uncapped by distance, so a cell is named after its closest known
      settlement however far away, only falling back to a compass-direction name
@@ -78,8 +83,9 @@ re-run this script.
    to zero area). The simplify percentage is a tunable constant
    (`MAPSHAPER_SIMPLIFY_PCT`) in the script, currently `10`. Afterward, each
    province's final `population` is computed from this simplified geometry's area
-   (`COUNTRY_REGION`/`REGION_DENSITY_RANGES`-derived density × simplified polygon
-   area). The final geometry also supplies `centroidX`/`centroidY` and an ordinal
+   (`COUNTRY_REGION`/`REGION_DENSITY_RANGES`-derived density, scaled by
+   `COUNTRY_POPULATION_CALIBRATION_1880` where the country has an entry, × simplified
+   polygon area). The final geometry also supplies `centroidX`/`centroidY` and an ordinal
    `neighborProvinceIds` list. Adjacency uses a Shapely spatial index and requires a
    non-zero shared boundary-segment length, so point-only contacts are excluded.
    These properties are written back into `.tmp/provinces_intermediate.geojson`, so

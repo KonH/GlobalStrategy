@@ -3,19 +3,25 @@ using UnityEngine.InputSystem;
 using VContainer;
 using GS.Main;
 using GS.Game.Commands;
+using GS.Unity.Common;
 
 namespace GS.Unity.UI {
 	public class TimeInputHandler : MonoBehaviour {
 		IWriteOnlyCommandAccessor _commands;
 		TimeState _time;
+		ModalState _modalState;
 
 		[Inject]
-		void Construct(IWriteOnlyCommandAccessor commands, VisualState state) {
+		void Construct(IWriteOnlyCommandAccessor commands, VisualState state, ModalState modalState) {
 			_commands = commands;
 			_time = state.Time;
+			_modalState = modalState;
 		}
 
 		void Update() {
+			if (_modalState != null && _modalState.IsLocked()) {
+				return;
+			}
 			var keyboard = Keyboard.current;
 			if (keyboard == null) {
 				return;

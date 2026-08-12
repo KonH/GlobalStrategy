@@ -6,7 +6,7 @@
     },
     {
       "ownerType": "country",
-      "handSize": 5
+      "handSize": 8
     }
   ],
   "actions": [
@@ -37,7 +37,7 @@
       "nameKey": "action.improve_diplomacy_advisor_opinion.name",
       "descKey": "action.improve_diplomacy_advisor_opinion.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 9,
+      "deckCopies": 16,
       "cooldownDays": 21,
       "conditions": [
         {
@@ -103,7 +103,7 @@
       "nameKey": "action.improve_military_advisor_opinion.name",
       "descKey": "action.improve_military_advisor_opinion.desc",
       "targetRole": "military_advisor",
-      "deckCopies": 6,
+      "deckCopies": 16,
       "cooldownDays": 21,
       "conditions": [
         {
@@ -202,7 +202,7 @@
       "nameKey": "action.make_friend.name",
       "descKey": "action.make_friend.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 9,
+      "deckCopies": 1,
       "cooldownDays": 30,
       "conditions": [
         {
@@ -249,7 +249,7 @@
       "nameKey": "action.make_rival.name",
       "descKey": "action.make_rival.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 15,
+      "deckCopies": 1,
       "cooldownDays": 21,
       "conditions": [
         {

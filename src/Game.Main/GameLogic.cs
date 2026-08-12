@@ -54,6 +54,8 @@ namespace GS.Main {
 		public IReadOnlyList<BotFeatureConfigEntry> BotFeatures { get; private set; } = null!;
 		public IReadOnlyDictionary<string, string> HqCountryByOrgId => _hqCountryByOrgId;
 		public int MaxControlPool { get; private set; }
+		public CountryActionsVisibility CountryActionsVisibility { get; } = new CountryActionsVisibility();
+		public DebugOrgCardVisibility DebugOrgCardVisibility { get; } = new DebugOrgCardVisibility();
 		public bool IsCompleted => _gameCompletionEntity >= 0
 			&& _world.Get<GameCompletion>(_gameCompletionEntity).IsCompleted;
 
@@ -89,7 +91,7 @@ namespace GS.Main {
 				VisualState, _resources, _relations, _actionConfig, _hqCountryByOrgId,
 				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig,
 				settings.EventNotifications, settings.CompletionCondition, settings.MaxControlPool, _effectConfig,
-				settings.BaseIncome, _tasksConfig);
+				settings.BaseIncome, _tasksConfig, CountryActionsVisibility, DebugOrgCardVisibility);
 			_resources.OnCacheMissWarning = message => _context.Logger?.LogDebug(message);
 			_relations.OnCacheMissWarning = message => _context.Logger?.LogDebug(message);
 			_speedMultipliers = settings.SpeedMultipliers;
@@ -117,6 +119,11 @@ namespace GS.Main {
 				RefreshSingletonEntities();
 				ProvinceOwnershipSystem.Seed(_world, ProvinceConfig);
 				ProvinceOccupationSystem.Seed(_world, ProvinceConfig);
+				// Only when the map actually has provinces: empty ProvinceConfig (common in unit
+				// tests) would otherwise destroy every country as "zero-province at start".
+				if (ProvinceConfig.Provinces != null && ProvinceConfig.Provinces.Count > 0) {
+					CountryDestroySystem.DestroyAllZeroProvinceCountries(_world, _relations);
+				}
 			}
 
 			if (IsCompleted) {
@@ -141,12 +148,17 @@ namespace GS.Main {
 			ResourceSystem.Update(
 				_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder, ResourceConfig, _resources);
 			ControlSystem.Update(_world, _previousTime, currentTime, GameSettings.BaseIncome, _resources);
-			// Game Log: sweep last tick's WarResolvedApplied before TryResolvePeaceByChance/the
-			// debug StopWar handler (below) might create a new one this tick. See
-			// Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note.
+			// Game Log: sweep last tick's WarResolvedApplied / CountryDestroyedApplied before
+			// TryResolvePeaceByChance/the debug StopWar handler (below) might create a new one
+			// this tick. See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note and
+			// Docs/Specs/26_08_07_08_country-destroy-logic/plan.md.
 			CleanupEffectNotificationsSystem.UpdateWarResolved(_world);
+			CleanupEffectNotificationsSystem.UpdateCountryDestroyed(_world);
+			var territoryLosers = new List<string>();
 			Wars.TryResolvePeaceByChance(
-				_world, _resources, _previousTime, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, CountryConfig);
+				_world, _resources, _previousTime, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, CountryConfig,
+				territoryLosers);
+			TryDestroyTerritoryLosers(territoryLosers);
 			WarSystem.Update(
 				_world, _previousTime, currentTime, GameSettings.AttackerWarProgressDecayPerMonth, _resources, ResourceConfig);
 			RevengeWarBonusDecaySystem.Update(
@@ -203,6 +215,7 @@ namespace GS.Main {
 						cmd.ProvinceId,
 						oldOwnerId,
 						cmd.NewOwnerId);
+					CountryDestroySystem.TryDestroyIfNoProvinces(_world, _relations, oldOwnerId);
 				}
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugSetProvinceOccupationCommand().AsSpan()) {
@@ -237,8 +250,11 @@ namespace GS.Main {
 					_provinceTopology, GameSettings.WarBattles);
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugStopWarCommand().AsSpan()) {
+				var stopWarLosers = new List<string>();
 				Wars.StopWar(
-					_world, _resources, cmd.CountryId, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, CountryConfig);
+					_world, _resources, cmd.CountryId, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, CountryConfig,
+					stopWarLosers);
+				TryDestroyTerritoryLosers(stopWarLosers);
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugDrawCardCommand().AsSpan()) {
 				DrawCardSystem.ForceDrawCard(_world, cmd.OrgId, cmd.CountryId, cmd.ActionId, cmd.TargetCountryId);
@@ -265,10 +281,12 @@ namespace GS.Main {
 			ActionSucceededSystem.Update(_world, _actionConfig);
 			ApplyActionCooldownSystem.Update(_world, currentTime, _actionConfig);
 			bool hasSucceededCardActions = HasSucceededCardActions(_world);
+			var cardTerritoryLosers = new List<string>();
 			CreateActionEffectSystem.Update(
 				_world, _actionConfig, _effectConfig, currentTime,
 				_rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, _resources,
-				_hqCountryByOrgId, CountryConfig);
+				_hqCountryByOrgId, CountryConfig, cardTerritoryLosers);
+			TryDestroyTerritoryLosers(cardTerritoryLosers);
 			// A succeeded card can grant a CountryResourceModifier effect (e.g. sell_arms'
 			// troops_damage_bonus_percent) that Damage/Durability's daily-gated collectors
 			// won't pick up until the next day boundary — settle immediately so the War
@@ -276,19 +294,24 @@ namespace GS.Main {
 			if (hasSucceededCardActions) {
 				SettleCombatResources();
 			}
-			SetCountryRelationSystem.Update(_world, _relations, _proximityEntity, _rng);
+			SetCountryRelationSystem.Update(_world, _relations);
 			ClearCountryRelationSystem.Update(_world, _relations);
 			RemoveCardFromHandSystem.Update(_world);
-			DiscardCardSystem.Update(
+			IReadOnlyList<DiscardCardResult> discardResults = DiscardCardSystem.Update(
 				_world, _commandAccessor.ReadDiscardCardCommand(), GameSettings.DiscardGoldCost, _resources);
-			CheckHandSizeSystem.Update(_world);
+			ReceiveCardSystem.Update(_world, _commandAccessor.ReadReceiveCardCommand());
 			RelationCardSyncSystem.Update(_world, _relations, _actionConfig);
 			RevengeCardSyncSystem.Update(_world, _actionConfig);
 			TaskProgressSystem.Update(
 				_world, _tasksConfig, _effectConfig, currentTime,
 				_rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, _resources,
 				_relations, _hqCountryByOrgId, CountryConfig);
-			DrawCardSystem.Update(_world, _actionConfig, _rng);
+			DrawCardSystem.Update(
+				_world,
+				_actionConfig,
+				_rng,
+				_commandAccessor.ReadDrawCardsCommand(),
+				discardResults);
 			CleanupCardDiscardSystem.Update(_world);
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool, _resources);
 
@@ -311,7 +334,9 @@ namespace GS.Main {
 			}
 			RefreshSingletonEntities();
 			ReconcileLoadedCompletionState();
+			ReconcileLoadedCountryHandSize();
 			RefreshSingletonEntities();
+			CountryDestroySystem.DestroyAllZeroProvinceCountries(_world, _relations);
 			_previousTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool, _resources);
 			SettleCombatResources();
@@ -384,6 +409,24 @@ namespace GS.Main {
 				});
 				savedOrders.Add(nextOrder);
 				nextOrder++;
+			}
+		}
+
+		void ReconcileLoadedCountryHandSize() {
+			int configuredHandSize = _actionConfig.GetHandSize("country");
+			int[] required = {
+				TypeId<CardDeck>.Value,
+				TypeId<CardOwnerType>.Value,
+				TypeId<CardHand>.Value
+			};
+			foreach (Archetype archetype in _world.GetMatchingArchetypes(required, null)) {
+				CardOwnerType[] owners = archetype.GetColumn<CardOwnerType>();
+				CardHand[] hands = archetype.GetColumn<CardHand>();
+				for (int i = 0; i < archetype.Count; i++) {
+					if (owners[i].Value == CardOwnerKind.Country) {
+						hands[i].HandSize = configuredHandSize;
+					}
+				}
 			}
 		}
 
@@ -489,6 +532,18 @@ namespace GS.Main {
 
 		void ApplyChangeControl(string orgId, string countryId, int delta) {
 			ControlSystem.ApplyChangeControl(_world, orgId, countryId, delta, MaxControlPool);
+		}
+
+		void TryDestroyTerritoryLosers(List<string> territoryLosers) {
+			if (territoryLosers.Count == 0) {
+				return;
+			}
+			var unique = new HashSet<string>(StringComparer.Ordinal);
+			foreach (string loserId in territoryLosers) {
+				if (unique.Add(loserId)) {
+					CountryDestroySystem.TryDestroyIfNoProvinces(_world, _relations, loserId);
+				}
+			}
 		}
 
 		void ApplyDebugCycleCharacter(string ownerId, string roleId, int slotIndex) {

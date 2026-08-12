@@ -21,9 +21,14 @@ namespace GS.Unity.UI {
 		readonly double _discardGoldCost;
 		readonly Dictionary<int, VisualElement> _renderedCardsBySlot = new();
 		ActiveGesture _activeGesture;
+		Button _drawButton;
+		Label _handSizeLabel;
+		bool _presentationBusy;
+		bool _canStartDraw;
 
 		public Action<string, string, int, VisualElement, ActionCardBuilder.CountryCardFace> OnCardClicked;
 		public Action<string, string, int, VisualElement, ActionCardBuilder.CountryCardFace> OnCardDiscarded;
+		public Action OnDrawRequested;
 		public Action<ActionConditionDebugEntry> OnUnplayableCardReleased;
 		public Action OnDiscardUnaffordable;
 		public VisualElement DeckPileElement { get; private set; }
@@ -45,9 +50,11 @@ namespace GS.Unity.UI {
 			_countryVisualConfig = countryVisualConfig;
 			_tooltip = tooltip;
 			_discardGoldCost = Math.Max(0, discardGoldCost);
+			_handContainer.AddToClassList("hand-container--split");
 		}
 
 		public void Refresh(CountryActionsState state, CountryResourcesState playerResources) {
+			RefreshDeckControls(state);
 			if (SuppressRefresh) {
 				return;
 			}
@@ -58,10 +65,26 @@ namespace GS.Unity.UI {
 			}
 			_renderedCardsBySlot.Clear();
 			_handContainer.Clear();
-			_handContainer.Add(BuildDeckPile(state.Deck.Count));
+
+			var deckColumn = new VisualElement();
+			deckColumn.AddToClassList("hand-deck-column");
+			deckColumn.Add(BuildDeckPile(state));
+			_handContainer.Add(deckColumn);
+
+			var cardsGrid = new VisualElement();
+			cardsGrid.AddToClassList("hand-cards-grid");
 			foreach (var card in state.Hand) {
-				_handContainer.Add(BuildHandCard(card, playerResources));
+				cardsGrid.Add(BuildHandCard(card, playerResources));
 			}
+			_handContainer.Add(cardsGrid);
+		}
+
+		public void SetPresentationBusy(bool busy) {
+			_presentationBusy = busy;
+			if (busy) {
+				CancelActiveGesture();
+			}
+			RefreshDrawAvailability();
 		}
 
 		internal bool TryGetFaceData(ActionCardEntry card, out ActionCardBuilder.CountryCardFace faceData) {
@@ -178,7 +201,7 @@ namespace GS.Unity.UI {
 			VisualElement discardHint,
 			bool canAffordDiscard) {
 			cardElement.RegisterCallback<PointerDownEvent>(e => {
-				if (e.button != 0) {
+				if (e.button != 0 || _presentationBusy) {
 					return;
 				}
 				CancelActiveGesture();
@@ -337,14 +360,14 @@ namespace GS.Unity.UI {
 			return root;
 		}
 
-		VisualElement BuildDeckPile(int deckCount) {
+		VisualElement BuildDeckPile(CountryActionsState state) {
 			var wrapper = new VisualElement();
 			wrapper.AddToClassList("card-lift-wrapper");
 			wrapper.AddToClassList("action-deck-wrapper");
 			wrapper.style.width = 240;
 
 			var sprite = _visualConfig?.defaultBackImage;
-			int shadowCount = Mathf.Min(Mathf.Max(deckCount - 1, 0), 3);
+			int shadowCount = Mathf.Min(Mathf.Max(state.Deck.Count - 1, 0), 3);
 			for (int i = shadowCount; i >= 1; i--) {
 				int offset = i * 5;
 				var shadow = new VisualElement();
@@ -368,8 +391,61 @@ namespace GS.Unity.UI {
 				front.style.backgroundSize = new StyleBackgroundSize(new BackgroundSize(BackgroundSizeType.Cover));
 			}
 			DeckPileElement = front;
+
+			var controls = new VisualElement();
+			controls.AddToClassList("action-deck-controls");
+			_drawButton = new Button();
+			_drawButton.text = _loc.Get("action.draw.button");
+			_drawButton.AddToClassList("gs-btn");
+			_drawButton.AddToClassList("gs-btn--small");
+			_drawButton.AddToClassList("action-deck-draw-button");
+			_drawButton.RegisterCallback<PointerUpEvent>(e => {
+				if (e.button != 0
+					|| !_drawButton.enabledSelf
+					|| !_drawButton.ContainsPoint(e.localPosition)) {
+					return;
+				}
+				OnDrawRequested?.Invoke();
+				e.StopPropagation();
+			});
+			controls.Add(_drawButton);
+
+			_handSizeLabel = new Label();
+			_handSizeLabel.AddToClassList("gs-label");
+			_handSizeLabel.AddToClassList("action-deck-hand-size");
+			controls.Add(_handSizeLabel);
+			RefreshDeckControls(state);
+			front.Add(controls);
 			wrapper.Add(front);
 			return wrapper;
+		}
+
+		void RefreshDeckControls(CountryActionsState state) {
+			if (state == null) {
+				return;
+			}
+			_canStartDraw = state.CanStartDraw;
+			if (_drawButton != null) {
+				_drawButton.text = _loc.Get("action.draw.button");
+			}
+			if (_handSizeLabel == null) {
+				RefreshDrawAvailability();
+				return;
+			}
+			try {
+				_handSizeLabel.text = string.Format(
+					_loc.Get("action.draw.hand_size"),
+					state.Hand.Count,
+					state.HandSize);
+			} catch (FormatException exception) {
+				Debug.LogError($"[CountryActionsView] Invalid hand-size locale format: {exception.Message}");
+				_handSizeLabel.text = $"{state.Hand.Count}/{state.HandSize}";
+			}
+			RefreshDrawAvailability();
+		}
+
+		void RefreshDrawAvailability() {
+			_drawButton?.SetEnabled(_canStartDraw && !_presentationBusy);
 		}
 
 		static ActionConditionDebugEntry FindGoldRequirement(IReadOnlyList<ActionConditionDebugEntry> conditions) {
@@ -455,8 +531,14 @@ namespace GS.Unity.UI {
 			if (condition.LocaleKey == "action.requirement.primary_country" && arguments.Count > 0) {
 				result[0] = localization.Get($"country_name.{arguments[0]}");
 			}
+			if (condition.LocaleKey == "action.country.unplayable.country_no_longer_exists" && arguments.Count > 0) {
+				result[0] = localization.Get($"country_name.{arguments[0]}");
+			}
 			if (condition.LocaleKey == "action.requirement.resource" && arguments.Count > 2) {
 				result[2] = localization.Get($"resource.{arguments[2]}.name");
+			}
+			if (condition.LocaleKey == "action.requirement.opinion_min_role" && arguments.Count > 0) {
+				result[0] = localization.Get($"character.role.{arguments[0]}.name");
 			}
 			return result;
 		}

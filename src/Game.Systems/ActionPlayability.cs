@@ -48,7 +48,8 @@ namespace GS.Game.Systems {
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
 			DateTime currentTime = default,
 			int maxControlPool = 100,
-			ActionPlayabilityGateSet gateSet = ActionPlayabilityGateSet.All) {
+			ActionPlayabilityGateSet gateSet = ActionPlayabilityGateSet.All,
+			ControlWarSnapshot? snapshot = null) {
 			var entries = new List<ActionConditionDebugEntry>();
 			ActionDefinition? definition = config.Find(actionId);
 			if (definition == null) {
@@ -62,6 +63,32 @@ namespace GS.Game.Systems {
 			}
 
 			string selectedCountryId = countryId ?? "";
+			string? destroyedTargetId = null;
+			if (!string.IsNullOrEmpty(selectedCountryId)
+				&& CountryDestroySystem.IsCountryDestroyed(world, selectedCountryId)) {
+				destroyedTargetId = selectedCountryId;
+			} else if (entity >= 0) {
+				string relationTargetId = "";
+				if (world.Has<RelationCardTarget>(entity)) {
+					relationTargetId = world.Get<RelationCardTarget>(entity).TargetCountryId;
+				} else if (world.Has<RevengeCardTarget>(entity)) {
+					relationTargetId = world.Get<RevengeCardTarget>(entity).TargetCountryId;
+				}
+				if (!string.IsNullOrEmpty(relationTargetId)
+					&& CountryDestroySystem.IsCountryDestroyed(world, relationTargetId)) {
+					destroyedTargetId = relationTargetId;
+				}
+			}
+			if (destroyedTargetId != null) {
+				entries.Add(new ActionConditionDebugEntry(
+					$"country '{destroyedTargetId}' no longer exists",
+					false,
+					"action.country.unplayable.country_no_longer_exists",
+					new[] { destroyedTargetId },
+					"country_no_longer_exists"));
+				return new ActionPlayabilityResult(entries);
+			}
+
 			ExpressionContext context = CountryActionConditionContext.Build(
 				world,
 				definition,
@@ -71,19 +98,20 @@ namespace GS.Game.Systems {
 				relations,
 				entity,
 				hqCountryByOrgId,
-				gateSet);
+				gateSet,
+				snapshot);
 			foreach (ExpressionNode condition in definition.Conditions) {
 				if (gateSet == ActionPlayabilityGateSet.HardOnly && IsSoftCondition(condition)) {
 					continue;
 				}
-				entries.Add(ActionConditionDebug.Evaluate(condition, context));
+				entries.Add(ActionConditionDebug.Evaluate(condition, context, definition.TargetRole));
 			}
 
 			if (gateSet == ActionPlayabilityGateSet.All) {
 				if (actionId == "improve_control") {
 					int usedControl = string.IsNullOrEmpty(selectedCountryId)
 						? maxControlPool
-						: ControlQuery.GetTotalControlInCountry(world, selectedCountryId);
+						: GetTotalControlInCountry(world, snapshot, selectedCountryId);
 					bool hasCapacity = usedControl < maxControlPool;
 					entries.Add(new ActionConditionDebugEntry(
 						$"control pool not full (used {usedControl}/{maxControlPool})",
@@ -133,6 +161,108 @@ namespace GS.Game.Systems {
 			}
 
 			return new ActionPlayabilityResult(entries);
+		}
+
+		/// <summary>
+		/// Boolean-only fast path with the same gating logic and precomputed-data support as
+		/// <see cref="Evaluate"/>, but short-circuits on the first failing condition/cost/cooldown
+		/// check and never builds <see cref="ActionConditionDebugEntry"/>/label strings. Use for
+		/// hot loops that only need the pass/fail result (e.g. BotObservation's cards x countries
+		/// scan) — never for UI/debug display, which needs the full <see cref="Evaluate"/> entries
+		/// for tooltips and the debug panel.
+		/// </summary>
+		public static bool CanPlayFast(
+			IReadOnlyWorld world,
+			ActionConfig config,
+			int entity,
+			string actionId,
+			string orgId,
+			string? countryId,
+			ResourceQuery resources,
+			CountryRelations relations,
+			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
+			DateTime currentTime = default,
+			int maxControlPool = 100,
+			ActionPlayabilityGateSet gateSet = ActionPlayabilityGateSet.All,
+			ControlWarSnapshot? snapshot = null) {
+			ActionDefinition? definition = config.Find(actionId);
+			if (definition == null) {
+				return false;
+			}
+
+			string selectedCountryId = countryId ?? "";
+			if (!string.IsNullOrEmpty(selectedCountryId)
+				&& CountryDestroySystem.IsCountryDestroyed(world, selectedCountryId)) {
+				return false;
+			}
+			if (entity >= 0) {
+				string relationTargetId = "";
+				if (world.Has<RelationCardTarget>(entity)) {
+					relationTargetId = world.Get<RelationCardTarget>(entity).TargetCountryId;
+				} else if (world.Has<RevengeCardTarget>(entity)) {
+					relationTargetId = world.Get<RevengeCardTarget>(entity).TargetCountryId;
+				}
+				if (!string.IsNullOrEmpty(relationTargetId)
+					&& CountryDestroySystem.IsCountryDestroyed(world, relationTargetId)) {
+					return false;
+				}
+			}
+
+			ExpressionContext context = CountryActionConditionContext.Build(
+				world,
+				definition,
+				orgId,
+				selectedCountryId,
+				resources,
+				relations,
+				entity,
+				hqCountryByOrgId,
+				gateSet,
+				snapshot);
+			foreach (ExpressionNode condition in definition.Conditions) {
+				if (gateSet == ActionPlayabilityGateSet.HardOnly && IsSoftCondition(condition)) {
+					continue;
+				}
+				if (ExpressionNode.Evaluate(condition, context) == 0.0) {
+					return false;
+				}
+			}
+
+			if (gateSet == ActionPlayabilityGateSet.All) {
+				if (actionId == "improve_control") {
+					int usedControl = string.IsNullOrEmpty(selectedCountryId)
+						? maxControlPool
+						: GetTotalControlInCountry(world, snapshot, selectedCountryId);
+					if (usedControl >= maxControlPool) {
+						return false;
+					}
+				}
+
+				if (ActionCooldownQuery.GetRemaining(world, orgId, actionId, currentTime).HasValue) {
+					return false;
+				}
+
+				var costByResource = new Dictionary<string, double>(StringComparer.Ordinal);
+				foreach (ActionCost cost in definition.Cost) {
+					costByResource.TryGetValue(cost.ResourceId, out double total);
+					costByResource[cost.ResourceId] = total + cost.Amount;
+				}
+				foreach (var pair in costByResource) {
+					int resourceEntity = resources.FindEntity(world, orgId, pair.Key);
+					double available = resourceEntity >= 0 ? world.Get<Resource>(resourceEntity).Value : 0.0;
+					if (available < pair.Value) {
+						return false;
+					}
+				}
+			}
+
+			return true;
+		}
+
+		// Reuses the precomputed ControlWarSnapshot when supplied, instead of rescanning every
+		// ControlEffect entity in the world.
+		static int GetTotalControlInCountry(IReadOnlyWorld world, ControlWarSnapshot? snapshot, string countryId) {
+			return snapshot != null ? snapshot.GetTotalControl(countryId) : ControlQuery.GetTotalControlInCountry(world, countryId);
 		}
 
 		static bool IsSoftCondition(ExpressionNode condition) {

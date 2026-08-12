@@ -248,12 +248,15 @@ namespace GS.Main {
 	public class WorldCountriesState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public HashSet<string> CountryIds { get; private set; } = new HashSet<string>();
+		public HashSet<string> DestroyedCountryIds { get; private set; } = new HashSet<string>();
 
-		public void Set(HashSet<string> ids) {
-			if (CountryIds.SetEquals(ids)) {
+		public void Set(HashSet<string> ids, HashSet<string>? destroyedIds = null) {
+			destroyedIds ??= new HashSet<string>();
+			if (CountryIds.SetEquals(ids) && DestroyedCountryIds.SetEquals(destroyedIds)) {
 				return;
 			}
 			CountryIds = ids;
+			DestroyedCountryIds = destroyedIds;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -266,6 +269,7 @@ namespace GS.Main {
 		public bool   IsUnplayable    { get; }
 		public string UnplayableReason { get; }
 		public ActionConditionDebugEntry? FirstFailure { get; }
+		public string CountryContextId { get; }
 		public string TargetCountryId { get; }
 		public IReadOnlyList<string> PlayableCountryIds { get; }
 		public int?   WarWinChancePercent { get; }
@@ -285,17 +289,29 @@ namespace GS.Main {
 			double? cooldownFractionRemaining = null,
 			bool? canPlay = null,
 			ActionConditionDebugEntry? firstFailure = null,
-			IReadOnlyList<string>? playableCountryIds = null) {
+			IReadOnlyList<string>? playableCountryIds = null,
+			string countryContextId = "") {
 			ActionId = actionId; SlotIndex = slotIndex; IsInHand = isInHand;
 			CanPlay = canPlay ?? !isUnplayable;
 			IsUnplayable = !CanPlay; UnplayableReason = unplayableReason;
 			FirstFailure = firstFailure;
+			CountryContextId = countryContextId;
 			TargetCountryId = targetCountryId;
 			PlayableCountryIds = playableCountryIds ?? Array.Empty<string>();
 			WarWinChancePercent = warWinChancePercent;
 			CooldownRemainingDays = cooldownRemainingDays;
 			CooldownFractionRemaining = cooldownFractionRemaining;
 			Conditions = conditions ?? Array.Empty<ActionConditionDebugEntry>();
+		}
+	}
+
+	public class CardDrawChoiceEntry {
+		public int ChoiceIndex { get; }
+		public ActionCardEntry Card { get; }
+
+		public CardDrawChoiceEntry(int choiceIndex, ActionCardEntry card) {
+			ChoiceIndex = choiceIndex;
+			Card = card;
 		}
 	}
 
@@ -313,6 +329,31 @@ namespace GS.Main {
 				return;
 			}
 			Hand = hand; Deck = deck;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
+	// Not gated on any selected-country/selected-org validity the way CountryActionsState is -
+	// this always reflects the given org's full country-card + org-card deck/hand (see
+	// VisualStateConverter.BuildDebugOrgCardAvailability), independent of what's currently
+	// selected on the map. Debug-menu-only; feeds DebugCardAvailabilityView.
+	public class OrgCardAvailabilityState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+		public bool IsValid { get; private set; }
+		public string OrgId { get; private set; } = "";
+		public IReadOnlyList<ActionCardEntry> Hand { get; private set; } = Array.Empty<ActionCardEntry>();
+		public IReadOnlyList<ActionCardEntry> Deck { get; private set; } = Array.Empty<ActionCardEntry>();
+
+		public void Set(bool isValid, string orgId, List<ActionCardEntry> hand, List<ActionCardEntry> deck) {
+			if (IsValid == isValid && OrgId == orgId
+				&& StateEquality.ListEquals(Hand, hand, StateEquality.ActionCardEntryEquals)
+				&& StateEquality.ListEquals(Deck, deck, StateEquality.ActionCardEntryEquals)) {
+				return;
+			}
+			IsValid = isValid;
+			OrgId = orgId;
+			Hand = hand;
+			Deck = deck;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -353,17 +394,35 @@ namespace GS.Main {
 		public event PropertyChangedEventHandler? PropertyChanged;
 		public IReadOnlyList<ActionCardEntry> Hand { get; private set; } = Array.Empty<ActionCardEntry>();
 		public IReadOnlyList<ActionCardEntry> Deck { get; private set; } = Array.Empty<ActionCardEntry>();
+		public IReadOnlyList<CardDrawChoiceEntry> DrawChoices { get; private set; } = Array.Empty<CardDrawChoiceEntry>();
 		public int HandSize { get; private set; }
+		public bool HasPendingDraw { get; private set; }
+		public bool CanStartDraw { get; private set; }
 		public DateTime CurrentTime { get; private set; }
 
-		public void Set(List<ActionCardEntry> hand, List<ActionCardEntry> deck, int handSize, DateTime currentTime) {
-			HandSize = handSize;
+		public void Set(
+			List<ActionCardEntry> hand,
+			List<ActionCardEntry> deck,
+			List<CardDrawChoiceEntry> drawChoices,
+			int handSize,
+			bool hasPendingDraw,
+			bool canStartDraw,
+			DateTime currentTime) {
 			CurrentTime = currentTime;
 			if (StateEquality.ListEquals(Hand, hand, StateEquality.ActionCardEntryEquals)
-				&& StateEquality.ListEquals(Deck, deck, StateEquality.ActionCardEntryEquals)) {
+				&& StateEquality.ListEquals(Deck, deck, StateEquality.ActionCardEntryEquals)
+				&& StateEquality.ListEquals(DrawChoices, drawChoices, StateEquality.CardDrawChoiceEntryEquals)
+				&& HandSize == handSize
+				&& HasPendingDraw == hasPendingDraw
+				&& CanStartDraw == canStartDraw) {
 				return;
 			}
-			Hand = hand; Deck = deck;
+			Hand = hand;
+			Deck = deck;
+			DrawChoices = drawChoices;
+			HandSize = handSize;
+			HasPendingDraw = hasPendingDraw;
+			CanStartDraw = canStartDraw;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -882,6 +941,44 @@ namespace GS.Main {
 		}
 	}
 
+	public class CountryDestroyedSnapshotState {
+		public string CountryId { get; }
+
+		public CountryDestroyedSnapshotState(string countryId) {
+			CountryId = countryId;
+		}
+	}
+
+	public class CountryDestroyedResultsState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		readonly List<CountryDestroyedSnapshotState> _queue = new();
+
+		public IReadOnlyList<CountryDestroyedSnapshotState> Entries => _queue;
+
+		public void Enqueue(CountryDestroyedSnapshotState snapshot) {
+			_queue.Add(snapshot);
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+
+		public bool TryPeek(out CountryDestroyedSnapshotState? snapshot) {
+			if (_queue.Count == 0) {
+				snapshot = null;
+				return false;
+			}
+			snapshot = _queue[0];
+			return true;
+		}
+
+		public void AcknowledgeCurrent() {
+			if (_queue.Count == 0) {
+				return;
+			}
+			_queue.RemoveAt(0);
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class SelectedProvinceState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -1055,8 +1152,11 @@ namespace GS.Main {
 		public WarIconsState WarIcons { get; } = new WarIconsState();
 		public SelectedWarState SelectedWar { get; } = new SelectedWarState();
 		public WarResultsState WarResults { get; } = new WarResultsState();
+		public CountryDestroyedResultsState CountryDestroyedResults { get; } = new CountryDestroyedResultsState();
 		public GameLogState GameLog { get; } = new GameLogState();
 		public GameCompletionState GameCompletion { get; } = new GameCompletionState();
 		public WinConditionHintState WinConditionHint { get; } = new WinConditionHintState();
+		public OrgCardAvailabilityState MyOrgCardAvailability { get; } = new OrgCardAvailabilityState();
+		public OrgCardAvailabilityState SelectedOrgCardAvailability { get; } = new OrgCardAvailabilityState();
 	}
 }

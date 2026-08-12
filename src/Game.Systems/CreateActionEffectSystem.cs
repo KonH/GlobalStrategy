@@ -18,7 +18,8 @@ namespace GS.Game.Systems {
 			int maxControlPool,
 			ResourceQuery resources,
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
-			CountryConfig? countryConfig = null) {
+			CountryConfig? countryConfig = null,
+			List<string>? territoryLosers = null) {
 			int[] required = { TypeId<GameAction>.Value, TypeId<ActionSucceeded>.Value, TypeId<OrgContext>.Value, TypeId<CardUse>.Value };
 			var toProcess = new List<(int entity, string actionId, string orgId, string countryId)>();
 
@@ -52,7 +53,8 @@ namespace GS.Game.Systems {
 					countryConfig,
 					contextEntity: entity,
 					correlationId: actionId,
-					targetRole: def.TargetRole);
+					targetRole: def.TargetRole,
+					territoryLosers: territoryLosers);
 			}
 		}
 	}

@@ -1,10 +1,11 @@
 {
   "effects": [
     {
-      "effectId": "improve_control_effect",      "effectType": "ControlChange",
+      "effectId": "improve_control_effect",
+      "effectType": "ControlChange",
       "nameKey": "effect.improve_control_effect.name",
       "descKey": "effect.improve_control_effect.desc",
-      "amount": 10
+      "amount": 20
     },
     {
       "effectId": "improve_diplomacy_advisor_opinion_effect",
@@ -98,8 +99,8 @@
       "nameKey": "effect.sell_arms_damage_bonus_effect.name",
       "descKey": "effect.sell_arms_damage_bonus_effect.desc",
       "resourceId": "troops_damage_bonus_percent",
-      "initialValue": 20.0,
-      "decayPerMonth": 1.0
+      "initialValue": 30.0,
+      "decayPerMonth": 2.0
     },
     {
       "effectId": "force_war_win_effect",
