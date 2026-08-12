@@ -212,13 +212,14 @@ namespace GS.Unity.UI {
 				await deckTransitionTask;
 				_transitionView.Hide();
 
-				// Allow one Refresh() to rebuild hand with new card, then re-suppress
-				if (_actionsView != null) { _actionsView.SuppressRefresh = false; }
-				await UniTask.NextFrame();
-				if (_actionsView != null) { _actionsView.SuppressRefresh = true; }
-
+				// Rebuild hand with the new card synchronously (bypassing SuppressRefresh just for this
+				// call) so it can be hidden again before any frame renders it at full opacity.
 				VisualElement newHandCard = null;
 				if (_actionsView != null) {
+					_actionsView.SuppressRefresh = false;
+					_actionsView.Refresh(_state.PlayerOrganization.Actions, _state.PlayerOrganization.Resources);
+					_actionsView.SuppressRefresh = true;
+
 					var handContainer = _actionsView.HandContainer;
 					int childCount = handContainer.childCount;
 					if (childCount > 1) {
@@ -229,6 +230,8 @@ namespace GS.Unity.UI {
 						newHandCard.style.opacity = 0f;
 					}
 				}
+				// Settle layout for the now-hidden card before reading its worldBound below.
+				await UniTask.NextFrame();
 
 				if (newHandCard != null) {
 					string newActionId = "";
