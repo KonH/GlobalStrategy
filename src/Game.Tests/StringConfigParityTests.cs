@@ -213,10 +213,10 @@ namespace GS.Game.Tests {
 				fromString.Find("sell_arms_damage_bonus_effect"));
 			Assert.Equal(ResourceDefinitions.TroopsDamageBonusPercent, modifierFromFile.ResourceId);
 			Assert.Equal(ResourceDefinitions.TroopsDamageBonusPercent, modifierFromString.ResourceId);
-			Assert.Equal(20.0, modifierFromFile.InitialValue);
-			Assert.Equal(20.0, modifierFromString.InitialValue);
-			Assert.Equal(1.0, modifierFromFile.DecayPerMonth);
-			Assert.Equal(1.0, modifierFromString.DecayPerMonth);
+			Assert.Equal(30.0, modifierFromFile.InitialValue);
+			Assert.Equal(30.0, modifierFromString.InitialValue);
+			Assert.Equal(2.0, modifierFromFile.DecayPerMonth);
+			Assert.Equal(2.0, modifierFromString.DecayPerMonth);
 		}
 
 		[Fact]

@@ -296,13 +296,14 @@ namespace GS.Unity.UI {
 						_state.SelectedCountry.CountryActions,
 						_state.PlayerOrganization.Resources);
 					_actionsView.SuppressRefresh = true;
-					await UniTask.NextFrame(cancellationToken: context.Token);
 					if (!_actionsView.TryGetRenderedCard(received.SlotIndex, out VisualElement destination)) {
 						throw new InvalidOperationException(
 							$"Received card slot {received.SlotIndex} was not rendered.");
 					}
 					context.HiddenElement = destination;
 					destination.style.opacity = 0f;
+					// Settle layout for the now-hidden card before reading its worldBound below.
+					await UniTask.NextFrame(cancellationToken: context.Token);
 					await _view.MoveSelectedAsync(selection, destination, context.Token);
 					destination.style.opacity = 1f;
 					context.HiddenElement = null;
