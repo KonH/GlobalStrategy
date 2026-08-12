@@ -369,51 +369,51 @@ No new asmdef. No MonoBehaviour domain logic.
 
 ## Agent Steps
 
-- [ ] **Add `IsOrgDestroyed` + `OrgDestroyedApplied`** — empty `[Savable]` tag
+- [x] **Add `IsOrgDestroyed` + `OrgDestroyedApplied`** — empty `[Savable]` tag
   on org entity; one-shot `{ OrganizationId }` on own entity, not savable.
 
-- [ ] **Move `ClassifyRaisesControl` to `Game.Systems`** — new
+- [x] **Move `ClassifyRaisesControl` to `Game.Systems`** — new
   `ActionEffectClassifier.RaisesControl`; update `BotObservation` call sites.
 
-- [ ] **Add generic hand/pool query helper** — `OrgDestroyHandQuery` (or
+- [x] **Add generic hand/pool query helper** — `OrgDestroyHandQuery` (or
   extended `CountryCardDrawQuery`) covering both `CardOwnerKind.Country` and
   `.Org` pools; treat an unpopulated pool as trivially satisfied and retain the
   owner kind needed for target-aware playability checks.
 
-- [ ] **Implement `OrgDestroySystem`** — `TryDestroyIfConditionsMet`,
+- [x] **Implement `OrgDestroySystem`** — `TryDestroyIfConditionsMet`,
   `EvaluateAll`, `IsOrgDestroyed`; all five conditions; idempotent flag +
   single event; wire control destroy + `OrganizationGameOutcome.Result =
   Loser`.
 
-- [ ] **`ControlQuery.DestroyAllControlForOrg`** — collect-then-destroy
+- [x] **`ControlQuery.DestroyAllControlForOrg`** — collect-then-destroy
   mirroring `DestroyAllControlInCountry`.
 
-- [ ] **Orchestrate in `GameLogic`** — sweep `OrgDestroyedApplied` beside
+- [x] **Orchestrate in `GameLogic`** — sweep `OrgDestroyedApplied` beside
   `UpdateCountryDestroyed`; run `OrgDestroySystem.EvaluateAll` before
   `GameCompletionSystem.Update`; add `ApplyPlayerDestroyedLoss` call after it;
   mirror in `LoadState`.
 
-- [ ] **`GameCompletionSystem`** — `GetAvailableOrgIds`; skip `IsOrgDestroyed`
+- [x] **`GameCompletionSystem`** — `GetAvailableOrgIds`; skip `IsOrgDestroyed`
   in the win-candidate loop; `ApplyPlayerDestroyedLoss`.
 
-- [ ] **`LastOrgStandingCondition` + parser/config wiring** — new condition;
+- [x] **`LastOrgStandingCondition` + parser/config wiring** — new condition;
   `CompletionConditionType.LastOrgStanding` + parser token + factory case; update
   `Assets/Configs/game_settings.json` and `GameSettings.cs` defaults to the
   two-member shape (`score_goal` 50000 + `last_org_standing`).
 
-- [ ] **Presentation projections** — add `LastOrgStanding` to
+- [x] **Presentation projections** — add `LastOrgStanding` to
   `WinConditionHintKind`, `WinConditionHintProjector`, and `GoalsProjector`;
   skip destroyed org rows and project destroyed-opponents/total-opponents.
 
-- [ ] **`BotSession.Update` skip** — guard the bot decision-tick loop against
+- [x] **`BotSession.Update` skip** — guard the bot decision-tick loop against
   destroyed orgs.
 
-- [ ] **`VisualState`/`VisualStateConverter` projections** —
+- [x] **`VisualState`/`VisualStateConverter` projections** —
   `OrgDestroyedResultsState`/`VisualState.OrgDestroyedResults`; converter
   enqueue before `UpdateGameCompletion` as an explicit observable invariant;
   `PlayerOrganizationState.IsDestroyed` + `UpdatePlayerOrganization` source.
 
-- [ ] **Tests + validate** — see Tests; run `dotnet test
+- [x] **Tests + validate** — see Tests; run `dotnet test
   src/GlobalStrategy.Core.sln` and Release build per workflow / `dotnet-build`
   skill.
 

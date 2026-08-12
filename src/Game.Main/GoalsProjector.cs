@@ -36,6 +36,10 @@ namespace GS.Main {
 		public static GoalsLeafDescriptor ForScoreGoal(double value) {
 			return new GoalsLeafDescriptor(WinConditionHintKind.ScoreGoal, value, null, null, new ScoreGoalCondition(value));
 		}
+
+		public static GoalsLeafDescriptor ForLastOrgStanding() {
+			return new GoalsLeafDescriptor(WinConditionHintKind.LastOrgStanding, 0, null, null, null);
+		}
 	}
 
 	public static class GoalsProjector {
@@ -56,12 +60,17 @@ namespace GS.Main {
 			}
 
 			var availableCountryIds = GameCompletionSystem.GetAvailableCountryIds(world);
+			var availableOrgIds = GameCompletionSystem.GetAvailableOrgIds(world);
 			int availableCountryCount = availableCountryIds.Count;
+			int totalOrgCount = CountOrganizations(world);
 			int[] orgRequired = { TypeId<Organization>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(orgRequired, null)) {
 				Organization[] orgs = arch.GetColumn<Organization>();
 				int count = arch.Count;
 				for (int i = 0; i < count; i++) {
+					if (world.Has<IsOrgDestroyed>(arch.Entities[i])) {
+						continue;
+					}
 					string orgId = orgs[i].OrganizationId;
 					var context = new CompletionConditionContext(world, orgId, availableCountryIds, maxControlPool, resources);
 					Dictionary<string, int>? controlByCountry = null;
@@ -88,6 +97,11 @@ namespace GS.Main {
 								current = leaf.ScoreGoal!.GetCurrent(context);
 								target = leaf.ScoreGoal.GetTarget(context);
 								break;
+							case WinConditionHintKind.LastOrgStanding:
+								target = System.Math.Max(0, totalOrgCount - 1);
+								current = System.Math.Clamp(
+									totalOrgCount - availableOrgIds.Count, 0, (int)target);
+								break;
 							default:
 								continue;
 						}
@@ -98,6 +112,15 @@ namespace GS.Main {
 				}
 			}
 			return organizations;
+		}
+
+		static int CountOrganizations(IReadOnlyWorld world) {
+			int total = 0;
+			int[] required = { TypeId<Organization>.Value };
+			foreach (Archetype archetype in world.GetMatchingArchetypes(required, null)) {
+				total += archetype.Count;
+			}
+			return total;
 		}
 
 		static void Flatten(CompletionConditionConfig? condition, List<GoalsLeafDescriptor> leaves) {
@@ -124,6 +147,9 @@ namespace GS.Main {
 					break;
 				case CompletionConditionType.ScoreGoal:
 					leaves.Add(GoalsLeafDescriptor.ForScoreGoal(condition.Value));
+					break;
+				case CompletionConditionType.LastOrgStanding:
+					leaves.Add(GoalsLeafDescriptor.ForLastOrgStanding());
 					break;
 			}
 		}

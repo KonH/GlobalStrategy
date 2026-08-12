@@ -144,12 +144,13 @@ namespace GS.Main {
 			ResourceSystem.Update(
 				_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder, ResourceConfig, _resources);
 			ControlSystem.Update(_world, _previousTime, currentTime, GameSettings.BaseIncome, _resources);
-			// Game Log: sweep last tick's WarResolvedApplied / CountryDestroyedApplied before
+			// Game Log: sweep last tick's destroy/war notifications before
 			// TryResolvePeaceByChance/the debug StopWar handler (below) might create a new one
 			// this tick. See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note and
 			// Docs/Specs/26_08_07_08_country-destroy-logic/plan.md.
 			CleanupEffectNotificationsSystem.UpdateWarResolved(_world);
 			CleanupEffectNotificationsSystem.UpdateCountryDestroyed(_world);
+			CleanupEffectNotificationsSystem.UpdateOrgDestroyed(_world);
 			var territoryLosers = new List<string>();
 			Wars.TryResolvePeaceByChance(
 				_world, _resources, _previousTime, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, CountryConfig,
@@ -305,7 +306,11 @@ namespace GS.Main {
 				_commandAccessor.ReadDrawCardsCommand(),
 				discardResults);
 			CleanupCardDiscardSystem.Update(_world);
+			OrgDestroySystem.EvaluateAll(
+				_world, _actionConfig, _effectConfig, _resources, _relations, GameSettings, MaxControlPool);
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool, _resources);
+			GameCompletionSystem.ApplyPlayerDestroyedLoss(
+				_world, _gameCompletionEntity, _context.InitialOrganizationId);
 
 			_commandAccessor.Clear();
 			_visualStateConverter.Update(deltaTime, _world, _gameTimeEntity, _localeEntity, _orgEntity);
@@ -330,7 +335,11 @@ namespace GS.Main {
 			RefreshSingletonEntities();
 			CountryDestroySystem.DestroyAllZeroProvinceCountries(_world, _relations);
 			_previousTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
+			OrgDestroySystem.EvaluateAll(
+				_world, _actionConfig, _effectConfig, _resources, _relations, GameSettings, MaxControlPool);
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool, _resources);
+			GameCompletionSystem.ApplyPlayerDestroyedLoss(
+				_world, _gameCompletionEntity, _context.InitialOrganizationId);
 			SettleCombatResources();
 			_visualStateConverter.Update(0f, _world, _gameTimeEntity, _localeEntity, _orgEntity);
 		}

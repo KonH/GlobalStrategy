@@ -72,6 +72,16 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void last_org_standing_leaf_is_projected() {
+			var (isAvailable, _, rows) = WinConditionHintProjector.Build(
+				Leaf("last_org_standing", 0), 12);
+
+			Assert.True(isAvailable);
+			Assert.Single(rows);
+			Assert.Equal(WinConditionHintKind.LastOrgStanding, rows[0].Kind);
+		}
+
+		[Fact]
 		void three_leaf_any_flattens_to_three_rows_in_configuration_order() {
 			var condition = Any(
 				Leaf("total_control", 0.8),

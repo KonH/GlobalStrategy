@@ -41,9 +41,8 @@ namespace GS.Game.Configs {
 		public CompletionConditionConfig CompletionCondition { get; set; } = new CompletionConditionConfig {
 			Type = "any",
 			Members = new List<CompletionConditionConfig> {
-				new CompletionConditionConfig { Type = "total_control", Value = 0.8 },
-				new CompletionConditionConfig { Type = "full_control_countries", Value = 15 },
-				new CompletionConditionConfig { Type = "score_goal", Value = 275592 }
+				new CompletionConditionConfig { Type = "score_goal", Value = 50000 },
+				new CompletionConditionConfig { Type = "last_org_standing", Value = 0 }
 			}
 		};
 		public GameLogSettings GameLog { get; set; } = new GameLogSettings();

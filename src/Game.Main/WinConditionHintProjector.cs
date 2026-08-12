@@ -36,6 +36,9 @@ namespace GS.Main {
 				case CompletionConditionType.ScoreGoal:
 					rows.Add(new WinConditionHintRowState(WinConditionHintKind.ScoreGoal, condition.Value, availableCountryCount));
 					break;
+				case CompletionConditionType.LastOrgStanding:
+					rows.Add(new WinConditionHintRowState(WinConditionHintKind.LastOrgStanding, condition.Value, availableCountryCount));
+					break;
 			}
 		}
 	}
