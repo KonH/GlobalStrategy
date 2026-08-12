@@ -21,6 +21,9 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
   - No tutorial task opens or re-opens while the preference is off; non-tutorial short-term tasks (if any) are unaffected.
 - The player toggles the checkbox.
   - The new value persists across app launches via the existing app-preferences / settings persistence path (Unity: extend `SettingsStorage` / `settings.json`; Web: extend `AppPreferences` / `IPreferencesStore` — same default-on semantics on both clients).
+- Settings also exposes two reset actions (Unity Settings window + Web Settings page):
+  - **Reset tutorials** — clears the app-level completed-tutorial id set so previously finished tutorial steps can open again on a later session (does not rewrite the current world’s savable `TaskCompleted` mid-session unless a defined session-start reseeding path applies; primary effect is forgetting preference progress).
+  - **Reset settings to default** — deletes the entire global settings / preferences store, reloads defaults (Tutorials checkbox on, locale/autosave defaults, empty completed-tutorial set), and refreshes the Settings UI to match.
 
 ### Config — tutorial tasks on the tasks pipeline
 
@@ -35,10 +38,11 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 
 - Exactly one tutorial task may be active at a time.
   - Every tutorial `openCondition` includes a `tutorialTaskActive` expression that is true only when **no** tutorial task currently has `TaskActive` (owner’s `TutorialTaskActive(false)`). Non-tutorial tasks are ignored by this check.
-- Tutorial N+1 (indices 1–9, and 10 unless Ambiguity 1 changes it) opens only after tutorial N is completed.
+- Tutorial N+1 (indices 1–9) opens only after tutorial N is completed.
   - Default open chain uses a new `taskCompleted` expression (`TaskCompletedCondition(prevTutorialTaskId)`) ANDed with `tutorialTaskActive` (false/none active) and tutorials-enabled.
 - Tutorial 0 is the first step.
   - Open when tutorials are enabled, the task is not yet completed, and no tutorial is active (no prior `taskCompleted` prerequisite).
+- Tutorial 10 (`tutorial_goals_window`) opens only when tutorials are enabled, no tutorial is active, `tutorial_discard_card` is completed, **and** no other UI chrome is shown (`uiElementShown(none)` / equivalent “chrome clear” fact — selected-country panel, characters/actions slides, goals window, card-draw modal, and other overlay chrome closed/hidden).
 
 ### Runtime — cross-session tutorial progress
 
@@ -52,8 +56,10 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 
 - The game is paused (`GameTime.IsPaused == true`) and the player clicks a time-speed modifier button (HUD `TimeView` / `ChangeTimeMultiplierCommand` path, including keyboard digit shortcuts that push the same command).
   - The game **resumes** (`UnpauseCommand` or equivalent inside `TimeSystem`) **and** applies the chosen multiplier index in the same interaction. Today `TimeSystem` only updates `MultiplierIndex` on speed change and leaves pause unchanged — that behaviour is updated for this side change.
-- Pause / unpause driven by tutorial open/close themselves:
-  - [NEEDS CLARIFICATION — see Ambiguities 0]
+- When a tutorial task **opens**, if the player was **not** already paused, the game auto-pauses for reading.
+  - If the player was already paused, leave pause as-is (do not treat the tutorial as owning pause).
+- When that tutorial task **completes** (or is force-completed by disabling Tutorials), if the tutorial owned the pause (opened while unpaused), the game auto-unpauses.
+  - The player may resume at any time while a tutorial is active (space / pause button / speed-click-while-paused); do **not** block player resume, and do **not** re-pause after the player has resumed for that step.
 
 ### UI — tasks accordion (tutorial exception)
 
@@ -85,9 +91,9 @@ These are required so the authored list can evaluate; names below are the produc
 | `mapZoomChanged` | Fires once the player has changed map zoom (scroll wheel) since the task became active. |
 | `keyPressed` | Fires on any keyboard key press while the task is active (`KeyPressedCondition(any)`). |
 | `uiOpened` | 1 when the named UI surface is open/visible (e.g. selected country panel, characters slide, actions slide, goals window). |
-| `uiElementShown` | 1 when the named UI element is shown (used by tutorial 10 open — see Ambiguities). |
+| `uiElementShown` | 1 when the named UI element is shown. Special case `none` / chrome-clear: 1 only when no other UI chrome is shown (used by tutorial 10 open). |
 | `tooltipShown` | 1 when the named tooltip is currently shown (e.g. military advisor role tooltip via `TooltipSystem`). |
-| `commandTrigger` | 1 when a matching command type has been processed while the task is active (draw / card-selected — see Ambiguities for binding to real commands). |
+| `commandTrigger` | 1 when a matching command type has been processed while the task is active. Tutorials 7–8 bind to the shipped card-draw rework (`DrawCardsCommand` / `ReceiveCardCommand` from issue #153). |
 
 Close condition for tutorial 0 uses **both** map position and map zoom changed (logical AND of the two facts).
 
@@ -165,7 +171,7 @@ Open condition defaults: unless noted, `tutorialsEnabled` ∧ ¬`tutorialTaskAct
   - RU: "Откройте панель действий."
 - **Open:** default after `tutorial_military_advisor_tooltip`
 - **Close:** `uiOpened(actionsPanel)` — actions slide open (`actions-slide--open` / `actions-toggle-btn`)
-- **Highlight:** owner text says **characters button** — treated as suspicious vs actions button; see Ambiguities 2. Spec default until clarified: highlight `actions_button` → `actions-toggle-btn`.
+- **Highlight:** `actions_button` → `actions-toggle-btn` (owner confirmed: actions button, not characters).
 
 #### 7 — `tutorial_draw_from_deck`
 
@@ -174,7 +180,7 @@ Open condition defaults: unless noted, `tutorialsEnabled` ∧ ¬`tutorialTaskAct
   - EN: "Here is the action deck. Click it to draw cards."
   - RU: "Здесь расположена колода действий. Нажмите на нее, чтобы получить карты."
 - **Open:** default after `tutorial_open_actions`
-- **Close:** `commandTrigger(draw)` — command/trigger for the player-initiated draw action (see Ambiguities 3)
+- **Close:** `commandTrigger(draw)` — fires when `DrawCardsCommand` is processed (card-draw rework from issue #153 / `Docs/Specs/26_08_08_16_card-draw-*`)
 - **Highlight:** `action_deck` → country actions deck pile (`CountryActionsView.DeckPileElement` / `.action-deck-wrapper`)
 
 #### 8 — `tutorial_select_drawn_card`
@@ -184,7 +190,7 @@ Open condition defaults: unless noted, `tutorialsEnabled` ∧ ¬`tutorialTaskAct
   - EN: "When you receive action cards, you choose one of three. The card shows its effect, restrictions, cost, and the countries where you can play it. Choose wisely!"
   - RU: "При получении карт действий у вас есть выбор одной из трех карт. На карте отображается ее эффект, ограничения, стоимость и доступные госудаства, в которых можно сыграть эту карту. Выбирайте с умом!"
 - **Open:** default after `tutorial_draw_from_deck`
-- **Close:** `commandTrigger(cardSelected)` — command/trigger for selecting/confirming a drawn card (see Ambiguities 3)
+- **Close:** `commandTrigger(cardSelected)` — fires when `ReceiveCardCommand` is processed (choose-one-of-three from the draw offer)
 - **Highlight:** none (or draft UI when present)
 
 #### 9 — `tutorial_discard_card`
@@ -203,28 +209,32 @@ Open condition defaults: unless noted, `tutorialsEnabled` ∧ ¬`tutorialTaskAct
 - **DescKey:** `task.tutorial_goals_window.desc`
   - EN: "To win, you must complete one of the conditions listed in the goals window."
   - RU: "Чтобы победить, нужно выполнить одно из условий из списка в окне целей."
-- **Open:** owner wrote `UiElementShown(none)` — see Ambiguities 1. Spec interim default until clarified: same chain default after `tutorial_discard_card` (ignore the opaque `none` argument).
+- **Open:** tutorials enabled ∧ ¬tutorialTaskActive ∧ `taskCompleted(tutorial_discard_card)` ∧ `uiElementShown(none)` (no other UI chrome shown — owner choice **c**).
 - **Close:** `uiOpened(goalsWindow)` — goals window UI shown (`GoalsWindowDocument`)
 - **Highlight:** `goals_button` → HUD `btn-goals`
 
 ### Happy path (end-to-end)
 
 - Tutorials enabled (default). New player starts a game with no prior tutorial completions in preferences.
-  - Tutorial 0 opens, initially expanded; player pans and zooms → completes → 1 opens with org-panel highlight → … → through 10 → goals window open completes the chain; all ids stored in preferences so a later new game skips them.
+  - Tutorial 0 opens (auto-pause if the player was unpaused), initially expanded; player pans and zooms → completes (auto-unpause if tutorial owned pause) → 1 opens with org-panel highlight → … → through 10 (opens only when chrome is clear) → goals window open completes the chain; all ids stored in preferences so a later new game skips them.
 
 ### Edge cases
 
 - Tutorials disabled before any tutorial opens => no tutorial tasks appear; HUD tasks block stays empty unless non-tutorial tasks exist.
-- Tutorials disabled while a tutorial is active => active tutorial is closed/abandoned without counting as completed **or** force-completed without reward — see Ambiguities 4; highlight removed; no further tutorials open while disabled.
+- Tutorials disabled while a tutorial is active => that active tutorial is **force-completed** (marked completed, preference updated, no reward/close effects unless already closing through normal completion); highlight removed; no further tutorials open while disabled.
 - Player already completed 0–4 in a previous session => new session starts at tutorial 5 (first not-completed) when tutorials remain enabled.
 - Multiple non-tutorial tasks may still be active concurrently per part A; they do not block `tutorialTaskActive` unless marked `isTutorial`.
+- Player resumes while a tutorial that auto-paused is still active => stay unpaused for that step; do not re-pause until a later tutorial opens while the player is unpaused again.
+- Reset tutorials in Settings => completed tutorial preference set cleared; next new session can re-open from tutorial 0 (subject to tutorials enabled).
+- Reset settings to default => full preferences wipe + UI reload to defaults (Tutorials on, empty completed set, default locale/autosave).
 
 ## Tech Notes
 
 - **Builds on part A:** Reuse `TaskProgressSystem`, savable `TaskId` / `TaskActive` / `TaskCompleted`, `TaskConditionContext` → `ExpressionContext`, `ActiveTasks` / `VisualStateConverter.UpdateActiveTasks`, and `PlayerTasksView`. Do not fork a second task runtime.
 - **Config:** Prefer extending `tasks_config.json` + `TaskDefinition` with `IsTutorial` / `HighlightTargetId` rather than a separate config file. Empty part A skeleton is replaced by the tutorial list for this feature.
 - **Expression extensions:** Part A intentionally added only `triggerCondition`. Part B **requires additional expression/trigger kinds** listed above; `TaskConditionContext.Build` (and/or UI→simulation trigger publishers) must populate the facts. Combining AND facts for open/close may use a new `and` node or existing `mul` of 0/1 members — plan chooses.
-- **Settings persistence:** Unity main-menu settings today live in `SettingsStorage` (`settings.json` via `IPersistentStorage`) with locale only; in-game `SettingsWindowDocument` pushes locale/autosave commands. Web uses `AppPreferences` (`gs.preferences.*` keys). Tutorials enabled + completed tutorial id set should follow the same **app-level** persistence pattern on both clients (not `GameSettings` / `game_settings.json`, which is shipped config).
+- **Settings persistence:** Unity main-menu settings today live in `SettingsStorage` (`settings.json` via `IPersistentStorage`) with locale only; in-game `SettingsWindowDocument` pushes locale/autosave commands. Web uses `AppPreferences` (`gs.preferences.*` keys). Tutorials enabled + completed tutorial id set should follow the same **app-level** persistence pattern on both clients (not `GameSettings` / `game_settings.json`, which is shipped config). Reset-tutorials and reset-settings-to-default live on the same Settings surfaces.
+- **Tutorial pause ownership:** Track whether the current tutorial step auto-paused because the player was unpaused at open; release that ownership on complete/force-complete (auto-unpause) or when the player resumes early (leave unpaused, do not steal control back).
 - **Time resume side change:** Update HUD `OnSpeedChange` / `TimeInputHandler` and/or `TimeSystem.Update` so a speed change while paused also clears `IsPaused`. Keep spacebar pause/unpause toggle behaviour unless it conflicts.
 - **Highlight presentation:** UI Toolkit overlay only (Constitution); map highlight targets that aren’t VisualElements need a screen-space anchor from the map camera presentation layer. Animation is presentation-only; which task is active remains ECS/`ActiveTasks` driven.
 - **UI element name anchors (current tree):** `player-country`, `time-panel`, `country-info`, `chars-toggle-btn`, `actions-toggle-btn`, `characters-slide`, `actions-slide`, `CountryActionsView.DeckPileElement`, `btn-goals`, `GoalsWindowDocument`, military advisor card via `CharactersView` + role `military_advisor`.
@@ -239,13 +249,5 @@ Open condition defaults: unless noted, `tutorialsEnabled` ∧ ¬`tutorialTaskAct
 - Bot / AI consumption of tutorials.
 - Multiplayer sync of tutorial progress.
 - New reward VFX for tutorial completion (tutorials may ship with empty rewards).
-- Full rewrite of card draw UX; tutorials 7–8 bind to command triggers — if draft-from-three UI does not exist yet, resolving that UX is either a dependency or an Ambiguity 3 outcome, not a silent scope expansion here.
+- Redesigning the card-draw choose-one-of-three UX itself (already shipped via issue #153); tutorials 7–8 only bind close conditions to `DrawCardsCommand` / `ReceiveCardCommand`.
 - Localization of unrelated existing strings.
-
-## Ambiguities
-
-- [NEEDS CLARIFICATION: 0 — When a tutorial task opens, should the game auto-pause, and when it completes should it auto-unpause? Or is pause only player-controlled aside from the new “speed click while paused resumes” side change?]
-- [NEEDS CLARIFICATION: 1 — Tutorial 10 open condition was given as `UiElementShown(none)`. What should that mean? (a) same default chain after tutorial 9 only, (b) open when a specific element id is shown (which id?), (c) open only when no other UI chrome is shown, (d) something else?)]
-- [NEEDS CLARIFICATION: 2 — Tutorial 6 (“Open the actions panel”) lists highlight target “characters button”. Is that a typo for the actions toggle (`actions-toggle-btn`), or should the arrow really point at `chars-toggle-btn`?]
-- [NEEDS CLARIFICATION: 3 — Tutorials 7–8 describe click-deck-to-draw and choose-one-of-three cards. Current gameplay largely auto-fills hand via `DrawCardSystem` without a player draw command or draft-pick UI. Should close conditions bind to (a) new/existing player draw + draft-select commands (implying that UX must exist or land first), (b) proxies such as hand-size increase / first card play / `DiscardCardCommand`, or (c) soften 7–8 to key-press / UI-opened until draft UX exists?]
-- [NEEDS CLARIFICATION: 4 — If the player disables Tutorials while a tutorial task is active, should that active step be abandoned without marking completed, force-completed (so it won’t re-show), or left active but hidden until tutorials are re-enabled?]
