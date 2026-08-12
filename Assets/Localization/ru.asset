@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 173305)
-Total output lines: 13344
-
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!114 &11400000
@@ -6389,7 +6386,1776 @@ MonoBehaviour:
     Value: "\u0411\u0438\u0434\u0433\u043e\u0441\u0437\u043a\u0437"
   - Key: province_name.Germany__Chernyakhovsk
     Value: "\u0427\u0435\u0440\u043d\u044f\u0445\u043e\u0432\u0441\u043a"
-  - Key: prov…23305 tokens truncated…\u043e\u0440\u0438\u043a\u0430"
+  - Key: province_name.Germany__Coburg
+    Value: "\u041a\u043e\u0431\u0443\u0440\u0433"
+  - Key: province_name.Germany__Cottbus
+    Value: "\u041a\u043e\u0442\u0442\u0431\u0443\u0441"
+  - Key: province_name.Germany__Dresden
+    Value: "\u0414\u0440\u0435\u0441\u0434\u0435\u043d"
+  - Key: province_name.Germany__Ek
+    Value: "\u0415\u0142\u043a"
+  - Key: province_name.Germany__Ek_2
+    Value: "\u0415\u0142\u043a"
+  - Key: province_name.Germany__Essen
+    Value: "\u0415\u0441\u0441\u0435\u043d"
+  - Key: province_name.Germany__Gera
+    Value: "\u0413\u0435\u0440\u0430"
+  - Key: province_name.Germany__Giessen
+    Value: "\u0413\u0438\u0435\u00df\u0435\u043d"
+  - Key: province_name.Germany__Grudzidz
+    Value: "\u0413\u0440\u0443\u0434\u0437\u0438\u0105\u0434\u0437"
+  - Key: province_name.Germany__Hamburg
+    Value: "\u0425\u0430\u043c\u0431\u0443\u0440\u0433"
+  - Key: province_name.Germany__Hanover
+    Value: "\u0425\u0430\u043d\u043e\u0432\u0435\u0440"
+  - Key: province_name.Germany__Heidelberg
+    Value: "\u0425\u0435\u0439\u0434\u0435\u043b\u0431\u0435\u0440\u0433"
+  - Key: province_name.Germany__Hof
+    Value: "\u0425\u043e\u0444"
+  - Key: province_name.Germany__Kaliningrad
+    Value: "\u041a\u0430\u043b\u0438\u043d\u0438\u043d\u0433\u0440\u0430\u0434"
+  - Key: province_name.Germany__Karlsruhe
+    Value: "\u041a\u0430\u0440\u043b\u0441\u0440\u0443\u0445\u0435"
+  - Key: province_name.Germany__Kassel
+    Value: "\u041a\u0430\u0441\u0441\u0435\u043b"
+  - Key: province_name.Germany__Kassel_2
+    Value: "\u041a\u0430\u0441\u0441\u0435\u043b"
+  - Key: province_name.Germany__Koszalin
+    Value: "\u041a\u043e\u0441\u0437\u0430\u043b\u0438\u043d"
+  - Key: province_name.Germany__Koszalin_2
+    Value: "\u041a\u043e\u0441\u0437\u0430\u043b\u0438\u043d"
+  - Key: province_name.Germany__Magdeburg
+    Value: "\u041c\u0430\u0433\u0434\u0435\u0431\u0443\u0440\u0433"
+  - Key: province_name.Germany__Nurnberg
+    Value: "\u041d\u00fc\u0440\u043d\u0431\u0435\u0440\u0433"
+  - Key: province_name.Germany__Oldenburg
+    Value: "\u041e\u043b\u0434\u0435\u043d\u0431\u0443\u0440\u0433"
+  - Key: province_name.Germany__Olsztyn
+    Value: "\u041e\u043b\u0441\u0437\u0442\u0438\u043d"
+  - Key: province_name.Germany__Olsztyn_2
+    Value: "\u041e\u043b\u0441\u0437\u0442\u0438\u043d"
+  - Key: province_name.Germany__Opole
+    Value: "\u041e\u043f\u043e\u043b\u0435"
+  - Key: province_name.Germany__Passau
+    Value: "\u041f\u0430\u0441\u0441\u0430\u0443"
+  - Key: province_name.Germany__Potsdam
+    Value: "\u041f\u043e\u0442\u0441\u0434\u0430\u043c"
+  - Key: province_name.Germany__Pozna
+    Value: "\u041f\u043e\u0437\u043d\u0430\u0144"
+  - Key: province_name.Germany__Rosenheim
+    Value: "\u0420\u043e\u0441\u0435\u043d\u0445\u0435\u0439\u043c"
+  - Key: province_name.Germany__Rostock
+    Value: "\u0420\u043e\u0441\u0442\u043e\u043a"
+  - Key: province_name.Germany__Rostock_2
+    Value: "\u0420\u043e\u0441\u0442\u043e\u043a"
+  - Key: province_name.Germany__Schaffhausen
+    Value: "\u0428\u0430\u0444\u0444\u0445\u0430\u0443\u0441\u0435\u043d"
+  - Key: province_name.Germany__Schwerin
+    Value: "\u0428\u0432\u0435\u0440\u0438\u043d"
+  - Key: province_name.Germany__Sovetsk
+    Value: "\u0421\u043e\u0432\u0435\u0442\u0441\u043a"
+  - Key: province_name.Germany__Strasbourg
+    Value: "\u0421\u0442\u0440\u0430\u0441\u0431\u0443\u0440\u0433"
+  - Key: province_name.Germany__Stuttgart
+    Value: "\u0421\u0442\u0443\u0442\u0442\u0433\u0430\u0440\u0442"
+  - Key: province_name.Germany__Szczecin
+    Value: "\u0421\u0437\u043a\u0437\u0435\u043a\u0438\u043d"
+  - Key: province_name.Germany__Ulm
+    Value: "\u0423\u043b\u043c"
+  - Key: province_name.Germany__Ulm_2
+    Value: "\u0423\u043b\u043c"
+  - Key: province_name.Germany__Wiesbaden
+    Value: "\u0412\u0438\u0435\u0441\u0431\u0430\u0434\u0435\u043d"
+  - Key: province_name.Germany__Wrocaw
+    Value: "\u0412\u0440\u043e\u043a\u0142\u0430\u0432"
+  - Key: province_name.Germany__Wurzburg
+    Value: "\u0412\u00fc\u0440\u0437\u0431\u0443\u0440\u0433"
+  - Key: province_name.Germany__Zielona_Gora
+    Value: "\u0417\u0438\u0435\u043b\u043e\u043d\u0430 \u0413\u00f3\u0440\u0430"
+  - Key: province_name.Greece__Berat
+    Value: "\u0411\u0435\u0440\u0430\u0442"
+  - Key: province_name.Greece__Chalkida
+    Value: "\u0427\u0430\u043b\u043a\u0438\u0434\u0430"
+  - Key: province_name.Greece__Ioanina
+    Value: "\u0418\u043e\u0430\u043d\u0438\u043d\u0430"
+  - Key: province_name.Greece__Kalamata
+    Value: "\u041a\u0430\u043b\u0430\u043c\u0430\u0442\u0430"
+  - Key: province_name.Greece__Katerini
+    Value: "\u041a\u0430\u0442\u0435\u0440\u0438\u043d\u0438"
+  - Key: province_name.Greece__Lamia
+    Value: "\u041b\u0430\u043c\u0438\u0430"
+  - Key: province_name.Greece__Larissa
+    Value: "\u041b\u0430\u0440\u0438\u0441\u0441\u0430"
+  - Key: province_name.Greece__Pirgos
+    Value: "\u041f\u0438\u0440\u0433\u043e\u0441"
+  - Key: province_name.Greece__Prizren
+    Value: "\u041f\u0440\u0438\u0437\u0440\u0435\u043d"
+  - Key: province_name.Greece__Tripoli
+    Value: "\u0422\u0440\u0438\u043f\u043e\u043b\u0438"
+  - Key: province_name.Greece__Tripoli_2
+    Value: "\u0422\u0440\u0438\u043f\u043e\u043b\u0438"
+  - Key: province_name.Griqualand_West__North_West
+    Value: "\u041d\u043e\u0440\u0442 \u0412\u0435\u0441\u0442"
+  - Key: province_name.Griqualand_West__Northern_Cape
+    Value: "\u041d\u043e\u0440\u0442\u0435\u0440\u043d \u041a\u0430\u043f\u0435"
+  - Key: province_name.Guadeloupe__Guadeloupe
+    Value: "\u0413\u0443\u0430\u0434\u0435\u043b\u0443\u043f\u0435"
+  - Key: province_name.Guatemala__Coban
+    Value: "\u041a\u043e\u0431\u00e1\u043d"
+  - Key: province_name.Guatemala__Escuintla
+    Value: "\u0415\u0441\u043a\u0443\u0438\u043d\u0442\u043b\u0430"
+  - Key: province_name.Guatemala__Flores
+    Value: "\u0424\u043b\u043e\u0440\u0435\u0441"
+  - Key: province_name.Guatemala__Flores_2
+    Value: "\u0424\u043b\u043e\u0440\u0435\u0441"
+  - Key: province_name.Guatemala__Huehuetenango
+    Value: "\u0425\u0443\u0435\u0445\u0443\u0435\u0442\u0435\u043d\u0430\u043d\u0433\u043e"
+  - Key: province_name.Guatemala__Huehuetenango_2
+    Value: "\u0425\u0443\u0435\u0445\u0443\u0435\u0442\u0435\u043d\u0430\u043d\u0433\u043e"
+  - Key: province_name.Guatemala__Jalapa
+    Value: "\u042f\u043b\u0430\u043f\u0430"
+  - Key: province_name.Guatemala__La_Libertad
+    Value: "\u041b\u0430 \u041b\u0438\u0431\u0435\u0440\u0442\u0430\u0434"
+  - Key: province_name.Guatemala__Livingston
+    Value: "\u041b\u0438\u0432\u0438\u043d\u0433\u0441\u0442\u043e\u043d"
+  - Key: province_name.Guatemala__Retalhuleu
+    Value: "\u0420\u0435\u0442\u0430\u043b\u0445\u0443\u043b\u0435\u0443"
+  - Key: province_name.Haiti__Centre
+    Value: "\u041a\u0435\u043d\u0442\u0440\u0435"
+  - Key: province_name.Haiti__Dajabon
+    Value: "\u0414\u0430\u044f\u0431\u00f3\u043d"
+  - Key: province_name.Haiti__Grand_Anse
+    Value: "\u0413\u0440\u0430\u043d\u0434'\u0410\u043d\u0441\u0435"
+  - Key: province_name.Haiti__Grand_Anse_2
+    Value: "\u0413\u0440\u0430\u043d\u0434'\u0410\u043d\u0441\u0435"
+  - Key: province_name.Haiti__Independencia
+    Value: "\u0418\u043d\u0434\u0435\u043f\u0435\u043d\u0434\u0435\u043d\u043a\u0438\u0430"
+  - Key: province_name.Haiti__L_Artibonite
+    Value: "\u041b'\u0410\u0440\u0442\u0438\u0431\u043e\u043d\u0438\u0442\u0435"
+  - Key: province_name.Haiti__La_Estrelleta
+    Value: "\u041b\u0430 \u0415\u0441\u0442\u0440\u0435\u043b\u043b\u0435\u0442\u0430"
+  - Key: province_name.Haiti__Nippes
+    Value: "\u041d\u0438\u043f\u043f\u0435\u0441"
+  - Key: province_name.Haiti__Nord
+    Value: "\u041d\u043e\u0440\u0434"
+  - Key: province_name.Haiti__Nord_Est
+    Value: "\u041d\u043e\u0440\u0434-\u0415\u0441\u0442"
+  - Key: province_name.Haiti__Nord_Ouest
+    Value: "\u041d\u043e\u0440\u0434-\u0423\u0435\u0441\u0442"
+  - Key: province_name.Haiti__Ouest
+    Value: "\u0423\u0435\u0441\u0442"
+  - Key: province_name.Haiti__Pedernales
+    Value: "\u041f\u0435\u0434\u0435\u0440\u043d\u0430\u043b\u0435\u0441"
+  - Key: province_name.Haiti__Sud
+    Value: "\u0421\u0443\u0434"
+  - Key: province_name.Haiti__Sud_Est
+    Value: "\u0421\u0443\u0434-\u0415\u0441\u0442"
+  - Key: province_name.Harer_Egypt__Berbera
+    Value: "\u0411\u0435\u0440\u0431\u0435\u0440\u0430"
+  - Key: province_name.Harer_Egypt__Boorama
+    Value: "\u0411\u0443\u0440\u0430\u043c\u0430"
+  - Key: province_name.Harer_Egypt__Boorama_2
+    Value: "\u0411\u0443\u0440\u0430\u043c\u0430"
+  - Key: province_name.Harer_Egypt__Boosaaso
+    Value: "\u0411\u0443\u0441\u0430\u0430\u0441\u043e"
+  - Key: province_name.Harer_Egypt__Boosaaso_2
+    Value: "\u0411\u0443\u0441\u0430\u0430\u0441\u043e"
+  - Key: province_name.Harer_Egypt__Burco
+    Value: "\u0411\u0443\u0440\u043a\u043e"
+  - Key: province_name.Harer_Egypt__Ceerigaabo
+    Value: "\u041a\u0438\u0440\u0438\u0433\u0430\u0430\u0431\u043e"
+  - Key: province_name.Harer_Egypt__Ceerigaabo_2
+    Value: "\u041a\u0438\u0440\u0438\u0433\u0430\u0430\u0431\u043e"
+  - Key: province_name.Harer_Egypt__Harar
+    Value: "\u0425\u0430\u0440\u0430\u0440"
+  - Key: province_name.Harer_Egypt__Hargeisa
+    Value: "\u0425\u0430\u0440\u0433\u0435\u0439\u0441\u0430"
+  - Key: province_name.Harer_Egypt__Jijiga
+    Value: "\u0419\u0438\u0439\u0438\u0433\u0430"
+  - Key: province_name.Harer_Egypt__Jijiga_2
+    Value: "\u0419\u0438\u0439\u0438\u0433\u0430"
+  - Key: province_name.Honduras__Brus_Laguna
+    Value: "\u0411\u0440\u0443\u0441 \u041b\u0430\u0433\u0443\u043d\u0430"
+  - Key: province_name.Honduras__Choluteca
+    Value: "\u0427\u043e\u043b\u0443\u0442\u0435\u043a\u0430"
+  - Key: province_name.Honduras__Comayagua
+    Value: "\u041a\u043e\u043c\u0430\u044f\u0433\u0443\u0430"
+  - Key: province_name.Honduras__Juticalpa
+    Value: "\u042e\u0442\u0438\u043a\u0430\u043b\u043f\u0430"
+  - Key: province_name.Honduras__La_Esperanza
+    Value: "\u041b\u0430 \u0415\u0441\u043f\u0435\u0440\u0430\u043d\u0437\u0430"
+  - Key: province_name.Honduras__Puerto_Lempira
+    Value: "\u041f\u0443\u0435\u0440\u0442\u043e \u041b\u0435\u043c\u043f\u0438\u0440\u0430"
+  - Key: province_name.Honduras__San_Pedro_Sula
+    Value: "\u0421\u0430\u043d \u041f\u0435\u0434\u0440\u043e \u0421\u0443\u043b\u0430"
+  - Key: province_name.Honduras__Santa_Rosa_de_Copan
+    Value: "\u0421\u0430\u043d\u0442\u0430 \u0420\u043e\u0441\u0430 \u0434\u0435 \u041a\u043e\u043f\u00e1\u043d"
+  - Key: province_name.Honduras__Tegucigalpa
+    Value: "\u0422\u0435\u0433\u0443\u043a\u0438\u0433\u0430\u043b\u043f\u0430"
+  - Key: province_name.Honduras__Trujillo
+    Value: "\u0422\u0440\u0443\u0439\u0438\u043b\u043b\u043e"
+  - Key: province_name.Honduras__Trujillo_2
+    Value: "\u0422\u0440\u0443\u0439\u0438\u043b\u043b\u043e"
+  - Key: province_name.Ibadan__Edo
+    Value: "\u0415\u0434\u043e"
+  - Key: province_name.Ibadan__Ekiti
+    Value: "\u0415\u043a\u0438\u0442\u0438"
+  - Key: province_name.Ibadan__Kogi
+    Value: "\u041a\u043e\u0433\u0438"
+  - Key: province_name.Ibadan__Kwara
+    Value: "\u041a\u0432\u0430\u0440\u0430"
+  - Key: province_name.Ibadan__Ogun
+    Value: "\u041e\u0433\u0443\u043d"
+  - Key: province_name.Ibadan__Ogun_2
+    Value: "\u041e\u0433\u0443\u043d"
+  - Key: province_name.Ibadan__Ogun_3
+    Value: "\u041e\u0433\u0443\u043d"
+  - Key: province_name.Ibadan__Ondo
+    Value: "\u041e\u043d\u0434\u043e"
+  - Key: province_name.Ibadan__Osun
+    Value: "\u041e\u0441\u0443\u043d"
+  - Key: province_name.Ibadan__Oyo
+    Value: "\u041e\u0451"
+  - Key: province_name.Imerina__Alaotra_Mangoro
+    Value: "\u0410\u043b\u0430\u043e\u0442\u0440\u0430-\u041c\u0430\u043d\u0433\u043e\u0440\u043e"
+  - Key: province_name.Imerina__Amoron_i_Mania
+    Value: "\u0410\u043c\u043e\u0440\u043e\u043d'\u0438 \u041c\u0430\u043d\u0438\u0430"
+  - Key: province_name.Imerina__Analamanga
+    Value: "\u0410\u043d\u0430\u043b\u0430\u043c\u0430\u043d\u0433\u0430"
+  - Key: province_name.Imerina__Analanjirofo
+    Value: "\u0410\u043d\u0430\u043b\u0430\u043d\u0439\u0438\u0440\u043e\u0444\u043e"
+  - Key: province_name.Imerina__Anosy
+    Value: "\u0410\u043d\u043e\u0441\u0438"
+  - Key: province_name.Imerina__Atsimo_Atsinanana
+    Value: "\u0410\u0442\u0441\u0438\u043c\u043e-\u0410\u0442\u0441\u0438\u043d\u0430\u043d\u0430\u043d\u0430"
+  - Key: province_name.Imerina__Atsinanana
+    Value: "\u0410\u0442\u0441\u0438\u043d\u0430\u043d\u0430\u043d\u0430"
+  - Key: province_name.Imerina__Betsiboka
+    Value: "\u0411\u0435\u0442\u0441\u0438\u0431\u043e\u043a\u0430"
+  - Key: province_name.Imerina__Bongolava
+    Value: "\u0411\u043e\u043d\u0433\u043e\u043b\u0430\u0432\u0430"
+  - Key: province_name.Imerina__Haute_Matsiatra
+    Value: "\u0425\u0430\u0443\u0442\u0435 \u041c\u0430\u0442\u0441\u0438\u0430\u0442\u0440\u0430"
+  - Key: province_name.Imerina__Ihorombe
+    Value: "\u0418\u0445\u043e\u0440\u043e\u043c\u0431\u0435"
+  - Key: province_name.Imerina__Itasy
+    Value: "\u0418\u0442\u0430\u0441\u0438"
+  - Key: province_name.Imerina__Sava
+    Value: "\u0421\u0430\u0432\u0430"
+  - Key: province_name.Imerina__Sofia
+    Value: "\u0421\u043e\u0444\u0438\u0430"
+  - Key: province_name.Imerina__Vakinankaratra
+    Value: "\u0412\u0430\u043a\u0438\u043d\u0430\u043d\u043a\u0430\u0440\u0430\u0442\u0440\u0430"
+  - Key: province_name.Imerina__Vatovavy_Fitovinany
+    Value: "\u0412\u0430\u0442\u043e\u0432\u0430\u0432\u0438-\u0424\u0438\u0442\u043e\u0432\u0438\u043d\u0430\u043d\u0438"
+  - Key: province_name.Imperial_Japan__Akita
+    Value: "\u0410\u043a\u0438\u0442\u0430"
+  - Key: province_name.Imperial_Japan__Aomori
+    Value: "\u0410\u043e\u043c\u043e\u0440\u0438"
+  - Key: province_name.Imperial_Japan__Asahikawa
+    Value: "\u0410\u0441\u0430\u0445\u0438\u043a\u0430\u0432\u0430"
+  - Key: province_name.Imperial_Japan__Asahikawa_2
+    Value: "\u0410\u0441\u0430\u0445\u0438\u043a\u0430\u0432\u0430"
+  - Key: province_name.Imperial_Japan__Fukui
+    Value: "\u0424\u0443\u043a\u0443\u0438"
+  - Key: province_name.Imperial_Japan__Hakodate
+    Value: "\u0425\u0430\u043a\u043e\u0434\u0430\u0442\u0435"
+  - Key: province_name.Imperial_Japan__Hamamatsu
+    Value: "\u0425\u0430\u043c\u0430\u043c\u0430\u0442\u0441\u0443"
+  - Key: province_name.Imperial_Japan__Iwaki
+    Value: "\u0418\u0432\u0430\u043a\u0438"
+  - Key: province_name.Imperial_Japan__Kagoshima
+    Value: "\u041a\u0430\u0433\u043e\u0448\u0438\u043c\u0430"
+  - Key: province_name.Imperial_Japan__Kbe
+    Value: "\u041a\u014d\u0431\u0435"
+  - Key: province_name.Imperial_Japan__Kchi
+    Value: "\u041a\u014d\u0447\u0438"
+  - Key: province_name.Imperial_Japan__Kumamoto
+    Value: "\u041a\u0443\u043c\u0430\u043c\u043e\u0442\u043e"
+  - Key: province_name.Imperial_Japan__Kure
+    Value: "\u041a\u0443\u0440\u0435"
+  - Key: province_name.Imperial_Japan__Kushiro
+    Value: "\u041a\u0443\u0448\u0438\u0440\u043e"
+  - Key: province_name.Imperial_Japan__Maebashi
+    Value: "\u041c\u044d\u0431\u0430\u0448\u0438"
+  - Key: province_name.Imperial_Japan__Matsue
+    Value: "\u041c\u0430\u0442\u0441\u0443\u0435"
+  - Key: province_name.Imperial_Japan__Matsumoto
+    Value: "\u041c\u0430\u0442\u0441\u0443\u043c\u043e\u0442\u043e"
+  - Key: province_name.Imperial_Japan__Miyazaki
+    Value: "\u041c\u0438\u044f\u0437\u0430\u043a\u0438"
+  - Key: province_name.Imperial_Japan__Miyazaki_2
+    Value: "\u041c\u0438\u044f\u0437\u0430\u043a\u0438"
+  - Key: province_name.Imperial_Japan__Morioka
+    Value: "\u041c\u043e\u0440\u0438\u043e\u043a\u0430"
+  - Key: province_name.Imperial_Japan__Morioka_2
+    Value: "\u041c\u043e\u0440\u0438\u043e\u043a\u0430"
+  - Key: province_name.Imperial_Japan__Obihiro
+    Value: "\u041e\u0431\u0438\u0445\u0438\u0440\u043e"
+  - Key: province_name.Imperial_Japan__Obihiro_2
+    Value: "\u041e\u0431\u0438\u0445\u0438\u0440\u043e"
+  - Key: province_name.Imperial_Japan__Sapporo
+    Value: "\u0421\u0430\u043f\u043f\u043e\u0440\u043e"
+  - Key: province_name.Imperial_Japan__Sapporo_2
+    Value: "\u0421\u0430\u043f\u043f\u043e\u0440\u043e"
+  - Key: province_name.Imperial_Japan__Severo_Kurilsk
+    Value: "\u0421\u0435\u0432\u0435\u0440\u043e \u041a\u0443\u0440\u0438\u043b\u0441\u043a"
+  - Key: province_name.Imperial_Japan__Severo_Kurilsk_2
+    Value: "\u0421\u0435\u0432\u0435\u0440\u043e \u041a\u0443\u0440\u0438\u043b\u0441\u043a"
+  - Key: province_name.Imperial_Japan__Tokushima
+    Value: "\u0422\u043e\u043a\u0443\u0448\u0438\u043c\u0430"
+  - Key: province_name.Imperial_Japan__Toyama
+    Value: "\u0422\u043e\u044f\u043c\u0430"
+  - Key: province_name.Imperial_Japan__Tsu
+    Value: "\u0422\u0441\u0443"
+  - Key: province_name.Imperial_Japan__Tsu_2
+    Value: "\u0422\u0441\u0443"
+  - Key: province_name.Imperial_Japan__Tsuruoka
+    Value: "\u0422\u0441\u0443\u0440\u0443\u043e\u043a\u0430"
+  - Key: province_name.Imperial_Japan__Utsunomiya
+    Value: "\u0423\u0442\u0441\u0443\u043d\u043e\u043c\u0438\u044f"
+  - Key: province_name.Imperial_Japan__Wakayama
+    Value: "\u0412\u0430\u043a\u0430\u044f\u043c\u0430"
+  - Key: province_name.Imperial_Japan__Yamagata
+    Value: "\u042f\u043c\u0430\u0433\u0430\u0442\u0430"
+  - Key: province_name.Imperial_Japan__ita
+    Value: "\u014c\u0438\u0442\u0430"
+  - Key: province_name.Imperial_Japan__tsu
+    Value: "\u014c\u0442\u0441\u0443"
+  - Key: province_name.Italy__Ancona
+    Value: "\u0410\u043d\u043a\u043e\u043d\u0430"
+  - Key: province_name.Italy__Annecy
+    Value: "\u0410\u043d\u043d\u0435\u043a\u0438"
+  - Key: province_name.Italy__Annecy_2
+    Value: "\u0410\u043d\u043d\u0435\u043a\u0438"
+  - Key: province_name.Italy__Aosta
+    Value: "\u0410\u043e\u0441\u0442\u0430"
+  - Key: province_name.Italy__Arezzo
+    Value: "\u0410\u0440\u0435\u0437\u0437\u043e"
+  - Key: province_name.Italy__Asti
+    Value: "\u0410\u0441\u0442\u0438"
+  - Key: province_name.Italy__Bergamo
+    Value: "\u0411\u0435\u0440\u0433\u0430\u043c\u043e"
+  - Key: province_name.Italy__Bologna
+    Value: "\u0411\u043e\u043b\u043e\u0433\u043d\u0430"
+  - Key: province_name.Italy__Campobasso
+    Value: "\u041a\u0430\u043c\u043f\u043e\u0431\u0430\u0441\u0441\u043e"
+  - Key: province_name.Italy__Campobasso_2
+    Value: "\u041a\u0430\u043c\u043f\u043e\u0431\u0430\u0441\u0441\u043e"
+  - Key: province_name.Italy__Ferrara
+    Value: "\u0424\u0435\u0440\u0440\u0430\u0440\u0430"
+  - Key: province_name.Italy__Foggia
+    Value: "\u0424\u043e\u0433\u0433\u0438\u0430"
+  - Key: province_name.Italy__L_Aquila
+    Value: "\u041b'\u0410\u043a\u0432\u0438\u043b\u0430"
+  - Key: province_name.Italy__L_Aquila_2
+    Value: "\u041b'\u0410\u043a\u0432\u0438\u043b\u0430"
+  - Key: province_name.Italy__Lugano
+    Value: "\u041b\u0443\u0433\u0430\u043d\u043e"
+  - Key: province_name.Italy__Messina
+    Value: "\u041c\u0435\u0441\u0441\u0438\u043d\u0430"
+  - Key: province_name.Italy__Modena
+    Value: "\u041c\u043e\u0434\u0435\u043d\u0430"
+  - Key: province_name.Italy__Naples
+    Value: "\u041d\u0430\u043f\u043b\u0435\u0441"
+  - Key: province_name.Italy__Naples_2
+    Value: "\u041d\u0430\u043f\u043b\u0435\u0441"
+  - Key: province_name.Italy__Parma
+    Value: "\u041f\u0430\u0440\u043c\u0430"
+  - Key: province_name.Italy__Parma_2
+    Value: "\u041f\u0430\u0440\u043c\u0430"
+  - Key: province_name.Italy__Pisa
+    Value: "\u041f\u0438\u0441\u0430"
+  - Key: province_name.Italy__San_Marino
+    Value: "\u0421\u0430\u043d \u041c\u0430\u0440\u0438\u043d\u043e"
+  - Key: province_name.Italy__Sassari
+    Value: "\u0421\u0430\u0441\u0441\u0430\u0440\u0438"
+  - Key: province_name.Italy__Siena
+    Value: "\u0421\u0438\u0435\u043d\u0430"
+  - Key: province_name.Italy__Siena_2
+    Value: "\u0421\u0438\u0435\u043d\u0430"
+  - Key: province_name.Italy__Taranto
+    Value: "\u0422\u0430\u0440\u0430\u043d\u0442\u043e"
+  - Key: province_name.Italy__Treviso
+    Value: "\u0422\u0440\u0435\u0432\u0438\u0441\u043e"
+  - Key: province_name.Italy__Turin
+    Value: "\u0422\u0443\u0440\u0438\u043d"
+  - Key: province_name.Italy__Vatican_City
+    Value: "\u0412\u0430\u0442\u0438\u043a\u0430\u043d \u041a\u0438\u0442\u0438"
+  - Key: province_name.Ivory_Coast__Agboville
+    Value: "\u0410\u0433\u0431\u043e\u0432\u0438\u043b\u043b\u0435"
+  - Key: province_name.Ivory_Coast__Dabou
+    Value: "\u0414\u0430\u0431\u0443"
+  - Key: province_name.Ivory_Coast__Grand_Bassam
+    Value: "\u0413\u0440\u0430\u043d\u0434 \u0411\u0430\u0441\u0441\u0430\u043c"
+  - Key: province_name.Kanem_Bornu__Ati
+    Value: "\u0410\u0442\u0438"
+  - Key: province_name.Kanem_Bornu__Bama
+    Value: "\u0411\u0430\u043c\u0430"
+  - Key: province_name.Kanem_Bornu__Bol
+    Value: "\u0411\u043e\u043b"
+  - Key: province_name.Kanem_Bornu__Bol_2
+    Value: "\u0411\u043e\u043b"
+  - Key: province_name.Kanem_Bornu__Bol_3
+    Value: "\u0411\u043e\u043b"
+  - Key: province_name.Kanem_Bornu__Bol_4
+    Value: "\u0411\u043e\u043b"
+  - Key: province_name.Kanem_Bornu__Diffa
+    Value: "\u0414\u0438\u0444\u0444\u0430"
+  - Key: province_name.Kanem_Bornu__Faya_Largeau
+    Value: "\u0424\u0430\u044f \u041b\u0430\u0440\u0433\u0435\u0430\u0443"
+  - Key: province_name.Kanem_Bornu__Faya_Largeau_2
+    Value: "\u0424\u0430\u044f \u041b\u0430\u0440\u0433\u0435\u0430\u0443"
+  - Key: province_name.Kanem_Bornu__Faya_Largeau_3
+    Value: "\u0424\u0430\u044f \u041b\u0430\u0440\u0433\u0435\u0430\u0443"
+  - Key: province_name.Kanem_Bornu__Maiduguri
+    Value: "\u041c\u0430\u0439\u0434\u0443\u0433\u0443\u0440\u0438"
+  - Key: province_name.Kanem_Bornu__Mao
+    Value: "\u041c\u0430\u043e"
+  - Key: province_name.Kanem_Bornu__Mao_10
+    Value: "\u041c\u0430\u043e"
+  - Key: province_name.Kanem_Bornu__Mao_11
+    Value: "\u041c\u0430\u043e"
+  - Key: province_name.Kanem_Bornu__Mao_12
+    Value: "\u041c\u0430\u043e"
+  - Key: province_name.Kanem_Bornu__Mao_2
+    Value: "\u041c\u0430\u043e"
+  - Key: province_name.Kanem_Bornu__Mao_3
+    Value: "\u041c\u0430\u043e"
+  - Key: province_name.Kanem_Bornu__Mao_4
+    Value: "\u041c\u0430\u043e"
+  - Key: province_name.Kanem_Bornu__Mao_5
+    Value: "\u041c\u0430\u043e"
+  - Key: province_name.Kanem_Bornu__Mao_6
+    Value: "\u041c\u0430\u043e"
+  - Key: province_name.Kanem_Bornu__Mao_7
+    Value: "\u041c\u0430\u043e"
+  - Key: province_name.Kanem_Bornu__Mao_8
+    Value: "\u041c\u0430\u043e"
+  - Key: province_name.Kanem_Bornu__Mao_9
+    Value: "\u041c\u0430\u043e"
+  - Key: province_name.Kanem_Bornu__N_Djamena
+    Value: "\u041d'\u0414\u044f\u043c\u0435\u043d\u0430"
+  - Key: province_name.Kanem_Bornu__N_Djamena_2
+    Value: "\u041d'\u0414\u044f\u043c\u0435\u043d\u0430"
+  - Key: province_name.Kanem_Bornu__Nguigmi
+    Value: "\u041d\u0433\u0443\u0438\u0433\u043c\u0438"
+  - Key: province_name.Kanem_Bornu__Nguigmi_2
+    Value: "\u041d\u0433\u0443\u0438\u0433\u043c\u0438"
+  - Key: province_name.Kanem_Bornu__Nguigmi_3
+    Value: "\u041d\u0433\u0443\u0438\u0433\u043c\u0438"
+  - Key: province_name.Kanem_Bornu__Nguigmi_4
+    Value: "\u041d\u0433\u0443\u0438\u0433\u043c\u0438"
+  - Key: province_name.Kanem_Bornu__Nguigmi_5
+    Value: "\u041d\u0433\u0443\u0438\u0433\u043c\u0438"
+  - Key: province_name.Kanem_Bornu__Zouar
+    Value: "\u0417\u0443\u0430\u0440"
+  - Key: province_name.Kingdom_of_Brazil__Abun
+    Value: "\u0410\u0431\u0443\u043d\u00e3"
+  - Key: province_name.Kingdom_of_Brazil__Abun_2
+    Value: "\u0410\u0431\u0443\u043d\u00e3"
+  - Key: province_name.Kingdom_of_Brazil__Alagoinhas
+    Value: "\u0410\u043b\u0430\u0433\u043e\u0438\u043d\u0445\u0430\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Alenquer
+    Value: "\u0410\u043b\u0435\u043d\u043a\u0432\u0435\u0440"
+  - Key: province_name.Kingdom_of_Brazil__Alta_Floresta
+    Value: "\u0410\u043b\u0442\u0430 \u0424\u043b\u043e\u0440\u0435\u0441\u0442\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Alta_Floresta_2
+    Value: "\u0410\u043b\u0442\u0430 \u0424\u043b\u043e\u0440\u0435\u0441\u0442\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Alvorada
+    Value: "\u0410\u043b\u0432\u043e\u0440\u0430\u0434\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Amapa
+    Value: "\u0410\u043c\u0430\u043f\u00e1"
+  - Key: province_name.Kingdom_of_Brazil__Apodi
+    Value: "\u0410\u043f\u043e\u0434\u0438"
+  - Key: province_name.Kingdom_of_Brazil__Araguaina
+    Value: "\u0410\u0440\u0430\u0433\u0443\u0430\u00ed\u043d\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Araguaina_2
+    Value: "\u0410\u0440\u0430\u0433\u0443\u0430\u00ed\u043d\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Aripuan
+    Value: "\u0410\u0440\u0438\u043f\u0443\u0430\u043d\u00e3"
+  - Key: province_name.Kingdom_of_Brazil__Ariquemes
+    Value: "\u0410\u0440\u0438\u043a\u0432\u0435\u043c\u0435\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Ariquemes_2
+    Value: "\u0410\u0440\u0438\u043a\u0432\u0435\u043c\u0435\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Balsas
+    Value: "\u0411\u0430\u043b\u0441\u0430\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Barcelos
+    Value: "\u0411\u0430\u0440\u043a\u0435\u043b\u043e\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Barra_do_Bugres
+    Value: "\u0411\u0430\u0440\u0440\u0430 \u0434\u043e \u0411\u0443\u0433\u0440\u0435\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Barra_do_Corda
+    Value: "\u0411\u0430\u0440\u0440\u0430 \u0434\u043e \u041a\u043e\u0440\u0434\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Barra_do_Garcas
+    Value: "\u0411\u0430\u0440\u0440\u0430 \u0434\u043e \u0413\u0430\u0440\u00e7\u0430\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Barra_do_Garcas_2
+    Value: "\u0411\u0430\u0440\u0440\u0430 \u0434\u043e \u0413\u0430\u0440\u00e7\u0430\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Barreiras
+    Value: "\u0411\u0430\u0440\u0440\u0435\u0439\u0440\u0430\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Belem
+    Value: "\u0411\u0435\u043b\u00e9\u043c"
+  - Key: province_name.Kingdom_of_Brazil__Blumenau
+    Value: "\u0411\u043b\u0443\u043c\u0435\u043d\u0430\u0443"
+  - Key: province_name.Kingdom_of_Brazil__Caceres
+    Value: "\u041a\u00e1\u043a\u0435\u0440\u0435\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Camaqu
+    Value: "\u041a\u0430\u043c\u0430\u043a\u0432\u00e3"
+  - Key: province_name.Kingdom_of_Brazil__Cameta
+    Value: "\u041a\u0430\u043c\u0435\u0442\u00e1"
+  - Key: province_name.Kingdom_of_Brazil__Campo_Grande
+    Value: "\u041a\u0430\u043c\u043f\u043e \u0413\u0440\u0430\u043d\u0434\u0435"
+  - Key: province_name.Kingdom_of_Brazil__Campo_Murao
+    Value: "\u041a\u0430\u043c\u043f\u043e \u041c\u0443\u0440\u0430\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Canela
+    Value: "\u041a\u0430\u043d\u0435\u043b\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Caninde
+    Value: "\u041a\u0430\u043d\u0438\u043d\u0434\u00e9"
+  - Key: province_name.Kingdom_of_Brazil__Canoinhas
+    Value: "\u041a\u0430\u043d\u043e\u0438\u043d\u0445\u0430\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Capito_Poco
+    Value: "\u041a\u0430\u043f\u0438\u0442\u00e3\u043e \u041f\u043e\u00e7\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Capito_Poco_2
+    Value: "\u041a\u0430\u043f\u0438\u0442\u00e3\u043e \u041f\u043e\u00e7\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Caracarai
+    Value: "\u041a\u0430\u0440\u0430\u043a\u0430\u0440\u0430\u00ed"
+  - Key: province_name.Kingdom_of_Brazil__Caracarai_2
+    Value: "\u041a\u0430\u0440\u0430\u043a\u0430\u0440\u0430\u00ed"
+  - Key: province_name.Kingdom_of_Brazil__Caracarai_3
+    Value: "\u041a\u0430\u0440\u0430\u043a\u0430\u0440\u0430\u00ed"
+  - Key: province_name.Kingdom_of_Brazil__Caracarai_4
+    Value: "\u041a\u0430\u0440\u0430\u043a\u0430\u0440\u0430\u00ed"
+  - Key: province_name.Kingdom_of_Brazil__Caracarai_5
+    Value: "\u041a\u0430\u0440\u0430\u043a\u0430\u0440\u0430\u00ed"
+  - Key: province_name.Kingdom_of_Brazil__Cascavel
+    Value: "\u041a\u0430\u0441\u043a\u0430\u0432\u0435\u043b"
+  - Key: province_name.Kingdom_of_Brazil__Ceres
+    Value: "\u041a\u0435\u0440\u0435\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Chapadinha
+    Value: "\u0427\u0430\u043f\u0430\u0434\u0438\u043d\u0445\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Coari
+    Value: "\u041a\u043e\u0430\u0440\u0438"
+  - Key: province_name.Kingdom_of_Brazil__Colider
+    Value: "\u041a\u043e\u043b\u00ed\u0434\u0435\u0440"
+  - Key: province_name.Kingdom_of_Brazil__Colider_2
+    Value: "\u041a\u043e\u043b\u00ed\u0434\u0435\u0440"
+  - Key: province_name.Kingdom_of_Brazil__Conceico_do_Araguaia
+    Value: "\u041a\u043e\u043d\u043a\u0435\u0439\u00e7\u00e3\u043e \u0434\u043e \u0410\u0440\u0430\u0433\u0443\u0430\u0439\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Conceico_do_Araguaia_2
+    Value: "\u041a\u043e\u043d\u043a\u0435\u0439\u00e7\u00e3\u043e \u0434\u043e \u0410\u0440\u0430\u0433\u0443\u0430\u0439\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Coroata
+    Value: "\u041a\u043e\u0440\u043e\u0430\u0442\u00e1"
+  - Key: province_name.Kingdom_of_Brazil__Corumba
+    Value: "\u041a\u043e\u0440\u0443\u043c\u0431\u00e1"
+  - Key: province_name.Kingdom_of_Brazil__Cottica
+    Value: "\u041a\u043e\u0442\u0442\u0438\u043a\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Crateus
+    Value: "\u041a\u0440\u0430\u0442\u0435\u00fa\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Crato
+    Value: "\u041a\u0440\u0430\u0442\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Crato_2
+    Value: "\u041a\u0440\u0430\u0442\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Crato_3
+    Value: "\u041a\u0440\u0430\u0442\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Cruzeiro_do_Sul
+    Value: "\u041a\u0440\u0443\u0437\u0435\u0439\u0440\u043e \u0434\u043e \u0421\u0443\u043b"
+  - Key: province_name.Kingdom_of_Brazil__Cuiaba
+    Value: "\u041a\u0443\u0438\u0430\u0431\u00e1"
+  - Key: province_name.Kingdom_of_Brazil__Curvelo
+    Value: "\u041a\u0443\u0440\u0432\u0435\u043b\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Dourados
+    Value: "\u0414\u0443\u0440\u0430\u0434\u043e\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Eirunepe
+    Value: "\u0415\u0439\u0440\u0443\u043d\u0435\u043f\u00e9"
+  - Key: province_name.Kingdom_of_Brazil__Eirunepe_2
+    Value: "\u0415\u0439\u0440\u0443\u043d\u0435\u043f\u00e9"
+  - Key: province_name.Kingdom_of_Brazil__Eirunepe_3
+    Value: "\u0415\u0439\u0440\u0443\u043d\u0435\u043f\u00e9"
+  - Key: province_name.Kingdom_of_Brazil__Erechim
+    Value: "\u0415\u0440\u0435\u0447\u0438\u043c"
+  - Key: province_name.Kingdom_of_Brazil__Floriano
+    Value: "\u0424\u043b\u043e\u0440\u0438\u0430\u043d\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Floriano_2
+    Value: "\u0424\u043b\u043e\u0440\u0438\u0430\u043d\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Formosa
+    Value: "\u0424\u043e\u0440\u043c\u043e\u0441\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Frutal
+    Value: "\u0424\u0440\u0443\u0442\u0430\u043b"
+  - Key: province_name.Kingdom_of_Brazil__Guanambi
+    Value: "\u0413\u0443\u0430\u043d\u0430\u043c\u0431\u0438"
+  - Key: province_name.Kingdom_of_Brazil__Guarapuava
+    Value: "\u0413\u0443\u0430\u0440\u0430\u043f\u0443\u0430\u0432\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Imperatriz
+    Value: "\u0418\u043c\u043f\u0435\u0440\u0430\u0442\u0440\u0438\u0437"
+  - Key: province_name.Kingdom_of_Brazil__Irece
+    Value: "\u0418\u0440\u0435\u043a\u00ea"
+  - Key: province_name.Kingdom_of_Brazil__Itaberaba
+    Value: "\u0418\u0442\u0430\u0431\u0435\u0440\u0430\u0431\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Itaberaba_2
+    Value: "\u0418\u0442\u0430\u0431\u0435\u0440\u0430\u0431\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Itaberai
+    Value: "\u0418\u0442\u0430\u0431\u0435\u0440\u0430\u00ed"
+  - Key: province_name.Kingdom_of_Brazil__Itacoatiara
+    Value: "\u0418\u0442\u0430\u043a\u043e\u0430\u0442\u0438\u0430\u0440\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Itambe
+    Value: "\u0418\u0442\u0430\u043c\u0431\u00e9"
+  - Key: province_name.Kingdom_of_Brazil__Itapeva
+    Value: "\u0418\u0442\u0430\u043f\u0435\u0432\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Jacareacanga
+    Value: "\u042f\u043a\u0430\u0440\u0435\u0430\u043a\u0430\u043d\u0433\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Jacunda
+    Value: "\u042f\u043a\u0443\u043d\u0434\u00e1"
+  - Key: province_name.Kingdom_of_Brazil__Jaguaquara
+    Value: "\u042f\u0433\u0443\u0430\u043a\u0432\u0430\u0440\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Januaria
+    Value: "\u042f\u043d\u0443\u00e1\u0440\u0438\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Jardim
+    Value: "\u042f\u0440\u0434\u0438\u043c"
+  - Key: province_name.Kingdom_of_Brazil__Juazeiro
+    Value: "\u042e\u0430\u0437\u0435\u0439\u0440\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Juazeiro_do_Norte
+    Value: "\u042e\u0430\u0437\u0435\u0439\u0440\u043e \u0434\u043e \u041d\u043e\u0440\u0442\u0435"
+  - Key: province_name.Kingdom_of_Brazil__Juina
+    Value: "\u042e\u0438\u043d\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Lajes
+    Value: "\u041b\u0430\u0439\u0435\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Macapa
+    Value: "\u041c\u0430\u043a\u0430\u043f\u00e1"
+  - Key: province_name.Kingdom_of_Brazil__Manaus
+    Value: "\u041c\u0430\u043d\u0430\u0443\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Manicore
+    Value: "\u041c\u0430\u043d\u0438\u043a\u043e\u0440\u00e9"
+  - Key: province_name.Kingdom_of_Brazil__Manicore_2
+    Value: "\u041c\u0430\u043d\u0438\u043a\u043e\u0440\u00e9"
+  - Key: province_name.Kingdom_of_Brazil__Maraba
+    Value: "\u041c\u0430\u0440\u0430\u0431\u00e1"
+  - Key: province_name.Kingdom_of_Brazil__Mineiros
+    Value: "\u041c\u0438\u043d\u0435\u0439\u0440\u043e\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Nanuque
+    Value: "\u041d\u0430\u043d\u0443\u043a\u0432\u0435"
+  - Key: province_name.Kingdom_of_Brazil__Natal
+    Value: "\u041d\u0430\u0442\u0430\u043b"
+  - Key: province_name.Kingdom_of_Brazil__Nova_Friburgo
+    Value: "\u041d\u043e\u0432\u0430 \u0424\u0440\u0438\u0431\u0443\u0440\u0433\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Novo_Airo
+    Value: "\u041d\u043e\u0432\u043e \u0410\u0439\u0440\u00e3\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Novo_Airo_2
+    Value: "\u041d\u043e\u0432\u043e \u0410\u0439\u0440\u00e3\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Oriximina
+    Value: "\u041e\u0440\u0438\u043a\u0441\u0438\u043c\u0438\u043d\u00e1"
+  - Key: province_name.Kingdom_of_Brazil__Oriximina_2
+    Value: "\u041e\u0440\u0438\u043a\u0441\u0438\u043c\u0438\u043d\u00e1"
+  - Key: province_name.Kingdom_of_Brazil__Palmas
+    Value: "\u041f\u0430\u043b\u043c\u0430\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Palmeira_dos_ndios
+    Value: "\u041f\u0430\u043b\u043c\u0435\u0439\u0440\u0430 \u0434\u043e\u0441 \u00cd\u043d\u0434\u0438\u043e\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Paragominas
+    Value: "\u041f\u0430\u0440\u0430\u0433\u043e\u043c\u0438\u043d\u0430\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Patos
+    Value: "\u041f\u0430\u0442\u043e\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Paulo_Afonso
+    Value: "\u041f\u0430\u0443\u043b\u043e \u0410\u0444\u043e\u043d\u0441\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Petrolina
+    Value: "\u041f\u0435\u0442\u0440\u043e\u043b\u0438\u043d\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Picos
+    Value: "\u041f\u0438\u043a\u043e\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Pimenta_Bueno
+    Value: "\u041f\u0438\u043c\u0435\u043d\u0442\u0430 \u0411\u0443\u0435\u043d\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Pinheiro
+    Value: "\u041f\u0438\u043d\u0445\u0435\u0439\u0440\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Pinheiro_2
+    Value: "\u041f\u0438\u043d\u0445\u0435\u0439\u0440\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Pires_do_Rio
+    Value: "\u041f\u0438\u0440\u0435\u0441 \u0434\u043e \u0420\u0438\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Piripiri
+    Value: "\u041f\u0438\u0440\u0438\u043f\u0438\u0440\u0438"
+  - Key: province_name.Kingdom_of_Brazil__Pocos_de_Caldas
+    Value: "\u041f\u043e\u00e7\u043e\u0441 \u0434\u0435 \u041a\u0430\u043b\u0434\u0430\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Ponta_Por
+    Value: "\u041f\u043e\u043d\u0442\u0430 \u041f\u043e\u0440\u00e3"
+  - Key: province_name.Kingdom_of_Brazil__Portel
+    Value: "\u041f\u043e\u0440\u0442\u0435\u043b"
+  - Key: province_name.Kingdom_of_Brazil__Porto_Santana
+    Value: "\u041f\u043e\u0440\u0442\u043e \u0421\u0430\u043d\u0442\u0430\u043d\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Porto_Santana_2
+    Value: "\u041f\u043e\u0440\u0442\u043e \u0421\u0430\u043d\u0442\u0430\u043d\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Porto_Velho
+    Value: "\u041f\u043e\u0440\u0442\u043e \u0412\u0435\u043b\u0445\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Presidente_Prudente
+    Value: "\u041f\u0440\u0435\u0441\u0438\u0434\u0435\u043d\u0442\u0435 \u041f\u0440\u0443\u0434\u0435\u043d\u0442\u0435"
+  - Key: province_name.Kingdom_of_Brazil__Remanso
+    Value: "\u0420\u0435\u043c\u0430\u043d\u0441\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Rio_Branco
+    Value: "\u0420\u0438\u043e \u0411\u0440\u0430\u043d\u043a\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Salgueiro
+    Value: "\u0421\u0430\u043b\u0433\u0443\u0435\u0439\u0440\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Santa_Ines
+    Value: "\u0421\u0430\u043d\u0442\u0430 \u0418\u043d\u00ea\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Santa_Maria_da_Vitoria
+    Value: "\u0421\u0430\u043d\u0442\u0430 \u041c\u0430\u0440\u0438\u0430 \u0434\u0430 \u0412\u0438\u0442\u00f3\u0440\u0438\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Santa_Maria_da_Vitoria_2
+    Value: "\u0421\u0430\u043d\u0442\u0430 \u041c\u0430\u0440\u0438\u0430 \u0434\u0430 \u0412\u0438\u0442\u00f3\u0440\u0438\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Sena_Madureira
+    Value: "\u0421\u0435\u043d\u0430 \u041c\u0430\u0434\u0443\u0440\u0435\u0439\u0440\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Sena_Madureira_2
+    Value: "\u0421\u0435\u043d\u0430 \u041c\u0430\u0434\u0443\u0440\u0435\u0439\u0440\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Sena_Madureira_3
+    Value: "\u0421\u0435\u043d\u0430 \u041c\u0430\u0434\u0443\u0440\u0435\u0439\u0440\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Senhor_do_Bonfim
+    Value: "\u0421\u0435\u043d\u0445\u043e\u0440 \u0434\u043e \u0411\u043e\u043d\u0444\u0438\u043c"
+  - Key: province_name.Kingdom_of_Brazil__Sinop
+    Value: "\u0421\u0438\u043d\u043e\u043f"
+  - Key: province_name.Kingdom_of_Brazil__Sinop_2
+    Value: "\u0421\u0438\u043d\u043e\u043f"
+  - Key: province_name.Kingdom_of_Brazil__Sinop_3
+    Value: "\u0421\u0438\u043d\u043e\u043f"
+  - Key: province_name.Kingdom_of_Brazil__So_Gabriel
+    Value: "\u0421\u00e3\u043e \u0413\u0430\u0431\u0440\u0438\u0435\u043b"
+  - Key: province_name.Kingdom_of_Brazil__So_Gabriel_da_Cachoeira
+    Value: "\u0421\u00e3\u043e \u0413\u0430\u0431\u0440\u0438\u0435\u043b \u0434\u0430 \u041a\u0430\u0447\u044d\u0438\u0440\u0430"
+  - Key: province_name.Kingdom_of_Brazil__So_Luiz_Gonzaga
+    Value: "\u0421\u00e3\u043e \u041b\u0443\u0438\u0437 \u0413\u043e\u043d\u0437\u0430\u0433\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Tatui
+    Value: "\u0422\u0430\u0442\u0443\u00ed"
+  - Key: province_name.Kingdom_of_Brazil__Taua
+    Value: "\u0422\u0430\u0443\u00e1"
+  - Key: province_name.Kingdom_of_Brazil__Taubate
+    Value: "\u0422\u0430\u0443\u0431\u0430\u0442\u00e9"
+  - Key: province_name.Kingdom_of_Brazil__Tefe
+    Value: "\u0422\u0435\u0444\u00e9"
+  - Key: province_name.Kingdom_of_Brazil__Timbauba
+    Value: "\u0422\u0438\u043c\u0431\u0430\u00fa\u0431\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Timon
+    Value: "\u0422\u0438\u043c\u043e\u043d"
+  - Key: province_name.Kingdom_of_Brazil__Tonantins
+    Value: "\u0422\u043e\u043d\u0430\u043d\u0442\u0438\u043d\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Tres_Lagoas
+    Value: "\u0422\u0440\u00ea\u0441 \u041b\u0430\u0433\u043e\u0430\u0441"
+  - Key: province_name.Kingdom_of_Brazil__Tucano
+    Value: "\u0422\u0443\u043a\u0430\u043d\u043e"
+  - Key: province_name.Kingdom_of_Brazil__Tucurui
+    Value: "\u0422\u0443\u043a\u0443\u0440\u0443\u00ed"
+  - Key: province_name.Kingdom_of_Brazil__Uba
+    Value: "\u0423\u0431\u00e1"
+  - Key: province_name.Kingdom_of_Brazil__Ubaitaba
+    Value: "\u0423\u0431\u0430\u0439\u0442\u0430\u0431\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Uruara
+    Value: "\u0423\u0440\u0443\u0430\u0440\u00e1"
+  - Key: province_name.Kingdom_of_Brazil__Valenca
+    Value: "\u0412\u0430\u043b\u0435\u043d\u00e7\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Viseu
+    Value: "\u0412\u0438\u0441\u0435\u0443"
+  - Key: province_name.Kingdom_of_Brazil__Xinguara
+    Value: "\u041a\u0441\u0438\u043d\u0433\u0443\u0430\u0440\u0430"
+  - Key: province_name.Kingdom_of_Brazil__Xique_Xique
+    Value: "\u041a\u0441\u0438\u043a\u0432\u0435-\u041a\u0441\u0438\u043a\u0432\u0435"
+  - Key: province_name.Kingdom_of_Brazil__Xique_Xique_2
+    Value: "\u041a\u0441\u0438\u043a\u0432\u0435-\u041a\u0441\u0438\u043a\u0432\u0435"
+  - Key: province_name.Kingdom_of_Hawaii__Hawaii
+    Value: "\u0425\u0430\u0432\u0430\u0439\u0438"
+  - Key: province_name.Kingdom_of_Hawaii__Hawaii_2
+    Value: "\u0425\u0430\u0432\u0430\u0439\u0438"
+  - Key: province_name.Kingdom_of_Hawaii__Hawaii_3
+    Value: "\u0425\u0430\u0432\u0430\u0439\u0438"
+  - Key: province_name.Kong_Empire__Ashanti
+    Value: "\u0410\u0448\u0430\u043d\u0442\u0438"
+  - Key: province_name.Kong_Empire__Bale
+    Value: "\u0411\u0430\u043b\u00e9"
+  - Key: province_name.Kong_Empire__Banwa
+    Value: "\u0411\u0430\u043d\u0432\u0430"
+  - Key: province_name.Kong_Empire__Bougouriba
+    Value: "\u0411\u0443\u0433\u0443\u0440\u0438\u0431\u0430"
+  - Key: province_name.Kong_Empire__Brong_Ahafo
+    Value: "\u0411\u0440\u043e\u043d\u0433 \u0410\u0445\u0430\u0444\u043e"
+  - Key: province_name.Kong_Empire__Comoe
+    Value: "\u041a\u043e\u043c\u044d"
+  - Key: province_name.Kong_Empire__Houet
+    Value: "\u0425\u0443\u0435\u0442"
+  - Key: province_name.Kong_Empire__Ioba
+    Value: "\u0418\u043e\u0431\u0430"
+  - Key: province_name.Kong_Empire__Kenedougou
+    Value: "\u041a\u00e9\u043d\u00e9\u0434\u0443\u0433\u0443"
+  - Key: province_name.Kong_Empire__Komoe
+    Value: "\u041a\u043e\u043c\u043e\u00e9"
+  - Key: province_name.Kong_Empire__Kossi
+    Value: "\u041a\u043e\u0441\u0441\u0438"
+  - Key: province_name.Kong_Empire__Leraba
+    Value: "\u041b\u00e9\u0440\u0430\u0431\u0430"
+  - Key: province_name.Kong_Empire__Mopti
+    Value: "\u041c\u043e\u043f\u0442\u0438"
+  - Key: province_name.Kong_Empire__Mou_Houn
+    Value: "\u041c\u0443 \u0425\u0443\u043d"
+  - Key: province_name.Kong_Empire__N_zi_Comoe
+    Value: "\u041d'\u0437\u0438-\u041a\u043e\u043c\u043e\u00e9"
+  - Key: province_name.Kong_Empire__Nayala
+    Value: "\u041d\u0430\u044f\u043b\u0430"
+  - Key: province_name.Kong_Empire__Northern
+    Value: "\u041d\u043e\u0440\u0442\u0435\u0440\u043d"
+  - Key: province_name.Kong_Empire__Noumbiel
+    Value: "\u041d\u0443\u043c\u0431\u0438\u0435\u043b"
+  - Key: province_name.Kong_Empire__Poni
+    Value: "\u041f\u043e\u043d\u0438"
+  - Key: province_name.Kong_Empire__Sanguie
+    Value: "\u0421\u0430\u043d\u0433\u0443\u0438\u00e9"
+  - Key: province_name.Kong_Empire__Savanes
+    Value: "\u0421\u0430\u0432\u0430\u043d\u0435\u0441"
+  - Key: province_name.Kong_Empire__Segou
+    Value: "\u0421\u00e9\u0433\u0443"
+  - Key: province_name.Kong_Empire__Sikasso
+    Value: "\u0421\u0438\u043a\u0430\u0441\u0441\u043e"
+  - Key: province_name.Kong_Empire__Sikasso_2
+    Value: "\u0421\u0438\u043a\u0430\u0441\u0441\u043e"
+  - Key: province_name.Kong_Empire__Sissili
+    Value: "\u0421\u0438\u0441\u0441\u0438\u043b\u0438"
+  - Key: province_name.Kong_Empire__Sourou
+    Value: "\u0421\u0443\u0440\u0443"
+  - Key: province_name.Kong_Empire__Tuy
+    Value: "\u0422\u0443\u0438"
+  - Key: province_name.Kong_Empire__Upper_West
+    Value: "\u0423\u043f\u043f\u0435\u0440 \u0412\u0435\u0441\u0442"
+  - Key: province_name.Kong_Empire__Vallee_du_Bandama
+    Value: "\u0412\u0430\u043b\u043b\u00e9\u0435 \u0434\u0443 \u0411\u0430\u043d\u0434\u0430\u043c\u0430"
+  - Key: province_name.Kong_Empire__Western
+    Value: "\u0412\u0435\u0441\u0442\u0435\u0440\u043d"
+  - Key: province_name.Kong_Empire__Zanzan
+    Value: "\u0417\u0430\u043d\u0437\u0430\u043d"
+  - Key: province_name.Kong_Empire__Ziro
+    Value: "\u0417\u0438\u0440\u043e"
+  - Key: province_name.Korea__Anbyon
+    Value: "\u0410\u043d\u0431\u0451\u043d"
+  - Key: province_name.Korea__Changwon
+    Value: "\u0427\u0430\u043d\u0433\u0432\u043e\u043d"
+  - Key: province_name.Korea__Changyon
+    Value: "\u0427\u0430\u043d\u0433\u0451\u043d"
+  - Key: province_name.Korea__Chongju
+    Value: "\u0427\u043e\u043d\u0433\u044e"
+  - Key: province_name.Korea__Chosan
+    Value: "\u0427\u043e\u0441\u0430\u043d"
+  - Key: province_name.Korea__Chuncheon
+    Value: "\u0427\u0443\u043d\u0447\u0435\u043e\u043d"
+  - Key: province_name.Korea__Eumseong
+    Value: "\u0415\u0443\u043c\u0441\u0435\u043e\u043d\u0433"
+  - Key: province_name.Korea__Gangneung
+    Value: "\u0413\u0430\u043d\u0433\u043d\u0435\u0443\u043d\u0433"
+  - Key: province_name.Korea__Gyeongju
+    Value: "\u0413\u0438\u0435\u043e\u043d\u0433\u044e"
+  - Key: province_name.Korea__Haeju
+    Value: "\u0425\u044d\u044e"
+  - Key: province_name.Korea__Hamhung
+    Value: "\u0425\u0430\u043c\u0445\u0443\u043d\u0433"
+  - Key: province_name.Korea__Iksan
+    Value: "\u0418\u043a\u0441\u0430\u043d"
+  - Key: province_name.Korea__Kanggye
+    Value: "\u041a\u0430\u043d\u0433\u0433\u0438\u0435"
+  - Key: province_name.Korea__Kanggye_2
+    Value: "\u041a\u0430\u043d\u0433\u0433\u0438\u0435"
+  - Key: province_name.Korea__Kanggye_3
+    Value: "\u041a\u0430\u043d\u0433\u0433\u0438\u0435"
+  - Key: province_name.Korea__Kilchu
+    Value: "\u041a\u0438\u043b\u0447\u0443"
+  - Key: province_name.Korea__Mokpo
+    Value: "\u041c\u043e\u043a\u043f\u043e"
+  - Key: province_name.Korea__Munchon
+    Value: "\u041c\u0443\u043d\u0447\u043e\u043d"
+  - Key: province_name.Korea__Seoul
+    Value: "\u0421\u0435\u0443\u043b"
+  - Key: province_name.Korea__Sinuiju
+    Value: "\u0421\u0438\u043d\u0443\u0438\u044e"
+  - Key: province_name.Korea__Sunchon
+    Value: "\u0421\u0443\u043d\u0447\u043e\u043d"
+  - Key: province_name.Korea__Sunchon_2
+    Value: "\u0421\u0443\u043d\u0447\u043e\u043d"
+  - Key: province_name.Korea__Sunchon_3
+    Value: "\u0421\u0443\u043d\u0447\u043e\u043d"
+  - Key: province_name.Kuba__Kasai_Occidental
+    Value: "\u041a\u0430\u0441\u0430\u00ef-\u041e\u043a\u043a\u0438\u0434\u0435\u043d\u0442\u0430\u043b"
+  - Key: province_name.Kuba__Kasai_Oriental
+    Value: "\u041a\u0430\u0441\u0430\u00ef-\u041e\u0440\u0438\u0435\u043d\u0442\u0430\u043b"
+  - Key: province_name.Lagos__Lagos
+    Value: "\u041b\u0430\u0433\u043e\u0441"
+  - Key: province_name.Lagos__Lagos_2
+    Value: "\u041b\u0430\u0433\u043e\u0441"
+  - Key: province_name.Lagos__Ogun
+    Value: "\u041e\u0433\u0443\u043d"
+  - Key: province_name.Liberia__Bomi
+    Value: "\u0411\u043e\u043c\u0438"
+  - Key: province_name.Liberia__Bong
+    Value: "\u0411\u043e\u043d\u0433"
+  - Key: province_name.Liberia__Bong_2
+    Value: "\u0411\u043e\u043d\u0433"
+  - Key: province_name.Liberia__Bong_3
+    Value: "\u0411\u043e\u043d\u0433"
+  - Key: province_name.Liberia__Eastern
+    Value: "\u0415\u0430\u0441\u0442\u0435\u0440\u043d"
+  - Key: province_name.Liberia__Gbapolu
+    Value: "\u0413\u0431\u0430\u043f\u043e\u043b\u0443"
+  - Key: province_name.Liberia__Grand_Bassa
+    Value: "\u0413\u0440\u0430\u043d\u0434 \u0411\u0430\u0441\u0441\u0430"
+  - Key: province_name.Liberia__Grand_Cape_Mount
+    Value: "\u0413\u0440\u0430\u043d\u0434 \u041a\u0430\u043f\u0435 \u041c\u0443\u043d\u0442"
+  - Key: province_name.Liberia__Margibi
+    Value: "\u041c\u0430\u0440\u0433\u0438\u0431\u0438"
+  - Key: province_name.Liberia__Montserrado
+    Value: "\u041c\u043e\u043d\u0442\u0441\u0435\u0440\u0440\u0430\u0434\u043e"
+  - Key: province_name.Liberia__Northern
+    Value: "\u041d\u043e\u0440\u0442\u0435\u0440\u043d"
+  - Key: province_name.Liberia__Southern
+    Value: "\u0421\u0443\u0442\u0435\u0440\u043d"
+  - Key: province_name.Lozi__Choma
+    Value: "\u0427\u043e\u043c\u0430"
+  - Key: province_name.Lozi__Choma_2
+    Value: "\u0427\u043e\u043c\u0430"
+  - Key: province_name.Lozi__Choma_3
+    Value: "\u0427\u043e\u043c\u0430"
+  - Key: province_name.Lozi__Kaoma
+    Value: "\u041a\u0430\u043e\u043c\u0430"
+  - Key: province_name.Lozi__Kaoma_2
+    Value: "\u041a\u0430\u043e\u043c\u0430"
+  - Key: province_name.Lozi__Kaoma_3
+    Value: "\u041a\u0430\u043e\u043c\u0430"
+  - Key: province_name.Lozi__Kaoma_4
+    Value: "\u041a\u0430\u043e\u043c\u0430"
+  - Key: province_name.Lozi__Kaoma_5
+    Value: "\u041a\u0430\u043e\u043c\u0430"
+  - Key: province_name.Lozi__Kasane
+    Value: "\u041a\u0430\u0441\u0430\u043d\u0435"
+  - Key: province_name.Lozi__Kasane_2
+    Value: "\u041a\u0430\u0441\u0430\u043d\u0435"
+  - Key: province_name.Lozi__Katima_Mulilo
+    Value: "\u041a\u0430\u0442\u0438\u043c\u0430 \u041c\u0443\u043b\u0438\u043b\u043e"
+  - Key: province_name.Lozi__Livingstone
+    Value: "\u041b\u0438\u0432\u0438\u043d\u0433\u0441\u0442\u043e\u043d\u0435"
+  - Key: province_name.Lozi__Mazabuka
+    Value: "\u041c\u0430\u0437\u0430\u0431\u0443\u043a\u0430"
+  - Key: province_name.Lozi__Mongu
+    Value: "\u041c\u043e\u043d\u0433\u0443"
+  - Key: province_name.Lozi__Mumbwa
+    Value: "\u041c\u0443\u043c\u0431\u0432\u0430"
+  - Key: province_name.Lozi__Mumbwa_2
+    Value: "\u041c\u0443\u043c\u0431\u0432\u0430"
+  - Key: province_name.Lozi__Senanga
+    Value: "\u0421\u0435\u043d\u0430\u043d\u0433\u0430"
+  - Key: province_name.Lozi__Senanga_2
+    Value: "\u0421\u0435\u043d\u0430\u043d\u0433\u0430"
+  - Key: province_name.Lozi__Sesheke
+    Value: "\u0421\u0435\u0448\u0435\u043a\u0435"
+  - Key: province_name.Luba__Gandajika
+    Value: "\u0413\u0430\u043d\u0434\u0430\u0439\u0438\u043a\u0430"
+  - Key: province_name.Luba__Kabinda
+    Value: "\u041a\u0430\u0431\u0438\u043d\u0434\u0430"
+  - Key: province_name.Luba__Kabinda_2
+    Value: "\u041a\u0430\u0431\u0438\u043d\u0434\u0430"
+  - Key: province_name.Lunda__Kasai_Oriental
+    Value: "\u041a\u0430\u0441\u0430\u00ef-\u041e\u0440\u0438\u0435\u043d\u0442\u0430\u043b"
+  - Key: province_name.Lunda__Katanga
+    Value: "\u041a\u0430\u0442\u0430\u043d\u0433\u0430"
+  - Key: province_name.Luxembourg__Luxembourg
+    Value: "\u041b\u0443\u043a\u0441\u0435\u043c\u0431\u0443\u0440\u0433"
+  - Key: province_name.M_ori__Ashburton
+    Value: "\u0410\u0448\u0431\u0443\u0440\u0442\u043e\u043d"
+  - Key: province_name.M_ori__Blenheim
+    Value: "\u0411\u043b\u0435\u043d\u0445\u0435\u0439\u043c"
+  - Key: province_name.M_ori__Cambridge
+    Value: "\u041a\u0430\u043c\u0431\u0440\u0438\u0434\u0433\u0435"
+  - Key: province_name.M_ori__Dunedin
+    Value: "\u0414\u0443\u043d\u0435\u0434\u0438\u043d"
+  - Key: province_name.M_ori__Gisborne
+    Value: "\u0413\u0438\u0441\u0431\u043e\u0440\u043d\u0435"
+  - Key: province_name.M_ori__Gisborne_2
+    Value: "\u0413\u0438\u0441\u0431\u043e\u0440\u043d\u0435"
+  - Key: province_name.M_ori__Hastings
+    Value: "\u0425\u0430\u0441\u0442\u0438\u043d\u0433\u0441"
+  - Key: province_name.M_ori__Kaikoura
+    Value: "\u041a\u0430\u0439\u043a\u0443\u0440\u0430"
+  - Key: province_name.M_ori__Kaitaia
+    Value: "\u041a\u0430\u0439\u0442\u0430\u0439\u0430"
+  - Key: province_name.M_ori__Napier
+    Value: "\u041d\u0430\u043f\u0438\u0435\u0440"
+  - Key: province_name.M_ori__Napier_2
+    Value: "\u041d\u0430\u043f\u0438\u0435\u0440"
+  - Key: province_name.M_ori__Nelson
+    Value: "\u041d\u0435\u043b\u0441\u043e\u043d"
+  - Key: province_name.M_ori__Oamaru
+    Value: "\u041e\u0430\u043c\u0430\u0440\u0443"
+  - Key: province_name.M_ori__Palmerston_North
+    Value: "\u041f\u0430\u043b\u043c\u0435\u0440\u0441\u0442\u043e\u043d \u041d\u043e\u0440\u0442"
+  - Key: province_name.M_ori__Te_Anau
+    Value: "\u0422\u0435 \u0410\u043d\u0430\u0443"
+  - Key: province_name.M_ori__Te_Anau_2
+    Value: "\u0422\u0435 \u0410\u043d\u0430\u0443"
+  - Key: province_name.M_ori__Timaru
+    Value: "\u0422\u0438\u043c\u0430\u0440\u0443"
+  - Key: province_name.M_ori__Timaru_2
+    Value: "\u0422\u0438\u043c\u0430\u0440\u0443"
+  - Key: province_name.M_ori__Turangi
+    Value: "\u0422\u0443\u0440\u0430\u043d\u0433\u0438"
+  - Key: province_name.M_ori__Wanaka
+    Value: "\u0412\u0430\u043d\u0430\u043a\u0430"
+  - Key: province_name.M_ori__Wanaka_2
+    Value: "\u0412\u0430\u043d\u0430\u043a\u0430"
+  - Key: province_name.M_ori__Wanaka_3
+    Value: "\u0412\u0430\u043d\u0430\u043a\u0430"
+  - Key: province_name.M_ori__Westport
+    Value: "\u0412\u0435\u0441\u0442\u043f\u043e\u0440\u0442"
+  - Key: province_name.M_ori__Whanganui
+    Value: "\u0412\u0445\u0430\u043d\u0433\u0430\u043d\u0443\u0438"
+  - Key: province_name.M_ori__Whangarei
+    Value: "\u0412\u0445\u0430\u043d\u0433\u0430\u0440\u0435\u0439"
+  - Key: province_name.Madagascar__Amoron_i_Mania
+    Value: "\u0410\u043c\u043e\u0440\u043e\u043d'\u0438 \u041c\u0430\u043d\u0438\u0430"
+  - Key: province_name.Madagascar__Analamanga
+    Value: "\u0410\u043d\u0430\u043b\u0430\u043c\u0430\u043d\u0433\u0430"
+  - Key: province_name.Madagascar__Androy
+    Value: "\u0410\u043d\u0434\u0440\u043e\u0438"
+  - Key: province_name.Madagascar__Anosy
+    Value: "\u0410\u043d\u043e\u0441\u0438"
+  - Key: province_name.Madagascar__Atsimo_Andrefana
+    Value: "\u0410\u0442\u0441\u0438\u043c\u043e-\u0410\u043d\u0434\u0440\u0435\u0444\u0430\u043d\u0430"
+  - Key: province_name.Madagascar__Atsimo_Atsinanana
+    Value: "\u0410\u0442\u0441\u0438\u043c\u043e-\u0410\u0442\u0441\u0438\u043d\u0430\u043d\u0430\u043d\u0430"
+  - Key: province_name.Madagascar__Betsiboka
+    Value: "\u0411\u0435\u0442\u0441\u0438\u0431\u043e\u043a\u0430"
+  - Key: province_name.Madagascar__Boeny
+    Value: "\u0411\u044d\u043d\u0438"
+  - Key: province_name.Madagascar__Bongolava
+    Value: "\u0411\u043e\u043d\u0433\u043e\u043b\u0430\u0432\u0430"
+  - Key: province_name.Madagascar__Diana
+    Value: "\u0414\u0438\u0430\u043d\u0430"
+  - Key: province_name.Madagascar__Haute_Matsiatra
+    Value: "\u0425\u0430\u0443\u0442\u0435 \u041c\u0430\u0442\u0441\u0438\u0430\u0442\u0440\u0430"
+  - Key: province_name.Madagascar__Ihorombe
+    Value: "\u0418\u0445\u043e\u0440\u043e\u043c\u0431\u0435"
+  - Key: province_name.Madagascar__Ihorombe_2
+    Value: "\u0418\u0445\u043e\u0440\u043e\u043c\u0431\u0435"
+  - Key: province_name.Madagascar__Itasy
+    Value: "\u0418\u0442\u0430\u0441\u0438"
+  - Key: province_name.Madagascar__Melaky
+    Value: "\u041c\u0435\u043b\u0430\u043a\u0438"
+  - Key: province_name.Madagascar__Menabe
+    Value: "\u041c\u0435\u043d\u0430\u0431\u0435"
+  - Key: province_name.Madagascar__Sava
+    Value: "\u0421\u0430\u0432\u0430"
+  - Key: province_name.Madagascar__Sofia
+    Value: "\u0421\u043e\u0444\u0438\u0430"
+  - Key: province_name.Madagascar__Vakinankaratra
+    Value: "\u0412\u0430\u043a\u0438\u043d\u0430\u043d\u043a\u0430\u0440\u0430\u0442\u0440\u0430"
+  - Key: province_name.Malaya__Bandar_Seri_Begawan
+    Value: "\u0411\u0430\u043d\u0434\u0430\u0440 \u0421\u0435\u0440\u0438 \u0411\u0435\u0433\u0430\u0432\u0430\u043d"
+  - Key: province_name.Malaya__Bandar_Seri_Begawan_2
+    Value: "\u0411\u0430\u043d\u0434\u0430\u0440 \u0421\u0435\u0440\u0438 \u0411\u0435\u0433\u0430\u0432\u0430\u043d"
+  - Key: province_name.Malaya__Bandar_Seri_Begawan_3
+    Value: "\u0411\u0430\u043d\u0434\u0430\u0440 \u0421\u0435\u0440\u0438 \u0411\u0435\u0433\u0430\u0432\u0430\u043d"
+  - Key: province_name.Malaya__Bandar_Seri_Begawan_4
+    Value: "\u0411\u0430\u043d\u0434\u0430\u0440 \u0421\u0435\u0440\u0438 \u0411\u0435\u0433\u0430\u0432\u0430\u043d"
+  - Key: province_name.Malaya__Batu_Pahat
+    Value: "\u0411\u0430\u0442\u0443 \u041f\u0430\u0445\u0430\u0442"
+  - Key: province_name.Malaya__Bintulu
+    Value: "\u0411\u0438\u043d\u0442\u0443\u043b\u0443"
+  - Key: province_name.Malaya__Bintulu_2
+    Value: "\u0411\u0438\u043d\u0442\u0443\u043b\u0443"
+  - Key: province_name.Malaya__Bintulu_3
+    Value: "\u0411\u0438\u043d\u0442\u0443\u043b\u0443"
+  - Key: province_name.Malaya__Bintulu_4
+    Value: "\u0411\u0438\u043d\u0442\u0443\u043b\u0443"
+  - Key: province_name.Malaya__Chukai
+    Value: "\u0427\u0443\u043a\u0430\u0439"
+  - Key: province_name.Malaya__Ipoh
+    Value: "\u0418\u043f\u043e\u0445"
+  - Key: province_name.Malaya__Ipoh_2
+    Value: "\u0418\u043f\u043e\u0445"
+  - Key: province_name.Malaya__Johor_Bahru
+    Value: "\u0401\u0445\u043e\u0440 \u0411\u0430\u0445\u0440\u0443"
+  - Key: province_name.Malaya__Keluang
+    Value: "\u041a\u0435\u043b\u0443\u0430\u043d\u0433"
+  - Key: province_name.Malaya__Keluang_2
+    Value: "\u041a\u0435\u043b\u0443\u0430\u043d\u0433"
+  - Key: province_name.Malaya__Kota_Baharu
+    Value: "\u041a\u043e\u0442\u0430 \u0411\u0430\u0445\u0430\u0440\u0443"
+  - Key: province_name.Malaya__Kota_Kinabalu
+    Value: "\u041a\u043e\u0442\u0430 \u041a\u0438\u043d\u0430\u0431\u0430\u043b\u0443"
+  - Key: province_name.Malaya__Kota_Kinabalu_2
+    Value: "\u041a\u043e\u0442\u0430 \u041a\u0438\u043d\u0430\u0431\u0430\u043b\u0443"
+  - Key: province_name.Malaya__Kuala_Lipis
+    Value: "\u041a\u0443\u0430\u043b\u0430 \u041b\u0438\u043f\u0438\u0441"
+  - Key: province_name.Malaya__Kuala_Lipis_2
+    Value: "\u041a\u0443\u0430\u043b\u0430 \u041b\u0438\u043f\u0438\u0441"
+  - Key: province_name.Malaya__Kuala_Lumpur
+    Value: "\u041a\u0443\u0430\u043b\u0430 \u041b\u0443\u043c\u043f\u0443\u0440"
+  - Key: province_name.Malaya__Kuching
+    Value: "\u041a\u0443\u0447\u0438\u043d\u0433"
+  - Key: province_name.Malaya__Lahad_Datu
+    Value: "\u041b\u0430\u0445\u0430\u0434 \u0414\u0430\u0442\u0443"
+  - Key: province_name.Malaya__Malacca
+    Value: "\u041c\u0430\u043b\u0430\u043a\u043a\u0430"
+  - Key: province_name.Malaya__Miri
+    Value: "\u041c\u0438\u0440\u0438"
+  - Key: province_name.Malaya__Muar
+    Value: "\u041c\u0443\u0430\u0440"
+  - Key: province_name.Malaya__Raub
+    Value: "\u0420\u0430\u0443\u0431"
+  - Key: province_name.Malaya__Seremban
+    Value: "\u0421\u0435\u0440\u0435\u043c\u0431\u0430\u043d"
+  - Key: province_name.Malaya__Sibu
+    Value: "\u0421\u0438\u0431\u0443"
+  - Key: province_name.Malaya__Sibu_2
+    Value: "\u0421\u0438\u0431\u0443"
+  - Key: province_name.Malaya__Sungai_Petani
+    Value: "\u0421\u0443\u043d\u0433\u0430\u0439 \u041f\u0435\u0442\u0430\u043d\u0438"
+  - Key: province_name.Malaya__Tawau
+    Value: "\u0422\u0430\u0432\u0430\u0443"
+  - Key: province_name.Malta__Malta
+    Value: "\u041c\u0430\u043b\u0442\u0430"
+  - Key: province_name.Manchu_Empire__Aksu
+    Value: "\u0410\u043a\u0441\u0443"
+  - Key: province_name.Manchu_Empire__Aksu_2
+    Value: "\u0410\u043a\u0441\u0443"
+  - Key: province_name.Manchu_Empire__Altai
+    Value: "\u0410\u043b\u0442\u0430\u0439"
+  - Key: province_name.Manchu_Empire__Altai_2
+    Value: "\u0410\u043b\u0442\u0430\u0439"
+  - Key: province_name.Manchu_Empire__Altay
+    Value: "\u0410\u043b\u0442\u0430\u0438"
+  - Key: province_name.Manchu_Empire__Alxa_Zuoqi
+    Value: "\u0410\u043b\u043a\u0441\u0430 \u0417\u0443\u043e\u043a\u0438"
+  - Key: province_name.Manchu_Empire__Anshun
+    Value: "\u0410\u043d\u0448\u0443\u043d"
+  - Key: province_name.Manchu_Empire__Anxi
+    Value: "\u0410\u043d\u043a\u0441\u0438"
+  - Key: province_name.Manchu_Empire__Anxi_2
+    Value: "\u0410\u043d\u043a\u0441\u0438"
+  - Key: province_name.Manchu_Empire__Arxan
+    Value: "\u0410\u0440\u043a\u0441\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Baoshan
+    Value: "\u0411\u0430\u043e\u0448\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Baoshan_2
+    Value: "\u0411\u0430\u043e\u0448\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Baotou
+    Value: "\u0411\u0430\u043e\u0442\u0443"
+  - Key: province_name.Manchu_Empire__Baruun_Urt
+    Value: "\u0411\u0430\u0440\u0443\u0443\u043d-\u0423\u0440\u0442"
+  - Key: province_name.Manchu_Empire__Bayankhongor
+    Value: "\u0411\u0430\u044f\u043d\u0445\u043e\u043d\u0433\u043e\u0440"
+  - Key: province_name.Manchu_Empire__Bayankhongor_2
+    Value: "\u0411\u0430\u044f\u043d\u0445\u043e\u043d\u0433\u043e\u0440"
+  - Key: province_name.Manchu_Empire__Bayankhongor_3
+    Value: "\u0411\u0430\u044f\u043d\u0445\u043e\u043d\u0433\u043e\u0440"
+  - Key: province_name.Manchu_Empire__Bayankhongor_4
+    Value: "\u0411\u0430\u044f\u043d\u0445\u043e\u043d\u0433\u043e\u0440"
+  - Key: province_name.Manchu_Empire__Bulgan
+    Value: "\u0411\u0443\u043b\u0433\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Bulgan_2
+    Value: "\u0411\u0443\u043b\u0433\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Chamdo
+    Value: "\u0427\u0430\u043c\u0434\u043e"
+  - Key: province_name.Manchu_Empire__Changzhou
+    Value: "\u0427\u0430\u043d\u0433\u0436\u0443"
+  - Key: province_name.Manchu_Empire__Dalandzadgad
+    Value: "\u0414\u0430\u043b\u0430\u043d\u0434\u0437\u0430\u0434\u0433\u0430\u0434"
+  - Key: province_name.Manchu_Empire__Dali
+    Value: "\u0414\u0430\u043b\u0438"
+  - Key: province_name.Manchu_Empire__Daqing
+    Value: "\u0414\u0430\u043a\u0438\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Darkhan
+    Value: "\u0414\u0430\u0440\u0445\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Dingzhou
+    Value: "\u0414\u0438\u043d\u0433\u0436\u0443"
+  - Key: province_name.Manchu_Empire__Dulan
+    Value: "\u0414\u0443\u043b\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Dulan_2
+    Value: "\u0414\u0443\u043b\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Dund_Us
+    Value: "\u0414\u0443\u043d\u0434-\u0423\u0441"
+  - Key: province_name.Manchu_Empire__Dunhuang
+    Value: "\u0414\u0443\u043d\u0445\u0443\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Dunhuang_2
+    Value: "\u0414\u0443\u043d\u0445\u0443\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Dunhuang_3
+    Value: "\u0414\u0443\u043d\u0445\u0443\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Dzuunmod
+    Value: "\u0414\u0437\u0443\u0443\u043d\u043c\u043e\u0434"
+  - Key: province_name.Manchu_Empire__Fujin
+    Value: "\u0424\u0443\u0439\u0438\u043d"
+  - Key: province_name.Manchu_Empire__Fuxin
+    Value: "\u0424\u0443\u043a\u0441\u0438\u043d"
+  - Key: province_name.Manchu_Empire__Fuyang
+    Value: "\u0424\u0443\u044f\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Gar
+    Value: "\u0413\u0430\u0440"
+  - Key: province_name.Manchu_Empire__Genhe
+    Value: "\u0413\u0435\u043d\u0445\u0435"
+  - Key: province_name.Manchu_Empire__Golmud
+    Value: "\u0413\u043e\u043b\u043c\u0443\u0434"
+  - Key: province_name.Manchu_Empire__Golmud_2
+    Value: "\u0413\u043e\u043b\u043c\u0443\u0434"
+  - Key: province_name.Manchu_Empire__Golmud_3
+    Value: "\u0413\u043e\u043b\u043c\u0443\u0434"
+  - Key: province_name.Manchu_Empire__Golmud_4
+    Value: "\u0413\u043e\u043b\u043c\u0443\u0434"
+  - Key: province_name.Manchu_Empire__Golmud_5
+    Value: "\u0413\u043e\u043b\u043c\u0443\u0434"
+  - Key: province_name.Manchu_Empire__Guide
+    Value: "\u0413\u0443\u0438\u0434\u0435"
+  - Key: province_name.Manchu_Empire__Guilin
+    Value: "\u0413\u0443\u0438\u043b\u0438\u043d"
+  - Key: province_name.Manchu_Empire__Hami
+    Value: "\u0425\u0430\u043c\u0438"
+  - Key: province_name.Manchu_Empire__Hami_2
+    Value: "\u0425\u0430\u043c\u0438"
+  - Key: province_name.Manchu_Empire__Hefei
+    Value: "\u0425\u0435\u0444\u0435\u0439"
+  - Key: province_name.Manchu_Empire__Hegang
+    Value: "\u0425\u0435\u0433\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Heze
+    Value: "\u0425\u0435\u0437\u0435"
+  - Key: province_name.Manchu_Empire__Hodrogo
+    Value: "\u0425\u043e\u0434\u0440\u043e\u0433\u043e"
+  - Key: province_name.Manchu_Empire__Hotan
+    Value: "\u0425\u043e\u0442\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Jiayuguan
+    Value: "\u0419\u0438\u0430\u044e\u0433\u0443\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Jiayuguan_2
+    Value: "\u0419\u0438\u0430\u044e\u0433\u0443\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Jinchang
+    Value: "\u0419\u0438\u043d\u0447\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Jinchang_2
+    Value: "\u0419\u0438\u043d\u0447\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Jumla
+    Value: "\u042e\u043c\u043b\u0430"
+  - Key: province_name.Manchu_Empire__Kailu
+    Value: "\u041a\u0430\u0439\u043b\u0443"
+  - Key: province_name.Manchu_Empire__Karamay
+    Value: "\u041a\u0430\u0440\u0430\u043c\u0430\u0438"
+  - Key: province_name.Manchu_Empire__Kashgar
+    Value: "\u041a\u0430\u0448\u0433\u0430\u0440"
+  - Key: province_name.Manchu_Empire__Kashgar_2
+    Value: "\u041a\u0430\u0448\u0433\u0430\u0440"
+  - Key: province_name.Manchu_Empire__Korla
+    Value: "\u041a\u043e\u0440\u043b\u0430"
+  - Key: province_name.Manchu_Empire__Korla_2
+    Value: "\u041a\u043e\u0440\u043b\u0430"
+  - Key: province_name.Manchu_Empire__Korla_3
+    Value: "\u041a\u043e\u0440\u043b\u0430"
+  - Key: province_name.Manchu_Empire__Kuqa
+    Value: "\u041a\u0443\u043a\u0430"
+  - Key: province_name.Manchu_Empire__Kuqa_2
+    Value: "\u041a\u0443\u043a\u0430"
+  - Key: province_name.Manchu_Empire__Kuqa_3
+    Value: "\u041a\u0443\u043a\u0430"
+  - Key: province_name.Manchu_Empire__Kyzyl
+    Value: "\u041a\u0438\u0437\u0438\u043b"
+  - Key: province_name.Manchu_Empire__Kyzyl_2
+    Value: "\u041a\u0438\u0437\u0438\u043b"
+  - Key: province_name.Manchu_Empire__Kyzyl_3
+    Value: "\u041a\u0438\u0437\u0438\u043b"
+  - Key: province_name.Manchu_Empire__Langfang
+    Value: "\u041b\u0430\u043d\u0433\u0444\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Langzhong
+    Value: "\u041b\u0430\u043d\u0433\u0436\u043e\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Leh
+    Value: "\u041b\u0435\u0445"
+  - Key: province_name.Manchu_Empire__Lhasa
+    Value: "\u041b\u0445\u0430\u0441\u0430"
+  - Key: province_name.Manchu_Empire__Lhasa_2
+    Value: "\u041b\u0445\u0430\u0441\u0430"
+  - Key: province_name.Manchu_Empire__Lianyungang
+    Value: "\u041b\u0438\u0430\u043d\u044e\u043d\u0433\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Linchuan
+    Value: "\u041b\u0438\u043d\u0447\u0443\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Linfen
+    Value: "\u041b\u0438\u043d\u0444\u0435\u043d"
+  - Key: province_name.Manchu_Empire__Longxi
+    Value: "\u041b\u043e\u043d\u0433\u043a\u0441\u0438"
+  - Key: province_name.Manchu_Empire__Luzhou
+    Value: "\u041b\u0443\u0436\u0443"
+  - Key: province_name.Manchu_Empire__Macheng
+    Value: "\u041c\u0430\u0447\u0435\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Meizhou
+    Value: "\u041c\u0435\u0439\u0436\u0443"
+  - Key: province_name.Manchu_Empire__Minxian
+    Value: "\u041c\u0438\u043d\u043a\u0441\u0438\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Mishan
+    Value: "\u041c\u0438\u0448\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Moron
+    Value: "\u041c\u00f6\u0440\u00f6\u043d"
+  - Key: province_name.Manchu_Empire__Moron_2
+    Value: "\u041c\u00f6\u0440\u00f6\u043d"
+  - Key: province_name.Manchu_Empire__Mudangiang
+    Value: "\u041c\u0443\u0434\u0430\u043d\u0433\u0438\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Nagchu
+    Value: "\u041d\u0430\u0433\u0447\u0443"
+  - Key: province_name.Manchu_Empire__Nagchu_2
+    Value: "\u041d\u0430\u0433\u0447\u0443"
+  - Key: province_name.Manchu_Empire__Nanning
+    Value: "\u041d\u0430\u043d\u043d\u0438\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Nanping
+    Value: "\u041d\u0430\u043d\u043f\u0438\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Nenjiang
+    Value: "\u041d\u0435\u043d\u0439\u0438\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Nyingchi
+    Value: "\u041d\u0438\u0438\u043d\u0433\u0447\u0438"
+  - Key: province_name.Manchu_Empire__Olgiy
+    Value: "\u041e\u043b\u0433\u0438\u0438"
+  - Key: province_name.Manchu_Empire__Orongen_Zizhiqi
+    Value: "\u041e\u0440\u043e\u043d\u0433\u0435\u043d \u0417\u0438\u0436\u0438\u043a\u0438"
+  - Key: province_name.Manchu_Empire__Panshi
+    Value: "\u041f\u0430\u043d\u0448\u0438"
+  - Key: province_name.Manchu_Empire__Panzhihua
+    Value: "\u041f\u0430\u043d\u0436\u0438\u0445\u0443\u0430"
+  - Key: province_name.Manchu_Empire__Pingliang
+    Value: "\u041f\u0438\u043d\u0433\u043b\u0438\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Pokhara
+    Value: "\u041f\u043e\u0445\u0430\u0440\u0430"
+  - Key: province_name.Manchu_Empire__Quiemo
+    Value: "\u041a\u0432\u0438\u0435\u043c\u043e"
+  - Key: province_name.Manchu_Empire__Quiemo_2
+    Value: "\u041a\u0432\u0438\u0435\u043c\u043e"
+  - Key: province_name.Manchu_Empire__Quiemo_3
+    Value: "\u041a\u0432\u0438\u0435\u043c\u043e"
+  - Key: province_name.Manchu_Empire__Quiemo_4
+    Value: "\u041a\u0432\u0438\u0435\u043c\u043e"
+  - Key: province_name.Manchu_Empire__Quiemo_5
+    Value: "\u041a\u0432\u0438\u0435\u043c\u043e"
+  - Key: province_name.Manchu_Empire__Quiemo_6
+    Value: "\u041a\u0432\u0438\u0435\u043c\u043e"
+  - Key: province_name.Manchu_Empire__Quiemo_7
+    Value: "\u041a\u0432\u0438\u0435\u043c\u043e"
+  - Key: province_name.Manchu_Empire__Quiemo_8
+    Value: "\u041a\u0432\u0438\u0435\u043c\u043e"
+  - Key: province_name.Manchu_Empire__Quiemo_9
+    Value: "\u041a\u0432\u0438\u0435\u043c\u043e"
+  - Key: province_name.Manchu_Empire__Rongzhag
+    Value: "\u0420\u043e\u043d\u0433\u0436\u0430\u0433"
+  - Key: province_name.Manchu_Empire__Rongzhag_2
+    Value: "\u0420\u043e\u043d\u0433\u0436\u0430\u0433"
+  - Key: province_name.Manchu_Empire__Shache
+    Value: "\u0428\u0430\u0447\u0435"
+  - Key: province_name.Manchu_Empire__Shangdu
+    Value: "\u0428\u0430\u043d\u0433\u0434\u0443"
+  - Key: province_name.Manchu_Empire__Shangrao
+    Value: "\u0428\u0430\u043d\u0433\u0440\u0430\u043e"
+  - Key: province_name.Manchu_Empire__Shaoguan
+    Value: "\u0428\u0430\u043e\u0433\u0443\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Shuozhou
+    Value: "\u0428\u0443\u043e\u0436\u0443"
+  - Key: province_name.Manchu_Empire__Simao
+    Value: "\u0421\u0438\u043c\u0430\u043e"
+  - Key: province_name.Manchu_Empire__Tailai
+    Value: "\u0422\u0430\u0439\u043b\u0430\u0439"
+  - Key: province_name.Manchu_Empire__Tsetserleg
+    Value: "\u0422\u0441\u0435\u0442\u0441\u0435\u0440\u043b\u0435\u0433"
+  - Key: province_name.Manchu_Empire__Turpan
+    Value: "\u0422\u0443\u0440\u043f\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Ulaangom
+    Value: "\u0423\u043b\u0430\u0430\u043d\u0433\u043e\u043c"
+  - Key: province_name.Manchu_Empire__Uliastay
+    Value: "\u0423\u043b\u0438\u0430\u0441\u0442\u0430\u0438"
+  - Key: province_name.Manchu_Empire__Vyazemskiy
+    Value: "\u0412\u044f\u0437\u0435\u043c\u0441\u043a\u0438\u0438"
+  - Key: province_name.Manchu_Empire__Wanzhou
+    Value: "\u0412\u0430\u043d\u0436\u0443"
+  - Key: province_name.Manchu_Empire__Weinan
+    Value: "\u0412\u0435\u0439\u043d\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Wuyuan
+    Value: "\u0412\u0443\u044e\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Wuyuan_2
+    Value: "\u0412\u0443\u044e\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Xiangyang
+    Value: "\u041a\u0441\u0438\u0430\u043d\u0433\u044f\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Xichang
+    Value: "\u041a\u0441\u0438\u0447\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Xigaze
+    Value: "\u041a\u0441\u0438\u0433\u0430\u0437\u0435"
+  - Key: province_name.Manchu_Empire__Xigaze_2
+    Value: "\u041a\u0441\u0438\u0433\u0430\u0437\u0435"
+  - Key: province_name.Manchu_Empire__Xigaze_3
+    Value: "\u041a\u0441\u0438\u0433\u0430\u0437\u0435"
+  - Key: province_name.Manchu_Empire__Xilinhot
+    Value: "\u041a\u0441\u0438\u043b\u0438\u043d\u0445\u043e\u0442"
+  - Key: province_name.Manchu_Empire__Yakeshi
+    Value: "\u042f\u043a\u0435\u0448\u0438"
+  - Key: province_name.Manchu_Empire__Yichun
+    Value: "\u0418\u0438\u0447\u0443\u043d"
+  - Key: province_name.Manchu_Empire__Yichun_2
+    Value: "\u0418\u0438\u0447\u0443\u043d"
+  - Key: province_name.Manchu_Empire__Yinchuan
+    Value: "\u0418\u0438\u043d\u0447\u0443\u0430\u043d"
+  - Key: province_name.Manchu_Empire__Yining
+    Value: "\u0418\u0438\u043d\u0438\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Yulin
+    Value: "\u042e\u043b\u0438\u043d"
+  - Key: province_name.Manchu_Empire__Yulin_2
+    Value: "\u042e\u043b\u0438\u043d"
+  - Key: province_name.Manchu_Empire__Yulin_3
+    Value: "\u042e\u043b\u0438\u043d"
+  - Key: province_name.Manchu_Empire__Zhangye
+    Value: "\u0416\u0430\u043d\u0433\u0438\u0435"
+  - Key: province_name.Manchu_Empire__Zhanjiang
+    Value: "\u0416\u0430\u043d\u0439\u0438\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Zhanyi
+    Value: "\u0416\u0430\u043d\u0438\u0438"
+  - Key: province_name.Manchu_Empire__Zhaotang
+    Value: "\u0416\u0430\u043e\u0442\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Zhijiang
+    Value: "\u0416\u0438\u0439\u0438\u0430\u043d\u0433"
+  - Key: province_name.Manchu_Empire__Zhuanghe
+    Value: "\u0416\u0443\u0430\u043d\u0433\u0445\u0435"
+  - Key: province_name.Manchu_Empire__Zunyi
+    Value: "\u0417\u0443\u043d\u0438\u0438"
+  - Key: province_name.Manchu_Empire__ndorkhaan
+    Value: "\u00d6\u043d\u0434\u00f6\u0440\u0445\u0430\u0430\u043d"
+  - Key: province_name.Manchu_Empire__rumqi
+    Value: "\u00dc\u0440\u00fc\u043c\u043a\u0438"
+  - Key: province_name.Mbailundu__Camabatela
+    Value: "\u041a\u0430\u043c\u0430\u0431\u0430\u0442\u0435\u043b\u0430"
+  - Key: province_name.Mbailundu__Camabatela_2
+    Value: "\u041a\u0430\u043c\u0430\u0431\u0430\u0442\u0435\u043b\u0430"
+  - Key: province_name.Mbailundu__Camabatela_3
+    Value: "\u041a\u0430\u043c\u0430\u0431\u0430\u0442\u0435\u043b\u0430"
+  - Key: province_name.Mbailundu__Malanje
+    Value: "\u041c\u0430\u043b\u0430\u043d\u0439\u0435"
+  - Key: province_name.Mbailundu__Malanje_2
+    Value: "\u041c\u0430\u043b\u0430\u043d\u0439\u0435"
+  - Key: province_name.Mbailundu__Malanje_3
+    Value: "\u041c\u0430\u043b\u0430\u043d\u0439\u0435"
+  - Key: province_name.Mbailundu__Ndalatando
+    Value: "\u041d\u0434\u0430\u043b\u0430\u0442\u0430\u043d\u0434\u043e"
+  - Key: province_name.Mexico__Acatlan
+    Value: "\u0410\u043a\u0430\u0442\u043b\u0430\u043d"
+  - Key: province_name.Mexico__Aldama
+    Value: "\u0410\u043b\u0434\u0430\u043c\u0430"
+  - Key: province_name.Mexico__Aldama_2
+    Value: "\u0410\u043b\u0434\u0430\u043c\u0430"
+  - Key: province_name.Mexico__Allende
+    Value: "\u0410\u043b\u043b\u0435\u043d\u0434\u0435"
+  - Key: province_name.Mexico__Apatzingan
+    Value: "\u0410\u043f\u0430\u0442\u0437\u0438\u043d\u0433\u00e1\u043d"
+  - Key: province_name.Mexico__Ascension
+    Value: "\u0410\u0441\u043a\u0435\u043d\u0441\u0438\u00f3\u043d"
+  - Key: province_name.Mexico__Autlan
+    Value: "\u0410\u0443\u0442\u043b\u0430\u043d"
+  - Key: province_name.Mexico__Balancan
+    Value: "\u0411\u0430\u043b\u0430\u043d\u043a\u00e1\u043d"
+  - Key: province_name.Mexico__Caborca
+    Value: "\u041a\u0430\u0431\u043e\u0440\u043a\u0430"
+  - Key: province_name.Mexico__Caborca_2
+    Value: "\u041a\u0430\u0431\u043e\u0440\u043a\u0430"
+  - Key: province_name.Mexico__Caborca_3
+    Value: "\u041a\u0430\u0431\u043e\u0440\u043a\u0430"
+  - Key: province_name.Mexico__Caborca_4
+    Value: "\u041a\u0430\u0431\u043e\u0440\u043a\u0430"
+  - Key: province_name.Mexico__Cancun
+    Value: "\u041a\u0430\u043d\u043a\u00fa\u043d"
+  - Key: province_name.Mexico__Champoton
+    Value: "\u0427\u0430\u043c\u043f\u043e\u0442\u00f3\u043d"
+  - Key: province_name.Mexico__Champoton_2
+    Value: "\u0427\u0430\u043c\u043f\u043e\u0442\u00f3\u043d"
+  - Key: province_name.Mexico__Chihuahua
+    Value: "\u0427\u0438\u0445\u0443\u0430\u0445\u0443\u0430"
+  - Key: province_name.Mexico__Chihuahua_2
+    Value: "\u0427\u0438\u0445\u0443\u0430\u0445\u0443\u0430"
+  - Key: province_name.Mexico__Chilpancingo
+    Value: "\u0427\u0438\u043b\u043f\u0430\u043d\u043a\u0438\u043d\u0433\u043e"
+  - Key: province_name.Mexico__Chilpancingo_2
+    Value: "\u0427\u0438\u043b\u043f\u0430\u043d\u043a\u0438\u043d\u0433\u043e"
+  - Key: province_name.Mexico__Ciudad_Altamirano
+    Value: "\u041a\u0438\u0443\u0434\u0430\u0434 \u0410\u043b\u0442\u0430\u043c\u0438\u0440\u0430\u043d\u043e"
+  - Key: province_name.Mexico__Ciudad_Camargo
+    Value: "\u041a\u0438\u0443\u0434\u0430\u0434 \u041a\u0430\u043c\u0430\u0440\u0433\u043e"
+  - Key: province_name.Mexico__Ciudad_Camargo_2
+    Value: "\u041a\u0438\u0443\u0434\u0430\u0434 \u041a\u0430\u043c\u0430\u0440\u0433\u043e"
+  - Key: province_name.Mexico__Ciudad_Camargo_3
+    Value: "\u041a\u0438\u0443\u0434\u0430\u0434 \u041a\u0430\u043c\u0430\u0440\u0433\u043e"
+  - Key: province_name.Mexico__Ciudad_Hidalgo
+    Value: "\u041a\u0438\u0443\u0434\u0430\u0434 \u0425\u0438\u0434\u0430\u043b\u0433\u043e"
+  - Key: province_name.Mexico__Ciudad_Mante
+    Value: "\u041a\u0438\u0443\u0434\u0430\u0434 \u041c\u0430\u043d\u0442\u0435"
+  - Key: province_name.Mexico__Ciudad_Obregon
+    Value: "\u041a\u0438\u0443\u0434\u0430\u0434 \u041e\u0431\u0440\u0435\u0433\u043e\u043d"
+  - Key: province_name.Mexico__Ciudad_Victoria
+    Value: "\u041a\u0438\u0443\u0434\u0430\u0434 \u0412\u0438\u043a\u0442\u043e\u0440\u0438\u0430"
+  - Key: province_name.Mexico__Ciudad_Victoria_2
+    Value: "\u041a\u0438\u0443\u0434\u0430\u0434 \u0412\u0438\u043a\u0442\u043e\u0440\u0438\u0430"
+  - Key: province_name.Mexico__Ciudad_Victoria_3
+    Value: "\u041a\u0438\u0443\u0434\u0430\u0434 \u0412\u0438\u043a\u0442\u043e\u0440\u0438\u0430"
+  - Key: province_name.Mexico__Ciudad_del_Carmen
+    Value: "\u041a\u0438\u0443\u0434\u0430\u0434 \u0434\u0435\u043b \u041a\u0430\u0440\u043c\u0435\u043d"
+  - Key: province_name.Mexico__Coalcoman
+    Value: "\u041a\u043e\u0430\u043b\u043a\u043e\u043c\u0430\u043d"
+  - Key: province_name.Mexico__Cordoba
+    Value: "\u041a\u00f3\u0440\u0434\u043e\u0431\u0430"
+  - Key: province_name.Mexico__Cordoba_2
+    Value: "\u041a\u00f3\u0440\u0434\u043e\u0431\u0430"
+  - Key: province_name.Mexico__Corozal
+    Value: "\u041a\u043e\u0440\u043e\u0437\u0430\u043b"
+  - Key: province_name.Mexico__Cuauhtemoc
+    Value: "\u041a\u0443\u0430\u0443\u0445\u0442\u00e9\u043c\u043e\u043a"
+  - Key: province_name.Mexico__Cuauhtemoc_2
+    Value: "\u041a\u0443\u0430\u0443\u0445\u0442\u00e9\u043c\u043e\u043a"
+  - Key: province_name.Mexico__Cuauhtemoc_3
+    Value: "\u041a\u0443\u0430\u0443\u0445\u0442\u00e9\u043c\u043e\u043a"
+  - Key: province_name.Mexico__Cuauhtemoc_4
+    Value: "\u041a\u0443\u0430\u0443\u0445\u0442\u00e9\u043c\u043e\u043a"
+  - Key: province_name.Mexico__Cuencame
+    Value: "\u041a\u0443\u0435\u043d\u043a\u0430\u043c\u0435"
+  - Key: province_name.Mexico__Culiacan
+    Value: "\u041a\u0443\u043b\u0438\u0430\u043a\u00e1\u043d"
+  - Key: province_name.Mexico__Culiacan_2
+    Value: "\u041a\u0443\u043b\u0438\u0430\u043a\u00e1\u043d"
+  - Key: province_name.Mexico__Del_Rio
+    Value: "\u0414\u0435\u043b \u0420\u0438\u043e"
+  - Key: province_name.Mexico__Del_Rio_2
+    Value: "\u0414\u0435\u043b \u0420\u0438\u043e"
+  - Key: province_name.Mexico__Delicias
+    Value: "\u0414\u0435\u043b\u0438\u043a\u0438\u0430\u0441"
+  - Key: province_name.Mexico__Delicias_2
+    Value: "\u0414\u0435\u043b\u0438\u043a\u0438\u0430\u0441"
+  - Key: province_name.Mexico__Durango
+    Value: "\u0414\u0443\u0440\u0430\u043d\u0433\u043e"
+  - Key: province_name.Mexico__El_Fuerte
+    Value: "\u0415\u043b \u0424\u0443\u0435\u0440\u0442\u0435"
+  - Key: province_name.Mexico__El_Fuerte_2
+    Value: "\u0415\u043b \u0424\u0443\u0435\u0440\u0442\u0435"
+  - Key: province_name.Mexico__El_Fuerte_3
+    Value: "\u0415\u043b \u0424\u0443\u0435\u0440\u0442\u0435"
+  - Key: province_name.Mexico__Ensenada
+    Value: "\u0415\u043d\u0441\u0435\u043d\u0430\u0434\u0430"
+  - Key: province_name.Mexico__Esperanza
+    Value: "\u0415\u0441\u043f\u0435\u0440\u0430\u043d\u0437\u0430"
+  - Key: province_name.Mexico__Esperanza_2
+    Value: "\u0415\u0441\u043f\u0435\u0440\u0430\u043d\u0437\u0430"
+  - Key: province_name.Mexico__Felipe_Carrillo_Puerto
+    Value: "\u0424\u0435\u043b\u0438\u043f\u0435 \u041a\u0430\u0440\u0440\u0438\u043b\u043b\u043e \u041f\u0443\u0435\u0440\u0442\u043e"
+  - Key: province_name.Mexico__Felipe_Carrillo_Puerto_2
+    Value: "\u0424\u0435\u043b\u0438\u043f\u0435 \u041a\u0430\u0440\u0440\u0438\u043b\u043b\u043e \u041f\u0443\u0435\u0440\u0442\u043e"
+  - Key: province_name.Mexico__Fresnillo
+    Value: "\u0424\u0440\u0435\u0441\u043d\u0438\u043b\u043b\u043e"
+  - Key: province_name.Mexico__Fresnillo_2
+    Value: "\u0424\u0440\u0435\u0441\u043d\u0438\u043b\u043b\u043e"
+  - Key: province_name.Mexico__Guamuchil
+    Value: "\u0413\u0443\u0430\u043c\u00fa\u0447\u0438\u043b"
+  - Key: province_name.Mexico__Guerrero_Negro
+    Value: "\u0413\u0443\u0435\u0440\u0440\u0435\u0440\u043e \u041d\u0435\u0433\u0440\u043e"
+  - Key: province_name.Mexico__Halacho
+    Value: "\u0425\u0430\u043b\u0430\u0447\u00f3"
+  - Key: province_name.Mexico__Hermosillo
+    Value: "\u0425\u0435\u0440\u043c\u043e\u0441\u0438\u043b\u043b\u043e"
+  - Key: province_name.Mexico__Hermosillo_2
+    Value: "\u0425\u0435\u0440\u043c\u043e\u0441\u0438\u043b\u043b\u043e"
+  - Key: province_name.Mexico__Hidalgo_del_Parral
+    Value: "\u0425\u0438\u0434\u0430\u043b\u0433\u043e \u0434\u0435\u043b \u041f\u0430\u0440\u0440\u0430\u043b"
+  - Key: province_name.Mexico__Hidalgo_del_Parral_2
+    Value: "\u0425\u0438\u0434\u0430\u043b\u0433\u043e \u0434\u0435\u043b \u041f\u0430\u0440\u0440\u0430\u043b"
+  - Key: province_name.Mexico__Izamal
+    Value: "\u0418\u0437\u0430\u043c\u0430\u043b"
+  - Key: province_name.Mexico__Jaltipan
+    Value: "\u042f\u043b\u0442\u0438\u043f\u0430\u043d"
+  - Key: province_name.Mexico__Juchitan
+    Value: "\u042e\u0447\u0438\u0442\u0430\u043d"
+  - Key: province_name.Mexico__La_Libertad
+    Value: "\u041b\u0430 \u041b\u0438\u0431\u0435\u0440\u0442\u0430\u0434"
+  - Key: province_name.Mexico__La_Libertad_2
+    Value: "\u041b\u0430 \u041b\u0438\u0431\u0435\u0440\u0442\u0430\u0434"
+  - Key: province_name.Mexico__La_Paz
+    Value: "\u041b\u0430 \u041f\u0430\u0437"
+  - Key: province_name.Mexico__Leon
+    Value: "\u041b\u0435\u00f3\u043d"
+  - Key: province_name.Mexico__Linares
+    Value: "\u041b\u0438\u043d\u0430\u0440\u0435\u0441"
+  - Key: province_name.Mexico__Magdalena
+    Value: "\u041c\u0430\u0433\u0434\u0430\u043b\u0435\u043d\u0430"
+  - Key: province_name.Mexico__Magdalena_2
+    Value: "\u041c\u0430\u0433\u0434\u0430\u043b\u0435\u043d\u0430"
+  - Key: province_name.Mexico__Matamoros
+    Value: "\u041c\u0430\u0442\u0430\u043c\u043e\u0440\u043e\u0441"
+  - Key: province_name.Mexico__Matehuala
+    Value: "\u041c\u0430\u0442\u0435\u0445\u0443\u0430\u043b\u0430"
+  - Key: province_name.Mexico__Mazatlan
+    Value: "\u041c\u0430\u0437\u0430\u0442\u043b\u00e1\u043d"
+  - Key: province_name.Mexico__Mazatlan_2
+    Value: "\u041c\u0430\u0437\u0430\u0442\u043b\u00e1\u043d"
+  - Key: province_name.Mexico__Mazatlan_3
+    Value: "\u041c\u0430\u0437\u0430\u0442\u043b\u00e1\u043d"
+  - Key: province_name.Mexico__Minatitlan
+    Value: "\u041c\u0438\u043d\u0430\u0442\u0438\u0442\u043b\u00e1\u043d"
+  - Key: province_name.Mexico__Mitla
+    Value: "\u041c\u0438\u0442\u043b\u0430"
+  - Key: province_name.Mexico__Monclova
+    Value: "\u041c\u043e\u043d\u043a\u043b\u043e\u0432\u0430"
+  - Key: province_name.Mexico__Monterrey
+    Value: "\u041c\u043e\u043d\u0442\u0435\u0440\u0440\u0435\u0438"
+  - Key: province_name.Mexico__Morelia
+    Value: "\u041c\u043e\u0440\u0435\u043b\u0438\u0430"
+  - Key: province_name.Mexico__Nacozari_de_Garcia
+    Value: "\u041d\u0430\u043a\u043e\u0437\u0430\u0440\u0438 \u0434\u0435 \u0413\u0430\u0440\u043a\u00ed\u0430"
+  - Key: province_name.Mexico__Nacozari_de_Garcia_2
+    Value: "\u041d\u0430\u043a\u043e\u0437\u0430\u0440\u0438 \u0434\u0435 \u0413\u0430\u0440\u043a\u00ed\u0430"
+  - Key: province_name.Mexico__Nacozari_de_Garcia_3
+    Value: "\u041d\u0430\u043a\u043e\u0437\u0430\u0440\u0438 \u0434\u0435 \u0413\u0430\u0440\u043a\u00ed\u0430"
+  - Key: province_name.Mexico__Nacozari_de_Garcia_4
+    Value: "\u041d\u0430\u043a\u043e\u0437\u0430\u0440\u0438 \u0434\u0435 \u0413\u0430\u0440\u043a\u00ed\u0430"
+  - Key: province_name.Mexico__Navajoa
+    Value: "\u041d\u0430\u0432\u0430\u0451\u0430"
+  - Key: province_name.Mexico__Navajoa_2
+    Value: "\u041d\u0430\u0432\u0430\u0451\u0430"
+  - Key: province_name.Mexico__Nueva_Rosita
+    Value: "\u041d\u0443\u0435\u0432\u0430 \u0420\u043e\u0441\u0438\u0442\u0430"
+  - Key: province_name.Mexico__Nueva_Rosita_2
+    Value: "\u041d\u0443\u0435\u0432\u0430 \u0420\u043e\u0441\u0438\u0442\u0430"
+  - Key: province_name.Mexico__Nueva_Rosita_3
+    Value: "\u041d\u0443\u0435\u0432\u0430 \u0420\u043e\u0441\u0438\u0442\u0430"
+  - Key: province_name.Mexico__Nuevo_Casas_Grandes
+    Value: "\u041d\u0443\u0435\u0432\u043e \u041a\u0430\u0441\u0430\u0441 \u0413\u0440\u0430\u043d\u0434\u0435\u0441"
+  - Key: province_name.Mexico__Nuevo_Casas_Grandes_2
+    Value: "\u041d\u0443\u0435\u0432\u043e \u041a\u0430\u0441\u0430\u0441 \u0413\u0440\u0430\u043d\u0434\u0435\u0441"
+  - Key: province_name.Mexico__Nuevo_Casas_Grandes_3
+    Value: "\u041d\u0443\u0435\u0432\u043e \u041a\u0430\u0441\u0430\u0441 \u0413\u0440\u0430\u043d\u0434\u0435\u0441"
+  - Key: province_name.Mexico__Ojinaga
+    Value: "\u041e\u0439\u0438\u043d\u0430\u0433\u0430"
+  - Key: province_name.Mexico__Papasquiaro
+    Value: "\u041f\u0430\u043f\u0430\u0441\u043a\u0432\u0438\u0430\u0440\u043e"
+  - Key: province_name.Mexico__Papasquiaro_2
+    Value: "\u041f\u0430\u043f\u0430\u0441\u043a\u0432\u0438\u0430\u0440\u043e"
+  - Key: province_name.Mexico__Paraiso
+    Value: "\u041f\u0430\u0440\u0430\u00ed\u0441\u043e"
+  - Key: province_name.Mexico__Parras
+    Value: "\u041f\u0430\u0440\u0440\u0430\u0441"
+  - Key: province_name.Mexico__Parras_2
+    Value: "\u041f\u0430\u0440\u0440\u0430\u0441"
+  - Key: province_name.Mexico__Petatlan
+    Value: "\u041f\u0435\u0442\u0430\u0442\u043b\u00e1\u043d"
+  - Key: province_name.Mexico__Pijijiapan
+    Value: "\u041f\u0438\u0439\u0438\u0439\u0438\u0430\u043f\u0430\u043d"
+  - Key: province_name.Mexico__Pochutla
+    Value: "\u041f\u043e\u0447\u0443\u0442\u043b\u0430"
+  - Key: province_name.Mexico__Poza_Rica_de_Hidalgo
+    Value: "\u041f\u043e\u0437\u0430 \u0420\u0438\u043a\u0430 \u0434\u0435 \u0425\u0438\u0434\u0430\u043b\u0433\u043e"
+  - Key: province_name.Mexico__Punta_Prieta
+    Value: "\u041f\u0443\u043d\u0442\u0430 \u041f\u0440\u0438\u0435\u0442\u0430"
+  - Key: province_name.Mexico__Queretaro
+    Value: "\u041a\u0432\u0435\u0440\u00e9\u0442\u0430\u0440\u043e"
+  - Key: province_name.Mexico__Sabinas_Hidalgo
+    Value: "\u0421\u0430\u0431\u0438\u043d\u0430\u0441 \u0425\u0438\u0434\u0430\u043b\u0433\u043e"
+  - Key: province_name.Mexico__Saltillo
+    Value: "\u0421\u0430\u043b\u0442\u0438\u043b\u043b\u043e"
+  - Key: province_name.Mexico__Saltillo_2
+    Value: "\u0421\u0430\u043b\u0442\u0438\u043b\u043b\u043e"
+  - Key: province_name.Mexico__San_Cristobal_de_Las_Casas
+    Value: "\u0421\u0430\u043d \u041a\u0440\u0438\u0441\u0442\u043e\u0431\u0430\u043b \u0434\u0435 \u041b\u0430\u0441 \u041a\u0430\u0441\u0430\u0441"
+  - Key: province_name.Mexico__San_Juan_del_Rio
+    Value: "\u0421\u0430\u043d \u042e\u0430\u043d \u0434\u0435\u043b \u0420\u00ed\u043e"
+  - Key: province_name.Mexico__San_Luis_Potosi
+    Value: "\u0421\u0430\u043d \u041b\u0443\u0438\u0441 \u041f\u043e\u0442\u043e\u0441\u00ed"
+  - Key: province_name.Mexico__San_Luis_Potosi_2
+    Value: "\u0421\u0430\u043d \u041b\u0443\u0438\u0441 \u041f\u043e\u0442\u043e\u0441\u00ed"
+  - Key: province_name.Mexico__San_Pedro_de_las_Colonias
+    Value: "\u0421\u0430\u043d \u041f\u0435\u0434\u0440\u043e \u0434\u0435 \u043b\u0430\u0441 \u041a\u043e\u043b\u043e\u043d\u0438\u0430\u0441"
+  - Key: province_name.Mexico__Santa_Barbara
+    Value: "\u0421\u0430\u043d\u0442\u0430 \u0411\u0430\u0440\u0431\u0430\u0440\u0430"
+  - Key: province_name.Mexico__Santa_Barbara_2
+    Value: "\u0421\u0430\u043d\u0442\u0430 \u0411\u0430\u0440\u0431\u0430\u0440\u0430"
+  - Key: province_name.Mexico__Santa_Barbara_3
+    Value: "\u0421\u0430\u043d\u0442\u0430 \u0411\u0430\u0440\u0431\u0430\u0440\u0430"
+  - Key: province_name.Mexico__Santa_Barbara_4
+    Value: "\u0421\u0430\u043d\u0442\u0430 \u0411\u0430\u0440\u0431\u0430\u0440\u0430"
+  - Key: province_name.Mexico__Santa_Rosalia
+    Value: "\u0421\u0430\u043d\u0442\u0430 \u0420\u043e\u0441\u0430\u043b\u00ed\u0430"
+  - Key: province_name.Mexico__Santiago_Tuxtla
+    Value: "\u0421\u0430\u043d\u0442\u0438\u0430\u0433\u043e \u0422\u0443\u043a\u0441\u0442\u043b\u0430"
+  - Key: province_name.Mexico__Sierra_Mojada
+    Value: "\u0421\u0438\u0435\u0440\u0440\u0430 \u041c\u043e\u044f\u0434\u0430"
+  - Key: province_name.Mexico__Sierra_Mojada_2
+    Value: "\u0421\u0438\u0435\u0440\u0440\u0430 \u041c\u043e\u044f\u0434\u0430"
+  - Key: province_name.Mexico__Sierra_Mojada_3
+    Value: "\u0421\u0438\u0435\u0440\u0440\u0430 \u041c\u043e\u044f\u0434\u0430"
+  - Key: province_name.Mexico__Sierra_Mojada_4
+    Value: "\u0421\u0438\u0435\u0440\u0440\u0430 \u041c\u043e\u044f\u0434\u0430"
+  - Key: province_name.Mexico__Tamuin
+    Value: "\u0422\u0430\u043c\u0443\u00ed\u043d"
+  - Key: province_name.Mexico__Taxco
+    Value: "\u0422\u0430\u043a\u0441\u043a\u043e"
+  - Key: province_name.Mexico__Tecuala
+    Value: "\u0422\u0435\u043a\u0443\u0430\u043b\u0430"
+  - Key: province_name.Mexico__Tekax
+    Value: "\u0422\u0435\u043a\u0430\u043a\u0441"
+  - Key: province_name.Mexico__Tenosique
+    Value: "\u0422\u0435\u043d\u043e\u0441\u0438\u043a\u0432\u0435"
+  - Key: province_name.Mexico__Tenosique_2
+    Value: "\u0422\u0435\u043d\u043e\u0441\u0438\u043a\u0432\u0435"
+  - Key: province_name.Mexico__Teziutlan
+    Value: "\u0422\u0435\u0437\u0438\u0443\u0442\u043b\u00e1\u043d"
+  - Key: province_name.Mexico__Tizimin
+    Value: "\u0422\u0438\u0437\u0438\u043c\u00ed\u043d"
+  - Key: province_name.Mexico__Tizimin_2
+    Value: "\u0422\u0438\u0437\u0438\u043c\u00ed\u043d"
+  - Key: province_name.Mexico__Tizimin_3
+    Value: "\u0422\u0438\u0437\u0438\u043c\u00ed\u043d"
+  - Key: province_name.Mexico__Tlaxiaco
+    Value: "\u0422\u043b\u0430\u043a\u0441\u0438\u0430\u043a\u043e"
+  - Key: province_name.Mexico__Tula
+    Value: "\u0422\u0443\u043b\u0430"
+  - Key: province_name.Mexico__Tuxpam
+    Value: "\u0422\u0443\u043a\u0441\u043f\u0430\u043c"
+  - Key: province_name.Mexico__Tuxtla_Gutierrez
+    Value: "\u0422\u0443\u043a\u0441\u0442\u043b\u0430 \u0413\u0443\u0442\u0438\u00e9\u0440\u0440\u0435\u0437"
+  - Key: province_name.Mexico__Valladolid
+    Value: "\u0412\u0430\u043b\u043b\u0430\u0434\u043e\u043b\u0438\u0434"
+  - Key: province_name.Mexico__Valparaiso
+    Value: "\u0412\u0430\u043b\u043f\u0430\u0440\u0430\u00ed\u0441\u043e"
+  - Key: province_name.Mexico__Valparaiso_2
+    Value: "\u0412\u0430\u043b\u043f\u0430\u0440\u0430\u00ed\u0441\u043e"
+  - Key: province_name.Mexico__Van_Horn
+    Value: "\u0412\u0430\u043d \u0425\u043e\u0440\u043d"
+  - Key: province_name.Mexico__Vicente_Guerrero
+    Value: "\u0412\u0438\u043a\u0435\u043d\u0442\u0435 \u0413\u0443\u0435\u0440\u0440\u0435\u0440\u043e"
+  - Key: province_name.Mexico__Villa_Ahumada
+    Value: "\u0412\u0438\u043b\u043b\u0430 \u0410\u0445\u0443\u043c\u0430\u0434\u0430"
+  - Key: province_name.Mexico__Villahermosa
+    Value: "\u0412\u0438\u043b\u043b\u0430\u0445\u0435\u0440\u043c\u043e\u0441\u0430"
+  - Key: province_name.Mexico__Villanueva
+    Value: "\u0412\u0438\u043b\u043b\u0430\u043d\u0443\u0435\u0432\u0430"
+  - Key: province_name.Mexico__Yuma
+    Value: "\u042e\u043c\u0430"
+  - Key: province_name.Mexico__Zamora
+    Value: "\u0417\u0430\u043c\u043e\u0440\u0430"
+  - Key: province_name.Mexico__Zumpango
+    Value: "\u0417\u0443\u043c\u043f\u0430\u043d\u0433\u043e"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Kalemie
+    Value: "\u041a\u0430\u043b\u0435\u043c\u0438\u0435"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Kanyato
+    Value: "\u041a\u0430\u043d\u044f\u0442\u043e"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Kanyato_2
+    Value: "\u041a\u0430\u043d\u044f\u0442\u043e"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Kipili
+    Value: "\u041a\u0438\u043f\u0438\u043b\u0438"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Mbala
+    Value: "\u041c\u0431\u0430\u043b\u0430"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Mbala_2
+    Value: "\u041c\u0431\u0430\u043b\u0430"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Mpanda
+    Value: "\u041c\u043f\u0430\u043d\u0434\u0430"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Sikonge
+    Value: "\u0421\u0438\u043a\u043e\u043d\u0433\u0435"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Sikonge_2
+    Value: "\u0421\u0438\u043a\u043e\u043d\u0433\u0435"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Sumbawanga
+    Value: "\u0421\u0443\u043c\u0431\u0430\u0432\u0430\u043d\u0433\u0430"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Sumbawanga_2
+    Value: "\u0421\u0443\u043c\u0431\u0430\u0432\u0430\u043d\u0433\u0430"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Sumbawanga_3
+    Value: "\u0421\u0443\u043c\u0431\u0430\u0432\u0430\u043d\u0433\u0430"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Sumbawanga_4
+    Value: "\u0421\u0443\u043c\u0431\u0430\u0432\u0430\u043d\u0433\u0430"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Sumbawanga_5
+    Value: "\u0421\u0443\u043c\u0431\u0430\u0432\u0430\u043d\u0433\u0430"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Tabora
+    Value: "\u0422\u0430\u0431\u043e\u0440\u0430"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Uvinza
+    Value: "\u0423\u0432\u0438\u043d\u0437\u0430"
+  - Key: province_name.Mirambo_Unyanyembe_Ukimbu__Uvinza_2
+    Value: "\u0423\u0432\u0438\u043d\u0437\u0430"
+  - Key: province_name.Montenegro__Podgorica
+    Value: "\u041f\u043e\u0434\u0433\u043e\u0440\u0438\u043a\u0430"
+  - Key: province_name.Montenegro__Podgorica_2
+    Value: "\u041f\u043e\u0434\u0433\u043e\u0440\u0438\u043a\u0430"
   - Key: province_name.Montenegro__Sarajevo
     Value: "\u0421\u0430\u0440\u0430\u0439\u0435\u0432\u043e"
   - Key: province_name.Montserrat__Montserrat
