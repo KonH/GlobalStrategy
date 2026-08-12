@@ -8,10 +8,12 @@
     <ui:Template name="ActionLog" src="project://database/Assets/UI/HUD/ActionLog/ActionLog.uxml"/>
     <ui:Template name="ProvinceInfo" src="project://database/Assets/UI/HUD/ProvinceInfo/ProvinceInfo.uxml"/>
     <ui:Template name="WarIcons" src="project://database/Assets/UI/HUD/WarIcons/WarIcons.uxml"/>
+    <ui:Template name="TutorialHighlight" src="project://database/Assets/UI/HUD/TutorialHighlight/TutorialHighlight.uxml"/>
     <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
     <ui:Style src="project://database/Assets/UI/HUD/HUD.uss?fileID=7433441132597879392&amp;guid=960ca7226a908b347be612c19639c422&amp;type=3#HUD"/>
     <ui:Style src="project://database/Assets/UI/HUD/PlayerTasks/PlayerTasks.uss"/>
     <ui:Style src="project://database/Assets/UI/HUD/WarIcons/WarIcons.uss"/>
+    <ui:Style src="project://database/Assets/UI/HUD/TutorialHighlight/TutorialHighlight.uss"/>
     <ui:Style src="project://database/Assets/UI/Overlay/OrgInfo/OrgActions.uss"/>
     <ui:VisualElement name="hud-root" data-source-type="GS.Main.VisualState, Game.Main" picking-mode="Ignore" style="aspect-ratio: auto;">
         <ui:VisualElement name="top-left-panel" class="top-left-panel" picking-mode="Ignore">
@@ -111,5 +113,6 @@
             <ui:VisualElement name="card-draw-row" class="card-draw-row" picking-mode="Ignore" />
         </ui:VisualElement>
         <ui:VisualElement name="card-transition-overlay" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;" />
+        <ui:Instance template="TutorialHighlight" name="tutorial-highlight" class="tutorial-highlight-overlay" picking-mode="Ignore"/>
     </ui:VisualElement>
 </ui:UXML>

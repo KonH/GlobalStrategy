@@ -15,6 +15,8 @@ namespace GS.Game.Configs {
 		public List<TaskRewardEntry> Reward { get; set; } = new();
 		public List<string> OpenEffectIds { get; set; } = new();
 		public List<string> CloseEffectIds { get; set; } = new();
+		public bool IsTutorial { get; set; }
+		public string HighlightTargetId { get; set; } = "";
 	}
 
 	public class TasksConfig {

@@ -53,7 +53,9 @@ namespace GS.Game.Tests {
 			TasksConfig tasks,
 			ResourceQuery resources,
 			CountryRelations relations,
-			IReadOnlyDictionary<string, double>? triggers = null) {
+			IReadOnlyDictionary<string, double>? triggers = null,
+			ITutorialProgressSink? progressSink = null,
+			bool forceCompleteActiveTutorials = false) {
 			TaskProgressSystem.Update(
 				world,
 				tasks,
@@ -67,7 +69,9 @@ namespace GS.Game.Tests {
 				resources,
 				relations,
 				hqCountryByOrgId: new Dictionary<string, string> { [OrgId] = "hq" },
-				triggers: triggers);
+				triggers: triggers,
+				progressSink: progressSink,
+				forceCompleteActiveTutorials: forceCompleteActiveTutorials);
 		}
 
 		static bool HasActive(World world, string taskId) {
@@ -286,6 +290,421 @@ namespace GS.Game.Tests {
 			Assert.Equal(20, world.Get<Resource>(gold).Value);
 			Run(world, tasks, _resources, _relations);
 			Assert.Equal(20, world.Get<Resource>(gold).Value);
+		}
+
+		static ExpressionNode TutorialOpen(string? previousCompletedId = null) {
+			var members = new List<ExpressionNode> {
+				new ExpressionNode { Type = "triggerCondition", TriggerId = "tutorialsEnabled" },
+				new ExpressionNode {
+					Type = "eq",
+					Members = new List<ExpressionNode> {
+						new ExpressionNode { Type = "triggerCondition", TriggerId = "tutorialTaskActive" },
+						new ExpressionNode { Type = "value", Value = 0 }
+					}
+				}
+			};
+			if (!string.IsNullOrEmpty(previousCompletedId)) {
+				members.Add(new ExpressionNode {
+					Type = "triggerCondition",
+					TriggerId = "taskCompleted:" + previousCompletedId
+				});
+			}
+			return new ExpressionNode { Type = "mul", Members = members };
+		}
+
+		static int AddGameTime(World world, bool paused) {
+			int entity = world.Create();
+			world.Add(entity, new GameTime {
+				CurrentTime = CurrentTime,
+				IsPaused = paused,
+				MultiplierIndex = 0,
+				AccumulatedHours = 0f
+			});
+			return entity;
+		}
+
+		sealed class RecordingSink : ITutorialProgressSink {
+			public List<string> Completed { get; } = new List<string>();
+			public void MarkCompleted(string taskId) => Completed.Add(taskId);
+		}
+
+		[Fact]
+		void tutorial_mutual_exclusion_second_does_not_open_while_one_active() {
+			var world = new World();
+			AddPlayerOrg(world, OrgId);
+			AddOrgGold(world, _resources, OrgId, 0);
+			AddGameTime(world, paused: false);
+			var tasks = new TasksConfig {
+				Tasks = new List<TaskDefinition> {
+					new TaskDefinition {
+						TaskId = "t0",
+						IsTutorial = true,
+						OpenCondition = TutorialOpen(),
+						CloseCondition = new ExpressionNode { Type = "value", Value = 0 }
+					},
+					new TaskDefinition {
+						TaskId = "t1",
+						IsTutorial = true,
+						OpenCondition = TutorialOpen("t0"),
+						CloseCondition = new ExpressionNode { Type = "value", Value = 0 }
+					}
+				}
+			};
+
+			var triggers = new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 0
+			};
+			Run(world, tasks, _resources, _relations, triggers);
+			Assert.True(HasActive(world, "t0"));
+
+			triggers["tutorialTaskActive"] = 1;
+			triggers["taskCompleted:t0"] = 1;
+			Run(world, tasks, _resources, _relations, triggers);
+			Assert.True(HasActive(world, "t0"));
+			Assert.False(HasActive(world, "t1"));
+			Assert.Equal(1, CountActive(world));
+		}
+
+		[Fact]
+		void tutorial_sequencing_opens_next_after_previous_completed() {
+			var world = new World();
+			AddPlayerOrg(world, OrgId);
+			AddOrgGold(world, _resources, OrgId, 0);
+			AddGameTime(world, paused: false);
+			var tasks = new TasksConfig {
+				Tasks = new List<TaskDefinition> {
+					new TaskDefinition {
+						TaskId = "t0",
+						IsTutorial = true,
+						OpenCondition = TutorialOpen(),
+						CloseCondition = new ExpressionNode { Type = "triggerCondition", TriggerId = "done" }
+					},
+					new TaskDefinition {
+						TaskId = "t1",
+						IsTutorial = true,
+						OpenCondition = TutorialOpen("t0"),
+						CloseCondition = new ExpressionNode { Type = "value", Value = 0 }
+					}
+				}
+			};
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 0
+			});
+			Assert.True(HasActive(world, "t0"));
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 1,
+				["done"] = 1
+			});
+			Assert.True(HasCompleted(world, "t0"));
+			Assert.False(HasActive(world, "t1"));
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 0,
+				["taskCompleted:t0"] = 1
+			});
+			Assert.True(HasActive(world, "t1"));
+		}
+
+		[Fact]
+		void force_complete_marks_completed_without_rewards_and_notifies_sink() {
+			var world = new World();
+			AddPlayerOrg(world, OrgId);
+			int gold = AddOrgGold(world, _resources, OrgId, 10);
+			AddGameTime(world, paused: false);
+			var sink = new RecordingSink();
+			var tasks = new TasksConfig {
+				Tasks = new List<TaskDefinition> {
+					new TaskDefinition {
+						TaskId = "t0",
+						IsTutorial = true,
+						OpenCondition = TutorialOpen(),
+						CloseCondition = new ExpressionNode { Type = "value", Value = 0 },
+						CloseEffectIds = new List<string> { GrantEffectId },
+						Reward = new List<TaskRewardEntry> {
+							new TaskRewardEntry { ResourceId = ResourceDefinitions.Gold, Amount = 7 }
+						}
+					}
+				}
+			};
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 0
+			}, sink);
+			Assert.True(HasActive(world, "t0"));
+			Assert.Empty(sink.Completed);
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 0,
+				["tutorialTaskActive"] = 1
+			}, sink, forceCompleteActiveTutorials: true);
+
+			Assert.False(HasActive(world, "t0"));
+			Assert.True(HasCompleted(world, "t0"));
+			Assert.Equal(new[] { "t0" }, sink.Completed);
+			Assert.Equal(10, world.Get<Resource>(gold).Value);
+		}
+
+		[Fact]
+		void normal_tutorial_close_notifies_sink() {
+			var world = new World();
+			AddPlayerOrg(world, OrgId);
+			AddOrgGold(world, _resources, OrgId, 0);
+			AddGameTime(world, paused: false);
+			var sink = new RecordingSink();
+			var tasks = new TasksConfig {
+				Tasks = new List<TaskDefinition> {
+					new TaskDefinition {
+						TaskId = "t0",
+						IsTutorial = true,
+						OpenCondition = TutorialOpen(),
+						CloseCondition = new ExpressionNode { Type = "triggerCondition", TriggerId = "done" }
+					}
+				}
+			};
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 0
+			}, sink);
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 1,
+				["done"] = 1
+			}, sink);
+			Assert.Equal(new[] { "t0" }, sink.Completed);
+		}
+
+		[Fact]
+		void non_tutorial_unaffected_when_tutorials_disabled() {
+			var world = new World();
+			AddPlayerOrg(world, OrgId);
+			AddOrgGold(world, _resources, OrgId, 0);
+			var tasks = new TasksConfig {
+				Tasks = new List<TaskDefinition> {
+					new TaskDefinition {
+						TaskId = "gameplay",
+						IsTutorial = false,
+						OpenCondition = new ExpressionNode { Type = "value", Value = 1 },
+						CloseCondition = new ExpressionNode { Type = "value", Value = 0 }
+					}
+				}
+			};
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 0
+			}, forceCompleteActiveTutorials: true);
+			Assert.True(HasActive(world, "gameplay"));
+		}
+
+		[Fact]
+		void seeding_creates_completed_so_tutorials_do_not_reopen() {
+			var world = new World();
+			AddPlayerOrg(world, OrgId);
+			AddOrgGold(world, _resources, OrgId, 0);
+			AddGameTime(world, paused: false);
+			var tasks = new TasksConfig {
+				Tasks = new List<TaskDefinition> {
+					new TaskDefinition {
+						TaskId = "t0",
+						IsTutorial = true,
+						OpenCondition = TutorialOpen(),
+						CloseCondition = new ExpressionNode { Type = "value", Value = 0 }
+					}
+				}
+			};
+
+			TaskProgressSystem.SeedCompletedTutorials(world, tasks, new[] { "t0" });
+			Assert.True(HasCompleted(world, "t0"));
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 0,
+				["taskCompleted:t0"] = 1
+			});
+			Assert.False(HasActive(world, "t0"));
+			Assert.Equal(0, CountActive(world));
+		}
+
+		[Fact]
+		void open_while_unpaused_claims_pause_ownership() {
+			var world = new World();
+			AddPlayerOrg(world, OrgId);
+			AddOrgGold(world, _resources, OrgId, 0);
+			int timeEntity = AddGameTime(world, paused: false);
+			var tasks = new TasksConfig {
+				Tasks = new List<TaskDefinition> {
+					new TaskDefinition {
+						TaskId = "t0",
+						IsTutorial = true,
+						OpenCondition = TutorialOpen(),
+						CloseCondition = new ExpressionNode { Type = "value", Value = 0 }
+					}
+				}
+			};
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 0
+			});
+			Assert.True(world.Get<GameTime>(timeEntity).IsPaused);
+			Assert.True(world.Has<TutorialOwnsPause>(timeEntity));
+		}
+
+		[Fact]
+		void open_while_paused_does_not_claim_ownership() {
+			var world = new World();
+			AddPlayerOrg(world, OrgId);
+			AddOrgGold(world, _resources, OrgId, 0);
+			int timeEntity = AddGameTime(world, paused: true);
+			var tasks = new TasksConfig {
+				Tasks = new List<TaskDefinition> {
+					new TaskDefinition {
+						TaskId = "t0",
+						IsTutorial = true,
+						OpenCondition = TutorialOpen(),
+						CloseCondition = new ExpressionNode { Type = "value", Value = 0 }
+					}
+				}
+			};
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 0
+			});
+			Assert.True(world.Get<GameTime>(timeEntity).IsPaused);
+			Assert.False(world.Has<TutorialOwnsPause>(timeEntity));
+		}
+
+		[Fact]
+		void complete_with_ownership_unpauses() {
+			var world = new World();
+			AddPlayerOrg(world, OrgId);
+			AddOrgGold(world, _resources, OrgId, 0);
+			int timeEntity = AddGameTime(world, paused: false);
+			var tasks = new TasksConfig {
+				Tasks = new List<TaskDefinition> {
+					new TaskDefinition {
+						TaskId = "t0",
+						IsTutorial = true,
+						OpenCondition = TutorialOpen(),
+						CloseCondition = new ExpressionNode { Type = "triggerCondition", TriggerId = "done" }
+					}
+				}
+			};
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 0
+			});
+			Assert.True(world.Has<TutorialOwnsPause>(timeEntity));
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 1,
+				["done"] = 1
+			});
+			Assert.False(world.Get<GameTime>(timeEntity).IsPaused);
+			Assert.False(world.Has<TutorialOwnsPause>(timeEntity));
+		}
+
+		[Fact]
+		void complete_without_ownership_leaves_paused() {
+			var world = new World();
+			AddPlayerOrg(world, OrgId);
+			AddOrgGold(world, _resources, OrgId, 0);
+			int timeEntity = AddGameTime(world, paused: true);
+			var tasks = new TasksConfig {
+				Tasks = new List<TaskDefinition> {
+					new TaskDefinition {
+						TaskId = "t0",
+						IsTutorial = true,
+						OpenCondition = TutorialOpen(),
+						CloseCondition = new ExpressionNode { Type = "triggerCondition", TriggerId = "done" }
+					}
+				}
+			};
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 0
+			});
+			Assert.False(world.Has<TutorialOwnsPause>(timeEntity));
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 1,
+				["done"] = 1
+			});
+			Assert.True(world.Get<GameTime>(timeEntity).IsPaused);
+			Assert.False(world.Has<TutorialOwnsPause>(timeEntity));
+		}
+
+		[Fact]
+		void force_complete_with_ownership_clears_pause() {
+			var world = new World();
+			AddPlayerOrg(world, OrgId);
+			AddOrgGold(world, _resources, OrgId, 0);
+			int timeEntity = AddGameTime(world, paused: false);
+			var tasks = new TasksConfig {
+				Tasks = new List<TaskDefinition> {
+					new TaskDefinition {
+						TaskId = "t0",
+						IsTutorial = true,
+						OpenCondition = TutorialOpen(),
+						CloseCondition = new ExpressionNode { Type = "value", Value = 0 }
+					}
+				}
+			};
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 0
+			});
+			Run(world, tasks, _resources, _relations, forceCompleteActiveTutorials: true);
+			Assert.False(world.Get<GameTime>(timeEntity).IsPaused);
+			Assert.False(world.Has<TutorialOwnsPause>(timeEntity));
+		}
+
+		[Fact]
+		void save_load_mid_owned_pause_still_unpauses_on_complete() {
+			var world = new World();
+			AddPlayerOrg(world, OrgId);
+			AddOrgGold(world, _resources, OrgId, 0);
+			int timeEntity = AddGameTime(world, paused: false);
+			var tasks = new TasksConfig {
+				Tasks = new List<TaskDefinition> {
+					new TaskDefinition {
+						TaskId = "t0",
+						IsTutorial = true,
+						OpenCondition = TutorialOpen(),
+						CloseCondition = new ExpressionNode { Type = "triggerCondition", TriggerId = "done" }
+					}
+				}
+			};
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 0
+			});
+			Assert.True(world.Has<TutorialOwnsPause>(timeEntity));
+
+			// Simulate save/load retaining the savable ownership marker + paused clock.
+			Assert.True(world.Get<GameTime>(timeEntity).IsPaused);
+
+			Run(world, tasks, _resources, _relations, new Dictionary<string, double> {
+				["tutorialsEnabled"] = 1,
+				["tutorialTaskActive"] = 1,
+				["done"] = 1
+			});
+			Assert.False(world.Get<GameTime>(timeEntity).IsPaused);
+			Assert.False(world.Has<TutorialOwnsPause>(timeEntity));
 		}
 	}
 }

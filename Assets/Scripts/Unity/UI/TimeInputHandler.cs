@@ -10,19 +10,28 @@ namespace GS.Unity.UI {
 		IWriteOnlyCommandAccessor _commands;
 		TimeState _time;
 		ModalState _modalState;
+		TutorialPresentationTriggers _presentationTriggers;
 
 		[Inject]
-		void Construct(IWriteOnlyCommandAccessor commands, VisualState state, ModalState modalState) {
+		void Construct(
+			IWriteOnlyCommandAccessor commands,
+			VisualState state,
+			ModalState modalState,
+			TutorialPresentationTriggers presentationTriggers) {
 			_commands = commands;
 			_time = state.Time;
 			_modalState = modalState;
+			_presentationTriggers = presentationTriggers;
 		}
 
 		void Update() {
+			var keyboard = Keyboard.current;
+			if (keyboard != null && keyboard.anyKey.wasPressedThisFrame) {
+				_presentationTriggers?.Set(TutorialPresentationTriggers.KeyPressed, 1);
+			}
 			if (_modalState != null && _modalState.IsLocked()) {
 				return;
 			}
-			var keyboard = Keyboard.current;
 			if (keyboard == null) {
 				return;
 			}

@@ -157,6 +157,8 @@ namespace GS.Main {
 			return a.TaskId == b.TaskId
 				&& a.NameKey == b.NameKey
 				&& a.DescKey == b.DescKey
+				&& a.IsTutorial == b.IsTutorial
+				&& a.HighlightTargetId == b.HighlightTargetId
 				&& ListEquals(a.Rewards, b.Rewards, ActiveTaskRewardStateEquals);
 		}
 

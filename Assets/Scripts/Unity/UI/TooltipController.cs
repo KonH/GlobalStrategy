@@ -22,6 +22,19 @@ namespace GS.Unity.UI {
 			}
 		}
 
+		public bool HasVisibleTooltipWithIdPrefix(string prefix) {
+			if (string.IsNullOrEmpty(prefix)) {
+				return false;
+			}
+			for (int i = 0; i < _stack.Count; i++) {
+				string id = _stack[i].Id;
+				if (!string.IsNullOrEmpty(id) && id.StartsWith(prefix, StringComparison.Ordinal)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		const float AutoPinSeconds = 2f;
 		const long HideDelayMs = 80;
 		readonly VisualElement _hudRoot;

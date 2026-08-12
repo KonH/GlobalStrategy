@@ -2,7 +2,9 @@
     "name": "GS.Unity.Save",
     "rootNamespace": "",
     "references": [
-        "GUID:8c4bfcb5b17948478ccb955bccff9652"
+        "GUID:8c4bfcb5b17948478ccb955bccff9652",
+        "GUID:c07e33f0394f63c4cb1851b66e1c137e",
+        "GUID:67c3491e4017e85469da452008e78ce2"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

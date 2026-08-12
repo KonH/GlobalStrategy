@@ -107,6 +107,7 @@ namespace GS.Unity.DI {
 			builder.Register<ECS.Viewer.PauseToken>(VContainer.Lifetime.Singleton);
 			builder.Register<ModalState>(Lifetime.Singleton);
 			builder.Register<UIPointerState>(Lifetime.Singleton);
+			builder.Register<TutorialPresentationTriggers>(Lifetime.Singleton);
 			builder.RegisterEntryPoint<GameLoopRunner>();
 			builder.RegisterComponentInHierarchy<EcsViewerBridge>();
 

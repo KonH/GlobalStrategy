@@ -105,6 +105,8 @@ namespace GS.Unity.UI {
 			_root.style.display = DisplayStyle.Flex;
 		}
 
+		public bool IsVisible => _root != null && _root.style.display == DisplayStyle.Flex;
+
 		void Hide() {
 			_commands?.Push(new UnpauseCommand());
 			_modalState.Unlock(this);

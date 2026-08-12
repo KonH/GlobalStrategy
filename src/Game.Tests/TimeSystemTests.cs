@@ -100,5 +100,39 @@ namespace GS.Game.Tests {
 			Assert.Equal(1, world.Get<GameTime>(e).MultiplierIndex);
 			Assert.Equal(Start.AddHours(24), world.Get<GameTime>(e).CurrentTime);
 		}
+
+		[Fact]
+		void paused_speed_change_unpauses_applies_multiplier_and_advances() {
+			var (world, e) = CreateWorld(paused: true, multiplierIndex: 0);
+			var speed = new ReadCommands<ChangeTimeMultiplierCommand>(
+				new[] { new ChangeTimeMultiplierCommand(1) });
+			Run(world, e, 1f, speed: speed);
+			ref GameTime time = ref world.Get<GameTime>(e);
+			Assert.False(time.IsPaused);
+			Assert.Equal(1, time.MultiplierIndex);
+			Assert.Equal(Start.AddHours(24), time.CurrentTime);
+		}
+
+		[Fact]
+		void unpause_clears_tutorial_owns_pause() {
+			var (world, e) = CreateWorld(paused: true);
+			world.Add(e, new TutorialOwnsPause());
+			var unpause = new ReadCommands<UnpauseCommand>(new[] { new UnpauseCommand() });
+			Run(world, e, 1f, unpause: unpause);
+			Assert.False(world.Get<GameTime>(e).IsPaused);
+			Assert.False(world.Has<TutorialOwnsPause>(e));
+		}
+
+		[Fact]
+		void speed_resume_clears_tutorial_owns_pause() {
+			var (world, e) = CreateWorld(paused: true);
+			world.Add(e, new TutorialOwnsPause());
+			var speed = new ReadCommands<ChangeTimeMultiplierCommand>(
+				new[] { new ChangeTimeMultiplierCommand(2) });
+			Run(world, e, 1f, speed: speed);
+			Assert.False(world.Get<GameTime>(e).IsPaused);
+			Assert.False(world.Has<TutorialOwnsPause>(e));
+			Assert.Equal(2, world.Get<GameTime>(e).MultiplierIndex);
+		}
 	}
 }

@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Game.Main/Game.Main.csproj" />
+    <ProjectReference Include="../Game.Systems/Game.Systems.csproj" />
     <ProjectReference Include="../Game.Bots/Game.Bots.csproj" />
     <ProjectReference Include="../Core.Configs.IO/Core.Configs.IO.csproj" />
     <ProjectReference Include="../Core.Map/Core.Map.csproj" />

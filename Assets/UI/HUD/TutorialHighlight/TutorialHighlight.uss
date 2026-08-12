@@ -1,0 +1,23 @@
+.tutorial-highlight-root {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    flex-grow: 1;
+}
+
+.tutorial-highlight-arrow {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+}
+
+.tutorial-highlight-arrow-label {
+    font-size: 28px;
+    color: rgb(255, 220, 90);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}

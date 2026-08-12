@@ -58,6 +58,43 @@ namespace GS.Game.Tests {
 			Assert.Empty(b!.Reward);
 			Assert.Empty(b.OpenEffectIds);
 			Assert.Empty(b.CloseEffectIds);
+			Assert.False(b.IsTutorial);
+			Assert.Equal("", b.HighlightTargetId);
+		}
+
+		[Fact]
+		void tutorial_fields_deserialize_and_default_when_missing() {
+			const string json = @"
+{
+  ""tasks"": [
+    {
+      ""taskId"": ""tutorial_welcome_camera"",
+      ""nameKey"": ""task.tutorial_welcome_camera.name"",
+      ""descKey"": ""task.tutorial_welcome_camera.desc"",
+      ""isTutorial"": true,
+      ""highlightTargetId"": ""player_org_panel"",
+      ""openCondition"": { ""type"": ""value"", ""value"": 1 },
+      ""closeCondition"": { ""type"": ""value"", ""value"": 1 }
+    },
+    {
+      ""taskId"": ""plain_task"",
+      ""nameKey"": ""task.plain.name"",
+      ""descKey"": ""task.plain.desc"",
+      ""openCondition"": { ""type"": ""value"", ""value"": 0 },
+      ""closeCondition"": { ""type"": ""value"", ""value"": 0 }
+    }
+  ]
+}";
+			var config = new StringConfig<TasksConfig>(json).Load();
+			TaskDefinition? tutorial = config.Find("tutorial_welcome_camera");
+			Assert.NotNull(tutorial);
+			Assert.True(tutorial!.IsTutorial);
+			Assert.Equal("player_org_panel", tutorial.HighlightTargetId);
+
+			TaskDefinition? plain = config.Find("plain_task");
+			Assert.NotNull(plain);
+			Assert.False(plain!.IsTutorial);
+			Assert.Equal("", plain.HighlightTargetId);
 		}
 	}
 }

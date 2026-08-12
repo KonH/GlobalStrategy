@@ -1,4 +1,5 @@
 #nullable enable
+using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine.UIElements;
 using GS.Main;
@@ -22,6 +23,7 @@ namespace GS.Unity.UI {
 		}
 
 		public void Refresh(ActiveTasksState state) {
+			ActiveTasksState? previous = _lastState;
 			_lastState = state;
 			_list.Clear();
 			if (state == null || state.Tasks.Count == 0) {
@@ -30,17 +32,26 @@ namespace GS.Unity.UI {
 				return;
 			}
 
+			_expandedTaskId = TaskAccordionInteraction.SelectInitialExpandedTutorial(
+				BuildTutorialTuples(previous),
+				BuildTutorialTuples(state),
+				_expandedTaskId);
+
 			_root.style.display = DisplayStyle.Flex;
-			bool expandedStillPresent = false;
 			foreach (var task in state.Tasks) {
-				if (task.TaskId == _expandedTaskId) {
-					expandedStillPresent = true;
-				}
 				_list.Add(BuildTaskItem(task));
 			}
-			if (!expandedStillPresent) {
-				_expandedTaskId = null;
+		}
+
+		static List<(string TaskId, bool IsTutorial)> BuildTutorialTuples(ActiveTasksState? state) {
+			var tuples = new List<(string, bool)>();
+			if (state == null) {
+				return tuples;
 			}
+			foreach (var task in state.Tasks) {
+				tuples.Add((task.TaskId, task.IsTutorial));
+			}
+			return tuples;
 		}
 
 		VisualElement BuildTaskItem(ActiveTaskEntryState task) {

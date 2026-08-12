@@ -234,8 +234,13 @@ namespace GS.Game.Tests {
 			string path = FindRepoRootConfigPath("tasks_config.json");
 			var fromFile = new FileConfig<TasksConfig>(path).Load();
 			var fromString = new StringConfig<TasksConfig>(File.ReadAllText(path)).Load();
-			Assert.Empty(fromFile.Tasks);
-			Assert.Empty(fromString.Tasks);
+			Assert.Equal(fromFile.Tasks.Count, fromString.Tasks.Count);
+			Assert.Equal(11, fromFile.Tasks.Count);
+			Assert.Equal(fromFile.Tasks[0].TaskId, fromString.Tasks[0].TaskId);
+			Assert.Equal(fromFile.Tasks[0].IsTutorial, fromString.Tasks[0].IsTutorial);
+			Assert.Equal(fromFile.Tasks[1].HighlightTargetId, fromString.Tasks[1].HighlightTargetId);
+			Assert.True(fromFile.Tasks[0].IsTutorial);
+			Assert.Equal("player_org_panel", fromFile.Tasks[1].HighlightTargetId);
 		}
 	}
 }

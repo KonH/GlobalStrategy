@@ -595,16 +595,22 @@ namespace GS.Main {
 		public string NameKey { get; }
 		public string DescKey { get; }
 		public IReadOnlyList<ActiveTaskRewardState> Rewards { get; }
+		public bool IsTutorial { get; }
+		public string HighlightTargetId { get; }
 
 		public ActiveTaskEntryState(
 			string taskId,
 			string nameKey,
 			string descKey,
-			IReadOnlyList<ActiveTaskRewardState> rewards) {
+			IReadOnlyList<ActiveTaskRewardState> rewards,
+			bool isTutorial = false,
+			string highlightTargetId = "") {
 			TaskId = taskId;
 			NameKey = nameKey;
 			DescKey = descKey;
 			Rewards = rewards;
+			IsTutorial = isTutorial;
+			HighlightTargetId = highlightTargetId ?? "";
 		}
 	}
 

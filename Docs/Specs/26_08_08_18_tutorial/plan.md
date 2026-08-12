@@ -289,22 +289,22 @@ Non-tutorial gameplay task packs; bot tutorial pursuit; multiplayer sync; new re
 
 ## Agent Steps
 
-- [ ] **Extend TaskDefinition + author `tasks_config.json` 0–10** — `IsTutorial` / `HighlightTargetId`; full open/close trees via `triggerCondition` + `mul`/`eq`; empty rewards/effects; update `TasksConfigTests`.
+- [x] **Extend TaskDefinition + author `tasks_config.json` 0–10** — `IsTutorial` / `HighlightTargetId`; full open/close trees via `triggerCondition` + `mul`/`eq`; empty rewards/effects; update `TasksConfigTests`.
 
-- [ ] **Localization** — EN + RU task name/desc + Settings chrome keys via `localization` skill (task 9 RU exact).
+- [x] **Localization** — EN + RU task name/desc + Settings chrome keys via `localization` skill (task 9 RU exact).
 
-- [ ] **TaskTriggerBag + GameLogic Triggers wiring** — Merge presentation/world/preference/command facts; pass bag into `TaskProgressSystem`; set `commandTrigger:*` from draw/receive reads before tasks.
+- [x] **TaskTriggerBag + GameLogic Triggers wiring** — Merge presentation/world/preference/command facts; pass bag into `TaskProgressSystem`; set `commandTrigger:*` from draw/receive reads before tasks.
 
-- [ ] **Presentation publishers (Unity)** — `TutorialPresentationTriggers` + MapCamera pan/zoom, key, UI open/chrome-clear, military advisor tooltip publishers; edge clear on active-tutorial change.
+- [x] **Presentation publishers (Unity)** — `TutorialPresentationTriggers` + MapCamera pan/zoom, key, UI open/chrome-clear, military advisor tooltip publishers; edge clear on active-tutorial change.
 
-- [ ] **Preferences + Settings UI (Unity + Web)** — `SettingsStorage` / `AppPreferences` tutorialsEnabled + completed ids; Reset tutorials; Reset settings to default (Unity in-game also resets autosave via command); UXML + `SettingsWindowDocument` + `Settings.razor`; `ITutorialProgressSink` + `SetTutorialsEnabledCommand` force-complete path (no rewards/effects); seed after InitSystem and after every LoadState.
+- [x] **Preferences + Settings UI (Unity + Web)** — `SettingsStorage` / `AppPreferences` tutorialsEnabled + completed ids; Reset tutorials; Reset settings to default (Unity in-game also resets autosave via command); UXML + `SettingsWindowDocument` + `Settings.razor`; `ITutorialProgressSink` + `SetTutorialsEnabledCommand` force-complete path (no rewards/effects); seed after InitSystem and after every LoadState.
 
-- [ ] **Pause ownership + TimeSystem resume-on-speed** — savable `TutorialOwnsPause` open/complete/player-resume (Unpause **or** speed-change) rules; TimeSystem clears pause on speed change; tests.
+- [x] **Pause ownership + TimeSystem resume-on-speed** — savable `TutorialOwnsPause` open/complete/player-resume (Unpause **or** speed-change) rules; TimeSystem clears pause on speed change; tests.
 
-- [ ] **HUD auto-expand + highlight arrow** — `ActiveTaskEntryState` fields; `PlayerTasksView` Refresh order (capture previous before assign; expand new tutorial before clear); `TutorialHighlightView` + target registry; USS animation.
+- [x] **HUD auto-expand + highlight arrow** — `ActiveTaskEntryState` fields; `PlayerTasksView` Refresh order (capture previous before assign; expand new tutorial before clear); `TutorialHighlightView` + target registry; USS animation.
 
-- [ ] **Core tests** — Per Tests section.
-- [ ] **Validate** — `dotnet test src/GlobalStrategy.Core.sln`; `/dotnet-build Release` after `src/` changes.
+- [x] **Core tests** — Per Tests section.
+- [x] **Validate** — `dotnet test src/GlobalStrategy.Core.sln`; `/dotnet-build Release` after `src/` changes.
 
 ## User Steps
 

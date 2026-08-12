@@ -23,6 +23,11 @@ namespace GS.Main {
 		readonly Dictionary<string, (double Lon, double Lat)> _provinceCenters;
 		readonly ICompletionCondition _completionCondition;
 		readonly ProvinceTopology _provinceTopology;
+		readonly Dictionary<string, double> _presentationTriggers = new Dictionary<string, double>(StringComparer.Ordinal);
+		readonly List<string> _tutorialProgressSeed = new List<string>();
+		bool _tutorialsEnabled = true;
+		ITutorialProgressSink? _tutorialProgressSink;
+		string? _lastActiveTutorialId;
 		int _gameTimeEntity = -1;
 		int _localeEntity = -1;
 		int _settingsEntity = -1;
@@ -40,6 +45,8 @@ namespace GS.Main {
 
 		public VisualState VisualState { get; } = new VisualState();
 		public IWriteOnlyCommandAccessor Commands { get; }
+		public string? ActiveTutorialId { get; private set; }
+		public bool TutorialsEnabled => _tutorialsEnabled;
 		public World World => _world;
 		public ResourceQuery Resources => _resources;
 		public CountryRelations Relations => _relations;
@@ -124,6 +131,11 @@ namespace GS.Main {
 				if (ProvinceConfig.Provinces != null && ProvinceConfig.Provinces.Count > 0) {
 					CountryDestroySystem.DestroyAllZeroProvinceCountries(_world, _relations);
 				}
+				// Preference-backed tutorial completions: hosts should call SeedTutorialProgress
+				// (or SetTutorialsEnabled + seed list) before the first Update so this applies
+				// after Init. Hosts must also call SeedTutorialProgress again after LoadState
+				// because LoadSystem.Apply destroys the world.
+				ApplyTutorialProgressSeed();
 			}
 
 			if (IsCompleted) {
@@ -302,10 +314,41 @@ namespace GS.Main {
 			ReceiveCardSystem.Update(_world, _commandAccessor.ReadReceiveCardCommand());
 			RelationCardSyncSystem.Update(_world, _relations, _actionConfig);
 			RevengeCardSyncSystem.Update(_world, _actionConfig);
+
+			bool forceCompleteTutorials = false;
+			foreach (var cmd in _commandAccessor.ReadSetTutorialsEnabledCommand().AsSpan()) {
+				_tutorialsEnabled = cmd.Enabled;
+				if (!cmd.Enabled) {
+					forceCompleteTutorials = true;
+				}
+			}
+
+			string playerOrgId = FindPlayerOrganizationId();
+			bool drawThisTick = TaskTriggerBag.HasPlayerOrgDrawCommand(
+				_commandAccessor.ReadDrawCardsCommand(), playerOrgId);
+			bool receiveThisTick = TaskTriggerBag.HasPlayerOrgReceiveCardCommand(
+				_commandAccessor.ReadReceiveCardCommand(), playerOrgId);
+			var triggers = TaskTriggerBag.Build(
+				_world,
+				_tasksConfig,
+				_presentationTriggers,
+				_tutorialsEnabled,
+				playerOrgId,
+				drawThisTick,
+				receiveThisTick);
 			TaskProgressSystem.Update(
 				_world, _tasksConfig, _effectConfig, currentTime,
 				_rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, _resources,
-				_relations, _hqCountryByOrgId, CountryConfig);
+				_relations, _hqCountryByOrgId, CountryConfig, triggers,
+				_tutorialProgressSink, forceCompleteTutorials);
+
+			string? activeTutorialId = TaskProgressSystem.FindActiveTutorialId(_world, _tasksConfig);
+			if (activeTutorialId != _lastActiveTutorialId) {
+				TaskTriggerBag.ClearTaskEdges(_presentationTriggers);
+				_lastActiveTutorialId = activeTutorialId;
+			}
+			ActiveTutorialId = activeTutorialId;
+
 			DrawCardSystem.Update(
 				_world,
 				_actionConfig,
@@ -498,6 +541,63 @@ namespace GS.Main {
 		public void RebuildProximityMap() {
 			InitSystem.BuildProximityMap(_world, _context);
 			_proximityEntity = FindEntityWith<ProximityMapData>();
+		}
+
+		public void SetPresentationTriggers(IReadOnlyDictionary<string, double> triggers) {
+			_presentationTriggers.Clear();
+			if (triggers == null) { return; }
+			foreach (var pair in triggers) {
+				_presentationTriggers[pair.Key] = pair.Value;
+			}
+		}
+
+		public void SetPresentationTrigger(string triggerId, double value) {
+			if (string.IsNullOrEmpty(triggerId)) { return; }
+			_presentationTriggers[triggerId] = value;
+		}
+
+		public void ClearPresentationTaskEdges() {
+			TaskTriggerBag.ClearTaskEdges(_presentationTriggers);
+		}
+
+		public void SetTutorialsEnabled(bool enabled) {
+			_tutorialsEnabled = enabled;
+		}
+
+		public void SetTutorialProgressSink(ITutorialProgressSink? sink) {
+			_tutorialProgressSink = sink;
+		}
+
+		/// <summary>
+		/// Seeds preference-backed tutorial completions into the world as TaskCompleted entities.
+		/// Stores the list for automatic re-application after InitSystem on new games.
+		/// Hosts must call this again after <see cref="LoadState"/> because load destroys the world.
+		/// </summary>
+		public void SeedTutorialProgress(IEnumerable<string> completedIds) {
+			_tutorialProgressSeed.Clear();
+			if (completedIds != null) {
+				foreach (string taskId in completedIds) {
+					if (!string.IsNullOrEmpty(taskId)) {
+						_tutorialProgressSeed.Add(taskId);
+					}
+				}
+			}
+			ApplyTutorialProgressSeed();
+		}
+
+		void ApplyTutorialProgressSeed() {
+			TaskProgressSystem.SeedCompletedTutorials(_world, _tasksConfig, _tutorialProgressSeed);
+		}
+
+		string FindPlayerOrganizationId() {
+			int[] required = { TypeId<Organization>.Value, TypeId<Player>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(required, null)) {
+				Organization[] orgs = arch.GetColumn<Organization>();
+				if (arch.Count > 0) {
+					return orgs[0].OrganizationId;
+				}
+			}
+			return "";
 		}
 
 		public void RecordBotAction(string orgId, string featureId, string actionId, string countryId) {

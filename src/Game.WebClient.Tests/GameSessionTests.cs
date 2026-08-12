@@ -93,6 +93,7 @@ namespace GS.Game.WebClient.Tests {
 			public Dictionary<string, string> Values = new();
 			public string? GetItem(string key) => Values.TryGetValue(key, out var value) ? value : null;
 			public void SetItem(string key, string value) => Values[key] = value;
+			public void RemoveItem(string key) => Values.Remove(key);
 		}
 
 		static string FirstOrganizationId(IGameConfigSource configSource) {

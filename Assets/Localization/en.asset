@@ -394,6 +394,56 @@ MonoBehaviour:
     Value: Operation completed.
   - Key: settings.back
     Value: Back
+  - Key: settings.tutorials
+    Value: Tutorials
+  - Key: settings.reset_tutorials
+    Value: Reset Tutorials
+  - Key: settings.reset_defaults
+    Value: Reset Settings to Default
+  - Key: task.tutorial_welcome_camera.name
+    Value: Welcome
+  - Key: task.tutorial_welcome_camera.desc
+    Value: Welcome! You can move the camera by holding LMB/RMB and change zoom with the mouse wheel.
+  - Key: task.tutorial_org_resources.name
+    Value: Organization resources
+  - Key: task.tutorial_org_resources.desc
+    Value: The organization panel shows your organization's resources: gold and victory points.
+  - Key: task.tutorial_time_controls.name
+    Value: Time controls
+  - Key: task.tutorial_time_controls.desc
+    Value: The time panel has controls for the flow of time: play/pause and speed modifiers.
+  - Key: task.tutorial_select_country.name
+    Value: Select a country
+  - Key: task.tutorial_select_country.desc
+    Value: Select any country on the map.
+  - Key: task.tutorial_open_characters.name
+    Value: Country panel & characters
+  - Key: task.tutorial_open_characters.desc
+    Value: This panel shows the country's resources and lets you open the character list and action cards. The main country resource for you is control, held by organizations inside that country. Open the character list.
+  - Key: task.tutorial_military_advisor_tooltip.name
+    Value: Characters & advisors
+  - Key: task.tutorial_military_advisor_tooltip.desc
+    Value: Each character has skills, and action cards can improve relations with them and unlock corresponding options. Hover the cursor over the military advisor.
+  - Key: task.tutorial_open_actions.name
+    Value: Open actions
+  - Key: task.tutorial_open_actions.desc
+    Value: Open the actions panel.
+  - Key: task.tutorial_draw_from_deck.name
+    Value: Action deck
+  - Key: task.tutorial_draw_from_deck.desc
+    Value: Here is the action deck. Click it to draw cards.
+  - Key: task.tutorial_select_drawn_card.name
+    Value: Choose a card
+  - Key: task.tutorial_select_drawn_card.desc
+    Value: When you receive action cards, you choose one of three. The card shows its effect, restrictions, cost, and the countries where you can play it. Choose wisely!
+  - Key: task.tutorial_discard_card.name
+    Value: Discard a card
+  - Key: task.tutorial_discard_card.desc
+    Value: If you don't need a card, you can discard it by holding LMB on that card.
+  - Key: task.tutorial_goals_window.name
+    Value: Victory goals
+  - Key: task.tutorial_goals_window.desc
+    Value: To win, you must complete one of the conditions listed in the goals window.
   - Key: game_menu.title
     Value: Menu
   - Key: game_menu.resume

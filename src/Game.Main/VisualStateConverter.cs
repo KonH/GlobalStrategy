@@ -1055,7 +1055,13 @@ namespace GS.Main {
 							rewards.Add(new ActiveTaskRewardState(reward.ResourceId, reward.Amount));
 						}
 					}
-					tasks.Add(new ActiveTaskEntryState(def.TaskId, def.NameKey, def.DescKey, rewards));
+					tasks.Add(new ActiveTaskEntryState(
+						def.TaskId,
+						def.NameKey,
+						def.DescKey,
+						rewards,
+						def.IsTutorial,
+						def.HighlightTargetId ?? ""));
 				}
 			}
 			_state.ActiveTasks.Set(tasks);

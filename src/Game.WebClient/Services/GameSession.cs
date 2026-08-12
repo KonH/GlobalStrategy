@@ -61,6 +61,7 @@ namespace GS.Game.WebClient.Services {
 			StopLoop();
 			var context = BuildContext(organizationId);
 			Logic = new GameLogic(context);
+			ApplyTutorialPreferences(Logic);
 			Session = BotSession.Create(Logic, rngSeed: unchecked((int)DateTime.UtcNow.Ticks), logger: _logger);
 			_firstTickPending = true;
 			if (autoStart) {
@@ -81,8 +82,10 @@ namespace GS.Game.WebClient.Services {
 			StopLoop();
 			var context = BuildContext(lastSave.OrganizationId);
 			Logic = new GameLogic(context);
+			ApplyTutorialPreferences(Logic);
 			Session = BotSession.Create(Logic, rngSeed: unchecked((int)DateTime.UtcNow.Ticks), logger: _logger);
 			Logic.LoadState(lastSave.SaveName);
+			Logic.SeedTutorialProgress(_preferences.CompletedTutorialIds);
 			_firstTickPending = true;
 			if (autoStart) {
 				StartLoop();
@@ -100,11 +103,18 @@ namespace GS.Game.WebClient.Services {
 			if (_firstTickPending) {
 				Logic.Commands.Push(new ChangeLocaleCommand(_preferences.Locale));
 				Logic.Commands.Push(new ChangeAutoSaveIntervalCommand(_preferences.AutoSaveInterval));
+				Logic.Commands.Push(new SetTutorialsEnabledCommand(_preferences.TutorialsEnabled));
 				_firstTickPending = false;
 			}
 
 			Session.Update((float)elapsedSeconds);
 			Ticked?.Invoke();
+		}
+
+		void ApplyTutorialPreferences(GameLogic logic) {
+			logic.SetTutorialsEnabled(_preferences.TutorialsEnabled);
+			logic.SetTutorialProgressSink(new AppPreferencesTutorialProgressSink(_preferences));
+			logic.SeedTutorialProgress(_preferences.CompletedTutorialIds);
 		}
 
 		GameLogicContext BuildContext(string initialOrganizationId) {

@@ -394,6 +394,56 @@ MonoBehaviour:
     Value: Операция завершена.
   - Key: settings.back
     Value: Назад
+  - Key: settings.tutorials
+    Value: Обучение
+  - Key: settings.reset_tutorials
+    Value: Сбросить обучение
+  - Key: settings.reset_defaults
+    Value: Сбросить настройки по умолчанию
+  - Key: task.tutorial_welcome_camera.name
+    Value: Добро пожаловать
+  - Key: task.tutorial_welcome_camera.desc
+    Value: Добро пожаловать! Вы можете перемещать камеру, зажав ЛКМ/ПКМ и изменять масштаб колесом мыши.
+  - Key: task.tutorial_org_resources.name
+    Value: Ресурсы организации
+  - Key: task.tutorial_org_resources.desc
+    Value: На панели организации отображаются ресурсы организации: золото и очки победы.
+  - Key: task.tutorial_time_controls.name
+    Value: Управление временем
+  - Key: task.tutorial_time_controls.desc
+    Value: На панели времени есть элементы управления течением времени: старт/пауза и модификаторы скорости.
+  - Key: task.tutorial_select_country.name
+    Value: Выберите государство
+  - Key: task.tutorial_select_country.desc
+    Value: Выберите любое государство на карте.
+  - Key: task.tutorial_open_characters.name
+    Value: Панель государства и персонажи
+  - Key: task.tutorial_open_characters.desc
+    Value: Здесь отображаются ресурсы государства и есть возможность открыть список персонажей и карты действия. Главный ресурс государства для вас - контроль, которым обладают организации внутри этого государства. Откройте список персонажей.
+  - Key: task.tutorial_military_advisor_tooltip.name
+    Value: Персонажи и советники
+  - Key: task.tutorial_military_advisor_tooltip.desc
+    Value: Каждый персонаж обладает навыками и с помощью карт действий можно улучшать отношения с ними и получать соответствующие возможности. Наведите курсор на военного советника.
+  - Key: task.tutorial_open_actions.name
+    Value: Открыть действия
+  - Key: task.tutorial_open_actions.desc
+    Value: Откройте панель действий.
+  - Key: task.tutorial_draw_from_deck.name
+    Value: Колода действий
+  - Key: task.tutorial_draw_from_deck.desc
+    Value: Здесь расположена колода действий. Нажмите на нее, чтобы получить карты.
+  - Key: task.tutorial_select_drawn_card.name
+    Value: Выберите карту
+  - Key: task.tutorial_select_drawn_card.desc
+    Value: При получении карт действий у вас есть выбор одной из трех карт. На карте отображается ее эффект, ограничения, стоимость и доступные госудаства, в которых можно сыграть эту карту. Выбирайте с умом!
+  - Key: task.tutorial_discard_card.name
+    Value: Сбросить карту
+  - Key: task.tutorial_discard_card.desc
+    Value: Если вам не нужна какая-то карта - ее можно сбросить, зажав ЛКМ на этой карте.
+  - Key: task.tutorial_goals_window.name
+    Value: Цели победы
+  - Key: task.tutorial_goals_window.desc
+    Value: Чтобы победить, нужно выполнить одно из условий из списка в окне целей.
   - Key: game_menu.title
     Value: Меню
   - Key: game_menu.resume

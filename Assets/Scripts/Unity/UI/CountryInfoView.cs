@@ -49,6 +49,9 @@ namespace GS.Unity.UI {
 		public event Action? OnCountryActionCardDiscardUnaffordable;
 		public event Action<string>? OnRelatedCountryFlagClicked;
 		public CountryActionsView? ActionsView => _actionsView;
+		public CharactersView CharactersView => _charactersView;
+		public bool IsCharactersOpen => _charsOpen;
+		public bool IsActionsOpen => _actionsOpen;
 		public void OpenChars() => SetCharsOpen(true);
 		public void EnsureActionsOpen() {
 			if (!_actionsOpen) {

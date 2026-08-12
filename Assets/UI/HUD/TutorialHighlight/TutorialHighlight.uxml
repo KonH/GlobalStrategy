@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/HUD/TutorialHighlight/TutorialHighlight.uss"/>
+    <ui:VisualElement name="tutorial-highlight-root" class="tutorial-highlight-root" picking-mode="Ignore">
+        <ui:VisualElement name="tutorial-highlight-arrow" class="tutorial-highlight-arrow" picking-mode="Ignore">
+            <ui:Label text="▼" name="tutorial-highlight-arrow-label" class="tutorial-highlight-arrow-label" picking-mode="Ignore"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
