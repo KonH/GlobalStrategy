@@ -208,7 +208,14 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic(
 				WarResolutionActionConfig(),
 				WarResolutionEffectConfig(),
-				WarResolutionCharacterConfig());
+				WarResolutionCharacterConfig(),
+				gameSettings: new GameSettings {
+					StartYear = 1880,
+					DefaultLocale = "en",
+					SpeedMultipliers = new[] { 1, 24, 720 },
+					AutoSaveInterval = "monthly",
+					FeatureFlags = new FeatureFlagSettings { EnableRuler = true, EnableForceWarCards = true }
+				});
 			logic.Update(0f);
 
 			AddControl(logic.World, OrgId, OtherCountryId, 20, "war_resolution_control");

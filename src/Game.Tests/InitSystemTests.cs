@@ -947,7 +947,16 @@ namespace GS.Game.Tests {
 					}
 				}
 			};
-			var logic = BuildLogic(actionConfigOverride: actionConfig, characterConfigOverride: characterConfig);
+			var logic = BuildLogic(
+				actionConfigOverride: actionConfig,
+				characterConfigOverride: characterConfig,
+				gameSettingsOverride: new GameSettings {
+					StartYear = 1880,
+					DefaultLocale = "en",
+					SpeedMultipliers = new[] { 1, 2, 4 },
+					AutoSaveInterval = "monthly",
+					FeatureFlags = new FeatureFlagSettings { EnableForceWarCards = true }
+				});
 
 			// Seed opposite advisor states to confirm deck creation is independent of current playability.
 			int diploResEntity = logic.World.Create();
@@ -1107,6 +1116,61 @@ namespace GS.Game.Tests {
 
 			Assert.Equal(0, CountActionEntities(disabled.World, actionId));
 			Assert.Equal(1, CountActionEntities(enabled.World, actionId));
+		}
+
+		[Fact]
+		void force_war_cards_follow_feature_flag() {
+			const string militaryRole = "military_advisor";
+			var characterConfig = new CharacterConfig {
+				Roles = new List<CharacterRoleDefinition> {
+					new CharacterRoleDefinition { RoleId = militaryRole }
+				},
+				CountryPools = new List<CountryCharacterPool> {
+					new CountryCharacterPool {
+						CountryId = "Great_Britain",
+						Slots = new Dictionary<string, List<CharacterEntry>> {
+							[militaryRole] = new List<CharacterEntry> {
+								new CharacterEntry { CharacterId = "mil_gb" }
+							}
+						}
+					}
+				}
+			};
+			var actionConfig = new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition {
+						ActionId = "force_war_win", OwnerType = "country", TargetRole = militaryRole, DeckCopies = 1
+					},
+					new ActionDefinition {
+						ActionId = "force_war_loss", OwnerType = "country", TargetRole = militaryRole, DeckCopies = 1
+					}
+				}
+			};
+			var disabledSettings = new GameSettings {
+				FeatureFlags = new FeatureFlagSettings { EnableForceWarCards = false }
+			};
+			var enabledSettings = new GameSettings {
+				FeatureFlags = new FeatureFlagSettings { EnableForceWarCards = true }
+			};
+			var disabled = BuildLogic(
+				gameSettingsOverride: disabledSettings,
+				actionConfigOverride: actionConfig,
+				characterConfigOverride: characterConfig);
+			var enabled = BuildLogic(
+				gameSettingsOverride: enabledSettings,
+				actionConfigOverride: actionConfig,
+				characterConfigOverride: characterConfig);
+
+			disabled.Update(0f);
+			enabled.Update(0f);
+
+			Assert.Equal(0, CountActionEntities(disabled.World, "force_war_win"));
+			Assert.Equal(0, CountActionEntities(disabled.World, "force_war_loss"));
+			Assert.Equal(1, CountActionEntities(enabled.World, "force_war_win"));
+			Assert.Equal(1, CountActionEntities(enabled.World, "force_war_loss"));
 		}
 
 		[Fact]

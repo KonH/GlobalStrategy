@@ -23,6 +23,31 @@
     overflow: visible;
 }
 
+/* Country actions: deck sits in its own column, stretched to the card grid's
+   height and bottom-anchored, so it lands in the grid's bottom-left cell
+   purely from layout — no absolute positioning or pixel math needed. */
+.hand-container--split {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: flex-start;
+    overflow: visible;
+}
+
+.hand-deck-column {
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: visible;
+}
+
+.hand-cards-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    width: 1024px;
+    overflow: visible;
+}
+
 .action-deck-wrapper {
     margin-right: 40px;
 }
@@ -94,8 +119,8 @@
 
 /* Header bar */
 .action-card-header {
-    min-height: 32px;
-    max-height: 48px;
+    height: 48px;
+    flex-shrink: 0;
     background-color: rgb(26, 42, 72);
     color: rgb(240, 232, 208);
     font-size: 20px;
