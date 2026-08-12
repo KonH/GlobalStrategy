@@ -33,7 +33,7 @@ using GS.Game.Configs;
 					double available = RequireResource(
 						resources, world, participant.CountryId, ResourceDefinitions.Recruits,
 						$"allocating forces for battle '{battleId}'");
-					available = Math.Max(0, available);
+					available = Math.Max(0, available) * (1 - settings.ReservePercent / 100.0);
 					double baseRatio = 1.0 / (war.Capacity + settings.TroopDenominatorOffset);
 					double randomizedRatio = baseRatio
 						* NextDouble(rng, settings.TroopRandomMin, settings.TroopRandomMax);
