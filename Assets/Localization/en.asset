@@ -574,6 +574,12 @@ MonoBehaviour:
     Value: 'Its lands have fallen silent. {0} no longer appears among the nations of this world.'
   - Key: country_destroyed.confirm
     Value: Continue
+  - Key: org_destroyed.header_format
+    Value: '{0} unravels in the shadows...'
+  - Key: org_destroyed.body_format
+    Value: 'Rival hands wove the threads that brought it down. {0} no longer stands among the powers of this world.'
+  - Key: org_destroyed.confirm
+    Value: Continue
   - Key: select_org.base_control
     Value: "Base Control:"
   - Key: select_org.estimated_income
@@ -2330,6 +2336,10 @@ MonoBehaviour:
     Value: 'Fully control {0} of {1} countries'
   - Key: select_org.win_conditions.score_goal
     Value: Reach a total score of {0}
+  - Key: select_org.win_conditions.last_org_standing
+    Value: Be the last organization standing
+  - Key: goals.last_org_standing
+    Value: Destroy every rival organization
   - Key: end_game.comparison.CommitteeOf300
     Value: The Committee of 300
   - Key: end_game.comparison.TrilateralCommission

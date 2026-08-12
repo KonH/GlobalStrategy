@@ -107,6 +107,10 @@ namespace GS.Unity.UI {
 		}
 
 		public void Show() {
+			if (_state == null || _state.PlayerOrganization.IsDestroyed) {
+				return;
+			}
+
 			_document.rootVisualElement.style.display = DisplayStyle.Flex;
 		}
 
@@ -138,6 +142,10 @@ namespace GS.Unity.UI {
 			if (_state == null) { return; }
 			var org = _state.PlayerOrganization;
 			if (!org.IsValid) { return; }
+			if (org.IsDestroyed) {
+				Hide();
+				return;
+			}
 			if (_orgName != null) {
 				_orgName.text = org.DisplayName;
 			}
@@ -235,7 +243,14 @@ namespace GS.Unity.UI {
 			_cardPlayAnimator.StartCardPlay(_state.PlayerOrganization.OrgId, actionId, slotIndex, cardElement);
 		}
 
-		void HandleOrgChanged(object sender, PropertyChangedEventArgs e) => Refresh();
+		void HandleOrgChanged(object sender, PropertyChangedEventArgs e) {
+			if (_state != null && _state.PlayerOrganization.IsDestroyed) {
+				Hide();
+				return;
+			}
+
+			Refresh();
+		}
 		void HandleResourcesChanged(object sender, PropertyChangedEventArgs e) => Refresh();
 		void HandleCharactersChanged(object sender, PropertyChangedEventArgs e) => Refresh();
 		void HandleActionsChanged(object sender, PropertyChangedEventArgs e) => Refresh();

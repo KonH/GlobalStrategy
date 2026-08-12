@@ -858,6 +858,11 @@ namespace GS.Unity.UI {
 		}
 
 		void HandlePlayerOrgChanged(object sender, PropertyChangedEventArgs e) {
+			if (_state.PlayerOrganization.IsDestroyed) {
+				_orgPanelOpen = false;
+				_orgInfoDocument?.Hide();
+			}
+
 			RefreshCountryViews();
 		}
 
@@ -1278,6 +1283,11 @@ namespace GS.Unity.UI {
 		void ToggleOrgInfo() {
 			if (!(_gameSettings?.FeatureFlags?.ShowPlayerOrgControls ?? true)) { return; }
 			if (_orgInfoDocument == null) { return; }
+			if (_state.PlayerOrganization.IsDestroyed) {
+				_orgPanelOpen = false;
+				_orgInfoDocument.Hide();
+				return;
+			}
 			_orgPanelOpen = !_orgPanelOpen;
 			if (_orgPanelOpen) {
 				_orgInfoDocument.Show();

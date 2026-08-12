@@ -271,27 +271,27 @@ Step.
 
 ## Agent Steps
 
-- [ ] **Confirm Part A surfaces** — verify `IsOrgDestroyed`,
+- [x] **Confirm Part A surfaces** — verify `IsOrgDestroyed`,
   `OrgDestroyedApplied`, `VisualState.OrgDestroyedResults`,
   `PlayerOrganization.IsDestroyed` exist (from Part A's plan); do not duplicate
   their creation here.
 
-- [ ] **`OrgDestroyedWindow` UXML/USS** — clone `CountryDestroyedWindow`'s 4
+- [x] **`OrgDestroyedWindow` UXML/USS** — clone `CountryDestroyedWindow`'s 4
   files, rename selectors/classes, reuse `country_destroy.png` reference
   verbatim (same guid/fileID).
 
-- [ ] **Document + View** — `OrgDestroyedWindowDocument`/`OrgDestroyedWindowView`:
+- [x] **Document + View** — `OrgDestroyedWindowDocument`/`OrgDestroyedWindowView`:
   FIFO open/hide, `ModalState` lock/unlock, `HideVisualOnly` on `Awake` (no
   ack), and dismissal ordered visual hide → acknowledge current snapshot while
   still locked → unlock; PointerUp + `ContainsPoint` on close and confirm,
   `sortingOrder = 515`, bind locale + org name (own `GetOrgName` copy) + image;
   no deselect logic, no pause logic.
 
-- [ ] **Close the player org panel** — on `PlayerOrganization.IsDestroyed`,
+- [x] **Close the player org panel** — on `PlayerOrganization.IsDestroyed`,
   call `OrgInfoDocument.Hide()` to close both subpanels; in `HUDDocument` reset
   `_orgPanelOpen = false` and guard `ToggleOrgInfo()`/`Show()` against reopen.
 
-- [ ] **`EndGameWindowDocument` sequencing fix** — split `HandleStateChanged`
+- [x] **`EndGameWindowDocument` sequencing fix** — split `HandleStateChanged`
   into state-tracking + `TryOpenIfQueued()`/`OpenCurrent()`; subscribe to
   `ModalState.Unlocked`; return while either `ModalState` is locked or
   `OrgDestroyedResults.TryPeek` reports pending work; rely on Part A's
@@ -299,18 +299,18 @@ Step.
   branch and `EndGameWindowView` itself are unchanged. Keep per-type FIFOs +
   `ModalState`; add no global queue.
 
-- [ ] **DI registration** —
+- [x] **DI registration** —
   `GameLifetimeScope.RegisterComponentInHierarchy<OrgDestroyedWindowDocument>()`
   right after `CountryDestroyedWindowDocument`.
 
-- [ ] **Last-standing views + localization** — add cases to
+- [x] **Last-standing views + localization** — add cases to
   `SelectOrgDocument` and `GoalsWindowView`; add EN/RU keys for those views and
   EN/RU `org_destroyed.*` copy (real Russian, no placeholders).
 
-- [ ] **Scene UIDocument wiring** — add GO + `UIDocument` + `HUDPanelSettings`
+- [x] **Scene UIDocument wiring** — add GO + `UIDocument` + `HUDPanelSettings`
   in `Map.unity` (MCP or YAML); document User Step for Editor confirm.
 
-- [ ] **Tests + validate** — see Tests; run `dotnet test
+- [x] **Tests + validate** — see Tests; run `dotnet test
   src/GlobalStrategy.Core.sln` and Release build for plugin DLLs after any
   `src/` change (per workflow) — note most of this plan's work is
   `Assets/Scripts/Unity/UI`, not `src/`, so a Release rebuild may not be
