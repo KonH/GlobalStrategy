@@ -6,6 +6,7 @@ using UnityEngine.UIElements;
 namespace GS.Unity.UI {
 	class TooltipEntry {
 		public VisualElement Panel;
+		public VisualElement Trigger;
 		public string Id;
 		public HashSet<string> Ancestors;
 		public bool IsPinned;
@@ -64,6 +65,16 @@ namespace GS.Unity.UI {
 		}
 
 		public void Update(float deltaTime) {
+			// Triggers whose owning element (e.g. a played/discarded card) was removed
+			// from the visual tree leave their tooltip stuck open with nothing to point at.
+			for (int i = 0; i < _stack.Count; i++) {
+				var entry = _stack[i];
+				if (entry.Trigger != null && entry.Trigger.panel == null) {
+					CloseEntry(entry);
+					break;
+				}
+			}
+
 			var mouse = Mouse.current;
 			if (mouse == null) {
 				return;
@@ -138,8 +149,10 @@ namespace GS.Unity.UI {
 		void CloseUntilAncestorOf(HashSet<string> ancestors) {
 			while (_stack.Count > 0) {
 				var top = _stack[_stack.Count - 1];
-				// Stop at ancestors and at pinned entries — pinned tooltips only dismiss on click-outside
-				if (ancestors.Contains(top.Id) || top.IsPinned) {
+				// Stop only at ancestors — a tooltip that isn't a layer of the one being
+				// opened must close even if pinned; pinning only protects it from
+				// click-outside and mouse-leave, not from an unrelated tooltip opening.
+				if (ancestors.Contains(top.Id)) {
 					break;
 				}
 				CloseTop();
@@ -153,6 +166,7 @@ namespace GS.Unity.UI {
 
 			var entry = new TooltipEntry {
 				Panel = panel,
+				Trigger = trigger,
 				Id = id,
 				Ancestors = ancestors,
 				IsPinned = false,
