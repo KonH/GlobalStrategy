@@ -95,13 +95,16 @@ namespace GS.Unity.UI {
 
 		public void Hide() {
 			HideVisualOnly();
-			// Unlock fires ModalState.Unlocked → both this and any other modal window (e.g.
-			// WarResultWindowDocument) re-check whether they can open now.
-			_modalState.Unlock(this);
-
-			// AcknowledgeCurrent raises PropertyChanged → TryOpenIfQueued → OpenCurrent for the
-			// next FIFO item; do not call OpenCurrent again here.
+			// AcknowledgeCurrent must run before Unlock: it raises PropertyChanged → TryOpenIfQueued,
+			// but that call bails out early while still modal-locked, so it's a no-op here — its real
+			// purpose is removing the just-closed entry from the FIFO queue *before* anything re-checks
+			// it. Do not call OpenCurrent again here.
 			_state?.CountryDestroyedResults.AcknowledgeCurrent();
+
+			// Unlock fires ModalState.Unlocked → both this and any other modal window (e.g.
+			// WarResultWindowDocument) re-check whether they can open now. By this point the
+			// acknowledged entry is already gone, so this won't reopen itself with a stale snapshot.
+			_modalState.Unlock(this);
 		}
 
 		void HideVisualOnly() {
