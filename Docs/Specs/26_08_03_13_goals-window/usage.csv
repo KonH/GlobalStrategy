@@ -1,3 +1,3 @@
-spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,plan_size_kb,prd_size_kb,diff_lines,session_id
-26_08_03_13_goals-window,1.201,spec,automated,,2026-08-03T13:45:13+00:00,2026-08-03T13:45:13+00:00,claude,claude-sonnet-5,,,,,,7.46,15.11,,40,backfilled
-26_08_03_13_goals-window,1.201,plan,automated,,2026-08-03T15:08:16+00:00,2026-08-03T15:08:16+00:00,cursor,cursor-grok-4.5-high,,,,,,7.46,15.11,,192,backfilled
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
+26_08_03_13_goals-window,1.201,spec,automated,,2026-08-03T13:45:13+00:00,2026-08-03T13:45:13+00:00,claude,claude-sonnet-5,,,,,,7.46,1908,15.11,3844,,40,backfilled
+26_08_03_13_goals-window,1.201,plan,automated,,2026-08-03T15:08:16+00:00,2026-08-03T15:08:16+00:00,cursor,cursor-grok-4.5-high,,,,,,7.46,1908,15.11,3844,,192,backfilled

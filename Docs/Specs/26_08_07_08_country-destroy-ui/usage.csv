@@ -1,3 +1,3 @@
-spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,plan_size_kb,prd_size_kb,diff_lines,session_id
-26_08_07_08_country-destroy-ui,1.201,spec,automated,,2026-08-07T08:56:47+00:00,2026-08-07T08:56:47+00:00,claude,claude-sonnet-5,,,,,,7.0,13.54,,74,backfilled
-26_08_07_08_country-destroy-ui,1.201,plan,automated,,2026-08-07T13:14:20+00:00,2026-08-07T13:14:20+00:00,cursor,cursor-grok-4.5-high,,,,,,7.0,13.54,,614,backfilled
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
+26_08_07_08_country-destroy-ui,1.201,spec,automated,,2026-08-07T08:56:47+00:00,2026-08-07T08:56:47+00:00,claude,claude-sonnet-5,,,,,,7.0,1787,13.54,3439,,74,backfilled
+26_08_07_08_country-destroy-ui,1.201,plan,automated,,2026-08-07T13:14:20+00:00,2026-08-07T13:14:20+00:00,cursor,cursor-grok-4.5-high,,,,,,7.0,1787,13.54,3439,,614,backfilled

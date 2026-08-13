@@ -1,3 +1,3 @@
-spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,plan_size_kb,prd_size_kb,diff_lines,session_id
-26_08_02_13_drop-discovery-concept,1.201,spec,automated,,2026-08-02T13:22:31+00:00,2026-08-02T13:22:31+00:00,cursor,cursor-grok-4.5-high,,,,,,10.56,10.73,,90,backfilled
-26_08_02_13_drop-discovery-concept,1.201,plan,automated,,2026-08-02T13:36:45+00:00,2026-08-02T13:36:45+00:00,cursor,cursor-grok-4.5-high,,,,,,10.56,10.73,,134,backfilled
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
+26_08_02_13_drop-discovery-concept,1.201,spec,automated,,2026-08-02T13:22:31+00:00,2026-08-02T13:22:31+00:00,cursor,cursor-grok-4.5-high,,,,,,10.56,2676,10.73,2729,,90,backfilled
+26_08_02_13_drop-discovery-concept,1.201,plan,automated,,2026-08-02T13:36:45+00:00,2026-08-02T13:36:45+00:00,cursor,cursor-grok-4.5-high,,,,,,10.56,2676,10.73,2729,,134,backfilled

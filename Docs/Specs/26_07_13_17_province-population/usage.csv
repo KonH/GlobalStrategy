@@ -1,4 +1,4 @@
-spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,plan_size_kb,prd_size_kb,diff_lines,session_id
-26_07_13_17_province-population,1.201,spec,automated,,2026-07-16T11:36:53+02:00,2026-07-16T11:36:53+02:00,claude,claude-sonnet-5,,,,,,7.65,18.86,,34317,backfilled
-26_07_13_17_province-population,1.201,plan,automated,,2026-07-16T11:36:53+02:00,2026-07-16T11:36:53+02:00,claude,claude-sonnet-5,,,,,,7.65,18.86,,34317,backfilled
-26_07_13_17_province-population,1.201,implement,automated,,2026-07-16T11:36:53+02:00,2026-07-16T11:36:53+02:00,claude,claude-sonnet-5,,,,,,7.65,18.86,,34317,backfilled
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
+26_07_13_17_province-population,1.201,spec,automated,,2026-07-16T11:36:53+02:00,2026-07-16T11:36:53+02:00,claude,claude-sonnet-5,,,,,,7.65,1948,18.86,4802,,34317,backfilled
+26_07_13_17_province-population,1.201,plan,automated,,2026-07-16T11:36:53+02:00,2026-07-16T11:36:53+02:00,claude,claude-sonnet-5,,,,,,7.65,1948,18.86,4802,,34317,backfilled
+26_07_13_17_province-population,1.201,implement,automated,,2026-07-16T11:36:53+02:00,2026-07-16T11:36:53+02:00,claude,claude-sonnet-5,,,,,,7.65,1948,18.86,4802,,34317,backfilled

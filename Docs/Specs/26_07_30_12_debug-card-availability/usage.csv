@@ -1,2 +1,2 @@
-spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,plan_size_kb,prd_size_kb,diff_lines,session_id
-26_07_30_12_debug-card-availability,1.201,spec,automated,,2026-07-30T12:44:05+00:00,2026-07-30T12:44:05+00:00,cursor,cursor-grok-4.5-high,,,,,,11.63,,,97,backfilled
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
+26_07_30_12_debug-card-availability,1.201,spec,automated,,2026-07-30T12:44:05+00:00,2026-07-30T12:44:05+00:00,cursor,cursor-grok-4.5-high,,,,,,11.63,2970,,,,97,backfilled
