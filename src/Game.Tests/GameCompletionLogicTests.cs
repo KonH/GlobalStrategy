@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ECS;
 using GS.Game.Commands;
 using GS.Game.Components;
+using GS.Game.Configs;
 using GS.Main;
 using Xunit;
 
@@ -14,7 +15,13 @@ namespace GS.Game.Tests {
 		};
 
 		static GameLogic BuildLogic() {
-			var logic = new GameLogic(MultiOrgTestSupport.BuildContext(Participants, rngSeed: 41));
+			var logic = new GameLogic(MultiOrgTestSupport.BuildContext(
+				Participants,
+				rngSeed: 41,
+				completionCondition: new CompletionConditionConfig {
+					Type = "total_control",
+					Value = 0.8
+				}));
 			logic.Update(0f);
 			return logic;
 		}

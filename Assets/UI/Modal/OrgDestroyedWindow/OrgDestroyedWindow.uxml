@@ -1,0 +1,16 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/Modal/OrgDestroyedWindow/OrgDestroyedWindow.uss"/>
+    <ui:VisualElement name="org-destroyed-root" class="org-destroyed-root">
+        <ui:VisualElement name="blackfade" class="gs-blackfade"/>
+        <ui:VisualElement name="org-destroyed-panel" class="gs-panel org-destroyed-panel">
+            <ui:VisualElement class="org-destroyed-header">
+                <ui:Label name="org-destroyed-title" text="" class="gs-title org-destroyed-title"/>
+            </ui:VisualElement>
+            <ui:Button name="btn-close" text="X" class="gs-btn org-destroyed-close"/>
+            <ui:VisualElement name="org-destroyed-image" class="org-destroyed-image"/>
+            <ui:Label name="org-destroyed-body" text="" class="gs-content org-destroyed-body"/>
+            <ui:Button name="btn-confirm" text="" class="gs-btn gs-btn--primary org-destroyed-confirm"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

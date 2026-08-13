@@ -27,6 +27,19 @@ namespace GS.Game.Tests {
 			}
 		};
 
+		static int FindOrganization(World world, string orgId) {
+			int[] required = { TypeId<Organization>.Value };
+			foreach (Archetype archetype in world.GetMatchingArchetypes(required, null)) {
+				Organization[] organizations = archetype.GetColumn<Organization>();
+				for (int i = 0; i < archetype.Count; i++) {
+					if (organizations[i].OrganizationId == orgId) {
+						return archetype.Entities[i];
+					}
+				}
+			}
+			throw new System.InvalidOperationException($"Organization '{orgId}' was not found.");
+		}
+
 		[Fact]
 		void no_explicit_profiles_and_no_bot_controlled_orgs_behaves_like_plain_game_logic_update() {
 			// Single-org context: only the initial (player) org participates, so InitSystem never
@@ -201,6 +214,30 @@ namespace GS.Game.Tests {
 
 			Assert.Empty(observed);
 			Assert.Empty(ReadBotActionLogEntries(logic.World));
+		}
+
+		[Fact]
+		void destroyed_org_bot_is_skipped_before_its_decision_tick() {
+			var ctx = MultiOrgTestSupport.BuildContext(
+				participatingOrganizationIds: Participants,
+				rngSeed: 8,
+				includeCountryCard: true);
+			var logic = new GameLogic(ctx);
+			logic.Update(0f);
+			var observed = new List<string>();
+			var profiles = new List<BotProfile> { ControlProfile(MultiOrgTestSupport.OrgB) };
+			var session = BotSession.Create(
+				logic,
+				rngSeed: 8,
+				explicitProfiles: profiles,
+				onAction: (_, _, actionId, _) => observed.Add(actionId));
+			logic.World.Add(FindOrganization(logic.World, MultiOrgTestSupport.OrgB), new IsOrgDestroyed());
+
+			session.Update(24f);
+			session.Update(24f);
+			session.Update(24f);
+
+			Assert.Empty(observed);
 		}
 	}
 }

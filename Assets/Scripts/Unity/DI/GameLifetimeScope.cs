@@ -117,6 +117,7 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<WarProgressWindowDocument>();
 			builder.RegisterComponentInHierarchy<WarResultWindowDocument>();
 			builder.RegisterComponentInHierarchy<CountryDestroyedWindowDocument>();
+			builder.RegisterComponentInHierarchy<OrgDestroyedWindowDocument>();
 			builder.RegisterComponentInHierarchy<SettingsWindowDocument>();
 			builder.RegisterComponentInHierarchy<OrgInfoDocument>();
 			builder.RegisterComponentInHierarchy<CardPlayAnimator>();

@@ -624,6 +624,12 @@ MonoBehaviour:
     Value: 'Её земли погрузились в тишину. {0} больше не числится среди народов этого мира.'
   - Key: country_destroyed.confirm
     Value: Продолжить
+  - Key: org_destroyed.header_format
+    Value: 'Тени поглощают организацию «{0}»...'
+  - Key: org_destroyed.body_format
+    Value: 'Заговоры соперников сплели сеть, которая привела её к краху. Организация «{0}» больше не принадлежит к силам этого мира.'
+  - Key: org_destroyed.confirm
+    Value: Продолжить
   - Key: select_org.base_control
     Value: 'Базовый контроль:'
   - Key: select_org.estimated_income
@@ -2364,6 +2370,8 @@ MonoBehaviour:
     Value: '{0} победила в игре!'
   - Key: end_game.result.lose
     Value: '{0} победила. Ваша организация не достигла победы.'
+  - Key: end_game.result.destroyed
+    Value: Ваша организация уничтожена. Вам не удалось достичь победы.
   - Key: end_game.exit
     Value: Выход
   - Key: end_game.leaderboard.empty
@@ -2380,6 +2388,10 @@ MonoBehaviour:
     Value: 'Полностью контролируйте {0} из {1} стран'
   - Key: select_org.win_conditions.score_goal
     Value: Достичь итогового счета {0}
+  - Key: select_org.win_conditions.last_org_standing
+    Value: Остаться последней действующей организацией
+  - Key: goals.last_org_standing
+    Value: Уничтожьте все организации соперников
   - Key: end_game.comparison.CommitteeOf300
     Value: Комитет 300
   - Key: end_game.comparison.TrilateralCommission

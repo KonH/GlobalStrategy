@@ -28,6 +28,12 @@ namespace GS.Game.Systems {
 			RemoveComponent<CountryDestroyedApplied>(world);
 		}
 
+		// OrgDestroyedApplied follows the same next-tick lifetime as country destruction:
+		// VisualStateConverter must observe it before cleanup.
+		public static void UpdateOrgDestroyed(World world) {
+			RemoveComponent<OrgDestroyedApplied>(world);
+		}
+
 		// Called alongside CleanupActionEffectsSystem.Update, before CreateActionEffectSystem
 		// creates this tick's batch. Do NOT sweep WarResolvedApplied here —
 		// peace/StopWar emit it earlier in the tick (before this call); that component is cleaned
