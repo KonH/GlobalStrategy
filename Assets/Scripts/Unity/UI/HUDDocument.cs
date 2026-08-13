@@ -930,10 +930,10 @@ namespace GS.Unity.UI {
 			if (_state == null || _commands == null || !_state.SelectedCountry.IsValid) { return; }
 			string orgId = GetSelectedControlOrgDropdownOrgId();
 			if (string.IsNullOrEmpty(orgId)) { return; }
-			// Only ever touches the org's "permanent_" control effect in this country, never its
-			// "base_" (HQ baseline) effect - see ControlSystem.ApplyChangeControl. An org sitting
-			// on its own HQ can look "stuck" at a nonzero floor once its permanent effect hits 0;
-			// that's the baseline showing through, not a bug in this button.
+			// Positive deltas grow the org's "permanent_" control effect in this country;
+			// negative deltas drain every control effect the org has there (including its
+			// "base_" HQ-seed effect) via GameLogic.ApplyChangeControl, so this can zero an
+			// org's control even on its own HQ - see ControlQuery.ReduceOrgControlInCountry.
 			_commands.Push(new ChangeControlCommand {
 				OrgId = orgId,
 				CountryId = _state.SelectedCountry.CountryId,

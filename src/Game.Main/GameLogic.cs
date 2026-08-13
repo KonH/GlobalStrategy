@@ -535,7 +535,18 @@ namespace GS.Main {
 		}
 
 		void ApplyChangeControl(string orgId, string countryId, int delta) {
-			ControlSystem.ApplyChangeControl(_world, orgId, countryId, delta, MaxControlPool);
+			// A negative delta must be able to draw down an org's "base_{orgId}" HQ-seed effect,
+			// not just its "permanent_" one - otherwise decreasing an org sitting on its own HQ
+			// (whose total is base + permanent) gets stuck once the permanent portion hits 0,
+			// even though the org's real total in the country is still above 0. Route reductions
+			// through ControlQuery.ReduceOrgControlInCountry, which already drains every effect
+			// entity for that org/country pair in a stable order (see DebugForceCompletionCondition's
+			// eviction path for the same pattern).
+			if (delta < 0) {
+				ControlQuery.ReduceOrgControlInCountry(_world, orgId, countryId, -delta);
+			} else {
+				ControlSystem.ApplyChangeControl(_world, orgId, countryId, delta, MaxControlPool);
+			}
 		}
 
 		void TryDestroyTerritoryLosers(List<string> territoryLosers) {
