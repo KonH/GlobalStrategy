@@ -42,7 +42,7 @@ namespace GS.Game.ConsoleRunner {
 				logger: logger);
 			var logic = new GameLogic(ctx);
 
-			var registry = BotFeatureRegistry.CreateDefault(logic.MaxControlPool);
+			var registry = BotFeatureRegistry.CreateDefault(logic.MaxControlPool, logic.EffectConfig);
 			var seenProfileOrgs = new HashSet<string>();
 			foreach (var profile in profiles) {
 				if (!orgIds.Contains(profile.OrgId)) {
