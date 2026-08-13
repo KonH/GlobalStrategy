@@ -18,6 +18,7 @@ namespace GS.Game.Tests {
 		const string ControlActionId = "control";
 		const string PlayableActionId = "playable";
 		const string FallbackActionId = "fallback";
+		const string DeclareWarActionId = "declare_war";
 
 		sealed class CapturingCommandAccessor : IWriteOnlyCommandAccessor {
 			public List<ICommand> Commands = new();
@@ -25,12 +26,17 @@ namespace GS.Game.Tests {
 		}
 
 		sealed class ScriptedPlayFeature : IBotFeature {
-			public int TickCount;
+			public int CollectCount;
 			public string FeatureId => "scripted";
 
-			public void Tick(IBotObservation observation, IBotCommandSink sink, Random rng) {
-				TickCount++;
-				sink.PlayOrgCard("scripted_play", 0);
+			public void CollectProposals(IBotObservation observation, IList<BotPlayProposal> proposals, Random rng) {
+				CollectCount++;
+				proposals.Add(new BotPlayProposal {
+					FeatureId = FeatureId,
+					ActionId = "scripted_play",
+					SlotIndex = 0,
+					EstimatedDeltaOrgScore = 1.0
+				});
 			}
 		}
 
@@ -63,6 +69,11 @@ namespace GS.Game.Tests {
 						OwnerType = "country",
 						DeckCopies = 1,
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = ResourceDefinitions.Gold, Amount = 1 } }
+					},
+					new ActionDefinition {
+						ActionId = DeclareWarActionId,
+						OwnerType = "country",
+						DeckCopies = 1
 					}
 				}
 			};
@@ -131,29 +142,30 @@ namespace GS.Game.Tests {
 
 			DrawCardsCommand draw = Assert.IsType<DrawCardsCommand>(Assert.Single(commands.Commands));
 			Assert.Equal(OrgId, draw.OrgId);
-			Assert.Equal(0, feature.TickCount);
+			Assert.Equal(0, feature.CollectCount);
 		}
 
 		[Fact]
-		void acquisition_is_serviced_before_same_day_play_gate() {
+		void acquisition_is_serviced_while_cycle_is_open_before_play() {
 			var (world, deckEntity) = BuildWorld();
+			AddCountryCard(world, PlayableActionId);
 			var commands = new CapturingCommandAccessor();
 			var feature = new ScriptedPlayFeature();
 			Bot bot = BuildBot(world, commands, new[] { feature });
 			ActionConfig actionConfig = BuildActionConfig();
 
 			bot.ExecuteDecisionTick(world, actionConfig);
-			Assert.IsType<PlayCardActionCommand>(Assert.Single(commands.Commands));
-			Assert.Equal(1, feature.TickCount);
+			Assert.IsType<DrawCardsCommand>(Assert.Single(commands.Commands));
+			Assert.Equal(0, feature.CollectCount);
 
+			commands.Commands.Clear();
 			AddCountryCard(world, PlayableActionId, choiceIndex: 0);
 			world.Add(deckEntity, new PendingCardDraw { OptionCount = 1 });
 			bot.ExecuteDecisionTick(world, actionConfig);
 
-			Assert.Equal(2, commands.Commands.Count);
-			ReceiveCardCommand receive = Assert.IsType<ReceiveCardCommand>(commands.Commands[1]);
+			ReceiveCardCommand receive = Assert.IsType<ReceiveCardCommand>(Assert.Single(commands.Commands));
 			Assert.Equal(0, receive.ChoiceIndex);
-			Assert.Equal(1, feature.TickCount);
+			Assert.Equal(0, feature.CollectCount);
 		}
 
 		[Theory]
@@ -192,6 +204,22 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void war_intent_choice_beats_generic_playable_when_control_absent() {
+			var (world, deckEntity) = BuildWorld();
+			AddCountryCard(world, PlayableActionId, choiceIndex: 0);
+			AddCountryCard(world, DeclareWarActionId, choiceIndex: 1);
+			AddCountryCard(world, FallbackActionId, choiceIndex: 2);
+			world.Add(deckEntity, new PendingCardDraw { OptionCount = 3 });
+			var commands = new CapturingCommandAccessor();
+			Bot bot = BuildBot(world, commands);
+
+			bot.ExecuteDecisionTick(world, BuildActionConfig());
+
+			ReceiveCardCommand receive = Assert.IsType<ReceiveCardCommand>(Assert.Single(commands.Commands));
+			Assert.Equal(1, receive.ChoiceIndex);
+		}
+
+		[Fact]
 		void observation_exposes_authoritative_hand_and_ordered_choice_metadata() {
 			var (world, deckEntity) = BuildWorld(handSize: 8);
 			int inHand = AddCountryCard(world, PlayableActionId);
@@ -225,7 +253,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void unresolvable_acquisition_stops_blocking_feature_tick_after_stall_limit() {
+		void unresolvable_acquisition_stops_blocking_proposals_after_stall_limit() {
 			var (world, deckEntity) = BuildWorld(handSize: 1);
 			int handCard = AddCountryCard(world, PlayableActionId);
 			world.Add(handCard, new CardInHand { SlotIndex = 0 });
@@ -237,22 +265,18 @@ namespace GS.Game.Tests {
 			ActionConfig actionConfig = BuildActionConfig();
 			DateTime baseDate = world.Get<GameTime>(FindTimeEntity(world)).CurrentTime;
 
-			// The single hand slot is already occupied, so ReceiveCardSystem would reject this
-			// offer every time it's actually processed (not modeled here - the bot only reads
-			// state) - the choice/PendingCardDraw markers are left in place forever, exactly
-			// like a stuck offer. The bot must not stay frozen because of it.
-			for (int day = 0; day < 3; day++) {
-				SetCurrentDate(world, baseDate.AddDays(day));
-				bot.ExecuteDecisionTick(world, actionConfig);
-			}
-			Assert.Equal(0, feature.TickCount);
+			// Stall limit is Max(intervalHours * 3, 24) = 24h with default interval 4.
+			SetCurrentDate(world, baseDate);
+			bot.ExecuteDecisionTick(world, actionConfig);
+			SetCurrentDate(world, baseDate.AddHours(23));
+			bot.ExecuteDecisionTick(world, actionConfig);
+			Assert.Equal(0, feature.CollectCount);
 			Assert.All(commands.Commands, cmd => Assert.IsType<ReceiveCardCommand>(cmd));
 
-			SetCurrentDate(world, baseDate.AddDays(3));
+			SetCurrentDate(world, baseDate.AddHours(24));
 			bot.ExecuteDecisionTick(world, actionConfig);
 
-			Assert.Equal(1, feature.TickCount);
-			// The stuck offer is still there and still retried in the background.
+			Assert.Equal(1, feature.CollectCount);
 			Assert.True(world.Has<PendingCardDraw>(deckEntity));
 			Assert.True(world.Has<CardDrawChoice>(choice));
 			Assert.Contains(commands.Commands, cmd => cmd is PlayCardActionCommand);

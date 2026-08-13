@@ -172,15 +172,24 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void discards_a_card_when_hand_is_full_and_nothing_raises_control() {
+		void collect_proposals_is_empty_when_nothing_raises_control() {
+			var logic = BuildNoControlCardLogic(countryHandSize: 1);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations, logic.EffectConfig);
+			var feature = new ControlFeature(new Dictionary<string, double>(), 100);
+			var proposals = new List<BotPlayProposal>();
+
+			feature.CollectProposals(obs, proposals, new Random(1));
+
+			Assert.Empty(proposals);
+		}
+
+		[Fact]
+		void shared_discard_helper_discards_when_hand_is_full() {
 			var logic = BuildNoControlCardLogic(countryHandSize: 1);
 			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations, logic.EffectConfig);
 			var sink = new RecordingSink();
-			var feature = new ControlFeature(new Dictionary<string, double>(), 100);
 
-			feature.Tick(obs, sink, new Random(1));
-
-			Assert.Empty(sink.Plays);
+			Assert.True(BotDiscardHelper.TryDiscardForBetterHand(obs, sink));
 			Assert.Single(sink.Discards);
 			Assert.Equal((OpinionCardId, 0), sink.Discards[0]);
 		}
@@ -190,13 +199,8 @@ namespace GS.Game.Tests {
 			var logic = BuildNoControlCardLogic(countryHandSize: 2);
 			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations, logic.EffectConfig);
 			var sink = new RecordingSink();
-			var feature = new ControlFeature(new Dictionary<string, double>(), 100);
 
-			feature.Tick(obs, sink, new Random(1));
-
-			Assert.Empty(sink.Plays);
-			// One of two country-hand slots is still free - the acquisition phase draws into it
-			// on its own, so discarding the one card already in hand would be wasteful.
+			Assert.False(BotDiscardHelper.TryDiscardForBetterHand(obs, sink));
 			Assert.Empty(sink.Discards);
 		}
 
@@ -270,47 +274,56 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void plays_control_change_card_over_opinion_card_when_eligible() {
+		void proposes_control_change_card_over_opinion_card_when_eligible() {
 			// Org distractor is playable but ControlFeature ignores org cards; Austria has both a
 			// positive ControlChangeEffectParams card and an OpinionModifierEffectParams distractor.
 			// Only the control-change card qualifies — proving baselineCardPlay's "any playable
 			// card" behavior does not leak into this feature.
 			var logic = BuildPriorityLogic(orgGold: 1000.0);
 			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations, logic.EffectConfig);
-			var sink = new RecordingSink();
 			var feature = new ControlFeature(new Dictionary<string, double>(), 100);
+			var proposals = new List<BotPlayProposal>();
 
-			feature.Tick(obs, sink, new Random(1));
+			feature.CollectProposals(obs, proposals, new Random(1));
 
-			Assert.Single(sink.Plays);
-			Assert.Equal((ControlCardId, "Austria"), sink.Plays[0]);
+			Assert.NotEmpty(proposals);
+			Assert.All(proposals, p => {
+				Assert.Equal(ControlCardId, p.ActionId);
+				Assert.True(p.EstimatedDeltaOrgScore > 0);
+			});
+			Assert.Contains(proposals, p => p.CountryId == "Austria");
 		}
 
 		[Fact]
 		void ignores_removed_discovery_threshold_parameter() {
 			// Legacy discoveredCountriesAvailableControl must be ignored; ControlFeature still
-			// plays the first eligible RaisesControl country card.
+			// proposes eligible RaisesControl country cards.
 			var logic = BuildPriorityLogic(orgGold: 1000.0);
 			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations, logic.EffectConfig);
-			var sink = new RecordingSink();
 			var feature = new ControlFeature(new Dictionary<string, double> { ["discoveredCountriesAvailableControl"] = 0 }, 100);
+			var proposals = new List<BotPlayProposal>();
 
-			feature.Tick(obs, sink, new Random(1));
+			feature.CollectProposals(obs, proposals, new Random(1));
 
-			Assert.Single(sink.Plays);
-			Assert.Equal((ControlCardId, "Austria"), sink.Plays[0]);
+			Assert.NotEmpty(proposals);
+			Assert.All(proposals, p => Assert.Equal(ControlCardId, p.ActionId));
+			Assert.Contains(proposals, p => p.CountryId == "Austria");
 		}
 
 		[Fact]
-		void plays_at_most_one_card_per_tick() {
+		void bot_plays_at_most_one_control_card_per_cycle() {
 			var logic = BuildPriorityLogic(orgGold: 1000.0);
-			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations, logic.EffectConfig);
-			var sink = new RecordingSink();
+			var plays = new List<(string ActionId, string CountryId)>();
+			var sink = new BotCommandSink("Illuminati", logic.Commands, null, (actionId, countryId) => plays.Add((actionId, countryId)));
 			var feature = new ControlFeature(new Dictionary<string, double>(), 100);
+			var bot = new Bot("Illuminati", new List<IBotFeature> { feature }, new Random(1), sink, logic.Resources, logic.Relations, logic.EffectConfig);
 
-			feature.Tick(obs, sink, new Random(1));
+			bot.ExecuteDecisionTick(logic.World, logic.ActionConfig);
 
-			Assert.True(sink.Plays.Count <= 1);
+			Assert.True(plays.Count <= 1);
+			if (plays.Count == 1) {
+				Assert.Equal((ControlCardId, "Austria"), plays[0]);
+			}
 		}
 
 		[Fact]

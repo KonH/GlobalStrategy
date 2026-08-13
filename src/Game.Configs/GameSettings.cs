@@ -38,6 +38,7 @@ namespace GS.Game.Configs {
 		};
 		public int BotActionLogRetentionCap { get; set; } = 500;
 		public int MaxControlPool { get; set; } = 100;
+		public double BotDecisionIntervalHours { get; set; } = 4;
 		public CompletionConditionConfig CompletionCondition { get; set; } = new CompletionConditionConfig {
 			Type = "any",
 			Members = new List<CompletionConditionConfig> {

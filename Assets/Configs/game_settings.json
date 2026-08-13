@@ -1,5 +1,5 @@
 {
-  "version": "1.205",
+  "version": "1.206",
   "startYear": 1880,
   "speedMultipliers": [1, 24, 720],
   "defaultLocale": "en",
@@ -56,6 +56,7 @@
   "resourceIdUpdateOrder": ["population", "country_population", "country_score", "recruits", "org_score", "damage", "durability", "gold"],
   "botActionLogRetentionCap": 500,
   "maxControlPool": 100,
+  "botDecisionIntervalHours": 4,
   "completionCondition": {
     "type": "any",
     "members": [

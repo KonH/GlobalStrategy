@@ -13,24 +13,34 @@ namespace GS.Game.Bots {
 
 		public string FeatureId => Id;
 
-		public void Tick(IBotObservation obs, IBotCommandSink sink, Random rng) {
+		public void CollectProposals(IBotObservation obs, IList<BotPlayProposal> proposals, Random rng) {
+			_ = rng;
 			foreach (var card in obs.OrgHand) {
-				if (TryPlay(obs, sink, card)) { return; }
+				if (TryPropose(obs, proposals, card)) {
+					return;
+				}
 			}
 			foreach (var country in obs.Countries) {
 				foreach (var card in country.Hand) {
-					if (TryPlay(obs, sink, card)) { return; }
+					if (TryPropose(obs, proposals, card)) {
+						return;
+					}
 				}
 			}
 		}
 
-		bool TryPlay(IBotObservation obs, IBotCommandSink sink, BotCardView card) {
-			if (!card.IsPlayable || obs.Gold - card.GoldCost < _minGoldReserve) { return false; }
-			if (card.CountryId == "") {
-				sink.PlayOrgCard(card.ActionId, card.SlotIndex);
-			} else {
-				sink.PlayCountryCard(card.ActionId, card.CountryId, card.SlotIndex, card.TargetCountryId);
+		bool TryPropose(IBotObservation obs, IList<BotPlayProposal> proposals, BotCardView card) {
+			if (!card.IsPlayable || obs.Gold - card.GoldCost < _minGoldReserve) {
+				return false;
 			}
+			proposals.Add(new BotPlayProposal {
+				FeatureId = FeatureId,
+				ActionId = card.ActionId,
+				CountryId = card.CountryId,
+				TargetCountryId = card.TargetCountryId,
+				SlotIndex = card.SlotIndex,
+				EstimatedDeltaOrgScore = 1.0
+			});
 			return true;
 		}
 	}

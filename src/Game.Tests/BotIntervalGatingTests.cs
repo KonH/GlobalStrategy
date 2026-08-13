@@ -8,7 +8,7 @@ using Xunit;
 using GS.Game.Systems;
 
 namespace GS.Game.Tests {
-	public class BotDayGatingTests {
+	public class BotIntervalGatingTests {
 		readonly ResourceQuery _resources = new ResourceQuery();
 		readonly CountryRelations _relations = new CountryRelations();
 		sealed class NullCommandAccessor : IWriteOnlyCommandAccessor {
@@ -24,7 +24,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void repeated_calls_within_the_same_simulated_day_emit_at_most_one_card_total() {
+		void repeated_calls_within_the_same_interval_emit_at_most_one_card_total() {
 			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 1);
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
@@ -33,7 +33,6 @@ namespace GS.Game.Tests {
 			var feature = new BaselineCardPlayFeature(new Dictionary<string, double>());
 			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(1, MultiOrgTestSupport.OrgA), sink, logic.Resources, logic.Relations);
 
-			// Same simulated day for all three calls - no time advance in between.
 			bot.ExecuteDecisionTick(logic.World, logic.ActionConfig);
 			bot.ExecuteDecisionTick(logic.World, logic.ActionConfig);
 			bot.ExecuteDecisionTick(logic.World, logic.ActionConfig);
@@ -42,27 +41,32 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void call_after_day_advances_may_act_again() {
+		void call_after_interval_hours_elapse_may_act_again() {
 			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: Participants, rngSeed: 2);
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
 
 			var (sink, plays) = BuildTrackingSink(MultiOrgTestSupport.OrgA, logic.Commands);
 			var feature = new BaselineCardPlayFeature(new Dictionary<string, double>());
-			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(2, MultiOrgTestSupport.OrgA), sink, logic.Resources, logic.Relations);
+			var bot = new Bot(
+				MultiOrgTestSupport.OrgA,
+				new List<IBotFeature> { feature },
+				BotRng.Create(2, MultiOrgTestSupport.OrgA),
+				sink,
+				logic.Resources,
+				logic.Relations,
+				botDecisionIntervalHours: 4);
 
 			bot.ExecuteDecisionTick(logic.World, logic.ActionConfig);
-			int playsAfterDay1 = plays.Count;
+			int playsAfterFirst = plays.Count;
 			Assert.Single(plays);
 
-			// Same day again - gated, no additional play.
 			bot.ExecuteDecisionTick(logic.World, logic.ActionConfig);
 			Assert.Single(plays);
 
-			// Advance one simulated day, then the bot may act again.
-			logic.Update(24f);
+			logic.Update(4f);
 			bot.ExecuteDecisionTick(logic.World, logic.ActionConfig);
-			Assert.True(plays.Count >= playsAfterDay1);
+			Assert.True(plays.Count >= playsAfterFirst);
 		}
 
 		[Fact]
@@ -74,17 +78,11 @@ namespace GS.Game.Tests {
 			var feature = new BaselineCardPlayFeature(new Dictionary<string, double>());
 			var bot = new Bot(MultiOrgTestSupport.OrgA, new List<IBotFeature> { feature }, BotRng.Create(3, MultiOrgTestSupport.OrgA), sink, logic.Resources, logic.Relations);
 
-			// World has no GameTime entity yet (Update has never run) - ReadCurrentDate must
-			// return default rather than throw, and the gate must still let this first-ever
-			// call through (no prior recorded date to compare against).
 			var ex = Record.Exception(() => bot.ExecuteDecisionTick(logic.World, logic.ActionConfig));
 			Assert.Null(ex);
 
 			logic.Update(0f);
 
-			// The first real decision after init must still be able to act - not permanently
-			// blocked by the pre-init gate having recorded a "day" (DateTime default) that
-			// would otherwise wrongly match every future date's .Date comparison.
 			bot.ExecuteDecisionTick(logic.World, logic.ActionConfig);
 			Assert.Single(plays);
 		}

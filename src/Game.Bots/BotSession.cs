@@ -86,7 +86,9 @@ namespace GS.Game.Bots {
 			var sink = new BotCommandSink(orgId, _logic.Commands, _logger, callback);
 			bot = new Bot(
 				orgId, features, rng, sink, _logic.Resources, _logic.Relations, _logic.EffectConfig,
-				_logic.HqCountryByOrgId, _logic.MaxControlPool);
+				_logic.HqCountryByOrgId, _logic.MaxControlPool,
+				_logic.GameSettings.BotDecisionIntervalHours,
+				_logic.GameSettings.DiscardGoldCost);
 			_botsByOrgId[orgId] = bot;
 		}
 
