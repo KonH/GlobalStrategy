@@ -1,0 +1,4 @@
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
+26_06_15_09_version-label,1.201,spec,automated,,2026-06-15T09:51:20+02:00,2026-06-15T09:51:20+02:00,claude,claude-sonnet-4-6,,,,,,2.48,634,5.66,1443,,164,backfilled
+26_06_15_09_version-label,1.201,plan,automated,,2026-06-15T09:51:20+02:00,2026-06-15T09:51:20+02:00,claude,claude-sonnet-4-6,,,,,,2.48,634,5.66,1443,,164,backfilled
+26_06_15_09_version-label,1.201,implement,automated,,2026-06-15T09:51:20+02:00,2026-06-15T09:51:20+02:00,claude,claude-sonnet-4-6,,,,,,2.48,634,5.66,1443,,164,backfilled

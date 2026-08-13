@@ -1,0 +1,4 @@
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
+26_07_30_13_war-progress-window,1.201,spec,automated,,2026-07-30T13:51:43+00:00,2026-07-30T13:51:43+00:00,claude,claude-sonnet-5,,,,,,8.14,2083,13.72,3491,,70,backfilled
+26_07_30_13_war-progress-window,1.201,plan,automated,,2026-07-30T19:21:30+00:00,2026-07-30T19:21:30+00:00,cursor,cursor-grok-4.5-high,,,,,,8.14,2083,13.72,3491,,239,backfilled
+26_07_30_13_war-progress-window,1.204,implement,automated,,2026-07-30T20:12:39+00:00,2026-07-30T20:12:39+00:00,cursor,cursor-grok-4.5-high,,,,,,8.14,2083,13.72,3491,0.03,2060,backfilled

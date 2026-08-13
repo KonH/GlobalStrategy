@@ -1,2 +1,2 @@
-spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,plan_size_kb,prd_size_kb,diff_lines,session_id
-26_08_08_20_black-hand-org,1.184,implement_user_input_1,interactive,fresh,2026-08-09T10:22:01.711Z,2026-08-09T10:29:59.399Z,claude,claude-sonnet-5,medium,4.6181049000000005,209,13130093,45230,6.41,16.04,0.03,20216,9e68105d-f5fc-44e7-b9cc-4c858b11b68c
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
+26_08_08_20_black-hand-org,1.184,implement_user_input_1,interactive,fresh,2026-08-09T10:22:01.711Z,2026-08-09T10:29:59.399Z,claude,claude-sonnet-5,medium,4.6181049000000005,209,13130093,45230,6.41,1614,16.04,4027,0.03,20216,9e68105d-f5fc-44e7-b9cc-4c858b11b68c

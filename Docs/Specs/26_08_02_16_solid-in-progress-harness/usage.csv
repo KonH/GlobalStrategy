@@ -1,0 +1,4 @@
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
+26_08_02_16_solid-in-progress-harness,1.201,spec,automated,,2026-08-02T16:17:07+00:00,2026-08-02T16:17:07+00:00,cursor,cursor-grok-4.5-high,,,,,,8.15,2080,15.43,3926,,68,backfilled
+26_08_02_16_solid-in-progress-harness,1.201,plan,automated,,2026-08-03T06:38:39+00:00,2026-08-03T06:38:39+00:00,cursor,cursor-grok-4.5-high,,,,,,8.15,2080,15.43,3926,,77,backfilled
+26_08_02_16_solid-in-progress-harness,1.204,implement,automated,,2026-08-03T07:43:25+00:00,2026-08-03T07:43:25+00:00,cursor,cursor-grok-4.5-high,,,,,,8.15,2080,15.43,3926,0.03,670,backfilled
