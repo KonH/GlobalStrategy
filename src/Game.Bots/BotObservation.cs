@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ECS;
+using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
@@ -10,6 +11,8 @@ namespace GS.Game.Bots {
 		public string OrgId { get; }
 		public DateTime CurrentDate { get; }
 		public double Gold { get; }
+		public double OrgScore { get; }
+		public IReadOnlyList<BotOrgScoreView> OrgScores { get; }
 		public int OrgHandSize { get; }
 		public int CountryHandCount { get; }
 		public int CountryHandCapacity { get; }
@@ -26,6 +29,8 @@ namespace GS.Game.Bots {
 			string orgId,
 			DateTime currentDate,
 			double gold,
+			double orgScore,
+			IReadOnlyList<BotOrgScoreView> orgScores,
 			int orgHandSize,
 			int countryHandCount,
 			int countryHandCapacity,
@@ -38,6 +43,8 @@ namespace GS.Game.Bots {
 			OrgId = orgId;
 			CurrentDate = currentDate;
 			Gold = gold;
+			OrgScore = orgScore;
+			OrgScores = orgScores;
 			OrgHandSize = orgHandSize;
 			CountryHandCount = countryHandCount;
 			CountryHandCapacity = countryHandCapacity;
@@ -78,6 +85,108 @@ namespace GS.Game.Bots {
 			return false;
 		}
 
+		sealed class WarPairInfo {
+			public string WarId = "";
+			public WarParticipantKind Kind;
+			public string OpponentCountryId = "";
+			public double OwnWarProgress;
+		}
+
+		static Dictionary<string, WarPairInfo> BuildWarPairByCountry(
+			IReadOnlyWorld world,
+			ResourceQuery resources) {
+			var participantsByWar = new Dictionary<string, List<(string CountryId, WarParticipantKind Kind)>>(
+				StringComparer.Ordinal);
+			int[] participantReq = { TypeId<WarParticipant>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(participantReq, null)) {
+				WarParticipant[] participants = arch.GetColumn<WarParticipant>();
+				for (int i = 0; i < arch.Count; i++) {
+					string warId = participants[i].WarId;
+					if (!participantsByWar.TryGetValue(warId, out var list)) {
+						list = new List<(string, WarParticipantKind)>(2);
+						participantsByWar[warId] = list;
+					}
+					list.Add((participants[i].CountryId, participants[i].Kind));
+				}
+			}
+
+			var result = new Dictionary<string, WarPairInfo>(StringComparer.Ordinal);
+			foreach (var kv in participantsByWar) {
+				string warId = kv.Key;
+				var list = kv.Value;
+				double progress = 0;
+				resources.TryGetValue(world, warId, ResourceDefinitions.WarProgress, out progress);
+
+				for (int i = 0; i < list.Count; i++) {
+					string countryId = list[i].CountryId;
+					WarParticipantKind kind = list[i].Kind;
+					string opponentId = "";
+					for (int j = 0; j < list.Count; j++) {
+						if (list[j].CountryId != countryId) {
+							opponentId = list[j].CountryId;
+							break;
+						}
+					}
+					result[countryId] = new WarPairInfo {
+						WarId = warId,
+						Kind = kind,
+						OpponentCountryId = opponentId,
+						OwnWarProgress = kind == WarParticipantKind.Attacker ? progress : -progress
+					};
+				}
+			}
+			return result;
+		}
+
+		static void BuildProvinceCounts(
+			IReadOnlyWorld world,
+			out Dictionary<string, int> ownedByCountry,
+			out Dictionary<string, int> occupiedOwnedByCountry) {
+			ownedByCountry = new Dictionary<string, int>(StringComparer.Ordinal);
+			occupiedOwnedByCountry = new Dictionary<string, int>(StringComparer.Ordinal);
+			Dictionary<string, string> occupierByProvince = ProvinceOccupationSystem.GetOccupierByProvinceId(world);
+
+			int[] ownershipReq = { TypeId<ProvinceOwnership>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(ownershipReq, null)) {
+				ProvinceOwnership[] ownerships = arch.GetColumn<ProvinceOwnership>();
+				for (int i = 0; i < arch.Count; i++) {
+					string ownerId = ownerships[i].OwnerId ?? "";
+					if (ownerId == "") { continue; }
+					ownedByCountry.TryGetValue(ownerId, out int owned);
+					ownedByCountry[ownerId] = owned + 1;
+
+					string provinceId = ownerships[i].ProvinceId;
+					if (!occupierByProvince.TryGetValue(provinceId, out string? occupierId)) {
+						continue;
+					}
+					if (occupierId == "" || occupierId == ownerId) {
+						continue;
+					}
+					occupiedOwnedByCountry.TryGetValue(ownerId, out int occupied);
+					occupiedOwnedByCountry[ownerId] = occupied + 1;
+				}
+			}
+		}
+
+		static List<BotOrgScoreView> BuildOrgScores(IReadOnlyWorld world) {
+			var scores = new List<BotOrgScoreView>();
+			int[] resourceReq = { TypeId<Resource>.Value, TypeId<ResourceOwner>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(resourceReq, null)) {
+				Resource[] resources = arch.GetColumn<Resource>();
+				ResourceOwner[] owners = arch.GetColumn<ResourceOwner>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (resources[i].ResourceId != ResourceDefinitions.OrgScore) { continue; }
+					if (owners[i].OwnerType != OwnerType.Org) { continue; }
+					scores.Add(new BotOrgScoreView {
+						OrgId = owners[i].OwnerId,
+						OrgScore = resources[i].Value
+					});
+				}
+			}
+			scores.Sort((a, b) => string.CompareOrdinal(a.OrgId, b.OrgId));
+			return scores;
+		}
+
 		public static BotObservation Build(
 			IReadOnlyWorld world,
 			ActionConfig actionConfig,
@@ -95,11 +204,16 @@ namespace GS.Game.Bots {
 			Dictionary<string, int> myControlByCountry = OrgMetrics.GetControlByCountry(world, orgId);
 
 			var countryIds = new SortedSet<string>(StringComparer.Ordinal);
+			var destroyedCountryIds = new HashSet<string>(StringComparer.Ordinal);
 			int[] countryReq = { TypeId<Country>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(countryReq, null)) {
 				Country[] countryColumn = arch.GetColumn<Country>();
 				for (int i = 0; i < arch.Count; i++) {
-					countryIds.Add(countryColumn[i].CountryId);
+					string countryId = countryColumn[i].CountryId;
+					countryIds.Add(countryId);
+					if (world.Has<IsDestroyed>(arch.Entities[i])) {
+						destroyedCountryIds.Add(countryId);
+					}
 				}
 			}
 
@@ -108,6 +222,11 @@ namespace GS.Game.Bots {
 			// each (card, country) pair (see .tmp/performance.md Fix 1).
 			ControlWarSnapshot snapshot = ControlWarSnapshot.Build(world, countryIds);
 			IReadOnlyDictionary<string, Dictionary<string, int>> controlByCountry = snapshot.ControlByCountry;
+
+			Dictionary<string, WarPairInfo> warByCountry = BuildWarPairByCountry(world, resources);
+			BuildProvinceCounts(world, out Dictionary<string, int> ownedByCountry, out Dictionary<string, int> occupiedOwnedByCountry);
+			List<BotOrgScoreView> orgScores = BuildOrgScores(world);
+			double orgScore = resources.GetValue(world, orgId, ResourceDefinitions.OrgScore);
 
 			var orgHandCards = new List<BotCardView>();
 			var countryHandCards = new Dictionary<string, List<BotCardView>>();
@@ -339,13 +458,47 @@ namespace GS.Game.Bots {
 
 				var characters = charactersByCountry.TryGetValue(countryId, out var charList) ? charList : new List<BotCountryCharacterView>();
 
+				bool isDestroyed = destroyedCountryIds.Contains(countryId);
+				bool isAtWar = false;
+				string warOpponentCountryId = "";
+				double ownWarProgress = 0;
+				if (warByCountry.TryGetValue(countryId, out WarPairInfo? warInfo)) {
+					isAtWar = true;
+					warOpponentCountryId = warInfo.OpponentCountryId;
+					ownWarProgress = warInfo.OwnWarProgress;
+				}
+
+				IReadOnlyList<string> rivalCountryIds;
+				if (isDestroyed) {
+					rivalCountryIds = Array.Empty<string>();
+				} else {
+					List<string> rivals = relations.GetRelationsByCountryId(world, countryId).Rivals;
+					rivals.Sort(StringComparer.Ordinal);
+					rivalCountryIds = rivals;
+				}
+
+				ownedByCountry.TryGetValue(countryId, out int ownedProvinceCount);
+				occupiedOwnedByCountry.TryGetValue(countryId, out int occupiedOwnedProvinceCount);
+
 				countries.Add(new BotCountryView {
 					CountryId = countryId,
 					MyControl = myControl,
 					TotalControl = total,
 					ControlByOrg = shares,
 					Hand = hand,
-					Characters = characters
+					Characters = characters,
+					IsDestroyed = isDestroyed,
+					IsAtWar = isAtWar,
+					WarOpponentCountryId = warOpponentCountryId,
+					OwnWarProgress = ownWarProgress,
+					RivalCountryIds = rivalCountryIds,
+					CountryScore = resources.GetValue(world, countryId, ResourceDefinitions.CountryScore),
+					OwnedProvinceCount = ownedProvinceCount,
+					OccupiedOwnedProvinceCount = occupiedOwnedProvinceCount,
+					Recruits = resources.GetValue(world, countryId, ResourceDefinitions.Recruits),
+					Damage = resources.GetValue(world, countryId, ResourceDefinitions.Damage),
+					Durability = resources.GetValue(world, countryId, ResourceDefinitions.Durability),
+					TroopsDamageBonusPercent = resources.GetValue(world, countryId, ResourceDefinitions.TroopsDamageBonusPercent)
 				});
 			}
 
@@ -353,6 +506,8 @@ namespace GS.Game.Bots {
 				orgId,
 				currentDate,
 				gold,
+				orgScore,
+				orgScores,
 				orgHandSize,
 				countryHandCount,
 				countryHandCapacity,
