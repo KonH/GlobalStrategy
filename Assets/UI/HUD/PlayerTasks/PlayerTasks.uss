@@ -1,16 +1,19 @@
 .player-tasks-root {
     flex-direction: column;
     align-items: stretch;
+    width: 100%;
 }
 
 .tasks-list {
     flex-direction: column;
     align-items: stretch;
+    width: 100%;
 }
 
 .task-item {
     flex-direction: column;
     align-items: stretch;
+    width: 100%;
     margin-top: 4px;
 }
 
@@ -25,14 +28,17 @@
 }
 
 .task-header-label {
-    font-size: 14px;
+    font-size: 28px;
     color: rgb(230, 220, 190);
     -unity-font-style: bold;
+    white-space: normal;
+    width: 100%;
 }
 
 .task-body {
     flex-direction: column;
     align-items: stretch;
+    width: 100%;
     padding: 6px 8px;
     margin-top: 2px;
     background-color: rgb(22, 34, 58);
@@ -40,9 +46,10 @@
 }
 
 .task-description {
-    font-size: 13px;
+    font-size: 26px;
     color: rgb(210, 205, 185);
     white-space: normal;
+    width: 100%;
     margin-bottom: 4px;
 }
 

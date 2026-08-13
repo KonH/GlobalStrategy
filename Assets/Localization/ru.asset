@@ -407,11 +407,11 @@ MonoBehaviour:
   - Key: task.tutorial_org_resources.name
     Value: Ресурсы организации
   - Key: task.tutorial_org_resources.desc
-    Value: На панели организации отображаются ресурсы организации: золото и очки победы.
+    Value: "На панели организации отображаются ресурсы организации: золото и очки победы."
   - Key: task.tutorial_time_controls.name
     Value: Управление временем
   - Key: task.tutorial_time_controls.desc
-    Value: На панели времени есть элементы управления течением времени: старт/пауза и модификаторы скорости.
+    Value: "На панели времени есть элементы управления течением времени: старт/пауза и модификаторы скорости."
   - Key: task.tutorial_select_country.name
     Value: Выберите государство
   - Key: task.tutorial_select_country.desc

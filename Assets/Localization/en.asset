@@ -407,11 +407,11 @@ MonoBehaviour:
   - Key: task.tutorial_org_resources.name
     Value: Organization resources
   - Key: task.tutorial_org_resources.desc
-    Value: The organization panel shows your organization's resources: gold and victory points.
+    Value: "The organization panel shows your organization's resources: gold and victory points."
   - Key: task.tutorial_time_controls.name
     Value: Time controls
   - Key: task.tutorial_time_controls.desc
-    Value: The time panel has controls for the flow of time: play/pause and speed modifiers.
+    Value: "The time panel has controls for the flow of time: play/pause and speed modifiers."
   - Key: task.tutorial_select_country.name
     Value: Select a country
   - Key: task.tutorial_select_country.desc

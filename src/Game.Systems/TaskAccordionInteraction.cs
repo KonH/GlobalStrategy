@@ -9,24 +9,23 @@ namespace GS.Game.Systems {
 			return clickedTaskId;
 		}
 
-		public static string? SelectInitialExpandedTutorial(
-			IReadOnlyList<(string TaskId, bool IsTutorial)> previous,
-			IReadOnlyList<(string TaskId, bool IsTutorial)> current,
+		public static string? SelectInitialExpandedTask(
+			IReadOnlyList<string> previous,
+			IReadOnlyList<string> current,
 			string? currentExpanded) {
-			previous ??= System.Array.Empty<(string, bool)>();
-			current ??= System.Array.Empty<(string, bool)>();
+			previous ??= System.Array.Empty<string>();
+			current ??= System.Array.Empty<string>();
 
-			foreach (var task in current) {
-				if (!task.IsTutorial) { continue; }
+			foreach (var taskId in current) {
 				bool wasPresent = false;
 				foreach (var prior in previous) {
-					if (prior.TaskId == task.TaskId) {
+					if (prior == taskId) {
 						wasPresent = true;
 						break;
 					}
 				}
 				if (!wasPresent) {
-					return task.TaskId;
+					return taskId;
 				}
 			}
 
@@ -34,8 +33,8 @@ namespace GS.Game.Systems {
 				return null;
 			}
 
-			foreach (var task in current) {
-				if (task.TaskId == currentExpanded) {
+			foreach (var taskId in current) {
+				if (taskId == currentExpanded) {
 					return currentExpanded;
 				}
 			}

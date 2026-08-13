@@ -63,6 +63,7 @@
     border-color: rgb(200, 160, 64);
     border-width: 2px;
     border-radius: 6px;
+    width: 320px;
 }
 
 .country-info-panel {

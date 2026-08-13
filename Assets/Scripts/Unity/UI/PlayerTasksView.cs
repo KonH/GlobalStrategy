@@ -14,6 +14,12 @@ namespace GS.Unity.UI {
 		readonly ResourceConfig _resourceConfig;
 		string? _expandedTaskId;
 		ActiveTasksState? _lastState;
+		// Snapshot of task ids as of the previous Refresh call. ActiveTasksState.Tasks is
+		// mutated in place by VisualState.Set — _lastState and the incoming `state` are the
+		// same object reference by the time Refresh runs, so diffing state.Tasks against
+		// _lastState.Tasks would always compare a list against itself. This standalone
+		// snapshot is the only way to tell which task ids are actually new.
+		List<string> _lastTaskIds = new();
 
 		public PlayerTasksView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig) {
 			_root = root;
@@ -23,7 +29,9 @@ namespace GS.Unity.UI {
 		}
 
 		public void Refresh(ActiveTasksState state) {
-			ActiveTasksState? previous = _lastState;
+			List<string> previousTaskIds = _lastTaskIds;
+			List<string> currentTaskIds = BuildTaskIds(state);
+			_lastTaskIds = currentTaskIds;
 			_lastState = state;
 			_list.Clear();
 			if (state == null || state.Tasks.Count == 0) {
@@ -32,9 +40,9 @@ namespace GS.Unity.UI {
 				return;
 			}
 
-			_expandedTaskId = TaskAccordionInteraction.SelectInitialExpandedTutorial(
-				BuildTutorialTuples(previous),
-				BuildTutorialTuples(state),
+			_expandedTaskId = TaskAccordionInteraction.SelectInitialExpandedTask(
+				previousTaskIds,
+				currentTaskIds,
 				_expandedTaskId);
 
 			_root.style.display = DisplayStyle.Flex;
@@ -43,15 +51,15 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		static List<(string TaskId, bool IsTutorial)> BuildTutorialTuples(ActiveTasksState? state) {
-			var tuples = new List<(string, bool)>();
+		static List<string> BuildTaskIds(ActiveTasksState? state) {
+			var ids = new List<string>();
 			if (state == null) {
-				return tuples;
+				return ids;
 			}
 			foreach (var task in state.Tasks) {
-				tuples.Add((task.TaskId, task.IsTutorial));
+				ids.Add(task.TaskId);
 			}
-			return tuples;
+			return ids;
 		}
 
 		VisualElement BuildTaskItem(ActiveTaskEntryState task) {

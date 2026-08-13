@@ -16,25 +16,32 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void select_initial_expanded_prefers_newly_appeared_tutorial() {
-			var previous = Array.Empty<(string, bool)>();
-			var current = new[] { ("t0", true), ("gameplay", false) };
-			Assert.Equal("t0", TaskAccordionInteraction.SelectInitialExpandedTutorial(previous, current, null));
-			Assert.Equal("t0", TaskAccordionInteraction.SelectInitialExpandedTutorial(previous, current, "gameplay"));
+		void select_initial_expanded_prefers_newly_appeared_task() {
+			var previous = Array.Empty<string>();
+			var current = new[] { "t0", "gameplay" };
+			Assert.Equal("t0", TaskAccordionInteraction.SelectInitialExpandedTask(previous, current, null));
+			Assert.Equal("t0", TaskAccordionInteraction.SelectInitialExpandedTask(previous, current, "gameplay"));
+		}
+
+		[Fact]
+		void select_initial_expanded_prefers_newly_appeared_non_tutorial_task() {
+			var previous = new[] { "t0" };
+			var current = new[] { "t0", "gameplay" };
+			Assert.Equal("gameplay", TaskAccordionInteraction.SelectInitialExpandedTask(previous, current, "t0"));
 		}
 
 		[Fact]
 		void select_initial_expanded_clears_when_expanded_missing() {
-			var previous = new[] { ("t0", true) };
-			var current = new[] { ("gameplay", false) };
-			Assert.Null(TaskAccordionInteraction.SelectInitialExpandedTutorial(previous, current, "t0"));
+			var previous = new[] { "t0" };
+			var current = new[] { "gameplay" };
+			Assert.Null(TaskAccordionInteraction.SelectInitialExpandedTask(previous, current, "t0"));
 		}
 
 		[Fact]
 		void select_initial_expanded_keeps_existing_when_still_present() {
-			var previous = new[] { ("t0", true) };
-			var current = new[] { ("t0", true) };
-			Assert.Equal("t0", TaskAccordionInteraction.SelectInitialExpandedTutorial(previous, current, "t0"));
+			var previous = new[] { "t0" };
+			var current = new[] { "t0" };
+			Assert.Equal("t0", TaskAccordionInteraction.SelectInitialExpandedTask(previous, current, "t0"));
 		}
 	}
 }
