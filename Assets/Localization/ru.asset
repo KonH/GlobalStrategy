@@ -2320,6 +2320,8 @@ MonoBehaviour:
     Value: '{0} победила в игре!'
   - Key: end_game.result.lose
     Value: '{0} победила. Ваша организация не достигла победы.'
+  - Key: end_game.result.destroyed
+    Value: Ваша организация уничтожена. Вам не удалось достичь победы.
   - Key: end_game.exit
     Value: Выход
   - Key: end_game.leaderboard.empty

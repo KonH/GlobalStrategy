@@ -48,7 +48,7 @@
     height: 0;
     margin-bottom: 18px;
     -unity-background-scale-mode: scale-to-fit;
-    background-image: url("project://database/Assets/Textures/Events/country_destroy.png?fileID=-2064606585841019640&guid=6d8cda9888878cd4a8a1d301eb75db59&type=3#country_destroy_0");
+    background-image: url("project://database/Assets/Textures/Events/org_destroy.png?fileID=-4708184861480362668&guid=3e3b37d045b94a199196e7b75e314f75&type=3#org_destroy_0");
 }
 
 .org-destroyed-body {

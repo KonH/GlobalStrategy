@@ -201,6 +201,9 @@ namespace GS.Main {
 			foreach (var cmd in _commandAccessor.ReadDebugForceCompletionConditionCommand().AsSpan()) {
 				ApplyDebugForceCompletionCondition(cmd.TargetOrgId, cmd.ConditionType, cmd.Value);
 			}
+			foreach (var cmd in _commandAccessor.ReadDebugForceOrgDestroyCommand().AsSpan()) {
+				ApplyDebugForceOrgDestroy(cmd.TargetOrgId);
+			}
 			foreach (var cmd in _commandAccessor.ReadSelectProvinceCommand().AsSpan()) {
 				ApplySelectProvince(cmd.ProvinceId);
 			}
@@ -697,6 +700,15 @@ namespace GS.Main {
 			}
 			_resources.TryUpdate(
 				_world, orgId, ResourceDefinitions.Gold, Math.Max(0, current + amount), out _);
+		}
+
+		// Debug-only: simulates OrgDestroySystem's real destruction outcome for the target
+		// org immediately, bypassing its usual gold/hand/control preconditions.
+		void ApplyDebugForceOrgDestroy(string targetOrgId) {
+			_context.Logger?.LogDebug($"[DebugForceOrgDestroy] received: target='{targetOrgId}'");
+			if (OrgDestroySystem.ForceDestroy(_world, targetOrgId)) {
+				SettleOrgScores($"target='{targetOrgId}' forceOrgDestroy");
+			}
 		}
 
 		// Debug-only completion forcer: pushes a target org over a single flattened

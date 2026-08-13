@@ -2320,6 +2320,8 @@ MonoBehaviour:
     Value: '{0} has won the game!'
   - Key: end_game.result.lose
     Value: '{0} has won. Your organization did not achieve victory.'
+  - Key: end_game.result.destroyed
+    Value: Your organization has been destroyed. It did not achieve victory.
   - Key: end_game.exit
     Value: Exit
   - Key: end_game.leaderboard.empty

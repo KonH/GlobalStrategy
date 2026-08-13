@@ -85,6 +85,26 @@ namespace GS.Game.Systems {
 				return false;
 			}
 
+			ApplyDestruction(world, orgEntity, orgId);
+			return true;
+		}
+
+		// Debug-only: applies the same destruction outcome as TryDestroyIfConditionsMet
+		// immediately, skipping the gold/hand/control preconditions. Used to simulate an
+		// org's destruction on demand from the debug menu.
+		public static bool ForceDestroy(World world, string orgId) {
+			if (string.IsNullOrEmpty(orgId)) {
+				return false;
+			}
+			int orgEntity = FindOrgEntity(world, orgId);
+			if (orgEntity < 0 || world.Has<IsOrgDestroyed>(orgEntity)) {
+				return false;
+			}
+			ApplyDestruction(world, orgEntity, orgId);
+			return true;
+		}
+
+		static void ApplyDestruction(World world, int orgEntity, string orgId) {
 			world.Add(orgEntity, new IsOrgDestroyed());
 			ControlQuery.DestroyAllControlForOrg(world, orgId);
 			if (world.Has<OrganizationGameOutcome>(orgEntity)) {
@@ -92,7 +112,19 @@ namespace GS.Game.Systems {
 			}
 			int eventEntity = world.Create();
 			world.Add(eventEntity, new OrgDestroyedApplied { OrganizationId = orgId });
-			return true;
+		}
+
+		static int FindOrgEntity(IReadOnlyWorld world, string orgId) {
+			int[] required = { TypeId<Organization>.Value };
+			foreach (Archetype archetype in world.GetMatchingArchetypes(required, null)) {
+				Organization[] organizations = archetype.GetColumn<Organization>();
+				for (int i = 0; i < archetype.Count; i++) {
+					if (organizations[i].OrganizationId == orgId) {
+						return archetype.Entities[i];
+					}
+				}
+			}
+			return -1;
 		}
 
 		public static bool IsOrgDestroyed(IReadOnlyWorld world, string orgId) {
