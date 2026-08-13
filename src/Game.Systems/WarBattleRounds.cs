@@ -69,7 +69,8 @@ using GS.Game.Configs;
 					double potentialCasualties = dealer.Troops * damage / settings.DamageDivisor;
 					double durabilityCoefficient = durability / settings.DurabilityDivisor;
 					double randomized = potentialCasualties / durabilityCoefficient
-						* NextDouble(rng, settings.CasualtyRandomMin, settings.CasualtyRandomMax);
+						* NextDouble(rng, settings.CasualtyRandomMin, settings.CasualtyRandomMax)
+						* settings.CasualtyCoefficient;
 					double casualties = Math.Ceiling(Math.Max(
 						randomized,
 						Math.Max(
