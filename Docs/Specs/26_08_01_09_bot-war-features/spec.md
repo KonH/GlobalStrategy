@@ -179,7 +179,11 @@ Legend: `Precondition => Action => Outcome`.
 | **E** `warProsecute` (**`sell_arms` only** for v1; dual-side profit; destroy as EV side effect; natural peace — **no force cards**) | `/implement-bot-feature` after A–B |
 | **F** Eval configs under `Docs/BotFeatures/<id>/` (`endDate` 1920-01-01; `hoursPerTick: 4`; `seedCount: 20`; success = war plays + beat control-only twin) | `/implement-bot-feature` configs carve-out |
 
-Parent #83 stays the umbrella until children are filed; do not implement the whole stack in one PR. Next step after specify approval: file children A–F, then `/plan` on **child A** first (not the whole umbrella in one go).
+Parent #83 stays the umbrella until children are filed; do not implement the whole stack in one PR.
+
+**Child plans (2026-08-13):** written under `Docs/Specs/26_08_13_09_bot-war-{observation,infra,unlock,declare,prosecute,eval}/` (spec+plan each). Cross-plan locks: shared `WarPeaceOrgScoreEstimator` owned by **D**; `TroopsDamageBonusPercent` on Child A; B `BotPlayProposal.TargetBiasMultiplier`; implement order **A → B → D → C∥E → F**.
+
+Next step after plan approval: file GitHub children A–F (or reuse these folders as the child issues’ specs), then `/implement` on **child A** first.
 
 ### Stale vs prior revision of this spec
 
