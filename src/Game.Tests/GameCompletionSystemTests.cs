@@ -56,11 +56,24 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void no_countries_or_no_participants_leaves_the_game_in_progress() {
+		void get_available_org_ids_omits_destroyed_organizations() {
+			var world = new World();
+			AddParticipant(world, "Alive", 0);
+			int destroyed = AddParticipant(world, "Dead", 1);
+			world.Add(destroyed, new IsOrgDestroyed());
+
+			HashSet<string> available = GameCompletionSystem.GetAvailableOrgIds(world);
+
+			Assert.Contains("Alive", available);
+			Assert.DoesNotContain("Dead", available);
+		}
+
+		[Fact]
+		void control_condition_with_no_countries_or_no_participants_leaves_the_game_in_progress() {
 			var noCountries = new World();
 			int noCountriesCompletion = AddCompletion(noCountries);
 			AddParticipant(noCountries, "A", 0);
-			GameCompletionSystem.Update(noCountries, noCountriesCompletion, new QualifyingOrganizations("A"), 100, _resources);
+			GameCompletionSystem.Update(noCountries, noCountriesCompletion, new TotalControlCondition(0.8), 100, _resources);
 			Assert.False(noCountries.Get<GameCompletion>(noCountriesCompletion).IsCompleted);
 
 			var noParticipants = new World();
@@ -117,6 +130,54 @@ namespace GS.Game.Tests {
 			Assert.Equal("A", world.Get<GameCompletion>(completion).WinnerOrganizationId);
 			Assert.Equal(OrganizationGameResult.Winner, world.Get<OrganizationGameOutcome>(first).Result);
 			Assert.Equal(OrganizationGameResult.Loser, world.Get<OrganizationGameOutcome>(second).Result);
+		}
+
+		[Fact]
+		void destroyed_org_is_never_considered_as_a_winner() {
+			var world = new World();
+			int completion = AddCompletion(world);
+			AddCountry(world, "Country");
+			int destroyed = AddParticipant(world, "A", 0);
+			AddParticipant(world, "B", 1);
+			world.Add(destroyed, new IsOrgDestroyed());
+
+			GameCompletionSystem.Update(world, completion, new QualifyingOrganizations("A"), 100, _resources);
+
+			Assert.False(world.Get<GameCompletion>(completion).IsCompleted);
+		}
+
+		[Fact]
+		void sole_surviving_org_wins_via_last_org_standing() {
+			var world = new World();
+			int completion = AddCompletion(world);
+			int destroyed = AddParticipant(world, "A", 0);
+			int survivor = AddParticipant(world, "B", 1);
+			world.Add(destroyed, new IsOrgDestroyed());
+			world.Get<OrganizationGameOutcome>(destroyed).Result = OrganizationGameResult.Loser;
+
+			GameCompletionSystem.Update(world, completion, new LastOrgStandingCondition(), 100, _resources);
+
+			Assert.True(world.Get<GameCompletion>(completion).IsCompleted);
+			Assert.Equal("B", world.Get<GameCompletion>(completion).WinnerOrganizationId);
+			Assert.Equal(OrganizationGameResult.Winner, world.Get<OrganizationGameOutcome>(survivor).Result);
+		}
+
+		[Fact]
+		void destroyed_player_fallback_completes_without_a_winner_and_preserves_survivors() {
+			var world = new World();
+			int completion = AddCompletion(world);
+			int player = AddParticipant(world, "Player", 0);
+			int survivorA = AddParticipant(world, "A", 1);
+			int survivorB = AddParticipant(world, "B", 2);
+			world.Add(player, new IsOrgDestroyed());
+			world.Get<OrganizationGameOutcome>(player).Result = OrganizationGameResult.Loser;
+
+			GameCompletionSystem.ApplyPlayerDestroyedLoss(world, completion, "Player");
+
+			Assert.True(world.Get<GameCompletion>(completion).IsCompleted);
+			Assert.Equal("", world.Get<GameCompletion>(completion).WinnerOrganizationId);
+			Assert.Equal(OrganizationGameResult.InProgress, world.Get<OrganizationGameOutcome>(survivorA).Result);
+			Assert.Equal(OrganizationGameResult.InProgress, world.Get<OrganizationGameOutcome>(survivorB).Result);
 		}
 	}
 }

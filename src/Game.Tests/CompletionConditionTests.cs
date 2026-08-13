@@ -256,6 +256,35 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void last_org_standing_is_met_only_for_the_sole_survivor() {
+			var singleWorld = new World();
+			AddOrganization(singleWorld, OrgA);
+			Assert.False(new LastOrgStandingCondition().IsMet(
+				new CompletionConditionContext(singleWorld, OrgA, new[] { "a" }, 100, _resources)));
+
+			var world = new World();
+			int orgA = AddOrganization(world, OrgA);
+			int orgB = AddOrganization(world, OrgB);
+			var condition = new LastOrgStandingCondition();
+
+			Assert.False(condition.IsMet(Context(world, "a")));
+			world.Add(orgB, new IsOrgDestroyed());
+			Assert.True(condition.IsMet(Context(world, "a")));
+			Assert.False(condition.IsMet(new CompletionConditionContext(world, OrgB, new[] { "a" }, 100, _resources)));
+			world.Add(orgA, new IsOrgDestroyed());
+			Assert.False(condition.IsMet(Context(world, "a")));
+		}
+
+		[Fact]
+		void factory_parses_and_builds_last_org_standing() {
+			Assert.True(CompletionConditionTypeParser.TryParse(
+				"last_org_standing", out CompletionConditionType type));
+			Assert.Equal(CompletionConditionType.LastOrgStanding, type);
+			Assert.IsType<LastOrgStandingCondition>(CompletionConditionFactory.Create(
+				new CompletionConditionConfig { Type = "last_org_standing", Value = 0 }, 100));
+		}
+
+		[Fact]
 		void three_member_any_is_met_when_only_score_goal_qualifies() {
 			var config = Any(
 				new CompletionConditionConfig { Type = "total_control", Value = 0.8 },
@@ -304,6 +333,12 @@ namespace GS.Game.Tests {
 			world.Add(entity, new Resource { ResourceId = ResourceDefinitions.OrgScore, Value = value });
 		}
 
+		static int AddOrganization(World world, string orgId) {
+			int entity = world.Create();
+			world.Add(entity, new Organization { OrganizationId = orgId });
+			return entity;
+		}
+
 		static void AssertRecursiveConfig(CompletionConditionConfig config) {
 			Assert.Equal("any", config.Type);
 			Assert.Equal(7, config.Value);
@@ -320,16 +355,12 @@ namespace GS.Game.Tests {
 			Assert.Equal("any", config.Type);
 			Assert.Collection(config.Members,
 				member => {
-					Assert.Equal("total_control", member.Type);
-					Assert.Equal(0.8, member.Value);
-				},
-				member => {
-					Assert.Equal("full_control_countries", member.Type);
-					Assert.Equal(15, member.Value);
-				},
-				member => {
 					Assert.Equal("score_goal", member.Type);
-					Assert.Equal(275592, member.Value);
+					Assert.Equal(50000, member.Value);
+				},
+				member => {
+					Assert.Equal("last_org_standing", member.Type);
+					Assert.Equal(0, member.Value);
 				});
 		}
 	}

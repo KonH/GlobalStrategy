@@ -144,12 +144,13 @@ namespace GS.Main {
 			ResourceSystem.Update(
 				_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder, ResourceConfig, _resources);
 			ControlSystem.Update(_world, _previousTime, currentTime, GameSettings.BaseIncome, _resources);
-			// Game Log: sweep last tick's WarResolvedApplied / CountryDestroyedApplied before
+			// Game Log: sweep last tick's destroy/war notifications before
 			// TryResolvePeaceByChance/the debug StopWar handler (below) might create a new one
 			// this tick. See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note and
 			// Docs/Specs/26_08_07_08_country-destroy-logic/plan.md.
 			CleanupEffectNotificationsSystem.UpdateWarResolved(_world);
 			CleanupEffectNotificationsSystem.UpdateCountryDestroyed(_world);
+			CleanupEffectNotificationsSystem.UpdateOrgDestroyed(_world);
 			var territoryLosers = new List<string>();
 			Wars.TryResolvePeaceByChance(
 				_world, _resources, _previousTime, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, CountryConfig,
@@ -199,6 +200,9 @@ namespace GS.Main {
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugForceCompletionConditionCommand().AsSpan()) {
 				ApplyDebugForceCompletionCondition(cmd.TargetOrgId, cmd.ConditionType, cmd.Value);
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugForceOrgDestroyCommand().AsSpan()) {
+				ApplyDebugForceOrgDestroy(cmd.TargetOrgId);
 			}
 			foreach (var cmd in _commandAccessor.ReadSelectProvinceCommand().AsSpan()) {
 				ApplySelectProvince(cmd.ProvinceId);
@@ -305,7 +309,11 @@ namespace GS.Main {
 				_commandAccessor.ReadDrawCardsCommand(),
 				discardResults);
 			CleanupCardDiscardSystem.Update(_world);
+			OrgDestroySystem.EvaluateAll(
+				_world, _actionConfig, _effectConfig, _resources, _relations, GameSettings, MaxControlPool);
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool, _resources);
+			GameCompletionSystem.ApplyPlayerDestroyedLoss(
+				_world, _gameCompletionEntity, _context.InitialOrganizationId);
 
 			_commandAccessor.Clear();
 			_visualStateConverter.Update(deltaTime, _world, _gameTimeEntity, _localeEntity, _orgEntity);
@@ -330,7 +338,11 @@ namespace GS.Main {
 			RefreshSingletonEntities();
 			CountryDestroySystem.DestroyAllZeroProvinceCountries(_world, _relations);
 			_previousTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
+			OrgDestroySystem.EvaluateAll(
+				_world, _actionConfig, _effectConfig, _resources, _relations, GameSettings, MaxControlPool);
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool, _resources);
+			GameCompletionSystem.ApplyPlayerDestroyedLoss(
+				_world, _gameCompletionEntity, _context.InitialOrganizationId);
 			SettleCombatResources();
 			_visualStateConverter.Update(0f, _world, _gameTimeEntity, _localeEntity, _orgEntity);
 		}
@@ -523,7 +535,18 @@ namespace GS.Main {
 		}
 
 		void ApplyChangeControl(string orgId, string countryId, int delta) {
-			ControlSystem.ApplyChangeControl(_world, orgId, countryId, delta, MaxControlPool);
+			// A negative delta must be able to draw down an org's "base_{orgId}" HQ-seed effect,
+			// not just its "permanent_" one - otherwise decreasing an org sitting on its own HQ
+			// (whose total is base + permanent) gets stuck once the permanent portion hits 0,
+			// even though the org's real total in the country is still above 0. Route reductions
+			// through ControlQuery.ReduceOrgControlInCountry, which already drains every effect
+			// entity for that org/country pair in a stable order (see DebugForceCompletionCondition's
+			// eviction path for the same pattern).
+			if (delta < 0) {
+				ControlQuery.ReduceOrgControlInCountry(_world, orgId, countryId, -delta);
+			} else {
+				ControlSystem.ApplyChangeControl(_world, orgId, countryId, delta, MaxControlPool);
+			}
 		}
 
 		void TryDestroyTerritoryLosers(List<string> territoryLosers) {
@@ -688,6 +711,15 @@ namespace GS.Main {
 			}
 			_resources.TryUpdate(
 				_world, orgId, ResourceDefinitions.Gold, Math.Max(0, current + amount), out _);
+		}
+
+		// Debug-only: simulates OrgDestroySystem's real destruction outcome for the target
+		// org immediately, bypassing its usual gold/hand/control preconditions.
+		void ApplyDebugForceOrgDestroy(string targetOrgId) {
+			_context.Logger?.LogDebug($"[DebugForceOrgDestroy] received: target='{targetOrgId}'");
+			if (OrgDestroySystem.ForceDestroy(_world, targetOrgId)) {
+				SettleOrgScores($"target='{targetOrgId}' forceOrgDestroy");
+			}
 		}
 
 		// Debug-only completion forcer: pushes a target org over a single flattened

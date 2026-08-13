@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ECS;
 using GS.Game.Commands;
 using GS.Game.Components;
+using GS.Game.Configs;
 using GS.Main;
 using Xunit;
 
@@ -42,7 +43,11 @@ namespace GS.Game.Tests {
 				participants ?? Participants,
 				rngSeed: 73,
 				storage: storage,
-				serializer: serializer));
+				serializer: serializer,
+				completionCondition: new CompletionConditionConfig {
+					Type = "total_control",
+					Value = 0.8
+				}));
 		}
 
 		static string Save(GameLogic logic, SnapshotSerializer serializer) {

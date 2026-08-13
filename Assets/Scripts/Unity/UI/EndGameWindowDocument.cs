@@ -68,6 +68,7 @@ namespace GS.Unity.UI {
 			_state.Leaderboard.PropertyChanged += HandleStateChanged;
 			_state.PlayerOrganization.PropertyChanged += HandleStateChanged;
 			_state.Locale.PropertyChanged += HandleLocaleChanged;
+			_modalState.Unlocked += HandleModalUnlocked;
 			_subscribed = true;
 		}
 
@@ -79,6 +80,7 @@ namespace GS.Unity.UI {
 			_state.Leaderboard.PropertyChanged -= HandleStateChanged;
 			_state.PlayerOrganization.PropertyChanged -= HandleStateChanged;
 			_state.Locale.PropertyChanged -= HandleLocaleChanged;
+			_modalState.Unlocked -= HandleModalUnlocked;
 			_subscribed = false;
 		}
 
@@ -96,9 +98,42 @@ namespace GS.Unity.UI {
 				_root.style.display = DisplayStyle.None;
 				return;
 			}
+			if (IsVisible) {
+				RefreshView();
+				return;
+			}
+
+			TryOpenIfQueued();
+		}
+
+		bool IsVisible => _root != null && _root.style.display == DisplayStyle.Flex;
+
+		void TryOpenIfQueued() {
+			if (IsVisible || _state == null || !_state.GameCompletion.IsCompleted) {
+				return;
+			}
+			if (_state.OrgDestroyedResults.TryPeek(out _)) {
+				return;
+			}
+			if (_modalState.IsLocked()) {
+				return;
+			}
+
+			OpenCurrent();
+		}
+
+		void OpenCurrent() {
 			_modalState.Lock(this);
 			_root.style.display = DisplayStyle.Flex;
+			RefreshView();
+		}
+
+		void RefreshView() {
 			_view.Refresh(_state.GameCompletion, _state.Leaderboard, _state.PlayerOrganization, _gameSettings.EndGameComparisons);
+		}
+
+		void HandleModalUnlocked() {
+			TryOpenIfQueued();
 		}
 
 		void RefreshTexts() {

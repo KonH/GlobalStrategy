@@ -30,12 +30,43 @@ namespace GS.Unity.UI {
 			GameCompletionState completion, LeaderboardState leaderboard, PlayerOrganizationState player,
 			IReadOnlyList<EndGameComparisonEntry> comparisons) {
 			if (_header != null) {
-				string key = completion.Result == GameResult.Win ? "end_game.result.win" : "end_game.result.lose";
-				_header.text = string.Format(_loc.Get(key), player.DisplayName);
+				_header.text = BuildHeaderText(completion, player, leaderboard);
 			}
 
 			RefreshLeaderboard(leaderboard, player.OrgId);
 			RefreshComparison(comparisons, player, leaderboard);
+		}
+
+		// Three header variants:
+		// - Win: the player's own org reached the win condition.
+		// - Lose with a declared winner: some other org reached the win condition first.
+		// - Lose with no declared winner: the player's org was destroyed while 2+ other
+		//   orgs still stood, so GameCompletionSystem.ApplyPlayerDestroyedLoss ends the
+		//   game without picking a winner among the survivors (see its test
+		//   destroyed_player_fallback_completes_without_a_winner_and_preserves_survivors) -
+		//   WinnerOrganizationId is deliberately left empty in that case.
+		string BuildHeaderText(GameCompletionState completion, PlayerOrganizationState player, LeaderboardState leaderboard) {
+			if (completion.Result == GameResult.Win) {
+				return string.Format(_loc.Get("end_game.result.win"), player.DisplayName);
+			}
+			if (string.IsNullOrEmpty(completion.WinnerOrganizationId)) {
+				return _loc.Get("end_game.result.destroyed");
+			}
+			return string.Format(_loc.Get("end_game.result.lose"), GetWinnerDisplayName(completion.WinnerOrganizationId, leaderboard));
+		}
+
+		string GetWinnerDisplayName(string winnerOrganizationId, LeaderboardState leaderboard) {
+			foreach (var entry in leaderboard.Organizations) {
+				if (entry.EntityId == winnerOrganizationId) {
+					return entry.DisplayName;
+				}
+			}
+			// Winner id is known but not present in the leaderboard snapshot (e.g. it hasn't
+			// refreshed yet this tick). Show the raw id instead of silently misattributing it.
+			Debug.LogWarning(
+				$"[EndGameWindowView] winner id '{winnerOrganizationId}' not found in leaderboard " +
+				$"({leaderboard.Organizations.Count} entries); showing raw id.");
+			return winnerOrganizationId;
 		}
 
 		void RefreshLeaderboard(LeaderboardState leaderboard, string playerOrgId) {

@@ -157,6 +157,8 @@ namespace GS.Unity.UI {
 					return string.Format(
 						GetText("select_org.win_conditions.score_goal", "Reach score {0}"),
 						ScoreFormat.Format(goal.ConfigValue));
+				case WinConditionHintKind.LastOrgStanding:
+					return GetText("goals.last_org_standing", "Destroy every rival organization");
 				default:
 					return "";
 			}

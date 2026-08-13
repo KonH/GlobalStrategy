@@ -57,6 +57,18 @@ namespace GS.Game.Tests {
 			Assert.Equal(fromFile.SpeedMultipliers, fromString.SpeedMultipliers);
 			Assert.Equal(50, fromFile.DiscardGoldCost);
 			Assert.Equal(fromFile.DiscardGoldCost, fromString.DiscardGoldCost);
+			Assert.Collection(fromFile.CompletionCondition.Members,
+				member => {
+					Assert.Equal("score_goal", member.Type);
+					Assert.Equal(50000, member.Value);
+				},
+				member => {
+					Assert.Equal("last_org_standing", member.Type);
+					Assert.Equal(0, member.Value);
+				});
+			Assert.Equal(
+				fromFile.CompletionCondition.Members.Count,
+				fromString.CompletionCondition.Members.Count);
 		}
 
 		[Fact]

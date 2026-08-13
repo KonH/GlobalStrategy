@@ -24,10 +24,6 @@ namespace GS.Game.Systems {
 			}
 
 			var countryIds = GetAvailableCountryIds(world);
-			if (countryIds.Count == 0) {
-				return;
-			}
-
 			var participants = GetParticipants(world);
 			if (participants.Count == 0) {
 				return;
@@ -36,6 +32,9 @@ namespace GS.Game.Systems {
 			participants.Sort(CompareParticipants);
 			Participant? winner = null;
 			foreach (Participant participant in participants) {
+				if (world.Has<IsOrgDestroyed>(participant.Entity)) {
+					continue;
+				}
 				var context = new CompletionConditionContext(
 					world,
 					participant.OrganizationId,
@@ -79,6 +78,36 @@ namespace GS.Game.Systems {
 			return countryIds;
 		}
 
+		public static HashSet<string> GetAvailableOrgIds(IReadOnlyWorld world) {
+			var orgIds = new HashSet<string>(StringComparer.Ordinal);
+			int[] required = { TypeId<Organization>.Value };
+			foreach (Archetype archetype in world.GetMatchingArchetypes(required, null)) {
+				Organization[] organizations = archetype.GetColumn<Organization>();
+				for (int i = 0; i < archetype.Count; i++) {
+					if (!world.Has<IsOrgDestroyed>(archetype.Entities[i])) {
+						orgIds.Add(organizations[i].OrganizationId);
+					}
+				}
+			}
+			return orgIds;
+		}
+
+		public static void ApplyPlayerDestroyedLoss(
+			World world,
+			int completionEntity,
+			string playerOrgId) {
+			ref GameCompletion completion = ref world.Get<GameCompletion>(completionEntity);
+			if (completion.IsCompleted || string.IsNullOrEmpty(playerOrgId)) {
+				return;
+			}
+			int playerEntity = FindOrgEntity(world, playerOrgId);
+			if (playerEntity < 0 || !world.Has<IsOrgDestroyed>(playerEntity)) {
+				return;
+			}
+			completion.WinnerOrganizationId = "";
+			completion.IsCompleted = true;
+		}
+
 		static List<Participant> GetParticipants(IReadOnlyWorld world) {
 			var participants = new List<Participant>();
 			int[] required = {
@@ -103,6 +132,19 @@ namespace GS.Game.Systems {
 			return orderComparison != 0
 				? orderComparison
 				: string.CompareOrdinal(left.OrganizationId, right.OrganizationId);
+		}
+
+		static int FindOrgEntity(IReadOnlyWorld world, string orgId) {
+			int[] required = { TypeId<Organization>.Value };
+			foreach (Archetype archetype in world.GetMatchingArchetypes(required, null)) {
+				Organization[] organizations = archetype.GetColumn<Organization>();
+				for (int i = 0; i < archetype.Count; i++) {
+					if (organizations[i].OrganizationId == orgId) {
+						return archetype.Entities[i];
+					}
+				}
+			}
+			return -1;
 		}
 
 		readonly struct Participant {
