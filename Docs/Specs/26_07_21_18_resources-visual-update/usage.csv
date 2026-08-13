@@ -1,3 +1,4 @@
 spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
 26_07_21_18_resources-visual-update,1.201,spec,automated,,2026-07-21T18:51:17+02:00,2026-07-21T18:51:17+02:00,claude,claude-sonnet-5,,,,,,4.84,1238,16.46,4206,,37,backfilled
 26_07_21_18_resources-visual-update,1.201,plan,automated,,2026-07-21T19:14:33+02:00,2026-07-21T19:14:33+02:00,claude,claude-sonnet-5,,,,,,4.84,1238,16.46,4206,,131,backfilled
+26_07_21_18_resources-visual-update,1.204,implement,automated,,2026-07-22T10:12:34+02:00,2026-07-22T10:12:34+02:00,codex,gpt-5.6-sol,,,,,,4.84,1238,16.46,4206,0.03,816,backfilled

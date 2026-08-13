@@ -1,3 +1,4 @@
 spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
 26_07_16_14_bot-org-api,1.201,spec,automated,,2026-07-16T18:30:40+02:00,2026-07-16T18:30:40+02:00,claude,claude-fable-5,,,,,,18.66,4757,45.91,11676,,1382,backfilled
 26_07_16_14_bot-org-api,1.201,plan,automated,,2026-07-16T18:30:40+02:00,2026-07-16T18:30:40+02:00,claude,claude-fable-5,,,,,,18.66,4757,45.91,11676,,1382,backfilled
+26_07_16_14_bot-org-api,1.204,implement,automated,,2026-07-17T08:30:00+02:00,2026-07-17T08:30:00+02:00,claude,claude-sonnet-5,,,,,,18.66,4757,45.91,11676,0.03,4962,backfilled
