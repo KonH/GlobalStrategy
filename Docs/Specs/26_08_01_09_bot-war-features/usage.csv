@@ -1,0 +1,2 @@
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,plan_size_kb,prd_size_kb,diff_lines,session_id
+26_08_01_09_bot-war-features,1.210,spec,automated,,2026-08-01T09:28:42+00:00,2026-08-01T09:28:42+00:00,cursor,cursor-grok-4.5-high,,,,,,24.79,,,173,backfilled
