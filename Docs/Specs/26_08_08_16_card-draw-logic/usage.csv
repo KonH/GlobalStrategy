@@ -1,0 +1,3 @@
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,plan_size_kb,prd_size_kb,diff_lines,session_id
+26_08_08_16_card-draw-logic,1.201,spec,automated,,2026-08-08T18:09:58+02:00,2026-08-08T18:09:58+02:00,claude,claude-sonnet-5,,,,,,14.61,13.55,,260,backfilled
+26_08_08_16_card-draw-logic,1.201,plan,automated,,2026-08-08T18:50:02+02:00,2026-08-08T18:50:02+02:00,claude,claude-sonnet-5,,,,,,14.61,13.55,,121,backfilled
