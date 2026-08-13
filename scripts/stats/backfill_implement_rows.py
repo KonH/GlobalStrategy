@@ -77,7 +77,12 @@ DEFAULT_PROVIDER_MODEL = ("claude", "claude-sonnet-5")
 
 CHECKED_RE = re.compile(r"^- \[x\]", re.MULTILINE)
 UNCHECKED_RE = re.compile(r"^- \[ \]", re.MULTILINE)
-TRAILER_RE = re.compile(r"Co-Authored-By:\s*(.+)")
+
+# Git trailer keys are case-insensitive by convention (see `git interpret-trailers`) -
+# this repo's commits mix "Co-Authored-By:" and "Co-authored-by:" depending on which
+# tool wrote them, so this must be re.IGNORECASE or half the real trailers are missed
+# and silently fall through to the "no trailer" default instead of their real value.
+TRAILER_RE = re.compile(r"Co-Authored-By:\s*(.+)", re.IGNORECASE)
 
 
 def run(args, cwd=REPO_ROOT):
@@ -140,10 +145,13 @@ def find_checkbox_completion_commit(spec_dir):
     return last_increase_commit
 
 
-def trailer_for_commit(commit):
-    message = run(["git", "show", "-s", "--format=%B", commit])
-    match = TRAILER_RE.search(message)
+def parse_trailer(commit_message):
+    match = TRAILER_RE.search(commit_message)
     return match.group(1).strip() if match else None
+
+
+def trailer_for_commit(commit):
+    return parse_trailer(run(["git", "show", "-s", "--format=%B", commit]))
 
 
 def commit_author_iso(commit):

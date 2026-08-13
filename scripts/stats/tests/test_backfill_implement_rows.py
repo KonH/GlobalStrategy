@@ -5,6 +5,7 @@ from scripts.stats.backfill_implement_rows import (
     TRAILER_MODEL_MAP,
     base_stage,
     checkbox_counts,
+    parse_trailer,
 )
 
 
@@ -34,6 +35,26 @@ class BaseStageTests(unittest.TestCase):
 
     def test_leaves_plain_stage_unchanged(self):
         self.assertEqual("plan", base_stage("plan"))
+
+
+class ParseTrailerTests(unittest.TestCase):
+    def test_title_case_trailer_is_found(self):
+        message = "Implement thing.\n\nCo-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>\n"
+
+        self.assertEqual("Claude Sonnet 5 <noreply@anthropic.com>", parse_trailer(message))
+
+    def test_lower_case_trailer_is_also_found(self):
+        # Regression guard: this repo's commits mix "Co-Authored-By:" and
+        # "Co-authored-by:" depending on which tool wrote them - a case-sensitive
+        # match here silently drops real trailers to the "no trailer" default
+        # instead of their real value (caught against real history: 4 of 26
+        # backfilled rows were wrong before this fix, all lowercase-trailer misses).
+        message = "Implement thing.\n\nCo-authored-by: Cursor <cursoragent@cursor.com>\n"
+
+        self.assertEqual("Cursor <cursoragent@cursor.com>", parse_trailer(message))
+
+    def test_no_trailer_returns_none(self):
+        self.assertIsNone(parse_trailer("Implement thing.\n\nNo trailer here.\n"))
 
 
 class TrailerModelMapTests(unittest.TestCase):
