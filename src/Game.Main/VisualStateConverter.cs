@@ -72,6 +72,7 @@ namespace GS.Main {
 			UpdateTime(world, gameTimeEntity);
 			UpdateLocale(world, localeEntity);
 			UpdatePlayerOrganization(world, orgEntity);
+			UpdateOrgDestroyedResults(world);
 			UpdateWarIcons(world);
 			UpdateSelectedWar(world);
 			UpdateGameCompletion(world, orgEntity);
@@ -292,7 +293,23 @@ namespace GS.Main {
 			}
 			ref Organization org = ref world.Get<Organization>(orgEntity);
 			_hqCountryByOrgId.TryGetValue(org.OrganizationId, out var hqCountryId);
-			_state.PlayerOrganization.Set(true, org.OrganizationId, org.DisplayName, hqCountryId ?? "");
+			_state.PlayerOrganization.Set(
+				true,
+				org.OrganizationId,
+				org.DisplayName,
+				hqCountryId ?? "",
+				world.Has<IsOrgDestroyed>(orgEntity));
+		}
+
+		void UpdateOrgDestroyedResults(IReadOnlyWorld world) {
+			int[] required = { TypeId<OrgDestroyedApplied>.Value };
+			foreach (Archetype archetype in world.GetMatchingArchetypes(required, null)) {
+				OrgDestroyedApplied[] applied = archetype.GetColumn<OrgDestroyedApplied>();
+				for (int i = 0; i < archetype.Count; i++) {
+					_state.OrgDestroyedResults.Enqueue(
+						new OrgDestroyedSnapshotState(applied[i].OrganizationId));
+				}
+			}
 		}
 
 		void UpdateWarIcons(IReadOnlyWorld world) {

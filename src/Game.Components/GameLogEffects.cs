@@ -59,4 +59,10 @@ namespace GS.Game.Components {
 	public struct CountryDestroyedApplied {
 		public string CountryId;
 	}
+
+	// Not [Savable] — one-shot destroy notification; created on destroy, read by
+	// VisualStateConverter in the same tick, then swept at the start of the next tick.
+	public struct OrgDestroyedApplied {
+		public string OrganizationId;
+	}
 }

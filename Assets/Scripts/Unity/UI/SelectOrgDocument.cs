@@ -118,6 +118,8 @@ namespace GS.Unity.UI {
 					return string.Format(
 						_localization.Get("select_org.win_conditions.score_goal"),
 						ScoreFormat.Format(row.Value));
+				case WinConditionHintKind.LastOrgStanding:
+					return _localization.Get("select_org.win_conditions.last_org_standing");
 				default:
 					return "";
 			}
