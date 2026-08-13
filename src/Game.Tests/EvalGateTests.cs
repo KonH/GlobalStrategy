@@ -43,6 +43,27 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void improve_score_gate_requires_strictly_positive_mean() {
+			Assert.False(GateEvaluator.EvaluateScoreGate(EvalConfig.ScoreGateImprove, 0, 2.0));
+			Assert.False(GateEvaluator.EvaluateScoreGate(EvalConfig.ScoreGateImprove, -0.1, 2.0));
+			Assert.True(GateEvaluator.EvaluateScoreGate(EvalConfig.ScoreGateImprove, 0.1, 2.0));
+		}
+
+		[Fact]
+		void non_regression_score_gate_still_uses_epsilon_boundary() {
+			Assert.True(GateEvaluator.EvaluateScoreGate(EvalConfig.ScoreGateNonRegression, -2.0, 2.0));
+			Assert.False(GateEvaluator.EvaluateScoreGate(EvalConfig.ScoreGateNonRegression, -2.01, 2.0));
+			Assert.True(GateEvaluator.EvaluateScoreGate(EvalConfig.ScoreGateNonRegression, 0, 2.0));
+		}
+
+		[Fact]
+		void score_gate_validation_rejects_unknown_modes() {
+			Assert.Null(EvalConfig.ValidateScoreGate(EvalConfig.ScoreGateNonRegression));
+			Assert.Null(EvalConfig.ValidateScoreGate(EvalConfig.ScoreGateImprove));
+			Assert.NotNull(EvalConfig.ValidateScoreGate("unknown"));
+		}
+
+		[Fact]
 		void reported_statistics_match_synthetic_deltas() {
 			var baseline = new List<double> { 10, 10, 10, 10, 10 };
 			var candidate = new List<double> { 12, 8, 10, 15, 9 };

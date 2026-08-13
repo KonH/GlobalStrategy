@@ -68,5 +68,69 @@ namespace GS.Game.Tests {
 			// Parameters are preserved (feature is disabled, not stripped of its config).
 			Assert.Equal(1.0, baselineFeatures.First(f => f.FeatureId == "myFeature").Parameters["x"]);
 		}
+
+		[Fact]
+		void control_only_baseline_disables_non_control_and_preserves_parameters() {
+			var candidateFeatures = new List<BotFeatureConfigEntry> {
+				new BotFeatureConfigEntry { FeatureId = "control", Enabled = true, Parameters = new Dictionary<string, double> { ["a"] = 1.0 } },
+				new BotFeatureConfigEntry { FeatureId = "warUnlock", Enabled = true, Parameters = new Dictionary<string, double> { ["b"] = 2.0 } },
+				new BotFeatureConfigEntry { FeatureId = "warDeclare", Enabled = true, Parameters = new Dictionary<string, double> { ["c"] = 3.0 } }
+			};
+
+			var baselineFeatures = EvalConfig.BuildBaselineFeatures(
+				candidateFeatures, "warDeclare", EvalConfig.BaselineModeControlOnly);
+
+			Assert.Equal(3, baselineFeatures.Count);
+			Assert.True(baselineFeatures.First(f => f.FeatureId == "control").Enabled);
+			Assert.False(baselineFeatures.First(f => f.FeatureId == "warUnlock").Enabled);
+			Assert.False(baselineFeatures.First(f => f.FeatureId == "warDeclare").Enabled);
+			Assert.Equal(2.0, baselineFeatures.First(f => f.FeatureId == "warUnlock").Parameters["b"]);
+			Assert.Equal(3.0, baselineFeatures.First(f => f.FeatureId == "warDeclare").Parameters["c"]);
+		}
+
+		[Fact]
+		void feature_off_baseline_mode_matches_default_build() {
+			var candidateFeatures = new List<BotFeatureConfigEntry> {
+				new BotFeatureConfigEntry { FeatureId = "control", Enabled = true },
+				new BotFeatureConfigEntry { FeatureId = "warUnlock", Enabled = true }
+			};
+
+			var defaultBaseline = EvalConfig.BuildBaselineFeatures(candidateFeatures, "warUnlock");
+			var explicitFeatureOff = EvalConfig.BuildBaselineFeatures(
+				candidateFeatures, "warUnlock", EvalConfig.BaselineModeFeatureOff);
+
+			Assert.True(defaultBaseline.First(f => f.FeatureId == "control").Enabled);
+			Assert.False(defaultBaseline.First(f => f.FeatureId == "warUnlock").Enabled);
+			Assert.Equal(
+				defaultBaseline.Select(f => (f.FeatureId, f.Enabled)).ToList(),
+				explicitFeatureOff.Select(f => (f.FeatureId, f.Enabled)).ToList());
+		}
+
+		[Fact]
+		void control_only_without_enabled_control_is_config_error() {
+			var withoutControl = new List<BotFeatureConfigEntry> {
+				new BotFeatureConfigEntry { FeatureId = "warUnlock", Enabled = true }
+			};
+			var disabledControl = new List<BotFeatureConfigEntry> {
+				new BotFeatureConfigEntry { FeatureId = "control", Enabled = false },
+				new BotFeatureConfigEntry { FeatureId = "warUnlock", Enabled = true }
+			};
+			var withControl = new List<BotFeatureConfigEntry> {
+				new BotFeatureConfigEntry { FeatureId = "control", Enabled = true },
+				new BotFeatureConfigEntry { FeatureId = "warUnlock", Enabled = true }
+			};
+
+			Assert.NotNull(EvalConfig.ValidateBaselineMode(EvalConfig.BaselineModeControlOnly, withoutControl));
+			Assert.NotNull(EvalConfig.ValidateBaselineMode(EvalConfig.BaselineModeControlOnly, disabledControl));
+			Assert.Null(EvalConfig.ValidateBaselineMode(EvalConfig.BaselineModeControlOnly, withControl));
+			Assert.Null(EvalConfig.ValidateBaselineMode(EvalConfig.BaselineModeFeatureOff, withoutControl));
+		}
+
+		[Fact]
+		void omitted_baseline_mode_and_score_gate_default_to_legacy_values() {
+			var config = EvalConfig.Default();
+			Assert.Equal(EvalConfig.BaselineModeFeatureOff, config.BaselineMode);
+			Assert.Equal(EvalConfig.ScoreGateNonRegression, config.ScoreGate);
+		}
 	}
 }

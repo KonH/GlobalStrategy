@@ -96,7 +96,8 @@ namespace GS.Game.Evals {
 			sb.AppendLine();
 			sb.AppendLine("## Verdict");
 			sb.AppendLine($"- Pass: {latest.Verdict.Pass}");
-			sb.AppendLine($"- Score gate: {latest.Verdict.ScoreGate}");
+			sb.AppendLine($"- Score gate ({latest.EffectiveConfig.ScoreGate}): {latest.Verdict.ScoreGate}");
+			sb.AppendLine($"- Baseline mode: {latest.EffectiveConfig.BaselineMode}");
 			sb.AppendLine($"- Command on: {latest.Verdict.CommandOn}");
 			sb.AppendLine($"- Command off: {latest.Verdict.CommandOff}");
 			sb.AppendLine($"- Improved: {latest.Improved}");

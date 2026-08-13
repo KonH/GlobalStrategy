@@ -81,7 +81,17 @@ namespace GS.Game.Evals {
 				Console.Error.WriteLine($"candidateFeatures must declare '{featureId}' enabled — otherwise the candidate arm is indistinguishable from the baseline arm.");
 				return 2;
 			}
-			var baselineFeatures = EvalConfig.BuildBaselineFeatures(candidateFeatures, featureId);
+			string? baselineModeError = EvalConfig.ValidateBaselineMode(config.BaselineMode, candidateFeatures);
+			if (baselineModeError != null) {
+				Console.Error.WriteLine(baselineModeError);
+				return 2;
+			}
+			string? scoreGateError = EvalConfig.ValidateScoreGate(config.ScoreGate);
+			if (scoreGateError != null) {
+				Console.Error.WriteLine(scoreGateError);
+				return 2;
+			}
+			var baselineFeatures = EvalConfig.BuildBaselineFeatures(candidateFeatures, featureId, config.BaselineMode);
 
 			var seeds = SeedDerivation.Seeds(config.BaseSeed, config.SeedCount);
 			var parameterSets = ParameterSearch.Generate(config.ParameterSearch);
@@ -200,7 +210,7 @@ namespace GS.Game.Evals {
 			foreach (var setOutcome in batchResult.ParameterSets) {
 				var candidateScores = setOutcome.CandidateRuns.Select(r => r.Score).ToList();
 				var stats = GateEvaluator.ComputeStatistics(baselineScores, candidateScores);
-				bool scoreGatePass = GateEvaluator.ScoreGatePasses(stats.Mean, epsilon);
+				bool scoreGatePass = GateEvaluator.EvaluateScoreGate(config.ScoreGate, stats.Mean, epsilon);
 				bool commandOnPass = EmissionAssertions.CandidateArmActed(setOutcome.CandidateRuns, featureId, config.TargetActions);
 				bool setPasses = scoreGatePass && commandOnPass && commandOffPass;
 
@@ -260,7 +270,8 @@ namespace GS.Game.Evals {
 			EvalPersistence.WriteSummary(featureId, record, attempt);
 
 			if (!batchPass) {
-				Console.Error.WriteLine($"Eval batch failed for feature '{featureId}': scoreGate={record.Verdict.ScoreGate} commandOn={record.Verdict.CommandOn} commandOff={commandOffPass}");
+				Console.Error.WriteLine(
+					$"Eval batch failed for feature '{featureId}': scoreGate({config.ScoreGate})={record.Verdict.ScoreGate} commandOn={record.Verdict.CommandOn} commandOff={commandOffPass}");
 				return 1;
 			}
 

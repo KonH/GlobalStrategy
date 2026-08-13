@@ -65,6 +65,12 @@ namespace GS.Game.Evals {
 
 		public static bool ImprovedFlag(double meanDelta) => meanDelta > 0;
 
+		// nonRegression: mean >= -epsilon. improve: mean > 0. ε still reported for diagnosis either way.
+		public static bool EvaluateScoreGate(string scoreGate, double meanDelta, double epsilon) {
+			if (scoreGate == EvalConfig.ScoreGateImprove) { return ImprovedFlag(meanDelta); }
+			return ScoreGatePasses(meanDelta, epsilon);
+		}
+
 		static double Mean(IReadOnlyList<double> values) {
 			if (values.Count == 0) { return 0; }
 			double sum = 0;

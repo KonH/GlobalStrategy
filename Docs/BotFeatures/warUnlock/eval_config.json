@@ -1,0 +1,25 @@
+{
+	"candidateOrgId": null,
+	"opponentFeatures": [ { "featureId": "control", "enabled": true, "parameters": {} } ],
+	"candidateFeatures": [
+		{ "featureId": "control", "enabled": true, "parameters": {} },
+		{ "featureId": "warUnlock", "enabled": true, "parameters": {} }
+	],
+	"seedCount": 20,
+	"baseSeed": 1880,
+	"endDate": "1920-01-01",
+	"hoursPerTick": 4,
+	"timeoutSeconds": 14400,
+	"epsilonRelative": 0.02,
+	"epsilonAbsolute": 0,
+	"maxTotalRuns": 200,
+	"baselineMode": "controlOnly",
+	"scoreGate": "improve",
+	"targetActions": [
+		"make_rival",
+		"improve_diplomacy_advisor_opinion",
+		"improve_military_advisor_opinion",
+		"improve_ruler_opinion"
+	],
+	"parameterSearch": null
+}
