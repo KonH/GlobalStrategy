@@ -1,5 +1,10 @@
 """Generates a milestone-completion report under Docs/Milestones/<major>_<slug>/.
 
+The directory's `<major>` is zero-padded to 2 digits (e.g. `01_world-domination`)
+so up to 99 milestones sort correctly by filename; the major version itself
+(as read from bundleVersion / --major) stays unpadded everywhere else, e.g. the
+`# 1. World Domination` summary header and the `<!-- milestone-meta -->` JSON.
+
 Pure stdlib, no LLM calls - mirrors the scripts/stats/ convention (see
 Docs/Specs/26_07_22_17_spec-dev-stats/). Produces three files:
 
@@ -636,7 +641,7 @@ def main():
     name = args.name or read_version_name()
     slug = slugify(name)
 
-    out_dir = Path(args.out) if args.out else MILESTONES_DIR / f"{major}_{slug}"
+    out_dir = Path(args.out) if args.out else MILESTONES_DIR / f"{int(major):02d}_{slug}"
     out_dir = out_dir if out_dir.is_absolute() else REPO_ROOT / out_dir
 
     existing = find_existing_milestones(exclude_dir=out_dir)

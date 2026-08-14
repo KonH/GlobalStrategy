@@ -1,6 +1,6 @@
 ---
 name: milestone-complete
-description: Generate a milestone-completion report (summary.md, stats_code.md, stats_dev.md) under Docs/Milestones/<major>_<version-name>/, comparing code LoC and Docs/Specs/*/usage.csv dev stats against the previous milestone, then (with the user's sign-off) write Release Notes, draft a tech blog post and a player-facing announcement, cut a GitHub release + releases/<version> branch, and roll the project version over to the next milestone. Tracks progress in the milestone dir's checklist.md so a run can be resumed. Load when the user asks to close out, wrap up, or report on a project milestone/version.
+description: Generate a milestone-completion report (summary.md, stats_code.md, stats_dev.md) under Docs/Milestones/<zero-padded-major>_<version-name>/, comparing code LoC and Docs/Specs/*/usage.csv dev stats against the previous milestone, then (with the user's sign-off) write Release Notes, draft a tech blog post and an English + Russian player-facing announcement, cut a GitHub release + releases/<version> branch, and roll the project version over to the next milestone. Tracks progress in the milestone dir's checklist.md so a run can be resumed. Load when the user asks to close out, wrap up, or report on a project milestone/version.
 ---
 
 # Milestone Complete
@@ -9,9 +9,9 @@ Produces a point-in-time report of everything shipped in the current major-versi
 milestone: codebase size (LoC per tracked extension) and development cost/effort
 (aggregated from every spec's `usage.csv`, see `Docs/Specs/26_07_22_17_spec-dev-stats/`),
 each compared against the previous milestone if one exists. It then walks the user
-through actually closing the milestone out: Release Notes, a tech blog post, a
-player-facing announcement, a GitHub release, a `releases/<version>` branch, and the
-version bump that starts the next milestone.
+through actually closing the milestone out: Release Notes, a tech blog post, an
+English + Russian player-facing announcement, a GitHub release, a
+`releases/<version>` branch, and the version bump that starts the next milestone.
 
 Per `.claude/commands/commit.md`, only a human decides when the milestone actually
 turns over — this skill is that decision moment. It never bumps the major version or
@@ -28,12 +28,16 @@ already in progress.
 1. Resolve the milestone identity the same way the report script does: major version
    (`bundleVersion`'s `X` in `X.YYY`, from `ProjectSettings/ProjectSettings.asset`) and
    version name (`_versionName` on `MainMenuDocument` in `Assets/Scenes/MainMenu.unity`),
-   slugified. This gives the output dir `Docs/Milestones/<major>_<slug>/`.
-2. If `Docs/Milestones/<major>_<slug>/checklist.md` already exists, this is a
-   **resume** — read it, find the first unchecked step, tell the user where the last
-   run left off, and continue from there instead of restarting. Don't re-run
-   already-checked steps (e.g. don't regenerate a report that's already been reviewed,
-   don't re-cut a release that's already checked off).
+   slugified. This gives the output dir `Docs/Milestones/<major>_<slug>/`, where
+   `<major>` is zero-padded to 2 digits (`01`, `02`, ... `99`) so up to 99 milestones
+   sort correctly by filename — e.g. `Docs/Milestones/01_world-domination/`. The major
+   version itself stays unpadded everywhere else (summary header, checklist title,
+   commit messages, etc.) — only the directory name is padded.
+2. If `Docs/Milestones/<major>_<slug>/checklist.md` already exists (padded dir name,
+   as above), this is a **resume** — read it, find the first unchecked step, tell the
+   user where the last run left off, and continue from there instead of restarting.
+   Don't re-run already-checked steps (e.g. don't regenerate a report that's already
+   been reviewed, don't re-cut a release that's already checked off).
 3. Otherwise, create the directory and write `checklist.md` with every step below
    (1 through 17) as an unchecked box, e.g.:
 
@@ -47,9 +51,9 @@ already in progress.
    - [ ] 5. Propose release-note bullets; get user's list
    - [ ] 6. Write ## Release Notes into summary.md
    - [ ] 7. Propose tech_post.md themes; get user's choice
-   - [ ] 8. Propose players_post.txt themes; get user's choice
-   - [ ] 9. Draft tech_post.md and players_post.txt
-   - [ ] 10. Get user approval on both drafts
+   - [ ] 8. Propose players_post themes; get user's choice
+   - [ ] 9. Draft tech_post.md and players_post.en.txt / players_post.ru.txt
+   - [ ] 10. Get user approval on all drafts
    - [ ] 11. Commit milestone docs (this repo) + publish tech_post.md to the site
    - [ ] 12. Checkpoint: confirm release plan
    - [ ] 13. Cut the GitHub release + releases/<version> branch
@@ -61,6 +65,9 @@ already in progress.
 
    `Edit` the box to `[x]` immediately after finishing each step — don't batch this at
    the end. A crashed/interrupted session should still leave an accurate checklist.
+   Also **say** which step is starting/finishing as you go (a short status line, e.g.
+   "Step 5/17: proposing release-note bullets…") — `checklist.md` is the resume state,
+   not a substitute for telling the user where the flow currently is.
 
 ## Step 1–3: Generate the report
 
@@ -142,13 +149,15 @@ generated file by hand.
    whether the milestone's timeline is better shown as a short table or a small inline
    diagram (see step 9's formatting notes). This is a discussion, not a menu; take a
    free-form reply.
-8. **Propose `players_post.txt` themes.** Same idea, for a short player-facing
-   announcement (Discord/Steam/itch.io-style, not this repo's own docs). Propose 2–4
-   angles (e.g. "lead with the headline feature", "narrative/flavor framing",
-   "plain patch-notes list") and ask which to run with. Keep this pass light — it's a
-   ≤1024-character post, not a spec.
-9. **Draft both documents** once themes are chosen, and save them into
-   `Docs/Milestones/<major>_<slug>/`:
+8. **Propose players_post themes.** Same idea, for a short player-facing announcement
+   (Discord/Steam/itch.io-style, not this repo's own docs), written in **both English
+   and Russian** — this project ships real (not machine-translated) Russian for
+   player-facing text, per the `localization` skill's convention. Propose 2–4 angles
+   (e.g. "lead with the headline feature", "narrative/flavor framing", "plain
+   patch-notes list") and ask which to run with — one theme choice covers both
+   locales. Keep this pass light — it's a ≤1024-character post, not a spec.
+9. **Draft all three documents** once themes are chosen, and save them into
+   `Docs/Milestones/<major>_<slug>/` (padded `<major>`, per step 0):
    - **`tech_post.md`** — already written in the site's exact blog format so it can
      be copied over with only a rename:
      - Line 1: `# <Post Title>`.
@@ -170,10 +179,14 @@ generated file by hand.
        `var(--text-muted)`, `var(--accent)`, `var(--border)`, `var(--bg-surface)`,
        `var(--bg-elevated)`. Keep it simple (boxes/arrows/a timeline bar) — this is a
        blog post, not a spec diagram.
-   - **`players_post.txt`** — plain text (no title/tags header — this isn't going
-     into the site's blog pipeline), gameplay/feature framing per the chosen theme,
-     light on tech detail. **Hard limit: 1024 characters.** Count the characters
-     before presenting it; trim if over.
+   - **`players_post.en.txt` and `players_post.ru.txt`** — plain text (no title/tags
+     header — this isn't going into the site's blog pipeline), gameplay/feature
+     framing per the chosen theme, light on tech detail. **Hard limit: 1024
+     characters each.** Count the characters before presenting each; trim if over.
+     Write the Russian version as a real, natural translation (idiomatic phrasing,
+     correct terminology for in-game terms — check `Assets/Localization/ru.asset`
+     for how existing terms are rendered) rather than a literal pass of the English
+     text — see the `localization` skill for the project's translation conventions.
 10. **Preview, then get approval.** Before asking for sign-off, let the user see
     `tech_post.md` rendered as it will actually appear:
     - Pick the **unique slug filename** now (the filename becomes the URL slug) —
@@ -193,17 +206,22 @@ generated file by hand.
     - The dev server hot-reloads on `src/assets/blog.json` changes, so if the user
       asks for edits, just re-`Edit` `tech_post.md`, re-copy it over the site-repo
       copy, and re-run `npm run generate_blog` — no need to restart the server.
-    - Present `players_post.txt` (with its character count) alongside the link for
-      approval — it has no live preview, just show the text.
-    - Incorporate any edits before moving on — both are about to be published
+    - Present `players_post.en.txt` and `players_post.ru.txt` (each with its
+      character count) alongside the link for approval — neither has a live preview,
+      just show the text for both.
+    - Incorporate any edits before moving on — all three are about to be published
       outside this repo.
 11. **Commit**, once approved:
     - In *this* repo: stage the milestone dir's files — `checklist.md`, `summary.md`,
-      `stats_code.md`, `stats_dev.md`, `tech_post.md`, `players_post.txt` — and commit
-      them **directly on the current branch** (same reasoning as step 16's version
-      bump below: this must land wherever the milestone was completed, not on a
-      throwaway feature branch spun off by the `commit`/`k:commit` skill). Message
-      e.g. `Add {major}. {name} milestone report and release write-ups`.
+      `stats_code.md`, `stats_dev.md`, `tech_post.md`, `players_post.en.txt`,
+      `players_post.ru.txt` — and commit them **directly on `main`** (this repo's
+      commits land on `main`, never a feature branch — switch there first if the
+      close-out was run from elsewhere: `git fetch origin main`, `git checkout main`,
+      `git pull --ff-only origin main`, carrying the milestone dir's untracked files
+      across the switch, same as step 16's version bump below). Do not route this
+      through the `commit`/`k:commit` skill, which always branches off the default
+      branch first. Message e.g. `Add {major}. {name} milestone report and release
+      write-ups`.
     - Stop the `npm run serve` dev server started for the preview in step 10 — it's
       no longer needed and shouldn't be left holding a port/background task open.
     - In `../konh.github.io`: the post is already at `src/content/blog/<slug>.md`
@@ -254,19 +272,21 @@ generated file by hand.
       same `"{X+1}.0"` (the main-menu label reads this, not `Application.version` —
       see `commit.md`).
     - `Edit` `Assets/Scenes/MainMenu.unity`'s `_versionName:` line to the new name.
-    - Stage all three files (`git add`) and commit them **directly on the current
-      branch** — do not route this through the `commit`/`k:commit` skill: that skill
-      (a) always branches off the default branch first, which would strand this
-      bump on a throwaway feature branch instead of starting the milestone on `main`,
-      and (b) always bumps `YYY` by 1, which would fight the reset to `0` just made.
+    - Stage all three files (`git add`) and commit them **directly on `main`** (same
+      branch-switch procedure as step 11, if not already there) — do not route this
+      through the `commit`/`k:commit` skill: that skill (a) always branches off the
+      default branch first, which would strand this bump on a throwaway feature
+      branch instead of starting the milestone on `main`, and (b) always bumps `YYY`
+      by 1, which would fight the reset to `0` just made.
       Commit message: short imperative subject (e.g. `Start milestone {X+1}. {name}`),
       no bullet-point file dump, trailer `Co-Authored-By: <model in use>
       <noreply@anthropic.com>` per the repo's usual commit-message rules.
     - Leave the commit unpushed, same as the normal commit flow — pushing is the
       user's call.
 17. Report a short summary of everything done: report location, tech/player post
-    locations (this repo and the live blog URL/slug), release URL, release branch,
-    and the new milestone identity. Tick off the final checklist box.
+    locations (this repo — including both `players_post.en.txt` and
+    `players_post.ru.txt` — and the live blog URL/slug), release URL, release
+    branch, and the new milestone identity. Tick off the final checklist box.
 
 ## Notes
 
