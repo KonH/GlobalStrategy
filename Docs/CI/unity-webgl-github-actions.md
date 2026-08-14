@@ -5,11 +5,12 @@
 | Workflow | File | What it does |
 |---|---|---|
 | Build Unity WebGL | [`.github/workflows/build-webgl.yml`](../../.github/workflows/build-webgl.yml) | Manual-only: builds WebGL and uploads a `GlobalStrategy-WebGL` artifact |
-| Deploy Unity Play | [`.github/workflows/deploy-unity-play.yml`](../../.github/workflows/deploy-unity-play.yml) | Manual-only: builds WebGL, then uploads to [Unity Play](https://play.unity.com/en/games/e1953a2d-a3eb-40b1-b8ac-75282d4cf315/global-strategy) |
+| Deploy Unity Play | [`.github/workflows/deploy-unity-play.yml`](../../.github/workflows/deploy-unity-play.yml) | Manual-only: builds WebGL, then uploads to [Unity Play](https://play.unity.com/en/games/e1953a2d-a3eb-40b1-b8ac-75282d4cf315/global-strategy) (the public release listing) |
+| Deploy Unity Play (DEV) | [`.github/workflows/deploy-unity-play-dev.yml`](../../.github/workflows/deploy-unity-play-dev.yml) | Manual-only: builds WebGL, then uploads to a **separate** Unity Play game for iterating on the upcoming milestone without touching the public listing |
 
-Both builds use [game-ci/unity-builder](https://game.ci/docs/github/builder) with `Assets/Settings/Build Profiles/Web - Desktop - Release.asset`.
+All three builds use [game-ci/unity-builder](https://game.ci/docs/github/builder) with `Assets/Settings/Build Profiles/Web - Desktop - Release.asset`.
 
-Unity Play upload uses [`scripts/ci/deploy_unity_play.py`](../../scripts/ci/deploy_unity_play.py), which mirrors the WebGL Publisher package API (`POST /api/webgl/upload` + progress poll on `play.unity.com`).
+Both Unity Play deploys share [`scripts/ci/deploy_unity_play.py`](../../scripts/ci/deploy_unity_play.py), which mirrors the WebGL Publisher package API (`POST /api/webgl/upload` + progress poll on `play.unity.com`). Only the project id / title passed to it differ between the release and DEV workflows.
 
 Official GameCI activation docs: https://game.ci/docs/github/activation
 
@@ -19,7 +20,7 @@ GitHub Pages still hosts only the Blazor debug client (`deploy-web-client.yml`) 
 
 Add these under **GitHub → this repo → Settings → Secrets and variables → Actions → New repository secret**.
 
-### Unity license + account (required for both workflows)
+### Unity license + account (required for all three workflows)
 
 | Secret | Value |
 |---|---|
@@ -58,6 +59,20 @@ Optional repository variable (Settings → Secrets and variables → Actions →
 |---|---|
 | `UNITY_PLAY_TITLE` | Display title sent with the upload (default: `Hidden Council`) |
 
+### Unity Play DEV project id (Deploy Unity Play (DEV) only)
+
+| Secret | Value |
+|---|---|
+| `UNITY_PLAY_DEV_PROJECT_ID` | Unity Play game id for the **dev** listing used to preview the upcoming milestone's builds; leave unset for the first run and it creates a new game (unlike the release workflow, there is no baked-in default id) |
+
+After the first run, open the job log for the printed `projectId=`/`url=` lines and save that id into `UNITY_PLAY_DEV_PROJECT_ID` so subsequent dev deploys keep updating the same listing instead of minting a new Unity Play game every run.
+
+Optional repository variable:
+
+| Variable | Value |
+|---|---|
+| `UNITY_PLAY_DEV_TITLE` | Display title sent with dev uploads (default: `Hidden Council (Dev)`) |
+
 ## Professional / Plus / Pro license (alternative)
 
 Do **not** set `UNITY_LICENSE` if you use a paid serial. Instead set:
@@ -68,11 +83,11 @@ Do **not** set `UNITY_LICENSE` if you use a paid serial. Instead set:
 | `UNITY_EMAIL` | Unity account email |
 | `UNITY_PASSWORD` | Unity account password |
 
-Then change the build step `env:` in both Unity workflows from `UNITY_LICENSE` to `UNITY_SERIAL` (keep email/password). Unity Play deploy still needs `UNITY_EMAIL` / `UNITY_PASSWORD`.
+Then change the build step `env:` in all three Unity workflows from `UNITY_LICENSE` to `UNITY_SERIAL` (keep email/password). Unity Play deploys still need `UNITY_EMAIL` / `UNITY_PASSWORD`.
 
 ## After secrets are set
 
-Both workflows are **manual only** (`workflow_dispatch`) — they do not run on push or pull request.
+All three workflows are **manual only** (`workflow_dispatch`) — they do not run on push or pull request.
 
 ### Artifact-only build
 
@@ -83,5 +98,10 @@ Both workflows are **manual only** (`workflow_dispatch`) — they do not run on 
 
 1. Run **Actions → Deploy Unity Play → Run workflow**.
 2. When the job finishes, open https://play.unity.com/en/games/e1953a2d-a3eb-40b1-b8ac-75282d4cf315/global-strategy (or the `url=` printed in the job log).
+
+### Deploy to Unity Play (DEV)
+
+1. Run **Actions → Deploy Unity Play (DEV) → Run workflow**.
+2. When the job finishes, open the `url=` printed in the job log (the first run creates a new Unity Play game — save its id into `UNITY_PLAY_DEV_PROJECT_ID` as described above so later runs update the same listing).
 
 Until the license/account secrets exist, builds fail at Unity license activation. Until email/password are valid for the Play game owner, deploy fails at Unity ID login or upload.

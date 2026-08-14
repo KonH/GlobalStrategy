@@ -1,0 +1,105 @@
+name: Deploy Unity Play (DEV)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-unity-play-dev
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    name: Build WebGL and deploy to Unity Play (DEV)
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: true
+          android: true
+          dotnet: false
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: Cache Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-WebGL-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-WebGL-
+            Library-
+
+      - name: Build WebGL
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: WebGL
+          unityVersion: auto
+          buildProfile: Assets/Settings/Build Profiles/Web - Desktop - Release.asset
+          buildName: WebGL
+          buildsPath: build
+
+      # unity-builder writes to <buildsPath>/<targetPlatform>/<buildName>, so the
+      # player root is build/WebGL/WebGL — resolve it from index.html instead of
+      # hardcoding a layout the builder may change.
+      - name: Resolve WebGL build directory
+        id: webgl
+        run: |
+          # Shallowest index.html wins — StreamingAssets/EcsViewer ships its own,
+          # and it sorts before the player's index.html alphabetically.
+          INDEX=$(find build -maxdepth 4 -name index.html -type f -printf '%d\t%p\n' \
+            | sort -n -k1,1 | head -n 1 | cut -f2-)
+          if [ -z "$INDEX" ]; then
+            echo "::error::No index.html found under build/"
+            find build -maxdepth 4
+            exit 1
+          fi
+          BUILD_DIR=$(dirname "$INDEX")
+          echo "Resolved WebGL build directory: $BUILD_DIR"
+          ls -alh "$BUILD_DIR"
+          echo "dir=$BUILD_DIR" >> "$GITHUB_OUTPUT"
+
+      - name: Upload WebGL artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GlobalStrategy-WebGL-DEV
+          path: ${{ steps.webgl.outputs.dir }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Separate secrets/vars from the release Deploy Unity Play workflow so dev
+      # builds for the upcoming milestone never overwrite the public listing.
+      # UNITY_PLAY_DEV_PROJECT_ID starts empty: the first dev run creates a new
+      # Unity Play game and every later run should have the id filled in as a repo
+      # secret so it keeps updating that same dev listing instead of minting a new
+      # one each time.
+      - name: Deploy to Unity Play (DEV)
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_PLAY_DEV_PROJECT_ID: ${{ secrets.UNITY_PLAY_DEV_PROJECT_ID }}
+          UNITY_PLAY_DEV_TITLE: ${{ vars.UNITY_PLAY_DEV_TITLE }}
+        run: |
+          TITLE="${UNITY_PLAY_DEV_TITLE:-Hidden Council (Dev)}"
+          python scripts/ci/deploy_unity_play.py \
+            --build-dir "${{ steps.webgl.outputs.dir }}" \
+            --project-id "$UNITY_PLAY_DEV_PROJECT_ID" \
+            --title "$TITLE"
