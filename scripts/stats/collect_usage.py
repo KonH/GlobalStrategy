@@ -39,6 +39,7 @@ from scripts.stats.claude_transcript import parse_claude_transcript  # noqa: E40
 from scripts.stats.codex_rollout import parse_codex_rollout  # noqa: E402
 from scripts.stats.csv_store import upsert_row  # noqa: E402
 from scripts.stats.pricing import compute_cost  # noqa: E402
+from scripts.stats.token_estimate import file_tokens  # noqa: E402
 from scripts.stats.version_info import read_bundle_version  # noqa: E402
 from scripts.stats.watermark import advance_watermark, get_last_scanned  # noqa: E402
 
@@ -126,7 +127,9 @@ def build_row(spec_dir, stage, mode, context, provider, session_id, model, effor
         "cached_input_tokens": cached_input_tokens,
         "output_tokens": output_tokens,
         "spec_size_kb": file_size_kb(full_spec_dir / "spec.md"),
+        "spec_size_tokens": file_tokens(full_spec_dir / "spec.md"),
         "plan_size_kb": file_size_kb(full_spec_dir / "plan.md"),
+        "plan_size_tokens": file_tokens(full_spec_dir / "plan.md"),
         "prd_size_kb": file_size_kb(Path(root) / ".ralph" / "prd.md"),
         "diff_lines": diff_lines,
         "session_id": session_id,

@@ -1,0 +1,4 @@
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
+26_06_22_23_visual-state-action-refactor,1.201,spec,automated,,2026-06-22T23:24:42+02:00,2026-06-22T23:24:42+02:00,claude,claude-sonnet-4-6,,,,,,9.76,2490,15.34,3908,,1708,backfilled
+26_06_22_23_visual-state-action-refactor,1.201,plan,automated,,2026-06-22T23:24:42+02:00,2026-06-22T23:24:42+02:00,claude,claude-sonnet-4-6,,,,,,9.76,2490,15.34,3908,,1708,backfilled
+26_06_22_23_visual-state-action-refactor,1.201,implement,automated,,2026-06-22T23:24:42+02:00,2026-06-22T23:24:42+02:00,claude,claude-sonnet-4-6,,,,,,9.76,2490,15.34,3908,,1708,backfilled

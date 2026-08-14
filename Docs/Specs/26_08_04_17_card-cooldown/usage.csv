@@ -1,0 +1,4 @@
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
+26_08_04_17_card-cooldown,1.201,spec,automated,,2026-08-04T17:57:45+00:00,2026-08-04T17:57:45+00:00,claude,claude-sonnet-5,,,,,,18.44,4699,33.15,8443,,73,backfilled
+26_08_04_17_card-cooldown,1.201,plan,automated,,2026-08-05T00:17:23+00:00,2026-08-05T00:17:23+00:00,claude,claude-sonnet-5,,,,,,18.44,4699,33.15,8443,,277,backfilled
+26_08_04_17_card-cooldown,1.204,implement,automated,,2026-08-05T10:21:00+00:00,2026-08-05T10:21:00+00:00,claude,claude-sonnet-5,,,,,,18.44,4699,33.15,8443,0.03,822,backfilled
