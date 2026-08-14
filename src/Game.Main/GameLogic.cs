@@ -356,9 +356,12 @@ namespace GS.Main {
 			DrawCardSystem.Update(
 				_world,
 				_actionConfig,
+				_effectConfig,
 				_rng,
 				_commandAccessor.ReadDrawCardsCommand(),
-				discardResults);
+				discardResults,
+				_relations,
+				playerOrgId);
 			CleanupCardDiscardSystem.Update(_world);
 			OrgDestroySystem.EvaluateAll(
 				_world, _actionConfig, _effectConfig, _resources, _relations, GameSettings, MaxControlPool);

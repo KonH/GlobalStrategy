@@ -226,9 +226,12 @@ namespace GS.Game.Tests {
 				DrawCardSystem.Update(
 					world,
 					config,
+					new EffectConfig(),
 					rng,
 					new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = orgId } }),
-					Array.Empty<DiscardCardResult>());
+					Array.Empty<DiscardCardResult>(),
+					new CountryRelations(),
+					orgId);
 				IReadOnlyList<CountryCardDrawChoiceInfo> choices = CountryCardDrawQuery.GetChoices(world, orgId);
 				if (choices.Count == 0) {
 					break;

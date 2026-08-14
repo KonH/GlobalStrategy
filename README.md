@@ -16,11 +16,14 @@ This repository is both a game and a case study in **structured AI-driven softwa
 
 ## The Game (briefly)
 
-- **Secret organization gameplay** — pick an organization (not a country), operating from its HQ nation, and expand control over the world map.
+- **Secret organization gameplay** — pick an organization (not a country), operate from its HQ nation, and expand control over the world map against rival organizations.
 - **Historical 1880 map** — 160+ countries reconstructed from historical GeoJSON, subdivided into provinces with mutable runtime ownership; four map lenses (Political, Organization, Geographic, Province).
-- **Card-driven actions** — per-country action card hands with costs, success rolls, and deck-building rules; discover countries, gain control, sway characters' opinions.
+- **Card-driven actions** — per-country action card hands with costs, success rolls, cooldowns, and a draw/discard deck system; discover countries, gain control, sway characters' opinions, sell arms, issue ultimatums.
+- **Diplomacy and war** — build friendships or rivalries between countries, declare and prosecute wars with damage/durability combat, resolve peace, and pursue revenge.
 - **Characters & opinion** — each country has AI-generated character portraits (rulers, generals, diplomats) whose opinion of your organization you can influence.
-- **Living simulation** — game time with speed controls, monthly income, resource effects, autosaves, full save/load; localized in English and Russian.
+- **Rival AI organizations** — other organizations run on their own bot AI, competing for control, declaring wars, and playing the same card economy you do.
+- **Scoring, goals & leaderboards** — country/org scoring feeds a live leaderboard and a goals/tasks system, with an end-game comparison against your rivals.
+- **Living simulation** — game time with speed controls, monthly income, resource effects, an in-game tutorial, autosaves, full save/load; localized in English and Russian.
 
 ## Tech Stack
 

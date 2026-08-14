@@ -34,12 +34,14 @@ namespace GS.Game.Systems {
 
 	public readonly struct CountryCardDrawCandidate {
 		public int Entity { get; }
-		public int Weight { get; }
+		public double Weight { get; }
 
-		public CountryCardDrawCandidate(int entity, int weight) {
+		public CountryCardDrawCandidate(int entity, double weight) {
 			Entity = entity;
 			Weight = weight;
 		}
+
+		public CountryCardDrawCandidate WithWeight(double weight) => new CountryCardDrawCandidate(Entity, weight);
 	}
 
 	public readonly struct CountryCardDrawChoiceInfo {

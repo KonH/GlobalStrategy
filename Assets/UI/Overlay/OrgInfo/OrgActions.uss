@@ -40,11 +40,14 @@
     overflow: visible;
 }
 
+/* Each card slot is 256px (240px card + 8px left/right lift-wrapper margin), so 4 columns
+   need 1024px exactly. That left zero slack for sub-pixel layout rounding and wrapped to
+   3 columns (3+3+2 for an 8-card hand) instead of 4; pad the row to guarantee 4 columns. */
 .hand-cards-grid {
     flex-direction: row;
     flex-wrap: wrap;
     align-content: flex-start;
-    width: 1024px;
+    width: 1040px;
     overflow: visible;
 }
 

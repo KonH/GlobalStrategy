@@ -10,20 +10,23 @@ namespace GS.Game.Systems {
 		public static void Update(
 			World world,
 			ActionConfig config,
+			EffectConfig effectConfig,
 			Random rng,
 			ReadCommands<DrawCardsCommand> commands,
-			IReadOnlyList<DiscardCardResult> discardResults) {
+			IReadOnlyList<DiscardCardResult> discardResults,
+			CountryRelations relations,
+			string playerOrgId) {
 			ScheduleOrgRefills(world);
 			RefillOrgHands(world, config, rng);
 
 			foreach (DrawCardsCommand command in commands.AsSpan()) {
-				TryCreateOffer(world, config, rng, command.OrgId);
+				TryCreateOffer(world, config, effectConfig, rng, relations, playerOrgId, command.OrgId);
 			}
 
 			for (int i = 0; i < discardResults.Count; i++) {
 				DiscardCardResult result = discardResults[i];
 				if (result.Outcome == DiscardCardOutcome.Succeeded) {
-					TryCreateOffer(world, config, rng, result.Command.OrgId);
+					TryCreateOffer(world, config, effectConfig, rng, relations, playerOrgId, result.Command.OrgId);
 				}
 			}
 		}
@@ -171,35 +174,130 @@ namespace GS.Game.Systems {
 		static bool TryCreateOffer(
 			World world,
 			ActionConfig config,
+			EffectConfig effectConfig,
 			Random rng,
+			CountryRelations relations,
+			string playerOrgId,
 			string orgId) {
 			if (!CountryCardDrawQuery.TryGetStatus(world, config, orgId, out CountryCardDrawStatus status)
 				|| !status.CanStartDraw) {
 				return false;
 			}
 
+			bool isFirstDraw = !world.Has<FirstCardDrawCompleted>(status.DeckEntity);
+
 			var candidates = new List<CountryCardDrawCandidate>(
 				CountryCardDrawQuery.GetDrawableCards(world, config, orgId));
+			for (int i = 0; i < candidates.Count; i++) {
+				double adjusted = AdjustWeight(world, relations, orgId, playerOrgId, candidates[i]);
+				candidates[i] = candidates[i].WithWeight(adjusted);
+			}
+
 			int optionCount = Math.Min(3, candidates.Count);
-			for (int choiceIndex = 0; choiceIndex < optionCount; choiceIndex++) {
-				int totalWeight = 0;
-				foreach (CountryCardDrawCandidate candidate in candidates) {
-					totalWeight += candidate.Weight;
-				}
+			var chosenEntities = new List<int>(optionCount);
 
-				int roll = rng.Next(totalWeight);
-				int selectedIndex = 0;
-				for (; selectedIndex < candidates.Count; selectedIndex++) {
-					roll -= candidates[selectedIndex].Weight;
-					if (roll < 0) { break; }
+			// First-ever draw for this org's country-card deck guarantees a control-raising
+			// choice, so a brand-new org is never offered three cards it cannot use yet.
+			if (isFirstDraw) {
+				int controlIndex = FindControlRaisingCandidateIndex(world, config, effectConfig, candidates);
+				if (controlIndex >= 0) {
+					chosenEntities.Add(candidates[controlIndex].Entity);
+					candidates.RemoveAt(controlIndex);
 				}
+			}
 
-				world.Add(candidates[selectedIndex].Entity, new CardDrawChoice { ChoiceIndex = choiceIndex });
+			while (chosenEntities.Count < optionCount && candidates.Count > 0) {
+				int selectedIndex = PickWeightedIndex(rng, candidates);
+				chosenEntities.Add(candidates[selectedIndex].Entity);
 				candidates.RemoveAt(selectedIndex);
 			}
 
-			world.Add(status.DeckEntity, new PendingCardDraw { OptionCount = optionCount });
+			for (int choiceIndex = 0; choiceIndex < chosenEntities.Count; choiceIndex++) {
+				world.Add(chosenEntities[choiceIndex], new CardDrawChoice { ChoiceIndex = choiceIndex });
+			}
+
+			world.Add(status.DeckEntity, new PendingCardDraw { OptionCount = chosenEntities.Count });
+			if (isFirstDraw) {
+				world.Add(status.DeckEntity, new FirstCardDrawCompleted());
+			}
 			return true;
+		}
+
+		static int PickWeightedIndex(Random rng, List<CountryCardDrawCandidate> candidates) {
+			double totalWeight = 0;
+			foreach (CountryCardDrawCandidate candidate in candidates) {
+				totalWeight += candidate.Weight;
+			}
+			if (totalWeight <= 0) {
+				return 0;
+			}
+
+			double roll = rng.NextDouble() * totalWeight;
+			int selectedIndex = 0;
+			for (; selectedIndex < candidates.Count; selectedIndex++) {
+				roll -= candidates[selectedIndex].Weight;
+				if (roll < 0) { break; }
+			}
+			return Math.Min(selectedIndex, candidates.Count - 1);
+		}
+
+		/// <summary>
+		/// stop_rivalry offers at half its normal weight for every organisation. declare_war
+		/// offers at +70% weight, player organisation only, when the player holds any control
+		/// in a country that is itself a rival of the card's war target.
+		/// </summary>
+		static double AdjustWeight(
+			IReadOnlyWorld world,
+			CountryRelations relations,
+			string orgId,
+			string playerOrgId,
+			CountryCardDrawCandidate candidate) {
+			if (!world.Has<GameAction>(candidate.Entity)) {
+				return candidate.Weight;
+			}
+
+			string actionId = world.Get<GameAction>(candidate.Entity).ActionId;
+			if (actionId == "stop_rivalry") {
+				return candidate.Weight * 0.5;
+			}
+
+			if (actionId == "declare_war"
+				&& orgId == playerOrgId
+				&& !string.IsNullOrEmpty(playerOrgId)
+				&& world.Has<RelationCardTarget>(candidate.Entity)) {
+				string targetCountryId = world.Get<RelationCardTarget>(candidate.Entity).TargetCountryId;
+				if (HasControlInRivalOf(world, relations, orgId, targetCountryId)) {
+					return candidate.Weight * 1.7;
+				}
+			}
+
+			return candidate.Weight;
+		}
+
+		static bool HasControlInRivalOf(IReadOnlyWorld world, CountryRelations relations, string orgId, string countryId) {
+			var (_, rivals) = relations.GetRelationsByCountryId(world, countryId);
+			foreach (string rivalCountryId in rivals) {
+				if (ControlQuery.GetOrgControlInCountry(world, orgId, rivalCountryId) > 0) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		static int FindControlRaisingCandidateIndex(
+			IReadOnlyWorld world,
+			ActionConfig config,
+			EffectConfig effectConfig,
+			List<CountryCardDrawCandidate> candidates) {
+			for (int i = 0; i < candidates.Count; i++) {
+				if (!world.Has<GameAction>(candidates[i].Entity)) { continue; }
+				string actionId = world.Get<GameAction>(candidates[i].Entity).ActionId;
+				ActionDefinition? definition = config.Find(actionId);
+				if (ActionEffectClassifier.RaisesControl(definition, effectConfig)) {
+					return i;
+				}
+			}
+			return -1;
 		}
 
 		/// <summary>
