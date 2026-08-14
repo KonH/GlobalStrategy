@@ -14,16 +14,11 @@ namespace GS.Game.Bots {
 		readonly CountryRelations _relations;
 		readonly IReadOnlyDictionary<string, string>? _hqCountryByOrgId;
 		readonly int _maxControlPool;
-		DateTime? _lastActedDate;
-		DateTime? _pendingAcquisitionSinceDate;
-
-		// If a country-card draw offer can't be resolved (e.g. the hand stays full and
-		// ReceiveCardSystem keeps rejecting it) for this many calendar days in a row, stop
-		// letting it block the daily decision loop below - fall through to feature.Tick()
-		// anyway so the bot doesn't freeze forever. TryAcquireCountryCard keeps retrying the
-		// stuck offer on every subsequent tick regardless; a feature play may also free hand
-		// capacity and let a retry finally succeed.
-		const int AcquisitionStallDayLimit = 3;
+		readonly double _botDecisionIntervalHours;
+		readonly double _discardGoldCost;
+		DateTime? _lastCycleCompletedAt;
+		bool _cycleOpen;
+		DateTime? _pendingAcquisitionSince;
 
 		public string OrgId { get; }
 		public string CurrentFeatureId { get; private set; } = "";
@@ -37,7 +32,13 @@ namespace GS.Game.Bots {
 			CountryRelations relations,
 			EffectConfig? effectConfig = null,
 			IReadOnlyDictionary<string, string>? hqCountryByOrgId = null,
-			int maxControlPool = 100) {
+			int maxControlPool = 100,
+			double botDecisionIntervalHours = 4,
+			double discardGoldCost = 50) {
+			if (botDecisionIntervalHours <= 0) {
+				throw new InvalidOperationException(
+					$"BotDecisionIntervalHours must be > 0 (got {botDecisionIntervalHours}).");
+			}
 			OrgId = orgId;
 			_features = features;
 			_rng = rng;
@@ -47,72 +48,97 @@ namespace GS.Game.Bots {
 			_effectConfig = effectConfig ?? new EffectConfig();
 			_hqCountryByOrgId = hqCountryByOrgId;
 			_maxControlPool = maxControlPool;
+			_botDecisionIntervalHours = botDecisionIntervalHours;
+			_discardGoldCost = discardGoldCost;
 		}
 
 		public void ExecuteDecisionTick(IReadOnlyWorld world, ActionConfig actionConfig) {
 			DateTime currentDate = BotObservation.ReadCurrentDate(world);
 
-			// A full observation rebuild is a cards x countries ActionPlayability scan -
-			// expensive, and only two things can ever make it worthwhile: an unresolved
-			// country-card acquisition step (draw/receive), or today's strategic decision not
-			// having been made yet (feature.Tick() below only ever runs once per calendar day,
-			// gated by _lastActedDate). Once today's decision is made and there's no acquisition
-			// work pending, nothing can change again until the day rolls over or a new draw
-			// becomes available - skip the rebuild entirely rather than recomputing it and
-			// immediately discarding the result every frame.
-			bool alreadyActedToday = _lastActedDate.HasValue && currentDate.Date == _lastActedDate.Value.Date;
-			if (alreadyActedToday && !HasPendingAcquisitionWork(world, actionConfig)) {
-				return;
+			if (!_cycleOpen) {
+				bool intervalElapsed = !_lastCycleCompletedAt.HasValue
+					|| (currentDate - _lastCycleCompletedAt.Value).TotalHours >= _botDecisionIntervalHours;
+				if (!intervalElapsed) {
+					return;
+				}
+				_cycleOpen = true;
 			}
 
 			_sink.BeginDecisionPhase();
 			var observation = BotObservation.Build(
 				world, actionConfig, OrgId, _resources, _relations, _effectConfig, _hqCountryByOrgId, _maxControlPool);
 			if (TryAcquireCountryCard(observation)) {
-				_pendingAcquisitionSinceDate ??= currentDate.Date;
+				_pendingAcquisitionSince ??= currentDate;
+				double stallHours = Math.Max(_botDecisionIntervalHours * 3, 24);
 				bool acquisitionStalled =
-					(currentDate.Date - _pendingAcquisitionSinceDate.Value).Days >= AcquisitionStallDayLimit;
+					(currentDate - _pendingAcquisitionSince.Value).TotalHours >= stallHours;
 				if (!acquisitionStalled) {
 					return;
 				}
-				// Stalled - fall through to the strategic tick below instead of returning.
+				// Stalled — fall through to proposals/discard instead of freezing strategic play.
 			} else {
-				_pendingAcquisitionSinceDate = null;
+				_pendingAcquisitionSince = null;
 			}
 
-			if (alreadyActedToday) {
-				return;
-			}
-			_lastActedDate = currentDate;
-
+			var proposals = new List<BotPlayProposal>();
 			foreach (var feature in _features) {
-				CurrentFeatureId = feature.FeatureId;
 				try {
-					feature.Tick(observation, _sink, _rng);
+					feature.CollectProposals(observation, proposals, _rng);
 				} catch (Exception ex) {
 					throw new BotFeatureException(OrgId, feature.FeatureId, ex);
+				}
+			}
+
+			BotPlayProposal? best = BotPlayArbitration.SelectBest(proposals);
+			if (best != null) {
+				CurrentFeatureId = best.FeatureId;
+				try {
+					EmitPlay(best);
 				} finally {
 					CurrentFeatureId = "";
 				}
+				CompleteCycle(currentDate);
+				return;
 			}
+
+			// Discard only when at least one feature is registered — otherwise there is no
+			// consumer for a refreshed hand, and empty-feature bots must stay passive.
+			if (_features.Count > 0
+				&& BotDiscardHelper.TryDiscardForBetterHand(
+					observation, _sink, discardGoldCost: _discardGoldCost)) {
+				// Unbounded within the open cycle across ticks until a suitable proposal appears
+				// or discard is blocked.
+				return;
+			}
+
+			CompleteCycle(currentDate);
 		}
 
-		bool HasPendingAcquisitionWork(IReadOnlyWorld world, ActionConfig actionConfig) {
-			return CountryCardDrawQuery.TryGetStatus(world, actionConfig, OrgId, out CountryCardDrawStatus status)
-				&& (status.CanStartDraw || status.HasCoherentPendingDraw);
+		void CompleteCycle(DateTime currentDate) {
+			_cycleOpen = false;
+			_lastCycleCompletedAt = currentDate;
+		}
+
+		void EmitPlay(BotPlayProposal proposal) {
+			if (proposal.CountryId == "") {
+				_sink.PlayOrgCard(proposal.ActionId, proposal.SlotIndex);
+			} else {
+				_sink.PlayCountryCard(
+					proposal.ActionId, proposal.CountryId, proposal.SlotIndex, proposal.TargetCountryId);
+			}
 		}
 
 		bool TryAcquireCountryCard(IBotObservation observation) {
 			if (observation.CountryCardDrawChoices.Count > 0) {
 				BotCardDrawChoiceView selected = observation.CountryCardDrawChoices[0];
-				int selectedPriority = GetChoicePriority(selected);
+				double selectedScore = BotDrawIntentScorer.ScoreChoice(selected, observation);
 				for (int i = 1; i < observation.CountryCardDrawChoices.Count; i++) {
 					BotCardDrawChoiceView candidate = observation.CountryCardDrawChoices[i];
-					int candidatePriority = GetChoicePriority(candidate);
-					if (candidatePriority < selectedPriority
-						|| candidatePriority == selectedPriority && candidate.ChoiceIndex < selected.ChoiceIndex) {
+					double candidateScore = BotDrawIntentScorer.ScoreChoice(candidate, observation);
+					if (candidateScore > selectedScore
+						|| candidateScore == selectedScore && candidate.ChoiceIndex < selected.ChoiceIndex) {
 						selected = candidate;
-						selectedPriority = candidatePriority;
+						selectedScore = candidateScore;
 					}
 				}
 				_sink.ReceiveCountryCard(selected.ChoiceIndex);
@@ -123,19 +149,6 @@ namespace GS.Game.Bots {
 				return true;
 			}
 			return false;
-		}
-
-		static int GetChoicePriority(BotCardDrawChoiceView choice) {
-			if (choice.IsControlUsable) {
-				return 0;
-			}
-			if (choice.RaisesControl) {
-				return 1;
-			}
-			if (choice.IsPlayable) {
-				return 2;
-			}
-			return 3;
 		}
 	}
 

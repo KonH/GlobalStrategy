@@ -155,16 +155,17 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void baseline_plays_at_most_one_card_per_tick() {
+		void baseline_proposes_at_most_one_card_per_collect() {
 			var logic = BuildLogic(1);
 			logic.Update(0f);
 
 			var obs = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
-			var sink = new RecordingSink();
 			var feature = new BaselineCardPlayFeature(new Dictionary<string, double>());
-			feature.Tick(obs, sink, new Random(1));
+			var proposals = new List<BotPlayProposal>();
+			feature.CollectProposals(obs, proposals, new Random(1));
 
-			Assert.Single(sink.Plays);
+			Assert.Single(proposals);
+			Assert.True(proposals[0].EstimatedDeltaOrgScore > 0);
 		}
 
 		[Fact]
@@ -174,18 +175,32 @@ namespace GS.Game.Tests {
 			// Org hand playable -> the org-hand card is chosen.
 			var logicPlayable = BuildScanOrderLogic(orgGold: 1000.0);
 			var obsPlayable = BotObservation.Build(logicPlayable.World, logicPlayable.ActionConfig, "Illuminati", logicPlayable.Resources, logicPlayable.Relations);
-			var sinkPlayable = new RecordingSink();
-			feature.Tick(obsPlayable, sinkPlayable, new Random(1));
-			Assert.Single(sinkPlayable.Plays);
-			Assert.Equal(("expensive_org_card", ""), sinkPlayable.Plays[0]);
+			var proposalsPlayable = new List<BotPlayProposal>();
+			feature.CollectProposals(obsPlayable, proposalsPlayable, new Random(1));
+			BotPlayProposal playable = Assert.Single(proposalsPlayable);
+			Assert.Equal("expensive_org_card", playable.ActionId);
+			Assert.Equal("", playable.CountryId);
 
 			// Org hand unplayable -> the ordinal-first country's card is chosen.
 			var logicUnplayable = BuildScanOrderLogic(orgGold: 5.0);
 			var obsUnplayable = BotObservation.Build(logicUnplayable.World, logicUnplayable.ActionConfig, "Illuminati", logicUnplayable.Resources, logicUnplayable.Relations);
-			var sinkUnplayable = new RecordingSink();
-			feature.Tick(obsUnplayable, sinkUnplayable, new Random(1));
-			Assert.Single(sinkUnplayable.Plays);
-			Assert.Equal(("cheap_country_card", "Austria"), sinkUnplayable.Plays[0]);
+			var proposalsUnplayable = new List<BotPlayProposal>();
+			feature.CollectProposals(obsUnplayable, proposalsUnplayable, new Random(1));
+			BotPlayProposal unplayable = Assert.Single(proposalsUnplayable);
+			Assert.Equal("cheap_country_card", unplayable.ActionId);
+			Assert.Equal("Austria", unplayable.CountryId);
+		}
+
+		[Fact]
+		void min_gold_reserve_suppresses_proposals_when_gold_too_low() {
+			var logic = BuildScanOrderLogic(orgGold: 5.0);
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, "Illuminati", logic.Resources, logic.Relations);
+			var feature = new BaselineCardPlayFeature(new Dictionary<string, double> { ["minGoldReserve"] = 1_000_000_000.0 });
+			var proposals = new List<BotPlayProposal>();
+
+			feature.CollectProposals(obs, proposals, new Random(1));
+
+			Assert.Empty(proposals);
 		}
 
 		[Fact]

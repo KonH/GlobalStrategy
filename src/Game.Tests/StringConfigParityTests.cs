@@ -57,6 +57,8 @@ namespace GS.Game.Tests {
 			Assert.Equal(fromFile.SpeedMultipliers, fromString.SpeedMultipliers);
 			Assert.Equal(50, fromFile.DiscardGoldCost);
 			Assert.Equal(fromFile.DiscardGoldCost, fromString.DiscardGoldCost);
+			Assert.Equal(4, fromFile.BotDecisionIntervalHours);
+			Assert.Equal(fromFile.BotDecisionIntervalHours, fromString.BotDecisionIntervalHours);
 			Assert.Collection(fromFile.CompletionCondition.Members,
 				member => {
 					Assert.Equal("score_goal", member.Type);

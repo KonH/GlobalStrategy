@@ -27,7 +27,7 @@ namespace GS.Game.Bots {
 				IGameLogger? logger = null,
 				BotActionObserver? onAction = null,
 				bool discoverFromWorld = true) {
-			var session = new BotSession(logic, rngSeed, registry ?? BotFeatureRegistry.CreateDefault(logic.MaxControlPool), logger, onAction, discoverFromWorld);
+			var session = new BotSession(logic, rngSeed, registry ?? BotFeatureRegistry.CreateDefault(logic.MaxControlPool, logic.EffectConfig), logger, onAction, discoverFromWorld);
 			if (explicitProfiles != null) {
 				foreach (var profile in explicitProfiles) {
 					session.AttachBot(profile.OrgId, profile);
@@ -90,7 +90,9 @@ namespace GS.Game.Bots {
 			var sink = new BotCommandSink(orgId, _logic.Commands, _logger, callback);
 			bot = new Bot(
 				orgId, features, rng, sink, _logic.Resources, _logic.Relations, _logic.EffectConfig,
-				_logic.HqCountryByOrgId, _logic.MaxControlPool);
+				_logic.HqCountryByOrgId, _logic.MaxControlPool,
+				_logic.GameSettings.BotDecisionIntervalHours,
+				_logic.GameSettings.DiscardGoldCost);
 			_botsByOrgId[orgId] = bot;
 		}
 

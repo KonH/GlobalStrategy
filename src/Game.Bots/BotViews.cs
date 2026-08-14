@@ -28,6 +28,11 @@ namespace GS.Game.Bots {
 		public bool IsControlUsable;
 	}
 
+	public sealed class BotOrgScoreView {
+		public string OrgId = "";
+		public double OrgScore;
+	}
+
 	public sealed class BotCountryView {
 		public string CountryId = "";
 		public int MyControl;
@@ -35,6 +40,18 @@ namespace GS.Game.Bots {
 		public IReadOnlyList<BotControlShare> ControlByOrg = System.Array.Empty<BotControlShare>();
 		public IReadOnlyList<BotCardView> Hand = System.Array.Empty<BotCardView>();
 		public IReadOnlyList<BotCountryCharacterView> Characters = System.Array.Empty<BotCountryCharacterView>();
+		public bool IsDestroyed;
+		public bool IsAtWar;
+		public string WarOpponentCountryId = "";
+		public double OwnWarProgress;
+		public IReadOnlyList<string> RivalCountryIds = System.Array.Empty<string>();
+		public double CountryScore;
+		public int OwnedProvinceCount;
+		public int OccupiedOwnedProvinceCount;
+		public double Recruits;
+		public double Damage;
+		public double Durability;
+		public double TroopsDamageBonusPercent;
 	}
 
 	public sealed class BotControlShare {

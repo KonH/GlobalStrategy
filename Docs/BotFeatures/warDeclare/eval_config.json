@@ -1,0 +1,24 @@
+{
+	"candidateOrgId": null,
+	"opponentFeatures": [ { "featureId": "control", "enabled": true, "parameters": {} } ],
+	"candidateFeatures": [
+		{ "featureId": "control", "enabled": true, "parameters": {} },
+		{ "featureId": "warUnlock", "enabled": true, "parameters": {} },
+		{ "featureId": "warDeclare", "enabled": true, "parameters": {} }
+	],
+	"seedCount": 20,
+	"baseSeed": 1880,
+	"endDate": "1920-01-01",
+	"hoursPerTick": 4,
+	"timeoutSeconds": 14400,
+	"epsilonRelative": 0.02,
+	"epsilonAbsolute": 0,
+	"maxTotalRuns": 200,
+	"baselineMode": "controlOnly",
+	"scoreGate": "improve",
+	"targetActions": [
+		"declare_war",
+		"declare_revenge_war"
+	],
+	"parameterSearch": null
+}

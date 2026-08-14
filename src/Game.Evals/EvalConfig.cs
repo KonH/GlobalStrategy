@@ -45,6 +45,11 @@ namespace GS.Game.Evals {
 	}
 
 	public class EvalConfig {
+		public const string BaselineModeFeatureOff = "featureOff";
+		public const string BaselineModeControlOnly = "controlOnly";
+		public const string ScoreGateNonRegression = "nonRegression";
+		public const string ScoreGateImprove = "improve";
+
 		public string? CandidateOrgId { get; set; }
 		public List<BotFeatureConfigEntry> OpponentFeatures { get; set; } = new() {
 			new BotFeatureConfigEntry { FeatureId = "baselineCardPlay", Enabled = true }
@@ -60,6 +65,8 @@ namespace GS.Game.Evals {
 		public int MaxTotalRuns { get; set; } = 200;
 		public List<string> TargetActions { get; set; } = new();
 		public ParameterSearchConfig? ParameterSearch { get; set; }
+		public string BaselineMode { get; set; } = BaselineModeFeatureOff;
+		public string ScoreGate { get; set; } = ScoreGateNonRegression;
 
 		public static EvalConfig Default() => new EvalConfig();
 
@@ -86,13 +93,51 @@ namespace GS.Game.Evals {
 			return result;
 		}
 
-		// The baseline arm is byte-identical to the candidate arm except <featureId>'s
-		// enabled flag flipped to false.
-		public static List<BotFeatureConfigEntry> BuildBaselineFeatures(List<BotFeatureConfigEntry> candidateFeatures, string featureId) {
+		// Returns a config-error message, or null when baselineMode is usable with the candidate list.
+		public static string? ValidateBaselineMode(string baselineMode, IReadOnlyList<BotFeatureConfigEntry> candidateFeatures) {
+			if (baselineMode == BaselineModeFeatureOff) { return null; }
+			if (baselineMode == BaselineModeControlOnly) {
+				foreach (var entry in candidateFeatures) {
+					if (entry.FeatureId == "control" && entry.Enabled) { return null; }
+				}
+				return "baselineMode 'controlOnly' requires candidateFeatures to include enabled 'control'.";
+			}
+			return $"Unknown baselineMode '{baselineMode}' (expected '{BaselineModeFeatureOff}' or '{BaselineModeControlOnly}').";
+		}
+
+		public static string? ValidateScoreGate(string scoreGate) {
+			if (scoreGate == ScoreGateNonRegression || scoreGate == ScoreGateImprove) { return null; }
+			return $"Unknown scoreGate '{scoreGate}' (expected '{ScoreGateNonRegression}' or '{ScoreGateImprove}').";
+		}
+
+		// featureOff: byte-identical to candidate except <featureId> enabled=false.
+		// controlOnly: keep control enabled; disable every other feature entry.
+		public static List<BotFeatureConfigEntry> BuildBaselineFeatures(
+			List<BotFeatureConfigEntry> candidateFeatures,
+			string featureId,
+			string baselineMode = BaselineModeFeatureOff
+		) {
+			if (baselineMode == BaselineModeControlOnly) {
+				return BuildControlOnlyBaseline(candidateFeatures);
+			}
+			if (baselineMode != BaselineModeFeatureOff) {
+				throw new InvalidOperationException(
+					$"Unknown baselineMode '{baselineMode}' (expected '{BaselineModeFeatureOff}' or '{BaselineModeControlOnly}').");
+			}
 			var result = new List<BotFeatureConfigEntry>();
 			foreach (var entry in candidateFeatures) {
 				var clone = entry.Clone();
 				if (clone.FeatureId == featureId) { clone.Enabled = false; }
+				result.Add(clone);
+			}
+			return result;
+		}
+
+		public static List<BotFeatureConfigEntry> BuildControlOnlyBaseline(List<BotFeatureConfigEntry> candidateFeatures) {
+			var result = new List<BotFeatureConfigEntry>();
+			foreach (var entry in candidateFeatures) {
+				var clone = entry.Clone();
+				clone.Enabled = clone.FeatureId == "control";
 				result.Add(clone);
 			}
 			return result;

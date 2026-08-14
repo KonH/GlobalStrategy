@@ -139,5 +139,27 @@ namespace GS.Game.Tests {
 
 			Assert.Equal(50, WarWinChanceEstimator.EstimateAttackerWinPercent(world, _resources, "A", "B"));
 		}
+
+		[Fact]
+		void war_win_chance_numeric_overload_matches_world_path() {
+			var world = new World();
+			SetCombatBundle(world, "A", recruits: 20, damage: 40, durability: 40);
+			SetCombatBundle(world, "B", recruits: 15, damage: 35, durability: 45);
+
+			int worldPlain = WarWinChanceEstimator.EstimateAttackerWinPercent(world, _resources, "A", "B");
+			int numericPlain = WarWinChanceEstimator.EstimateAttackerWinPercent(
+				20, 40, 40, 15, 35, 45);
+			Assert.Equal(worldPlain, numericPlain);
+
+			int worldPending = WarWinChanceEstimator.EstimateAttackerWinPercent(
+				world, _resources, "A", "B",
+				pendingAttackerDamageBonusPercent: 10,
+				pendingAttackerDurabilityBonusPercent: 5);
+			int numericPending = WarWinChanceEstimator.EstimateAttackerWinPercent(
+				20, 40, 40, 15, 35, 45,
+				pendingAttackerDamageBonusPercent: 10,
+				pendingAttackerDurabilityBonusPercent: 5);
+			Assert.Equal(worldPending, numericPending);
+		}
 	}
 }

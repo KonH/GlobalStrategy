@@ -5,6 +5,7 @@ using ECS;
 using GS.Configs;
 using GS.Game.Bots;
 using GS.Game.Commands;
+using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
@@ -71,6 +72,21 @@ namespace GS.Game.Tests {
 				Assert.Equal(a.Characters[i].RoleId, b.Characters[i].RoleId);
 				Assert.Equal(a.Characters[i].OpinionOfMyOrg, b.Characters[i].OpinionOfMyOrg);
 			}
+			Assert.Equal(a.IsDestroyed, b.IsDestroyed);
+			Assert.Equal(a.IsAtWar, b.IsAtWar);
+			Assert.Equal(a.WarOpponentCountryId, b.WarOpponentCountryId);
+			Assert.Equal(a.OwnWarProgress, b.OwnWarProgress);
+			Assert.Equal(a.RivalCountryIds.Count, b.RivalCountryIds.Count);
+			for (int i = 0; i < a.RivalCountryIds.Count; i++) {
+				Assert.Equal(a.RivalCountryIds[i], b.RivalCountryIds[i]);
+			}
+			Assert.Equal(a.CountryScore, b.CountryScore);
+			Assert.Equal(a.OwnedProvinceCount, b.OwnedProvinceCount);
+			Assert.Equal(a.OccupiedOwnedProvinceCount, b.OccupiedOwnedProvinceCount);
+			Assert.Equal(a.Recruits, b.Recruits);
+			Assert.Equal(a.Damage, b.Damage);
+			Assert.Equal(a.Durability, b.Durability);
+			Assert.Equal(a.TroopsDamageBonusPercent, b.TroopsDamageBonusPercent);
 		}
 
 		static void AssertDrawChoiceEqual(BotCardDrawChoiceView a, BotCardDrawChoiceView b) {
@@ -92,6 +108,12 @@ namespace GS.Game.Tests {
 			Assert.Equal(a.OrgId, b.OrgId);
 			Assert.Equal(a.CurrentDate, b.CurrentDate);
 			Assert.Equal(a.Gold, b.Gold);
+			Assert.Equal(a.OrgScore, b.OrgScore);
+			Assert.Equal(a.OrgScores.Count, b.OrgScores.Count);
+			for (int i = 0; i < a.OrgScores.Count; i++) {
+				Assert.Equal(a.OrgScores[i].OrgId, b.OrgScores[i].OrgId);
+				Assert.Equal(a.OrgScores[i].OrgScore, b.OrgScores[i].OrgScore);
+			}
 			Assert.Equal(a.OrgHandSize, b.OrgHandSize);
 			Assert.Equal(a.CountryHandCount, b.CountryHandCount);
 			Assert.Equal(a.CountryHandCapacity, b.CountryHandCapacity);
@@ -124,6 +146,9 @@ namespace GS.Game.Tests {
 			for (int i = 1; i < obs.CountryCardDrawChoices.Count; i++) {
 				Assert.True(obs.CountryCardDrawChoices[i - 1].ChoiceIndex <= obs.CountryCardDrawChoices[i].ChoiceIndex);
 			}
+			for (int i = 1; i < obs.OrgScores.Count; i++) {
+				Assert.True(string.CompareOrdinal(obs.OrgScores[i - 1].OrgId, obs.OrgScores[i].OrgId) < 0);
+			}
 			foreach (var c in obs.Countries) {
 				for (int i = 1; i < c.ControlByOrg.Count; i++) {
 					Assert.True(string.CompareOrdinal(c.ControlByOrg[i - 1].OrgId, c.ControlByOrg[i].OrgId) < 0);
@@ -134,7 +159,73 @@ namespace GS.Game.Tests {
 				for (int i = 1; i < c.Characters.Count; i++) {
 					Assert.True(string.CompareOrdinal(c.Characters[i - 1].CharacterId, c.Characters[i].CharacterId) < 0);
 				}
+				for (int i = 1; i < c.RivalCountryIds.Count; i++) {
+					Assert.True(string.CompareOrdinal(c.RivalCountryIds[i - 1], c.RivalCountryIds[i]) < 0);
+				}
 			}
+		}
+
+		static int FindCountryEntity(World world, string countryId) {
+			int[] required = { TypeId<Country>.Value };
+			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
+				Country[] countries = arch.GetColumn<Country>();
+				for (int i = 0; i < arch.Count; i++) {
+					if (countries[i].CountryId == countryId) {
+						return arch.Entities[i];
+					}
+				}
+			}
+			return -1;
+		}
+
+		static GameLogic BuildProvinceOccupationLogic() {
+			var countryConfig = new CountryConfig {
+				Countries = new List<CountryEntry> {
+					new CountryEntry { CountryId = MultiOrgTestSupport.HqA, DisplayName = "Great Britain", IsAvailable = true },
+					new CountryEntry { CountryId = MultiOrgTestSupport.HqB, DisplayName = "France", IsAvailable = true }
+				}
+			};
+			var orgConfig = new OrganizationConfig {
+				Organizations = new List<OrganizationEntry> {
+					new OrganizationEntry {
+						OrganizationId = MultiOrgTestSupport.OrgA,
+						DisplayName = "Illuminati",
+						HqCountryId = MultiOrgTestSupport.HqA,
+						InitialGold = 1000.0,
+						BaseControl = 10,
+						InitialAgentSlots = 1
+					}
+				}
+			};
+			var gameSettings = new GameSettings {
+				StartYear = 1880,
+				DefaultLocale = "en",
+				SpeedMultipliers = new[] { 1, 24, 720 },
+				AutoSaveInterval = "monthly"
+			};
+			var provinceConfig = new ProvinceConfig {
+				Provinces = new List<ProvinceEntry> {
+					new ProvinceEntry { ProvinceId = "prov_a", CountryId = MultiOrgTestSupport.HqA, Population = 100 },
+					new ProvinceEntry { ProvinceId = "prov_b", CountryId = MultiOrgTestSupport.HqA, Population = 200 },
+					new ProvinceEntry { ProvinceId = "prov_c", CountryId = MultiOrgTestSupport.HqA, Population = 300 },
+					new ProvinceEntry { ProvinceId = "prov_d", CountryId = MultiOrgTestSupport.HqB, Population = 400 }
+				}
+			};
+			var resourceConfig = new ResourceConfig {
+				Resources = new List<ResourceDefinition> {
+					new ResourceDefinition { ResourceId = "gold", DefaultInitialValue = 0.0 }
+				}
+			};
+			var ctx = new GameLogicContext(
+				new MultiOrgTestSupport.StaticConfig<GeoJsonConfig>(new GeoJsonConfig()),
+				new MultiOrgTestSupport.StaticConfig<MapEntryConfig>(new MapEntryConfig()),
+				new MultiOrgTestSupport.StaticConfig<CountryConfig>(countryConfig),
+				new MultiOrgTestSupport.StaticConfig<GameSettings>(gameSettings),
+				new MultiOrgTestSupport.StaticConfig<ResourceConfig>(resourceConfig),
+				new MultiOrgTestSupport.StaticConfig<OrganizationConfig>(orgConfig),
+				initialOrganizationId: MultiOrgTestSupport.OrgA,
+				province: new MultiOrgTestSupport.StaticConfig<ProvinceConfig>(provinceConfig));
+			return new GameLogic(ctx);
 		}
 
 		[Fact]
@@ -418,6 +509,185 @@ namespace GS.Game.Tests {
 			var obsB = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgB, logic.Resources, logic.Relations);
 			var cardB = obsB.GetCountry(MultiOrgTestSupport.HqA)!.Hand.First(c => c.ActionId == MultiOrgTestSupport.CountryCardActionId);
 			Assert.True(cardB.IsPlayable);
+		}
+
+		[Fact]
+		void observation_exposes_war_opponent_and_own_progress() {
+			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
+			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 31);
+			var logic = new GameLogic(ctx);
+			logic.Update(0f);
+
+			DateTime currentTime = ReadCurrentTime(logic);
+			Assert.True(Wars.DeclareWar(
+				logic.World, logic.Resources, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB, currentTime, out string? warId));
+			Assert.False(string.IsNullOrEmpty(warId));
+			ResourceMutations.TrySetValue(logic.Resources, logic.World, warId!, ResourceDefinitions.WarProgress, 25, out _);
+
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
+			var attacker = obs.GetCountry(MultiOrgTestSupport.HqA);
+			var defender = obs.GetCountry(MultiOrgTestSupport.HqB);
+			var neutral = obs.GetCountry(MultiOrgTestSupport.ExtraCountry2);
+
+			Assert.NotNull(attacker);
+			Assert.NotNull(defender);
+			Assert.NotNull(neutral);
+			Assert.True(attacker!.IsAtWar);
+			Assert.True(defender!.IsAtWar);
+			Assert.False(neutral!.IsAtWar);
+			Assert.Equal(MultiOrgTestSupport.HqB, attacker.WarOpponentCountryId);
+			Assert.Equal(MultiOrgTestSupport.HqA, defender.WarOpponentCountryId);
+			Assert.Equal("", neutral.WarOpponentCountryId);
+			Assert.Equal(Wars.GetOwnWarProgress(logic.World, logic.Resources, MultiOrgTestSupport.HqA), attacker.OwnWarProgress);
+			Assert.Equal(Wars.GetOwnWarProgress(logic.World, logic.Resources, MultiOrgTestSupport.HqB), defender.OwnWarProgress);
+			Assert.Equal(25, attacker.OwnWarProgress);
+			Assert.Equal(-25, defender.OwnWarProgress);
+			Assert.Equal(0, neutral.OwnWarProgress);
+		}
+
+		[Fact]
+		void observation_lists_rivals_ordinally() {
+			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
+			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 32);
+			var logic = new GameLogic(ctx);
+			logic.Update(0f);
+
+			logic.Relations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.ExtraCountry2, RelationKind.Rival);
+			logic.Relations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB, RelationKind.Rival);
+			logic.Relations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.ExtraCountry1, RelationKind.Friend);
+
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
+			var view = obs.GetCountry(MultiOrgTestSupport.HqA);
+			Assert.NotNull(view);
+
+			var expected = logic.Relations.GetRelationsByCountryId(logic.World, MultiOrgTestSupport.HqA).Rivals;
+			expected.Sort(StringComparer.Ordinal);
+			Assert.Equal(expected, view!.RivalCountryIds.ToList());
+			Assert.DoesNotContain(MultiOrgTestSupport.ExtraCountry1, view.RivalCountryIds);
+			for (int i = 1; i < view.RivalCountryIds.Count; i++) {
+				Assert.True(string.CompareOrdinal(view.RivalCountryIds[i - 1], view.RivalCountryIds[i]) < 0);
+			}
+		}
+
+		[Fact]
+		void observation_occupied_owned_province_count_matches_occupation_state() {
+			var logic = BuildProvinceOccupationLogic();
+			logic.Update(0f);
+
+			ProvinceOccupationSystem.SetOccupier(logic.World, "prov_a", MultiOrgTestSupport.HqB);
+			ProvinceOccupationSystem.SetOccupier(logic.World, "prov_b", MultiOrgTestSupport.HqB);
+			ProvinceOccupationSystem.SetOccupier(logic.World, "prov_c", MultiOrgTestSupport.HqA);
+
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
+			var britain = obs.GetCountry(MultiOrgTestSupport.HqA);
+			var france = obs.GetCountry(MultiOrgTestSupport.HqB);
+			Assert.NotNull(britain);
+			Assert.NotNull(france);
+			Assert.Equal(3, britain!.OwnedProvinceCount);
+			Assert.Equal(2, britain.OccupiedOwnedProvinceCount);
+			Assert.Equal(1, france!.OwnedProvinceCount);
+			Assert.Equal(0, france.OccupiedOwnedProvinceCount);
+
+			ProvinceOccupationSystem.ClearOccupier(logic.World, "prov_a");
+			obs = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
+			britain = obs.GetCountry(MultiOrgTestSupport.HqA);
+			Assert.NotNull(britain);
+			Assert.Equal(3, britain!.OwnedProvinceCount);
+			Assert.Equal(1, britain.OccupiedOwnedProvinceCount);
+		}
+
+		[Fact]
+		void observation_marks_destroyed_countries() {
+			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
+			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 33);
+			var logic = new GameLogic(ctx);
+			logic.Update(0f);
+
+			int deadEntity = FindCountryEntity(logic.World, MultiOrgTestSupport.ExtraCountry2);
+			Assert.True(deadEntity >= 0);
+			logic.World.Add(deadEntity, new IsDestroyed());
+
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
+			Assert.True(obs.GetCountry(MultiOrgTestSupport.ExtraCountry2)!.IsDestroyed);
+			Assert.False(obs.GetCountry(MultiOrgTestSupport.HqA)!.IsDestroyed);
+			Assert.Empty(obs.GetCountry(MultiOrgTestSupport.ExtraCountry2)!.RivalCountryIds);
+		}
+
+		[Fact]
+		void observation_exposes_country_score_and_combat_inputs() {
+			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
+			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 34);
+			var logic = new GameLogic(ctx);
+			logic.Update(0f);
+
+			logic.Resources.Set(logic.World, MultiOrgTestSupport.HqA, ResourceDefinitions.CountryScore, 123.5, OwnerType.Country);
+			logic.Resources.Set(logic.World, MultiOrgTestSupport.HqA, ResourceDefinitions.Recruits, 40, OwnerType.Country);
+			logic.Resources.Set(logic.World, MultiOrgTestSupport.HqA, ResourceDefinitions.Damage, 55, OwnerType.Country);
+			logic.Resources.Set(logic.World, MultiOrgTestSupport.HqA, ResourceDefinitions.Durability, 66, OwnerType.Country);
+			logic.Resources.Set(logic.World, MultiOrgTestSupport.HqA, ResourceDefinitions.TroopsDamageBonusPercent, 12.5, OwnerType.Country);
+
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
+			var view = obs.GetCountry(MultiOrgTestSupport.HqA);
+			Assert.NotNull(view);
+			Assert.Equal(logic.Resources.GetValue(logic.World, MultiOrgTestSupport.HqA, ResourceDefinitions.CountryScore), view!.CountryScore);
+			Assert.Equal(logic.Resources.GetValue(logic.World, MultiOrgTestSupport.HqA, ResourceDefinitions.Recruits), view.Recruits);
+			Assert.Equal(logic.Resources.GetValue(logic.World, MultiOrgTestSupport.HqA, ResourceDefinitions.Damage), view.Damage);
+			Assert.Equal(logic.Resources.GetValue(logic.World, MultiOrgTestSupport.HqA, ResourceDefinitions.Durability), view.Durability);
+			Assert.Equal(
+				logic.Resources.GetValue(logic.World, MultiOrgTestSupport.HqA, ResourceDefinitions.TroopsDamageBonusPercent),
+				view.TroopsDamageBonusPercent);
+			Assert.Equal(123.5, view.CountryScore);
+			Assert.Equal(40, view.Recruits);
+			Assert.Equal(55, view.Damage);
+			Assert.Equal(66, view.Durability);
+			Assert.Equal(12.5, view.TroopsDamageBonusPercent);
+		}
+
+		[Fact]
+		void observation_org_score_and_public_org_scores() {
+			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
+			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 35);
+			var logic = new GameLogic(ctx);
+			logic.Update(0f);
+
+			logic.Resources.Set(logic.World, MultiOrgTestSupport.OrgA, ResourceDefinitions.OrgScore, 11.5, OwnerType.Org);
+			logic.Resources.Set(logic.World, MultiOrgTestSupport.OrgB, ResourceDefinitions.OrgScore, 22.25, OwnerType.Org);
+
+			var obs = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
+			Assert.Equal(logic.Resources.GetValue(logic.World, MultiOrgTestSupport.OrgA, ResourceDefinitions.OrgScore), obs.OrgScore);
+			Assert.Equal(11.5, obs.OrgScore);
+
+			Assert.Equal(2, obs.OrgScores.Count);
+			Assert.Equal(MultiOrgTestSupport.OrgA, obs.OrgScores[0].OrgId);
+			Assert.Equal(11.5, obs.OrgScores[0].OrgScore);
+			Assert.Equal(MultiOrgTestSupport.OrgB, obs.OrgScores[1].OrgId);
+			Assert.Equal(22.25, obs.OrgScores[1].OrgScore);
+			Assert.True(string.CompareOrdinal(obs.OrgScores[0].OrgId, obs.OrgScores[1].OrgId) < 0);
+		}
+
+		[Fact]
+		void observation_war_fields_deterministic_across_rebuilds() {
+			var participants = new List<string> { MultiOrgTestSupport.OrgA, MultiOrgTestSupport.OrgB };
+			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: participants, rngSeed: 36);
+			var logic = new GameLogic(ctx);
+			logic.Update(0f);
+
+			DateTime currentTime = ReadCurrentTime(logic);
+			Assert.True(Wars.DeclareWar(
+				logic.World, logic.Resources, MultiOrgTestSupport.HqA, MultiOrgTestSupport.HqB, currentTime, out string? warId));
+			ResourceMutations.TrySetValue(logic.Resources, logic.World, warId!, ResourceDefinitions.WarProgress, 17, out _);
+			logic.Relations.SetRelation(logic.World, MultiOrgTestSupport.HqA, MultiOrgTestSupport.ExtraCountry1, RelationKind.Rival);
+			logic.Resources.Set(logic.World, MultiOrgTestSupport.HqA, ResourceDefinitions.CountryScore, 90, OwnerType.Country);
+			logic.Resources.Set(logic.World, MultiOrgTestSupport.HqA, ResourceDefinitions.Recruits, 8, OwnerType.Country);
+			logic.Resources.Set(logic.World, MultiOrgTestSupport.OrgA, ResourceDefinitions.OrgScore, 3.5, OwnerType.Org);
+			logic.Resources.Set(logic.World, MultiOrgTestSupport.OrgB, ResourceDefinitions.OrgScore, 4.5, OwnerType.Org);
+			int deadEntity = FindCountryEntity(logic.World, MultiOrgTestSupport.ExtraCountry2);
+			logic.World.Add(deadEntity, new IsDestroyed());
+
+			var obs1 = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
+			var obs2 = BotObservation.Build(logic.World, logic.ActionConfig, MultiOrgTestSupport.OrgA, logic.Resources, logic.Relations);
+			AssertObservationsEqual(obs1, obs2);
+			AssertOrdered(obs1);
 		}
 	}
 }

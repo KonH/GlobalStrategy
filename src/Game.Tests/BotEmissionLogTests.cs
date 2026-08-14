@@ -14,14 +14,23 @@ namespace GS.Game.Tests {
 
 		sealed class ScriptedFeature : IBotFeature {
 			readonly string _actionId;
+			readonly double _delta;
 			public string FeatureId { get; }
 
-			public ScriptedFeature(string featureId, string actionId) {
+			public ScriptedFeature(string featureId, string actionId, double delta = 1.0) {
 				FeatureId = featureId;
 				_actionId = actionId;
+				_delta = delta;
 			}
 
-			public void Tick(IBotObservation observation, IBotCommandSink sink, Random rng) => sink.PlayOrgCard(_actionId, 0);
+			public void CollectProposals(IBotObservation observation, IList<BotPlayProposal> proposals, Random rng) {
+				proposals.Add(new BotPlayProposal {
+					FeatureId = FeatureId,
+					ActionId = _actionId,
+					SlotIndex = 0,
+					EstimatedDeltaOrgScore = _delta
+				});
+			}
 		}
 
 		static (List<EmissionEntry> emissions, Bot bot, BotCommandSink sink) BuildHost(GameLogic logic, string orgId, IReadOnlyList<IBotFeature> features, string date, int tick) {
@@ -52,33 +61,31 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void emissions_are_stamped_with_current_feature_org_date_and_tick() {
+		void emissions_are_stamped_with_winning_feature_org_date_and_tick() {
 			var ctx = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: new List<string> { MultiOrgTestSupport.OrgA });
 			var logic = new GameLogic(ctx);
 			logic.Update(0f);
 
 			var features = new List<IBotFeature> {
-				new ScriptedFeature("featureOne", MultiOrgTestSupport.SpendGoldActionId),
-				new ScriptedFeature("featureTwo", MultiOrgTestSupport.SampleOrgActionId)
+				new ScriptedFeature("featureOne", MultiOrgTestSupport.SpendGoldActionId, delta: 1.0),
+				new ScriptedFeature("featureTwo", MultiOrgTestSupport.SampleOrgActionId, delta: 5.0)
 			};
 			var (emissions, bot, _) = BuildHost(logic, MultiOrgTestSupport.OrgA, features, "1880-02-14", 44);
 
 			bot.ExecuteDecisionTick(logic.World, logic.ActionConfig);
 
-			Assert.Equal(2, emissions.Count);
-			Assert.Equal("featureOne", emissions[0].FeatureId);
-			Assert.Equal(MultiOrgTestSupport.SpendGoldActionId, emissions[0].ActionId);
+			Assert.Single(emissions);
+			Assert.Equal("featureTwo", emissions[0].FeatureId);
+			Assert.Equal(MultiOrgTestSupport.SampleOrgActionId, emissions[0].ActionId);
 			Assert.Equal("1880-02-14", emissions[0].Date);
 			Assert.Equal(44, emissions[0].Tick);
-			Assert.Equal("featureTwo", emissions[1].FeatureId);
-			Assert.Equal(MultiOrgTestSupport.SampleOrgActionId, emissions[1].ActionId);
 		}
 
 		[Fact]
 		void identical_decision_sequences_produce_element_wise_identical_logs() {
 			var features = new List<IBotFeature> {
-				new ScriptedFeature("featureOne", MultiOrgTestSupport.SpendGoldActionId),
-				new ScriptedFeature("featureTwo", MultiOrgTestSupport.SampleOrgActionId)
+				new ScriptedFeature("featureOne", MultiOrgTestSupport.SpendGoldActionId, delta: 1.0),
+				new ScriptedFeature("featureTwo", MultiOrgTestSupport.SampleOrgActionId, delta: 5.0)
 			};
 
 			var ctx1 = MultiOrgTestSupport.BuildContext(participatingOrganizationIds: new List<string> { MultiOrgTestSupport.OrgA });

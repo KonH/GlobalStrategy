@@ -6,6 +6,8 @@ namespace GS.Game.Bots {
 		string OrgId { get; }
 		DateTime CurrentDate { get; }
 		double Gold { get; }
+		double OrgScore { get; }
+		IReadOnlyList<BotOrgScoreView> OrgScores { get; }
 		int OrgHandSize { get; }
 		int CountryHandCount { get; }
 		int CountryHandCapacity { get; }

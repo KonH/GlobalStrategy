@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 
 namespace GS.Game.Bots {
 	public interface IBotFeature {
-		// This single interface plus a registry entry is the entire extension contract for part 3.
+		// Features only propose scored plays; Bot arbitrates and emits at most one play per cycle.
 		string FeatureId { get; }
-		void Tick(IBotObservation observation, IBotCommandSink sink, Random rng);
+		void CollectProposals(IBotObservation observation, IList<BotPlayProposal> proposals, Random rng);
 	}
 }
