@@ -16,29 +16,30 @@ namespace GS.Game.Systems {
 			previous ??= System.Array.Empty<string>();
 			current ??= System.Array.Empty<string>();
 
-			foreach (var taskId in current) {
-				bool wasPresent = false;
-				foreach (var prior in previous) {
-					if (prior == taskId) {
-						wasPresent = true;
-						break;
-					}
-				}
-				if (!wasPresent) {
-					return taskId;
-				}
-			}
+			bool currentExpandedStillPresent = currentExpanded != null && Contains(current, currentExpanded);
 
-			if (currentExpanded == null) {
+			// The previously expanded task closed/disappeared: collapse rather than
+			// jumping to whatever else happens to be newly active.
+			if (currentExpanded != null && !currentExpandedStillPresent) {
 				return null;
 			}
 
 			foreach (var taskId in current) {
-				if (taskId == currentExpanded) {
-					return currentExpanded;
+				if (!Contains(previous, taskId)) {
+					return taskId;
 				}
 			}
-			return null;
+
+			return currentExpandedStillPresent ? currentExpanded : null;
+		}
+
+		static bool Contains(IReadOnlyList<string> ids, string taskId) {
+			foreach (var id in ids) {
+				if (id == taskId) {
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 }
