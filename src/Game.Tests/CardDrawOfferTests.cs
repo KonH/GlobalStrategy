@@ -499,9 +499,9 @@ namespace GS.Game.Tests {
 
 			// Both arms replay the exact same seed sequence and world layout, differing only in
 			// whether "OrgA" is the player org, so the boosted arm can never win fewer trials than
-			// the unboosted baseline — only strictly more, for seeds landing in the +30% band.
+			// the unboosted baseline — only strictly more, for seeds landing in the +70% band.
 			Assert.True(playerWins > nonPlayerWins,
-				$"expected the player-only +30% declare_war weight boost to win the first slot more often than the same scenario for a non-player org, player {playerWins}/{trials} vs non-player {nonPlayerWins}/{trials}");
+				$"expected the player-only +70% declare_war weight boost to win the first slot more often than the same scenario for a non-player org, player {playerWins}/{trials} vs non-player {nonPlayerWins}/{trials}");
 		}
 
 		static (int DeclareWarEntity, int FirstChoiceEntity) RunDeclareWarWeightTrial(

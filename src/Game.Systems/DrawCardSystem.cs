@@ -243,7 +243,7 @@ namespace GS.Game.Systems {
 
 		/// <summary>
 		/// stop_rivalry offers at half its normal weight for every organisation. declare_war
-		/// offers at +30% weight, player organisation only, when the player holds any control
+		/// offers at +70% weight, player organisation only, when the player holds any control
 		/// in a country that is itself a rival of the card's war target.
 		/// </summary>
 		static double AdjustWeight(
@@ -267,7 +267,7 @@ namespace GS.Game.Systems {
 				&& world.Has<RelationCardTarget>(candidate.Entity)) {
 				string targetCountryId = world.Get<RelationCardTarget>(candidate.Entity).TargetCountryId;
 				if (HasControlInRivalOf(world, relations, orgId, targetCountryId)) {
-					return candidate.Weight * 1.3;
+					return candidate.Weight * 1.7;
 				}
 			}
 
