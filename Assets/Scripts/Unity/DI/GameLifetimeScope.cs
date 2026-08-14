@@ -28,6 +28,7 @@ namespace GS.Unity.DI {
 		[SerializeField] TextAsset _characterConfigAsset;
 		[SerializeField] TextAsset _actionConfigAsset;
 		[SerializeField] TextAsset _effectConfigAsset;
+		[SerializeField] TextAsset _tasksConfigAsset;
 		[SerializeField] TextAsset _provinceConfigAsset;
 
 		protected override void Configure(IContainerBuilder builder) {
@@ -62,6 +63,7 @@ namespace GS.Unity.DI {
 				character: _characterConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.CharacterConfig>(_characterConfigAsset) : null,
 				action: _actionConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.ActionConfig>(_actionConfigAsset) : null,
 				effect: _effectConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.EffectConfig>(_effectConfigAsset) : null,
+				tasks: _tasksConfigAsset != null ? new TextAssetConfig<GS.Game.Configs.TasksConfig>(_tasksConfigAsset) : null,
 				mapGeometry: new MapGeometryConfig(_geoJsonConfig),
 				province: new TextAssetConfig<GS.Game.Configs.ProvinceConfig>(_provinceConfigAsset),
 				participatingOrganizationIds: participatingOrgIds,
@@ -80,6 +82,7 @@ namespace GS.Unity.DI {
 			builder.Register(c => c.Resolve<GameLogic>().CharacterConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().ActionConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().EffectConfig, Lifetime.Singleton);
+			builder.Register(c => c.Resolve<GameLogic>().TasksConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().ProvinceConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().GameSettings, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().CountryActionsVisibility, Lifetime.Singleton);
@@ -104,6 +107,7 @@ namespace GS.Unity.DI {
 			builder.Register<ECS.Viewer.PauseToken>(VContainer.Lifetime.Singleton);
 			builder.Register<ModalState>(Lifetime.Singleton);
 			builder.Register<UIPointerState>(Lifetime.Singleton);
+			builder.Register<TutorialPresentationTriggers>(Lifetime.Singleton);
 			builder.RegisterEntryPoint<GameLoopRunner>();
 			builder.RegisterComponentInHierarchy<EcsViewerBridge>();
 
@@ -113,6 +117,7 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<WarProgressWindowDocument>();
 			builder.RegisterComponentInHierarchy<WarResultWindowDocument>();
 			builder.RegisterComponentInHierarchy<CountryDestroyedWindowDocument>();
+			builder.RegisterComponentInHierarchy<OrgDestroyedWindowDocument>();
 			builder.RegisterComponentInHierarchy<SettingsWindowDocument>();
 			builder.RegisterComponentInHierarchy<OrgInfoDocument>();
 			builder.RegisterComponentInHierarchy<CardPlayAnimator>();

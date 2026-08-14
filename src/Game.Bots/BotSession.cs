@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using ECS;
 using GS.Game.Components;
+using GS.Game.Systems;
 using GS.Main;
 
 namespace GS.Game.Bots {
@@ -47,6 +48,9 @@ namespace GS.Game.Bots {
 		public void Update(float deltaTime) {
 			if (!_logic.IsCompleted) {
 				foreach (var bot in _botsByOrgId.Values) {
+					if (OrgDestroySystem.IsOrgDestroyed(_logic.World, bot.OrgId)) {
+						continue;
+					}
 					bot.ExecuteDecisionTick(_logic.World, _logic.ActionConfig);
 				}
 			}

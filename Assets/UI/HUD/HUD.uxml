@@ -2,18 +2,25 @@
     <ui:Template name="CountryInfo" src="project://database/Assets/UI/HUD/CountryInfo/CountryInfo.uxml?fileID=9197481963319205126&amp;guid=ca2aebbe26c86a848b12b780383bf718&amp;type=3#CountryInfo"/>
     <ui:Template name="Time" src="project://database/Assets/UI/HUD/Time/Time.uxml?fileID=9197481963319205126&amp;guid=5c54ada5b11a0ab419794befffb44b25&amp;type=3#Time"/>
     <ui:Template name="PlayerCountry" src="project://database/Assets/UI/HUD/PlayerCountry/PlayerCountry.uxml"/>
+    <ui:Template name="PlayerTasks" src="project://database/Assets/UI/HUD/PlayerTasks/PlayerTasks.uxml"/>
     <ui:Template name="LensSwitcher" src="project://database/Assets/UI/HUD/LensSwitcher/LensSwitcher.uxml"/>
     <ui:Template name="OrgLensCountryInfo" src="project://database/Assets/UI/HUD/OrgLensCountryInfo/OrgLensCountryInfo.uxml"/>
     <ui:Template name="ActionLog" src="project://database/Assets/UI/HUD/ActionLog/ActionLog.uxml"/>
     <ui:Template name="ProvinceInfo" src="project://database/Assets/UI/HUD/ProvinceInfo/ProvinceInfo.uxml"/>
     <ui:Template name="WarIcons" src="project://database/Assets/UI/HUD/WarIcons/WarIcons.uxml"/>
+    <ui:Template name="TutorialHighlight" src="project://database/Assets/UI/HUD/TutorialHighlight/TutorialHighlight.uxml"/>
     <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
     <ui:Style src="project://database/Assets/UI/HUD/HUD.uss?fileID=7433441132597879392&amp;guid=960ca7226a908b347be612c19639c422&amp;type=3#HUD"/>
+    <ui:Style src="project://database/Assets/UI/HUD/PlayerTasks/PlayerTasks.uss"/>
     <ui:Style src="project://database/Assets/UI/HUD/WarIcons/WarIcons.uss"/>
+    <ui:Style src="project://database/Assets/UI/HUD/TutorialHighlight/TutorialHighlight.uss"/>
     <ui:Style src="project://database/Assets/UI/Overlay/OrgInfo/OrgActions.uss"/>
     <ui:VisualElement name="hud-root" data-source-type="GS.Main.VisualState, Game.Main" picking-mode="Ignore" style="aspect-ratio: auto;">
         <ui:VisualElement name="top-left-panel" class="top-left-panel" picking-mode="Ignore">
-            <ui:Instance template="PlayerCountry" name="player-country" class="player-country-panel"/>
+            <ui:VisualElement name="player-org-column" class="player-org-column" picking-mode="Ignore">
+                <ui:Instance template="PlayerCountry" name="player-country" class="player-country-panel"/>
+                <ui:Instance template="PlayerTasks" name="player-tasks" class="player-tasks-panel"/>
+            </ui:VisualElement>
             <ui:Button name="btn-leaderboard" text="Leaderboard" class="gs-btn leaderboard-hud-button"/>
             <ui:Button name="btn-goals" text="Goals" class="gs-btn leaderboard-hud-button"/>
         </ui:VisualElement>
@@ -41,10 +48,9 @@
                 </ui:VisualElement>
                 <ui:Button name="btn-selected-country-debug-menu" text="Selected country" class="gs-btn debug-panel-menu-toggle" />
                 <ui:VisualElement name="selected-country-debug-menu" class="debug-panel-inner" style="display: none;">
-                    <ui:VisualElement name="control-debug-row" style="display: none;">
-                        <ui:Button name="btn-control-plus" text="Control+" class="gs-btn gs-btn--small debug-panel-button"/>
-                        <ui:Button name="btn-control-minus" text="Control-" class="gs-btn gs-btn--small debug-panel-button"/>
-                    </ui:VisualElement>
+                    <ui:Label name="selected-country-debug-name" class="gs-label debug-panel-menu-title" />
+                    <ui:VisualElement name="control-org-debug-list" style="flex-direction: column;" />
+                    <ui:VisualElement name="control-org-debug-container" style="flex-direction: column;" />
                     <ui:VisualElement class="debug-panel-two-col">
                         <ui:VisualElement class="debug-panel-col">
                             <ui:Button name="btn-selected-country-characters" text="Characters" class="gs-btn debug-panel-menu-toggle" />
@@ -82,6 +88,11 @@
                 </ui:VisualElement>
                 <ui:Button name="btn-selected-org-debug-menu" text="Selected org" class="gs-btn debug-panel-menu-toggle" />
                 <ui:VisualElement name="selected-org-debug-menu" class="debug-panel-inner" style="display: none;">
+                    <ui:Label name="selected-org-debug-name" class="gs-label debug-panel-menu-title" />
+                    <ui:VisualElement style="flex-direction: row;">
+                        <ui:Button name="btn-selected-org-gold-plus" text="+1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
+                        <ui:Button name="btn-selected-org-gold-minus" text="-1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
+                    </ui:VisualElement>
                     <ui:VisualElement class="debug-panel-two-col">
                         <ui:VisualElement class="debug-panel-col">
                             <ui:Button name="btn-selected-org-deck" text="Deck" class="gs-btn debug-panel-menu-toggle" />
@@ -90,6 +101,7 @@
                             <ui:VisualElement name="selected-org-hand" class="debug-panel-inner-section" style="display: none;" />
                         </ui:VisualElement>
                     </ui:VisualElement>
+                    <ui:Button name="btn-selected-org-destroy" text="Simulate destroy" class="gs-btn gs-btn--small gs-btn--destructive debug-panel-button"/>
                 </ui:VisualElement>
                 <ui:Button name="btn-selected-province-debug-menu" text="Selected province" class="gs-btn debug-panel-menu-toggle" />
                 <ui:VisualElement name="selected-province-debug-menu" class="debug-panel-inner" style="display: none;">
@@ -106,5 +118,6 @@
             <ui:VisualElement name="card-draw-row" class="card-draw-row" picking-mode="Ignore" />
         </ui:VisualElement>
         <ui:VisualElement name="card-transition-overlay" picking-mode="Ignore" style="position: absolute; left: 0; top: 0; right: 0; bottom: 0;" />
+        <ui:Instance template="TutorialHighlight" name="tutorial-highlight" class="tutorial-highlight-overlay" picking-mode="Ignore"/>
     </ui:VisualElement>
 </ui:UXML>

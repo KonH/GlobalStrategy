@@ -76,15 +76,6 @@ namespace GS.Game.Bots {
 			return currentDate;
 		}
 
-		static bool ClassifyRaisesControl(ActionDefinition? def, EffectConfig effectConfig) {
-			if (def == null) { return false; }
-			foreach (var effectId in def.EffectIds) {
-				var effect = effectConfig.Find(effectId);
-				if (effect is ControlChangeEffectParams ccp && ccp.Amount > 0) { return true; }
-			}
-			return false;
-		}
-
 		sealed class WarPairInfo {
 			public string WarId = "";
 			public WarParticipantKind Kind;
@@ -253,7 +244,7 @@ namespace GS.Game.Bots {
 						}
 					}
 
-					bool raisesControl = ClassifyRaisesControl(def, effectConfigResolved);
+					bool raisesControl = ActionEffectClassifier.RaisesControl(def, effectConfigResolved);
 					string targetCountryId = world.Has<RelationCardTarget>(entity)
 						? world.Get<RelationCardTarget>(entity).TargetCountryId
 						: world.Has<RevengeCardTarget>(entity)
@@ -354,7 +345,7 @@ namespace GS.Game.Bots {
 					}
 				}
 
-				bool raisesControl = ClassifyRaisesControl(def, effectConfigResolved);
+				bool raisesControl = ActionEffectClassifier.RaisesControl(def, effectConfigResolved);
 				bool isPlayable = false;
 				bool isControlUsable = false;
 				foreach (string countryId in countryIds) {

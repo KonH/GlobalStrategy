@@ -131,7 +131,8 @@ namespace GS.Game.Configs {
 				|| type == "targetRulerOrMilitaryOpinion"
 				|| type == "neitherSideAtWar"
 				|| type == "warFree"
-				|| type == "revengeEligible";
+				|| type == "revengeEligible"
+				|| type == "triggerCondition";
 		}
 
 		static bool TryGetThreshold(ExpressionNode node, out double value) {
@@ -166,6 +167,8 @@ namespace GS.Game.Configs {
 					return $"warFree ({FormatNumber(ctx.WarFree)})";
 				case "revengeEligible":
 					return $"revengeEligible ({FormatNumber(ctx.RevengeEligible)})";
+				case "triggerCondition":
+					return $"triggerCondition[{node.TriggerId}] ({FormatNumber(ctx.GetTrigger(node.TriggerId))})";
 				case "add":
 				case "sub":
 				case "mul":

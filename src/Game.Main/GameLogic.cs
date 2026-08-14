@@ -23,6 +23,11 @@ namespace GS.Main {
 		readonly Dictionary<string, (double Lon, double Lat)> _provinceCenters;
 		readonly ICompletionCondition _completionCondition;
 		readonly ProvinceTopology _provinceTopology;
+		readonly Dictionary<string, double> _presentationTriggers = new Dictionary<string, double>(StringComparer.Ordinal);
+		readonly List<string> _tutorialProgressSeed = new List<string>();
+		bool _tutorialsEnabled = true;
+		ITutorialProgressSink? _tutorialProgressSink;
+		string? _lastActiveTutorialId;
 		int _gameTimeEntity = -1;
 		int _localeEntity = -1;
 		int _settingsEntity = -1;
@@ -36,9 +41,12 @@ namespace GS.Main {
 		DateTime _previousTime;
 		ActionConfig _actionConfig = null!;
 		EffectConfig _effectConfig = null!;
+		TasksConfig _tasksConfig = null!;
 
 		public VisualState VisualState { get; } = new VisualState();
 		public IWriteOnlyCommandAccessor Commands { get; }
+		public string? ActiveTutorialId { get; private set; }
+		public bool TutorialsEnabled => _tutorialsEnabled;
 		public World World => _world;
 		public ResourceQuery Resources => _resources;
 		public CountryRelations Relations => _relations;
@@ -47,6 +55,7 @@ namespace GS.Main {
 		public CharacterConfig CharacterConfig { get; private set; } = null!;
 		public ActionConfig ActionConfig { get; private set; } = null!;
 		public EffectConfig EffectConfig { get; private set; } = null!;
+		public TasksConfig TasksConfig { get; private set; } = null!;
 		public ProvinceConfig ProvinceConfig { get; private set; } = null!;
 		public GameSettings GameSettings { get; private set; } = null!;
 		public IReadOnlyList<BotFeatureConfigEntry> BotFeatures { get; private set; } = null!;
@@ -74,6 +83,8 @@ namespace GS.Main {
 			_actionConfig = ActionConfig;
 			_effectConfig = context.Effect.Load();
 			EffectConfig = _effectConfig;
+			TasksConfig = context.Tasks.Load();
+			_tasksConfig = TasksConfig;
 			ProvinceConfig = context.Province.Load();
 			_provinceCenters = new Dictionary<string, (double Lon, double Lat)>();
 			foreach (var entry in ProvinceConfig.Provinces) {
@@ -87,7 +98,7 @@ namespace GS.Main {
 				VisualState, _resources, _relations, _actionConfig, _hqCountryByOrgId,
 				settings.GameLog.IncludePlayerActions, settings.GameLog.MaxLogEntries, CountryConfig,
 				settings.EventNotifications, settings.CompletionCondition, settings.MaxControlPool, _effectConfig,
-				settings.BaseIncome, CountryActionsVisibility, DebugOrgCardVisibility);
+				settings.BaseIncome, _tasksConfig, CountryActionsVisibility, DebugOrgCardVisibility);
 			_resources.OnCacheMissWarning = message => _context.Logger?.LogDebug(message);
 			_relations.OnCacheMissWarning = message => _context.Logger?.LogDebug(message);
 			_speedMultipliers = settings.SpeedMultipliers;
@@ -120,6 +131,11 @@ namespace GS.Main {
 				if (ProvinceConfig.Provinces != null && ProvinceConfig.Provinces.Count > 0) {
 					CountryDestroySystem.DestroyAllZeroProvinceCountries(_world, _relations);
 				}
+				// Preference-backed tutorial completions: hosts should call SeedTutorialProgress
+				// (or SetTutorialsEnabled + seed list) before the first Update so this applies
+				// after Init. Hosts must also call SeedTutorialProgress again after LoadState
+				// because LoadSystem.Apply destroys the world.
+				ApplyTutorialProgressSeed();
 			}
 
 			if (IsCompleted) {
@@ -144,12 +160,13 @@ namespace GS.Main {
 			ResourceSystem.Update(
 				_world, _previousTime, currentTime, _resourceCollectorRegistry, _resourceIdUpdateOrder, ResourceConfig, _resources);
 			ControlSystem.Update(_world, _previousTime, currentTime, GameSettings.BaseIncome, _resources);
-			// Game Log: sweep last tick's WarResolvedApplied / CountryDestroyedApplied before
+			// Game Log: sweep last tick's destroy/war notifications before
 			// TryResolvePeaceByChance/the debug StopWar handler (below) might create a new one
 			// this tick. See Docs/Specs/26_07_18_07_action-log-ui/plan.md ordering note and
 			// Docs/Specs/26_08_07_08_country-destroy-logic/plan.md.
 			CleanupEffectNotificationsSystem.UpdateWarResolved(_world);
 			CleanupEffectNotificationsSystem.UpdateCountryDestroyed(_world);
+			CleanupEffectNotificationsSystem.UpdateOrgDestroyed(_world);
 			var territoryLosers = new List<string>();
 			Wars.TryResolvePeaceByChance(
 				_world, _resources, _previousTime, currentTime, _rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, CountryConfig,
@@ -199,6 +216,9 @@ namespace GS.Main {
 			}
 			foreach (var cmd in _commandAccessor.ReadDebugForceCompletionConditionCommand().AsSpan()) {
 				ApplyDebugForceCompletionCondition(cmd.TargetOrgId, cmd.ConditionType, cmd.Value);
+			}
+			foreach (var cmd in _commandAccessor.ReadDebugForceOrgDestroyCommand().AsSpan()) {
+				ApplyDebugForceOrgDestroy(cmd.TargetOrgId);
 			}
 			foreach (var cmd in _commandAccessor.ReadSelectProvinceCommand().AsSpan()) {
 				ApplySelectProvince(cmd.ProvinceId);
@@ -298,6 +318,41 @@ namespace GS.Main {
 			ReceiveCardSystem.Update(_world, _commandAccessor.ReadReceiveCardCommand());
 			RelationCardSyncSystem.Update(_world, _relations, _actionConfig);
 			RevengeCardSyncSystem.Update(_world, _actionConfig);
+
+			bool forceCompleteTutorials = false;
+			foreach (var cmd in _commandAccessor.ReadSetTutorialsEnabledCommand().AsSpan()) {
+				_tutorialsEnabled = cmd.Enabled;
+				if (!cmd.Enabled) {
+					forceCompleteTutorials = true;
+				}
+			}
+
+			string playerOrgId = FindPlayerOrganizationId();
+			bool drawThisTick = TaskTriggerBag.HasPlayerOrgDrawCommand(
+				_commandAccessor.ReadDrawCardsCommand(), playerOrgId);
+			bool receiveThisTick = TaskTriggerBag.HasPlayerOrgReceiveCardCommand(
+				_commandAccessor.ReadReceiveCardCommand(), playerOrgId);
+			var triggers = TaskTriggerBag.Build(
+				_world,
+				_tasksConfig,
+				_presentationTriggers,
+				_tutorialsEnabled,
+				playerOrgId,
+				drawThisTick,
+				receiveThisTick);
+			TaskProgressSystem.Update(
+				_world, _tasksConfig, _effectConfig, currentTime,
+				_rng, GameSettings, _provinceTopology, _provinceCenters, MaxControlPool, _resources,
+				_relations, _hqCountryByOrgId, CountryConfig, triggers,
+				_tutorialProgressSink, forceCompleteTutorials);
+
+			string? activeTutorialId = TaskProgressSystem.FindActiveTutorialId(_world, _tasksConfig);
+			if (activeTutorialId != _lastActiveTutorialId) {
+				TaskTriggerBag.ClearTaskEdges(_presentationTriggers);
+				_lastActiveTutorialId = activeTutorialId;
+			}
+			ActiveTutorialId = activeTutorialId;
+
 			DrawCardSystem.Update(
 				_world,
 				_actionConfig,
@@ -305,7 +360,11 @@ namespace GS.Main {
 				_commandAccessor.ReadDrawCardsCommand(),
 				discardResults);
 			CleanupCardDiscardSystem.Update(_world);
+			OrgDestroySystem.EvaluateAll(
+				_world, _actionConfig, _effectConfig, _resources, _relations, GameSettings, MaxControlPool);
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool, _resources);
+			GameCompletionSystem.ApplyPlayerDestroyedLoss(
+				_world, _gameCompletionEntity, _context.InitialOrganizationId);
 
 			_commandAccessor.Clear();
 			_visualStateConverter.Update(deltaTime, _world, _gameTimeEntity, _localeEntity, _orgEntity);
@@ -330,7 +389,11 @@ namespace GS.Main {
 			RefreshSingletonEntities();
 			CountryDestroySystem.DestroyAllZeroProvinceCountries(_world, _relations);
 			_previousTime = _world.Get<GameTime>(_gameTimeEntity).CurrentTime;
+			OrgDestroySystem.EvaluateAll(
+				_world, _actionConfig, _effectConfig, _resources, _relations, GameSettings, MaxControlPool);
 			GameCompletionSystem.Update(_world, _gameCompletionEntity, _completionCondition, MaxControlPool, _resources);
+			GameCompletionSystem.ApplyPlayerDestroyedLoss(
+				_world, _gameCompletionEntity, _context.InitialOrganizationId);
 			SettleCombatResources();
 			_visualStateConverter.Update(0f, _world, _gameTimeEntity, _localeEntity, _orgEntity);
 		}
@@ -492,6 +555,63 @@ namespace GS.Main {
 			_proximityEntity = FindEntityWith<ProximityMapData>();
 		}
 
+		public void SetPresentationTriggers(IReadOnlyDictionary<string, double> triggers) {
+			_presentationTriggers.Clear();
+			if (triggers == null) { return; }
+			foreach (var pair in triggers) {
+				_presentationTriggers[pair.Key] = pair.Value;
+			}
+		}
+
+		public void SetPresentationTrigger(string triggerId, double value) {
+			if (string.IsNullOrEmpty(triggerId)) { return; }
+			_presentationTriggers[triggerId] = value;
+		}
+
+		public void ClearPresentationTaskEdges() {
+			TaskTriggerBag.ClearTaskEdges(_presentationTriggers);
+		}
+
+		public void SetTutorialsEnabled(bool enabled) {
+			_tutorialsEnabled = enabled;
+		}
+
+		public void SetTutorialProgressSink(ITutorialProgressSink? sink) {
+			_tutorialProgressSink = sink;
+		}
+
+		/// <summary>
+		/// Seeds preference-backed tutorial completions into the world as TaskCompleted entities.
+		/// Stores the list for automatic re-application after InitSystem on new games.
+		/// Hosts must call this again after <see cref="LoadState"/> because load destroys the world.
+		/// </summary>
+		public void SeedTutorialProgress(IEnumerable<string> completedIds) {
+			_tutorialProgressSeed.Clear();
+			if (completedIds != null) {
+				foreach (string taskId in completedIds) {
+					if (!string.IsNullOrEmpty(taskId)) {
+						_tutorialProgressSeed.Add(taskId);
+					}
+				}
+			}
+			ApplyTutorialProgressSeed();
+		}
+
+		void ApplyTutorialProgressSeed() {
+			TaskProgressSystem.SeedCompletedTutorials(_world, _tasksConfig, _tutorialProgressSeed);
+		}
+
+		string FindPlayerOrganizationId() {
+			int[] required = { TypeId<Organization>.Value, TypeId<Player>.Value };
+			foreach (var arch in _world.GetMatchingArchetypes(required, null)) {
+				Organization[] orgs = arch.GetColumn<Organization>();
+				if (arch.Count > 0) {
+					return orgs[0].OrganizationId;
+				}
+			}
+			return "";
+		}
+
 		public void RecordBotAction(string orgId, string featureId, string actionId, string countryId) {
 			if (IsCompleted || _botActionLogEntity < 0) { return; }
 			DateTime date = _gameTimeEntity >= 0 ? _world.Get<GameTime>(_gameTimeEntity).CurrentTime : default;
@@ -523,7 +643,18 @@ namespace GS.Main {
 		}
 
 		void ApplyChangeControl(string orgId, string countryId, int delta) {
-			ControlSystem.ApplyChangeControl(_world, orgId, countryId, delta, MaxControlPool);
+			// A negative delta must be able to draw down an org's "base_{orgId}" HQ-seed effect,
+			// not just its "permanent_" one - otherwise decreasing an org sitting on its own HQ
+			// (whose total is base + permanent) gets stuck once the permanent portion hits 0,
+			// even though the org's real total in the country is still above 0. Route reductions
+			// through ControlQuery.ReduceOrgControlInCountry, which already drains every effect
+			// entity for that org/country pair in a stable order (see DebugForceCompletionCondition's
+			// eviction path for the same pattern).
+			if (delta < 0) {
+				ControlQuery.ReduceOrgControlInCountry(_world, orgId, countryId, -delta);
+			} else {
+				ControlSystem.ApplyChangeControl(_world, orgId, countryId, delta, MaxControlPool);
+			}
 		}
 
 		void TryDestroyTerritoryLosers(List<string> territoryLosers) {
@@ -688,6 +819,15 @@ namespace GS.Main {
 			}
 			_resources.TryUpdate(
 				_world, orgId, ResourceDefinitions.Gold, Math.Max(0, current + amount), out _);
+		}
+
+		// Debug-only: simulates OrgDestroySystem's real destruction outcome for the target
+		// org immediately, bypassing its usual gold/hand/control preconditions.
+		void ApplyDebugForceOrgDestroy(string targetOrgId) {
+			_context.Logger?.LogDebug($"[DebugForceOrgDestroy] received: target='{targetOrgId}'");
+			if (OrgDestroySystem.ForceDestroy(_world, targetOrgId)) {
+				SettleOrgScores($"target='{targetOrgId}' forceOrgDestroy");
+			}
 		}
 
 		// Debug-only completion forcer: pushes a target org over a single flattened

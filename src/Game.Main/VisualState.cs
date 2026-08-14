@@ -80,18 +80,21 @@ namespace GS.Main {
 		public string OrgId { get; private set; } = "";
 		public string DisplayName { get; private set; } = "";
 		public string HqCountryId { get; private set; } = "";
+		public bool IsDestroyed { get; private set; }
 		public CountryResourcesState Resources { get; } = new CountryResourcesState();
 		public OrgCharactersState Characters { get; } = new OrgCharactersState();
 		public OrgActionsState Actions { get; } = new OrgActionsState();
 
-		public void Set(bool isValid, string orgId, string displayName, string hqCountryId = "") {
-			if (IsValid == isValid && OrgId == orgId && DisplayName == displayName && HqCountryId == hqCountryId) {
+		public void Set(bool isValid, string orgId, string displayName, string hqCountryId = "", bool isDestroyed = false) {
+			if (IsValid == isValid && OrgId == orgId && DisplayName == displayName
+				&& HqCountryId == hqCountryId && IsDestroyed == isDestroyed) {
 				return;
 			}
 			IsValid = isValid;
 			OrgId = orgId;
 			DisplayName = displayName;
 			HqCountryId = hqCountryId;
+			IsDestroyed = isDestroyed;
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 		}
 	}
@@ -580,6 +583,54 @@ namespace GS.Main {
 		}
 	}
 
+	public class ActiveTaskRewardState {
+		public string ResourceId { get; }
+		public double Amount { get; }
+
+		public ActiveTaskRewardState(string resourceId, double amount) {
+			ResourceId = resourceId;
+			Amount = amount;
+		}
+	}
+
+	public class ActiveTaskEntryState {
+		public string TaskId { get; }
+		public string NameKey { get; }
+		public string DescKey { get; }
+		public IReadOnlyList<ActiveTaskRewardState> Rewards { get; }
+		public bool IsTutorial { get; }
+		public string HighlightTargetId { get; }
+
+		public ActiveTaskEntryState(
+			string taskId,
+			string nameKey,
+			string descKey,
+			IReadOnlyList<ActiveTaskRewardState> rewards,
+			bool isTutorial = false,
+			string highlightTargetId = "") {
+			TaskId = taskId;
+			NameKey = nameKey;
+			DescKey = descKey;
+			Rewards = rewards;
+			IsTutorial = isTutorial;
+			HighlightTargetId = highlightTargetId ?? "";
+		}
+	}
+
+	public class ActiveTasksState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		public IReadOnlyList<ActiveTaskEntryState> Tasks { get; private set; } = Array.Empty<ActiveTaskEntryState>();
+
+		public void Set(List<ActiveTaskEntryState> tasks) {
+			if (StateEquality.ListEquals(Tasks, tasks, StateEquality.ActiveTaskEntryStateEquals)) {
+				return;
+			}
+			Tasks = tasks;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class WarIconEntryState {
 		public string WarId { get; }
 		public double Progress { get; }
@@ -937,6 +988,44 @@ namespace GS.Main {
 		}
 	}
 
+	public class OrgDestroyedSnapshotState {
+		public string OrganizationId { get; }
+
+		public OrgDestroyedSnapshotState(string organizationId) {
+			OrganizationId = organizationId;
+		}
+	}
+
+	public class OrgDestroyedResultsState : INotifyPropertyChanged {
+		public event PropertyChangedEventHandler? PropertyChanged;
+
+		readonly List<OrgDestroyedSnapshotState> _queue = new();
+
+		public IReadOnlyList<OrgDestroyedSnapshotState> Entries => _queue;
+
+		public void Enqueue(OrgDestroyedSnapshotState snapshot) {
+			_queue.Add(snapshot);
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+
+		public bool TryPeek(out OrgDestroyedSnapshotState? snapshot) {
+			if (_queue.Count == 0) {
+				snapshot = null;
+				return false;
+			}
+			snapshot = _queue[0];
+			return true;
+		}
+
+		public void AcknowledgeCurrent() {
+			if (_queue.Count == 0) {
+				return;
+			}
+			_queue.RemoveAt(0);
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
+		}
+	}
+
 	public class SelectedProvinceState : INotifyPropertyChanged {
 		public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -1032,7 +1121,8 @@ namespace GS.Main {
 	public enum WinConditionHintKind {
 		TotalControl,
 		FullControlCountries,
-		ScoreGoal
+		ScoreGoal,
+		LastOrgStanding
 	}
 
 	public class WinConditionHintRowState {
@@ -1106,10 +1196,12 @@ namespace GS.Main {
 		public CountryScoreState CountryScore { get; } = new CountryScoreState();
 		public LeaderboardState Leaderboard { get; } = new LeaderboardState();
 		public GoalsState Goals { get; } = new GoalsState();
+		public ActiveTasksState ActiveTasks { get; } = new ActiveTasksState();
 		public WarIconsState WarIcons { get; } = new WarIconsState();
 		public SelectedWarState SelectedWar { get; } = new SelectedWarState();
 		public WarResultsState WarResults { get; } = new WarResultsState();
 		public CountryDestroyedResultsState CountryDestroyedResults { get; } = new CountryDestroyedResultsState();
+		public OrgDestroyedResultsState OrgDestroyedResults { get; } = new OrgDestroyedResultsState();
 		public GameLogState GameLog { get; } = new GameLogState();
 		public GameCompletionState GameCompletion { get; } = new GameCompletionState();
 		public WinConditionHintState WinConditionHint { get; } = new WinConditionHintState();

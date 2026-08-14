@@ -59,6 +59,18 @@ namespace GS.Game.Tests {
 			Assert.Equal(fromFile.DiscardGoldCost, fromString.DiscardGoldCost);
 			Assert.Equal(4, fromFile.BotDecisionIntervalHours);
 			Assert.Equal(fromFile.BotDecisionIntervalHours, fromString.BotDecisionIntervalHours);
+			Assert.Collection(fromFile.CompletionCondition.Members,
+				member => {
+					Assert.Equal("score_goal", member.Type);
+					Assert.Equal(50000, member.Value);
+				},
+				member => {
+					Assert.Equal("last_org_standing", member.Type);
+					Assert.Equal(0, member.Value);
+				});
+			Assert.Equal(
+				fromFile.CompletionCondition.Members.Count,
+				fromString.CompletionCondition.Members.Count);
 		}
 
 		[Fact]
@@ -229,6 +241,20 @@ namespace GS.Game.Tests {
 			Assert.Equal(fromFile.Provinces.Count, fromString.Provinces.Count);
 			Assert.Equal(fromFile.Provinces[0].ProvinceId, fromString.Provinces[0].ProvinceId);
 			Assert.Equal(fromFile.Provinces[0].Population, fromString.Provinces[0].Population);
+		}
+
+		[Fact]
+		void tasks_config_parity() {
+			string path = FindRepoRootConfigPath("tasks_config.json");
+			var fromFile = new FileConfig<TasksConfig>(path).Load();
+			var fromString = new StringConfig<TasksConfig>(File.ReadAllText(path)).Load();
+			Assert.Equal(fromFile.Tasks.Count, fromString.Tasks.Count);
+			Assert.Equal(11, fromFile.Tasks.Count);
+			Assert.Equal(fromFile.Tasks[0].TaskId, fromString.Tasks[0].TaskId);
+			Assert.Equal(fromFile.Tasks[0].IsTutorial, fromString.Tasks[0].IsTutorial);
+			Assert.Equal(fromFile.Tasks[1].HighlightTargetId, fromString.Tasks[1].HighlightTargetId);
+			Assert.True(fromFile.Tasks[0].IsTutorial);
+			Assert.Equal("player_org_panel", fromFile.Tasks[1].HighlightTargetId);
 		}
 	}
 }

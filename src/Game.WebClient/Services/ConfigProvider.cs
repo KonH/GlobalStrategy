@@ -19,6 +19,7 @@ namespace GS.Game.WebClient.Services {
 		public IReadOnlyConfigSource<CharacterConfig> Character { get; private set; } = null!;
 		public IReadOnlyConfigSource<ActionConfig> Action { get; private set; } = null!;
 		public IReadOnlyConfigSource<EffectConfig> Effect { get; private set; } = null!;
+		public IReadOnlyConfigSource<TasksConfig> Tasks { get; private set; } = null!;
 		public IReadOnlyConfigSource<ProvinceConfig> Province { get; private set; } = null!;
 		public List<MapFeature> MapGeometry { get; private set; } = null!;
 
@@ -38,6 +39,7 @@ namespace GS.Game.WebClient.Services {
 			Character = new StringConfig<CharacterConfig>(await FetchAsync("configs/character_config.json"));
 			Action = new StringConfig<ActionConfig>(await FetchAsync("configs/action_config.json"));
 			Effect = new StringConfig<EffectConfig>(await FetchAsync("configs/effect_config.json"));
+			Tasks = new StringConfig<TasksConfig>(await FetchAsync("configs/tasks_config.json"));
 			Province = new StringConfig<ProvinceConfig>(await FetchAsync("configs/province_config.json"));
 		}
 

@@ -62,8 +62,27 @@ namespace GS.Game.Tests {
 			// Organization entity
 			int orgEntity = world.Create();
 			world.Add(orgEntity, new Organization { OrganizationId = "Illuminati", DisplayName = "Illuminati" });
+			world.Add(orgEntity, new IsOrgDestroyed());
 
 			return world;
+		}
+
+		[Fact]
+		void round_trip_preserves_destroyed_organization_flag() {
+			var restored = new World();
+			Restore(Snapshot(BuildWorld()), restored);
+
+			int[] required = { TypeId<Organization>.Value };
+			foreach (Archetype archetype in restored.GetMatchingArchetypes(required, null)) {
+				Organization[] organizations = archetype.GetColumn<Organization>();
+				for (int i = 0; i < archetype.Count; i++) {
+					if (organizations[i].OrganizationId == "Illuminati") {
+						Assert.True(restored.Has<IsOrgDestroyed>(archetype.Entities[i]));
+						return;
+					}
+				}
+			}
+			throw new InvalidOperationException("Restored organization was not found.");
 		}
 
 		static WorldSnapshot Snapshot(World world) => SaveSystem.BuildSnapshot(world);

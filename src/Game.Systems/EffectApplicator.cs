@@ -1,0 +1,298 @@
+using System;
+using System.Collections.Generic;
+using ECS;
+using GS.Game.Components;
+using GS.Game.Configs;
+
+namespace GS.Game.Systems {
+	public static class EffectApplicator {
+		public static void ApplyEffectIds(
+			World world,
+			EffectConfig effectConfig,
+			IReadOnlyList<string> effectIds,
+			string orgId,
+			string countryId,
+			DateTime currentTime,
+			Random rng,
+			GameSettings settings,
+			ProvinceTopology topology,
+			IReadOnlyDictionary<string, (double Lon, double Lat)> provinceCenters,
+			int maxControlPool,
+			ResourceQuery resources,
+			CountryConfig? countryConfig = null,
+			int contextEntity = -1,
+			string correlationId = "",
+			string targetRole = "",
+			List<string>? territoryLosers = null) {
+			if (effectIds == null || effectIds.Count == 0) { return; }
+
+			foreach (var effectId in effectIds) {
+				var effectDef = effectConfig.Find(effectId);
+				if (effectDef is ControlChangeEffectParams controlParams && controlParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
+					int usedTotal = ControlQuery.GetTotalControlInCountry(world, countryId);
+					if (usedTotal < maxControlPool) {
+						int toAdd = Math.Min(controlParams.Amount, maxControlPool - usedTotal);
+						int ie = world.Create();
+						world.Add(ie, new ControlEffect {
+							OrgId = orgId,
+							CountryId = countryId,
+							Value = toAdd,
+							EffectId = $"country_action_{orgId}_{correlationId}_{currentTime.Ticks}"
+						});
+						int rc = world.Create();
+						world.Add(rc, new ResourceChange {
+							EffectId = $"control_{orgId}_{countryId}_{currentTime.Ticks}",
+							ResourceId = $"control_{countryId}",
+							OwnerId = orgId,
+							Amount = toAdd
+						});
+						int orgTotal = ControlQuery.GetOrgControlInCountry(world, orgId, countryId);
+						int ge = world.Create();
+						world.Add(ge, new ControlEffectApplied {
+							OrgId = orgId,
+							CountryId = countryId,
+							Delta = toAdd,
+							Total = orgTotal
+						});
+					}
+				} else if (effectDef is OpinionModifierEffectParams opinionParams && !string.IsNullOrEmpty(countryId)) {
+					string targetCharId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, targetRole);
+					if (string.IsNullOrEmpty(targetCharId)) { continue; }
+
+					string opinionResourceId = $"opinion_{orgId}";
+					int rc = world.Create();
+					world.Add(rc, new ResourceChange {
+						EffectId = $"opinion_{orgId}_{targetCharId}_{currentTime.Ticks}",
+						ResourceId = opinionResourceId,
+						OwnerId = targetCharId,
+						Amount = opinionParams.InitialValue
+					});
+					double opinionTotal = EnsureOpinionResource(
+						resources, world, targetCharId, opinionResourceId, opinionParams.InitialValue);
+					int opinionGe = world.Create();
+					world.Add(opinionGe, new OpinionEffectApplied {
+						OrgId = orgId,
+						CharacterId = targetCharId,
+						Delta = opinionParams.InitialValue,
+						Total = opinionTotal
+					});
+					int decayEffectEntity = world.Create();
+					world.Add(decayEffectEntity, new ResourceOwner(targetCharId));
+					world.Add(decayEffectEntity, new ResourceLink(opinionResourceId));
+					world.Add(decayEffectEntity, new ResourceEffect {
+						EffectId = $"opinion_decay_{orgId}_{targetCharId}_{currentTime.Ticks}",
+						Value = -(double)opinionParams.DecayPerMonth,
+						PayType = PayType.Monthly,
+						MaxTotal = opinionParams.InitialValue,
+						ClampToZero = true
+					});
+				} else if (effectDef is SetCountryRelationEffectParams relationParams && !string.IsNullOrEmpty(countryId)
+					&& contextEntity >= 0 && world.Has<RelationCardTarget>(contextEntity)) {
+					string targetCountryId = world.Get<RelationCardTarget>(contextEntity).TargetCountryId;
+					int e = world.Create();
+					world.Add(e, new SetCountryRelationEffect {
+						EffectId = effectId,
+						OrgId = orgId,
+						CountryId = countryId,
+						TargetCountryId = targetCountryId,
+						Kind = relationParams.Kind
+					});
+				} else if (effectDef is ClearCountryRelationEffectParams && !string.IsNullOrEmpty(countryId)
+					&& contextEntity >= 0 && world.Has<RelationCardTarget>(contextEntity)) {
+					string targetCountryId = world.Get<RelationCardTarget>(contextEntity).TargetCountryId;
+					int e = world.Create();
+					world.Add(e, new ClearCountryRelationEffect { EffectId = effectId, OrgId = orgId, CountryId = countryId, TargetCountryId = targetCountryId });
+				} else if (effectDef is DeclareWarEffectParams && !string.IsNullOrEmpty(countryId)
+					&& contextEntity >= 0 && world.Has<RelationCardTarget>(contextEntity)) {
+					string targetCountryId = world.Get<RelationCardTarget>(contextEntity).TargetCountryId;
+					if (Wars.DeclareWar(world, resources, countryId, targetCountryId, currentTime)) {
+						int e = world.Create();
+						world.Add(e, new WarDeclaredApplied {
+							OrgId = orgId,
+							CountryId = countryId,
+							DefenderCountryId = targetCountryId
+						});
+					}
+				} else if (effectDef is DeclareRevengeWarEffectParams revengeParams && !string.IsNullOrEmpty(countryId)
+					&& contextEntity >= 0 && world.Has<RevengeCardTarget>(contextEntity)) {
+					string targetCountryId = world.Get<RevengeCardTarget>(contextEntity).TargetCountryId;
+					if (Wars.DeclareWar(world, resources, countryId, targetCountryId, currentTime, topology, settings.WarBattles, out string? warId)) {
+						RevengeWarBonusQuery.RemoveForCountry(world, countryId);
+						int be = world.Create();
+						world.Add(be, new RevengeWarBonus {
+							WarId = warId ?? "",
+							CountryId = countryId,
+							DamageBonusPercent = revengeParams.DamageBonusPercent,
+							DurabilityBonusPercent = revengeParams.DurabilityBonusPercent
+						});
+						int e = world.Create();
+						world.Add(e, new WarDeclaredApplied {
+							OrgId = orgId,
+							CountryId = countryId,
+							DefenderCountryId = targetCountryId
+						});
+					}
+				} else if (effectDef is EnemyControlDrainEffectParams drainParams && drainParams.Amount > 0 && !string.IsNullOrEmpty(countryId)) {
+					string? targetOrgId = ControlQuery.GetHighestControlOtherOrg(world, orgId, countryId);
+					if (targetOrgId != null) {
+						int targetControlBefore = ControlQuery.GetOrgControlInCountry(world, targetOrgId, countryId);
+						int actualDrain = Math.Min(drainParams.Amount, targetControlBefore);
+						ControlQuery.ReduceOrgControlInCountry(world, targetOrgId, countryId, actualDrain);
+						if (actualDrain > 0) {
+							int rc = world.Create();
+							world.Add(rc, new ResourceChange {
+								EffectId = $"control_{targetOrgId}_{countryId}_{currentTime.Ticks}",
+								ResourceId = $"control_{countryId}",
+								OwnerId = targetOrgId,
+								Amount = -actualDrain
+							});
+							int ge = world.Create();
+							world.Add(ge, new ControlEffectApplied {
+								OrgId = targetOrgId,
+								CountryId = countryId,
+								Delta = -actualDrain,
+								Total = targetControlBefore - actualDrain
+							});
+						}
+					}
+				} else if (effectDef is ResolveWarEffectParams resolveWarParams && !string.IsNullOrEmpty(countryId)) {
+					Wars.ResolveWar(
+						world, resources, countryId, resolveWarParams.Outcome, currentTime,
+						rng, settings, topology, provinceCenters, maxControlPool, countryConfig, territoryLosers);
+				} else if (effectDef is CountryResourceModifierEffectParams resourceModifierParams) {
+					if (string.IsNullOrEmpty(countryId)) { continue; }
+					AddToExistingResource(
+						resources,
+						world,
+						countryId,
+						OwnerType.Country,
+						resourceModifierParams.ResourceId,
+						resourceModifierParams.InitialValue,
+						correlationId,
+						effectId,
+						contextEntity);
+					int resourceChangeEntity = world.Create();
+					world.Add(resourceChangeEntity, new ResourceChange {
+						EffectId = $"country_resource_{effectId}_{orgId}_{countryId}_{contextEntity}_{currentTime.Ticks}",
+						ResourceId = resourceModifierParams.ResourceId,
+						OwnerId = countryId,
+						Amount = resourceModifierParams.InitialValue
+					});
+
+					int decayEffectEntity = world.Create();
+					world.Add(decayEffectEntity, new ResourceOwner(countryId, OwnerType.Country));
+					world.Add(decayEffectEntity, new ResourceLink(resourceModifierParams.ResourceId));
+					world.Add(decayEffectEntity, new ResourceEffect {
+						EffectId = $"country_resource_decay_{effectId}_{orgId}_{countryId}_{contextEntity}_{currentTime.Ticks}",
+						Value = -resourceModifierParams.DecayPerMonth,
+						PayType = PayType.Monthly,
+						MaxTotal = resourceModifierParams.InitialValue,
+						ClampToZero = true,
+						OrgId = orgId
+					});
+				} else if (effectDef is OrgResourceGrantEffectParams resourceGrantParams) {
+					GrantOrgResource(
+						world,
+						resources,
+						orgId,
+						resourceGrantParams.ResourceId,
+						resourceGrantParams.Amount,
+						correlationId,
+						effectId,
+						contextEntity,
+						currentTime);
+				}
+			}
+		}
+
+		public static void GrantOrgResource(
+			World world,
+			ResourceQuery resources,
+			string orgId,
+			string resourceId,
+			double amount,
+			string correlationId,
+			string effectId,
+			int contextEntity,
+			DateTime currentTime) {
+			AddToExistingResource(
+				resources,
+				world,
+				orgId,
+				OwnerType.Org,
+				resourceId,
+				amount,
+				correlationId,
+				effectId,
+				contextEntity);
+			int resourceChangeEntity = world.Create();
+			world.Add(resourceChangeEntity, new ResourceChange {
+				EffectId = $"org_resource_{effectId}_{orgId}_{contextEntity}_{currentTime.Ticks}",
+				ResourceId = resourceId,
+				OwnerId = orgId,
+				Amount = amount
+			});
+		}
+
+		public static void GrantTaskReward(
+			World world,
+			ResourceQuery resources,
+			string orgId,
+			string resourceId,
+			double amount,
+			string taskId,
+			DateTime currentTime) {
+			AddToExistingResource(
+				resources,
+				world,
+				orgId,
+				OwnerType.Org,
+				resourceId,
+				amount,
+				taskId,
+				$"task_reward_{resourceId}",
+				-1);
+			int resourceChangeEntity = world.Create();
+			world.Add(resourceChangeEntity, new ResourceChange {
+				EffectId = $"task_reward_{taskId}_{resourceId}_{currentTime.Ticks}",
+				ResourceId = resourceId,
+				OwnerId = orgId,
+				Amount = amount
+			});
+		}
+
+		static void AddToExistingResource(
+			ResourceQuery resources,
+			World world,
+			string ownerId,
+			OwnerType ownerType,
+			string resourceId,
+			double amount,
+			string correlationId,
+			string effectId,
+			int cardEntity) {
+			int entity = resources.FindEntity(world, ownerId, resourceId);
+			if (entity < 0) {
+				throw new InvalidOperationException(
+					$"Correlation '{correlationId}' effect '{effectId}' could not find resource '{resourceId}' " +
+					$"for {ownerType} '{ownerId}' (card entity {cardEntity}).");
+			}
+			ref Resource resource = ref world.Get<Resource>(entity);
+			resource.Value += amount;
+			resources.NotifyValue(ownerId, resourceId, resource.Value, entity);
+		}
+
+		static double EnsureOpinionResource(
+			ResourceQuery resources, World world, string charId, string resourceId, int initialValue) {
+			int entity = resources.FindEntity(world, charId, resourceId);
+			if (entity >= 0) {
+				ref Resource resource = ref world.Get<Resource>(entity);
+				resource.Value += initialValue;
+				resources.NotifyValue(charId, resourceId, resource.Value, entity);
+				return resource.Value;
+			}
+			resources.Set(world, charId, resourceId, initialValue, OwnerType.Character);
+			return initialValue;
+		}
+	}
+}

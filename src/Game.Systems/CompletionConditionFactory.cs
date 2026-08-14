@@ -37,6 +37,8 @@ namespace GS.Game.Systems {
 					return CreateFullControl(config.Value, path);
 				case CompletionConditionType.ScoreGoal:
 					return CreateScoreGoal(config.Value, path);
+				case CompletionConditionType.LastOrgStanding:
+					return new LastOrgStandingCondition();
 				default:
 					throw new ArgumentException($"Unknown completion condition type '{config.Type}' at '{path}'.");
 			}

@@ -116,6 +116,28 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		void last_org_standing_projects_destroyed_opponents_and_omits_destroyed_rows() {
+			var world = new World();
+			SeedCountry(world, "a");
+			SeedOrganization(world, OrgA, 1);
+			SeedOrganization(world, OrgB, 2);
+			int orgC = world.Create();
+			world.Add(orgC, new Organization { OrganizationId = "org-c" });
+			world.Add(orgC, new IsOrgDestroyed());
+			var leaves = GoalsProjector.FlattenLeaves(Leaf("last_org_standing", 0));
+
+			List<GoalsOrgEntryState> orgs = GoalsProjector.Build(world, leaves, 100, _resources);
+
+			Assert.Equal(2, orgs.Count);
+			Assert.DoesNotContain(orgs, org => org.OrgId == "org-c");
+			Assert.All(orgs, org => {
+				Assert.Equal(WinConditionHintKind.LastOrgStanding, org.Goals[0].Kind);
+				Assert.Equal(1, org.Goals[0].Current);
+				Assert.Equal(2, org.Goals[0].Target);
+			});
+		}
+
+		[Fact]
 		void identical_set_does_not_notify() {
 			var state = new GoalsState();
 			int notifications = 0;

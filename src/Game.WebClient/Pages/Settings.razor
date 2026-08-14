@@ -1,7 +1,9 @@
 @page "/settings"
+@using GS.Game.Commands
 @using GS.Game.WebClient.Services
 @inject Localization Localization
 @inject AppPreferences Preferences
+@inject GameSession GameSession
 @inject NavigationManager Navigation
 
 <div class="gs-menu">
@@ -24,6 +26,17 @@
 		</div>
 	</div>
 
+	<div class="gs-field">
+		<label>@Localization.Get("settings.tutorials")</label>
+		<div class="gs-toggle-row">
+			<button class="@TutorialsActiveClass(true)" @onclick="() => OnTutorialsEnabledSelected(true)">On</button>
+			<button class="@TutorialsActiveClass(false)" @onclick="() => OnTutorialsEnabledSelected(false)">Off</button>
+		</div>
+	</div>
+
+	<button @onclick="OnResetTutorials">@Localization.Get("settings.reset_tutorials")</button>
+	<button @onclick="OnResetDefaults">@Localization.Get("settings.reset_defaults")</button>
+
 	<button @onclick="OnBack">@Localization.Get("settings.back")</button>
 </div>
 
@@ -32,13 +45,36 @@
 
 	string AutoSaveActiveClass(string interval) => Preferences.AutoSaveInterval == interval ? "gs-active" : "";
 
+	string TutorialsActiveClass(bool enabled) => Preferences.TutorialsEnabled == enabled ? "gs-active" : "";
+
 	async Task OnLocaleSelected(string locale) {
 		Preferences.SetLocale(locale);
 		await Localization.SetLocaleAsync(locale);
+		GameSession.Logic?.Commands.Push(new ChangeLocaleCommand(locale));
 	}
 
 	void OnAutoSaveIntervalSelected(string interval) {
 		Preferences.SetAutoSaveInterval(interval);
+		GameSession.Logic?.Commands.Push(new ChangeAutoSaveIntervalCommand(interval));
+	}
+
+	void OnTutorialsEnabledSelected(bool enabled) {
+		Preferences.SetTutorialsEnabled(enabled);
+		GameSession.Logic?.Commands.Push(new SetTutorialsEnabledCommand(enabled));
+	}
+
+	void OnResetTutorials() {
+		Preferences.ClearCompletedTutorials();
+	}
+
+	async Task OnResetDefaults() {
+		Preferences.ResetToDefaults();
+		await Localization.SetLocaleAsync(Preferences.Locale);
+		if (GameSession.Logic != null) {
+			GameSession.Logic.Commands.Push(new ChangeLocaleCommand(Preferences.Locale));
+			GameSession.Logic.Commands.Push(new ChangeAutoSaveIntervalCommand(Preferences.AutoSaveInterval));
+			GameSession.Logic.Commands.Push(new SetTutorialsEnabledCommand(Preferences.TutorialsEnabled));
+		}
 	}
 
 	void OnBack() {

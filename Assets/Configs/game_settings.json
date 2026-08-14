@@ -1,5 +1,5 @@
 {
-  "version": "1.210",
+  "version": "1.211",
   "startYear": 1880,
   "speedMultipliers": [1, 24, 720],
   "defaultLocale": "en",
@@ -60,9 +60,8 @@
   "completionCondition": {
     "type": "any",
     "members": [
-      { "type": "total_control", "value": 0.8 },
-      { "type": "full_control_countries", "value": 15 },
-      { "type": "score_goal", "value": 270000 }
+      { "type": "score_goal", "value": 50000 },
+      { "type": "last_org_standing", "value": 0 }
     ]
   },
   "botFeatures": [

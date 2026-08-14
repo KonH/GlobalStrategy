@@ -12,6 +12,7 @@ namespace GS.Unity.Map {
 		MapCameraConfig _config;
 		ModalState _modalState;
 		UIPointerState _pointerState;
+		TutorialPresentationTriggers _presentationTriggers;
 		bool _dragging;
 		Vector3 _dragOriginWorld;
 		MapController _mapController;
@@ -20,11 +21,17 @@ namespace GS.Unity.Map {
 		float? _prevPinchDistance;
 
 		[Inject]
-		void Construct(MapCameraConfig config, MapController mapController, ModalState modalState, UIPointerState pointerState) {
+		void Construct(
+			MapCameraConfig config,
+			MapController mapController,
+			ModalState modalState,
+			UIPointerState pointerState,
+			TutorialPresentationTriggers presentationTriggers) {
 			_config = config;
 			_mapController = mapController;
 			_modalState = modalState;
 			_pointerState = pointerState;
+			_presentationTriggers = presentationTriggers;
 		}
 
 		void Awake() {
@@ -73,10 +80,14 @@ namespace GS.Unity.Map {
 			if (_pointerState.IsPointerOverUI(mouse.position.ReadValue())) return;
 			float scroll = mouse.scroll.ReadValue().y;
 			if (scroll == 0f) return;
+			float before = _camera.orthographicSize;
 			_camera.orthographicSize = Mathf.Clamp(
 				_camera.orthographicSize - scroll * _config.ZoomSpeed,
 				_config.MinZoom,
 				_config.MaxZoom);
+			if (!Mathf.Approximately(before, _camera.orthographicSize)) {
+				_presentationTriggers?.Set(TutorialPresentationTriggers.MapZoomChanged, 1);
+			}
 		}
 
 		void HandlePinchZoom() {
@@ -98,10 +109,14 @@ namespace GS.Unity.Map {
 			float distance = Vector2.Distance(t0.position.ReadValue(), t1.position.ReadValue());
 			if (_prevPinchDistance.HasValue) {
 				float delta = distance - _prevPinchDistance.Value;
+				float before = _camera.orthographicSize;
 				_camera.orthographicSize = Mathf.Clamp(
 					_camera.orthographicSize - delta * _config.PinchZoomSpeed,
 					_config.MinZoom,
 					_config.MaxZoom);
+				if (!Mathf.Approximately(before, _camera.orthographicSize)) {
+					_presentationTriggers?.Set(TutorialPresentationTriggers.MapZoomChanged, 1);
+				}
 			}
 			_prevPinchDistance = distance;
 		}
@@ -132,7 +147,10 @@ namespace GS.Unity.Map {
 			if (!_dragging) return;
 			Vector3 current = _camera.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, 0f));
 			Vector3 delta = _dragOriginWorld - current;
-			transform.position += new Vector3(delta.x, delta.y, 0f);
+			if (delta.sqrMagnitude > 0f) {
+				transform.position += new Vector3(delta.x, delta.y, 0f);
+				_presentationTriggers?.Set(TutorialPresentationTriggers.MapPositionChanged, 1);
+			}
 		}
 
 		bool TryGetPanPointer(out Vector2 screenPos) {

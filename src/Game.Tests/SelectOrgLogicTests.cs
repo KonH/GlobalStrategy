@@ -99,7 +99,9 @@ namespace GS.Game.Tests {
 			var logic = BuildLogic();
 			Assert.True(logic.VisualState.WinConditionHint.IsAvailable);
 			Assert.True(logic.VisualState.WinConditionHint.IsAlternativeGroup);
-			Assert.Equal(3, logic.VisualState.WinConditionHint.Rows.Count);
+			Assert.Collection(logic.VisualState.WinConditionHint.Rows,
+				row => Assert.Equal(WinConditionHintKind.ScoreGoal, row.Kind),
+				row => Assert.Equal(WinConditionHintKind.LastOrgStanding, row.Kind));
 		}
 
 		[Fact]

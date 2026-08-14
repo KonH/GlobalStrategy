@@ -41,9 +41,22 @@ namespace GS.Unity.UI {
 			}
 		}
 
+		public VisualElement? FindCardByRole(string roleId) {
+			if (string.IsNullOrEmpty(roleId)) {
+				return null;
+			}
+			foreach (var child in _container.Children()) {
+				if (child.userData is string cardRoleId && cardRoleId == roleId) {
+					return child;
+				}
+			}
+			return null;
+		}
+
 		VisualElement BuildCharacterCard(CharacterStateEntry entry) {
 			var card = new VisualElement();
 			card.AddToClassList("char-card");
+			card.userData = entry.RoleId;
 
 			var roleDef = _characterConfig.FindRole(entry.RoleId);
 			string roleName = roleDef != null ? _loc.Get(roleDef.NameKey) : entry.RoleId;
