@@ -1,6 +1,6 @@
 ---
 name: milestone-complete
-description: Generate a milestone-completion report (summary.md, stats_code.md, stats_dev.md) under Docs/Milestones/<major>_<version-name>/, comparing code LoC and Docs/Specs/*/usage.csv dev stats against the previous milestone, then (with the user's sign-off) write Release Notes, draft a tech blog post and a player-facing announcement, cut a GitHub release + releases/<version> branch, and roll the project version over to the next milestone. Tracks progress in the milestone dir's checklist.md so a run can be resumed. Load when the user asks to close out, wrap up, or report on a project milestone/version.
+description: Generate a milestone-completion report (summary.md, stats_code.md, stats_dev.md) under Docs/Milestones/<major>_<version-name>/, comparing code LoC and Docs/Specs/*/usage.csv dev stats against the previous milestone, then (with the user's sign-off) write Release Notes, draft a tech blog post and a player-facing announcement, update this repo's README.md with a player-facing Milestones entry and a refreshed Game-features summary, cut a GitHub release + releases/<version> branch, and roll the project version over to the next milestone. Tracks progress in the milestone dir's checklist.md so a run can be resumed. Load when the user asks to close out, wrap up, or report on a project milestone/version.
 ---
 
 # Milestone Complete
@@ -10,8 +10,10 @@ milestone: codebase size (LoC per tracked extension) and development cost/effort
 (aggregated from every spec's `usage.csv`, see `Docs/Specs/26_07_22_17_spec-dev-stats/`),
 each compared against the previous milestone if one exists. It then walks the user
 through actually closing the milestone out: Release Notes, a tech blog post, a
-player-facing announcement, a GitHub release, a `releases/<version>` branch, and the
-version bump that starts the next milestone.
+player-facing announcement, this repo's own `README.md` (a new player-facing
+`## Milestones` entry plus a refreshed `## The Game (briefly)` section), a GitHub
+release, a `releases/<version>` branch, and the version bump that starts the next
+milestone.
 
 Per `.claude/commands/commit.md`, only a human decides when the milestone actually
 turns over — this skill is that decision moment. It never bumps the major version or
@@ -48,9 +50,9 @@ already in progress.
    - [ ] 6. Write ## Release Notes into summary.md
    - [ ] 7. Propose tech_post.md themes; get user's choice
    - [ ] 8. Propose players_post.txt themes; get user's choice
-   - [ ] 9. Draft tech_post.md and players_post.txt
-   - [ ] 10. Get user approval on both drafts
-   - [ ] 11. Commit milestone docs (this repo) + publish tech_post.md to the site
+   - [ ] 9. Draft tech_post.md, players_post.txt, and the README Milestones/Game-features updates
+   - [ ] 10. Get user approval on all drafts (tech post, player post, README updates)
+   - [ ] 11. Commit milestone docs + README (this repo) + publish tech_post.md to the site
    - [ ] 12. Checkpoint: confirm release plan
    - [ ] 13. Cut the GitHub release + releases/<version> branch
    - [ ] 14. Ask for next milestone's name
@@ -147,8 +149,8 @@ generated file by hand.
    angles (e.g. "lead with the headline feature", "narrative/flavor framing",
    "plain patch-notes list") and ask which to run with. Keep this pass light — it's a
    ≤1024-character post, not a spec.
-9. **Draft both documents** once themes are chosen, and save them into
-   `Docs/Milestones/<major>_<slug>/`:
+9. **Draft both documents, plus the README player-facing updates,** once themes are
+   chosen. Save the two posts into `Docs/Milestones/<major>_<slug>/`:
    - **`tech_post.md`** — already written in the site's exact blog format so it can
      be copied over with only a rename:
      - Line 1: `# <Post Title>`.
@@ -174,8 +176,28 @@ generated file by hand.
      into the site's blog pipeline), gameplay/feature framing per the chosen theme,
      light on tech detail. **Hard limit: 1024 characters.** Count the characters
      before presenting it; trim if over.
+   - **README player-facing updates** — two edits to this repo's own `README.md`:
+     - **`## Milestones`** section, placed immediately after `## Tech Stack` (before
+       its trailing `---` separator) — create the section on the very first run if it
+       doesn't exist yet. Prepend a new entry at the **top** (newest-first, this
+       section only ever grows — never edit or reorder earlier entries):
+       `### <major>. <name> — <end_date>` (end_date from this milestone's
+       `<!-- milestone-meta: {...} -->` comment), followed by a short, concise bullet
+       list of the milestone's player-facing highlights. Reuse the settled Release
+       Notes bullets from steps 5/6 (trim to the handful that actually matter to a
+       player rather than the full list) instead of drafting new copy from scratch —
+       these bullets are already written in plain user-facing language.
+     - **`## The Game (briefly)`** — review its existing bullets against what
+       actually shipped (the commit-history review from step 4, plus anything else
+       you know is now true of the game) and update it so it describes the
+       *current, actual* feature set rather than a stale snapshot from an earlier
+       milestone. Add bullets for major new systems, adjust or remove anything no
+       longer accurate, and keep the section short and player-facing — it's the
+       "briefly" summary, not an exhaustive feature list. Skip this edit silently if
+       nothing has meaningfully changed since the section was last reviewed.
 10. **Preview, then get approval.** Before asking for sign-off, let the user see
-    `tech_post.md` rendered as it will actually appear:
+    `tech_post.md` rendered as it will actually appear, and the two `README.md`
+    edits as a plain diff:
     - Pick the **unique slug filename** now (the filename becomes the URL slug) —
       list the existing files in `../konh.github.io/src/content/blog/` first and pick
       something that doesn't collide, e.g. based on the game's title and milestone
@@ -195,15 +217,19 @@ generated file by hand.
       copy, and re-run `npm run generate_blog` — no need to restart the server.
     - Present `players_post.txt` (with its character count) alongside the link for
       approval — it has no live preview, just show the text.
-    - Incorporate any edits before moving on — both are about to be published
-      outside this repo.
+    - Present the proposed `README.md` diff (the new `## Milestones` entry and any
+      `## The Game (briefly)` edits) in the same approval pass — a plain before/after
+      diff is enough, no live rendering needed.
+    - Incorporate any edits before moving on — all of this is about to be published
+      or committed.
 11. **Commit**, once approved:
     - In *this* repo: stage the milestone dir's files — `checklist.md`, `summary.md`,
-      `stats_code.md`, `stats_dev.md`, `tech_post.md`, `players_post.txt` — and commit
-      them **directly on the current branch** (same reasoning as step 16's version
-      bump below: this must land wherever the milestone was completed, not on a
-      throwaway feature branch spun off by the `commit`/`k:commit` skill). Message
-      e.g. `Add {major}. {name} milestone report and release write-ups`.
+      `stats_code.md`, `stats_dev.md`, `tech_post.md`, `players_post.txt` — plus
+      `README.md`, and commit them **directly on the current branch** (same reasoning
+      as step 16's version bump below: this must land wherever the milestone was
+      completed, not on a throwaway feature branch spun off by the `commit`/`k:commit`
+      skill). Message e.g. `Add {major}. {name} milestone report and release
+      write-ups`.
     - Stop the `npm run serve` dev server started for the preview in step 10 — it's
       no longer needed and shouldn't be left holding a port/background task open.
     - In `../konh.github.io`: the post is already at `src/content/blog/<slug>.md`
@@ -283,3 +309,9 @@ generated file by hand.
 - `checklist.md` is scratch state for resuming a close-out, not a generated-report
   artifact like the `stats_*`/`summary` files — it's fine (expected, even) for it to
   carry all-checked boxes once the milestone is fully closed; no need to delete it.
+- The README's `## Milestones` section is **additive only** — each run prepends one
+  new entry and never edits, reorders, or removes an earlier one. It is the repo's
+  running player-facing changelog; the full write-ups stay under `Docs/Milestones/`.
+- `## The Game (briefly)` is a living summary, not a per-milestone log — it should
+  always read as an accurate snapshot of the game *today*, so update/replace its
+  bullets in place rather than appending to them.
