@@ -217,9 +217,12 @@ namespace GS.Game.Tests {
 			DrawCardSystem.Update(
 				world,
 				config,
+				new EffectConfig(),
 				new Random(1),
 				new ReadCommands<DrawCardsCommand>(Array.Empty<DrawCardsCommand>()),
-				results);
+				results,
+				new CountryRelations(),
+				OrgId);
 
 			Assert.False(world.Has<CardInHand>(discarded));
 			Assert.True(world.Has<CardDiscard>(discarded));

@@ -266,9 +266,12 @@ namespace GS.Game.Tests {
 			DrawCardSystem.Update(
 				world,
 				BuildActionConfig(),
+				new EffectConfig(),
 				new Random(1),
 				new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = OrgId } }),
-				Array.Empty<DiscardCardResult>());
+				Array.Empty<DiscardCardResult>(),
+				new CountryRelations(),
+				OrgId);
 			ReceiveCardSystem.Update(
 				world,
 				new ReadCommands<ReceiveCardCommand>(new[] {

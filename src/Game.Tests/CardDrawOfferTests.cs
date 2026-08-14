@@ -64,6 +64,16 @@ namespace GS.Game.Tests {
 			return entity;
 		}
 
+		static void AddControl(World world, string orgId, string countryId, int value) {
+			int entity = world.Create();
+			world.Add(entity, new ControlEffect {
+				OrgId = orgId,
+				CountryId = countryId,
+				Value = value,
+				EffectId = $"test_{orgId}_{countryId}"
+			});
+		}
+
 		static int AddRelationTargetCard(
 			World world,
 			string orgId,
@@ -101,9 +111,12 @@ namespace GS.Game.Tests {
 			DrawCardSystem.Update(
 				world,
 				BuildConfig(),
+				new EffectConfig(),
 				new Random(7),
 				new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = "OrgA" } }),
-				Array.Empty<DiscardCardResult>());
+				Array.Empty<DiscardCardResult>(),
+				new CountryRelations(),
+				"OrgA");
 
 			Assert.True(world.Has<PendingCardDraw>(deck));
 			Assert.Equal(3, world.Get<PendingCardDraw>(deck).OptionCount);
@@ -148,9 +161,12 @@ namespace GS.Game.Tests {
 			DrawCardSystem.Update(
 				world,
 				BuildConfig(),
+				new EffectConfig(),
 				rng,
 				new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = "OrgA" } }),
-				Array.Empty<DiscardCardResult>());
+				Array.Empty<DiscardCardResult>(),
+				new CountryRelations(),
+				"OrgA");
 
 			Assert.Equal(0, rng.Calls);
 			Assert.Empty(CountryCardDrawQuery.GetChoices(world, "OrgA"));
@@ -173,9 +189,12 @@ namespace GS.Game.Tests {
 			DrawCardSystem.Update(
 				world,
 				BuildConfig(),
+				new EffectConfig(),
 				rng,
 				new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = "OrgA" } }),
-				Array.Empty<DiscardCardResult>());
+				Array.Empty<DiscardCardResult>(),
+				new CountryRelations(),
+				"OrgA");
 
 			Assert.Equal(0, rng.Calls);
 			Assert.False(status.HasPendingDraw);
@@ -200,9 +219,12 @@ namespace GS.Game.Tests {
 			DrawCardSystem.Update(
 				world,
 				BuildConfig(),
+				new EffectConfig(),
 				rng,
 				new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = "OrgA" } }),
-				Array.Empty<DiscardCardResult>());
+				Array.Empty<DiscardCardResult>(),
+				new CountryRelations(),
+				"OrgA");
 
 			Assert.Equal(0, rng.Calls);
 		}
@@ -222,9 +244,12 @@ namespace GS.Game.Tests {
 			DrawCardSystem.Update(
 				world,
 				BuildConfig(),
+				new EffectConfig(),
 				new Random(1),
 				new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = "OrgA" } }),
-				Array.Empty<DiscardCardResult>());
+				Array.Empty<DiscardCardResult>(),
+				new CountryRelations(),
+				"OrgA");
 
 			CountryCardDrawChoiceInfo choice = Assert.Single(CountryCardDrawQuery.GetChoices(world, "OrgA"));
 			Assert.Equal(drawable, choice.Entity);
@@ -288,9 +313,12 @@ namespace GS.Game.Tests {
 			DrawCardSystem.Update(
 				world,
 				BuildConfig(),
+				new EffectConfig(),
 				new Random(1),
 				new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = "OrgA" } }),
-				Array.Empty<DiscardCardResult>());
+				Array.Empty<DiscardCardResult>(),
+				new CountryRelations(),
+				"OrgA");
 
 			CountryCardDrawChoiceInfo choice = Assert.Single(CountryCardDrawQuery.GetChoices(world, "OrgA"));
 			Assert.Equal(liveTarget, choice.Entity);
@@ -312,9 +340,12 @@ namespace GS.Game.Tests {
 			DrawCardSystem.Update(
 				world,
 				BuildConfig(),
+				new EffectConfig(),
 				new Random(1),
 				new ReadCommands<DrawCardsCommand>(Array.Empty<DrawCardsCommand>()),
-				results);
+				results,
+				new CountryRelations(),
+				"OrgA");
 
 			CountryCardDrawChoiceInfo choice = Assert.Single(CountryCardDrawQuery.GetChoices(world, "OrgA"));
 			Assert.Equal(candidate, choice.Entity);
@@ -331,12 +362,15 @@ namespace GS.Game.Tests {
 			DrawCardSystem.Update(
 				world,
 				BuildConfig(),
+				new EffectConfig(),
 				new Random(1),
 				new ReadCommands<DrawCardsCommand>(new[] {
 					new DrawCardsCommand { OrgId = "OrgA" },
 					new DrawCardsCommand { OrgId = "OrgB" }
 				}),
-				Array.Empty<DiscardCardResult>());
+				Array.Empty<DiscardCardResult>(),
+				new CountryRelations(),
+				"OrgA");
 
 			Assert.Equal(cardA, Assert.Single(CountryCardDrawQuery.GetChoices(world, "OrgA")).Entity);
 			Assert.Equal(cardB, Assert.Single(CountryCardDrawQuery.GetChoices(world, "OrgB")).Entity);
@@ -406,6 +440,189 @@ namespace GS.Game.Tests {
 			Assert.Empty(GetHandEntities(world, "OrgA"));
 			Assert.Equal(4, CountryCardDrawQuery.GetChoices(world, "OrgA").Count);
 			Assert.True(world.Has<PendingCardDraw>(deck));
+		}
+
+		[Fact]
+		void stop_rivalry_draws_at_half_weight() {
+			var config = BuildConfig(); // "stop_rivalry" and "make_rival" both have DeckCopies = 1.
+			int halvedArmWins = 0;
+			int baselineArmWins = 0;
+			const int trials = 120;
+
+			for (int t = 0; t < trials; t++) {
+				if (RunStopRivalryWeightTrial(config, t, competitorActionId: "stop_rivalry")) { halvedArmWins++; }
+				if (RunStopRivalryWeightTrial(config, t, competitorActionId: "make_rival")) { baselineArmWins++; }
+			}
+
+			// Both arms replay the exact same seed sequence and world layout; only the competing
+			// card's action id differs (stop_rivalry, which is halved, vs make_rival, an equal-weight
+			// ordinary card), so the halved arm can never see "a" win fewer trials — only strictly
+			// more, for seeds landing in the extra probability band opened up by the halving.
+			Assert.True(halvedArmWins > baselineArmWins,
+				$"expected the plain card to win the first slot more often against halved-weight stop_rivalry than against an equal-weight competitor, halved-arm {halvedArmWins}/{trials} vs baseline {baselineArmWins}/{trials}");
+		}
+
+		static bool RunStopRivalryWeightTrial(ActionConfig config, int seed, string competitorActionId) {
+			var world = new World();
+			AddDeck(world, "OrgA", handSize: 1);
+			AddCard(world, "OrgA", competitorActionId);
+			int plain = AddCard(world, "OrgA", "a");
+
+			DrawCardSystem.Update(
+				world,
+				config,
+				new EffectConfig(),
+				new Random(seed + 1),
+				new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = "OrgA" } }),
+				Array.Empty<DiscardCardResult>(),
+				new CountryRelations(),
+				"OrgA");
+
+			IReadOnlyList<CountryCardDrawChoiceInfo> choices = CountryCardDrawQuery.GetChoices(world, "OrgA");
+			return choices.Count > 0 && choices[0].Entity == plain;
+		}
+
+		[Fact]
+		void declare_war_gains_weight_only_for_the_player_org_when_controlling_a_rival_of_the_target() {
+			var config = BuildConfig(); // "declare_war" and "a" both have DeckCopies = 1.
+			int playerWins = 0;
+			int nonPlayerWins = 0;
+			const int trials = 200;
+
+			for (int t = 0; t < trials; t++) {
+				(int declareWarPlayer, int firstChoicePlayer) = RunDeclareWarWeightTrial(config, t, playerOrgId: "OrgA");
+				if (firstChoicePlayer == declareWarPlayer) { playerWins++; }
+
+				(int declareWarOther, int firstChoiceOther) = RunDeclareWarWeightTrial(config, t, playerOrgId: "SomeoneElse");
+				if (firstChoiceOther == declareWarOther) { nonPlayerWins++; }
+			}
+
+			// Both arms replay the exact same seed sequence and world layout, differing only in
+			// whether "OrgA" is the player org, so the boosted arm can never win fewer trials than
+			// the unboosted baseline — only strictly more, for seeds landing in the +30% band.
+			Assert.True(playerWins > nonPlayerWins,
+				$"expected the player-only +30% declare_war weight boost to win the first slot more often than the same scenario for a non-player org, player {playerWins}/{trials} vs non-player {nonPlayerWins}/{trials}");
+		}
+
+		static (int DeclareWarEntity, int FirstChoiceEntity) RunDeclareWarWeightTrial(
+			ActionConfig config, int seed, string playerOrgId) {
+			var world = new World();
+			var relations = new CountryRelations();
+			// "Prussia" is a rival of the war target "France"; OrgA holds control in Prussia.
+			relations.SetRelation(world, "France", "Prussia", RelationKind.Rival);
+			AddControl(world, "OrgA", "Prussia", 10);
+
+			AddDeck(world, "OrgA", handSize: 1);
+			int declareWar = AddRelationTargetCard(world, "OrgA", "declare_war", "Austria", "France", RelationKind.Rival);
+			AddCard(world, "OrgA", "a");
+
+			DrawCardSystem.Update(
+				world,
+				config,
+				new EffectConfig(),
+				new Random(seed + 1),
+				new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = "OrgA" } }),
+				Array.Empty<DiscardCardResult>(),
+				relations,
+				playerOrgId);
+
+			IReadOnlyList<CountryCardDrawChoiceInfo> choices = CountryCardDrawQuery.GetChoices(world, "OrgA");
+			int firstChoice = choices.Count > 0 ? choices[0].Entity : -1;
+			return (declareWar, firstChoice);
+		}
+
+		[Fact]
+		void first_draw_ever_guarantees_a_control_raising_choice() {
+			ActionConfig config = BuildControlAwareConfig();
+			EffectConfig effectConfig = BuildControlEffectConfig();
+
+			// Four equally-weighted, higher-weight competitors versus one low-weight control card:
+			// without the first-draw guarantee, the control card would rarely make the top 3.
+			var world = new World();
+			AddDeck(world, "OrgA");
+			AddCard(world, "OrgA", "a");
+			AddCard(world, "OrgA", "b");
+			AddCard(world, "OrgA", "c");
+			AddCard(world, "OrgA", "d");
+			int controlCard = AddCard(world, "OrgA", "improve_control");
+
+			DrawCardSystem.Update(
+				world,
+				config,
+				effectConfig,
+				new Random(1),
+				new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = "OrgA" } }),
+				Array.Empty<DiscardCardResult>(),
+				new CountryRelations(),
+				"OrgA");
+
+			IReadOnlyList<CountryCardDrawChoiceInfo> choices = CountryCardDrawQuery.GetChoices(world, "OrgA");
+			Assert.Contains(choices, choice => choice.Entity == controlCard);
+		}
+
+		[Fact]
+		void later_draws_do_not_force_a_control_raising_choice() {
+			ActionConfig config = BuildControlAwareConfig();
+			EffectConfig effectConfig = BuildControlEffectConfig();
+			bool sawOfferWithoutControlCard = false;
+
+			for (int t = 0; t < 30 && !sawOfferWithoutControlCard; t++) {
+				var world = new World();
+				int deck = AddDeck(world, "OrgA");
+				// Deck already drew once before, so the guarantee no longer applies.
+				world.Add(deck, new FirstCardDrawCompleted());
+				AddCard(world, "OrgA", "a");
+				AddCard(world, "OrgA", "b");
+				AddCard(world, "OrgA", "c");
+				AddCard(world, "OrgA", "d");
+				int controlCard = AddCard(world, "OrgA", "improve_control");
+
+				DrawCardSystem.Update(
+					world,
+					config,
+					effectConfig,
+					new Random(t + 1),
+					new ReadCommands<DrawCardsCommand>(new[] { new DrawCardsCommand { OrgId = "OrgA" } }),
+					Array.Empty<DiscardCardResult>(),
+					new CountryRelations(),
+					"OrgA");
+
+				IReadOnlyList<CountryCardDrawChoiceInfo> choices = CountryCardDrawQuery.GetChoices(world, "OrgA");
+				if (!choices.Any(choice => choice.Entity == controlCard)) {
+					sawOfferWithoutControlCard = true;
+				}
+			}
+
+			Assert.True(sawOfferWithoutControlCard,
+				"expected at least one non-first offer to skip the low-weight control-raising card once the guarantee no longer applies");
+		}
+
+		static ActionConfig BuildControlAwareConfig() {
+			return new ActionConfig {
+				Defaults = new List<ActionOwnerDefaults> {
+					new ActionOwnerDefaults { OwnerType = "country", HandSize = 8 }
+				},
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition { ActionId = "a", OwnerType = "country", DeckCopies = 5 },
+					new ActionDefinition { ActionId = "b", OwnerType = "country", DeckCopies = 5 },
+					new ActionDefinition { ActionId = "c", OwnerType = "country", DeckCopies = 5 },
+					new ActionDefinition { ActionId = "d", OwnerType = "country", DeckCopies = 5 },
+					new ActionDefinition {
+						ActionId = "improve_control",
+						OwnerType = "country",
+						DeckCopies = 1,
+						EffectIds = new List<string> { "improve_control_effect" }
+					}
+				}
+			};
+		}
+
+		static EffectConfig BuildControlEffectConfig() {
+			return new EffectConfig {
+				Effects = new List<ActionEffectDefinition> {
+					new ControlChangeEffectParams { EffectId = "improve_control_effect", EffectType = "ControlChange", Amount = 10 }
+				}
+			};
 		}
 
 		static List<int> GetHandEntities(IReadOnlyWorld world, string orgId) {

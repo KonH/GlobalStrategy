@@ -1143,6 +1143,10 @@ namespace GS.Unity.UI {
 
 		void HandleLastFrameEffectsChanged(object sender, PropertyChangedEventArgs e) {
 			if (_state == null || _state.LastFrameEffects.Effects.Count == 0) { return; }
+			// CardPlayAnimator already owns a gold barrier for the in-flight card play (and
+			// releases/cancels it based on the outcome) — adding a second one here on top of it
+			// stacks both offsets on the same AnimatableDouble, so the gold counter briefly shows
+			// roughly double the real swing instead of the true old/new value.
 			if (_cardPlayAnimator != null && _cardPlayAnimator.IsPlaying) { return; }
 			if (!_state.PlayerOrganization.IsValid) { return; }
 
