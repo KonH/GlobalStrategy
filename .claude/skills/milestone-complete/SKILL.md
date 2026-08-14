@@ -1,6 +1,6 @@
 ---
 name: milestone-complete
-description: Generate a milestone-completion report (summary.md, stats_code.md, stats_dev.md) under Docs/Milestones/<zero-padded-major>_<version-name>/, comparing code LoC and Docs/Specs/*/usage.csv dev stats against the previous milestone, then (with the user's sign-off) write Release Notes, draft a tech blog post and an English + Russian player-facing announcement, update this repo's README.md with a player-facing Milestones entry and a refreshed Game-features summary, cut a GitHub release + releases/<version> branch, and roll the project version over to the next milestone. Tracks progress in the milestone dir's checklist.md so a run can be resumed. Load when the user asks to close out, wrap up, or report on a project milestone/version.
+description: Generate a milestone-completion report (summary.md, stats_code.md, stats_dev.md) under Docs/Milestones/<zero-padded-major>_<version-name>/, comparing code LoC and Docs/Specs/*/usage.csv dev stats against the previous milestone, then (with the user's sign-off) write Release Notes, draft a tech blog post and an English + Russian player-facing announcement, update this repo's README.md with a player-facing Milestones entry and a refreshed Game-features summary, cut a GitHub release + releases/<version> branch, roll the project version over to the next milestone, and (after a separate confirmation) delete branches already merged into main, local and remote. Tracks progress in the milestone dir's checklist.md so a run can be resumed. Load when the user asks to close out, wrap up, or report on a project milestone/version.
 ---
 
 # Milestone Complete
@@ -12,8 +12,9 @@ each compared against the previous milestone if one exists. It then walks the us
 through actually closing the milestone out: Release Notes, a tech blog post, an
 English + Russian player-facing announcement, this repo's own `README.md` (a new
 player-facing `## Milestones` entry plus a refreshed `## The Game (briefly)`
-section), a GitHub release, a `releases/<version>` branch, and the version bump
-that starts the next milestone.
+section), a GitHub release, a `releases/<version>` branch, the version bump that
+starts the next milestone, and — as its own confirmed step — deleting branches
+already merged into `main` (via PR or manually), both local and remote.
 
 Per `.claude/commands/commit.md`, only a human decides when the milestone actually
 turns over — this skill is that decision moment. It never bumps the major version or
@@ -41,7 +42,7 @@ already in progress.
    Don't re-run already-checked steps (e.g. don't regenerate a report that's already
    been reviewed, don't re-cut a release that's already checked off).
 3. Otherwise, create the directory and write `checklist.md` with every step below
-   (1 through 17) as an unchecked box, e.g.:
+   (1 through 18) as an unchecked box, e.g.:
 
    ```markdown
    # Milestone Close-Out Checklist — <major>. <name>
@@ -62,7 +63,8 @@ already in progress.
    - [ ] 14. Ask for next milestone's name
    - [ ] 15. Checkpoint: confirm version transition
    - [ ] 16. Bump version, commit
-   - [ ] 17. Report final summary
+   - [ ] 17. Checkpoint: confirm merged-branch cleanup list, then delete
+   - [ ] 18. Report final summary
    ```
 
    `Edit` the box to `[x]` immediately after finishing each step — don't batch this at
@@ -265,7 +267,7 @@ generated file by hand.
       anything about the diff looks unexpected (stray build output, unrelated
       changes already sitting in that working tree, etc.).
 
-## Steps 12–17: Cut the release, roll the version
+## Steps 12–18: Cut the release, roll the version, clean up branches
 
 12. **Checkpoint — confirm before any GitHub-visible action.** Show the user the
     exact plan: the version number to release, the tag/release name, the
@@ -309,10 +311,34 @@ generated file by hand.
       <noreply@anthropic.com>` per the repo's usual commit-message rules.
     - Leave the commit unpushed, same as the normal commit flow — pushing is the
       user's call.
-17. Report a short summary of everything done: report location, tech/player post
+17. **Clean up merged branches.** Checkpoint — confirm before deleting anything;
+    deleting branches is hard-to-reverse per `.claude/rules/workflow.md`, and this is
+    a separate confirmation from steps 12/15, not covered by either of them.
+    - `git fetch --prune origin` first, so stale remote-tracking refs don't produce
+      false positives or false negatives.
+    - List candidates: `git branch --merged main` for local branches already merged
+      into `main`, and `git branch -r --merged main` for remote branches on `origin`.
+      Ancestry-based `--merged` catches a branch whether it landed via a GitHub PR or
+      a manual/direct merge (like this repo's own commits land, per `commit.md`) — it
+      doesn't need to distinguish the two, and this repo's PRs merge with a real merge
+      commit rather than squashing, so ancestry checks correctly catch PR-merged
+      branches too.
+    - Exclude protected branches from both lists: `main`/`origin/main`, the branch
+      currently checked out, anything under `releases/` (those are intentionally kept,
+      cut in step 13), and `origin/HEAD`.
+    - Present the resulting candidate list (local names and remote names, deduplicated,
+      noting branches present on both) to the user and wait for explicit go-ahead.
+    - Once confirmed, delete: `git branch -d <name>` for each local branch (plain
+      `-d`, not `-D` — it refuses anything not actually merged, which is the safety
+      net if the candidate list was somehow stale by the time deletion runs), and
+      `git push origin --delete <name>` for each remote branch.
+    - Report which branches were deleted, and note (don't fail the step over) any that
+      were already gone or failed to delete.
+18. Report a short summary of everything done: report location, tech/player post
     locations (this repo — including both `players_post.en.txt` and
     `players_post.ru.txt` — and the live blog URL/slug), release URL, release
-    branch, and the new milestone identity. Tick off the final checklist box.
+    branch, the new milestone identity, and the branches deleted in step 17. Tick off
+    the final checklist box.
 
 ## Notes
 
