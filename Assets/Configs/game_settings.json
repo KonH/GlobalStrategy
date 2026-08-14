@@ -1,5 +1,5 @@
 {
-  "version": "1.211",
+  "version": "1.212",
   "startYear": 1880,
   "speedMultipliers": [1, 24, 720],
   "defaultLocale": "en",
@@ -67,6 +67,21 @@
   "botFeatures": [
     {
       "featureId": "control",
+      "enabled": true,
+      "parameters": {}
+    },
+    {
+      "featureId": "warUnlock",
+      "enabled": true,
+      "parameters": {}
+    },
+    {
+      "featureId": "warDeclare",
+      "enabled": true,
+      "parameters": {}
+    },
+    {
+      "featureId": "warProsecute",
       "enabled": true,
       "parameters": {}
     }

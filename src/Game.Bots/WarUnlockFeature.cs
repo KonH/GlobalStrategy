@@ -107,18 +107,29 @@ namespace GS.Game.Bots {
 
 			int k;
 			double warDelta;
-			string targetCountryId = card.TargetCountryId ?? "";
+			// `pathTargetId` is the eventual rival/declare-war target this path is working
+			// toward — used only for EV estimation and tie-breaking below. It must NOT become
+			// the play command's TargetCountryId: make_rival/declare_war/declare_revenge_war
+			// are relation cards whose real TargetCountryId is chosen when drawn (card.TargetCountryId,
+			// always non-empty for those), but improve_diplomacy/military/ruler_opinion are plain
+			// country cards with no relation target (card.TargetCountryId is always "" for them).
+			// InitActionFromPlayCardSystem.InitCard matches the play command against the hand
+			// card's own RelationCardTarget/RevengeCardTarget (or "" if it has neither) — sending
+			// pathTargetId as TargetCountryId for an opinion card can never match, so the command
+			// silently fails to find its hand card and the play is dropped with no feedback to
+			// the bot, which then just re-proposes the same play forever.
+			string pathTargetId = card.TargetCountryId ?? "";
 
 			if (card.ActionId == MakeRivalActionId) {
 				if (!TryScoreMakeRival(obs, country, card, out warDelta, out k)) {
 					return false;
 				}
 			} else if (card.ActionId == ImproveDiplomacyActionId) {
-				if (!TryScoreDiplomacyOpinion(obs, country, out warDelta, out k, out targetCountryId)) {
+				if (!TryScoreDiplomacyOpinion(obs, country, out warDelta, out k, out pathTargetId)) {
 					return false;
 				}
 			} else if (card.ActionId == ImproveMilitaryActionId || card.ActionId == ImproveRulerActionId) {
-				if (!TryScoreOpinionImprover(obs, country, card, out warDelta, out k, out targetCountryId)) {
+				if (!TryScoreOpinionImprover(obs, country, card, out warDelta, out k, out pathTargetId)) {
 					return false;
 				}
 			} else {
@@ -134,7 +145,8 @@ namespace GS.Game.Bots {
 				FeatureId = FeatureId,
 				ActionId = card.ActionId,
 				CountryId = card.CountryId,
-				TargetCountryId = targetCountryId,
+				// Always the card's own real target (see pathTargetId note above) — never pathTargetId.
+				TargetCountryId = card.TargetCountryId ?? "",
 				SlotIndex = card.SlotIndex,
 				EstimatedDeltaOrgScore = score
 			};

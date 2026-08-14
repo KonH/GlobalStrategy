@@ -41,6 +41,12 @@ namespace GS.Game.ConsoleRunner {
 				initialOrganizationId: initialOrganizationId,
 				logger: logger);
 			var logic = new GameLogic(ctx);
+			// Headless runs have no player to dismiss tutorial steps, and a triggered tutorial
+			// step pauses the game (TaskProgressSystem sets GameTime.IsPaused + TutorialOwnsPause)
+			// until something unpauses it. Left enabled, the very first tutorial trigger freezes
+			// simulated time at tick 0 for the rest of the run. Bot-only sessions never advance
+			// tutorials, so disable them outright rather than seeding fake progress.
+			logic.SetTutorialsEnabled(false);
 
 			var registry = BotFeatureRegistry.CreateDefault(logic.MaxControlPool, logic.EffectConfig);
 			var seenProfileOrgs = new HashSet<string>();
