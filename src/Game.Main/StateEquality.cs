@@ -149,6 +149,19 @@ namespace GS.Main {
 				&& ListEquals(a.Goals, b.Goals, GoalProgressEntryStateEquals);
 		}
 
+		public static bool ActiveTaskRewardStateEquals(ActiveTaskRewardState a, ActiveTaskRewardState b) {
+			return a.ResourceId == b.ResourceId && a.Amount == b.Amount;
+		}
+
+		public static bool ActiveTaskEntryStateEquals(ActiveTaskEntryState a, ActiveTaskEntryState b) {
+			return a.TaskId == b.TaskId
+				&& a.NameKey == b.NameKey
+				&& a.DescKey == b.DescKey
+				&& a.IsTutorial == b.IsTutorial
+				&& a.HighlightTargetId == b.HighlightTargetId
+				&& ListEquals(a.Rewards, b.Rewards, ActiveTaskRewardStateEquals);
+		}
+
 		public static bool WarIconEntryStateEquals(WarIconEntryState a, WarIconEntryState b) {
 			return a.WarId == b.WarId
 				&& a.Progress == b.Progress

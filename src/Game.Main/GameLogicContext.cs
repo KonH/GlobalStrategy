@@ -13,6 +13,7 @@ namespace GS.Main {
 		public IReadOnlyConfigSource<CharacterConfig> Character { get; }
 		public IReadOnlyConfigSource<ActionConfig> Action { get; }
 		public IReadOnlyConfigSource<EffectConfig> Effect { get; }
+		public IReadOnlyConfigSource<TasksConfig> Tasks { get; }
 		public IReadOnlyConfigSource<ProvinceConfig> Province { get; }
 		public IReadOnlyConfigSource<List<GS.Core.Map.MapFeature>>? MapGeometry { get; }
 		public IPersistentStorage? Storage { get; }
@@ -37,6 +38,7 @@ namespace GS.Main {
 			IReadOnlyConfigSource<CharacterConfig>? character = null,
 			IReadOnlyConfigSource<ActionConfig>? action = null,
 			IReadOnlyConfigSource<EffectConfig>? effect = null,
+			IReadOnlyConfigSource<TasksConfig>? tasks = null,
 			IReadOnlyConfigSource<List<GS.Core.Map.MapFeature>>? mapGeometry = null,
 			IReadOnlyConfigSource<ProvinceConfig>? province = null,
 			int? rngSeed = null,
@@ -51,6 +53,7 @@ namespace GS.Main {
 			Character = character ?? new EmptyCharacterConfig();
 			Action = action ?? new EmptyActionConfig();
 			Effect = effect ?? new EmptyEffectConfig();
+			Tasks = tasks ?? new EmptyTasksConfig();
 			Province = province ?? new EmptyProvinceConfig();
 			MapGeometry = mapGeometry;
 			Storage = storage;
@@ -72,6 +75,10 @@ namespace GS.Main {
 
 		sealed class EmptyEffectConfig : IReadOnlyConfigSource<EffectConfig> {
 			public EffectConfig Load() => new EffectConfig();
+		}
+
+		sealed class EmptyTasksConfig : IReadOnlyConfigSource<TasksConfig> {
+			public TasksConfig Load() => new TasksConfig();
 		}
 
 		sealed class EmptyProvinceConfig : IReadOnlyConfigSource<ProvinceConfig> {

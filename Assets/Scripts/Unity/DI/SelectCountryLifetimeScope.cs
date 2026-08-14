@@ -43,6 +43,7 @@ namespace GS.Unity.DI {
 			builder.RegisterInstance(_mapCameraConfig);
 			builder.Register<ModalState>(Lifetime.Singleton);
 			builder.Register<UIPointerState>(Lifetime.Singleton);
+			builder.Register<TutorialPresentationTriggers>(Lifetime.Singleton);
 			builder.RegisterComponentInHierarchy<Camera>();
 			builder.RegisterComponentInHierarchy<MapLoader>();
 			builder.RegisterComponentInHierarchy<MapController>();

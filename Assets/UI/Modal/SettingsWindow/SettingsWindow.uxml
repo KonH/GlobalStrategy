@@ -20,9 +20,22 @@
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement class="setting-row">
+                <ui:Label name="lbl-tutorials" text="Tutorials" class="gs-label setting-label"/>
+                <ui:VisualElement class="setting-buttons">
+                    <ui:Button name="btn-tutorials-on" text="On" class="gs-btn gs-btn--small setting-button"/>
+                    <ui:Button name="btn-tutorials-off" text="Off" class="gs-btn gs-btn--small setting-button"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="setting-row">
                 <ui:Label name="lbl-data" text="Data" class="gs-label setting-label"/>
                 <ui:VisualElement class="setting-buttons">
                     <ui:Button name="btn-delete-saves" text="Delete All Saves" class="gs-btn gs-btn--small gs-btn--destructive setting-button"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="setting-row">
+                <ui:VisualElement class="setting-buttons">
+                    <ui:Button name="btn-reset-tutorials" text="Reset Tutorials" class="gs-btn gs-btn--small setting-button"/>
+                    <ui:Button name="btn-reset-defaults" text="Reset Settings to Default" class="gs-btn gs-btn--small setting-button"/>
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:Button name="btn-back" text="Back" class="gs-btn gs-btn--primary menu-button"/>

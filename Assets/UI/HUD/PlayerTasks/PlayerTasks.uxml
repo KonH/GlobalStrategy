@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/HUD/PlayerTasks/PlayerTasks.uss"/>
+    <ui:VisualElement name="player-tasks-root" class="player-tasks-root">
+        <ui:VisualElement name="tasks-list" class="tasks-list" />
+    </ui:VisualElement>
+</ui:UXML>

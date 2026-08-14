@@ -1,0 +1,285 @@
+{
+  "tasks": [
+    {
+      "taskId": "tutorial_welcome_camera",
+      "nameKey": "task.tutorial_welcome_camera.name",
+      "descKey": "task.tutorial_welcome_camera.desc",
+      "isTutorial": true,
+      "highlightTargetId": "",
+      "openCondition": {
+        "type": "mul",
+        "members": [
+          { "type": "triggerCondition", "triggerId": "tutorialsEnabled" },
+          {
+            "type": "eq",
+            "members": [
+              { "type": "triggerCondition", "triggerId": "tutorialTaskActive" },
+              { "type": "value", "value": 0 }
+            ]
+          }
+        ]
+      },
+      "closeCondition": {
+        "type": "mul",
+        "members": [
+          { "type": "triggerCondition", "triggerId": "mapPositionChanged" },
+          { "type": "triggerCondition", "triggerId": "mapZoomChanged" }
+        ]
+      },
+      "reward": [],
+      "openEffectIds": [],
+      "closeEffectIds": []
+    },
+    {
+      "taskId": "tutorial_org_resources",
+      "nameKey": "task.tutorial_org_resources.name",
+      "descKey": "task.tutorial_org_resources.desc",
+      "isTutorial": true,
+      "highlightTargetId": "player_org_panel",
+      "openCondition": {
+        "type": "mul",
+        "members": [
+          { "type": "triggerCondition", "triggerId": "tutorialsEnabled" },
+          {
+            "type": "eq",
+            "members": [
+              { "type": "triggerCondition", "triggerId": "tutorialTaskActive" },
+              { "type": "value", "value": 0 }
+            ]
+          },
+          { "type": "triggerCondition", "triggerId": "taskCompleted:tutorial_welcome_camera" }
+        ]
+      },
+      "closeCondition": { "type": "triggerCondition", "triggerId": "keyPressed" },
+      "reward": [],
+      "openEffectIds": [],
+      "closeEffectIds": []
+    },
+    {
+      "taskId": "tutorial_time_controls",
+      "nameKey": "task.tutorial_time_controls.name",
+      "descKey": "task.tutorial_time_controls.desc",
+      "isTutorial": true,
+      "highlightTargetId": "time_panel",
+      "openCondition": {
+        "type": "mul",
+        "members": [
+          { "type": "triggerCondition", "triggerId": "tutorialsEnabled" },
+          {
+            "type": "eq",
+            "members": [
+              { "type": "triggerCondition", "triggerId": "tutorialTaskActive" },
+              { "type": "value", "value": 0 }
+            ]
+          },
+          { "type": "triggerCondition", "triggerId": "taskCompleted:tutorial_org_resources" }
+        ]
+      },
+      "closeCondition": { "type": "triggerCondition", "triggerId": "keyPressed" },
+      "reward": [],
+      "openEffectIds": [],
+      "closeEffectIds": []
+    },
+    {
+      "taskId": "tutorial_select_country",
+      "nameKey": "task.tutorial_select_country.name",
+      "descKey": "task.tutorial_select_country.desc",
+      "isTutorial": true,
+      "highlightTargetId": "",
+      "openCondition": {
+        "type": "mul",
+        "members": [
+          { "type": "triggerCondition", "triggerId": "tutorialsEnabled" },
+          {
+            "type": "eq",
+            "members": [
+              { "type": "triggerCondition", "triggerId": "tutorialTaskActive" },
+              { "type": "value", "value": 0 }
+            ]
+          },
+          { "type": "triggerCondition", "triggerId": "taskCompleted:tutorial_time_controls" }
+        ]
+      },
+      "closeCondition": { "type": "triggerCondition", "triggerId": "uiOpened:selectedCountryPanel" },
+      "reward": [],
+      "openEffectIds": [],
+      "closeEffectIds": []
+    },
+    {
+      "taskId": "tutorial_open_characters",
+      "nameKey": "task.tutorial_open_characters.name",
+      "descKey": "task.tutorial_open_characters.desc",
+      "isTutorial": true,
+      "highlightTargetId": "characters_button",
+      "openCondition": {
+        "type": "mul",
+        "members": [
+          { "type": "triggerCondition", "triggerId": "tutorialsEnabled" },
+          {
+            "type": "eq",
+            "members": [
+              { "type": "triggerCondition", "triggerId": "tutorialTaskActive" },
+              { "type": "value", "value": 0 }
+            ]
+          },
+          { "type": "triggerCondition", "triggerId": "taskCompleted:tutorial_select_country" }
+        ]
+      },
+      "closeCondition": { "type": "triggerCondition", "triggerId": "uiOpened:characterList" },
+      "reward": [],
+      "openEffectIds": [],
+      "closeEffectIds": []
+    },
+    {
+      "taskId": "tutorial_military_advisor_tooltip",
+      "nameKey": "task.tutorial_military_advisor_tooltip.name",
+      "descKey": "task.tutorial_military_advisor_tooltip.desc",
+      "isTutorial": true,
+      "highlightTargetId": "military_advisor_card",
+      "openCondition": {
+        "type": "mul",
+        "members": [
+          { "type": "triggerCondition", "triggerId": "tutorialsEnabled" },
+          {
+            "type": "eq",
+            "members": [
+              { "type": "triggerCondition", "triggerId": "tutorialTaskActive" },
+              { "type": "value", "value": 0 }
+            ]
+          },
+          { "type": "triggerCondition", "triggerId": "taskCompleted:tutorial_open_characters" }
+        ]
+      },
+      "closeCondition": { "type": "triggerCondition", "triggerId": "tooltipShown:militaryAdvisorTooltip" },
+      "reward": [],
+      "openEffectIds": [],
+      "closeEffectIds": []
+    },
+    {
+      "taskId": "tutorial_open_actions",
+      "nameKey": "task.tutorial_open_actions.name",
+      "descKey": "task.tutorial_open_actions.desc",
+      "isTutorial": true,
+      "highlightTargetId": "actions_button",
+      "openCondition": {
+        "type": "mul",
+        "members": [
+          { "type": "triggerCondition", "triggerId": "tutorialsEnabled" },
+          {
+            "type": "eq",
+            "members": [
+              { "type": "triggerCondition", "triggerId": "tutorialTaskActive" },
+              { "type": "value", "value": 0 }
+            ]
+          },
+          { "type": "triggerCondition", "triggerId": "taskCompleted:tutorial_military_advisor_tooltip" }
+        ]
+      },
+      "closeCondition": { "type": "triggerCondition", "triggerId": "uiOpened:actionsPanel" },
+      "reward": [],
+      "openEffectIds": [],
+      "closeEffectIds": []
+    },
+    {
+      "taskId": "tutorial_draw_from_deck",
+      "nameKey": "task.tutorial_draw_from_deck.name",
+      "descKey": "task.tutorial_draw_from_deck.desc",
+      "isTutorial": true,
+      "highlightTargetId": "action_deck",
+      "openCondition": {
+        "type": "mul",
+        "members": [
+          { "type": "triggerCondition", "triggerId": "tutorialsEnabled" },
+          {
+            "type": "eq",
+            "members": [
+              { "type": "triggerCondition", "triggerId": "tutorialTaskActive" },
+              { "type": "value", "value": 0 }
+            ]
+          },
+          { "type": "triggerCondition", "triggerId": "taskCompleted:tutorial_open_actions" }
+        ]
+      },
+      "closeCondition": { "type": "triggerCondition", "triggerId": "commandTrigger:draw" },
+      "reward": [],
+      "openEffectIds": [],
+      "closeEffectIds": []
+    },
+    {
+      "taskId": "tutorial_select_drawn_card",
+      "nameKey": "task.tutorial_select_drawn_card.name",
+      "descKey": "task.tutorial_select_drawn_card.desc",
+      "isTutorial": true,
+      "highlightTargetId": "",
+      "openCondition": {
+        "type": "mul",
+        "members": [
+          { "type": "triggerCondition", "triggerId": "tutorialsEnabled" },
+          {
+            "type": "eq",
+            "members": [
+              { "type": "triggerCondition", "triggerId": "tutorialTaskActive" },
+              { "type": "value", "value": 0 }
+            ]
+          },
+          { "type": "triggerCondition", "triggerId": "taskCompleted:tutorial_draw_from_deck" }
+        ]
+      },
+      "closeCondition": { "type": "triggerCondition", "triggerId": "commandTrigger:cardSelected" },
+      "reward": [],
+      "openEffectIds": [],
+      "closeEffectIds": []
+    },
+    {
+      "taskId": "tutorial_discard_card",
+      "nameKey": "task.tutorial_discard_card.name",
+      "descKey": "task.tutorial_discard_card.desc",
+      "isTutorial": true,
+      "highlightTargetId": "",
+      "openCondition": {
+        "type": "mul",
+        "members": [
+          { "type": "triggerCondition", "triggerId": "tutorialsEnabled" },
+          {
+            "type": "eq",
+            "members": [
+              { "type": "triggerCondition", "triggerId": "tutorialTaskActive" },
+              { "type": "value", "value": 0 }
+            ]
+          },
+          { "type": "triggerCondition", "triggerId": "taskCompleted:tutorial_select_drawn_card" }
+        ]
+      },
+      "closeCondition": { "type": "triggerCondition", "triggerId": "keyPressed" },
+      "reward": [],
+      "openEffectIds": [],
+      "closeEffectIds": []
+    },
+    {
+      "taskId": "tutorial_goals_window",
+      "nameKey": "task.tutorial_goals_window.name",
+      "descKey": "task.tutorial_goals_window.desc",
+      "isTutorial": true,
+      "highlightTargetId": "goals_button",
+      "openCondition": {
+        "type": "mul",
+        "members": [
+          { "type": "triggerCondition", "triggerId": "tutorialsEnabled" },
+          {
+            "type": "eq",
+            "members": [
+              { "type": "triggerCondition", "triggerId": "tutorialTaskActive" },
+              { "type": "value", "value": 0 }
+            ]
+          },
+          { "type": "triggerCondition", "triggerId": "taskCompleted:tutorial_discard_card" },
+          { "type": "triggerCondition", "triggerId": "uiElementShown:none" }
+        ]
+      },
+      "closeCondition": { "type": "triggerCondition", "triggerId": "uiOpened:goalsWindow" },
+      "reward": [],
+      "openEffectIds": [],
+      "closeEffectIds": []
+    }
+  ]
+}

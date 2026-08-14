@@ -240,5 +240,19 @@ namespace GS.Game.Tests {
 			Assert.Equal(fromFile.Provinces[0].ProvinceId, fromString.Provinces[0].ProvinceId);
 			Assert.Equal(fromFile.Provinces[0].Population, fromString.Provinces[0].Population);
 		}
+
+		[Fact]
+		void tasks_config_parity() {
+			string path = FindRepoRootConfigPath("tasks_config.json");
+			var fromFile = new FileConfig<TasksConfig>(path).Load();
+			var fromString = new StringConfig<TasksConfig>(File.ReadAllText(path)).Load();
+			Assert.Equal(fromFile.Tasks.Count, fromString.Tasks.Count);
+			Assert.Equal(11, fromFile.Tasks.Count);
+			Assert.Equal(fromFile.Tasks[0].TaskId, fromString.Tasks[0].TaskId);
+			Assert.Equal(fromFile.Tasks[0].IsTutorial, fromString.Tasks[0].IsTutorial);
+			Assert.Equal(fromFile.Tasks[1].HighlightTargetId, fromString.Tasks[1].HighlightTargetId);
+			Assert.True(fromFile.Tasks[0].IsTutorial);
+			Assert.Equal("player_org_panel", fromFile.Tasks[1].HighlightTargetId);
+		}
 	}
 }

@@ -19,6 +19,7 @@ namespace GS.Unity.UI {
 		CountryInfoView _countryInfo;
 		ProvinceInfoView _provinceInfo;
 		PlayerOrgView _playerOrgView;
+		PlayerTasksView _playerTasksView;
 		TimeView _timeView;
 		TooltipSystem _tooltip;
 		VisualState _state;
@@ -95,6 +96,9 @@ namespace GS.Unity.UI {
 		UIPointerState _pointerState;
 		CountryActionsVisibility _countryActionsVisibility;
 		DebugOrgCardVisibility _debugOrgCardVisibility;
+		TutorialPresentationTriggers _presentationTriggers;
+		TutorialHighlightView _tutorialHighlightView;
+		VisualElement _cardDrawOverlay;
 		Label _selectedCountryDebugName;
 		Label _selectedOrgDebugName;
 		VisualElement _controlOrgDebugList;
@@ -105,7 +109,7 @@ namespace GS.Unity.UI {
 		readonly List<string> _controlOrgDropdownOrgIds = new();
 
 		[Inject]
-		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, GoalsWindowDocument goalsWindow, WarProgressWindowDocument warProgressWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig, IFlyTextNotifier flyText, GameSettings gameSettings, UIPointerState pointerState, ModalState modalState, CountryActionsVisibility countryActionsVisibility, DebugOrgCardVisibility debugOrgCardVisibility) {
+		void Construct(VisualState state, IWriteOnlyCommandAccessor commands, ILocalization loc, ResourceConfig resourceConfig, CharacterConfig characterConfig, CharacterVisualConfig characterVisualConfig, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, GameMenuDocument gameMenu, LeaderboardWindowDocument leaderboardWindow, GoalsWindowDocument goalsWindow, WarProgressWindowDocument warProgressWindow, OrgInfoDocument orgInfoDocument, ActionConfig actionConfig, ActionVisualConfig actionVisualConfig, CardPlayAnimator cardPlayAnimator, CountryConfig countryConfig, IFlyTextNotifier flyText, GameSettings gameSettings, UIPointerState pointerState, ModalState modalState, CountryActionsVisibility countryActionsVisibility, DebugOrgCardVisibility debugOrgCardVisibility, TutorialPresentationTriggers presentationTriggers) {
 			_state = state;
 			_commands = commands;
 			_loc = loc;
@@ -129,6 +133,7 @@ namespace GS.Unity.UI {
 			_modalState = modalState;
 			_countryActionsVisibility = countryActionsVisibility;
 			_debugOrgCardVisibility = debugOrgCardVisibility;
+			_presentationTriggers = presentationTriggers;
 		}
 
 		void Awake() {
@@ -165,6 +170,16 @@ namespace GS.Unity.UI {
 			_provinceInfoRoot = _root.Q("province-info");
 			_provinceInfo = new ProvinceInfoView(_provinceInfoRoot, _loc, _resourceConfig, _tooltip, _countryVisualConfig);
 			_playerOrgView = new PlayerOrgView(_root.Q("player-country"), _loc, _resourceConfig, _tooltip, _orgVisualConfig);
+			var playerTasksRoot = _root.Q("player-tasks");
+			if (playerTasksRoot != null) {
+				_playerTasksView = new PlayerTasksView(playerTasksRoot, _loc, _resourceConfig);
+				_playerTasksView.Refresh(_state.ActiveTasks);
+			}
+			var tutorialHighlightRoot = _root.Q("tutorial-highlight");
+			if (tutorialHighlightRoot != null) {
+				_tutorialHighlightView = new TutorialHighlightView(tutorialHighlightRoot, ResolveHighlightTarget);
+				_tutorialHighlightView.Refresh(_state.ActiveTasks);
+			}
 			_lensSwitcher = new LensSwitcherView(_root.Q("lens-switcher"), _tooltip, _loc);
 			_lensSwitcher.OnLensSelected = OnLensSelected;
 			_warIconsView = new WarIconsView(
@@ -176,12 +191,12 @@ namespace GS.Unity.UI {
 			_warIconsView.Refresh(_state.WarIcons);
 			_actionLog = new ActionLogView(_root, _root.Q("action-log"), _root.Q("top-right-panel"), _loc, _countryVisualConfig, _orgVisualConfig);
 			_cardPlayAnimator?.SetCountryActionsView(_countryInfo.ActionsView);
-			var cardDrawOverlay = _root.Q("card-draw-overlay");
+			_cardDrawOverlay = _root.Q("card-draw-overlay");
 			var cardDrawRow = _root.Q("card-draw-row");
-			if (cardDrawOverlay == null || cardDrawRow == null || _countryInfo.ActionsView == null) {
+			if (_cardDrawOverlay == null || cardDrawRow == null || _countryInfo.ActionsView == null) {
 				Debug.LogError("[HUDDocument] Card draw UI or country actions view is missing.", this);
 			} else {
-				_cardDrawView = new CardDrawView(cardDrawOverlay, cardDrawRow, _actionVisualConfig);
+				_cardDrawView = new CardDrawView(_cardDrawOverlay, cardDrawRow, _actionVisualConfig);
 				_cardDrawAnimator = new CardDrawAnimator(
 					_state,
 					_commands,
@@ -577,9 +592,13 @@ namespace GS.Unity.UI {
 			_state.ProvinceOccupation.PropertyChanged += HandleProvinceOccupationChanged;
 			_state.GameLog.PropertyChanged += HandleGameLogChanged;
 			_state.WarIcons.PropertyChanged += HandleWarIconsChanged;
+			_state.ActiveTasks.PropertyChanged += HandleActiveTasksChanged;
+			_state.LastFrameEffects.PropertyChanged += HandleLastFrameEffectsChanged;
 			_state.Leaderboard.PropertyChanged += HandleLeaderboardChanged;
 			_lensSwitcher?.Refresh(_state.MapLens.Lens);
 			_warIconsView?.Refresh(_state.WarIcons);
+			_playerTasksView?.Refresh(_state.ActiveTasks);
+			_tutorialHighlightView?.Refresh(_state.ActiveTasks);
 			RefreshCountryViews();
 			RefreshMyOrgCardAvailability();
 			RefreshSelectedOrgCardAvailability();
@@ -632,6 +651,8 @@ namespace GS.Unity.UI {
 			_state.ProvinceOccupation.PropertyChanged -= HandleProvinceOccupationChanged;
 			_state.GameLog.PropertyChanged -= HandleGameLogChanged;
 			_state.WarIcons.PropertyChanged -= HandleWarIconsChanged;
+			_state.ActiveTasks.PropertyChanged -= HandleActiveTasksChanged;
+			_state.LastFrameEffects.PropertyChanged -= HandleLastFrameEffectsChanged;
 			_state.Leaderboard.PropertyChanged -= HandleLeaderboardChanged;
 			_lastOrgAgentSlotCount = -1;
 		}
@@ -699,6 +720,7 @@ namespace GS.Unity.UI {
 
 		void Update() {
 			_tooltip?.Update(Time.deltaTime);
+			PublishPresentationTriggers();
 			if (_fpsEnabled) {
 				UpdateFpsCounter();
 			}
@@ -711,6 +733,78 @@ namespace GS.Unity.UI {
 						RefreshCountryViews();
 					}
 				}
+			}
+		}
+
+		void PublishPresentationTriggers() {
+			if (_presentationTriggers == null || _state == null) {
+				return;
+			}
+
+			bool selectedCountryOpen = _state.SelectedCountry.IsValid;
+			_presentationTriggers.Set("uiOpened:selectedCountryPanel", selectedCountryOpen ? 1 : 0);
+
+			bool charactersOpen = _countryInfo != null && _countryInfo.IsCharactersOpen;
+			bool actionsOpen = _countryInfo != null && _countryInfo.IsActionsOpen;
+			_presentationTriggers.Set("uiOpened:characterList", charactersOpen ? 1 : 0);
+			_presentationTriggers.Set("uiOpened:actionsPanel", actionsOpen ? 1 : 0);
+
+			bool goalsOpen = _goalsWindow != null && _goalsWindow.IsVisible;
+			_presentationTriggers.Set("uiOpened:goalsWindow", goalsOpen ? 1 : 0);
+
+			bool cardDrawShowing = (_cardDrawAnimator != null && _cardDrawAnimator.IsPlaying)
+				|| (_cardDrawOverlay != null && _cardDrawOverlay.style.display == DisplayStyle.Flex);
+			bool orgInfoOpen = _orgInfoDocument != null && _orgInfoDocument.IsVisible;
+			bool leaderboardOpen = _leaderboardWindow != null && _leaderboardWindow.IsVisible;
+			bool warProgressOpen = _warProgressWindow != null && _warProgressWindow.IsVisible;
+			bool gameMenuOpen = _gameMenu != null && _gameMenu.IsVisible;
+			bool provinceOpen = _state.MapLens.Lens == MapLens.Province
+				&& _state.SelectedProvince != null
+				&& _state.SelectedProvince.IsValid;
+			bool modalLocked = _modalState != null && _modalState.IsLocked();
+
+			bool chromeClear = !selectedCountryOpen
+				&& !charactersOpen
+				&& !actionsOpen
+				&& !goalsOpen
+				&& !cardDrawShowing
+				&& !orgInfoOpen
+				&& !leaderboardOpen
+				&& !warProgressOpen
+				&& !gameMenuOpen
+				&& !provinceOpen
+				&& !modalLocked;
+			_presentationTriggers.Set("uiElementShown:none", chromeClear ? 1 : 0);
+
+			bool militaryAdvisorTooltip = _tooltip != null
+				&& _tooltip.HasVisibleTooltipWithIdPrefix("role-military_advisor-");
+			_presentationTriggers.Set(
+				"tooltipShown:militaryAdvisorTooltip",
+				militaryAdvisorTooltip ? 1 : 0);
+		}
+
+		VisualElement ResolveHighlightTarget(string targetId) {
+			if (string.IsNullOrEmpty(targetId) || _root == null) {
+				return null;
+			}
+			switch (targetId) {
+				case "player_org_panel":
+					return _root.Q(className: "player-country-panel") ?? _root.Q("player-country");
+				case "time_panel":
+					return _root.Q("time-panel");
+				case "characters_button":
+					return _root.Q("chars-toggle-btn");
+				case "military_advisor_card":
+					return _countryInfo?.CharactersView?.FindCardByRole("military_advisor");
+				case "actions_button":
+					return _root.Q("actions-toggle-btn");
+				case "action_deck":
+					return _countryInfo?.ActionsView?.DeckPileElement
+						?? _root.Q(className: "action-deck-wrapper");
+				case "goals_button":
+					return _btnGoals ?? _root.Q("btn-goals");
+				default:
+					return null;
 			}
 		}
 
@@ -1032,12 +1126,38 @@ namespace GS.Unity.UI {
 			_loc.SetLocale(_state.Locale.Locale);
 			_tooltip?.HideAll();
 			_warIconsView?.Refresh(_state.WarIcons);
+			_playerTasksView?.Refresh(_state.ActiveTasks);
+			_tutorialHighlightView?.Refresh(_state.ActiveTasks);
 			RefreshLeaderboardButtonText();
 			RefreshGoalsButtonText();
 			RefreshCountryViews();
 			_cardDrawAnimator?.RefreshPendingOfferPresentation();
 			RefreshProvinceInfoView();
 			_timeView.Refresh(_state.Time);
+		}
+
+		void HandleActiveTasksChanged(object sender, PropertyChangedEventArgs e) {
+			_playerTasksView?.Refresh(_state.ActiveTasks);
+			_tutorialHighlightView?.Refresh(_state.ActiveTasks);
+		}
+
+		void HandleLastFrameEffectsChanged(object sender, PropertyChangedEventArgs e) {
+			if (_state == null || _state.LastFrameEffects.Effects.Count == 0) { return; }
+			if (_cardPlayAnimator != null && _cardPlayAnimator.IsPlaying) { return; }
+			if (!_state.PlayerOrganization.IsValid) { return; }
+
+			string playerOrgId = _state.PlayerOrganization.OrgId;
+			foreach (var effect in _state.LastFrameEffects.Effects) {
+				if (effect.OwnerId != playerOrgId) { continue; }
+				if (effect.ResourceId != ResourceDefinitions.Gold) { continue; }
+				AnimatableDouble goldAnimatable = null;
+				foreach (var res in _state.PlayerOrganization.Resources.Resources) {
+					if (res.ResourceId == ResourceDefinitions.Gold) { goldAnimatable = res.Value; break; }
+				}
+				if (goldAnimatable == null) { continue; }
+				var barrier = goldAnimatable.Hold(-effect.Amount);
+				barrier.Release(3.0f);
+			}
 		}
 
 		void HandlePlayerResourcesChanged(object sender, PropertyChangedEventArgs e) {
