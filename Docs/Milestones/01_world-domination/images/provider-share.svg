@@ -1,0 +1,15 @@
+<svg width="900" height="180" viewBox="0 0 900 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tool usage by provider: Claude 74.8 percent, Cursor 22.5 percent, Codex 2.7 percent.">
+  <rect width="900" height="180" fill="#1c2028"/>
+  <text x="20" y="34" font-size="19" font-weight="700" fill="#f1f3f6" font-family="Arial, sans-serif">Tool usage by provider</text>
+
+  <rect x="20" y="55" width="628" height="36" fill="#4c8dff"/>
+  <rect x="648" y="55" width="189" height="36" fill="#ffffff"/>
+  <rect x="837" y="55" width="23" height="36" fill="#5b6472"/>
+
+  <rect x="20" y="120" width="14" height="14" fill="#4c8dff"/>
+  <text x="40" y="132" font-size="14" fill="#e3e6ea" font-family="Arial, sans-serif">Claude — 74.8%</text>
+  <rect x="230" y="120" width="14" height="14" fill="#ffffff"/>
+  <text x="250" y="132" font-size="14" fill="#e3e6ea" font-family="Arial, sans-serif">Cursor — 22.5%</text>
+  <rect x="440" y="120" width="14" height="14" fill="#5b6472"/>
+  <text x="460" y="132" font-size="14" fill="#e3e6ea" font-family="Arial, sans-serif">Codex — 2.7%</text>
+</svg>

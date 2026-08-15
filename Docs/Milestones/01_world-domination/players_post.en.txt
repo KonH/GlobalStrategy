@@ -1,0 +1,7 @@
+Hidden Council is now playable for the first time!
+
+Pick a secret organization — the Masons, the Illuminati, or the Black Hand — and fight for control of the 1880 world across 26 playable countries. Play action cards to seize territory, sway rivals, declare war, and force your enemies into submission. The goal: dominate the 19th-century world and forge a new order under your organization's hand.
+
+This is our first playable milestone: a working prototype, not a finished game. Expect rough edges — some issues are known and out of scope for now. More features, balance, and stability are coming in future milestones.
+
+Our long-term goal: a full secret-society 4X strategy game built around deep, expressive card mechanics. Play it, tell us what you think, and stay tuned — we're just getting started.

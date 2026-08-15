@@ -1,0 +1,67 @@
+<svg width="1200" height="850" viewBox="0 0 1200 850" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GlobalStrategy layered architecture: ECS.Core underlies a Foundation layer of shared data and config projects, which underlies Game.Systems, which underlies Game.Main, the orchestrator. Four independent entry points, Game.Bots, Game.ConsoleRunner, Game.WebClient, and Game.Benchmarks/Evals, plus the Unity Player/Editor, all depend on Game.Main. Unity specifically consumes it as a compiled DLL under Assets/Plugins/Core/.">
+  <rect width="1200" height="850" fill="#1c2028"/>
+  <defs>
+    <marker id="arrowB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8b93a3"/>
+    </marker>
+    <marker id="arrowA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4c8dff"/>
+    </marker>
+  </defs>
+
+  <rect x="462" y="28" width="280" height="70" rx="8" fill="#ffffff" stroke="#d0d5dd" stroke-width="1.5"/>
+  <text x="602" y="59" text-anchor="middle" font-size="20" font-weight="700" fill="#1a2233" font-family="Arial, sans-serif">ECS.Core</text>
+  <text x="602" y="81" text-anchor="middle" font-size="14" fill="#5b6472" font-family="Arial, sans-serif">+ SourceGenerators, Extensions</text>
+
+  <line x1="602" y1="154" x2="602" y2="101" stroke="#8b93a3" stroke-width="2" marker-end="url(#arrowB)"/>
+
+  <rect x="182" y="154" width="840" height="84" rx="8" fill="#ffffff" stroke="#d0d5dd" stroke-width="1.5"/>
+  <text x="602" y="179" text-anchor="middle" font-size="18" font-weight="700" fill="#1a2233" font-family="Arial, sans-serif">Foundation</text>
+  <text x="602" y="203" text-anchor="middle" font-size="15" fill="#5b6472" font-family="Arial, sans-serif">Game.Common · Game.Components · Game.Commands</text>
+  <text x="602" y="224" text-anchor="middle" font-size="15" fill="#5b6472" font-family="Arial, sans-serif">Game.Configs · Core.Map · Core.Configs</text>
+
+  <line x1="602" y1="294" x2="602" y2="241" stroke="#8b93a3" stroke-width="2" marker-end="url(#arrowB)"/>
+
+  <rect x="462" y="294" width="280" height="70" rx="8" fill="#ffffff" stroke="#d0d5dd" stroke-width="1.5"/>
+  <text x="602" y="325" text-anchor="middle" font-size="20" font-weight="700" fill="#1a2233" font-family="Arial, sans-serif">Game.Systems</text>
+  <text x="602" y="347" text-anchor="middle" font-size="14" fill="#5b6472" font-family="Arial, sans-serif">war · cards · resources · scoring</text>
+
+  <line x1="602" y1="420" x2="602" y2="367" stroke="#8b93a3" stroke-width="2" marker-end="url(#arrowB)"/>
+
+  <rect x="462" y="420" width="280" height="70" rx="8" fill="#ffffff" stroke="#d0d5dd" stroke-width="1.5"/>
+  <text x="602" y="451" text-anchor="middle" font-size="20" font-weight="700" fill="#1a2233" font-family="Arial, sans-serif">Game.Main</text>
+  <text x="602" y="473" text-anchor="middle" font-size="14" fill="#5b6472" font-family="Arial, sans-serif">orchestrator + VisualState</text>
+
+  <line x1="602" y1="518" x2="602" y2="493" stroke="#8b93a3" stroke-width="2" marker-end="url(#arrowB)"/>
+  <line x1="38" y1="518" x2="1165" y2="518" stroke="#8b93a3" stroke-width="2"/>
+
+  <line x1="171" y1="546" x2="171" y2="518" stroke="#8b93a3" stroke-width="2"/>
+  <rect x="38" y="546" width="266" height="84" rx="8" fill="#ffffff" stroke="#d0d5dd" stroke-width="1.5"/>
+  <text x="171" y="581" text-anchor="middle" font-size="16" font-weight="700" fill="#1a2233" font-family="Arial, sans-serif">Game.Bots</text>
+  <text x="171" y="603" text-anchor="middle" font-size="13" fill="#5b6472" font-family="Arial, sans-serif">AI opponents</text>
+
+  <line x1="458" y1="546" x2="458" y2="518" stroke="#8b93a3" stroke-width="2"/>
+  <rect x="325" y="546" width="266" height="84" rx="8" fill="#ffffff" stroke="#d0d5dd" stroke-width="1.5"/>
+  <text x="458" y="581" text-anchor="middle" font-size="16" font-weight="700" fill="#1a2233" font-family="Arial, sans-serif">Game.ConsoleRunner</text>
+  <text x="458" y="603" text-anchor="middle" font-size="13" fill="#5b6472" font-family="Arial, sans-serif">CLI + ECS Viewer</text>
+
+  <line x1="745" y1="546" x2="745" y2="518" stroke="#8b93a3" stroke-width="2"/>
+  <rect x="612" y="546" width="266" height="84" rx="8" fill="#ffffff" stroke="#d0d5dd" stroke-width="1.5"/>
+  <text x="745" y="581" text-anchor="middle" font-size="16" font-weight="700" fill="#1a2233" font-family="Arial, sans-serif">Game.WebClient</text>
+  <text x="745" y="603" text-anchor="middle" font-size="13" fill="#5b6472" font-family="Arial, sans-serif">Blazor debug terminal</text>
+
+  <line x1="1032" y1="546" x2="1032" y2="518" stroke="#8b93a3" stroke-width="2"/>
+  <rect x="899" y="546" width="266" height="84" rx="8" fill="#ffffff" stroke="#d0d5dd" stroke-width="1.5"/>
+  <text x="1032" y="581" text-anchor="middle" font-size="16" font-weight="700" fill="#1a2233" font-family="Arial, sans-serif">Game.Benchmarks / Evals</text>
+  <text x="1032" y="603" text-anchor="middle" font-size="13" fill="#5b6472" font-family="Arial, sans-serif">perf + bot eval harness</text>
+
+  <line x1="602" y1="655" x2="602" y2="521" stroke="#8b93a3" stroke-width="2"/>
+  <line x1="602" y1="700" x2="602" y2="655" stroke="#4c8dff" stroke-width="3" marker-end="url(#arrowA)"/>
+  <text x="624" y="680" font-size="15" fill="#7fb0ff" font-family="Arial, sans-serif">Assets/Plugins/Core/ (built DLL)</text>
+
+  <rect x="182" y="700" width="840" height="126" rx="8" fill="#e8f0ff" stroke="#4c8dff" stroke-width="2"/>
+  <text x="602" y="734" text-anchor="middle" font-size="20" font-weight="700" fill="#1a2233" font-family="Arial, sans-serif">Unity Player / Editor</text>
+  <text x="602" y="759" text-anchor="middle" font-size="15" fill="#43516b" font-family="Arial, sans-serif">VContainer DI (GameLifetimeScope)</text>
+  <text x="602" y="780" text-anchor="middle" font-size="15" fill="#43516b" font-family="Arial, sans-serif">UI Toolkit HUD · Map rendering</text>
+  <text x="602" y="808" text-anchor="middle" font-size="13" fill="#43516b" font-family="Arial, sans-serif">Unity never owns game state</text>
+</svg>

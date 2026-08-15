@@ -1,0 +1,20 @@
+# Milestone Close-Out Checklist — 1. World Domination
+
+- [x] 1. Generate report (summary.md, stats_code.md, stats_dev.md)
+- [x] 2. Present report to user
+- [x] 3. Decide: continue to close-out now, or stop after the report
+- [x] 4. Review commit history in range
+- [x] 5. Propose release-note bullets; get user's list
+- [x] 6. Write ## Release Notes into summary.md
+- [x] 7. Propose tech_post.md themes; get user's choice
+- [x] 8. Propose players_post themes; get user's choice
+- [x] 9. Draft tech_post.md, players_post.en.txt / players_post.ru.txt, and the README Milestones/Game-features updates
+- [x] 10. Get user approval on all drafts (tech post, player posts, README updates)
+- [ ] 11. Commit milestone docs + README (this repo) + publish tech_post.md to the site
+- [ ] 12. Checkpoint: confirm release plan
+- [ ] 13. Cut the GitHub release + releases/<version> branch
+- [ ] 14. Ask for next milestone's name
+- [ ] 15. Checkpoint: confirm version transition
+- [ ] 16. Bump version, commit
+- [ ] 17. Checkpoint: confirm merged-branch cleanup list, then delete
+- [ ] 18. Report final summary

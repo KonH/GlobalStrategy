@@ -1,0 +1,20 @@
+<svg width="900" height="350" viewBox="0 0 900 350" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Code base lines of code, log scale: .cs 71,667 lines, .py 8,729, .ps1 266, .sh 151.">
+  <rect width="900" height="350" fill="#1c2028"/>
+  <text x="20" y="34" font-size="19" font-weight="700" fill="#f1f3f6" font-family="Arial, sans-serif">Code base LoC (log scale)</text>
+
+  <text x="140" y="94" text-anchor="end" font-size="15" fill="#c3c9d3" font-family="Arial, sans-serif">.cs</text>
+  <rect x="150" y="70" width="571" height="36" fill="#4c8dff"/>
+  <text x="731" y="94" font-size="15" fill="#9aa5b1" font-family="Arial, sans-serif">71,667</text>
+
+  <text x="140" y="166" text-anchor="end" font-size="15" fill="#c3c9d3" font-family="Arial, sans-serif">.py</text>
+  <rect x="150" y="142" width="388" height="36" fill="#ffffff"/>
+  <text x="548" y="166" font-size="15" fill="#9aa5b1" font-family="Arial, sans-serif">8,729</text>
+
+  <text x="140" y="238" text-anchor="end" font-size="15" fill="#c3c9d3" font-family="Arial, sans-serif">.ps1</text>
+  <rect x="150" y="214" width="85" height="36" fill="#ffffff"/>
+  <text x="245" y="238" font-size="15" fill="#9aa5b1" font-family="Arial, sans-serif">266</text>
+
+  <text x="140" y="310" text-anchor="end" font-size="15" fill="#c3c9d3" font-family="Arial, sans-serif">.sh</text>
+  <rect x="150" y="286" width="36" height="36" fill="#ffffff"/>
+  <text x="196" y="310" font-size="15" fill="#9aa5b1" font-family="Arial, sans-serif">151</text>
+</svg>

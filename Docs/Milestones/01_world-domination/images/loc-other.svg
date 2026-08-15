@@ -1,0 +1,16 @@
+<svg width="900" height="290" viewBox="0 0 900 290" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Other lines of code, log scale: Configs .json 438,652 lines, Specs and Docs .md 41,484, Unity .asset, .unity, and .prefab combined 37,405.">
+  <rect width="900" height="290" fill="#1c2028"/>
+  <text x="20" y="34" font-size="19" font-weight="700" fill="#f1f3f6" font-family="Arial, sans-serif">Other LoC (log scale)</text>
+
+  <text x="240" y="94" text-anchor="end" font-size="15" fill="#c3c9d3" font-family="Arial, sans-serif">Configs (.json)</text>
+  <rect x="250" y="70" width="580" height="36" fill="#4c8dff"/>
+  <text x="838" y="94" font-size="15" fill="#9aa5b1" font-family="Arial, sans-serif">438,652</text>
+
+  <text x="240" y="166" text-anchor="end" font-size="15" fill="#c3c9d3" font-family="Arial, sans-serif">Specs/Docs (.md)</text>
+  <rect x="250" y="142" width="218" height="36" fill="#ffffff"/>
+  <text x="476" y="166" font-size="15" fill="#9aa5b1" font-family="Arial, sans-serif">41,484</text>
+
+  <text x="240" y="238" text-anchor="end" font-size="15" fill="#c3c9d3" font-family="Arial, sans-serif">Unity (.asset/.unity/.prefab)</text>
+  <rect x="250" y="214" width="202" height="36" fill="#ffffff"/>
+  <text x="460" y="238" font-size="15" fill="#9aa5b1" font-family="Arial, sans-serif">37,405</text>
+</svg>

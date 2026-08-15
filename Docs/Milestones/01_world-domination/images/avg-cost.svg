@@ -1,0 +1,19 @@
+<svg width="700" height="290" viewBox="0 0 700 290" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Average cost per pipeline stage, estimated: dataset covers 24 percent of specs. Spec 4 dollars 69 cents, plan 4 dollars 34 cents, implement 12 dollars 75 cents.">
+  <rect width="700" height="290" fill="#1c2028"/>
+  <text x="0" y="30" font-size="19" font-weight="700" fill="#f1f3f6" font-family="Arial, sans-serif">Avg cost per stage</text>
+  <text x="0" y="52" font-size="13" fill="#9aa5b1" font-family="Arial, sans-serif">(estimated: dataset covers 24% of specs)</text>
+
+  <line x1="40" y1="240" x2="660" y2="240" stroke="#4b5563" stroke-width="1.5"/>
+
+  <rect x="140" y="177" width="100" height="63" fill="#ffffff"/>
+  <text x="190" y="167" text-anchor="middle" font-size="15" fill="#e3e6ea" font-family="Arial, sans-serif">$4.69</text>
+  <text x="190" y="262" text-anchor="middle" font-size="14" fill="#9aa5b1" font-family="Arial, sans-serif">spec</text>
+
+  <rect x="320" y="182" width="100" height="58" fill="#ffffff"/>
+  <text x="370" y="172" text-anchor="middle" font-size="15" fill="#e3e6ea" font-family="Arial, sans-serif">$4.34</text>
+  <text x="370" y="262" text-anchor="middle" font-size="14" fill="#9aa5b1" font-family="Arial, sans-serif">plan</text>
+
+  <rect x="500" y="70" width="100" height="170" fill="#4c8dff"/>
+  <text x="550" y="60" text-anchor="middle" font-size="15" fill="#e3e6ea" font-family="Arial, sans-serif">$12.75</text>
+  <text x="550" y="262" text-anchor="middle" font-size="14" fill="#9aa5b1" font-family="Arial, sans-serif">implement</text>
+</svg>

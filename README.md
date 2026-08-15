@@ -16,11 +16,11 @@ This repository is both a game and a case study in **structured AI-driven softwa
 
 ## The Game (briefly)
 
-- **Secret organization gameplay** — pick an organization (not a country), operate from its HQ nation, and expand control over the world map against rival organizations.
+- **Secret organization gameplay** — pick one of three organizations (Masons, Illuminati, or the Black Hand), operate from its HQ nation, and expand control across 26 playable countries against rival organizations.
 - **Historical 1880 map** — 160+ countries reconstructed from historical GeoJSON, subdivided into provinces with mutable runtime ownership; four map lenses (Political, Organization, Geographic, Province).
-- **Card-driven actions** — per-country action card hands with costs, success rolls, cooldowns, and a draw/discard deck system; discover countries, gain control, sway characters' opinions, sell arms, issue ultimatums.
-- **Diplomacy and war** — build friendships or rivalries between countries, declare and prosecute wars with damage/durability combat, resolve peace, and pursue revenge.
-- **Characters & opinion** — each country has AI-generated character portraits (rulers, generals, diplomats) whose opinion of your organization you can influence.
+- **Card-driven actions** — per-country action card hands with costs, success rolls, cooldowns, and a draw/discard deck system; gain control, sway characters' opinions, sell arms, declare war.
+- **War and rivalries** — build and break rivalries between countries, declare and prosecute wars with damage/durability combat, resolve peace, and pursue revenge.
+- **Characters & opinion** — each country has AI-generated character portraits (generals, diplomats, advisors) whose opinion of your organization you can influence.
 - **Rival AI organizations** — other organizations run on their own bot AI, competing for control, declaring wars, and playing the same card economy you do.
 - **Scoring, goals & leaderboards** — country/org scoring feeds a live leaderboard and a goals/tasks system, with an end-game comparison against your rivals.
 - **Living simulation** — game time with speed controls, monthly income, resource effects, an in-game tutorial, autosaves, full save/load; localized in English and Russian.
@@ -37,6 +37,18 @@ This repository is both a game and a case study in **structured AI-driven softwa
 | Tooling | .NET 8 console runner, web-based live ECS state viewer, Python geo/asset pipelines |
 
 Architecture is enforced by a written [Constitution](Docs/Constitution.md) — ECS-only game logic, MonoBehaviours as presentation glue only, UI Toolkit only, DI-only wiring — and every plan is checked against it before implementation starts.
+
+## Milestones
+
+### 1. World Domination — 2026-08-15
+
+- Playable core loop across 26 countries — pick the Masons, Illuminati, or Black Hand and compete through action cards for control, diplomacy, and war.
+- Complete war system: declare war, fight multi-stage battles, negotiate peace.
+- Rivalries — build and break rival relationships with dedicated cards.
+- AI bot opponents that play the full game via a dedicated bot API and eval harness.
+- Goals & win conditions — live progress tracking, end-game comparison scores, and a leaderboard.
+- Guided tutorial for new players.
+- Full English + Russian localization; playable in-browser via WebGL.
 
 ---
 
