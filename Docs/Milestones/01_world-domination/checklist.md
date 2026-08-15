@@ -10,7 +10,7 @@
 - [x] 8. Propose players_post themes; get user's choice
 - [x] 9. Draft tech_post.md, players_post.en.txt / players_post.ru.txt, and the README Milestones/Game-features updates
 - [x] 10. Get user approval on all drafts (tech post, player posts, README updates)
-- [ ] 11. Commit milestone docs + README (this repo) + publish tech_post.md to the site
+- [x] 11. Commit milestone docs + README (this repo) + publish tech_post.md to the site — commits made, both left unpushed; site build/deploy not yet run (see note)
 - [ ] 12. Checkpoint: confirm release plan
 - [ ] 13. Cut the GitHub release + releases/<version> branch
 - [ ] 14. Ask for next milestone's name

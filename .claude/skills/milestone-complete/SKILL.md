@@ -160,6 +160,11 @@ generated file by hand.
    (e.g. "lead with the headline feature", "narrative/flavor framing", "plain
    patch-notes list") and ask which to run with — one theme choice covers both
    locales. Keep this pass light — it's a ≤1024-character post, not a spec.
+   Bias toward *short*: an early milestone reads better calling itself an
+   "iteration" in exploratory/research-prototype mode than dressing it up as a
+   "working prototype" — honest framing over polish. Once `tech_post.md`'s URL
+   is known (step 10), close the player post with both the play-demo link and
+   the blog-post link inline in the text itself, not just in this repo's README.
 9. **Draft all three documents, plus the README player-facing updates,** once themes
    are chosen. Save the milestone documents into `Docs/Milestones/<major>_<slug>/`
    (padded `<major>`, per step 0):
@@ -174,16 +179,36 @@ generated file by hand.
        milestone highlights.
      - **Diagrams**: the site's blog renderer (`marked` → `v-html`, see
        `generateBlog.ts`/`BlogPostView.vue`) has no Mermaid support — a ```mermaid
-       fence would render as inert text, not a picture. If a diagram earns its place,
-       author it as **inline `<svg>...</svg>` markup directly in the Markdown body**
-       (raw HTML blocks pass through `marked` untouched and `v-html` renders them).
-       Load the `artifact-diagramming` skill for diagram-composition know-how (what
-       makes a diagram worth including, how to keep it legible), but ignore its
-       Artifact-specific CSS token names — style the SVG with *this site's* tokens
-       instead, matched from `BlogPostView.vue`'s scoped styles: `var(--text)`,
-       `var(--text-muted)`, `var(--accent)`, `var(--border)`, `var(--bg-surface)`,
-       `var(--bg-elevated)`. Keep it simple (boxes/arrows/a timeline bar) — this is a
-       blog post, not a spec diagram.
+       fence would render as inert text, not a picture. If a diagram or chart earns
+       its place, author it as a **standalone `.svg` file** under
+       `Docs/Milestones/<major>_<slug>/images/` — not inline in the Markdown body.
+       Inline `<svg>` scales unpredictably against its surrounding container (it can
+       render 2x+ too large if the diagram's own `viewBox` is narrower than the post
+       column) and platforms like LinkedIn don't render embedded/inline SVG in link
+       previews. Use a **fixed, self-contained palette** (a dark canvas with white
+       blocks and one accent color reads well) rather than the site's `var(--*)` CSS
+       tokens, since the file now stands alone outside the page's theme. Reference it
+       from the post as `<img src="images/<name>.svg" style="max-width:100%;
+       height:auto;display:block;margin:0 auto;" alt="...">`, wrapped in
+       `<figure>`/`<figcaption>` where a caption helps — with a blank line before and
+       after each `<figure>` block (blank lines *inside* it can break `marked`'s raw-
+       HTML-block parsing). Load the `artifact-diagramming` skill for
+       diagram-composition know-how (what makes a diagram worth including, how to
+       keep it legible) — its CSS-token guidance doesn't apply here. Also export a
+       `.png` backup at 2x density for platforms with poor SVG support, keeping the
+       `.svg` as the editable source (see the rasterizing note just below). Sync both
+       the `.svg` and `.png` into the site repo's `public/img/blog/<slug>/` and
+       rewrite the post's `images/` paths to `/img/blog/<slug>/` when copying it over
+       (a `sed` substitution on the copy is enough).
+     - **Rasterizing SVG → PNG**: don't reach for browser screenshot/zoom automation
+       for this — its viewport and region-coordinate behavior was unreliable across
+       calls in practice (silent cropping, inconsistent scale, occasional blur from a
+       viewport/content size mismatch). What works reliably: temporarily
+       `npm install sharp --no-save` in the site repo, rasterize with a short one-off
+       Node script (`sharp(svgPath, {density: 192}).resize({width: w*2}).png()
+       .toFile(out)` — 192 is 2x the 96dpi baseline), then `npm uninstall sharp`.
+       `git status -- package.json package-lock.json` should show nothing after —
+       confirm that before moving on.
    - **`players_post.en.txt` and `players_post.ru.txt`** — plain text (no title/tags
      header — this isn't going into the site's blog pipeline), gameplay/feature
      framing per the chosen theme, light on tech detail. **Hard limit: 1024
@@ -361,3 +386,18 @@ generated file by hand.
 - `## The Game (briefly)` is a living summary, not a per-milestone log — it should
   always read as an accurate snapshot of the game *today*, so update/replace its
   bullets in place rather than appending to them.
+- The site's `BlogPostView.vue` already has a built-in image lightbox (a
+  hover-visible expand button on every post image opens a fullscreen, blurred-
+  backdrop view; closes via the × button, the backdrop, or the image itself) and
+  bordered/centered table styling. New posts get both automatically — no need to
+  reimplement either.
+- `generateBlog.ts`'s excerpt generator strips markdown image/link syntax and raw
+  HTML tags (fixed after a post that opened with a bare `<img>` leaked its literal
+  tag text into the blog-list excerpt) — safe to open a post with an image again.
+- This repo's own automation (or another concurrent session) can commit to the
+  *same* working tree while a close-out is in progress, in either repo. Before
+  committing anything in step 11 or 16, run `git status` and check for unrelated
+  staged/unstaged changes that aren't yours; stage by explicit pathspec (`git add
+  <specific paths>`, verified with `git diff --stat` before committing) rather
+  than `git add -A`/`git commit -a`, so unrelated concurrent work doesn't get
+  swept into the milestone commit.
