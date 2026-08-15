@@ -11,10 +11,10 @@
 - [x] 9. Draft tech_post.md, players_post.en.txt / players_post.ru.txt, and the README Milestones/Game-features updates
 - [x] 10. Get user approval on all drafts (tech post, player posts, README updates)
 - [x] 11. Commit milestone docs + README (this repo) + publish tech_post.md to the site — commits made, both left unpushed; site build/deploy left to the user to run manually later (their choice on resume)
-- [ ] 12. Checkpoint: confirm release plan
-- [ ] 13. Cut the GitHub release + releases/<version> branch
-- [ ] 14. Ask for next milestone's name
-- [ ] 15. Checkpoint: confirm version transition
-- [ ] 16. Bump version, commit
-- [ ] 17. Checkpoint: confirm merged-branch cleanup list, then delete
-- [ ] 18. Report final summary
+- [x] 12. Checkpoint: confirm release plan
+- [x] 13. Cut the GitHub release + releases/<version> branch — https://github.com/KonH/GlobalStrategy/releases/tag/v1.219
+- [x] 14. Ask for next milestone's name — "Secrets"
+- [x] 15. Checkpoint: confirm version transition
+- [x] 16. Bump version, commit — 8874a8d5, unpushed
+- [x] 17. Checkpoint: confirm merged-branch cleanup list, then delete — 40 local + 76 remote deleted, none failed
+- [x] 18. Report final summary
