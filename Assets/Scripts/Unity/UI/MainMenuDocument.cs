@@ -9,7 +9,7 @@ using VContainer;
 namespace GS.Unity.UI {
 	[RequireComponent(typeof(UIDocument))]
 	public class MainMenuDocument : MonoBehaviour {
-		const string AboutUrl = "https://github.com/KonH/GlobalStrategy/";
+		const string AboutUrl = "https://konh.github.io/hidden-council/";
 
 		[SerializeField] string _versionName;
 
