@@ -78,7 +78,16 @@ namespace GS.Unity.UI {
 			// UsedControl forever, permanently offsetting its Display value.
 			if (!_isPlaying) { return; }
 
-			_barrierHolder = new CardPlayBarriersHolder();
+			// Reuse the in-flight holder across multiple fires instead of replacing it: this handler
+			// re-runs on *any* LastFrameEffects change while a card is playing, including ones wholly
+			// unrelated to the player's own card (e.g. a bot's card resolving in the same window).
+			// Unconditionally assigning a fresh CardPlayBarriersHolder here discarded the reference to
+			// any barrier already added for the player's own card, orphaning it on the underlying
+			// AnimatableDouble/AnimatableInt forever — no code path is left to Animate/CancelAll it,
+			// so its offset never decays and the HUD counter sticks at the stale, pre-change value.
+			if (_barrierHolder == null) {
+				_barrierHolder = new CardPlayBarriersHolder();
+			}
 			_lastActionSuccess = true;
 
 			foreach (var effect in _state.LastFrameEffects.Effects) {

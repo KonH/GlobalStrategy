@@ -56,7 +56,7 @@ namespace GS.Main {
 				&& a.RoleId == b.RoleId
 				&& NamePartKeysEquals(a.NamePartKeys, b.NamePartKeys)
 				&& ListEquals(a.Skills, b.Skills, SkillEntryEquals)
-				&& a.Opinion.Actual == b.Opinion.Actual;
+				&& a.OpinionSnapshot == b.OpinionSnapshot;
 		}
 
 		static bool NamePartKeysEquals(string[] a, string[] b) {
@@ -247,7 +247,7 @@ namespace GS.Main {
 
 		public static bool ResourceStateEntryEquals(ResourceStateEntry a, ResourceStateEntry b) {
 			return a.ResourceId == b.ResourceId
-				&& a.Value.Actual == b.Value.Actual
+				&& a.ActualSnapshot == b.ActualSnapshot
 				&& ListEquals(a.Effects, b.Effects, EffectStateEntryEquals);
 		}
 

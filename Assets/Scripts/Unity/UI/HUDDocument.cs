@@ -93,6 +93,11 @@ namespace GS.Unity.UI {
 		readonly List<string> _relationDropdownCountryIds = new();
 		DebugCardAvailabilityView _myOrgCardDebug;
 		DebugCardAvailabilityView _selectedOrgCardDebug;
+		// Show the raw (un-animated) Actual value alongside the debug hand/deck lists so it
+		// can be compared against the animated HUD counter to catch it getting stuck on a
+		// stale, animation-barrier-held value (see StateEquality.ResourceStateEntryEquals).
+		Label _myOrgRawGoldLabel;
+		Label _selectedOrgRawGoldLabel;
 		UIPointerState _pointerState;
 		CountryActionsVisibility _countryActionsVisibility;
 		DebugOrgCardVisibility _debugOrgCardVisibility;
@@ -365,6 +370,8 @@ namespace GS.Unity.UI {
 				root.Q("selected-org-hand"),
 				_loc,
 				_actionConfig);
+			_myOrgRawGoldLabel = root.Q<Label>("my-org-raw-gold");
+			_selectedOrgRawGoldLabel = root.Q<Label>("selected-org-raw-gold");
 
 			int availableCountryCount = _countryConfig != null ? CountAvailableCountries(_countryConfig) : 0;
 			var (_, _, winConditionRows) = WinConditionHintProjector.Build(_gameSettings?.CompletionCondition, availableCountryCount);
@@ -845,6 +852,14 @@ namespace GS.Unity.UI {
 			var availability = _state.MyOrgCardAvailability;
 			_myOrgCardDebug.RefreshDeck(availability.Deck);
 			_myOrgCardDebug.RefreshHand(availability.Hand, GetPlayerGold());
+			if (_myOrgRawGoldLabel != null) {
+				double display = GetPlayerGold();
+				double raw = GetPlayerGoldRaw();
+				_myOrgRawGoldLabel.text = $"Raw gold: {raw:0.##}";
+				if (System.Math.Abs(display - raw) > 0.01) {
+					Debug.Log($"[GOLD-DEBUG] HUD/raw gold MISMATCH: display={display:0.##} raw={raw:0.##} diff={display - raw:0.##}");
+				}
+			}
 		}
 
 		void RefreshSelectedOrgCardAvailability() {
@@ -854,6 +869,9 @@ namespace GS.Unity.UI {
 			var availability = _state.SelectedOrgCardAvailability;
 			_selectedOrgCardDebug.RefreshDeck(availability.Deck);
 			_selectedOrgCardDebug.RefreshHand(availability.Hand, GetOrgLensGold());
+			if (_selectedOrgRawGoldLabel != null) {
+				_selectedOrgRawGoldLabel.text = $"Raw gold: {GetOrgLensGoldRaw():0.##}";
+			}
 		}
 
 		double GetOrgLensGold() {
@@ -863,6 +881,20 @@ namespace GS.Unity.UI {
 			foreach (var resource in _state.OrgLensOrganizationResources.Resources) {
 				if (resource.ResourceId == "gold") {
 					return resource.Value.Display;
+				}
+			}
+			return 0;
+		}
+
+		// Actual (not Display): bypasses animation barriers, for comparing against the animated
+		// HUD counter in the debug menu.
+		double GetOrgLensGoldRaw() {
+			if (_state?.OrgLensOrganizationResources?.Resources == null) {
+				return 0;
+			}
+			foreach (var resource in _state.OrgLensOrganizationResources.Resources) {
+				if (resource.ResourceId == "gold") {
+					return resource.Value.Actual;
 				}
 			}
 			return 0;
@@ -906,6 +938,20 @@ namespace GS.Unity.UI {
 			foreach (var resource in _state.PlayerOrganization.Resources.Resources) {
 				if (resource.ResourceId == "gold") {
 					return resource.Value.Display;
+				}
+			}
+			return 0;
+		}
+
+		// Actual (not Display): bypasses animation barriers, for comparing against the animated
+		// HUD counter in the debug menu.
+		double GetPlayerGoldRaw() {
+			if (_state?.PlayerOrganization?.Resources?.Resources == null) {
+				return 0;
+			}
+			foreach (var resource in _state.PlayerOrganization.Resources.Resources) {
+				if (resource.ResourceId == "gold") {
+					return resource.Value.Actual;
 				}
 			}
 			return 0;
@@ -1151,6 +1197,7 @@ namespace GS.Unity.UI {
 			if (!_state.PlayerOrganization.IsValid) { return; }
 
 			string playerOrgId = _state.PlayerOrganization.OrgId;
+			bool createdBarrier = false;
 			foreach (var effect in _state.LastFrameEffects.Effects) {
 				if (effect.OwnerId != playerOrgId) { continue; }
 				if (effect.ResourceId != ResourceDefinitions.Gold) { continue; }
@@ -1161,6 +1208,21 @@ namespace GS.Unity.UI {
 				if (goldAnimatable == null) { continue; }
 				var barrier = goldAnimatable.Hold(-effect.Amount);
 				barrier.Release(3.0f);
+				createdBarrier = true;
+			}
+
+			// Unlike CardPlayAnimator's barriers (awaited, then force-refreshed via
+			// OnCardPlayComplete -> RefreshCountryViews), this barrier just decays on its own via
+			// AnimatableDouble.Tick. Nothing else re-reads Display once it settles back to Actual:
+			// CountryResourcesState only re-fires PropertyChanged when Actual itself changes again
+			// (see StateEquality.ResourceStateEntryEquals), not while a barrier's offset is merely
+			// shrinking. A source with several same-tick gold deductions (e.g. war-loss reparations
+			// split across multiple recipients in Wars.CollectGoldFromSide) can hold the counter at
+			// the pre-loss total indefinitely, well past the true, further-dropped Actual value —
+			// until something unrelated happens to trigger a refresh. Force one explicitly once the
+			// barrier has had time to fully decay.
+			if (createdBarrier && _root != null) {
+				_root.schedule.Execute(RefreshCountryViews).StartingIn(3100);
 			}
 		}
 

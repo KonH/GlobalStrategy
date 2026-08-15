@@ -167,12 +167,18 @@ namespace GS.Main {
 		public string[] NamePartKeys { get; }
 		public IReadOnlyList<SkillEntry> Skills { get; }
 		public AnimatableInt Opinion { get; }
+
+		// Frozen at construction time — see ResourceStateEntry.ActualSnapshot for why comparing
+		// Opinion.Actual directly (a cached AnimatableInt reused across ticks) can't detect change.
+		public int OpinionSnapshot { get; }
+
 		public CharacterStateEntry(string characterId, string roleId, string[] namePartKeys, IReadOnlyList<SkillEntry> skills, AnimatableInt opinion) {
 			CharacterId = characterId;
 			RoleId = roleId;
 			NamePartKeys = namePartKeys;
 			Skills = skills;
 			Opinion = opinion;
+			OpinionSnapshot = opinion.Actual;
 		}
 	}
 

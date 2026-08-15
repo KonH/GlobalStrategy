@@ -66,6 +66,7 @@
                 </ui:VisualElement>
                 <ui:Button name="btn-my-org-debug-menu" text="My org" class="gs-btn debug-panel-menu-toggle" />
                 <ui:VisualElement name="my-org-debug-menu" class="debug-panel-inner" style="display: none;">
+                    <ui:Label name="my-org-raw-gold" class="gs-label debug-panel-menu-title" />
                     <ui:VisualElement style="flex-direction: row;">
                         <ui:Button name="btn-gold-plus" text="+1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
                         <ui:Button name="btn-gold-minus" text="-1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
@@ -89,6 +90,7 @@
                 <ui:Button name="btn-selected-org-debug-menu" text="Selected org" class="gs-btn debug-panel-menu-toggle" />
                 <ui:VisualElement name="selected-org-debug-menu" class="debug-panel-inner" style="display: none;">
                     <ui:Label name="selected-org-debug-name" class="gs-label debug-panel-menu-title" />
+                    <ui:Label name="selected-org-raw-gold" class="gs-label debug-panel-menu-title" />
                     <ui:VisualElement style="flex-direction: row;">
                         <ui:Button name="btn-selected-org-gold-plus" text="+1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>
                         <ui:Button name="btn-selected-org-gold-minus" text="-1000 Gold" class="gs-btn gs-btn--small debug-panel-button"/>

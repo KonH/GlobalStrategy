@@ -53,10 +53,21 @@ namespace GS.Main {
 		public AnimatableDouble Value { get; }
 		public IReadOnlyList<EffectStateEntry> Effects { get; }
 
+		// Frozen at construction time, unlike Value.Actual: Value is a cached AnimatableDouble
+		// reused across ticks by VisualStateConverter (keyed by resource id), so a live read of
+		// Value.Actual from an older ResourceStateEntry already reflects whatever the *current*
+		// tick just set it to (both the old and new entry point at the same mutable object).
+		// Comparing that live field against itself in StateEquality.ResourceStateEntryEquals made
+		// the equality check a no-op for value changes after the first tick. This snapshot captures
+		// the actual value at the moment this specific entry was built, so old-vs-new comparisons
+		// see the true before/after values.
+		public double ActualSnapshot { get; }
+
 		public ResourceStateEntry(string resourceId, AnimatableDouble value, IReadOnlyList<EffectStateEntry> effects) {
 			ResourceId = resourceId;
 			Value = value;
 			Effects = effects;
+			ActualSnapshot = value.Actual;
 		}
 	}
 
