@@ -1,5 +1,5 @@
 {
-  "version": "2.1",
+  "version": "2.2",
   "startYear": 1880,
   "speedMultipliers": [1, 24, 720],
   "defaultLocale": "en",
@@ -60,7 +60,7 @@
   "completionCondition": {
     "type": "any",
     "members": [
-      { "type": "score_goal", "value": 50000 },
+      { "type": "score_goal", "value": 25000 },
       { "type": "last_org_standing", "value": 0 }
     ]
   },

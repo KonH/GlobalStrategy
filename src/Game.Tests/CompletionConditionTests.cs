@@ -356,7 +356,7 @@ namespace GS.Game.Tests {
 			Assert.Collection(config.Members,
 				member => {
 					Assert.Equal("score_goal", member.Type);
-					Assert.Equal(50000, member.Value);
+					Assert.Equal(25000, member.Value);
 				},
 				member => {
 					Assert.Equal("last_org_standing", member.Type);
