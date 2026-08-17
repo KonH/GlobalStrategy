@@ -42,7 +42,7 @@ namespace GS.Game.Configs {
 		public CompletionConditionConfig CompletionCondition { get; set; } = new CompletionConditionConfig {
 			Type = "any",
 			Members = new List<CompletionConditionConfig> {
-				new CompletionConditionConfig { Type = "score_goal", Value = 50000 },
+				new CompletionConditionConfig { Type = "score_goal", Value = 25000 },
 				new CompletionConditionConfig { Type = "last_org_standing", Value = 0 }
 			}
 		};
