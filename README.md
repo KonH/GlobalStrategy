@@ -2,9 +2,13 @@
 
 ## Summary
 
+![](https://konh.github.io/hidden-council/01_draw-cards.gif)
+
 A grand-strategy game set in the world of 1880, where you don't play a nation — you play a secret organization spreading its influence across 160+ historical countries. Built with Unity 6, a custom C# ECS, and a fully AI-assisted development workflow.
 
 This repository is both a game and a case study in **structured AI-driven software development**: every feature here was specified, planned, implemented, reviewed, and shipped through a custom Claude Code workflow — including fully autonomous multi-hour implementation runs.
+
+**[Developer blog](https://konh.github.io/blog)**
 
 ## Demos
 
