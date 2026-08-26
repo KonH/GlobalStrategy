@@ -83,17 +83,23 @@ Two ways a meeting ends, either written as `[meeting] ended: <reason>`:
       scripts/meetings/wait_for_turn.ps1 --log "Docs/Meetings/<dir>/log.md" --pattern "\[meeting\] (status:|joined)" --timeout 60 --poll 5
       ```
       (POSIX: `scripts/meetings/wait_for_turn.sh --log ... --pattern ... --timeout 60 --poll 5`)
-      Exit `0` or `2`, it doesn't matter which — either way, go back to (a).
+      `MATCH:` or `TIMEOUT:`, it doesn't matter which — either way, go back
+      to (a), which re-reads the whole log anyway.
    c. Once everyone currently on the roster is `Ready`, do one more short
       wait for stragglers before committing — a participant could still be
       mid-join:
       ```
       scripts/meetings/wait_for_turn.ps1 --log "Docs/Meetings/<dir>/log.md" --pattern "\[meeting\] (status:|joined)" --timeout 30 --poll 5
       ```
-      - Exit `0` (a new `joined`/`status:` line landed): go back to (a) —
+      - `MATCH:` (a new `joined`/`status:` line landed): go back to (a) —
         the roster may have changed.
-      - Exit `2` (nothing new in 30s): the roster is stable and everyone on
-        it is `Ready`. Proceed to (d).
+      - `TIMEOUT:` (nothing new in 30s): the roster is stable and everyone
+        on it is `Ready`. Proceed to (d).
+
+      `--pattern` is the one mode that only sees lines appended *after* it
+      starts. That is fine here — this is a "has anything changed" probe and
+      (a) re-reads the log regardless. Never use `--pattern` to wait for an
+      ack or a reply; step 9 uses the state-derived modes for that reason.
    d. **Solo-owner fallback**: if you've been alone (no other participant
       has ever joined) for several minutes of waiting, don't hang forever —
       treat it as a solo/dry-run session and proceed once your own status is
@@ -103,34 +109,59 @@ Two ways a meeting ends, either written as `[meeting] ended: <reason>`:
 7. **Open the meeting**: append the opening `Name: message` restating the
    agenda/definition-of-done from `agenda.md`, calling out the checklist's
    theme order and time budget if the agenda defines one, and inviting
-   discussion. As owner you can write messages at any time without a turn
-   grant.
+   discussion. Same message format as any participant: plain prose, not
+   markdown or a numbered brief (see `meeting-join`). As owner you can
+   write messages at any time without a turn grant.
 8. **Grant the first turn**: pick a participant (see "Deciding who talks
    next") and append `[meeting] turn: Name`.
 9. **Wait for that agent's ack, then its response**:
 
-   a. Wait up to the 10-second ack timeout:
+   a. Wait up to the 60-second ack timeout:
       ```
-      scripts/meetings/wait_for_turn.ps1 --log "Docs/Meetings/<dir>/log.md" --pattern "\[meeting\] ack: <Name>$" --timeout 10 --poll 2
+      scripts/meetings/wait_for_turn.ps1 --log "Docs/Meetings/<dir>/log.md" --await-ack <Name> --timeout 60 --poll 2
       ```
-      (POSIX: `scripts/meetings/wait_for_turn.sh --log ... --pattern ... --timeout 10 --poll 2`)
-      - Exit `2` (no ack in 10s): append
-        `HH:MM [meeting] kicked: Name (no ack within 10s)` and move on —
+      (POSIX: `scripts/meetings/wait_for_turn.sh --log ... --await-ack ... --timeout 60 --poll 2`)
+      - `ACK:` — acked, continue to (b).
+      - `TIMEOUT:` (no ack in 60s): append
+        `HH:MM [meeting] kicked: Name (no ack within 60s)` and move on —
         go to step 12 without waiting further for this grant.
-      - Exit `0`: acked, continue to (b).
+
+      Use `--await-ack`, **never** `--pattern "\[meeting\] ack: <Name>$"`.
+      `--await-ack` anchors on the last `[meeting] turn: <Name>` line and
+      asks whether an ack follows it anywhere in the file, so it sees an ack
+      no matter when it was written. `--pattern` only ever matches lines
+      appended after the waiter starts — so a participant that acked
+      *quickly*, in the seconds between your turn grant and your next tool
+      call, was invisible to it and got kicked for being fast. That is the
+      false-kick bug that gutted the roster in the 01_world-domination retro
+      (four participants acked, spoke, and were kicked for "no ack" anyway).
+
+      Do not shorten the 60s either. A participant acks from inside its own
+      wait script, so the ack itself is now instant, but a participant
+      sitting in the gap between two `--await-turn` calls still needs a
+      fresh call to start before it can see the grant.
    b. Wait for the real message, up to the 7-minute hard timeout measured
-      from the turn grant (410s covers the remaining budget after the ack
-      wait):
+      from the turn grant (360s covers the remaining budget after the 60s
+      ack wait):
       ```
-      scripts/meetings/wait_for_turn.ps1 --log "Docs/Meetings/<dir>/log.md" --pattern "^\d{2}:\d{2} <Name>:" --timeout 410 --poll 5
+      scripts/meetings/wait_for_turn.ps1 --log "Docs/Meetings/<dir>/log.md" --await-message <Name> --timeout 360 --poll 5
       ```
-      (POSIX: `scripts/meetings/wait_for_turn.sh --log ... --pattern ... --timeout 410 --poll 5`)
-      - Exit `0`: they responded — read it (and anything else new in the
+      (POSIX: `scripts/meetings/wait_for_turn.sh --log ... --await-message ... --timeout 360 --poll 5`)
+      - `MESSAGE:` — they responded; read it (and anything else new in the
         log).
-      - Exit `2`: **hard timeout** — append
+      - `TIMEOUT:` — **hard timeout** — append
         `HH:MM [meeting] kicked: Name (no answer within 7m)` and move on.
         A kicked participant gets no further turns for the rest of this
         meeting, even if it posts something later anyway.
+
+      Same reason as (a): `--await-message` anchors on the turn grant and
+      counts any message after it, so a reply that landed early can't be
+      missed.
+
+   **Before writing any `kicked:` line, re-run the matching `--await-*`
+   command once with `--timeout 5`.** It is cheap, and it is the difference
+   between recording a real timeout and libelling a participant who
+   answered while you were composing the kick.
 10. **Check the current theme's time budget** (if `agenda.md`'s checklist
     gives one) against elapsed time since that theme started (from
     `[meeting] started`, not your own join time). If the theme is over

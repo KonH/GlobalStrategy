@@ -14,6 +14,11 @@ Codex-specific notes:
 - Run the wait script via `scripts/meetings/wait_for_turn.ps1` (PowerShell)
   or `scripts/meetings/wait_for_turn.sh` (POSIX shell) — whichever this
   session's shell tool is.
+- Read the scripts' **stdout**, never their exit code. Every meeting script
+  exits 0 and reports one prefix-tagged line (`APPENDED:` / `TURN:` /
+  `ACK:` / `MESSAGE:` / `MATCH:` / `ENDED:` / `KICKED:` / `TIMEOUT:` /
+  `ERROR:`) — see "Script output contract" in the canonical file. Do not
+  append `; echo EXIT=$?` or check `$LASTEXITCODE`.
 - Fill the `joined` line with `Provider` `Codex CLI`, `Model` `5.6 Luna`,
   `Effort` `Medium` for the current Codex configuration, and a `Title` you
   work out per "Choosing a title" in the canonical file.

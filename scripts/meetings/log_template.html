@@ -55,9 +55,7 @@
   .entry .time { color: var(--muted); font-size: 12px; margin-right: 6px; }
   .agent { font-weight: 600; }
   .agent.owner { text-decoration: underline; }
-  .title-tag { color: var(--muted); font-size: 12px; font-weight: 400; font-style: italic; }
   .msg-line { white-space: pre-wrap; }
-  .msg-line.continuation { margin-left: 1.4em; color: var(--fg); opacity: 0.9; }
   .system-line { color: var(--muted); font-style: italic; font-size: 13px; }
   .info-text { color: var(--fg); font-style: normal; font-size: 13px; }
   .started-line, .ended-line { font-weight: 600; font-style: normal; color: var(--fg); }
@@ -121,15 +119,6 @@
     return span;
   }
 
-  function titleTag(name) {
-    const meta = participants.get(name);
-    if (!meta || !meta.title) return null;
-    const span = document.createElement('span');
-    span.className = 'title-tag';
-    span.textContent = ` (${meta.title})`;
-    return span;
-  }
-
   function systemEntry(time, text, extraClass) {
     const entry = document.createElement('div');
     entry.className = 'entry';
@@ -156,21 +145,53 @@
   const ENDED_RE = /^(\d{2}:\d{2}) \[[^\]]+\]\s+ended:\s*(.+)$/;
   const TURN_RE = /^\d{2}:\d{2} \[[^\]]+\]\s+turn:/;
   const MESSAGE_RE = /^(\d{2}:\d{2}) (\S+):\s?(.*)$/;
-  const CONTINUATION_RE = /^  (.*)$/;
+  const TIMESTAMPED_RE = /^\d{2}:\d{2}\s/;
 
   function render(text) {
     participants.clear();
     entriesEl.innerHTML = '';
     const lines = text.split(/\r?\n/);
     let currentBody = null;
+    let pendingBreak = false;
+
+    function appendToMessage(raw) {
+      const text = raw.startsWith('  ') ? raw.slice(2) : raw;
+      const sep = pendingBreak
+        ? (currentBody.textContent ? '\n\n' : '')
+        : (currentBody.textContent ? '\n' : '');
+      pendingBreak = false;
+      currentBody.textContent += sep + text;
+    }
 
     for (const line of lines) {
-      if (line.trim() === '') { currentBody = null; continue; }
+      if (line.trim() === '') {
+        if (currentBody && currentBody.classList.contains('msg-line')) {
+          pendingBreak = true;
+        } else {
+          currentBody = null;
+          pendingBreak = false;
+        }
+        continue;
+      }
 
+      // Wrapped body of the current message — including lines after a blank
+      // line inside the same entry. Never treat these as system text.
+      if (currentBody && currentBody.classList.contains('msg-line') && !TIMESTAMPED_RE.test(line)) {
+        appendToMessage(line);
+        continue;
+      }
+
+      pendingBreak = false;
       let m;
       if ((m = TURN_RE.exec(line))) {
         // Turn-grant lines are internal coordination plumbing; kept out of
         // the rendered view on purpose, still visible in the raw log.md.
+        currentBody = null;
+        continue;
+      }
+      if ((m = ACK_RE.exec(line))) {
+        // Ack lines are the same class of plumbing as turn grants — alive-
+        // check only, not conversation. Hidden here, still in log.md.
         currentBody = null;
         continue;
       }
@@ -206,12 +227,6 @@
         statusSpan.textContent = status;
         entry.appendChild(statusSpan);
         entriesEl.appendChild(entry);
-        currentBody = null;
-        continue;
-      }
-      if ((m = ACK_RE.exec(line))) {
-        const [, time, name] = m;
-        systemEntry(time, `${name} acknowledged`);
         currentBody = null;
         continue;
       }
@@ -269,22 +284,13 @@
         t.textContent = time;
         entry.appendChild(t);
         entry.appendChild(agentSpan(name));
-        const msgTag = titleTag(name);
-        if (msgTag) entry.appendChild(msgTag);
         entry.appendChild(document.createTextNode(': '));
-        const body = document.createElement('div');
+        const body = document.createElement('span');
         body.className = 'msg-line';
         body.textContent = text0;
         entry.appendChild(body);
         entriesEl.appendChild(entry);
-        currentBody = entry;
-        continue;
-      }
-      if (currentBody && (m = CONTINUATION_RE.exec(line))) {
-        const cont = document.createElement('div');
-        cont.className = 'msg-line continuation';
-        cont.textContent = m[1];
-        currentBody.appendChild(cont);
+        currentBody = body;
         continue;
       }
       // Unrecognized line: show as-is so nothing silently disappears.

@@ -3,12 +3,11 @@
 Reads Cursor's reactive-storage SQLite (the same store the model picker
 writes). Never hardcodes Model or Effort — those change per chat.
 
-Stdout (tab-separated, one line):
-  Cursor<TAB>Grok 4.6<TAB>High
+Like the other meeting scripts, this never signals through exit codes: it
+always exits 0 and reports one fixed, prefix-tagged line on stdout.
 
-Exit codes:
-  0 - printed a line.
-  1 - the store could not be read or had no composer model.
+  IDENTITY: Cursor<TAB>Grok 4.6<TAB>High
+  ERROR: <detail>   the store could not be read or had no composer model
 """
 
 from __future__ import annotations
@@ -148,14 +147,14 @@ def identity_from_storage(data: dict) -> tuple[str, str, str]:
 def main() -> int:
     db_path = find_state_db()
     if db_path is None:
-        print("cursor state.vscdb not found", file=sys.stderr)
-        return 1
+        print("ERROR: cursor state.vscdb not found")
+        return 0
     try:
         provider, model, effort = identity_from_storage(load_reactive_storage(db_path))
     except Exception as exc:
-        print(f"failed to read Cursor model picker: {exc}", file=sys.stderr)
-        return 1
-    print(f"{provider}\t{model}\t{effort}")
+        print(f"ERROR: failed to read Cursor model picker: {exc}")
+        return 0
+    print(f"IDENTITY: {provider}\t{model}\t{effort}")
     return 0
 
 

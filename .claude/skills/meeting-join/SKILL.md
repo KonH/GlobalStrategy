@@ -118,10 +118,14 @@ HH:MM Name: message text
   optional continuation line, indented exactly two spaces
   another continuation line
 ```
-Keep it to a few lines — this is a live conversation, not a report.
+Plain prose only — a live conversation, not a report or a document. No
+markdown, headings, numbered/bulleted lists, bold/italic markers, or
+table-like alignment. Continuation lines are wrapping of the same
+paragraph, not a formatting structure; the viewer concatenates them into
+one plain-text body. Keep it to a few sentences.
 
-**Ack** (the granted participant only, immediately on seeing its own turn
-grant, before composing the real message — see "Turn timeouts" below):
+**Ack** (the granted participant only — **written for you by
+`wait_for_turn --await-turn`, never by hand**; see "Turn timeouts" below):
 ```
 HH:MM [meeting] ack: Name
 ```
@@ -134,7 +138,7 @@ HH:MM [meeting] turn: Name
 **Kicked** (owner only, when a participant misses an ack or answer
 timeout — see "Turn timeouts" below):
 ```
-HH:MM [meeting] kicked: Name (no ack within 10s)
+HH:MM [meeting] kicked: Name (no ack within 60s)
 HH:MM [meeting] kicked: Name (no answer within 7m)
 ```
 
@@ -163,15 +167,35 @@ concurrent writers can interleave in a different order than their own
 timestamps (harmless — see "Who may write when" below for why that's never
 a problem for messages specifically) but can never clobber each other.
 
-`log.html` (the live viewer) intentionally hides `[meeting] turn:` lines
-from the rendered view — they're coordination plumbing, not conversation.
-Every other `[meeting] ...` line (`status:`, `started`, `ack:`, `kicked:`,
-`ended:`) **is** shown, as its own visible service message — readiness and
-timeouts should be legible to whoever's watching the log, not just to the
-agents. Your title isn't a `[meeting] ...` line at all — it's part of your
-`joined` line, so it shows up there directly and is then tagged onto every
-message and status line you write afterward, with your name itself
-highlighted.
+### Script output contract — read stdout, never the exit code
+
+Both meeting scripts **always exit 0** and report what happened as one
+fixed, prefix-tagged line on stdout. Branch on the prefix; never inspect
+`$?` / `$LASTEXITCODE`, and never bolt an `echo EXIT=$?` onto the call:
+
+| Prefix | Meaning |
+|---|---|
+| `APPENDED: <path>` | `append_entry` wrote the entry |
+| `TURN: <line>` | your turn grant is outstanding (`--await-turn`) |
+| `ACK: <line>` | the ack line — auto-written by `--await-turn`, or observed by `--await-ack` |
+| `MESSAGE: <line>` | the speaker's real message landed (`--await-message`) |
+| `MATCH: <line>` | a new line matched `--pattern` |
+| `ENDED: <line>` | the meeting is over |
+| `KICKED: <line>` | you were kicked — stop participating |
+| `TIMEOUT: <detail>` | nothing actionable yet; just run the same command again |
+| `ERROR: <detail>` | bad usage or IO problem — fix the call, don't retry it verbatim |
+
+A non-zero exit now means the script itself crashed, not a meeting outcome.
+
+`log.html` (the live viewer) intentionally hides `[meeting] turn:` and
+`[meeting] ack:` lines from the rendered view — they're coordination
+plumbing, not conversation. Every other `[meeting] ...` line (`status:`,
+`started`, `kicked:`, `ended:`) **is** shown, as its own visible service
+message — readiness and timeouts should be legible to whoever's watching
+the log, not just to the agents. Your title isn't a `[meeting] ...` line
+at all — it's part of your `joined` line, so it shows up there and in the
+name's hover hint. Message lines are `HH:MM Name: text` only; do not
+repeat the title or role on them.
 
 ### Who may write when
 
@@ -181,8 +205,8 @@ highlighted.
 - Any participant (owner or not) may append its own `joined` and `status:`
   lines at any time, without needing a turn grant — registering presence or
   readiness isn't "talking".
-- A participant may append its own `ack:` line only right after its own
-  `[meeting] turn:` grant appears — see "Turn timeouts" below.
+- A participant's own `ack:` line is written by the wait script, not by the
+  agent — see "Turn timeouts" below. Don't hand-append one.
 - The **owner** is unrestricted: it may write messages, turn grants,
   `status:`/`started`/`kicked:`/`ended:` lines at any time (see
   `meeting-join`'s sibling, `meeting-start`).
@@ -201,14 +225,26 @@ Three separate choices, not one:
 Once the owner grants you the turn (`[meeting] turn: Name`), three clocks
 matter, all counted from that grant:
 
-1. **Ack — 10 seconds.** The instant you see your own turn grant, before
-   composing your actual response, append the one-line `[meeting] ack: Name`
-   service message via `append_entry`. This just proves you're alive and
-   have seen the grant. The owner waits **10 seconds** for it; if it doesn't
-   show up, the owner kicks you (`[meeting] kicked: Name (no ack within
-   10s)`) and moves on without waiting further — poll tightly enough while
-   waiting for your turn (see step 8 below) that you can actually make this
-   window.
+1. **Ack — 60 seconds, and you do not write it.** `wait_for_turn
+   --await-turn <YourName>` appends `[meeting] ack: Name` itself, in the
+   same process call that spots the grant, before it ever returns to you.
+   By the time you read `TURN:` in its output, the `ACK:` line underneath
+   it is already in the log. **Do not think, plan, re-read the log, or call
+   any other tool between the grant and the ack** — there is no window in
+   which you could, and there is nothing left for you to do about it.
+
+   That is the whole point of the design. Acking used to be a *separate*
+   model turn after a `wait_for_turn` result — one LLM inference plus an
+   `append_entry` call, routinely 15–40 seconds. The ack now costs zero
+   model turns, so the only latency left is the participant's poll interval.
+
+   The owner still waits **60 seconds** and still kicks on a genuine miss
+   (`[meeting] kicked: Name (no ack within 60s)`) — a participant that
+   crashed, or was never running, never acks. Keep the 60s: a participant
+   sitting in the gap between two `--await-turn` calls needs a fresh call to
+   start before its script can see the grant. Do not shrink it back to "a
+   few seconds"; a 10-second window kicked every participant in the
+   01_world-domination tech retro.
 2. **Soft — 5 minutes.** After acking, you should aim to post your real
    `Name: message` reply within **5 minutes** of the turn grant. This is
    pacing guidance for you, not something the owner enforces at exactly 5
@@ -323,28 +359,37 @@ else — one read covers both checks):
 7. **Wait for the meeting to start.** Nothing to do here but hold — the
    owner is waiting for every joined member to reach `Ready` (see
    `meeting-start`). You'll see `[meeting] started` appear once it does.
-8. **Wait for your turn.** Run, repeatedly until it reports a match:
+8. **Wait for your turn.** Run, repeatedly, until it reports something other
+   than `TIMEOUT:`:
 
    ```
-   scripts/meetings/wait_for_turn.ps1 --log "Docs/Meetings/<dir>/log.md" --pattern "\[meeting\] (turn: <YourName>$|ended:)" --timeout 300 --poll 3
+   scripts/meetings/wait_for_turn.ps1 --log "Docs/Meetings/<dir>/log.md" --await-turn <YourName> --timeout 300 --poll 3
    ```
-   (POSIX shells: `scripts/meetings/wait_for_turn.sh --log ... --pattern ... --timeout 300 --poll 3`, same flags)
+   (POSIX shells: `scripts/meetings/wait_for_turn.sh --log ... --await-turn ... --timeout 300 --poll 3`, same flags)
 
-   Poll at `3` seconds, not more — the 10-second ack timeout (see "Turn
-   timeouts" above) leaves little room for a coarser poll to still let you
-   react in time.
+   Pass your name, not a regex — the script knows the protocol's line
+   formats, so there is no `\[meeting\]` escaping for you to get wrong. It
+   derives the answer from the whole log every poll (**not** from
+   lines-appended-since-startup), so a grant that landed while you were
+   between two calls is still seen rather than silently missed. Poll at `3`
+   seconds, not more.
 
-   - Exit code `0`: the printed line matched. If it's `[meeting] ended:`,
-     stop — go to step 10. If it's your turn grant, go to step 9.
-   - Exit code `2`: no match in this chunk — just re-run the same command
-     again (this is normal; a meeting can run far longer than one chunk).
-9. **Ack, then respond.** The moment you see your own turn grant, append
-   `[meeting] ack: Name` immediately — before composing anything else. Then
-   re-read the log since you last read it (other turns may have happened),
-   compose a short, substantive reply grounded in the agenda, your own prep
-   notes from step 4, any constraints from `agenda.md` (e.g. working toward
-   consensus), and what's actually been said, then append it as a `Name:
-   message` line (with continuation lines if needed) via `append_entry`,
-   aiming to land it within the 5-minute soft timeout. Go back to step 8.
+   Branch on the output prefix (see "Script output contract" above), never
+   on an exit code:
+   - `TURN:` — your grant, and the `ACK:` line printed under it is already
+     in the log. Go to step 9.
+   - `ENDED:` — stop; go to step 10.
+   - `KICKED:` — you were kicked. You get no further turns; go to step 10
+     and do not post anything else.
+   - `TIMEOUT:` — normal; just re-run the same command (a meeting can run
+     far longer than one chunk).
+9. **Respond.** You are already acked — the script did it (see "Turn
+   timeouts" above), so start straight in on the reply. Re-read the log
+   since you last read it (other turns may have happened), compose a short,
+   substantive reply grounded in the agenda, your own prep notes from step
+   4, any constraints from `agenda.md` (e.g. working toward consensus), and
+   what's actually been said, then append it as a `Name: message` line
+   (with continuation lines if needed) via `append_entry`, aiming to land it
+   within the 5-minute soft timeout. Go back to step 8.
 10. **Exit.** Once `ended:` appears, stop waiting. Optionally read
     `summary.md` if the owner has written one by then.
