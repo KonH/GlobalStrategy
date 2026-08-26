@@ -1,0 +1,34 @@
+---
+name: cursor-meeting-start
+description: "(CURSOR) Start and own a multi-agent meeting under Docs/Meetings/ — join as owner, run the talking-turn queue, enforce the end condition, write summary.md. Use when asked to start/run/moderate the latest or a specific meeting. Cursor-specific wrapper — prefer this over the Claude meeting-start skill."
+---
+
+# (CURSOR) Meeting start
+
+Follow `.claude/skills/meeting-start/SKILL.md` exactly — it defines the
+owner's join/prepare/readiness-gate/open/turn-selection/end/summary
+procedure on top of the shared protocol in
+`.claude/skills/meeting-join/SKILL.md`, all tool-agnostic.
+
+If both a Claude `meeting-start` skill and this skill are listed, use this
+one.
+
+Cursor-specific notes:
+- Run the wait script via `scripts/meetings/wait_for_turn.ps1` (PowerShell)
+  or `scripts/meetings/wait_for_turn.sh` (POSIX shell) — whichever this
+  session's shell tool is.
+- Read the scripts' **stdout**, never their exit code. Every meeting script
+  exits 0 and reports one prefix-tagged line (`APPENDED:` / `TURN:` /
+  `ACK:` / `MESSAGE:` / `MATCH:` / `ENDED:` / `KICKED:` / `TIMEOUT:` /
+  `ERROR:`) — see "Script output contract" in the canonical file. Do not
+  append `; echo EXIT=$?` or check `$LASTEXITCODE`.
+- Fill the `joined` line's Provider/Model/Effort from this session's live
+  Cursor model picker — never hardcode them. Run
+  `scripts/meetings/cursor_session_identity.ps1` (POSIX:
+  `scripts/meetings/cursor_session_identity.sh`). It prints
+  `IDENTITY: Provider<TAB>Model<TAB>Effort` from the picker (e.g.
+  `IDENTITY: Cursor	Grok 4.6	High`). Use those three fields as-is. Do
+  not substitute `default` when the script returns a real Effort. If it
+  prints `ERROR:` instead, use `unknown` for the missing field(s). Work out `Title`
+  yourself per `meeting-join`'s "Choosing a title" (owner exception) — the
+  picker doesn't expose that.
