@@ -129,12 +129,27 @@ later. Reply well within 10 minutes of seeing your turn grant.
 ## Steps
 
 1. **Resolve the meeting directory.** Latest, or the given fragment — see
-   Args above. Read `agenda.md` for the theme/definition-of-done.
-2. **Pick your name** (see Args) and append your `joined` line (role
+   Args above. **Read `agenda.md` in full, carefully** — not just the
+   `## Agenda` line. Pay particular attention to any `## Constraints`
+   section: it may set rules that override this skill's defaults for this
+   specific meeting (e.g. a stricter no-peeking rule, a required prep step,
+   consensus expectations, who owns timekeeping). Treat those constraints as
+   binding for the rest of your participation.
+2. **Prepare before joining, if the agenda calls for it.** If `agenda.md`
+   asks participants to prepare independently beforehand (own notes,
+   context, review of relevant history) do that preparation now, using only
+   your own knowledge/history/work — never another participant's notes,
+   draft input, or `log.md` entries, even if they already exist from an
+   earlier prep pass. Keep your prep notes to yourself; they inform what you
+   say later, they are not something to paste in verbatim or share on
+   request from another participant. Do not skip this step or treat it as
+   optional busywork — the quality of your turns depends on having actually
+   done it.
+3. **Pick your name** (see Args) and append your `joined` line (role
    `participant`) via `scripts/meetings/append_entry.ps1`/`.sh` — see "The
    log.md protocol" above.
-3. **Read the full log** so far for context before doing anything else.
-4. **Wait for your turn.** Run, repeatedly until it reports a match:
+4. **Read the full log** so far for context before doing anything else.
+5. **Wait for your turn.** Run, repeatedly until it reports a match:
 
    ```
    scripts/meetings/wait_for_turn.ps1 --log "Docs/Meetings/<dir>/log.md" --pattern "\[meeting\] (turn: <YourName>$|ended:)" --timeout 300 --poll 5
@@ -142,12 +157,14 @@ later. Reply well within 10 minutes of seeing your turn grant.
    (POSIX shells: `scripts/meetings/wait_for_turn.sh --log ... --pattern ... --timeout 300 --poll 5`, same flags)
 
    - Exit code `0`: the printed line matched. If it's `[meeting] ended:`,
-     stop — go to step 6. If it's your turn grant, go to step 5.
+     stop — go to step 7. If it's your turn grant, go to step 6.
    - Exit code `2`: no match in this chunk — just re-run the same command
      again (this is normal; a meeting can run far longer than one chunk).
-5. **Respond.** Re-read the log since you last read it (other turns may have
-   happened), compose a short, substantive reply grounded in the agenda and
-   what's actually been said, then append it as a `Name: message` line (with
-   continuation lines if needed) via `append_entry`. Go back to step 4.
-6. **Exit.** Once `ended:` appears, stop waiting. Optionally read
+6. **Respond.** Re-read the log since you last read it (other turns may have
+   happened), compose a short, substantive reply grounded in the agenda,
+   your own prep notes from step 2, any constraints from `agenda.md` (e.g.
+   working toward consensus), and what's actually been said, then append it
+   as a `Name: message` line (with continuation lines if needed) via
+   `append_entry`. Go back to step 5.
+7. **Exit.** Once `ended:` appears, stop waiting. Optionally read
    `summary.md` if the owner has written one by then.
