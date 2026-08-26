@@ -60,8 +60,8 @@
   .msg-line.continuation { margin-left: 1.4em; color: var(--fg); opacity: 0.9; }
   .system-line { color: var(--muted); font-style: italic; font-size: 13px; }
   .info-text { color: var(--fg); font-style: normal; font-size: 13px; }
-  .started-line { font-weight: 600; font-style: normal; color: var(--fg); }
-  .kicked-line { font-weight: 600; color: #c62828; }
+  .started-line, .ended-line { font-weight: 600; font-style: normal; color: var(--fg); }
+  .kicked-line { font-weight: 600; font-style: normal; color: #c62828; }
   @media (prefers-color-scheme: dark) {
     .kicked-line { color: #ff8a80; }
   }
@@ -145,12 +145,16 @@
   }
 
   const JOINED_RE = /^(\d{2}:\d{2}) (\S+) \(([^,]+),\s*([^,]+),\s*([^,]+),\s*(owner|participant),\s*([^,()]+)\)\s+joined$/;
-  const STATUS_RE = /^(\d{2}:\d{2}) \[meeting\]\s+status:\s*(\S+)\s+(.+)$/;
-  const STARTED_RE = /^(\d{2}:\d{2}) \[meeting\]\s+started\s*$/;
-  const ACK_RE = /^(\d{2}:\d{2}) \[meeting\]\s+ack:\s*(\S+)$/;
-  const KICKED_RE = /^(\d{2}:\d{2}) \[meeting\]\s+kicked:\s*(\S+)\s*\(([^)]*)\)$/;
-  const ENDED_RE = /^(\d{2}:\d{2}) \[meeting\]\s+ended:\s*(.+)$/;
-  const TURN_RE = /^\d{2}:\d{2} \[meeting\]\s+turn:/;
+  // The bracketed tag is documented as the literal word "meeting", but
+  // tolerate any bracketed tag here too (e.g. an agent mistakenly using the
+  // meeting's own slug) — the viewer should still render correctly even
+  // when a participant got that part of the protocol wrong.
+  const STATUS_RE = /^(\d{2}:\d{2}) \[[^\]]+\]\s+status:\s*(\S+)\s+(.+)$/;
+  const STARTED_RE = /^(\d{2}:\d{2}) \[[^\]]+\]\s+started\s*$/;
+  const ACK_RE = /^(\d{2}:\d{2}) \[[^\]]+\]\s+ack:\s*(\S+)$/;
+  const KICKED_RE = /^(\d{2}:\d{2}) \[[^\]]+\]\s+kicked:\s*(\S+)\s*\(([^)]*)\)$/;
+  const ENDED_RE = /^(\d{2}:\d{2}) \[[^\]]+\]\s+ended:\s*(.+)$/;
+  const TURN_RE = /^\d{2}:\d{2} \[[^\]]+\]\s+turn:/;
   const MESSAGE_RE = /^(\d{2}:\d{2}) (\S+):\s?(.*)$/;
   const CONTINUATION_RE = /^  (.*)$/;
 
@@ -172,7 +176,7 @@
       }
       if ((m = ENDED_RE.exec(line))) {
         const [, time, reason] = m;
-        systemEntry(time, `meeting ended (${reason})`);
+        systemEntry(time, `meeting ended (${reason})`, 'ended-line');
         currentBody = null;
         continue;
       }
@@ -213,7 +217,18 @@
       }
       if ((m = KICKED_RE.exec(line))) {
         const [, time, name, reason] = m;
-        systemEntry(time, `${name} kicked (${reason})`, 'kicked-line');
+        const entry = document.createElement('div');
+        entry.className = 'entry';
+        const t = document.createElement('span');
+        t.className = 'time';
+        t.textContent = time;
+        entry.appendChild(t);
+        entry.appendChild(agentSpan(name));
+        const s = document.createElement('span');
+        s.className = 'kicked-line';
+        s.textContent = ` kicked (${reason})`;
+        entry.appendChild(s);
+        entriesEl.appendChild(entry);
         currentBody = null;
         continue;
       }
@@ -231,19 +246,15 @@
         t.textContent = time;
         entry.appendChild(t);
         entry.appendChild(agentSpan(name));
-        const open = document.createElement('span');
-        open.className = 'system-line';
-        open.textContent = ' (';
-        entry.appendChild(open);
         const info = [meta.provider, meta.model, meta.effort, meta.role];
         if (meta.title) info.push(meta.title);
         const infoSpan = document.createElement('span');
         infoSpan.className = 'info-text';
-        infoSpan.textContent = info.join(' · ');
+        infoSpan.textContent = ` ${info.join(' · ')} `;
         entry.appendChild(infoSpan);
         const close = document.createElement('span');
         close.className = 'system-line';
-        close.textContent = ') joined';
+        close.textContent = 'joined';
         entry.appendChild(close);
         entriesEl.appendChild(entry);
         currentBody = null;
