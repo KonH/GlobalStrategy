@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Meeting log</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #767676;
+    --border: #dddddd;
+    --agent-lightness: 42%;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1e;
+      --fg: #e8e8e8;
+      --muted: #9a9a9a;
+      --border: #3a3a3a;
+      --agent-lightness: 68%;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header h1 { font-size: 15px; margin: 0; flex: 1; }
+  button {
+    font: inherit;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--fg);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button:hover { background: var(--border); }
+  #status { font-size: 12px; color: var(--muted); }
+  #entries { padding: 16px; max-width: 900px; margin: 0 auto; }
+  .entry { margin-bottom: 14px; }
+  .entry .time { color: var(--muted); font-size: 12px; margin-right: 6px; }
+  .agent { font-weight: 600; }
+  .agent.owner { text-decoration: underline; }
+  .msg-line { white-space: pre-wrap; }
+  .msg-line.continuation { margin-left: 1.4em; color: var(--fg); opacity: 0.9; }
+  .system-line { color: var(--muted); font-style: italic; font-size: 13px; }
+  #hint { color: var(--muted); font-size: 13px; padding: 16px; }
+  #unsupported { padding: 16px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Meeting log</h1>
+  <span id="status">not connected</span>
+  <button id="openBtn">Open meeting folder</button>
+</header>
+<div id="hint">Click "Open meeting folder" and pick this meeting's directory (the one holding this <code>log.html</code>) — it reads <code>log.md</code> from it automatically. Updates poll every 2s — no server needed.</div>
+<div id="unsupported" hidden>This viewer needs a Chromium-based browser (Chrome/Edge) for live local-file access (File System Access API).</div>
+<div id="entries"></div>
+
+<script>
+(function () {
+  const entriesEl = document.getElementById('entries');
+  const statusEl = document.getElementById('status');
+  const openBtn = document.getElementById('openBtn');
+  const hintEl = document.getElementById('hint');
+
+  if (!window.showDirectoryPicker) {
+    document.getElementById('unsupported').hidden = false;
+    openBtn.disabled = true;
+    return;
+  }
+
+  // name -> { provider, model, effort, role }
+  const participants = new Map();
+  let lastModified = 0;
+  let pollTimer = null;
+
+  function hue(name) {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+    }
+    return hash % 360;
+  }
+
+  function agentSpan(name) {
+    const meta = participants.get(name);
+    const h = hue(name);
+    const color = `hsl(${h}, 65%, var(--agent-lightness))`;
+    const span = document.createElement('span');
+    span.className = 'agent' + (meta && meta.role === 'owner' ? ' owner' : '');
+    span.style.color = color;
+    span.textContent = name;
+    if (meta) {
+      span.title = `Provider: ${meta.provider} | Model: ${meta.model} | Effort: ${meta.effort} | Role: ${meta.role}`;
+    }
+    return span;
+  }
+
+  const JOINED_RE = /^(\d{2}:\d{2}) (\S+) \(([^,]+),\s*([^,]+),\s*([^,]+),\s*(owner|participant)\)\s+joined$/;
+  const ENDED_RE = /^(\d{2}:\d{2}) \[meeting\]\s+ended:\s*(.+)$/;
+  const TURN_RE = /^\d{2}:\d{2} \[meeting\]\s+turn:/;
+  const MESSAGE_RE = /^(\d{2}:\d{2}) (\S+):\s?(.*)$/;
+  const CONTINUATION_RE = /^  (.*)$/;
+
+  function render(text) {
+    participants.clear();
+    entriesEl.innerHTML = '';
+    const lines = text.split(/\r?\n/);
+    let currentBody = null;
+
+    for (const line of lines) {
+      if (line.trim() === '') { currentBody = null; continue; }
+
+      let m;
+      if ((m = TURN_RE.exec(line))) {
+        // Turn-grant lines are internal coordination plumbing; kept out of
+        // the rendered view on purpose, still visible in the raw log.md.
+        currentBody = null;
+        continue;
+      }
+      if ((m = ENDED_RE.exec(line))) {
+        const [, time, reason] = m;
+        const entry = document.createElement('div');
+        entry.className = 'entry';
+        const t = document.createElement('span');
+        t.className = 'time';
+        t.textContent = time;
+        const s = document.createElement('span');
+        s.className = 'system-line';
+        s.textContent = `meeting ended (${reason})`;
+        entry.append(t, s);
+        entriesEl.appendChild(entry);
+        currentBody = null;
+        continue;
+      }
+      if ((m = JOINED_RE.exec(line))) {
+        const [, time, name, provider, model, effort, role] = m;
+        participants.set(name, { provider: provider.trim(), model: model.trim(), effort: effort.trim(), role });
+        const entry = document.createElement('div');
+        entry.className = 'entry';
+        const t = document.createElement('span');
+        t.className = 'time';
+        t.textContent = time;
+        entry.appendChild(t);
+        entry.appendChild(agentSpan(name));
+        const s = document.createElement('span');
+        s.className = 'system-line';
+        s.textContent = ' joined';
+        entry.appendChild(s);
+        entriesEl.appendChild(entry);
+        currentBody = null;
+        continue;
+      }
+      if ((m = MESSAGE_RE.exec(line))) {
+        const [, time, name, text0] = m;
+        const entry = document.createElement('div');
+        entry.className = 'entry';
+        const t = document.createElement('span');
+        t.className = 'time';
+        t.textContent = time;
+        entry.appendChild(t);
+        entry.appendChild(agentSpan(name));
+        entry.appendChild(document.createTextNode(': '));
+        const body = document.createElement('div');
+        body.className = 'msg-line';
+        body.textContent = text0;
+        entry.appendChild(body);
+        entriesEl.appendChild(entry);
+        currentBody = entry;
+        continue;
+      }
+      if (currentBody && (m = CONTINUATION_RE.exec(line))) {
+        const cont = document.createElement('div');
+        cont.className = 'msg-line continuation';
+        cont.textContent = m[1];
+        currentBody.appendChild(cont);
+        continue;
+      }
+      // Unrecognized line: show as-is so nothing silently disappears.
+      const entry = document.createElement('div');
+      entry.className = 'entry system-line';
+      entry.textContent = line;
+      entriesEl.appendChild(entry);
+      currentBody = null;
+    }
+    window.scrollTo(0, document.body.scrollHeight);
+  }
+
+  async function pollOnce(handle) {
+    const file = await handle.getFile();
+    if (file.lastModified === lastModified) return;
+    lastModified = file.lastModified;
+    const text = await file.text();
+    render(text);
+    statusEl.textContent = `updated ${new Date(file.lastModified).toLocaleTimeString()}`;
+  }
+
+  openBtn.addEventListener('click', async () => {
+    let dirHandle;
+    try {
+      dirHandle = await window.showDirectoryPicker();
+    } catch (err) {
+      return; // user cancelled the picker
+    }
+    let handle;
+    try {
+      handle = await dirHandle.getFileHandle('log.md');
+    } catch (err) {
+      statusEl.textContent = `no log.md in "${dirHandle.name}"`;
+      return;
+    }
+    hintEl.hidden = true;
+    if (pollTimer) clearInterval(pollTimer);
+    lastModified = 0;
+    await pollOnce(handle);
+    pollTimer = setInterval(() => pollOnce(handle).catch((e) => {
+      statusEl.textContent = 'read error: ' + e.message;
+    }), 2000);
+  });
+})();
+</script>
+</body>
+</html>
