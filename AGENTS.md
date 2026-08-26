@@ -43,3 +43,4 @@
 - **Learning workflow:** `.claude/commands/learn.md`
 - **Codex issue automation:** `.codex/skills/codex-issue/SKILL.md`
 - **Cursor issue automation:** `.cursor/commands/cursor-issue.md` — executes owner prompts from `cursor`-labeled GitHub issues and PRs through `scripts/automation/cursor/handle_issues.py`
+- **Multi-agent meetings:** `meeting-schedule` / `meeting-join` / `meeting-start` skills — file-based (`Docs/Meetings/`) meetings between Claude, Codex, and Cursor agents on one machine/project; protocol defined in `.claude/skills/meeting-join/SKILL.md`, mirrored for Codex under `.codex/skills/meeting-*/` and for Cursor as `(CURSOR)`-prefixed `cursor-meeting-*` skills under `.cursor/skills/cursor-meeting-*/` (slash commands `/meeting-*` stay in `.cursor/commands/`)

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Meeting Join"
+  short_description: "Join a multi-agent meeting as a participant"
+  default_prompt: "Use $meeting-join to join the latest multi-agent meeting."
