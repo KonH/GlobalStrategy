@@ -55,9 +55,16 @@
   .entry .time { color: var(--muted); font-size: 12px; margin-right: 6px; }
   .agent { font-weight: 600; }
   .agent.owner { text-decoration: underline; }
+  .title-tag { color: var(--muted); font-size: 12px; font-weight: 400; font-style: italic; }
   .msg-line { white-space: pre-wrap; }
   .msg-line.continuation { margin-left: 1.4em; color: var(--fg); opacity: 0.9; }
   .system-line { color: var(--muted); font-style: italic; font-size: 13px; }
+  .info-text { color: var(--fg); font-style: normal; font-size: 13px; }
+  .started-line { font-weight: 600; font-style: normal; color: var(--fg); }
+  .kicked-line { font-weight: 600; color: #c62828; }
+  @media (prefers-color-scheme: dark) {
+    .kicked-line { color: #ff8a80; }
+  }
   #hint { color: var(--muted); font-size: 13px; padding: 16px; }
   #unsupported { padding: 16px; color: var(--muted); }
 </style>
@@ -68,7 +75,7 @@
   <span id="status">not connected</span>
   <button id="openBtn">Open meeting folder</button>
 </header>
-<div id="hint">Click "Open meeting folder" and pick this meeting's directory (the one holding this <code>log.html</code>) — it reads <code>log.md</code> from it automatically. Updates poll every 2s — no server needed.</div>
+<div id="hint">Click "Open meeting folder" and pick this meeting's directory (the one holding this <code>log.html</code>) — it reads <code>log.md</code> from it automatically. Updates poll every 2s — no server needed. The folder is remembered for next time this page loads.</div>
 <div id="unsupported" hidden>This viewer needs a Chromium-based browser (Chrome/Edge) for live local-file access (File System Access API).</div>
 <div id="entries"></div>
 
@@ -107,12 +114,41 @@
     span.style.color = color;
     span.textContent = name;
     if (meta) {
-      span.title = `Provider: ${meta.provider} | Model: ${meta.model} | Effort: ${meta.effort} | Role: ${meta.role}`;
+      const status = meta.status ? ` | Status: ${meta.status}` : '';
+      const title = meta.title ? ` | Title: ${meta.title}` : '';
+      span.title = `Provider: ${meta.provider} | Model: ${meta.model} | Effort: ${meta.effort} | Role: ${meta.role}${title}${status}`;
     }
     return span;
   }
 
-  const JOINED_RE = /^(\d{2}:\d{2}) (\S+) \(([^,]+),\s*([^,]+),\s*([^,]+),\s*(owner|participant)\)\s+joined$/;
+  function titleTag(name) {
+    const meta = participants.get(name);
+    if (!meta || !meta.title) return null;
+    const span = document.createElement('span');
+    span.className = 'title-tag';
+    span.textContent = ` (${meta.title})`;
+    return span;
+  }
+
+  function systemEntry(time, text, extraClass) {
+    const entry = document.createElement('div');
+    entry.className = 'entry';
+    const t = document.createElement('span');
+    t.className = 'time';
+    t.textContent = time;
+    const s = document.createElement('span');
+    s.className = 'system-line' + (extraClass ? ' ' + extraClass : '');
+    s.textContent = text;
+    entry.append(t, s);
+    entriesEl.appendChild(entry);
+    return entry;
+  }
+
+  const JOINED_RE = /^(\d{2}:\d{2}) (\S+) \(([^,]+),\s*([^,]+),\s*([^,]+),\s*(owner|participant),\s*([^,()]+)\)\s+joined$/;
+  const STATUS_RE = /^(\d{2}:\d{2}) \[meeting\]\s+status:\s*(\S+)\s+(.+)$/;
+  const STARTED_RE = /^(\d{2}:\d{2}) \[meeting\]\s+started\s*$/;
+  const ACK_RE = /^(\d{2}:\d{2}) \[meeting\]\s+ack:\s*(\S+)$/;
+  const KICKED_RE = /^(\d{2}:\d{2}) \[meeting\]\s+kicked:\s*(\S+)\s*\(([^)]*)\)$/;
   const ENDED_RE = /^(\d{2}:\d{2}) \[meeting\]\s+ended:\s*(.+)$/;
   const TURN_RE = /^\d{2}:\d{2} \[meeting\]\s+turn:/;
   const MESSAGE_RE = /^(\d{2}:\d{2}) (\S+):\s?(.*)$/;
@@ -136,22 +172,20 @@
       }
       if ((m = ENDED_RE.exec(line))) {
         const [, time, reason] = m;
-        const entry = document.createElement('div');
-        entry.className = 'entry';
-        const t = document.createElement('span');
-        t.className = 'time';
-        t.textContent = time;
-        const s = document.createElement('span');
-        s.className = 'system-line';
-        s.textContent = `meeting ended (${reason})`;
-        entry.append(t, s);
-        entriesEl.appendChild(entry);
+        systemEntry(time, `meeting ended (${reason})`);
         currentBody = null;
         continue;
       }
-      if ((m = JOINED_RE.exec(line))) {
-        const [, time, name, provider, model, effort, role] = m;
-        participants.set(name, { provider: provider.trim(), model: model.trim(), effort: effort.trim(), role });
+      if ((m = STARTED_RE.exec(line))) {
+        const [, time] = m;
+        systemEntry(time, 'meeting started — timer begins now', 'started-line');
+        currentBody = null;
+        continue;
+      }
+      if ((m = STATUS_RE.exec(line))) {
+        const [, time, name, status] = m;
+        const meta = participants.get(name);
+        if (meta) meta.status = status;
         const entry = document.createElement('div');
         entry.className = 'entry';
         const t = document.createElement('span');
@@ -159,10 +193,58 @@
         t.textContent = time;
         entry.appendChild(t);
         entry.appendChild(agentSpan(name));
-        const s = document.createElement('span');
-        s.className = 'system-line';
-        s.textContent = ' joined';
-        entry.appendChild(s);
+        const isSpan = document.createElement('span');
+        isSpan.className = 'system-line';
+        isSpan.textContent = ' is ';
+        entry.appendChild(isSpan);
+        const statusSpan = document.createElement('span');
+        statusSpan.className = 'info-text';
+        statusSpan.textContent = status;
+        entry.appendChild(statusSpan);
+        entriesEl.appendChild(entry);
+        currentBody = null;
+        continue;
+      }
+      if ((m = ACK_RE.exec(line))) {
+        const [, time, name] = m;
+        systemEntry(time, `${name} acknowledged`);
+        currentBody = null;
+        continue;
+      }
+      if ((m = KICKED_RE.exec(line))) {
+        const [, time, name, reason] = m;
+        systemEntry(time, `${name} kicked (${reason})`, 'kicked-line');
+        currentBody = null;
+        continue;
+      }
+      if ((m = JOINED_RE.exec(line))) {
+        const [, time, name, provider, model, effort, role, title] = m;
+        const meta = {
+          provider: provider.trim(), model: model.trim(), effort: effort.trim(), role,
+          title: title.trim(),
+        };
+        participants.set(name, meta);
+        const entry = document.createElement('div');
+        entry.className = 'entry';
+        const t = document.createElement('span');
+        t.className = 'time';
+        t.textContent = time;
+        entry.appendChild(t);
+        entry.appendChild(agentSpan(name));
+        const open = document.createElement('span');
+        open.className = 'system-line';
+        open.textContent = ' (';
+        entry.appendChild(open);
+        const info = [meta.provider, meta.model, meta.effort, meta.role];
+        if (meta.title) info.push(meta.title);
+        const infoSpan = document.createElement('span');
+        infoSpan.className = 'info-text';
+        infoSpan.textContent = info.join(' · ');
+        entry.appendChild(infoSpan);
+        const close = document.createElement('span');
+        close.className = 'system-line';
+        close.textContent = ') joined';
+        entry.appendChild(close);
         entriesEl.appendChild(entry);
         currentBody = null;
         continue;
@@ -176,6 +258,8 @@
         t.textContent = time;
         entry.appendChild(t);
         entry.appendChild(agentSpan(name));
+        const msgTag = titleTag(name);
+        if (msgTag) entry.appendChild(msgTag);
         entry.appendChild(document.createTextNode(': '));
         const body = document.createElement('div');
         body.className = 'msg-line';
@@ -211,19 +295,52 @@
     statusEl.textContent = `updated ${new Date(file.lastModified).toLocaleTimeString()}`;
   }
 
-  openBtn.addEventListener('click', async () => {
-    let dirHandle;
-    try {
-      dirHandle = await window.showDirectoryPicker();
-    } catch (err) {
-      return; // user cancelled the picker
-    }
+  // Remembers the last picked directory (as a real FileSystemDirectoryHandle,
+  // not just a path) so a page reload — which happens a lot, since this file
+  // is only re-read from disk when you reopen it — can reconnect without
+  // making you re-navigate the OS folder picker every time.
+  const DB_NAME = 'meeting-log-viewer';
+  const STORE = 'handles';
+  const DIR_KEY = 'dir';
+
+  function idbOpen() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore(STORE);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function idbGet(key) {
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readonly');
+      const req = tx.objectStore(STORE).get(key);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function idbSet(key, value) {
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).put(value, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  let pendingHandle = null; // a stored dir handle whose permission needs a click to re-request
+
+  async function connectToDir(dirHandle) {
     let handle;
     try {
       handle = await dirHandle.getFileHandle('log.md');
     } catch (err) {
       statusEl.textContent = `no log.md in "${dirHandle.name}"`;
-      return;
+      return false;
     }
     hintEl.hidden = true;
     if (pollTimer) clearInterval(pollTimer);
@@ -232,7 +349,64 @@
     pollTimer = setInterval(() => pollOnce(handle).catch((e) => {
       statusEl.textContent = 'read error: ' + e.message;
     }), 2000);
+    openBtn.textContent = `Change folder (currently "${dirHandle.name}")`;
+    try {
+      await idbSet(DIR_KEY, dirHandle);
+    } catch (e) {
+      // Persistence is a nice-to-have — a private window, cleared site data,
+      // or a browser that blocks IndexedDB for local files just means next
+      // load falls back to the normal picker flow.
+    }
+    return true;
+  }
+
+  async function tryAutoReconnect() {
+    let stored;
+    try {
+      stored = await idbGet(DIR_KEY);
+    } catch (e) {
+      return;
+    }
+    if (!stored) return;
+    try {
+      // queryPermission never needs a user gesture, unlike requestPermission
+      // — so this can succeed silently on page load with no click at all.
+      const perm = await stored.queryPermission({ mode: 'read' });
+      if (perm === 'granted') {
+        await connectToDir(stored);
+        return;
+      }
+    } catch (e) {
+      return; // handle is stale (folder moved/deleted, or permission API unavailable)
+    }
+    // Not yet granted — remember it so the button can do a lightweight
+    // requestPermission instead of making you re-pick the folder.
+    pendingHandle = stored;
+    openBtn.textContent = `Reconnect to "${stored.name}"`;
+  }
+
+  openBtn.addEventListener('click', async () => {
+    let dirHandle = null;
+    if (pendingHandle) {
+      try {
+        const perm = await pendingHandle.requestPermission({ mode: 'read' });
+        if (perm === 'granted') dirHandle = pendingHandle;
+      } catch (e) {
+        // fall through to the picker
+      }
+      pendingHandle = null;
+    }
+    if (!dirHandle) {
+      try {
+        dirHandle = await window.showDirectoryPicker({ id: 'meeting-log-dir' });
+      } catch (err) {
+        return; // user cancelled the picker
+      }
+    }
+    await connectToDir(dirHandle);
   });
+
+  tryAutoReconnect();
 })();
 </script>
 </body>

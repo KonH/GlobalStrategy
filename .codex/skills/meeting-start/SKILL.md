@@ -6,12 +6,14 @@ description: Start and own a multi-agent meeting under Docs/Meetings/ — join a
 # Meeting start (Codex)
 
 Follow `.claude/skills/meeting-start/SKILL.md` exactly — it defines the
-owner's join/open/turn-selection/end/summary procedure on top of the shared
-protocol in `.claude/skills/meeting-join/SKILL.md`, all tool-agnostic.
+owner's join/prepare/readiness-gate/open/turn-selection/end/summary
+procedure on top of the shared protocol in
+`.claude/skills/meeting-join/SKILL.md`, all tool-agnostic.
 
 Codex-specific notes:
 - Run the wait script via `scripts/meetings/wait_for_turn.ps1` (PowerShell)
   or `scripts/meetings/wait_for_turn.sh` (POSIX shell) — whichever this
   session's shell tool is.
 - Fill the `joined` line's `Provider` as `Codex CLI`; `Model`/`Effort` as
-  whatever this session reports for itself, else `unknown`/`default`.
+  whatever this session reports for itself, else `unknown`/`default`; work
+  out `Title` per `meeting-join`'s "Choosing a title" (owner exception).
