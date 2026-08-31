@@ -46,6 +46,20 @@ namespace GS.Game.Bots {
 		}
 
 		public void Update(float deltaTime) {
+			if (UpdateLogic(deltaTime)) {
+				UpdateVisualState(deltaTime);
+			}
+		}
+
+		/// <summary>
+		/// Bot decisions plus <see cref="GameLogic.UpdateLogic"/>, whose return value is passed
+		/// through: false means the game is already completed and the caller must skip
+		/// <see cref="UpdateVisualState"/>. Split out from <see cref="Update"/> so a host can
+		/// profile simulation and presentation separately; SyncBotsFromWorld only reads the
+		/// world and attaches bots, so running it here rather than after the projection changes
+		/// nothing.
+		/// </summary>
+		public bool UpdateLogic(float deltaTime) {
 			if (!_logic.IsCompleted) {
 				foreach (var bot in _botsByOrgId.Values) {
 					if (OrgDestroySystem.IsOrgDestroyed(_logic.World, bot.OrgId)) {
@@ -54,10 +68,15 @@ namespace GS.Game.Bots {
 					bot.ExecuteDecisionTick(_logic.World, _logic.ActionConfig);
 				}
 			}
-			_logic.Update(deltaTime);
+			bool logicRan = _logic.UpdateLogic(deltaTime);
 			if (_discoverFromWorld) {
 				SyncBotsFromWorld();
 			}
+			return logicRan;
+		}
+
+		public void UpdateVisualState(float deltaTime) {
+			_logic.UpdateVisualState(deltaTime);
 		}
 
 		void SyncBotsFromWorld() {

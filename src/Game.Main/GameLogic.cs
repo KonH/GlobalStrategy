@@ -120,6 +120,21 @@ namespace GS.Main {
 		}
 
 		public void Update(float deltaTime) {
+			if (UpdateLogic(deltaTime)) {
+				UpdateVisualState(deltaTime);
+			}
+		}
+
+		/// <summary>
+		/// Simulation half of a tick: runs every system, drains the command buffer and mutates
+		/// the world. Hosts that want simulation and presentation measured separately (the Unity
+		/// GameLoopRunner's profiler scopes) call this and <see cref="UpdateVisualState"/> in
+		/// sequence instead of <see cref="Update"/>; everyone else keeps calling Update.
+		/// Returns false when the game is already completed and the world stayed frozen this
+		/// tick - the caller must then skip <see cref="UpdateVisualState"/>, matching the early
+		/// return the single Update used to make before reaching the converter.
+		/// </summary>
+		public bool UpdateLogic(float deltaTime) {
 			if (InitSystem.Update(_world, _context, _rng, _resources, _relations)) {
 				_resources.Rebuild(_world);
 				_relations.Rebuild(_world);
@@ -141,7 +156,7 @@ namespace GS.Main {
 			if (IsCompleted) {
 				ProcessSaveCommands();
 				_commandAccessor.Clear();
-				return;
+				return false;
 			}
 
 			ref GameTime time = ref _world.Get<GameTime>(_gameTimeEntity);
@@ -370,6 +385,14 @@ namespace GS.Main {
 				_world, _gameCompletionEntity, _context.InitialOrganizationId);
 
 			_commandAccessor.Clear();
+			return true;
+		}
+
+		/// <summary>
+		/// Presentation half of a tick: projects the world into <see cref="VisualState"/> and
+		/// ticks its animatables. Call only when <see cref="UpdateLogic"/> returned true.
+		/// </summary>
+		public void UpdateVisualState(float deltaTime) {
 			_visualStateConverter.Update(deltaTime, _world, _gameTimeEntity, _localeEntity, _orgEntity);
 		}
 
