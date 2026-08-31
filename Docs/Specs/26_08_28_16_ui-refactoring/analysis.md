@@ -86,7 +86,7 @@ whether to keep generalising that flag-per-panel pattern or invert to a real pul
 
 ## Options
 
-### A. Gallery scene — **prototype built, verdict pending**
+### A. Gallery scene — **prototype built, verdict - worth it**
 
 Original sketch: dedicated scene + `GalleryLifetimeScope` that swaps one registration
 (`GameLifetimeScope.cs:79`) for a hand-built `VisualState`. Named scenarios (at-war, broke,
@@ -141,28 +141,28 @@ cooldown overlays, requirement rows — that has no UXML and that UI Builder the
 all. That is the preview payoff E was partly wanted for, delivered without binding, without property
 bags and without the AOT question. E now has to earn its cost on boilerplate reduction alone.
 
-### B. UXML template extraction
+### B. UXML template extraction - **agreed**
 Author `ActionCard.uxml`, `LeaderboardRow.uxml`, `CharacterCard.uxml`; instantiate via `VisualTreeAsset.Instantiate()`.
 
 - **Payoff:** UI Builder previewability for the content that currently has none. Prerequisite for C and for any binding.
 - **Cost:** medium, per-template, incremental.
 - **Risk:** low-medium — touches working view code.
 
-### C. ListView virtualization
+### C. ListView virtualization - **agreed**
 Replace `ScrollView` + full `Clear()`/rebuild. Worst case today: 154 country rows × ~4 elements rebuilt per tick while the leaderboard is open.
 
 - **Payoff:** performance; removes the rebuild pattern.
 - **Cost:** low *after* B (`makeItem` returns a template instance).
 - **Risk:** low.
 
-### D. USS design tokens
+### D. USS design tokens - **agreed**
 `--gs-*` custom properties on `:root` in `SharedStyles.uss`, mirroring the prototype's token names. Project uses zero USS variables today.
 
 - **Payoff:** palette change becomes one block instead of 184 literals; shared vocabulary with the HTML prototype.
 - **Cost:** low, mechanical.
 - **Risk:** low.
 
-### E. Presentation-model data binding
+### E. Presentation-model data binding - **skip for now**
 Unity-side `[CreateProperty]` model + `INotifyBindablePropertyChanged`, fed by a projector from `VisualState`. Bind UXML to that, not to `VisualState`. Preview via a sample `.asset` data source.
 
 - **Payoff:** less document boilerplate; UI Builder preview of bound text; bound `ListView` item templates.
@@ -173,7 +173,7 @@ Unity-side `[CreateProperty]` model + `INotifyBindablePropertyChanged`, fed by a
   3. `ScriptableObject` for runtime mutable state — use `CreateInstance<>()`, reserve the `.asset` for preview only. Binding does not require ScriptableObject at runtime.
 - **Does not** help the 223 C#-built elements; B remains a prerequisite.
 
-### F. Standalone fixes
+### F. Standalone fixes - **agreed**
 Independent of the above, small.
 
 - `HUDDocument.cs:737` still uses `EventSystem.IsPointerOverGameObject()`; `UIPointerState.IsPointerOverUI` is used everywhere else. One line.
