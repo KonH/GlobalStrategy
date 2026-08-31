@@ -1,0 +1,73 @@
+/* Layout only - every colour and font comes from SharedStyles.uss, and the card itself is
+   styled entirely by OrgActions.uss so what the gallery shows is what the HUD shows. */
+
+.gallery-root {
+    flex-grow: 1;
+    flex-direction: column;
+    background-color: rgb(58, 52, 44);
+    padding: 12px;
+}
+
+/* Page header. Plain .gs-header - no size override, so a block header can match it exactly. */
+.gallery-header {
+    margin-bottom: 4px;
+}
+
+.gallery-block {
+    margin-top: 8px;
+}
+
+/* A block's foldout title is deliberately the same style as "UI Gallery" above it: the values
+   here are .gs-header's, repeated because a foldout's title is a Toggle's text element, not a
+   Label we can put a class on. Keep the two in step by hand. */
+.gallery-block .unity-foldout__toggle .unity-toggle__text {
+    font-size: 36px;
+    color: rgb(240, 232, 208);
+    -unity-font-style: bold;
+    -unity-font-definition: url("/Assets/UI/Fonts/Cinzel-Bold SDF.asset");
+}
+
+.gallery-controls {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 8px 12px;
+    margin-top: 8px;
+}
+
+/* No `gap` support in 6000.4.1f1. margin-right rather than margin-left: a left margin on every
+   child would also push the first one off the container edge. */
+.gallery-dropdown {
+    margin-right: 16px;
+}
+
+/* Standard field label otherwise - only the colour and size change, so the control keeps its
+   default metrics and the labels stay legible on the dark gallery ground. */
+.gallery-dropdown .unity-base-field__label {
+    color: rgb(255, 255, 255);
+    font-size: 20px;
+}
+
+/* Width comes from GalleryDocument.FitDropdownToWidestChoice, which measures every choice and
+   sets a min-width on the popup's text element - no fixed width to keep in sync with content. */
+.gallery-dropdown .unity-base-popup-field__text {
+    -unity-text-align: middle-left;
+}
+
+.gallery-summary {
+    margin-left: 4px;
+}
+
+.gallery-stage {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+    min-height: 380px;
+}
+
+/* Sized to the .action-card shell (240x360) so the preview never rescales it. */
+.gallery-card-host {
+    width: 240px;
+    height: 360px;
+    flex-direction: column;
+}

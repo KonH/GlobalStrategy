@@ -86,12 +86,60 @@ whether to keep generalising that flag-per-panel pattern or invert to a real pul
 
 ## Options
 
-### A. Gallery scene
-Dedicated scene + `GalleryLifetimeScope` that swaps one registration (`GameLifetimeScope.cs:79`) for a hand-built `VisualState`. Named scenarios (at-war, broke, empty-hand) switchable without restart.
+### A. Gallery scene — **prototype built, verdict pending**
+
+Original sketch: dedicated scene + `GalleryLifetimeScope` that swaps one registration
+(`GameLifetimeScope.cs:79`) for a hand-built `VisualState`. Named scenarios (at-war, broke,
+empty-hand) switchable without restart.
 
 - **Payoff:** directly fixes the loop. Previews *everything*, including imperative cards/tooltips/animation.
 - **Cost:** ~half a day. One scene, one scope, one samples class.
 - **Risk:** low — additive, touches no existing UI code.
+
+#### A as built
+
+Scoped to one element — the action card — to get a verdict cheaply. Files:
+`Assets/Scenes/Gallery.unity`, `Assets/Scripts/Unity/Gallery/{GalleryDocument.cs,
+GS.Unity.Gallery.asmdef}`, `Assets/UI/Gallery/{Gallery.uxml, Gallery.uss}`.
+
+**It needed neither the lifetime scope nor `VisualState`.** The sketch assumed a `GalleryLifetimeScope`
+substituting a hand-built `VisualState` into DI. The prototype skips both: it constructs an
+`ActionCardEntry` directly — one `new` per state, no ECS world, no `GameLogic`, no save, no bots — and
+hands it to the production `ActionCardBuilder`. Constraining fact #3 held in practice, and further than
+expected: previewing UI turns out not to require the state container at all, only the small DTO the
+view actually reads. That is the same shape option G moves toward, arrived at independently.
+
+Structure that emerged, and which later elements should follow:
+
+- A page header, then **one `ui:Foldout` block per element**. Adding the next element (leaderboard row,
+  character card) is one more sibling foldout, not a new scene.
+- Two dropdowns per block: **which instance** (all 16 action ids from `action_config.json`) and
+  **which state**. Seven states are enumerated for the card: playable, unaffordable gold, requirements
+  failed, on cooldown, war-odds badge, multi-country target, discard hint. Each is a few lines in
+  `BuildEntry` — the switch *is* the gallery's entire state layer.
+- Real data throughout: real localization, `ActionVisualConfig` art, `CountryVisualConfig` flags, and
+  the card's own `OrgActions.uss`. What the gallery renders is what the HUD renders.
+
+**Live-edit rebinding is what makes the loop fast, and it is not free.** Editing the UXML or USS of a
+running `UIDocument` makes Unity rebuild the document's whole visual tree from source, detaching every
+element the C# side bound and discarding all control state. Without handling that, every style save
+silently reset the dropdowns and collapsed the block — the loop stayed slow for the exact edits it
+exists to serve. `GalleryDocument` therefore checks one detached-element flag per frame, rebinds to the
+fresh tree, and restores selection and foldout state from `[SerializeField, HideInInspector]` fields
+(serialized so a script recompile's domain reload survives too). **Any future gallery block must do the
+same** — it is the difference between "edit USS, see it" and "edit USS, navigate back to where you
+were".
+
+**Cost paid to production code:** one word — `ActionConditionText` in `CountryActionsView.cs` went
+internal → public so requirement rows use the same localized text as the HUD. `ComposeFaceData` is
+duplicated (~25 lines) because the production copy is a private member of a view that also owns
+gestures, tooltips and a hand container; extract the shared version if A graduates past prototype
+rather than growing the copy.
+
+**What this already tells us about E:** the gallery previews the C#-built content — cards, badges,
+cooldown overlays, requirement rows — that has no UXML and that UI Builder therefore cannot show at
+all. That is the preview payoff E was partly wanted for, delivered without binding, without property
+bags and without the AOT question. E now has to earn its cost on boilerplate reduction alone.
 
 ### B. UXML template extraction
 Author `ActionCard.uxml`, `LeaderboardRow.uxml`, `CharacterCard.uxml`; instantiate via `VisualTreeAsset.Instantiate()`.
@@ -163,7 +211,7 @@ question becomes real again.
 ## Dependency order
 
 ```
-A (gallery) ──── independent; now also the gate on E
+A (gallery) ──── card block built; independent; the gate on E
 B (templates) ── prerequisite for C and E
    ├── C (ListView)
    └── E (binding)  ← blocked on A's prototype verdict
@@ -175,17 +223,21 @@ G (pull model) ─ independent; agreed
 ## Decisions so far
 
 - **G is agreed** — pull model for cold panels, projections staying in `src/`.
-- **E (native binding) is still wanted**, but gated: build the A gallery prototype first and judge in
-  the real editor whether the preview loop it gives is already enough. E's three known caveats stand —
-  reflection property bags for `src/` types under IL2CPP/WebGL, the mirror layer needed to avoid them,
-  and the fact that UI Toolkit's runtime binding re-reads its source every frame unless the source
-  implements `INotifyBindablePropertyChanged` (so binding gives panel-level gating, not per-access
-  laziness — it does not by itself deliver what G delivers).
+- **A is built for one element** (the action card) and awaiting a verdict in the editor. It came out
+  cheaper than sketched — no lifetime scope, no `VisualState` — and it previews the C#-built content
+  nothing else can. Extending it is one foldout block per element.
+- **E (native binding) is still wanted**, but gated on that verdict, and its case is now narrower: A
+  already delivers the preview payoff, so E stands or falls on boilerplate reduction. Its three known
+  caveats stand — reflection property bags for `src/` types under IL2CPP/WebGL, the mirror layer needed
+  to avoid them, and the fact that UI Toolkit's runtime binding re-reads its source every frame unless
+  the source implements `INotifyBindablePropertyChanged` (so binding gives panel-level gating, not
+  per-access laziness — it does not by itself deliver what G delivers).
 - **Full pull model / deleting `VisualState`** — not decided, see G's note.
 
 ## Open questions
 
-1. Does A's prototype resolve the feedback-loop pain on its own, making B–E optional?
+1. Does A's card block resolve the feedback-loop pain in daily use, making B–E optional? Which element
+   is worth the second block?
 2. Does E earn its cost once A exists, or is the boilerplate better killed with a subscription helper (~10 lines replacing ~60)?
 3. If E goes ahead — pilot on MainMenu and Time first, per the suggested sequencing?
 4. `.clicked`: migrate all 22, or narrow the rule to cases that actually reproduced?

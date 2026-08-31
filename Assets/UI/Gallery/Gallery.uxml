@@ -1,0 +1,19 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss" />
+    <ui:Style src="project://database/Assets/UI/Overlay/OrgInfo/OrgActions.uss" />
+    <ui:Style src="project://database/Assets/UI/HUD/CountryInfo/CountryInfo.uss" />
+    <ui:Style src="project://database/Assets/UI/Gallery/Gallery.uss" />
+    <ui:VisualElement name="gallery-root" class="gallery-root">
+        <ui:Label text="UI Gallery" name="gallery-header" class="gs-header gallery-header" />
+        <ui:Foldout text="Card" name="card-block" value="true" class="gallery-block">
+            <ui:VisualElement name="card-controls" class="gallery-controls gs-panel">
+                <ui:DropdownField label="Card" name="card-dropdown" class="gallery-dropdown" />
+                <ui:DropdownField label="State" name="state-dropdown" class="gallery-dropdown" />
+                <ui:Label name="gallery-summary" class="gs-hint gallery-summary" />
+            </ui:VisualElement>
+            <ui:VisualElement name="gallery-stage" class="gallery-stage">
+                <ui:VisualElement name="card-host" class="gallery-card-host" />
+            </ui:VisualElement>
+        </ui:Foldout>
+    </ui:VisualElement>
+</ui:UXML>

@@ -502,7 +502,9 @@ namespace GS.Unity.UI {
 		}
 	}
 
-	static class ActionConditionText {
+	// Public so the gallery scene (GS.Unity.Gallery) can render requirement rows with the same
+	// localized text the HUD uses instead of duplicating the format-argument rules below.
+	public static class ActionConditionText {
 		public static string Localize(ILocalization localization, ActionConditionDebugEntry condition) {
 			if (condition == null) {
 				return "";
