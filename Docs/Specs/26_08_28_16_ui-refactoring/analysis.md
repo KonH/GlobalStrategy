@@ -226,6 +226,10 @@ G (pull model) ─ independent; agreed
 - **A is built for one element** (the action card) and awaiting a verdict in the editor. It came out
   cheaper than sketched — no lifetime scope, no `VisualState` — and it previews the C#-built content
   nothing else can. Extending it is one foldout block per element.
+  *Superseded in part:* the "no lifetime scope" half no longer holds at full scale. The owner's
+  constitution check on the plan restored the DI principle for the Gallery, so it gains a
+  `GalleryLifetimeScope` parented to `ProjectLifetimeScope` before the block count grows. The
+  "no `VisualState`, no `GameLogic`" half stands unchanged.
 - **E (native binding) is still wanted**, but gated on that verdict, and its case is now narrower: A
   already delivers the preview payoff, so E stands or falls on boilerplate reduction. Its three known
   caveats stand — reflection property bags for `src/` types under IL2CPP/WebGL, the mirror layer needed

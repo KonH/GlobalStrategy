@@ -9,6 +9,7 @@ Non-negotiable architectural principles. The `/plan` command checks these before
 ## Game Logic
 
 - **ECS for all game logic, living in `src/`.** No game state, simulation, or domain rules inside Unity MonoBehaviours; MonoBehaviours are presentation and input glue only.
+- **Projection scheduling is presentation, not logic.** Deciding *when* a projection runs — on open, right after a command the caller itself issued, on a timer, skipped while paused — is presentation glue and may live in a MonoBehaviour, which may read the world to do it. The projection stays a pure `Project(IReadOnlyWorld, ...) -> DTO` function in `src/` under `dotnet test`; no rule may be inlined Unity-side. Pull-on-demand is preferred over per-tick push for anything a closed or off-screen surface does not display.
 
 ## Dependency Injection
 
@@ -34,7 +35,8 @@ Non-negotiable architectural principles. The `/plan` command checks these before
 
 ## Assembly Structure
 
-- **One `.asmdef` per feature folder under `Assets/Scripts/`.** No cross-folder assemblies; each feature compiles independently and references others by GUID.
+- **One `.asmdef` per feature folder under `Assets/Scripts/`.** The assembly boundary is the established feature level `Assets/Scripts/<Tier>/<Feature>/` (e.g. `Assets/Scripts/Unity/UI/`, `Assets/Scripts/Editor/Map/`); every feature at that level has one, compiles independently, and references others by GUID.
+- **Deeper nesting is organisation, not a new assembly.** Subfolders inside a feature folder may carry their own `.asmdef`, but are not required to — that is a judgement call on the subfolder's size and scope, not a rule. Plain subfolders within one feature folder are the default.
 
 ## C# Code Style
 

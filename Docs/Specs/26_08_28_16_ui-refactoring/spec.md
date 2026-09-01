@@ -210,8 +210,9 @@ Gallery block. This is also how analysis option **B** (UXML template extraction)
   `WarResultWindowView`, `EndGameWindowView`, `CountryDestroyedWindowView`, `OrgDestroyedWindowView`.
 - **Asmdef granularity:** plain subfolders inside the existing `GS.Unity.UI` assembly
   (`Assets/Scripts/Unity/UI/GS.Unity.UI.asmdef`) — *no* new asmdefs for panels, cards, rows or
-  windows. The one exception is the debug UI, below. This satisfies the Constitution's "one
-  `.asmdef` per feature folder under `Assets/Scripts/`" without fragmenting compilation.
+  windows. The one exception is the debug UI, below. This is explicitly allowed by the
+  Constitution's Assembly Structure section: the required boundary is the feature level
+  `Assets/Scripts/<Tier>/<Feature>/`, and deeper nesting is organisation, not a new assembly.
 - Behaviour parity is the bar: this workstream moves code, it does not change what the UI does
   (`RankRow`'s styling unification excepted). There are **zero Unity test assemblies**, so parity is
   verified by Gallery blocks plus manual play — which is why every surface gets its Gallery block
@@ -219,9 +220,11 @@ Gallery block. This is also how analysis option **B** (UXML template extraction)
 
 ### Debug UI extraction (criteria groups 3 and 9)
 
-The in-HUD debug system leaves the shipping HUD **entirely**: its own feature folder under
-`Assets/Scripts/Unity/`, its own `.asmdef`, its own UI surface object and its own markup. This also
-removes `GS.Unity.EcsViewer` from the shipping HUD's reference set.
+The in-HUD debug system leaves the shipping HUD **entirely**: its own feature folder
+`Assets/Scripts/Unity/DebugTools/`, its own `GS.Unity.DebugTools.asmdef`, its own UI surface object
+and its own markup. This also removes `GS.Unity.EcsViewer` from the shipping HUD's reference set.
+The name is `DebugTools`, not `Debug`: a `GS.Unity.Debug` namespace would shadow `UnityEngine.Debug`
+at every call site that has `using UnityEngine;`.
 
 **This feature does not change whether the debug UI ships.** It is present in builds today (its
 markup lives in `HUD.uxml:43-112`) and stays present afterwards. What changes is that excluding it
@@ -260,8 +263,12 @@ sub-menus, `DebugCardAvailabilityView` and the FPS counter each get a block.
 - Scene and assets already exist: `Assets/Scenes/Gallery.unity`,
   `Assets/Scripts/Unity/Gallery/{GalleryDocument.cs, GS.Unity.Gallery.asmdef}`,
   `Assets/UI/Gallery/{Gallery.uxml, Gallery.uss}`. The prototype covers exactly one element (the
-  action card, 7 states × 16 action ids) and is deliberately DI-free — no `GalleryLifetimeScope`,
-  no `VisualState`, no `GameLogic`.
+  action card, 7 states × 16 action ids) and is DI-free **today** — no `GalleryLifetimeScope`,
+  no `VisualState`, no `GameLogic`. The `VisualState`/`GameLogic`-free part is permanent (criteria
+  group 1: every block must render with no game, no ECS world and no save). The DI-free part is
+  **not**: before the block count grows, the Gallery gains a `GalleryLifetimeScope` parented to
+  `ProjectLifetimeScope`, so that `new`-ing container-registered services is not copied 40 times
+  over. See the plan's phase 3, first step.
 - `Assets/Scenes/Gallery.unity` is **not** in `ProjectSettings/EditorBuildSettings.asset`
   (`m_Scenes` lists MainMenu, CountrySelection, Map only). Keep it out.
 - **Do not grow `GalleryDocument.cs` into a second `HUDDocument`.** Split it into one small block
@@ -287,6 +294,10 @@ sub-menus, `DebugCardAvailabilityView` and the FPS counter each get a block.
   - *Windows:* MainMenu, SelectCountry (`SelectOrgDocument`), LoadWindow, SettingsWindow, GameMenu,
     LeaderboardWindow, GoalsWindow, WarProgressWindow (+ `WarProgressLayout`), WarResultWindow,
     CountryDestroyedWindow, OrgDestroyedWindow, EndGameWindow.
+    Note: `Assets/UI/Modal/WarProgressLayout/` contains only `WarProgressLayout.uss` — there is no
+    `WarProgressLayout.uxml`; the layout is authored inline in both `WarProgressWindow.uxml` and
+    `WarResultWindow.uxml`. Its Gallery block therefore previews the shared subtree through
+    `WarProgressLayoutBinder`, not a template.
   - *Debug:* debug panel, province / relation / control-org / character sub-menus,
     `DebugCardAvailabilityView`, FPS counter.
 - `ComposeFaceData` is currently duplicated between `CountryActionsView` and
@@ -296,7 +307,7 @@ sub-menus, `DebugCardAvailabilityView` and the FPS counter each get a block.
   prototype; expect a small number of similar widenings, and prefer `public` over
   `InternalsVisibleTo` per `.claude/rules/csharp/code_style.md`.
 - Gallery-only helper types stay in `GS.Unity.Gallery`, which already references `GS.Unity.UI`,
-  `GS.Unity.Common`, `GS.Unity.Map`, `GS.Unity.Save`; it gains a reference to the new debug assembly.
+  `GS.Unity.Common`, `GS.Unity.Map`, `GS.Unity.Save`; it gains a reference to `GS.Unity.DebugTools`.
 
 ### PanelRenderer migration (criteria group 8; user bullet 2)
 
@@ -417,7 +428,7 @@ in a way it does not to `UIDocument`.
    public static class VisualElementClickExtensions {
    	public static void OnClick(this VisualElement element, Action handler) {
    		element.RegisterCallback<PointerUpEvent>(evt => {
-   			if (evt.button != 0 || !element.enabledSelf) {
+   			if (evt.button != 0 || !element.enabledInHierarchy) {
    				return;
    			}
    			if (!element.ContainsPoint(evt.localPosition)) {
@@ -462,10 +473,19 @@ in a way it does not to `UIDocument`.
 - **Move off the per-tick path:** `VisualStateConverter.UpdateLeaderboards`
   (`VisualStateConverter.cs:1021` — allocates two lists over every org plus all 154 countries and
   sorts both, every tick, with the window closed), `UpdateGoals` (:1051), `UpdateSelectedWar` (:326),
-  `UpdateDebugOrgCardAvailability` (:721), and the EndGameComparison projection. Call sites: the
+  and `UpdateDebugOrgCardAvailability` (:721). Call sites: the
   owning document's open path plus a refresh while it stays open — `LeaderboardWindowDocument`,
   `GoalsWindowDocument`, `WarProgressWindowDocument`, `WarResultWindowDocument`,
   `EndGameWindowDocument`, and the extracted debug card-availability UI.
+- **`EndGameComparisonProjector` is already pull-shaped — leave it alone.** `Build` is called on
+  demand from `EndGameWindowView.cs:131`, fed by `GameSettings.EndGameComparisons` config; it never
+  runs per tick, so there is nothing to move. What the end-game window actually costs per tick is
+  `UpdateLeaderboards`, which it consumes — covered by the row above.
+- **`HUDDocument`'s `VisualState.Leaderboard` consumers must pull first.** Its only readers are
+  three debug-only members (`GetOrgDisplayName`, `RebuildControlOrgDropdown`, `GetOpponentOrgId`)
+  plus the subscription at `HUDDocument.cs:604`. The leaderboard cannot leave the per-tick path
+  until these pull instead, so they convert as part of this workstream — ahead of, and independent
+  of, the debug extraction that later relocates them.
 - **Refresh cadence (decided, not open):** re-project immediately when the window opens; immediately
   after any command the window itself pushes; and otherwise on a wall-clock accumulator of 250 ms
   while it stays open, ticked from the owning document's existing `Update`. Skip the scheduled
@@ -475,7 +495,7 @@ in a way it does not to `UIDocument`.
 - Each moved panel also deletes its `StateEquality` diffing and its subscribe/unsubscribe pair — the
   diff machinery exists only to suppress notifications a pull model never raises.
 - The existing laziness hints (`CountryActionsVisibility.ActionsPanelOpen` wired from
-  `CountryActionsView.cs:223`, `DebugOrgCardVisibility`'s four flags wired from `HUDDocument.cs:258`)
+  `CountryInfoView.cs:223`, `DebugOrgCardVisibility`'s four flags wired from `HUDDocument.cs:258`)
   are the flag-per-panel predecessor of this; where a panel converts to pull, its flag gate goes away
   with it.
 - **Must NOT be pulled — edge-triggered observations.** `UpdateGameLog`
