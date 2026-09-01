@@ -207,8 +207,8 @@ namespace GS.Game.Tests {
 			world.Add(deck, new CardHand { HandSize = 1 });
 			var config = new ActionConfig {
 				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = ActionId, OwnerType = "country", DeckCopies = 1 },
-					new ActionDefinition { ActionId = "improve_opinion", OwnerType = "country", DeckCopies = 1 }
+					new ActionDefinition { ActionId = ActionId, OwnerType = "country", Chance = 1 },
+					new ActionDefinition { ActionId = "improve_opinion", OwnerType = "country", Chance = 1 }
 				}
 			};
 
@@ -245,12 +245,12 @@ namespace GS.Game.Tests {
 			actionConfig.Actions.Add(new ActionDefinition {
 				ActionId = "discard_replacement_a",
 				OwnerType = "country",
-				DeckCopies = 1
+				Chance = 1
 			});
 			actionConfig.Actions.Add(new ActionDefinition {
 				ActionId = "discard_replacement_b",
 				OwnerType = "country",
-				DeckCopies = 1
+				Chance = 1
 			});
 			var logic = new GameLogic(context);
 			logic.Update(0);

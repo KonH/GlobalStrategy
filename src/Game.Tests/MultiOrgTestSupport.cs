@@ -126,21 +126,21 @@ namespace GS.Game.Tests {
 				effectConfig.Effects.Add(new ControlChangeEffectParams {
 					EffectId = "control_pos", EffectType = "ControlChange", Amount = 5
 				});
-				// Relation-synced cards: DeckCopies is draw weight (InitSystem skips these ids).
+				// Relation-synced cards: Chance is draw weight (InitSystem skips these ids).
 				actionConfig.Actions.Add(new ActionDefinition {
 					ActionId = "stop_friendship",
 					OwnerType = "country",
-					DeckCopies = 1
+					Chance = 1
 				});
 				actionConfig.Actions.Add(new ActionDefinition {
 					ActionId = "stop_rivalry",
 					OwnerType = "country",
-					DeckCopies = 1
+					Chance = 1
 				});
 				actionConfig.Actions.Add(new ActionDefinition {
 					ActionId = "declare_war",
 					OwnerType = "country",
-					DeckCopies = 1
+					Chance = 1
 				});
 			}
 			var geoJson = new GeoJsonConfig();

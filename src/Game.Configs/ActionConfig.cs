@@ -13,11 +13,12 @@ namespace GS.Game.Configs {
 		public string DescKey        { get; set; } = "";
 		public string OwnerType      { get; set; } = "";
 		public string TargetRole     { get; set; } = "";
-		public int DeckCopies        { get; set; } = 3;
+		public double Chance         { get; set; } = 3.0;
 		public double CooldownDays   { get; set; } = 0;
 		public List<ExpressionNode> Conditions { get; set; } = new();
 		public List<ActionCost> Cost { get; set; } = new();
 		public List<string> EffectIds { get; set; } = new();
+		public double? DrawWeightMultiplier { get; set; } = null;
 	}
 
 	public class ActionOwnerDefaults {

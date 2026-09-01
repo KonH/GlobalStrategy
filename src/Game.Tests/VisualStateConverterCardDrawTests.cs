@@ -19,17 +19,17 @@ namespace GS.Game.Tests {
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = 3 }
 				},
 				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = "hand_card", OwnerType = "country", DeckCopies = 1 },
+					new ActionDefinition { ActionId = "hand_card", OwnerType = "country", Chance = 1 },
 					new ActionDefinition {
 						ActionId = "offered_card",
 						OwnerType = "country",
-						DeckCopies = 1,
+						Chance = 1,
 						Cost = new List<ActionCost> {
 							new ActionCost { ResourceId = ResourceDefinitions.Gold, Amount = 10 }
 						}
 					},
-					new ActionDefinition { ActionId = "offered_card_two", OwnerType = "country", DeckCopies = 1 },
-					new ActionDefinition { ActionId = "deck_card", OwnerType = "country", DeckCopies = 1 }
+					new ActionDefinition { ActionId = "offered_card_two", OwnerType = "country", Chance = 1 },
+					new ActionDefinition { ActionId = "deck_card", OwnerType = "country", Chance = 1 }
 				}
 			};
 		}

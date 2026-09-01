@@ -127,7 +127,7 @@ namespace GS.Game.Systems {
 				TypeId<CardOwnerType>.Value
 			};
 			int[] excluded = { TypeId<CardInHand>.Value, TypeId<CardDiscard>.Value };
-			var candidates = new List<(int Entity, int Weight)>();
+			var candidates = new List<(int Entity, double Weight)>();
 			foreach (Archetype arch in world.GetMatchingArchetypes(required, excluded)) {
 				GameAction[] actions = arch.GetColumn<GameAction>();
 				OrgContext[] organizations = arch.GetColumn<OrgContext>();
@@ -137,21 +137,21 @@ namespace GS.Game.Systems {
 						continue;
 					}
 					ActionDefinition? definition = config.Find(actions[i].ActionId);
-					if (definition == null || definition.DeckCopies <= 0) {
+					if (definition == null || definition.Chance <= 0) {
 						continue;
 					}
-					candidates.Add((arch.Entities[i], definition.DeckCopies));
+					candidates.Add((arch.Entities[i], definition.Chance));
 				}
 			}
 
 			HashSet<int> occupiedSlots = GetOccupiedSlots(world, orgId, CardOwnerKind.Org);
 			int drawn = 0;
 			for (; drawn < toDraw && candidates.Count > 0; drawn++) {
-				int totalWeight = 0;
+				double totalWeight = 0;
 				foreach (var candidate in candidates) {
 					totalWeight += candidate.Weight;
 				}
-				int roll = rng.Next(totalWeight);
+				double roll = rng.NextDouble() * totalWeight;
 				int selectedIndex = 0;
 				for (; selectedIndex < candidates.Count; selectedIndex++) {
 					roll -= candidates[selectedIndex].Weight;
@@ -159,6 +159,7 @@ namespace GS.Game.Systems {
 						break;
 					}
 				}
+				selectedIndex = Math.Min(selectedIndex, candidates.Count - 1);
 
 				int slotIndex = 0;
 				while (occupiedSlots.Contains(slotIndex)) {
@@ -189,7 +190,7 @@ namespace GS.Game.Systems {
 			var candidates = new List<CountryCardDrawCandidate>(
 				CountryCardDrawQuery.GetDrawableCards(world, config, orgId));
 			for (int i = 0; i < candidates.Count; i++) {
-				double adjusted = AdjustWeight(world, relations, orgId, playerOrgId, candidates[i]);
+				double adjusted = AdjustWeight(world, config, relations, orgId, playerOrgId, candidates[i]);
 				candidates[i] = candidates[i].WithWeight(adjusted);
 			}
 
@@ -242,36 +243,36 @@ namespace GS.Game.Systems {
 		}
 
 		/// <summary>
-		/// stop_rivalry offers at half its normal weight for every organisation. declare_war
-		/// offers at +70% weight, player organisation only, when the player holds any control
-		/// in a country that is itself a rival of the card's war target.
+		/// Applies each action's configured <see cref="ActionDefinition.DrawWeightMultiplier"/> to the
+		/// candidate's draw weight. declare_war's multiplier additionally requires a runtime gate —
+		/// it only applies for the player organisation when the player holds any control in a country
+		/// that is itself a rival of the card's war target — so its magnitude stays config-driven while
+		/// its applicability stays state-driven.
 		/// </summary>
 		static double AdjustWeight(
-			IReadOnlyWorld world,
-			CountryRelations relations,
-			string orgId,
-			string playerOrgId,
-			CountryCardDrawCandidate candidate) {
+			IReadOnlyWorld world, ActionConfig config, CountryRelations relations,
+			string orgId, string playerOrgId, CountryCardDrawCandidate candidate) {
 			if (!world.Has<GameAction>(candidate.Entity)) {
 				return candidate.Weight;
 			}
 
 			string actionId = world.Get<GameAction>(candidate.Entity).ActionId;
-			if (actionId == "stop_rivalry") {
-				return candidate.Weight * 0.5;
+			double multiplier = config.Find(actionId)?.DrawWeightMultiplier ?? 1.0;
+			if (multiplier == 1.0) {
+				return candidate.Weight;
 			}
 
-			if (actionId == "declare_war"
-				&& orgId == playerOrgId
-				&& !string.IsNullOrEmpty(playerOrgId)
-				&& world.Has<RelationCardTarget>(candidate.Entity)) {
-				string targetCountryId = world.Get<RelationCardTarget>(candidate.Entity).TargetCountryId;
-				if (HasControlInRivalOf(world, relations, orgId, targetCountryId)) {
-					return candidate.Weight * 1.7;
+			if (actionId == "declare_war") {
+				bool gated = orgId != playerOrgId
+					|| string.IsNullOrEmpty(playerOrgId)
+					|| !world.Has<RelationCardTarget>(candidate.Entity)
+					|| !HasControlInRivalOf(world, relations, orgId, world.Get<RelationCardTarget>(candidate.Entity).TargetCountryId);
+				if (gated) {
+					return candidate.Weight;
 				}
 			}
 
-			return candidate.Weight;
+			return candidate.Weight * multiplier;
 		}
 
 		static bool HasControlInRivalOf(IReadOnlyWorld world, CountryRelations relations, string orgId, string countryId) {

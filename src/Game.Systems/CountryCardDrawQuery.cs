@@ -118,14 +118,14 @@ namespace GS.Game.Systems {
 						continue;
 					}
 					ActionDefinition? definition = config.Find(actions[i].ActionId);
-					if (definition == null || definition.DeckCopies <= 0) {
+					if (definition == null || definition.Chance <= 0) {
 						continue;
 					}
 					int entity = arch.Entities[i];
 					if (TargetsDestroyedCountry(world, entity)) {
 						continue;
 					}
-					candidates.Add(new CountryCardDrawCandidate(entity, definition.DeckCopies));
+					candidates.Add(new CountryCardDrawCandidate(entity, definition.Chance));
 				}
 			}
 			return candidates;

@@ -96,7 +96,7 @@ namespace GS.Game.Tests {
 
 		static IReadOnlyList<GameLogEntry> Entries(GameLogic logic) => logic.VisualState.GameLog.Entries;
 
-		// DeckCopies = 0 so InitSystem creates no per-target make_friend instances automatically —
+		// Chance = 0 so InitSystem creates no per-target make_friend instances automatically —
 		// tests using this config seed their own single RelationCardTarget-bearing instance
 		// directly into hand, for a deterministic outcome independent of which of the ~N per-target
 		// instances an initial random draw would otherwise pick.
@@ -105,7 +105,7 @@ namespace GS.Game.Tests {
 				new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
 			},
 			Actions = new List<ActionDefinition> {
-				new ActionDefinition { ActionId = "make_friend", OwnerType = "country", DeckCopies = 0, EffectIds = new List<string> { "make_friend_effect" } }
+				new ActionDefinition { ActionId = "make_friend", OwnerType = "country", Chance = 0, EffectIds = new List<string> { "make_friend_effect" } }
 			}
 		};
 
@@ -142,7 +142,7 @@ namespace GS.Game.Tests {
 					ActionId = "force_war_win",
 					OwnerType = "country",
 					TargetRole = "military_advisor",
-					DeckCopies = 1,
+					Chance = 1,
 					Conditions = new List<ExpressionNode> {
 						Gte("control", 10),
 						Gte("opinion", 50),
@@ -158,7 +158,7 @@ namespace GS.Game.Tests {
 					ActionId = "force_war_loss",
 					OwnerType = "country",
 					TargetRole = "military_advisor",
-					DeckCopies = 1,
+					Chance = 1,
 					Conditions = new List<ExpressionNode> {
 						Gte("control", 20),
 						Gte("opinion", 80),
@@ -243,7 +243,7 @@ namespace GS.Game.Tests {
 		// make_friend/make_rival cards are now per-target instances (RelationCardTarget, no
 		// CountryContext — the primary side stays dynamic), so this seeds a single instance
 		// directly into hand rather than relying on which of the ~N per-target instances an
-		// initial random draw would pick — see RelationActionConfig's DeckCopies = 0.
+		// initial random draw would pick — see RelationActionConfig's Chance = 0.
 		[Fact]
 		void relation_produces_exactly_one_entry_with_target_and_kind_and_no_extra_on_a_passive_tick() {
 			var logic = BuildLogic(RelationActionConfig(), RelationEffectConfig());
@@ -351,7 +351,7 @@ namespace GS.Game.Tests {
 				new ActionOwnerDefaults { OwnerType = "country", HandSize = deckCopies }
 			},
 			Actions = new List<ActionDefinition> {
-				new ActionDefinition { ActionId = "raise_control", OwnerType = "country", DeckCopies = deckCopies, EffectIds = new List<string> { "control_gain" } }
+				new ActionDefinition { ActionId = "raise_control", OwnerType = "country", Chance = deckCopies, EffectIds = new List<string> { "control_gain" } }
 			}
 		};
 
@@ -368,7 +368,7 @@ namespace GS.Game.Tests {
 			};
 			foreach (string actionId in actionIds) {
 				config.Actions.Add(new ActionDefinition {
-					ActionId = actionId, OwnerType = "country", DeckCopies = 1, EffectIds = new List<string> { "control_gain" }
+					ActionId = actionId, OwnerType = "country", Chance = 1, EffectIds = new List<string> { "control_gain" }
 				});
 			}
 			return config;
@@ -388,7 +388,7 @@ namespace GS.Game.Tests {
 				new ActionDefinition {
 					ActionId = "decrease_enemy_control",
 					OwnerType = "country",
-					DeckCopies = 1,
+					Chance = 1,
 					Conditions = new List<ExpressionNode> {
 						new ExpressionNode {
 							Type = "gt",
@@ -656,7 +656,7 @@ namespace GS.Game.Tests {
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = 2 }
 				},
 				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = "improve_opinion", OwnerType = "country", TargetRole = "ruler", DeckCopies = 2, EffectIds = new List<string> { "opinion_boost" } }
+					new ActionDefinition { ActionId = "improve_opinion", OwnerType = "country", TargetRole = "ruler", Chance = 2, EffectIds = new List<string> { "opinion_boost" } }
 				}
 			};
 			var effectConfig = new EffectConfig {

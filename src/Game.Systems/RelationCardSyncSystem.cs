@@ -66,8 +66,8 @@ namespace GS.Game.Systems {
 			string actionId
 		) {
 			var def = config.Find(actionId);
-			// DeckCopies == 0 means the card is disabled for draw; skip creating a deck instance.
-			if (def == null || def.DeckCopies <= 0) { return; }
+			// Chance <= 0 means the card is disabled for draw; skip creating a deck instance.
+			if (def == null || def.Chance <= 0) { return; }
 
 			int[] req = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CountryContext>.Value, TypeId<RelationCardTarget>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
