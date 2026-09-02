@@ -10,7 +10,7 @@ namespace GS.Game.Tests {
 				new ExpressionNode {
 					Type = "gte",
 					Members = {
-						new ExpressionNode { Type = "targetRulerOrMilitaryOpinion" },
+						new ExpressionNode { Type = "targetMilitaryOpinion" },
 						new ExpressionNode { Type = "value", Value = 50 }
 					}
 				},
@@ -30,7 +30,7 @@ namespace GS.Game.Tests {
 				}
 			};
 			var ctx = new ExpressionContext {
-				TargetRulerOrMilitaryOpinion = 40,
+				TargetMilitaryOpinion = 40,
 				CountryRelations = new Dictionary<string, double> {
 					["none"] = 0,
 					["friend"] = 0,
@@ -42,7 +42,7 @@ namespace GS.Game.Tests {
 			var results = ActionConditionDebug.EvaluateAll(conditions, ctx);
 
 			Assert.Equal(3, results.Count);
-			Assert.Equal("targetRulerOrMilitaryOpinion (40) >= 50", results[0].Label);
+			Assert.Equal("targetMilitaryOpinion (40) >= 50", results[0].Label);
 			Assert.False(results[0].Passed);
 			Assert.Equal("hasCountryRelation[rival:] (1) >= 1", results[1].Label);
 			Assert.True(results[1].Passed);

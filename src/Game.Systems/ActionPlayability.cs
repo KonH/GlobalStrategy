@@ -288,7 +288,7 @@ namespace GS.Game.Systems {
 			return type == "control"
 				|| type == "totalCountryControl"
 				|| type == "opinion"
-				|| type == "targetRulerOrMilitaryOpinion";
+				|| type == "targetMilitaryOpinion";
 		}
 
 		public static bool CanAfford(IReadOnlyWorld world, string orgId, List<ActionCost> costs, ResourceQuery resources) {
