@@ -79,7 +79,7 @@
     align-self: stretch;
     margin-bottom: 2px;
     font-size: 18px;
-    color: rgb(200, 184, 144);
+    color: var(--gs-color-mid);
     white-space: normal;
 }
 
@@ -111,33 +111,10 @@
     margin-left: 8px;
 }
 
-.war-result-province-row {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: center;
-    align-self: stretch;
-    margin-bottom: 4px;
-}
-
+/* .war-result-province-row/-arrow/-name moved to Components.uss as
+   .province-transfer-row/-arrow/-name (ProvinceTransferRow component). Sizing only stays here -
+   the flag-badge component class (Components.uss) owns picking mode and scale mode. */
 .war-result-province-flag {
-    flex-shrink: 0;
     width: 28px;
     height: 20px;
-    -unity-background-scale-mode: scale-to-fit;
-}
-
-.war-result-province-arrow {
-    flex-shrink: 0;
-    margin-left: 6px;
-    margin-right: 6px;
-    font-size: 18px;
-}
-
-.war-result-province-name {
-    flex-shrink: 1;
-    margin-left: 8px;
-    font-size: 18px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }

@@ -9,7 +9,7 @@ using GS.Unity.Common;
 using GS.Unity.Map;
 
 namespace GS.Unity.UI {
-	class CountryInfoView {
+	public class CountryInfoView {
 		readonly VisualElement _root;
 		readonly Label _name;
 		readonly VisualElement? _flagElement;
@@ -120,14 +120,10 @@ namespace GS.Unity.UI {
 				}
 			}
 			if (_charsToggleBtn != null) {
-				_charsToggleBtn.RegisterCallback<PointerUpEvent>(e => {
-					if (e.button == 0 && _charsToggleBtn.ContainsPoint(e.localPosition)) { ToggleChars(); }
-				});
+				_charsToggleBtn.OnClick(ToggleChars);
 			}
 			if (_actionsToggleBtn != null) {
-				_actionsToggleBtn.RegisterCallback<PointerUpEvent>(e => {
-					if (e.button == 0 && _actionsToggleBtn.ContainsPoint(e.localPosition)) { ToggleActions(); }
-				});
+				_actionsToggleBtn.OnClick(ToggleActions);
 			}
 		}
 
@@ -262,11 +258,8 @@ namespace GS.Unity.UI {
 		}
 
 		VisualElement BuildControlTooltip(TooltipContext ctx) {
-			var root = new VisualElement();
-
-			var header = new Label(_loc.Get("hud.control_tooltip_title"));
-			header.AddToClassList("tooltip-header");
-			root.Add(header);
+			var root = TooltipBodyBuilder.NewRoot();
+			TooltipBodyBuilder.AddHeader(root, _loc.Get("hud.control_tooltip_title"));
 
 			var control = _controlState;
 			if (control == null) {
@@ -274,31 +267,16 @@ namespace GS.Unity.UI {
 			}
 
 			foreach (var entry in control.OrgEntries) {
-				var row = new VisualElement();
-				row.AddToClassList("flag-name-row");
-				row.AddToClassList("tooltip-inner-trigger");
-
-				var flagEl = new VisualElement();
-				flagEl.AddToClassList("entity-flag");
-				flagEl.pickingMode = PickingMode.Ignore;
+				FlagNameHeaderBuilder.Elements row = FlagNameHeaderBuilder.Build("entity-flag");
+				row.Row.AddToClassList("tooltip-inner-trigger");
+				row.Label.AddToClassList("tooltip-effect-name");
+				row.Label.AddToClassList("tooltip-effect-positive");
 				var orgSprite = _orgVisualConfig?.Find(entry.OrgId)?.flag;
-				if (orgSprite != null) {
-					flagEl.style.backgroundImage = new StyleBackground(orgSprite);
-					flagEl.style.display = DisplayStyle.Flex;
-				} else {
-					flagEl.style.display = DisplayStyle.None;
-				}
-				row.Add(flagEl);
-
-				var label = new Label($"{entry.DisplayName}: {entry.Control}");
-				label.AddToClassList("tooltip-effect-name");
-				label.AddToClassList("tooltip-effect-positive");
-				row.Add(label);
-
-				root.Add(row);
+				FlagNameHeaderBuilder.Bind(row, orgSprite, $"{entry.DisplayName}: {entry.Control}");
+				root.Add(row.Row);
 
 				var capturedEntry = entry;
-				ctx.RegisterInnerTrigger(row, $"org-control-{entry.OrgId}", _ =>
+				ctx.RegisterInnerTrigger(row.Row, $"org-control-{entry.OrgId}", _ =>
 					BuildOrgControlInnerTooltip(capturedEntry));
 			}
 
@@ -306,36 +284,18 @@ namespace GS.Unity.UI {
 		}
 
 		VisualElement BuildOrgControlInnerTooltip(OrgControlEntry entry) {
-			var root = new VisualElement();
+			var root = TooltipBodyBuilder.NewRoot();
+			TooltipBodyBuilder.AddHeader(root, entry.DisplayName);
 
-			var header = new Label(entry.DisplayName);
-			header.AddToClassList("tooltip-header");
-			root.Add(header);
-
-			var controlRow = new Label($"{_loc.Get("hud.country_control")}: {entry.Control}");
-			controlRow.AddToClassList("tooltip-effect-name");
-			root.Add(controlRow);
-
-			var baseRow = new Label($"  {_loc.Get("hud.control_tooltip_base")} +{entry.BaseControl}");
-			baseRow.AddToClassList("tooltip-effect-name");
-			baseRow.AddToClassList("tooltip-effect-positive");
-			root.Add(baseRow);
+			TooltipBodyBuilder.AddLine(root, $"{_loc.Get("hud.country_control")}: {entry.Control}");
+			TooltipBodyBuilder.AddLine(root, $"  {_loc.Get("hud.control_tooltip_base")} +{entry.BaseControl}", TooltipBodyBuilder.LineTone.Positive);
 
 			if (entry.PermanentControl > 0) {
-				var permRow = new Label($"  {_loc.Get("hud.control_tooltip_permanent")} +{entry.PermanentControl}");
-				permRow.AddToClassList("tooltip-effect-name");
-				permRow.AddToClassList("tooltip-effect-positive");
-				root.Add(permRow);
+				TooltipBodyBuilder.AddLine(root, $"  {_loc.Get("hud.control_tooltip_permanent")} +{entry.PermanentControl}", TooltipBodyBuilder.LineTone.Positive);
 			}
 
-			var leadsTo = new Label(_loc.Get("hud.control_tooltip_leads_to"));
-			leadsTo.AddToClassList("tooltip-effect-name");
-			root.Add(leadsTo);
-
-			var incomeRow = new Label($"  {_loc.Get("hud.control_tooltip_income")} +{entry.EstimatedMonthlyGold:F1}/month");
-			incomeRow.AddToClassList("tooltip-effect-name");
-			incomeRow.AddToClassList("tooltip-effect-positive");
-			root.Add(incomeRow);
+			TooltipBodyBuilder.AddLine(root, _loc.Get("hud.control_tooltip_leads_to"));
+			TooltipBodyBuilder.AddLine(root, $"  {_loc.Get("hud.control_tooltip_income")} +{entry.EstimatedMonthlyGold:F1}/month", TooltipBodyBuilder.LineTone.Positive);
 
 			return root;
 		}
@@ -348,30 +308,21 @@ namespace GS.Unity.UI {
 			rowBlock.style.display = countryIds.Count == 0 ? DisplayStyle.None : DisplayStyle.Flex;
 			for (int i = 0; i < countryIds.Count; i++) {
 				var countryId = countryIds[i];
-				var flagEl = new VisualElement();
-				flagEl.AddToClassList("relations-flag");
+				var flagEl = FlagBadgeBuilder.Build("relations-flag");
 				if (i > 0) {
 					flagEl.style.marginLeft = 8;
 				}
 				var sprite = _countryVisualConfig?.Find(countryId)?.flag;
-				if (sprite != null) {
-					flagEl.style.backgroundImage = new StyleBackground(sprite);
-				}
-				flagEl.RegisterCallback<PointerUpEvent>(e => {
-					if (e.button == 0 && flagEl.ContainsPoint(e.localPosition)) {
-						OnRelatedCountryFlagClicked?.Invoke(countryId);
-					}
-				});
+				FlagBadgeBuilder.Bind(flagEl, sprite);
+				flagEl.OnClick(() => OnRelatedCountryFlagClicked?.Invoke(countryId));
 				_tooltip.RegisterTrigger(flagEl, $"{keyPrefix}-{countryId}-{i}", _ => BuildRelationTooltip(countryId), new HashSet<string>());
 				container.Add(flagEl);
 			}
 		}
 
 		VisualElement BuildRelationTooltip(string countryId) {
-			var root = new VisualElement();
-			var header = new Label(_loc.Get($"country_name.{countryId}"));
-			header.AddToClassList("tooltip-header");
-			root.Add(header);
+			var root = TooltipBodyBuilder.NewRoot();
+			TooltipBodyBuilder.AddHeader(root, _loc.Get($"country_name.{countryId}"));
 			return root;
 		}
 

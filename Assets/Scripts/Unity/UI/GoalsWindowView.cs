@@ -78,40 +78,14 @@ namespace GS.Unity.UI {
 		}
 
 		VisualElement CreateOrgRow(LeaderboardEntryState entry) {
-			var row = new VisualElement();
-			row.AddToClassList("goals-row");
-			row.EnableInClassList("goals-row--selected", entry.EntityId == _selectedOrgId);
-			string orgId = entry.EntityId;
-			row.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && row.ContainsPoint(e.localPosition)) {
-					SelectOrg(orgId);
-				}
-			});
-
-			var place = new Label(entry.Place.ToString(CultureInfo.InvariantCulture));
-			place.AddToClassList("goals-row-place");
-			row.Add(place);
-
-			var flag = new VisualElement();
-			flag.AddToClassList("goals-row-flag");
 			Sprite sprite = _orgVisualConfig?.Find(entry.EntityId)?.flag;
-			if (sprite != null) {
-				flag.style.backgroundImage = new StyleBackground(sprite);
-				flag.style.display = DisplayStyle.Flex;
-			} else {
-				flag.style.display = DisplayStyle.None;
-			}
-			row.Add(flag);
-
-			var name = new Label(entry.DisplayName);
-			name.AddToClassList("goals-row-name");
-			row.Add(name);
-
-			var score = new Label(ScoreFormat.Format(entry.Score));
-			score.AddToClassList("goals-row-score");
-			row.Add(score);
-
-			return row;
+			RankRowBuilder.Elements elements = RankRowBuilder.Build();
+			RankRowBuilder.Bind(
+				elements, entry.Place, sprite, entry.DisplayName, ScoreFormat.Format(entry.Score),
+				highlighted: entry.EntityId == _selectedOrgId);
+			string orgId = entry.EntityId;
+			elements.Row.OnClick(() => SelectOrg(orgId));
+			return elements.Row;
 		}
 
 		VisualElement CreateProgressRow(GoalProgressEntryState goal) {
@@ -122,23 +96,16 @@ namespace GS.Unity.UI {
 			description.AddToClassList("goals-progress-description");
 			row.Add(description);
 
-			var track = new VisualElement();
-			track.AddToClassList("goals-progress-track");
-
-			var fill = new VisualElement();
-			fill.AddToClassList("goals-progress-fill");
-			float percent = 0f;
-			if (goal.Target > 0) {
-				percent = (float)Math.Min(1.0, goal.Current / goal.Target) * 100f;
-			}
-			fill.style.width = new Length(percent, LengthUnit.Percent);
-			track.Add(fill);
+			ProgressBarBuilder.Elements bar = ProgressBarBuilder.Build();
+			bar.Track.AddToClassList("goals-progress-track");
+			float fraction = goal.Target > 0 ? (float)Math.Min(1.0, goal.Current / goal.Target) : 0f;
+			ProgressBarBuilder.Bind(bar, fraction);
 
 			var nm = new Label($"{FormatValue(goal, goal.Current)}/{FormatValue(goal, goal.Target)}");
 			nm.AddToClassList("goals-progress-nm");
-			track.Add(nm);
+			bar.Track.Add(nm);
 
-			row.Add(track);
+			row.Add(bar.Track);
 			return row;
 		}
 

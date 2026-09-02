@@ -18,11 +18,7 @@ namespace GS.Unity.UI {
 		ModalState _modalState;
 		UIDocument _doc;
 		VisualElement _root;
-
-		Label _lblTitle;
-		Button _btnResume;
-		Button _btnSave;
-		Button _btnExit;
+		GameMenuView _view;
 
 		[Inject]
 		void Construct(IWriteOnlyCommandAccessor commands, VisualState visualState, SceneLoader sceneLoader, ILocalization loc, IFlyTextNotifier flyText, ModalState modalState) {
@@ -35,6 +31,7 @@ namespace GS.Unity.UI {
 		}
 
 		// Explicit sortingOrder, not scene-authoring order — see .claude/rules/unity/uitoolkit.md
+		// "Layer Model" (sortingOrder governs stacking among documents sharing HUDPanelSettings;
 		// Above modals (Leaderboard 500 / Goals 505 / War 510), just below FlyText (1000), below EndGame (1100).
 		const int SortingOrder = 990;
 
@@ -59,20 +56,11 @@ namespace GS.Unity.UI {
 
 		void Start() {
 			_root = _doc.rootVisualElement;
-			_lblTitle = _root.Q<Label>("menu-title");
-			_btnResume = _root.Q<Button>("btn-resume");
-			_btnSave = _root.Q<Button>("btn-save");
-			_btnExit = _root.Q<Button>("btn-exit");
+			_view = new GameMenuView(_root);
 
-			_btnResume.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && _btnResume.ContainsPoint(e.localPosition)) { Hide(); }
-			});
-			_btnSave.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && _btnSave.ContainsPoint(e.localPosition)) { OnSave(); }
-			});
-			_btnExit.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && _btnExit.ContainsPoint(e.localPosition)) { _sceneLoader.LoadMainMenu(); }
-			});
+			_view.BtnResume.OnClick(Hide);
+			_view.BtnSave.OnClick(OnSave);
+			_view.BtnExit.OnClick(() => _sceneLoader.LoadMainMenu());
 
 			Hide();
 		}
@@ -132,13 +120,7 @@ namespace GS.Unity.UI {
 		}
 
 		void RefreshTexts() {
-			if (_lblTitle == null) {
-				return;
-			}
-			_lblTitle.text = _loc.Get("game_menu.title");
-			_btnResume.text = _loc.Get("game_menu.resume");
-			_btnSave.text = _loc.Get("game_menu.save");
-			_btnExit.text = _loc.Get("game_menu.exit");
+			_view?.RefreshTexts(_loc);
 		}
 	}
 }

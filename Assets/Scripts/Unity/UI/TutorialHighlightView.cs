@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 using GS.Main;
 
 namespace GS.Unity.UI {
-	class TutorialHighlightView {
+	public class TutorialHighlightView {
 		const float ArrowWidth = 44f;
 		const float ArrowHeight = 40f;
 		const float ArrowGap = 12f;

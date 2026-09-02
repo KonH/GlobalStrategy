@@ -1,0 +1,19 @@
+{
+    "name": "GS.Unity.DebugTools",
+    "rootNamespace": "",
+    "references": [
+        "GUID:31616c5c35fcc3c418ca03ade2c0cfb9",
+        "GUID:41cd3871486c6f74198dee3483866912",
+        "GUID:7e5a37e68b84aeb48bf5de2cbe39a94e",
+        "GUID:b0214a6008ed146ff8f122a6a9c2f6cc"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

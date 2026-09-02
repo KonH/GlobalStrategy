@@ -44,8 +44,8 @@
 
 .player-country-panel {
     padding: 8px 12px;
-    background-color: rgb(26, 42, 72);
-    border-color: rgb(200, 160, 64);
+    background-color: var(--gs-panel-bg);
+    border-color: var(--gs-panel-border);
     border-width: 3px;
     border-radius: 6px;
 }
@@ -59,8 +59,8 @@
 .player-tasks-panel {
     margin-top: 6px;
     padding: 6px 8px;
-    background-color: rgb(26, 42, 72);
-    border-color: rgb(200, 160, 64);
+    background-color: var(--gs-panel-bg);
+    border-color: var(--gs-panel-border);
     border-width: 2px;
     border-radius: 6px;
     width: 320px;
@@ -71,8 +71,8 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: rgb(26, 42, 72);
-    border-color: rgb(200, 160, 64);
+    background-color: var(--gs-panel-bg);
+    border-color: var(--gs-panel-border);
     border-top-width: 3px;
     border-left-width: 0;
     border-right-width: 0;
@@ -83,15 +83,6 @@
     align-items: stretch;
 }
 
-.top-center-panel {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    flex-direction: row;
-    justify-content: center;
-}
-
 .hud-hamburger-button {
     font-size: 20px;
     width: 234px;
@@ -99,133 +90,6 @@
     margin-top: 4px;
     border-radius: 3px;
     -unity-background-scale-mode: scale-to-fit;
-}
-
-.hud-debug-toggle {
-    font-size: 24px;
-    height: 50px;
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-}
-
-.hud-fps-label {
-    margin-left: 8px;
-    align-self: center;
-    padding: 4px 8px;
-    background-color: rgb(26, 42, 72);
-    border-color: rgb(200, 160, 64);
-    border-width: 1px;
-    border-radius: 4px;
-}
-
-.debug-panel {
-    position: absolute;
-    top: 36px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    align-items: center;
-    display: none;
-}
-
-.debug-panel-scroll {
-    flex-grow: 1;
-    width: 100%;
-    max-height: 100%;
-}
-
-.debug-panel-scroll .unity-scroll-view__content-container {
-    width: 100%;
-    align-items: center;
-    padding-bottom: 16px;
-}
-
-.debug-panel-inner {
-    background-color: rgb(26, 42, 72);
-    border-color: rgb(200, 160, 64);
-    border-width: 1px;
-    border-radius: 4px;
-    padding: 8px 16px;
-    flex-direction: column;
-    min-width: 260px;
-    max-width: 100%;
-    align-items: stretch;
-    margin-top: 8px;
-}
-
-.debug-panel-two-col {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    max-width: 100%;
-}
-
-.debug-panel-col {
-    flex-direction: column;
-    flex-grow: 1;
-    min-width: 220px;
-    max-width: 100%;
-    margin-right: 8px;
-}
-
-.debug-panel-inner-section {
-    flex-direction: column;
-    margin-left: 8px;
-    margin-bottom: 4px;
-}
-
-.debug-card-block {
-    flex-direction: column;
-    margin-top: 2px;
-}
-
-.debug-card-header-row {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.debug-card-action-button {
-    flex-shrink: 0;
-    margin-left: 4px;
-    margin-top: 8px;
-}
-
-.debug-card-details {
-    flex-direction: column;
-    margin-left: 12px;
-}
-
-.debug-condition-label {
-    margin-top: 2px;
-    font-size: 14px;
-}
-
-.debug-card-available {
-    color: rgb(80, 200, 80);
-}
-
-.debug-card-unavailable {
-    color: rgb(220, 70, 70);
-}
-
-.debug-panel-menu-title {
-    margin-bottom: 4px;
-    align-self: center;
-}
-
-.debug-panel-menu-toggle {
-    min-width: 220px;
-    max-width: 100%;
-    margin-top: 8px;
-}
-
-.debug-panel-button {
-    padding: 4px 16px;
-    font-size: 16px;
-    margin-top: 4px;
 }
 
 .gs-icon-btn--menu {
@@ -238,8 +102,8 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: rgb(26, 42, 72);
-    border-color: rgb(200, 160, 64);
+    background-color: var(--gs-panel-bg);
+    border-color: var(--gs-panel-border);
     border-top-width: 3px;
     border-left-width: 0;
     border-right-width: 0;
@@ -254,8 +118,8 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: rgb(26, 42, 72);
-    border-color: rgb(200, 160, 64);
+    background-color: var(--gs-panel-bg);
+    border-color: var(--gs-panel-border);
     border-top-width: 3px;
     border-left-width: 0;
     border-right-width: 0;

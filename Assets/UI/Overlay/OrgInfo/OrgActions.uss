@@ -75,7 +75,7 @@
     padding: 2px 8px;
     border-radius: 4px;
     background-color: rgba(0, 0, 0, 0.85);
-    color: rgb(240, 232, 208);
+    color: var(--gs-color-dark);
     font-size: 22px;
     -unity-font-style: bold;
     text-shadow: 1px 1px 2px rgb(0, 0, 0);
@@ -94,11 +94,11 @@
 }
 
 .action-card--available {
-    border-color: rgb(139, 109, 56);
+    border-color: var(--gs-border-muted-warm);
 }
 
 .action-card--unavailable {
-    border-color: rgb(139, 109, 56);
+    border-color: var(--gs-border-muted-warm);
 }
 
 .action-card-content {
@@ -117,24 +117,24 @@
 }
 
 .action-card--fail {
-    border-color: rgb(224, 64, 64);
+    border-color: var(--gs-color-negative);
 }
 
 /* Header bar */
 .action-card-header {
     height: 48px;
     flex-shrink: 0;
-    background-color: rgb(26, 42, 72);
-    color: rgb(240, 232, 208);
+    background-color: var(--gs-panel-bg);
+    color: var(--gs-color-dark);
     font-size: 20px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
     padding: 2px 4px;
     border-bottom-width: 1px;
-    border-color: rgb(200, 160, 64);
+    border-color: var(--gs-panel-border);
     white-space: normal;
     overflow: hidden;
-    -unity-font-definition: url("/Assets/UI/Fonts/Cinzel-Bold SDF.asset");
+    -unity-font-definition: var(--gs-font-header);
 }
 
 /* Art area */
@@ -184,8 +184,8 @@
     align-items: center;
     -unity-text-align: middle-center;
     font-size: 16px;
-    color: rgb(255, 255, 255);
-    -unity-font-definition: url("/Assets/UI/Fonts/Cinzel-Bold SDF.asset");
+    color: var(--gs-color-white);
+    -unity-font-definition: var(--gs-font-header);
     -unity-font-style: bold;
 }
 
@@ -215,7 +215,7 @@
     flex: 1;
     min-height: 0;
     overflow: hidden;
-    -unity-font-definition: url("/Assets/UI/Fonts/IMFellEnglish-Regular SDF.asset");
+    -unity-font-definition: var(--gs-font-body);
 }
 
 .action-card-requirements {
@@ -238,13 +238,13 @@
     font-size: 20px;
     white-space: normal;
     overflow: hidden;
-    -unity-font-definition: url("/Assets/UI/Fonts/IMFellEnglish-Regular SDF.asset");
+    -unity-font-definition: var(--gs-font-body);
 }
 
 .action-card-success-pct {
     font-size: 16px;
-    color: rgb(136, 136, 168);
-    -unity-font-definition: url("/Assets/UI/Fonts/IMFellEnglish-Regular SDF.asset");
+    color: var(--gs-color-hint);
+    -unity-font-definition: var(--gs-font-body);
 }
 
 /* Footer row: chance % on left, cost on right — inline inside body */
@@ -266,11 +266,11 @@
     font-size: 16px;
     color: rgb(42, 26, 8);
     margin-right: 4px;
-    -unity-font-definition: url("/Assets/UI/Fonts/Cinzel-Bold SDF.asset");
+    -unity-font-definition: var(--gs-font-header);
 }
 
 .action-card-cost-label--unaffordable {
-    color: rgb(224, 64, 64);
+    color: var(--gs-color-negative);
 }
 
 .action-card-cost-icon {
@@ -316,11 +316,11 @@
 }
 
 .action-card-cooldown-label {
-    color: rgb(240, 232, 208);
+    color: var(--gs-color-dark);
     font-size: 16px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
-    background-color: rgb(0, 0, 0);
+    background-color: var(--gs-color-black);
     padding: 2px 8px;
     border-radius: 4px;
 }

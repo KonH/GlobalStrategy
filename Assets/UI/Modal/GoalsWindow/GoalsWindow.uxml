@@ -1,5 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/Components/Components.uss"/>
     <ui:Style src="project://database/Assets/UI/Modal/GoalsWindow/GoalsWindow.uss"/>
     <ui:VisualElement name="goals-root" class="goals-root">
         <ui:VisualElement name="blackfade" class="gs-blackfade"/>

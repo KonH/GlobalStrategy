@@ -3,7 +3,7 @@ using UnityEngine.UIElements;
 using GS.Main;
 
 namespace GS.Unity.UI {
-	class TimeView {
+	public class TimeView {
 		readonly Label _date;
 		readonly Button _btnPause, _btnX1, _btnX2, _btnX3;
 
@@ -13,10 +13,10 @@ namespace GS.Unity.UI {
 			_btnX1 = root.Q<Button>("btn-x1");
 			_btnX2 = root.Q<Button>("btn-x2");
 			_btnX3 = root.Q<Button>("btn-x3");
-			_btnPause.clicked += onPauseToggle;
-			_btnX1.clicked += () => onSpeedChange(0);
-			_btnX2.clicked += () => onSpeedChange(1);
-			_btnX3.clicked += () => onSpeedChange(2);
+			_btnPause.OnClick(onPauseToggle);
+			_btnX1.OnClick(() => onSpeedChange(0));
+			_btnX2.OnClick(() => onSpeedChange(1));
+			_btnX3.OnClick(() => onSpeedChange(2));
 		}
 
 		public void Refresh(TimeState state) {

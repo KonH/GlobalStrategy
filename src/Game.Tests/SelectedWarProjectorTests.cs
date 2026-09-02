@@ -367,5 +367,25 @@ namespace GS.Game.Tests {
 
 			Assert.False(state.IsValid);
 		}
+
+		[Fact]
+		void project_does_not_clear_pending_war_id() {
+			// SelectedWarState.PendingWarId has no world backing and is set only by RequestOpen /
+			// Clear - the pull entry point must read it, never mutate it. Project it twice without
+			// calling RequestOpen again; if Project had cleared the pending selection as a side
+			// effect the second call would invalidate the state instead of re-resolving the same war.
+			(var world, var resources) = CreateWorld();
+			string warId = DeclareWar(world, resources, "France", "Germany");
+			var state = new SelectedWarState();
+			state.RequestOpen(warId);
+
+			Project(world, resources, state);
+			Assert.True(state.IsValid);
+			Assert.Equal(warId, state.WarId);
+
+			Project(world, resources, state);
+			Assert.True(state.IsValid);
+			Assert.Equal(warId, state.WarId);
+		}
 	}
 }

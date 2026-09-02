@@ -5,7 +5,7 @@ using GS.Game.Commands;
 using GS.Game.Common;
 
 namespace GS.Unity.UI {
-	class LensSwitcherView {
+	public class LensSwitcherView {
 		readonly VisualElement _root;
 		readonly Button _currentBtn;
 		readonly VisualElement _currentIcon;
@@ -28,11 +28,11 @@ namespace GS.Unity.UI {
 			_btnOrg = root.Q<Button>("lens-btn-org");
 			_btnProvince = root.Q<Button>("lens-btn-province");
 
-			_currentBtn.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _currentBtn.ContainsPoint(e.localPosition)) ToggleExpand(); });
-			_btnPolitical.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnPolitical.ContainsPoint(e.localPosition)) SelectLens(MapLens.Political); });
-			_btnGeographic.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnGeographic.ContainsPoint(e.localPosition)) SelectLens(MapLens.Geographic); });
-			_btnOrg.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnOrg.ContainsPoint(e.localPosition)) SelectLens(MapLens.Org); });
-			_btnProvince.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnProvince.ContainsPoint(e.localPosition)) SelectLens(MapLens.Province); });
+			_currentBtn.OnClick(ToggleExpand);
+			_btnPolitical.OnClick(() => SelectLens(MapLens.Political));
+			_btnGeographic.OnClick(() => SelectLens(MapLens.Geographic));
+			_btnOrg.OnClick(() => SelectLens(MapLens.Org));
+			_btnProvince.OnClick(() => SelectLens(MapLens.Province));
 
 			if (tooltip != null && loc != null) {
 				RegisterTooltip(tooltip, loc, _btnPolitical, "lens-political", "hud.lens.political");

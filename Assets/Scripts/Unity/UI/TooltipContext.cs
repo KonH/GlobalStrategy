@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.UIElements;
 
 namespace GS.Unity.UI {
-	class TooltipContext {
+	public class TooltipContext {
 		readonly TooltipSystem _system;
 		readonly HashSet<string> _ancestors;
 

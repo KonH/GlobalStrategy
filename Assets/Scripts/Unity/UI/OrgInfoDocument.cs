@@ -18,20 +18,9 @@ namespace GS.Unity.UI {
 		CharacterConfig _characterConfig;
 		CharacterVisualConfig _characterVisualConfig;
 		OrgVisualConfig _orgVisualConfig;
-		VisualElement _orgFlagElement;
 		TooltipSystem _tooltip;
 
-		VisualElement _charsSlide;
-		Button _charsToggleBtn;
-		Label _orgName;
-		ResourcesView _resourcesView;
-		OrgCharactersView _charactersView;
-		bool _charsOpen;
-
-		VisualElement _actionsSlide;
-		Button _actionsToggleBtn;
-		OrgActionsView _actionsView;
-		bool _actionsOpen;
+		OrgInfoView _view;
 		public event Action<bool> OnSubPanelOpened;
 		ActionConfig _actionConfig;
 		ActionVisualConfig _actionVisualConfig;
@@ -56,33 +45,11 @@ namespace GS.Unity.UI {
 			_document = GetComponent<UIDocument>();
 			var docRoot = _document.rootVisualElement;
 			_tooltip = new TooltipSystem(docRoot);
-
-			_orgName = docRoot.Q<Label>("org-name");
-			_orgFlagElement = docRoot.Q("org-flag");
-			_charsSlide = docRoot.Q("characters-slide");
-			_charsToggleBtn = docRoot.Q<Button>("chars-toggle-btn");
-			_actionsSlide = docRoot.Q("actions-slide");
-			_actionsToggleBtn = docRoot.Q<Button>("actions-toggle-btn");
-
-			if (_charsToggleBtn != null) {
-				_charsToggleBtn.RegisterCallback<PointerUpEvent>(e => {
-					if (e.button == 0 && _charsToggleBtn.ContainsPoint(e.localPosition)) { ToggleChars(); }
-				});
-			}
-
-			if (_actionsToggleBtn != null) {
-				_actionsToggleBtn.RegisterCallback<PointerUpEvent>(e => {
-					if (e.button == 0 && _actionsToggleBtn.ContainsPoint(e.localPosition)) { ToggleActions(); }
-				});
-			}
-
-			if (_charsSlide != null) { _charsSlide.pickingMode = PickingMode.Ignore; }
-			if (_actionsSlide != null) { _actionsSlide.pickingMode = PickingMode.Ignore; }
 			_document.rootVisualElement.style.display = DisplayStyle.None;
 		}
 
 		void Start() {
-			InitViews();
+			InitView();
 		}
 
 		void OnEnable() {
@@ -116,126 +83,44 @@ namespace GS.Unity.UI {
 
 		public void Hide() {
 			_document.rootVisualElement.style.display = DisplayStyle.None;
-			SetCharsOpen(false);
-			SetActionsOpen(false);
+			_view?.SetCharsOpen(false);
+			_view?.SetActionsOpen(false);
 		}
 
 		public bool IsVisible => _document.rootVisualElement.style.display == DisplayStyle.Flex;
 
-		void InitViews() {
-			if (_resourcesView != null) { return; }
+		void InitView() {
+			if (_view != null) { return; }
 			if (_state == null || _loc == null) { return; }
 			var docRoot = _document.rootVisualElement;
-			_resourcesView = new ResourcesView(docRoot.Q("resources-container"), _loc, _resourceConfig, _tooltip);
-			_charactersView = new OrgCharactersView(docRoot.Q("characters-container"), _loc, _characterConfig, _tooltip, _characterVisualConfig);
-			var actionsInstance = docRoot.Q("org-actions-instance");
-			if (actionsInstance != null) {
-				_actionsView = new OrgActionsView(
-					actionsInstance.Q("hand-container"),
-					_loc, _actionConfig, _actionVisualConfig, _resourceConfig, _tooltip);
-				_actionsView.OnCardClicked = OnActionCardClicked;
-				_cardPlayAnimator?.SetActionsView(_actionsView);
+			_view = new OrgInfoView(
+				docRoot, _loc, _resourceConfig, _characterConfig, _characterVisualConfig,
+				_orgVisualConfig, _actionConfig, _actionVisualConfig, _tooltip);
+			_view.OnSubPanelOpened += open => OnSubPanelOpened?.Invoke(open);
+			if (_view.CharsToggleBtn != null) {
+				_view.CharsToggleBtn.OnClick(_view.ToggleChars);
+			}
+			if (_view.ActionsToggleBtn != null) {
+				_view.ActionsToggleBtn.OnClick(_view.ToggleActions);
+			}
+			if (_view.ActionsView != null) {
+				_view.ActionsView.OnCardClicked = OnActionCardClicked;
+				_cardPlayAnimator?.SetActionsView(_view.ActionsView);
 			}
 		}
 
 		void Refresh() {
 			if (_state == null) { return; }
+			InitView();
+			if (_view == null) { return; }
 			var org = _state.PlayerOrganization;
 			if (!org.IsValid) { return; }
 			if (org.IsDestroyed) {
 				Hide();
 				return;
 			}
-			if (_orgName != null) {
-				_orgName.text = org.DisplayName;
-			}
-			if (_orgFlagElement != null) {
-				var sprite = _orgVisualConfig?.Find(org.OrgId)?.flag;
-				if (sprite != null) {
-					_orgFlagElement.style.backgroundImage = new StyleBackground(sprite);
-					_orgFlagElement.style.display = DisplayStyle.Flex;
-				} else {
-					_orgFlagElement.style.display = DisplayStyle.None;
-				}
-			}
-			_resourcesView?.Refresh(_state.PlayerOrganization.Resources);
-			_charactersView?.Refresh(_state.PlayerOrganization.Characters);
-			if (!_charsOpen && _charsSlide != null) { SetPickingModeRecursive(_charsSlide, PickingMode.Ignore); }
-			_actionsView?.Refresh(_state.PlayerOrganization.Actions, _state.PlayerOrganization.Resources);
-			if (!_actionsOpen && _actionsSlide != null) { SetPickingModeRecursive(_actionsSlide, PickingMode.Ignore); }
-
 			bool showControls = _gameSettings?.FeatureFlags?.ShowPlayerOrgControls ?? true;
-			bool hasChars = showControls && _state.PlayerOrganization.Characters.Slots.Count > 0;
-			if (_charsToggleBtn != null) {
-				_charsToggleBtn.style.display = hasChars ? DisplayStyle.Flex : DisplayStyle.None;
-			}
-
-			bool hasActions = showControls && (_state.PlayerOrganization.Actions.Hand.Count > 0 || _state.PlayerOrganization.Actions.Deck.Count > 0);
-			if (_actionsToggleBtn != null) {
-				_actionsToggleBtn.style.display = hasActions ? DisplayStyle.Flex : DisplayStyle.None;
-			}
-		}
-
-		void ToggleChars() {
-			SetCharsOpen(!_charsOpen);
-		}
-
-		void SetCharsOpen(bool open) {
-			if (open && _actionsOpen) { SetActionsOpen(false); }
-			_charsOpen = open;
-			if (_charsSlide != null) {
-				if (open) {
-					_charsSlide.AddToClassList("org-characters-slide--open");
-					SetPickingModeRecursive(_charsSlide, PickingMode.Position);
-				} else {
-					_charsSlide.RemoveFromClassList("org-characters-slide--open");
-					SetPickingModeRecursive(_charsSlide, PickingMode.Ignore);
-					_tooltip?.HideAll();
-				}
-			}
-			if (_charsToggleBtn != null) {
-				var lbl = _charsToggleBtn.Q<Label>();
-				if (lbl != null) { lbl.text = _loc.Get("hud.org_characters"); }
-				SetToggleButtonPressed(_charsToggleBtn, open);
-			}
-			OnSubPanelOpened?.Invoke(_charsOpen || _actionsOpen);
-		}
-
-		void ToggleActions() {
-			SetActionsOpen(!_actionsOpen);
-		}
-
-		void SetActionsOpen(bool open) {
-			if (open && _charsOpen) { SetCharsOpen(false); }
-			_actionsOpen = open;
-			if (_actionsSlide != null) {
-				if (open) {
-					_actionsSlide.AddToClassList("org-actions-slide--open");
-					SetPickingModeRecursive(_actionsSlide, PickingMode.Position);
-				} else {
-					_actionsSlide.RemoveFromClassList("org-actions-slide--open");
-					SetPickingModeRecursive(_actionsSlide, PickingMode.Ignore);
-					_tooltip?.HideAll();
-				}
-			}
-			if (_actionsToggleBtn != null) {
-				var lbl = _actionsToggleBtn.Q<Label>();
-				if (lbl != null) { lbl.text = _loc.Get("hud.actions"); }
-				SetToggleButtonPressed(_actionsToggleBtn, open);
-			}
-			OnSubPanelOpened?.Invoke(_charsOpen || _actionsOpen);
-		}
-
-		static void SetToggleButtonPressed(VisualElement btn, bool pressed) {
-			btn.EnableInClassList("gs-toggle-on", pressed);
-			btn.EnableInClassList("gs-toggle-off", !pressed);
-		}
-
-		static void SetPickingModeRecursive(VisualElement el, PickingMode mode) {
-			el.pickingMode = mode;
-			foreach (var child in el.Children()) {
-				SetPickingModeRecursive(child, mode);
-			}
+			_view.Refresh(org, showControls);
 		}
 
 		void OnActionCardClicked(string actionId, int slotIndex, VisualElement cardElement) {

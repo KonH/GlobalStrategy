@@ -4,9 +4,10 @@ using UnityEngine.UIElements;
 using GS.Main;
 using GS.Game.Configs;
 using GS.Unity.Common;
+using GS.Unity.UI;
 
-namespace GS.Unity.UI {
-	class DebugCardAvailabilityView {
+namespace GS.Unity.DebugTools {
+	public class DebugCardAvailabilityView {
 		readonly VisualElement _deckContainer;
 		readonly VisualElement _handContainer;
 		readonly ILocalization _loc;
@@ -297,17 +298,14 @@ namespace GS.Unity.UI {
 		}
 
 		static Label CreateConditionLabel(string text, bool passed) {
-			var label = new Label(text);
-			label.AddToClassList("gs-label");
-			label.AddToClassList("debug-condition-label");
-			label.AddToClassList(passed ? "debug-card-available" : "debug-card-unavailable");
+			Label label = RequirementRowBuilder.Build();
+			RequirementRowBuilder.Bind(label, text, passed);
 			return label;
 		}
 
 		static Label CreateMutedLabel(string text) {
-			var label = new Label(text);
-			label.AddToClassList("gs-label");
-			label.AddToClassList("debug-condition-label");
+			Label label = RequirementRowBuilder.Build();
+			RequirementRowBuilder.BindMuted(label, text);
 			return label;
 		}
 

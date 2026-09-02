@@ -17,6 +17,6 @@
     padding: 3px 6px;
     background-color: rgba(0, 0, 0, 0.8);
     border-radius: 4px;
-    color: rgb(255, 255, 255);
+    color: var(--gs-color-white);
     text-shadow: 3px 3px 0 rgba(0, 0, 0, 1);
 }

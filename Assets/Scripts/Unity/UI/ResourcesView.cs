@@ -8,7 +8,7 @@ using GS.Game.Components;
 using GS.Game.Configs;
 
 namespace GS.Unity.UI {
-	class ResourcesView {
+	public class ResourcesView {
 		readonly VisualElement _container;
 		readonly ILocalization _loc;
 		readonly ResourceConfig _config;
@@ -32,30 +32,22 @@ namespace GS.Unity.UI {
 				}
 
 				var resourceDefinition = _config.FindResource(resource.ResourceId);
-				var row = new VisualElement();
-				row.AddToClassList("resource-row");
+				ResourceChipBuilder.Elements chip = ResourceChipBuilder.Build();
+				chip.Chip.AddToClassList("resource-row");
 				if (_container.childCount > 0) {
-					row.AddToClassList("resource-row--spaced");
+					chip.Chip.AddToClassList("resource-row--spaced");
 				}
-
-				var icon = new VisualElement();
-				if (resourceDefinition != null && !string.IsNullOrEmpty(resourceDefinition.Icon)) {
-					icon.AddToClassList("resource-icon");
-					icon.AddToClassList($"resource-icon--{resourceDefinition.Icon}");
-				}
-				row.Add(icon);
-
-				var label = new Label();
-				label.AddToClassList("gs-label");
-				label.AddToClassList("resource-label");
-				label.text = FormatResourceValue(resource.Value.Display);
-				row.Add(label);
+				string iconClass = resourceDefinition != null && !string.IsNullOrEmpty(resourceDefinition.Icon)
+					? $"resource-icon--{resourceDefinition.Icon}"
+					: null;
+				ResourceChipBuilder.Bind(chip, iconClass, FormatResourceValue(resource.Value.Display));
+				chip.Label.AddToClassList("gs-label");
 
 				var capturedResource = resource;
 				var capturedState = state;
-				_tooltip.RegisterTrigger(row, capturedResource.ResourceId, ctx => BuildResourceTooltip(ctx, capturedResource, capturedState), new HashSet<string>());
+				_tooltip.RegisterTrigger(chip.Chip, capturedResource.ResourceId, ctx => BuildResourceTooltip(ctx, capturedResource, capturedState), new HashSet<string>());
 
-				_container.Add(row);
+				_container.Add(chip.Chip);
 			}
 		}
 
@@ -87,19 +79,13 @@ namespace GS.Unity.UI {
 		}
 
 		VisualElement BuildResourceTooltip(TooltipContext ctx, ResourceStateEntry resource, CountryResourcesState state) {
-			var root = new VisualElement();
+			var root = TooltipBodyBuilder.NewRoot();
 
 			var resDef = _config.FindResource(resource.ResourceId);
-
-			var header = new Label();
-			header.text = resDef != null ? _loc.Get(resDef.NameKey) : resource.ResourceId;
-			header.AddToClassList("tooltip-header");
-			root.Add(header);
+			TooltipBodyBuilder.AddHeader(root, resDef != null ? _loc.Get(resDef.NameKey) : resource.ResourceId);
 
 			if (resDef != null && !string.IsNullOrEmpty(resDef.DescriptionKey)) {
-				var description = new Label(_loc.Get(resDef.DescriptionKey));
-				description.AddToClassList("tooltip-description");
-				root.Add(description);
+				TooltipBodyBuilder.AddDescription(root, _loc.Get(resDef.DescriptionKey));
 			}
 
 			double plusTotal = 0;
@@ -120,49 +106,33 @@ namespace GS.Unity.UI {
 
 			if (plusTotal > 0) {
 				string plusText = $"+{plusTotal:F1}/month";
-				var plusRow = new Label(plusText);
-				plusRow.AddToClassList("tooltip-effect-name");
-				plusRow.AddToClassList("tooltip-effect-positive");
-				plusRow.AddToClassList("tooltip-inner-trigger");
-				root.Add(plusRow);
+				Label plusRow = TooltipBodyBuilder.AddLine(root, plusText, TooltipBodyBuilder.LineTone.Positive, innerTrigger: true);
 
-				string capturedText = plusText;
 				string capturedId = resource.ResourceId;
 				ctx.RegisterInnerTrigger(plusRow, $"{capturedId}.plus", innerCtx =>
-					BuildMonthlyEffectList(innerCtx, capturedText, resource, resDef, positiveOnly: true));
+					BuildMonthlyEffectList(innerCtx, plusText, resource, resDef, positiveOnly: true));
 			}
 
 			if (minusTotal < 0) {
 				string minusText = $"{minusTotal:F1}/month";
-				var minusRow = new Label(minusText);
-				minusRow.AddToClassList("tooltip-effect-name");
-				minusRow.AddToClassList("tooltip-effect-negative");
-				minusRow.AddToClassList("tooltip-inner-trigger");
-				root.Add(minusRow);
+				Label minusRow = TooltipBodyBuilder.AddLine(root, minusText, TooltipBodyBuilder.LineTone.Negative, innerTrigger: true);
 
-				string capturedText = minusText;
 				string capturedId = resource.ResourceId;
 				ctx.RegisterInnerTrigger(minusRow, $"{capturedId}.minus", innerCtx =>
-					BuildMonthlyEffectList(innerCtx, capturedText, resource, resDef, positiveOnly: false));
+					BuildMonthlyEffectList(innerCtx, minusText, resource, resDef, positiveOnly: false));
 			}
 
 			if (instantTotal != 0) {
 				string sign = instantTotal > 0 ? "+" : "";
 				string instantText = $"{sign}{instantTotal:F1} instant";
-				var instantRow = new Label(instantText);
-				instantRow.AddToClassList("tooltip-effect-name");
-				if (instantTotal > 0) {
-					instantRow.AddToClassList("tooltip-effect-positive");
-				} else {
-					instantRow.AddToClassList("tooltip-effect-negative");
-				}
-				instantRow.AddToClassList("tooltip-inner-trigger");
-				root.Add(instantRow);
+				Label instantRow = TooltipBodyBuilder.AddLine(
+					root, instantText,
+					instantTotal > 0 ? TooltipBodyBuilder.LineTone.Positive : TooltipBodyBuilder.LineTone.Negative,
+					innerTrigger: true);
 
-				string capturedText = instantText;
 				string capturedId = resource.ResourceId;
 				ctx.RegisterInnerTrigger(instantRow, $"{capturedId}.instant", innerCtx =>
-					BuildInstantEffectList(innerCtx, capturedText, resource, resDef));
+					BuildInstantEffectList(innerCtx, instantText, resource, resDef));
 			}
 
 			// Control income rows (gold resource only)
@@ -172,45 +142,31 @@ namespace GS.Unity.UI {
 					controlTotal += inc.MonthlyGold;
 				}
 				string controlText = $"+{controlTotal:F1}/month";
-				var controlRow = new Label(controlText);
-				controlRow.AddToClassList("tooltip-effect-name");
-				controlRow.AddToClassList("tooltip-effect-positive");
-				controlRow.AddToClassList("tooltip-inner-trigger");
-				root.Add(controlRow);
+				Label controlRow = TooltipBodyBuilder.AddLine(root, controlText, TooltipBodyBuilder.LineTone.Positive, innerTrigger: true);
 
 				var capturedState = state;
-				string capturedText = controlText;
 				ctx.RegisterInnerTrigger(controlRow, "gold.control", innerCtx =>
-					BuildControlIncomeList(capturedText, capturedState));
+					BuildControlIncomeList(controlText, capturedState));
 			}
 
 			return root;
 		}
 
 		VisualElement BuildControlIncomeList(string headerText, CountryResourcesState state) {
-			var root = new VisualElement();
-
-			var header = new Label(headerText);
-			header.AddToClassList("tooltip-header");
-			root.Add(header);
+			var root = TooltipBodyBuilder.NewRoot();
+			TooltipBodyBuilder.AddHeader(root, headerText);
 
 			foreach (var inc in state.ControlIncomes) {
 				string countryName = _loc.Get($"country_name.{inc.CountryId}");
-				var row = new Label($"Control ({countryName}): +{inc.MonthlyGold:F1}/month");
-				row.AddToClassList("tooltip-effect-name");
-				row.AddToClassList("tooltip-effect-positive");
-				root.Add(row);
+				TooltipBodyBuilder.AddLine(root, $"Control ({countryName}): +{inc.MonthlyGold:F1}/month", TooltipBodyBuilder.LineTone.Positive);
 			}
 
 			return root;
 		}
 
 		VisualElement BuildMonthlyEffectList(TooltipContext ctx, string headerText, ResourceStateEntry resource, ResourceDefinition? resDef, bool positiveOnly) {
-			var root = new VisualElement();
-
-			var header = new Label(headerText);
-			header.AddToClassList("tooltip-header");
-			root.Add(header);
+			var root = TooltipBodyBuilder.NewRoot();
+			TooltipBodyBuilder.AddHeader(root, headerText);
 
 			foreach (var effect in resource.Effects) {
 				if (effect.PayType != PayType.Monthly) {
@@ -226,28 +182,14 @@ namespace GS.Unity.UI {
 					continue;
 				}
 
-				var effectRow = new VisualElement();
-				effectRow.AddToClassList("tooltip-effect-row");
-
 				var effectDef = resDef?.FindEffect(effect.EffectId);
 				string effectName = effectDef != null ? _loc.Get(effectDef.NameKey) : effect.EffectId;
 				string sign = effect.Value >= 0 ? "+" : "";
-				var nameLabel = new Label($"{effectName}: {sign}{effect.Value:F1}/month");
-				nameLabel.AddToClassList("tooltip-effect-name");
-				if (effect.Value > 0) {
-					nameLabel.AddToClassList("tooltip-effect-positive");
-				} else if (effect.Value < 0) {
-					nameLabel.AddToClassList("tooltip-effect-negative");
-				}
-				effectRow.Add(nameLabel);
-
-				if (effectDef != null) {
-					var descLabel = new Label(_loc.Get(effectDef.DescriptionKey));
-					descLabel.AddToClassList("tooltip-description");
-					effectRow.Add(descLabel);
-				}
-
-				root.Add(effectRow);
+				TooltipBodyBuilder.LineTone tone = effect.Value > 0
+					? TooltipBodyBuilder.LineTone.Positive
+					: effect.Value < 0 ? TooltipBodyBuilder.LineTone.Negative : TooltipBodyBuilder.LineTone.Neutral;
+				string description = effectDef != null ? _loc.Get(effectDef.DescriptionKey) : null;
+				TooltipBodyBuilder.AddEffectRow(root, $"{effectName}: {sign}{effect.Value:F1}/month", description, tone);
 			}
 
 			return root;
@@ -255,64 +197,40 @@ namespace GS.Unity.UI {
 
 		void AddBaseIncomeBreakdown(VisualElement root, EffectStateEntry effect) {
 			var breakdown = effect.BaseIncomeBreakdown!;
-			AddIncomeRow(root, string.Format(
+			TooltipBodyBuilder.AddLine(root, string.Format(
 				_loc.Get("hud.gold_income_base"),
-				breakdown.FlatBase.ToString("F1")));
-			AddIncomeRow(root, string.Format(
+				breakdown.FlatBase.ToString("F1")), TooltipBodyBuilder.LineTone.Positive);
+			TooltipBodyBuilder.AddLine(root, string.Format(
 				_loc.Get("hud.gold_income_population"),
 				FormatResourceValue(breakdown.Population),
-				breakdown.PopulationContribution.ToString("F1")));
-			AddIncomeRow(root, string.Format(
+				breakdown.PopulationContribution.ToString("F1")), TooltipBodyBuilder.LineTone.Positive);
+			TooltipBodyBuilder.AddLine(root, string.Format(
 				_loc.Get("hud.gold_income_provinces"),
 				breakdown.ProvinceCount.ToString(CultureInfo.InvariantCulture),
-				breakdown.ProvinceContribution.ToString("F1")));
-			AddIncomeRow(root, string.Format(
+				breakdown.ProvinceContribution.ToString("F1")), TooltipBodyBuilder.LineTone.Positive);
+			TooltipBodyBuilder.AddLine(root, string.Format(
 				_loc.Get("hud.gold_income_economic_advisor"),
 				breakdown.AdvisorSkill.ToString("F0"),
-				breakdown.AdvisorContribution.ToString("F1")));
-		}
-
-		static void AddIncomeRow(VisualElement root, string text) {
-			var row = new Label(text);
-			row.AddToClassList("tooltip-effect-name");
-			row.AddToClassList("tooltip-effect-positive");
-			root.Add(row);
+				breakdown.AdvisorContribution.ToString("F1")), TooltipBodyBuilder.LineTone.Positive);
 		}
 
 		VisualElement BuildInstantEffectList(TooltipContext ctx, string headerText, ResourceStateEntry resource, ResourceDefinition? resDef) {
-			var root = new VisualElement();
-
-			var header = new Label(headerText);
-			header.AddToClassList("tooltip-header");
-			root.Add(header);
+			var root = TooltipBodyBuilder.NewRoot();
+			TooltipBodyBuilder.AddHeader(root, headerText);
 
 			foreach (var effect in resource.Effects) {
 				if (effect.PayType == PayType.Monthly) {
 					continue;
 				}
 
-				var effectRow = new VisualElement();
-				effectRow.AddToClassList("tooltip-effect-row");
-
 				var effectDef = resDef?.FindEffect(effect.EffectId);
 				string effectName = effectDef != null ? _loc.Get(effectDef.NameKey) : effect.EffectId;
 				string sign = effect.Value >= 0 ? "+" : "";
-				var nameLabel = new Label($"{effectName}: {sign}{effect.Value:F1} instant");
-				nameLabel.AddToClassList("tooltip-effect-name");
-				if (effect.Value > 0) {
-					nameLabel.AddToClassList("tooltip-effect-positive");
-				} else if (effect.Value < 0) {
-					nameLabel.AddToClassList("tooltip-effect-negative");
-				}
-				effectRow.Add(nameLabel);
-
-				if (effectDef != null) {
-					var descLabel = new Label(_loc.Get(effectDef.DescriptionKey));
-					descLabel.AddToClassList("tooltip-description");
-					effectRow.Add(descLabel);
-				}
-
-				root.Add(effectRow);
+				TooltipBodyBuilder.LineTone tone = effect.Value > 0
+					? TooltipBodyBuilder.LineTone.Positive
+					: effect.Value < 0 ? TooltipBodyBuilder.LineTone.Negative : TooltipBodyBuilder.LineTone.Neutral;
+				string description = effectDef != null ? _loc.Get(effectDef.DescriptionKey) : null;
+				TooltipBodyBuilder.AddEffectRow(root, $"{effectName}: {sign}{effect.Value:F1} instant", description, tone);
 			}
 
 			return root;

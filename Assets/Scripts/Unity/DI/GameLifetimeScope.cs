@@ -11,6 +11,7 @@ using GS.Unity.Save;
 using GS.Unity.UI;
 using GS.Unity.EcsViewer;
 using GS.Unity.Common;
+using GS.Unity.DebugTools;
 
 namespace GS.Unity.DI {
 	public class GameLifetimeScope : LifetimeScope {
@@ -86,7 +87,6 @@ namespace GS.Unity.DI {
 			builder.Register(c => c.Resolve<GameLogic>().ProvinceConfig, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().GameSettings, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<GameLogic>().CountryActionsVisibility, Lifetime.Singleton);
-			builder.Register(c => c.Resolve<GameLogic>().DebugOrgCardVisibility, Lifetime.Singleton);
 			builder.RegisterInstance(_actionVisualConfig);
 
 			builder.RegisterInstance<IPersistentStorage>(storage);
@@ -123,6 +123,7 @@ namespace GS.Unity.DI {
 			builder.RegisterComponentInHierarchy<CardPlayAnimator>();
 			builder.RegisterComponentInHierarchy<FlyTextNotifierDocument>().As<IFlyTextNotifier>();
 			builder.RegisterComponentInHierarchy<EndGameWindowDocument>();
+			builder.RegisterComponentInHierarchy<DebugPanelDocument>();
 		}
 
 		protected override void OnDestroy() {

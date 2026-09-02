@@ -364,6 +364,16 @@ MonoBehaviour:
     Value: Masons
   - Key: organization_name.BlackHand
     Value: Black Hand
+  - Key: organization_name.player_org
+    Value: The Vanguard Circle
+  - Key: organization_name.rival_org
+    Value: The Obsidian League
+  - Key: gallery.sample.character_name
+    Value: Sample Character
+  - Key: gallery.sample.task_name
+    Value: Sample Task
+  - Key: gallery.sample.task_desc
+    Value: A placeholder task used only in Gallery preview blocks.
   - Key: load.title
     Value: Load Game
   - Key: load.back
@@ -2410,6 +2420,10 @@ MonoBehaviour:
     Value: The Knights Templar
   - Key: end_game.comparison.BohemianGrove
     Value: The Bohemian Grove
+  - Key: end_game.comparison.top_ai
+    Value: Top AI Score
+  - Key: end_game.comparison.historical_average
+    Value: Historical Average
   - Key: province_name.Afghanistan__Andkhvoy
     Value: Andkhvoy
   - Key: province_name.Afghanistan__Asadabad

@@ -7,7 +7,7 @@ using GS.Unity.Common;
 using GS.Unity.Map;
 
 namespace GS.Unity.UI {
-	class ProvinceInfoView {
+	public class ProvinceInfoView {
 		readonly VisualElement _root;
 		readonly Label _name;
 		readonly VisualElement? _ownerRow;
@@ -38,15 +38,15 @@ namespace GS.Unity.UI {
 			_resourcesView = new ResourcesView(root.Q("province-resources-container"), loc, resourceConfig, tooltip);
 
 			if (_ownerRow != null) {
-				_ownerRow.RegisterCallback<PointerUpEvent>(e => {
-					if (e.button == 0 && _ownerRow.ContainsPoint(e.localPosition) && !string.IsNullOrEmpty(_ownerId)) {
+				_ownerRow.OnClick(() => {
+					if (!string.IsNullOrEmpty(_ownerId)) {
 						OnCountryRowClicked?.Invoke(_ownerId);
 					}
 				});
 			}
 			if (_occupantRow != null) {
-				_occupantRow.RegisterCallback<PointerUpEvent>(e => {
-					if (e.button == 0 && _occupantRow.ContainsPoint(e.localPosition) && !string.IsNullOrEmpty(_occupantId)) {
+				_occupantRow.OnClick(() => {
+					if (!string.IsNullOrEmpty(_occupantId)) {
 						OnCountryRowClicked?.Invoke(_occupantId);
 					}
 				});

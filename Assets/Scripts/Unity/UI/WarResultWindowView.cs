@@ -8,7 +8,7 @@ using GS.Unity.Map;
 using UnityEngine.UIElements;
 
 namespace GS.Unity.UI {
-	class WarResultWindowView {
+	public class WarResultWindowView {
 		readonly ILocalization _loc;
 		readonly CountryVisualConfig _countryVisualConfig;
 		readonly WarProgressLayoutBinder _binder;
@@ -153,7 +153,7 @@ namespace GS.Unity.UI {
 			row.AddToClassList("war-result-gold-header");
 
 			var icon = new VisualElement();
-			icon.AddToClassList("resource-icon");
+			icon.AddToClassList("resource-chip-icon");
 			icon.AddToClassList("resource-icon--coin");
 			icon.AddToClassList("war-result-gold-icon");
 
@@ -219,40 +219,13 @@ namespace GS.Unity.UI {
 		}
 
 		VisualElement CreateProvinceTransferRow(WarProvinceTransferState transfer) {
-			var row = new VisualElement();
-			row.AddToClassList("war-result-province-row");
-
-			var oldFlag = new VisualElement();
-			oldFlag.AddToClassList("war-result-province-flag");
-			ApplyFlag(oldFlag, transfer.OldOwnerCountryId);
-
-			var arrow = new Label("->");
-			arrow.AddToClassList("gs-content");
-			arrow.AddToClassList("war-result-province-arrow");
-
-			var newFlag = new VisualElement();
-			newFlag.AddToClassList("war-result-province-flag");
-			ApplyFlag(newFlag, transfer.NewOwnerCountryId);
-
-			var name = new Label(GetProvinceName(transfer.ProvinceId));
-			name.AddToClassList("gs-content");
-			name.AddToClassList("war-result-province-name");
-
-			row.Add(oldFlag);
-			row.Add(arrow);
-			row.Add(newFlag);
-			row.Add(name);
-			return row;
-		}
-
-		void ApplyFlag(VisualElement flagElement, string countryId) {
-			UnityEngine.Sprite sprite = _countryVisualConfig?.Find(countryId)?.flag;
-			if (sprite == null) {
-				flagElement.style.display = DisplayStyle.None;
-				return;
-			}
-			flagElement.style.backgroundImage = new StyleBackground(sprite);
-			flagElement.style.display = DisplayStyle.Flex;
+			ProvinceTransferRowBuilder.Elements elements = ProvinceTransferRowBuilder.Build();
+			ProvinceTransferRowBuilder.Bind(
+				elements,
+				_countryVisualConfig?.Find(transfer.OldOwnerCountryId)?.flag,
+				_countryVisualConfig?.Find(transfer.NewOwnerCountryId)?.flag,
+				GetProvinceName(transfer.ProvinceId));
+			return elements.Row;
 		}
 
 		static Label CreateRow(string text) {
