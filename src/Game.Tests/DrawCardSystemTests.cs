@@ -40,7 +40,7 @@ namespace GS.Game.Tests {
 						ActionId = "stop_friendship",
 						OwnerType = "country",
 						TargetRole = "diplomacy_advisor",
-						DeckCopies = 1,
+						Chance = 1,
 						Conditions = new List<ExpressionNode> {
 							new ExpressionNode {
 								Type = "gte",
@@ -452,7 +452,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void draw_skips_relation_card_when_deck_copies_is_zero() {
 			var config = BuildActionConfig();
-			config.Find("stop_friendship")!.DeckCopies = 0;
+			config.Find("stop_friendship")!.Chance = 0;
 			var world = new World();
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
@@ -518,7 +518,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void draw_relation_card_weight_does_not_put_same_entity_in_hand_twice() {
 			var config = BuildActionConfig();
-			config.Find("stop_friendship")!.DeckCopies = 5;
+			config.Find("stop_friendship")!.Chance = 5;
 			var world = new World();
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
@@ -539,7 +539,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void draw_relation_card_with_higher_weight_beats_single_copy_static_card() {
 			var config = BuildActionConfig();
-			config.Find("stop_friendship")!.DeckCopies = 100;
+			config.Find("stop_friendship")!.Chance = 100;
 			var world = new World();
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
@@ -563,6 +563,66 @@ namespace GS.Game.Tests {
 			}
 
 			Assert.True(wins >= 35, $"expected weighted relation card to win most draws, won {wins}/{trials}");
+		}
+
+		[Fact]
+		void draw_org_cards_favors_higher_fractional_chance_card_proportionally_across_trials() {
+			// Fractional Chance values (1.5 vs 4.5, a 3:1 ratio) on org-deck actions - proves the
+			// int -> double widen of DrawOrgCards' internal weighted-pick candidate/roll did not
+			// silently truncate the weights back to equal ints.
+			var config = new ActionConfig {
+				Actions = new List<ActionDefinition> {
+					new ActionDefinition { ActionId = "light_org_card", OwnerType = "org", Chance = 1.5 },
+					new ActionDefinition { ActionId = "heavy_org_card", OwnerType = "org", Chance = 4.5 }
+				}
+			};
+
+			int heavyWins = 0;
+			const int trials = 200;
+			for (int t = 0; t < trials; t++) {
+				var world = new World();
+				int deckEntity = world.Create();
+				world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
+				world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Org));
+				world.Add(deckEntity, new CardHand { HandSize = 1 });
+
+				int light = world.Create();
+				world.Add(light, new GameAction { ActionId = "light_org_card" });
+				world.Add(light, new OrgContext { OrgId = "OrgA" });
+				world.Add(light, new CardOwnerType(CardOwnerKind.Org));
+
+				int heavy = world.Create();
+				world.Add(heavy, new GameAction { ActionId = "heavy_org_card" });
+				world.Add(heavy, new OrgContext { OrgId = "OrgA" });
+				world.Add(heavy, new CardOwnerType(CardOwnerKind.Org));
+
+				// DrawCardSystem only schedules an org refill once it observes a discarded org
+				// card - this dummy entity carries no config entry, so it is excluded from the
+				// weighted candidates by its own CardDiscard marker rather than by weight.
+				int discarded = world.Create();
+				world.Add(discarded, new GameAction { ActionId = "discarded_org_card" });
+				world.Add(discarded, new OrgContext { OrgId = "OrgA" });
+				world.Add(discarded, new CardOwnerType(CardOwnerKind.Org));
+				world.Add(discarded, new CardDiscard());
+
+				DrawCardSystem.Update(
+					world,
+					config,
+					new EffectConfig(),
+					new Random(t + 1),
+					new ReadCommands<DrawCardsCommand>(Array.Empty<DrawCardsCommand>()),
+					Array.Empty<DiscardCardResult>(),
+					new CountryRelations(),
+					"OrgA");
+
+				if (IsInHand(world, heavy)) { heavyWins++; }
+			}
+
+			// Expected win rate for heavy_org_card is 4.5 / (1.5 + 4.5) = 75%; a wide band well
+			// below that still rules out the weights having collapsed to equal (50%) or having been
+			// truncated to equal integer parts.
+			Assert.True(heavyWins >= (int)(trials * 0.6),
+				$"expected fractional Chance weighting (4.5 vs 1.5) to bias org draws toward the heavier card, won {heavyWins}/{trials}");
 		}
 
 		[Fact]

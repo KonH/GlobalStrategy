@@ -670,7 +670,7 @@ namespace GS.Main {
 				world.Add(countryDeckEntity, new CardHand { HandSize = handSize });
 
 				foreach (var def in countryActions) {
-					if (def.DeckCopies <= 0
+					if (def.Chance <= 0
 						|| RelationCardSyncSystem.IsSyncedAction(def.ActionId)
 						|| def.ActionId == "declare_revenge_war") {
 						continue;

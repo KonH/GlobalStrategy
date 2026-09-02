@@ -56,7 +56,7 @@ namespace GS.Game.Tests {
 					ActionId = "declare_revenge_war",
 					OwnerType = "country",
 					TargetRole = "military_advisor",
-					DeckCopies = 1,
+					Chance = 1,
 					Conditions = new List<ExpressionNode> {
 						new ExpressionNode {
 							Type = "gte",

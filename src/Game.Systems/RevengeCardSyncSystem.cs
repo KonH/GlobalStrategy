@@ -8,7 +8,7 @@ namespace GS.Game.Systems {
 	public static class RevengeCardSyncSystem {
 		public static void Update(World world, ActionConfig config) {
 			ActionDefinition? definition = config.Find("declare_revenge_war");
-			if (definition == null || definition.DeckCopies <= 0) { return; }
+			if (definition == null || definition.Chance <= 0) { return; }
 
 			var orgIds = new SortedSet<string>(StringComparer.Ordinal);
 			int[] deckReq = { TypeId<CardDeck>.Value, TypeId<CardOwnerType>.Value };

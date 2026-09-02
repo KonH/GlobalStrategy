@@ -32,7 +32,7 @@ namespace GS.Game.Tests {
 					new ActionDefinition {
 						ActionId = "control_gated_card",
 						OwnerType = "country",
-						DeckCopies = 1,
+						Chance = 1,
 						Conditions = new List<ExpressionNode> {
 							new ExpressionNode {
 								Type = "gte",
@@ -43,7 +43,7 @@ namespace GS.Game.Tests {
 							}
 						}
 					},
-					new ActionDefinition { ActionId = "org_card", OwnerType = "org", DeckCopies = 1 }
+					new ActionDefinition { ActionId = "org_card", OwnerType = "org", Chance = 1 }
 				}
 			};
 		}

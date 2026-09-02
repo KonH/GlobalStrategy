@@ -81,8 +81,8 @@ namespace GS.Game.Tests {
 				},
 				Actions = new List<ActionDefinition> {
 					new ActionDefinition { ActionId = OrgDistractorCardId, OwnerType = "org" },
-					new ActionDefinition { ActionId = ControlCardId, OwnerType = "country", DeckCopies = 1, EffectIds = new List<string> { "control_pos" } },
-					new ActionDefinition { ActionId = OpinionCardId, OwnerType = "country", DeckCopies = 1, EffectIds = new List<string> { "opinion" } }
+					new ActionDefinition { ActionId = ControlCardId, OwnerType = "country", Chance = 1, EffectIds = new List<string> { "control_pos" } },
+					new ActionDefinition { ActionId = OpinionCardId, OwnerType = "country", Chance = 1, EffectIds = new List<string> { "opinion" } }
 				}
 			};
 			var effectConfig = new EffectConfig {
@@ -134,7 +134,7 @@ namespace GS.Game.Tests {
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = countryHandSize }
 				},
 				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = OpinionCardId, OwnerType = "country", DeckCopies = 1, EffectIds = new List<string> { "opinion" } }
+					new ActionDefinition { ActionId = OpinionCardId, OwnerType = "country", Chance = 1, EffectIds = new List<string> { "opinion" } }
 				}
 			};
 			var effectConfig = new EffectConfig {

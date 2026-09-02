@@ -41,9 +41,9 @@ namespace GS.Unity.DebugTools {
 
 			var groups = new List<DeckActionGroup>();
 			var indexByActionId = new Dictionary<string, int>();
-			int totalDrawWeight = 0;
+			double totalDrawWeight = 0;
 			foreach (var card in deck) {
-				int drawWeight = GetDrawWeight(card);
+				double drawWeight = GetDrawWeight(card);
 				totalDrawWeight += drawWeight;
 				if (!indexByActionId.TryGetValue(card.ActionId, out int index)) {
 					index = groups.Count;
@@ -64,9 +64,9 @@ namespace GS.Unity.DebugTools {
 			}
 		}
 
-		VisualElement BuildDeckCard(DeckGroup group, int totalDrawWeight) {
+		VisualElement BuildDeckCard(DeckGroup group, double totalDrawWeight) {
 			double chancePercent = CalculateChancePercent(group.DrawWeight, totalDrawWeight);
-			string title = $"{ResolveCardName(group.Representative)} x{group.TotalCount} ({FormatNumber(chancePercent)}%)";
+			string title = $"{ResolveCardName(group.Representative)} ({FormatNumber(chancePercent)}%)";
 			string actionId = group.Representative.ActionId;
 			string targetCountryId = group.Representative.TargetCountryId ?? "";
 			string expandKey = $"{actionId}|{targetCountryId}";
@@ -79,9 +79,9 @@ namespace GS.Unity.DebugTools {
 				onDraw: _onDrawDeckCard == null ? null : () => _onDrawDeckCard(actionId, targetCountryId));
 		}
 
-		VisualElement BuildTargetedDeckGroup(DeckActionGroup actionGroup, int totalDrawWeight) {
+		VisualElement BuildTargetedDeckGroup(DeckActionGroup actionGroup, double totalDrawWeight) {
 			double chancePercent = CalculateChancePercent(actionGroup.TargetDrawWeight, totalDrawWeight);
-			string title = $"{FormatActionId(actionGroup.ActionId)} x{actionGroup.TargetCount} ({FormatNumber(chancePercent)}%)";
+			string title = $"{FormatActionId(actionGroup.ActionId)} ({FormatNumber(chancePercent)}%)";
 			var children = new List<VisualElement>();
 			foreach (var targetGroup in actionGroup.TargetGroups) {
 				children.Add(BuildDeckCard(targetGroup, totalDrawWeight));
@@ -98,12 +98,12 @@ namespace GS.Unity.DebugTools {
 		// (e.g. one relation/revenge card per country) a single destroyed-country card's weight
 		// is a small fraction of the group/deck total, and whole-number rounding was hiding that
 		// its exclusion actually lowered the group's accumulated chance.
-		static double CalculateChancePercent(int drawWeight, int totalDrawWeight) =>
+		static double CalculateChancePercent(double drawWeight, double totalDrawWeight) =>
 			totalDrawWeight > 0 ? System.Math.Round(100.0 * drawWeight / totalDrawWeight, 2) : 0;
 
 		static string FormatActionId(string actionId) => actionId.Replace('_', ' ');
 
-		int GetDrawWeight(ActionCardEntry card) {
+		double GetDrawWeight(ActionCardEntry card) {
 			// Cards targeting a destroyed country are excluded from draw offers
 			// (CountryCardDrawQuery.GetDrawableCards) - keep this weight consistent with that,
 			// so their shown chance is 0% instead of a stale nonzero share of the deck.
@@ -111,7 +111,10 @@ namespace GS.Unity.DebugTools {
 				return 0;
 			}
 			ActionDefinition definition = _actionConfig?.Find(card.ActionId);
-			return definition != null && definition.DeckCopies > 0 ? definition.DeckCopies : 0;
+			if (definition == null || definition.Chance <= 0) {
+				return 0;
+			}
+			return definition.Chance * (definition.DrawWeightMultiplier ?? 1.0);
 		}
 
 		public void RefreshHand(IReadOnlyList<ActionCardEntry> hand, double availableGold) {
@@ -323,12 +326,10 @@ namespace GS.Unity.DebugTools {
 
 		sealed class DeckGroup {
 			public ActionCardEntry Representative { get; private set; }
-			public int TotalCount { get; private set; }
 			public int EligibleCount { get; private set; }
-			public int DrawWeight { get; private set; }
+			public double DrawWeight { get; private set; }
 
-			public void Add(ActionCardEntry card, int drawWeight) {
-				TotalCount++;
+			public void Add(ActionCardEntry card, double drawWeight) {
 				DrawWeight += drawWeight;
 				if (!card.IsUnplayable) {
 					EligibleCount++;
@@ -346,15 +347,14 @@ namespace GS.Unity.DebugTools {
 			public string ActionId { get; }
 			public DeckGroup UntargetedGroup { get; private set; }
 			public IReadOnlyList<DeckGroup> TargetGroups => _targetGroups;
-			public int TargetCount { get; private set; }
 			public int TargetEligibleCount { get; private set; }
-			public int TargetDrawWeight { get; private set; }
+			public double TargetDrawWeight { get; private set; }
 
 			public DeckActionGroup(string actionId) {
 				ActionId = actionId;
 			}
 
-			public void Add(ActionCardEntry card, int drawWeight) {
+			public void Add(ActionCardEntry card, double drawWeight) {
 				if (string.IsNullOrEmpty(card.TargetCountryId)) {
 					UntargetedGroup ??= new DeckGroup();
 					UntargetedGroup.Add(card, drawWeight);
@@ -367,7 +367,6 @@ namespace GS.Unity.DebugTools {
 					_targetGroups.Add(new DeckGroup());
 				}
 				_targetGroups[index].Add(card, drawWeight);
-				TargetCount++;
 				TargetDrawWeight += drawWeight;
 				if (!card.IsUnplayable) {
 					TargetEligibleCount++;
