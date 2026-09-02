@@ -3,8 +3,8 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: rgb(26, 42, 72);
-    border-color: rgb(200, 160, 64);
+    background-color: var(--gs-panel-bg);
+    border-color: var(--gs-panel-border);
     border-top-width: 3px;
     border-left-width: 0;
     border-right-width: 0;
@@ -17,7 +17,7 @@
 
 .org-name {
     font-size: 24px;
-    color: rgb(240, 232, 208);
+    color: var(--gs-color-dark);
     -unity-font-definition: url("project://database/Assets/UI/Fonts/Cinzel-Bold.ttf?fileID=12800000&guid=f580297c1d9f7c74984732caed69c108&type=3#Cinzel-Bold");
     -unity-text-align: upper-left;
 }

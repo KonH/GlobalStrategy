@@ -1,308 +1,342 @@
 using System.Collections.Generic;
-using System.Globalization;
-using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
+using VContainer;
 using GS.Game.Configs;
-using GS.Main;
 using GS.Unity.Common;
 using GS.Unity.Map;
-using GS.Unity.Save;
 using GS.Unity.UI;
 
 namespace GS.Unity.Gallery {
 	/// <summary>
-	/// Option A prototype from Docs/Specs/26_08_28_16_ui-refactoring/analysis.md, scoped to a
-	/// single element: the action card, rendered by the very same ActionCardBuilder the HUD uses,
-	/// from a hand-built ActionCardEntry instead of a running game. Two dropdowns pick which card
-	/// and which state.
-	///
-	/// Deliberately DI-free - no LifetimeScope, no GameLogic, no world, no bots, no save. Press
-	/// Play on Assets/Scenes/Gallery.unity and the card is on screen immediately. That is the
-	/// whole point of the prototype: judge whether this feedback loop is fast enough before
-	/// deciding whether option E (native UXML bindings) is worth its cost.
+	/// Composition root for the Gallery scene. Owns an ordered list of GalleryBlocks and builds
+	/// one ui:Foldout per block into the "gallery-blocks" container - it does not know anything
+	/// about any block's own content, just its title and persisted expand/selection state. Every
+	/// dependency a block needs is resolved through GalleryLifetimeScope and handed to the block's
+	/// constructor here, so this class never grows into a second HUDDocument.
 	/// </summary>
 	public class GalleryDocument : MonoBehaviour {
-		// Ordered to match _stateChoices below - the dropdown's index selects the enum.
-		enum CardState {
-			Playable,
-			UnaffordableGold,
-			RequirementsFailed,
-			OnCooldown,
-			WarOdds,
-			MultiCountryTarget,
-			DiscardHint
-		}
-
-		static readonly List<string> _stateChoices = new List<string> {
-			"Playable",
-			"Unaffordable gold",
-			"Requirements failed",
-			"On cooldown",
-			"War odds badge",
-			"Multi-country target",
-			"Discard hint"
-		};
-
-		[SerializeField] UIDocument _document;
-		[SerializeField] TextAsset _actionConfigAsset;
-		[SerializeField] LocalizationConfig _localizationConfig;
-		[SerializeField] ActionVisualConfig _actionVisualConfig;
-		[SerializeField] CountryVisualConfig _countryVisualConfig;
+		[SerializeField] PanelRenderer _document;
 		[SerializeField] double _discardGoldCost = 50;
 		[SerializeField] string _sampleTargetCountryId = "france";
+		// Kept as a plain SerializeField rather than DI-registered - see GalleryLifetimeScope's
+		// comment on why a second TextAsset dependency can't safely go through the container.
+		[SerializeField] TextAsset _characterConfigAsset;
+		// Same reasoning as _characterConfigAsset above: a third TextAsset would be just as
+		// ambiguous to register by type, so the HUD panel gallery blocks (phase 7) deserialize it
+		// themselves via HudConfigLoader.
+		[SerializeField] TextAsset _resourceConfigAsset;
+		// Same reasoning again: used to filter every country-id dropdown down to
+		// CountryConfig.Countries[].IsAvailable == true, matching what the real game shows -
+		// CountryVisualConfig only carries flag/visual metadata, not availability.
+		[SerializeField] TextAsset _countryConfigAsset;
+		// Debug-tools gallery blocks (Docs/Specs/26_08_28_16_ui-refactoring phase 5) clone this to
+		// preview the debug panel and its sub-menus without a running game.
+		[SerializeField] VisualTreeAsset _debugUxml;
+		// HUD panel gallery blocks (phase 7) clone named sub-elements out of this the same way -
+		// see HudGalleryPreview.
+		[SerializeField] VisualTreeAsset _hudUxml;
+		[SerializeField] VisualTreeAsset _flyTextUxml;
+		// Hand/deck and animation gallery blocks (phase 7) clone named sub-elements out of this
+		// the same way - OrgInfo.uxml is a separate UIDocument, not part of HUD.uxml's tree.
+		[SerializeField] VisualTreeAsset _orgInfoUxml;
+		// "The seven windows that already have a view" gallery blocks (phase 7) - each window's own
+		// full UXML, cloned via HudGalleryPreview.CloneNamed the same way the HUD panel blocks clone
+		// out of HUD.uxml (these window roots are the same "absolute full-screen overlay" shape).
+		[SerializeField] VisualTreeAsset _leaderboardWindowUxml;
+		[SerializeField] VisualTreeAsset _goalsWindowUxml;
+		[SerializeField] VisualTreeAsset _warProgressWindowUxml;
+		[SerializeField] VisualTreeAsset _warResultWindowUxml;
+		[SerializeField] VisualTreeAsset _endGameWindowUxml;
+		[SerializeField] VisualTreeAsset _countryDestroyedWindowUxml;
+		[SerializeField] VisualTreeAsset _orgDestroyedWindowUxml;
+		// "The six view-less documents" gallery blocks (phase 7) - same treatment as the seven
+		// windows above, now that each has its own extracted view class.
+		[SerializeField] VisualTreeAsset _mainMenuUxml;
+		[SerializeField] VisualTreeAsset _gameMenuUxml;
+		[SerializeField] VisualTreeAsset _settingsWindowUxml;
+		[SerializeField] VisualTreeAsset _loadWindowUxml;
+		[SerializeField] VisualTreeAsset _selectCountryUxml;
 
 		// Serialized so the current selection also survives the domain reload a script recompile
-		// causes, not just a UXML/USS re-import.
-		[SerializeField, HideInInspector] string _selectedActionId = "";
-		[SerializeField, HideInInspector] int _selectedStateIndex;
-		[SerializeField, HideInInspector] bool _cardBlockExpanded = true;
+		// causes, not just a UXML/USS re-import. Keyed by block id, not by a fixed set of fields,
+		// so every block - not just one - keeps its expansion and both selections.
+		[SerializeField, HideInInspector] List<GalleryBlockState> _blockStates = new();
 
 		ILocalization _loc;
-		ActionConfig _config;
-		VisualElement _cardHost;
-		Label _summary;
-		DropdownField _cardDropdown;
-		DropdownField _stateDropdown;
+		TextAsset _actionConfigAsset;
+		ActionVisualConfig _actionVisualConfig;
+		CountryVisualConfig _countryVisualConfig;
+		CharacterVisualConfig _characterVisualConfig;
+		OrgVisualConfig _orgVisualConfig;
+
+		// Loaded once in BuildBlocks and reused across many block constructors below to filter every
+		// country-id dropdown down to CountryConfig.Countries[].IsAvailable == true.
+		CountryConfig _countryConfig;
+
+		List<IGalleryBlock> _blocks;
+		VisualElement _root;
+		bool _built;
+
+		// Focus-mode host (see EnterFocusMode/ExitFocusMode below): a genuine full-screen sibling
+		// of gallery-scroll, not something nested inside it, so a full-surface block previewed here
+		// renders as a true top-level panel root instead of a clone embedded in someone else's layout.
+		VisualElement _galleryScroll;
+		VisualElement _focusRoot;
+		Label _focusTitle;
+		Button _focusBackButton;
+		VisualElement _focusContent;
+		GalleryBlockBase _focusedBlock;
+		GalleryBlockState _focusedState;
+
+		[Inject]
+		void Construct(
+			ILocalization loc,
+			TextAsset actionConfigAsset,
+			ActionVisualConfig actionVisualConfig,
+			CountryVisualConfig countryVisualConfig,
+			CharacterVisualConfig characterVisualConfig,
+			OrgVisualConfig orgVisualConfig) {
+			_loc = loc;
+			_actionConfigAsset = actionConfigAsset;
+			_actionVisualConfig = actionVisualConfig;
+			_countryVisualConfig = countryVisualConfig;
+			_characterVisualConfig = characterVisualConfig;
+			_orgVisualConfig = orgVisualConfig;
+		}
 
 		void OnEnable() {
 			if (_document == null) {
-				_document = GetComponent<UIDocument>();
+				_document = GetComponent<PanelRenderer>();
 			}
-			if (_document == null || _actionConfigAsset == null || _localizationConfig == null) {
-				Debug.LogError("[Gallery] GalleryDocument is missing a serialized reference - check the Gallery scene wiring.");
+			if (_document == null) {
+				Debug.LogError("[Gallery] GalleryDocument is missing its PanelRenderer reference - check the Gallery scene wiring.");
 				return;
 			}
-
-			_loc = new CustomLocalization(_localizationConfig, new SettingsStorage(new PersistentStorage()));
-			_config = JsonConvert.DeserializeObject<ActionConfig>(_actionConfigAsset.text);
-			if (_config == null) {
-				Debug.LogError("[Gallery] Failed to parse the action config TextAsset.");
-				return;
-			}
-
-			Bind();
+			// PanelRenderer.rootVisualElement is internal - RegisterUIReloadCallback is the only
+			// public route to the root. It fires once the panel first loads and again on every
+			// later UXML/USS reload while playing, which replaces the per-frame
+			// "_blocksHost.panel != null" polling this document used to do in Update().
+			_document.RegisterUIReloadCallback(OnUIReload);
 		}
 
-		void Update() {
-			// Editing the gallery's UXML or USS while it runs makes UIDocument rebuild its whole
-			// tree from the source asset, which detaches every element bound below - hence the
-			// dropdowns appearing to reset mid-styling. Rebind to the fresh tree and restore the
-			// selection rather than letting it snap back to the first entry.
-			if (_cardDropdown != null && _cardDropdown.panel != null) {
-				return;
+		void OnDisable() {
+			if (_document != null) {
+				_document.UnregisterUIReloadCallback(OnUIReload);
 			}
-			Bind();
 		}
 
-		void Bind() {
-			VisualElement root = _document.rootVisualElement;
+		void Start() {
+			// VContainer injects during the scope's Awake/Build, which can run after OnEnable, so
+			// _loc may still be null when the first reload callback fires. Bind from the root the
+			// callback already captured once injection has definitely completed.
+			if (!_built && _root != null && _loc != null) {
+				Bind(_root);
+			}
+		}
+
+		void OnUIReload(PanelRenderer panelRenderer, VisualElement rootElement) {
+			_root = rootElement;
+			if (_loc == null) {
+				// Injection hasn't run yet - Start() binds once it has.
+				return;
+			}
+			Bind(rootElement);
+		}
+
+		void Bind(VisualElement root) {
 			if (root == null) {
 				return;
 			}
-			DropdownField cardDropdown = root.Q<DropdownField>("card-dropdown");
-			DropdownField stateDropdown = root.Q<DropdownField>("state-dropdown");
-			VisualElement cardHost = root.Q<VisualElement>("card-host");
-			if (cardDropdown == null || stateDropdown == null || cardHost == null) {
-				// UIDocument has cleared the tree but not re-instantiated it yet; retry next frame.
+			VisualElement blocksHost = root.Q<VisualElement>("gallery-blocks");
+			if (blocksHost == null) {
+				Debug.LogError("[Gallery] 'gallery-blocks' container not found in the reloaded Gallery UXML.");
 				return;
 			}
 
-			_cardDropdown = cardDropdown;
-			_stateDropdown = stateDropdown;
-			_cardHost = cardHost;
-			_summary = root.Q<Label>("gallery-summary");
-
-			var cardBlock = root.Q<Foldout>("card-block");
-			if (cardBlock != null) {
-				cardBlock.value = _cardBlockExpanded;
-				cardBlock.RegisterValueChangedCallback(evt => {
-					// A Foldout also receives bool change events bubbling up from its content, so
-					// only its own toggle counts as the block being expanded or collapsed.
-					if (evt.target == cardBlock) {
-						_cardBlockExpanded = evt.newValue;
-					}
-				});
-			}
-
-			var actionIds = new List<string>(_config.Actions.Count);
-			foreach (ActionDefinition definition in _config.Actions) {
-				actionIds.Add(definition.ActionId);
-			}
-			_cardDropdown.choices = actionIds;
-			int selectedCard = actionIds.IndexOf(_selectedActionId);
-			_cardDropdown.index = selectedCard >= 0 ? selectedCard : (actionIds.Count > 0 ? 0 : -1);
-
-			_stateDropdown.choices = new List<string>(_stateChoices);
-			_stateDropdown.index = Mathf.Clamp(_selectedStateIndex, 0, _stateChoices.Count - 1);
-
-			FitDropdownToWidestChoice(_cardDropdown);
-			FitDropdownToWidestChoice(_stateDropdown);
-
-			// Registered after the indices are assigned above, so restoring a selection does not
-			// re-enter OnSelectionChanged.
-			_cardDropdown.RegisterValueChangedCallback(_ => OnSelectionChanged());
-			_stateDropdown.RegisterValueChangedCallback(_ => OnSelectionChanged());
-
-			Rebuild();
-		}
-
-		void OnSelectionChanged() {
-			_selectedActionId = _cardDropdown.value ?? "";
-			_selectedStateIndex = _stateDropdown.index;
-			Rebuild();
-		}
-
-		void Rebuild() {
-			if (_cardHost == null || _cardDropdown.index < 0) {
+			_galleryScroll = root.Q<VisualElement>("gallery-scroll");
+			_focusRoot = root.Q<VisualElement>("gallery-focus-root");
+			_focusTitle = root.Q<Label>("gallery-focus-title");
+			_focusBackButton = root.Q<Button>("gallery-focus-back-button");
+			_focusContent = root.Q<VisualElement>("gallery-focus-content");
+			if (_focusRoot == null || _focusContent == null) {
+				Debug.LogError("[Gallery] focus-mode elements not found in the reloaded Gallery UXML.");
 				return;
 			}
-			_cardHost.Clear();
+			// Every UXML/USS reload rebuilds the tree, so re-wire the button and reset focus mode
+			// closed each time rather than trying to preserve a focused state across a live edit.
+			_focusBackButton?.OnClick(ExitFocusMode);
+			_focusRoot.style.display = DisplayStyle.None;
+			_focusedBlock = null;
+			_focusedState = null;
 
-			string actionId = _cardDropdown.value;
-			var state = (CardState)Mathf.Clamp(_stateDropdown.index, 0, _stateChoices.Count - 1);
-
-			ActionCardEntry entry = BuildEntry(actionId, state);
-			ActionCardBuilder.CountryCardFace face = ComposeFace(entry);
-			ActionCardBuilder.CardResult result = ActionCardBuilder.Build(face, includeDiscardHint: true);
-
-			result.Card.AddToClassList(entry.CanPlay ? "action-card--available" : "action-card--unavailable");
-
-			if (result.CostLabel != null && state == CardState.UnaffordableGold) {
-				result.CostLabel.AddToClassList("action-card-cost-label--unaffordable");
-			}
-			if (result.DiscardHintLabel != null) {
-				result.DiscardHintLabel.text = _loc.Get("action.discard.hint");
-			}
-			if (result.DiscardHintPrice != null) {
-				result.DiscardHintPrice.text = FormatNumber(_discardGoldCost);
-			}
-			if (result.DiscardHint != null) {
-				// The HUD shows this only mid-gesture; here it is just another previewable state.
-				result.DiscardHint.style.display =
-					state == CardState.DiscardHint ? DisplayStyle.Flex : DisplayStyle.None;
+			if (_blocks == null) {
+				_blocks = BuildBlocks();
 			}
 
-			_cardHost.Add(result.Card);
-
-			if (_summary != null) {
-				_summary.text = $"{actionId} - {_stateChoices[(int)state]}";
+			blocksHost.Clear();
+			foreach (IGalleryBlock block in _blocks) {
+				BuildFoldoutFor(block, blocksHost);
 			}
+			_built = true;
 		}
 
 		/// <summary>
-		/// The gallery's whole state layer: an ActionCardEntry built by hand in a few lines,
-		/// no ECS world required. Every state the HUD can put a card in is one case here.
+		/// Switches the whole Gallery view into full-screen focus mode, showing `block` rendered into
+		/// the shared _focusContent container instead of gallery-scroll's small inline stage.
+		/// _focusContent is a true full-panel-size, position:Relative sibling of gallery-scroll (see
+		/// Gallery.uss ".gallery-focus-content"), so real UI content dropped into it resolves
+		/// width:100%/height:100%/absolute layout against the TRUE full Gallery panel size - the same
+		/// rendering context production windows get against hud-root, not a clone nested inside
+		/// gallery-scroll's flex column.
 		/// </summary>
-		ActionCardEntry BuildEntry(string actionId, CardState state) {
-			ActionDefinition definition = _config.Find(actionId);
-			double goldCost = GetGoldCost(definition);
-			double cooldownDays = definition?.CooldownDays ?? 3;
+		void EnterFocusMode(GalleryBlockBase block, GalleryBlockState state) {
+			if (block == null || _focusRoot == null || _focusContent == null) {
+				return;
+			}
+			_focusedBlock = block;
+			_focusedState = state;
+			if (_focusTitle != null) {
+				_focusTitle.text = block.Title;
+			}
 
-			switch (state) {
-				case CardState.UnaffordableGold:
-					return new ActionCardEntry(
-						actionId, 0, isInHand: true, canPlay: false,
-						conditions: new List<ActionConditionDebugEntry> {
-							new ActionConditionDebugEntry(
-								"gold", false, "action.requirement.gold",
-								new[] { FormatNumber(goldCost) })
-						});
+			block.RenderInto(_focusContent, state);
 
-				case CardState.RequirementsFailed:
-					return new ActionCardEntry(
-						actionId, 0, isInHand: true, canPlay: false,
-						conditions: new List<ActionConditionDebugEntry> {
-							new ActionConditionDebugEntry(
-								"control", false, "action.requirement.control_min", new[] { "25" }),
-							new ActionConditionDebugEntry(
-								"opinion", false, "action.requirement.opinion_min_role",
-								new[] { _loc.Get("character.role.ruler.name"), "40" }),
-							new ActionConditionDebugEntry(
-								"capacity", false, "action.requirement.control_capacity")
-						});
+			if (_galleryScroll != null) {
+				_galleryScroll.style.display = DisplayStyle.None;
+			}
+			_focusRoot.style.display = DisplayStyle.Flex;
+		}
 
-				case CardState.OnCooldown:
-					return new ActionCardEntry(
-						actionId, 0, isInHand: true, canPlay: false,
-						cooldownRemainingDays: cooldownDays,
-						cooldownFractionRemaining: 0.6);
+		void ExitFocusMode() {
+			if (_focusRoot == null) {
+				return;
+			}
+			_focusContent?.Clear();
+			_focusRoot.style.display = DisplayStyle.None;
+			if (_galleryScroll != null) {
+				_galleryScroll.style.display = DisplayStyle.Flex;
+			}
+			_focusedBlock = null;
+			_focusedState = null;
+		}
 
-				case CardState.WarOdds:
-					return new ActionCardEntry(
-						actionId, 0, isInHand: true, canPlay: true,
-						targetCountryId: _sampleTargetCountryId,
-						warWinChancePercent: 42);
-
-				case CardState.MultiCountryTarget:
-					return new ActionCardEntry(
-						actionId, 0, isInHand: true, canPlay: true,
-						playableCountryIds: SampleCountryIds(3));
-
-				case CardState.DiscardHint:
-				case CardState.Playable:
-				default:
-					return new ActionCardEntry(actionId, 0, isInHand: true, canPlay: true);
+		void Update() {
+			// Escape is a convenience exit alongside the explicit Back button. Only checked while a
+			// block is actually focused, so this does not reintroduce the kind of per-frame
+			// panel-presence polling the PanelRenderer migration removed from this class - it is one
+			// key check, gated on focus state, not a query against panel/element existence.
+			if (_focusedBlock == null || _focusRoot == null || _focusRoot.style.display != DisplayStyle.Flex) {
+				return;
+			}
+			Keyboard keyboard = Keyboard.current;
+			if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame) {
+				ExitFocusMode();
 			}
 		}
 
-		/// <summary>
-		/// Mirrors CountryActionsView.ComposeFaceData. Kept as a copy rather than shared: the
-		/// production version is a private member of a view that also owns gestures, tooltips and
-		/// a hand container, none of which a single-card gallery has. If option A graduates past
-		/// the prototype, extract the shared version instead of growing this one.
-		/// </summary>
-		ActionCardBuilder.CountryCardFace ComposeFace(ActionCardEntry card) {
-			ActionDefinition definition = _config.Find(card.ActionId);
-			string name;
-			if (definition == null) {
-				name = card.ActionId;
-			} else if (!string.IsNullOrEmpty(card.TargetCountryId)) {
-				name = string.Format(
-					_loc.Get(definition.NameKey), _loc.Get($"country_name.{card.TargetCountryId}"));
-			} else {
-				name = _loc.Get(definition.NameKey);
-			}
-
-			var requirements = new List<ActionCardBuilder.RequirementRow>();
-			foreach (ActionConditionDebugEntry condition in card.Conditions) {
-				if (condition.Passed) {
-					continue;
-				}
-				requirements.Add(new ActionCardBuilder.RequirementRow(
-					ActionConditionText.Localize(_loc, condition), condition.Passed));
-			}
-
-			var playableCountries = new List<ActionCardBuilder.PlayableCountryBadgeItem>(card.PlayableCountryIds.Count);
-			foreach (string countryId in card.PlayableCountryIds) {
-				Sprite flag = _countryVisualConfig?.Find(countryId)?.flag;
-				playableCountries.Add(new ActionCardBuilder.PlayableCountryBadgeItem(countryId, flag));
-			}
-
-			return new ActionCardBuilder.CountryCardFace(
-				name,
-				definition != null ? _loc.Get(definition.DescKey) : "",
-				GetGoldCostText(definition),
-				_actionVisualConfig?.FindFront(card.ActionId),
-				card.WarWinChancePercent,
-				card.CooldownFractionRemaining,
-				card.CooldownRemainingDays,
-				requirements,
-				playableCountries);
+		List<IGalleryBlock> BuildBlocks() {
+			_countryConfig = HudConfigLoader.LoadCountryConfig(_countryConfigAsset);
+			CountryConfig countryConfig = _countryConfig;
+			return new List<IGalleryBlock> {
+				new ActionCardGalleryBlock(
+					_loc, _actionConfigAsset, _actionVisualConfig, _countryVisualConfig,
+					_discardGoldCost, _sampleTargetCountryId, countryConfig),
+				new FlagBadgeGalleryBlock(_countryVisualConfig, countryConfig),
+				new ResourceChipGalleryBlock(_loc),
+				new StatChipGalleryBlock(_loc),
+				new ProgressBarGalleryBlock(),
+				new RankRowGalleryBlock(_loc, _countryVisualConfig, countryConfig),
+				new EffectRowGalleryBlock(_loc),
+				new BattleRowGalleryBlock(_loc),
+				new ProvinceTransferRowGalleryBlock(_loc, _countryVisualConfig, countryConfig),
+				new RequirementRowGalleryBlock(),
+				new CharacterCardGalleryBlock(_loc, _characterConfigAsset, _characterVisualConfig),
+				new TaskCardGalleryBlock(_loc),
+				new TooltipBodyGalleryBlock(),
+				new HandContainerGalleryBlock(),
+				new DrawSlotGalleryBlock(),
+				new FlagNameHeaderGalleryBlock(_loc, _countryVisualConfig, countryConfig),
+				new DebugPanelGalleryBlock(_debugUxml),
+				new DebugProvinceMenuGalleryBlock(_debugUxml),
+				new DebugRelationMenuGalleryBlock(_debugUxml),
+				new DebugControlOrgMenuGalleryBlock(_debugUxml),
+				new DebugCharacterMenuGalleryBlock(_debugUxml),
+				new DebugCardAvailabilityGalleryBlock(_loc, _actionConfigAsset),
+				new FpsCounterGalleryBlock(_debugUxml),
+				new CountryInfoGalleryBlock(
+					_loc, _hudUxml, _resourceConfigAsset, _characterConfigAsset, _actionConfigAsset,
+					_actionVisualConfig, _characterVisualConfig, _countryVisualConfig, _orgVisualConfig, countryConfig),
+				new ProvinceInfoGalleryBlock(_loc, _hudUxml, _resourceConfigAsset, _countryVisualConfig),
+				new HudResourcesGalleryBlock(_loc, _resourceConfigAsset),
+				new HudPlayerOrgGalleryBlock(_loc, _hudUxml, _resourceConfigAsset, _orgVisualConfig),
+				new HudPlayerTasksGalleryBlock(_loc, _hudUxml, _resourceConfigAsset),
+				new HudTimeGalleryBlock(_hudUxml),
+				new HudLensSwitcherGalleryBlock(_loc, _hudUxml),
+				new HudOrgLensCountryGalleryBlock(_loc, _hudUxml, _resourceConfigAsset, _countryVisualConfig, _orgVisualConfig, countryConfig),
+				new HudActionLogGalleryBlock(_loc, _hudUxml, _countryVisualConfig, _orgVisualConfig),
+				new HudWarIconsGalleryBlock(_loc, _hudUxml, _countryVisualConfig),
+				new HudTutorialHighlightGalleryBlock(_hudUxml),
+				new HudFlyTextGalleryBlock(_flyTextUxml),
+				new CountryActionsHandGalleryBlock(
+					_loc, _hudUxml, _actionConfigAsset, _actionVisualConfig, _countryVisualConfig,
+					_resourceConfigAsset, _discardGoldCost),
+				new OrgActionsGalleryBlock(_loc, _orgInfoUxml, _actionConfigAsset, _actionVisualConfig, _resourceConfigAsset),
+				new CardTransitionGalleryBlock(_loc, _actionConfigAsset, _actionVisualConfig, _countryVisualConfig),
+				new CardDrawOfferGalleryBlock(_loc, _actionConfigAsset, _actionVisualConfig, _countryVisualConfig),
+				new CardPlayTestOverlayGalleryBlock(_loc, _hudUxml, _actionConfigAsset, _actionVisualConfig, _countryVisualConfig),
+				new CountryCharactersGalleryBlock(
+					_loc, _hudUxml, _characterConfigAsset, _characterVisualConfig, _actionConfigAsset, _actionVisualConfig),
+				new OrgCharactersGalleryBlock(_loc, _orgInfoUxml, _characterConfigAsset, _characterVisualConfig),
+				new OrgInfoGalleryBlock(
+					_loc, _orgInfoUxml, _resourceConfigAsset, _characterConfigAsset, _characterVisualConfig,
+					_orgVisualConfig, _actionConfigAsset, _actionVisualConfig),
+				new LeaderboardWindowGalleryBlock(_loc, _leaderboardWindowUxml, _countryVisualConfig, _orgVisualConfig, countryConfig),
+				new GoalsWindowGalleryBlock(_loc, _goalsWindowUxml, _orgVisualConfig),
+				new WarProgressWindowGalleryBlock(_loc, _warProgressWindowUxml, _countryVisualConfig),
+				new WarResultWindowGalleryBlock(_loc, _warResultWindowUxml, _countryVisualConfig),
+				new EndGameWindowGalleryBlock(_loc, _endGameWindowUxml, _orgVisualConfig),
+				new CountryDestroyedWindowGalleryBlock(_loc, _countryDestroyedWindowUxml, _countryVisualConfig, countryConfig),
+				new OrgDestroyedWindowGalleryBlock(_loc, _orgDestroyedWindowUxml, _orgVisualConfig),
+				new MainMenuGalleryBlock(_loc, _mainMenuUxml),
+				new GameMenuGalleryBlock(_loc, _gameMenuUxml),
+				new SettingsWindowGalleryBlock(_loc, _settingsWindowUxml),
+				new LoadWindowGalleryBlock(_loc, _loadWindowUxml),
+				new SelectOrgGalleryBlock(_loc, _selectCountryUxml, _orgVisualConfig),
+			};
 		}
 
-		List<string> SampleCountryIds(int count) {
-			var ids = new List<string>(count);
-			if (_countryVisualConfig == null) {
-				return ids;
+		void BuildFoldoutFor(IGalleryBlock block, VisualElement parent) {
+			GalleryBlockState state = GetOrCreateState(block.Id);
+
+			if (block is GalleryBlockBase baseBlock) {
+				baseBlock.EnterFocusModeRequested = EnterFocusMode;
 			}
-			foreach (CountryVisualEntry entry in _countryVisualConfig.Entries) {
-				if (ids.Count >= count) {
-					break;
+
+			var foldout = new Foldout { text = block.Title, value = state.Expanded };
+			foldout.AddToClassList("gallery-block");
+			foldout.RegisterValueChangedCallback(evt => {
+				// A Foldout also receives bool change events bubbling up from its content, so
+				// only its own toggle counts as the block being expanded or collapsed.
+				if (evt.target == foldout) {
+					state.Expanded = evt.newValue;
 				}
-				ids.Add(entry.countryId);
+			});
+			parent.Add(foldout);
+
+			block.Build(foldout, state);
+		}
+
+		GalleryBlockState GetOrCreateState(string blockId) {
+			foreach (GalleryBlockState state in _blockStates) {
+				if (state.BlockId == blockId) {
+					return state;
+				}
 			}
-			return ids;
+			var created = new GalleryBlockState { BlockId = blockId };
+			_blockStates.Add(created);
+			return created;
 		}
 
 		/// <summary>
@@ -310,8 +344,9 @@ namespace GS.Unity.Gallery {
 		/// action id or state name never truncates the popup text. Measures with the popup's own
 		/// text element so the field's real font and size are used, and re-measures on the first
 		/// geometry pass because fonts do not resolve until the field is laid out in a panel.
+		/// Host infrastructure - every block uses it, none should copy it.
 		/// </summary>
-		static void FitDropdownToWidestChoice(DropdownField dropdown) {
+		public static void FitDropdownToWidestChoice(DropdownField dropdown) {
 			if (dropdown == null) {
 				return;
 			}
@@ -347,25 +382,5 @@ namespace GS.Unity.Gallery {
 			dropdown.RegisterCallback<GeometryChangedEvent>(_ => Apply());
 			Apply();
 		}
-
-		static double GetGoldCost(ActionDefinition definition) {
-			if (definition == null) {
-				return 0;
-			}
-			foreach (ActionCost cost in definition.Cost) {
-				if (cost.ResourceId == "gold") {
-					return cost.Amount;
-				}
-			}
-			return 0;
-		}
-
-		static string GetGoldCostText(ActionDefinition definition) {
-			double gold = GetGoldCost(definition);
-			return gold == 0 ? null : FormatNumber(gold);
-		}
-
-		static string FormatNumber(double value) =>
-			value.ToString("0.##", CultureInfo.InvariantCulture);
 	}
 }

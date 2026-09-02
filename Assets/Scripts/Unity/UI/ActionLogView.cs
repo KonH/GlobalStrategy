@@ -4,7 +4,7 @@ using GS.Main;
 using GS.Unity.Map;
 
 namespace GS.Unity.UI {
-	class ActionLogView {
+	public class ActionLogView {
 		const float FadeInSeconds = 0.25f;
 		const float FadeOutSeconds = 0.6f;
 		const float TopGapPx = 6f;

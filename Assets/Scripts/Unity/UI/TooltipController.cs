@@ -15,7 +15,7 @@ namespace GS.Unity.UI {
 		public bool IsPointerOverTrigger;
 	}
 
-	class TooltipSystem {
+	public class TooltipSystem {
 		public void HideAll() {
 			while (_stack.Count > 0) {
 				CloseTop();

@@ -27,10 +27,8 @@ namespace GS.Main {
 		readonly int _gameLogMaxEntries;
 		readonly EventNotificationSettings? _eventNotifications;
 		readonly int _maxControlPool;
-		readonly IReadOnlyList<GoalsLeafDescriptor> _goalLeaves;
 		readonly BaseIncomeSettings _baseIncomeSettings;
 		readonly CountryActionsVisibility _actionsVisibility;
-		readonly DebugOrgCardVisibility _debugOrgCardVisibility;
 
 		static readonly string[] s_roleOrder = { "ruler", "military_advisor", "diplomacy_advisor", "economic_advisor", "secret_advisor" };
 		static readonly string[] s_orgRoleOrder = { "master", "agent" };
@@ -44,13 +42,11 @@ namespace GS.Main {
 			bool gameLogIncludePlayerActions = true, int gameLogMaxEntries = 12,
 			CountryConfig? countryConfig = null,
 			EventNotificationSettings? eventNotifications = null,
-			CompletionConditionConfig? completionCondition = null,
 			int maxControlPool = 100,
 			EffectConfig? effectConfig = null,
 			BaseIncomeSettings? baseIncomeSettings = null,
 			TasksConfig? tasksConfig = null,
-			CountryActionsVisibility? actionsVisibility = null,
-			DebugOrgCardVisibility? debugOrgCardVisibility = null) {
+			CountryActionsVisibility? actionsVisibility = null) {
 			_state = state;
 			_resources = resources;
 			_relations = relations;
@@ -61,12 +57,10 @@ namespace GS.Main {
 			_gameLogMaxEntries = gameLogMaxEntries;
 			_eventNotifications = eventNotifications;
 			_maxControlPool = maxControlPool > 0 ? maxControlPool : 100;
-			_goalLeaves = GoalsProjector.FlattenLeaves(completionCondition);
 			_effectConfig = effectConfig;
 			_baseIncomeSettings = baseIncomeSettings ?? new BaseIncomeSettings();
 			_tasksConfig = tasksConfig;
 			_actionsVisibility = actionsVisibility ?? new CountryActionsVisibility();
-			_debugOrgCardVisibility = debugOrgCardVisibility ?? new DebugOrgCardVisibility();
 		}
 
 		public void Update(float deltaTime, IReadOnlyWorld world, int gameTimeEntity, int localeEntity, int orgEntity) {
@@ -77,7 +71,6 @@ namespace GS.Main {
 			UpdatePlayerOrganization(world, orgEntity);
 			UpdateOrgDestroyedResults(world);
 			UpdateWarIcons(world);
-			UpdateSelectedWar(world);
 			UpdateGameCompletion(world, orgEntity);
 			UpdateOrgMap(world, orgEntity);
 			UpdateResources(world);
@@ -87,15 +80,12 @@ namespace GS.Main {
 			UpdateWorldCountries(world);
 			UpdateOrgActions(world);
 			UpdateCountryActions(world, gameTimeEntity);
-			UpdateDebugOrgCardAvailability(world, gameTimeEntity);
 			UpdateCountryRelations(world);
 			UpdateCountryWars(world);
 			UpdateProvinceOwnership(world);
 			UpdateProvinceOccupation(world);
 			UpdateSelectedProvince(world);
 			UpdateCountryScore(world);
-			UpdateLeaderboards(world);
-			UpdateGoals(world);
 			UpdateActiveTasks(world);
 			UpdateGameLog(world, orgEntity);
 
@@ -321,10 +311,6 @@ namespace GS.Main {
 				? _state.PlayerOrganization.OrgId
 				: "";
 			_state.WarIcons.Set(WarIconsProjector.Build(world, _resources, playerOrgId));
-		}
-
-		void UpdateSelectedWar(IReadOnlyWorld world) {
-			SelectedWarProjector.Project(world, _state.SelectedWar, _resources, _countryConfig);
 		}
 
 		void UpdateGameCompletion(IReadOnlyWorld world, int orgEntity) {
@@ -713,93 +699,11 @@ namespace GS.Main {
 				hand, deck, drawChoices, countryHandSize, hasPendingDraw, canStartDraw, currentTime);
 		}
 
-		// Debug-menu-only: "My org" and "Selected org" each show one org's full card availability
-		// (org-owned cards, e.g. master/agent recruitment, merged with country-owned cards, e.g.
-		// relation/control actions) regardless of what's currently selected on the map - unlike
-		// UpdateCountryActions above, which resets to empty without a selected country and only
-		// ever reflects the player's own org.
-		void UpdateDebugOrgCardAvailability(IReadOnlyWorld world, int gameTimeEntity) {
-			DateTime currentTime = gameTimeEntity >= 0
-				? world.Get<GameTime>(gameTimeEntity).CurrentTime
-				: DateTime.MinValue;
-
-			string myOrgId = _state.PlayerOrganization.IsValid ? _state.PlayerOrganization.OrgId : "";
-			BuildDebugOrgCardAvailability(
-				world, myOrgId, currentTime,
-				_debugOrgCardVisibility.MyOrgDeckOpen, _debugOrgCardVisibility.MyOrgHandOpen,
-				_state.MyOrgCardAvailability);
-
-			// "Selected org" = the org dominating the currently selected country while the org
-			// lens is active (same resolution UpdateResources uses for OrgLensOrganizationResources).
-			string selectedOrgId = _state.MapLens.Lens == MapLens.Org && _state.OrgLensOrganizationResources.IsValid
-				? _state.OrgLensOrganizationResources.CountryId
-				: "";
-			BuildDebugOrgCardAvailability(
-				world, selectedOrgId, currentTime,
-				_debugOrgCardVisibility.SelectedOrgDeckOpen, _debugOrgCardVisibility.SelectedOrgHandOpen,
-				_state.SelectedOrgCardAvailability);
-		}
-
-		void BuildDebugOrgCardAvailability(
-			IReadOnlyWorld world, string orgId, DateTime currentTime,
-			bool deckDetailOpen, bool handDetailOpen, OrgCardAvailabilityState target) {
-			if (string.IsNullOrEmpty(orgId) || _actionConfig == null) {
-				target.Set(false, "", new List<ActionCardEntry>(), new List<ActionCardEntry>());
-				return;
-			}
-
-			string countryContextId = _hqCountryByOrgId.TryGetValue(orgId, out string hqCountryId) ? hqCountryId : "";
-			ControlWarSnapshot? snapshotOrNull = null;
-			ControlWarSnapshot GetSnapshot() => snapshotOrNull ??= ControlWarSnapshot.Build(world);
-
-			var hand = new List<ActionCardEntry>();
-			var deck = new List<ActionCardEntry>();
-
-			// No CardOwnerType filter - org cards (master/agent recruitment, ...) and country
-			// cards (relation/control actions, ...) are merged into the same debug listing.
-			int[] handReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardOwnerType>.Value, TypeId<CardInHand>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(handReq, null)) {
-				GameAction[] actions = arch.GetColumn<GameAction>();
-				OrgContext[] orgs = arch.GetColumn<OrgContext>();
-				CardInHand[] hands = arch.GetColumn<CardInHand>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (orgs[i].OrgId != orgId) { continue; }
-					var entry = handDetailOpen
-						? BuildEntry(
-							world, orgId, countryContextId, arch.Entities[i], actions[i].ActionId, hands[i].SlotIndex, true,
-							false, currentTime, Array.Empty<string>(), GetSnapshot())
-						: BuildCheapEntry(actions[i].ActionId, hands[i].SlotIndex, true);
-					if (entry != null) { hand.Add(entry); }
-				}
-			}
-
-			int[] deckReq = { TypeId<GameAction>.Value, TypeId<OrgContext>.Value, TypeId<CardOwnerType>.Value };
-			int[] excludeInHandOrChoice = { TypeId<CardInHand>.Value, TypeId<CardDrawChoice>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(deckReq, excludeInHandOrChoice)) {
-				GameAction[] actions = arch.GetColumn<GameAction>();
-				OrgContext[] orgs = arch.GetColumn<OrgContext>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					if (orgs[i].OrgId != orgId) { continue; }
-					var entry = deckDetailOpen
-						? BuildEntry(
-							world, orgId, countryContextId, arch.Entities[i], actions[i].ActionId, -1, false,
-							false, currentTime, Array.Empty<string>(), GetSnapshot())
-						: BuildCheapEntry(actions[i].ActionId, -1, false);
-					if (entry != null) { deck.Add(entry); }
-				}
-			}
-
-			hand.Sort((a, b) => a.SlotIndex.CompareTo(b.SlotIndex));
-			target.Set(true, orgId, hand, deck);
-		}
-
 		// No ActionPlayability evaluation at all - just enough for callers that only ever read
 		// .Count / .ActionId (deck pile, and hand while the actions sub-panel is collapsed).
 		// Matches null-on-unknown-actionId behavior of BuildEntry.
 		ActionCardEntry? BuildCheapEntry(string actionId, int slotIndex, bool isInHand) {
-			return _actionConfig?.Find(actionId) == null ? null : new ActionCardEntry(actionId, slotIndex, isInHand);
+			return ActionCardEntryProjector.BuildCheapEntry(_actionConfig, actionId, slotIndex, isInHand);
 		}
 
 		ActionCardEntry? BuildEntry(
@@ -809,85 +713,10 @@ namespace GS.Main {
 			DateTime currentTime,
 			IReadOnlyList<string> playableCountryOrder,
 			ControlWarSnapshot snapshot) {
-			var def = _actionConfig?.Find(actionId);
-			if (def == null) { return null; }
-
-			string targetCountryId = world.Has<RelationCardTarget>(entity)
-				? world.Get<RelationCardTarget>(entity).TargetCountryId
-				: world.Has<RevengeCardTarget>(entity) ? world.Get<RevengeCardTarget>(entity).TargetCountryId : "";
-
-			string? destroyedCountryId = null;
-			if (!string.IsNullOrEmpty(countryId) && CountryDestroySystem.IsCountryDestroyed(world, countryId)) {
-				destroyedCountryId = countryId;
-			} else if (!string.IsNullOrEmpty(targetCountryId)
-				&& CountryDestroySystem.IsCountryDestroyed(world, targetCountryId)) {
-				destroyedCountryId = targetCountryId;
-			}
-			if (destroyedCountryId != null) {
-				var destroyedFailure = new ActionConditionDebugEntry(
-					$"country '{destroyedCountryId}' no longer exists",
-					false,
-					"action.country.unplayable.country_no_longer_exists",
-					new[] { destroyedCountryId },
-					"country_no_longer_exists");
-				string entryTargetCountryId = !string.IsNullOrEmpty(targetCountryId)
-					? targetCountryId
-					: destroyedCountryId;
-				return new ActionCardEntry(
-					actionId, slotIndex, isInHand, true,
-					"country_no_longer_exists", entryTargetCountryId,
-					new List<ActionConditionDebugEntry> { destroyedFailure },
-					null, null, null,
-					false, destroyedFailure, Array.Empty<string>());
-			}
-
-			ActionPlayabilityResult playability = ActionPlayability.Evaluate(
-				world, _actionConfig!, entity, actionId, orgId, countryId,
-				_resources, _relations, _hqCountryByOrgId, currentTime, _maxControlPool,
-				ActionPlayabilityGateSet.All, snapshot);
-			TimeSpan? remaining = ActionCooldownQuery.GetRemaining(world, orgId, actionId, currentTime);
-			bool onCooldown = remaining.HasValue;
-			double? cooldownRemainingDays = onCooldown ? Math.Ceiling(remaining!.Value.TotalDays) : (double?)null;
-			double? cooldownFractionRemaining = onCooldown && def.CooldownDays > 0
-				? Math.Round(Math.Clamp(remaining!.Value.TotalDays / def.CooldownDays, 0.0, 1.0), 2)
-				: (double?)null;
-			string countryContextId = world.Has<CountryContext>(entity)
-				? world.Get<CountryContext>(entity).CountryId
-				: "";
-
-			int? warWinChancePercent = null;
-			if ((actionId == "declare_war" || actionId == "declare_revenge_war") && !string.IsNullOrEmpty(targetCountryId)) {
-				double pendingDamageBonusPercent = 0;
-				double pendingDurabilityBonusPercent = 0;
-				if (actionId == "declare_revenge_war") {
-					TryResolveRevengePendingBonuses(actionId, out pendingDamageBonusPercent, out pendingDurabilityBonusPercent);
-				}
-				warWinChancePercent = WarWinChanceEstimator.EstimateAttackerWinPercent(
-					world,
-					_resources,
-					countryId,
-					targetCountryId,
-					pendingDamageBonusPercent,
-					pendingDurabilityBonusPercent);
-			}
-
-			var playableCountryIds = new List<string>();
-			if (includePlayableCountryIds && !playability.CanPlay) {
-				foreach (string candidateCountryId in playableCountryOrder) {
-					if (ActionPlayability.CanPlayFast(
-						world, _actionConfig!, entity, actionId, orgId, candidateCountryId,
-						_resources, _relations, _hqCountryByOrgId, currentTime, _maxControlPool,
-						ActionPlayabilityGateSet.HardOnly, snapshot)) {
-						playableCountryIds.Add(candidateCountryId);
-					}
-				}
-			}
-
-			return new ActionCardEntry(
-				actionId, slotIndex, isInHand, !playability.CanPlay,
-				playability.FirstFailure?.ReasonCode ?? "", targetCountryId, playability.Entries,
-				warWinChancePercent, cooldownRemainingDays, cooldownFractionRemaining,
-				playability.CanPlay, playability.FirstFailure, playableCountryIds, countryContextId);
+			return ActionCardEntryProjector.BuildEntry(
+				world, _actionConfig, _effectConfig, _resources, _relations, _hqCountryByOrgId, _maxControlPool,
+				orgId, countryId, entity, actionId, slotIndex, isInHand,
+				includePlayableCountryIds, currentTime, playableCountryOrder, snapshot);
 		}
 
 		IReadOnlyList<string> GetPlayableCountryEvaluationOrder(IReadOnlyWorld world) {
@@ -901,24 +730,6 @@ namespace GS.Main {
 			result.AddRange(GetCountryIds(world));
 			result.Sort(StringComparer.Ordinal);
 			return result;
-		}
-
-		bool TryResolveRevengePendingBonuses(string actionId, out double damageBonusPercent, out double durabilityBonusPercent) {
-			damageBonusPercent = 0;
-			durabilityBonusPercent = 0;
-			var def = _actionConfig?.Find(actionId);
-			if (def == null || _effectConfig == null) {
-				return false;
-			}
-			foreach (string effectId in def.EffectIds) {
-				var effect = _effectConfig.Find(effectId);
-				if (effect is DeclareRevengeWarEffectParams revengeParams) {
-					damageBonusPercent = revengeParams.DamageBonusPercent;
-					durabilityBonusPercent = revengeParams.DurabilityBonusPercent;
-					return true;
-				}
-			}
-			return false;
 		}
 
 		static bool ContainsExpressionType(ExpressionNode node, string type) {
@@ -1018,40 +829,6 @@ namespace GS.Main {
 			_state.CountryScore.Set(scoreByCountryId);
 		}
 
-		public void UpdateLeaderboards(IReadOnlyWorld world) {
-			var organizations = new List<LeaderboardEntryState>();
-			int[] orgRequired = { TypeId<Organization>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(orgRequired, null)) {
-				Organization[] orgs = arch.GetColumn<Organization>();
-				int count = arch.Count;
-				for (int i = 0; i < count; i++) {
-					string orgId = orgs[i].OrganizationId;
-					organizations.Add(new LeaderboardEntryState(
-						0,
-						orgId,
-						string.IsNullOrEmpty(orgs[i].DisplayName) ? orgId : orgs[i].DisplayName,
-						_resources.GetValue(world, orgId, ResourceDefinitions.OrgScore)));
-				}
-			}
-
-			var countries = new List<LeaderboardEntryState>();
-			foreach (string countryId in GetCountryIds(world)) {
-				countries.Add(new LeaderboardEntryState(
-					0,
-					countryId,
-					GetCountryDisplayName(countryId),
-					_resources.GetValue(world, countryId, ResourceDefinitions.CountryScore)));
-			}
-
-			SortAndAssignPlaces(organizations);
-			SortAndAssignPlaces(countries);
-			_state.Leaderboard.Set(organizations, countries);
-		}
-
-		public void UpdateGoals(IReadOnlyWorld world) {
-			_state.Goals.Set(GoalsProjector.Build(world, _goalLeaves, _maxControlPool, _resources));
-		}
-
 		public void UpdateActiveTasks(IReadOnlyWorld world) {
 			var tasks = new List<ActiveTaskEntryState>();
 			if (_tasksConfig != null && _tasksConfig.Tasks.Count > 0) {
@@ -1096,33 +873,6 @@ namespace GS.Main {
 			}
 			ids.Sort(StringComparer.Ordinal);
 			return ids;
-		}
-
-		string GetCountryDisplayName(string countryId) {
-			var entry = _countryConfig?.FindByCountryId(countryId);
-			if (entry != null && !string.IsNullOrEmpty(entry.DisplayName)) {
-				return entry.DisplayName;
-			}
-			return countryId;
-		}
-
-		static void SortAndAssignPlaces(List<LeaderboardEntryState> entries) {
-			entries.Sort((a, b) => {
-				int scoreCompare = b.Score.CompareTo(a.Score);
-				if (scoreCompare != 0) {
-					return scoreCompare;
-				}
-				int nameCompare = StringComparer.Ordinal.Compare(a.DisplayName, b.DisplayName);
-				if (nameCompare != 0) {
-					return nameCompare;
-				}
-				return StringComparer.Ordinal.Compare(a.EntityId, b.EntityId);
-			});
-
-			for (int i = 0; i < entries.Count; i++) {
-				var entry = entries[i];
-				entries[i] = new LeaderboardEntryState(i + 1, entry.EntityId, entry.DisplayName, entry.Score);
-			}
 		}
 
 		// Collection pass, not a diff pass — modeled on UpdateLastFrameEffects above, which already

@@ -7,7 +7,7 @@ using GS.Game.Configs;
 using GS.Unity.Common;
 
 namespace GS.Unity.UI {
-	class CharactersView {
+	public class CharactersView {
 		readonly VisualElement _container;
 		readonly ILocalization _loc;
 		readonly CharacterConfig _characterConfig;
@@ -113,21 +113,15 @@ namespace GS.Unity.UI {
 				string skillName = _loc.Get(skillDef.NameKey);
 				string skillDesc = _loc.Get(skillDef.DescriptionKey);
 
-				var chip = new VisualElement();
-				chip.AddToClassList("char-stat-chip");
-				var skillIcon = new VisualElement();
-				skillIcon.AddToClassList("char-stat-icon");
-				skillIcon.AddToClassList(GetSkillTintClass(skill.SkillId));
-				skillIcon.AddToClassList($"character-skill-icon--{skill.SkillId}");
-				chip.Add(skillIcon);
-				var valueLabel = new Label(skill.Value.ToString());
-				chip.Add(valueLabel);
+				StatChipBuilder.Elements chip = StatChipBuilder.Build();
+				StatChipBuilder.Bind(
+					chip, skill.Value.ToString(), GetSkillTintClass(skill.SkillId), $"character-skill-icon--{skill.SkillId}");
 
 				string capturedSkillName = skillName;
 				string capturedSkillDesc = skillDesc;
-				_tooltip.RegisterTrigger(chip, $"skill-{skill.SkillId}-{entry.CharacterId}", _ => BuildSimpleTooltip(capturedSkillName, capturedSkillDesc), new System.Collections.Generic.HashSet<string>());
+				_tooltip.RegisterTrigger(chip.Chip, $"skill-{skill.SkillId}-{entry.CharacterId}", _ => BuildSimpleTooltip(capturedSkillName, capturedSkillDesc), new System.Collections.Generic.HashSet<string>());
 
-				statsBlock.Add(chip);
+				statsBlock.Add(chip.Chip);
 			}
 			info.Add(statsBlock);
 			card.Add(info);
@@ -162,14 +156,12 @@ namespace GS.Unity.UI {
 				string cardName = ResolveActionDisplayName(def, row.ActionId);
 				string rowText = string.Format(_loc.Get("hud.character.card_hint"), row.Threshold, cardName);
 
-				var rowLabel = new Label(rowText);
-				rowLabel.AddToClassList("tooltip-effect-name");
-				rowLabel.AddToClassList("tooltip-inner-trigger");
-				// Use tooltip-effect-* (declared after tooltip-effect-name) — gs-color-*
+				// Use tooltip-effect-* tone (declared after tooltip-effect-name) — gs-color-*
 				// loses to tooltip-effect-name's later color rule.
-				rowLabel.EnableInClassList("tooltip-effect-positive", row.IsMet);
-				rowLabel.EnableInClassList("tooltip-effect-hint", !row.IsMet);
-				rowsContainer.Add(rowLabel);
+				Label rowLabel = TooltipBodyBuilder.AddLine(
+					rowsContainer, rowText,
+					row.IsMet ? TooltipBodyBuilder.LineTone.Positive : TooltipBodyBuilder.LineTone.Hint,
+					innerTrigger: true);
 
 				string capturedActionId = row.ActionId;
 				context.RegisterInnerTrigger(rowLabel, $"card-hint-{characterId}-{capturedActionId}", _ => BuildCardPreview(capturedActionId));
@@ -226,14 +218,10 @@ namespace GS.Unity.UI {
 		}
 
 		VisualElement BuildSimpleTooltip(string header, string body) {
-			var root = new VisualElement();
-			var headerLabel = new Label(header);
-			headerLabel.AddToClassList("tooltip-header");
-			root.Add(headerLabel);
+			var root = TooltipBodyBuilder.NewRoot();
+			TooltipBodyBuilder.AddHeader(root, header);
 			if (!string.IsNullOrEmpty(body)) {
-				var bodyLabel = new Label(body);
-				bodyLabel.AddToClassList("tooltip-effect-name");
-				root.Add(bodyLabel);
+				TooltipBodyBuilder.AddLine(root, body);
 			}
 			return root;
 		}

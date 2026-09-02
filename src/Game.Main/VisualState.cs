@@ -1200,8 +1200,6 @@ namespace GS.Main {
 		public ProvinceOccupationState ProvinceOccupation { get; } = new ProvinceOccupationState();
 		public SelectedProvinceState SelectedProvince { get; } = new SelectedProvinceState();
 		public CountryScoreState CountryScore { get; } = new CountryScoreState();
-		public LeaderboardState Leaderboard { get; } = new LeaderboardState();
-		public GoalsState Goals { get; } = new GoalsState();
 		public ActiveTasksState ActiveTasks { get; } = new ActiveTasksState();
 		public WarIconsState WarIcons { get; } = new WarIconsState();
 		public SelectedWarState SelectedWar { get; } = new SelectedWarState();
@@ -1211,7 +1209,5 @@ namespace GS.Main {
 		public GameLogState GameLog { get; } = new GameLogState();
 		public GameCompletionState GameCompletion { get; } = new GameCompletionState();
 		public WinConditionHintState WinConditionHint { get; } = new WinConditionHintState();
-		public OrgCardAvailabilityState MyOrgCardAvailability { get; } = new OrgCardAvailabilityState();
-		public OrgCardAvailabilityState SelectedOrgCardAvailability { get; } = new OrgCardAvailabilityState();
 	}
 }

@@ -19,7 +19,7 @@
     align-items: center;
     padding: 8px;
     border-bottom-width: 1px;
-    border-color: rgb(160, 128, 48);
+    border-color: var(--gs-border-muted);
 }
 
 .save-row-info {
@@ -29,11 +29,11 @@
 
 .save-country {
     font-size: 22px;
-    color: rgb(240, 232, 208);
+    color: var(--gs-color-dark);
 }
 
 .save-date {
-    color: rgb(136, 136, 168);
+    color: var(--gs-color-hint);
 }
 
 .menu-button {

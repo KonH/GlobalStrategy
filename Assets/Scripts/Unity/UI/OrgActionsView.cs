@@ -7,7 +7,10 @@ using GS.Game.Configs;
 using GS.Unity.Common;
 
 namespace GS.Unity.UI {
-	class OrgActionsView {
+	// Public so the gallery scene (GS.Unity.Gallery) can preview the org hand/deck with the same
+	// class OrgInfoDocument uses (Docs/Specs/26_08_28_16_ui-refactoring phase 7 "Hand/deck and
+	// animation blocks" batch).
+	public class OrgActionsView {
 		readonly VisualElement _handContainer;
 		readonly ILocalization _loc;
 		readonly ActionConfig _actionConfig;

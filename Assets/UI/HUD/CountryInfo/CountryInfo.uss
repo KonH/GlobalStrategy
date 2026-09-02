@@ -1,7 +1,7 @@
 .country-name {
     font-size: 24px;
-    color: rgb(240, 232, 208);
-    -unity-font-definition: url("/Assets/UI/Fonts/Cinzel-Bold SDF.asset");
+    color: var(--gs-color-dark);
+    -unity-font-definition: var(--gs-font-header);
     -unity-text-align: upper-left;
 }
 
@@ -87,10 +87,10 @@
     margin-left: 6px;
 }
 
+/* Sizing only - the flag-badge component class (Components.uss) owns picking mode and scale mode. */
 .relations-flag {
     width: 28px;
     height: 28px;
-    -unity-background-scale-mode: scale-to-fit;
 }
 
 /* Toggle button block */

@@ -28,7 +28,7 @@
 
 .country-destroyed-title {
     font-size: 32px;
-    color: rgb(220, 200, 160);
+    color: var(--gs-color-parchment);
     -unity-text-align: middle-center;
     white-space: normal;
 }
@@ -57,7 +57,7 @@
     margin-top: 8px;
     margin-bottom: 24px;
     font-size: 20px;
-    color: rgb(188, 176, 148);
+    color: var(--gs-color-muted-light);
     -unity-text-align: middle-center;
     white-space: normal;
 }

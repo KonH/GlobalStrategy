@@ -9,7 +9,7 @@ using GS.Unity.Common;
 using GS.Unity.Map;
 
 namespace GS.Unity.UI {
-	class CountryActionsView {
+	public class CountryActionsView {
 		const long DiscardHoldMilliseconds = 1000;
 
 		readonly VisualElement _handContainer;
@@ -92,7 +92,7 @@ namespace GS.Unity.UI {
 				faceData = null;
 				return false;
 			}
-			faceData = ComposeFaceData(card);
+			faceData = ActionCardBuilder.ComposeFace(_loc, _config, _visualConfig, _countryVisualConfig, card);
 			return true;
 		}
 
@@ -103,7 +103,8 @@ namespace GS.Unity.UI {
 			var wrapper = new VisualElement();
 			wrapper.AddToClassList("card-lift-wrapper");
 
-			ActionCardBuilder.CountryCardFace face = ComposeFaceData(card);
+			ActionCardBuilder.CountryCardFace face = ActionCardBuilder.ComposeFace(
+				_loc, _config, _visualConfig, _countryVisualConfig, card);
 			var result = ActionCardBuilder.Build(face, includeDiscardHint: true);
 			VisualElement cardEl = result.Card;
 			cardEl.AddToClassList(card.CanPlay ? "action-card--available" : "action-card--unavailable");
@@ -153,45 +154,6 @@ namespace GS.Unity.UI {
 			}
 
 			return wrapper;
-		}
-
-		ActionCardBuilder.CountryCardFace ComposeFaceData(ActionCardEntry card) {
-			var definition = _config?.Find(card.ActionId);
-			string name;
-			if (definition == null) {
-				name = card.ActionId;
-			} else if (!string.IsNullOrEmpty(card.TargetCountryId)) {
-				name = string.Format(_loc.Get(definition.NameKey), _loc.Get($"country_name.{card.TargetCountryId}"));
-			} else {
-				name = _loc.Get(definition.NameKey);
-			}
-
-			var requirements = new List<ActionCardBuilder.RequirementRow>();
-			foreach (ActionConditionDebugEntry condition in card.Conditions) {
-				if (condition.Passed) {
-					continue;
-				}
-				requirements.Add(new ActionCardBuilder.RequirementRow(
-					ActionConditionText.Localize(_loc, condition),
-					condition.Passed));
-			}
-
-			var playableCountries = new List<ActionCardBuilder.PlayableCountryBadgeItem>(card.PlayableCountryIds.Count);
-			foreach (string countryId in card.PlayableCountryIds) {
-				Sprite flag = _countryVisualConfig?.Find(countryId)?.flag;
-				playableCountries.Add(new ActionCardBuilder.PlayableCountryBadgeItem(countryId, flag));
-			}
-
-			return new ActionCardBuilder.CountryCardFace(
-				name,
-				definition != null ? _loc.Get(definition.DescKey) : "",
-				GetGoldCostText(definition),
-				_visualConfig?.FindFront(card.ActionId),
-				card.WarWinChancePercent,
-				card.CooldownFractionRemaining,
-				card.CooldownRemainingDays,
-				requirements,
-				playableCountries);
 		}
 
 		void RegisterGesture(
@@ -455,23 +417,6 @@ namespace GS.Unity.UI {
 				}
 			}
 			return null;
-		}
-
-		static double GetGoldCost(ActionDefinition definition) {
-			if (definition == null) {
-				return 0;
-			}
-			foreach (var cost in definition.Cost) {
-				if (cost.ResourceId == "gold") {
-					return cost.Amount;
-				}
-			}
-			return 0;
-		}
-
-		static string GetGoldCostText(ActionDefinition definition) {
-			double gold = GetGoldCost(definition);
-			return gold == 0 ? null : FormatNumber(gold);
 		}
 
 		static string FormatNumber(double value) =>

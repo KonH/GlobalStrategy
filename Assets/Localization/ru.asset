@@ -364,6 +364,16 @@ MonoBehaviour:
     Value: Масоны
   - Key: organization_name.BlackHand
     Value: Чёрная рука
+  - Key: organization_name.player_org
+    Value: Авангардный Круг
+  - Key: organization_name.rival_org
+    Value: Лига Обсидиана
+  - Key: gallery.sample.character_name
+    Value: Образец персонажа
+  - Key: gallery.sample.task_name
+    Value: Образец задачи
+  - Key: gallery.sample.task_desc
+    Value: Пример задачи для предпросмотра галереи
   - Key: load.title
     Value: Загрузить игру
   - Key: load.back
@@ -2410,6 +2420,10 @@ MonoBehaviour:
     Value: Тамплиеры
   - Key: end_game.comparison.BohemianGrove
     Value: Богемская роща
+  - Key: end_game.comparison.top_ai
+    Value: Лучший результат ИИ
+  - Key: end_game.comparison.historical_average
+    Value: Историческое среднее
   - Key: province_name.Afghanistan__Andkhvoy
     Value: "\u0410\u043d\u0434\u0445\u0432\u043e\u0438"
   - Key: province_name.Afghanistan__Asadabad

@@ -4,7 +4,8 @@
     <ui:VisualElement name="load-window-root" class="gs-modal-root">
         <ui:VisualElement name="window-panel" class="gs-panel window-panel">
             <ui:Label name="window-title" text="Load Game" class="gs-header window-title"/>
-            <ui:ScrollView name="save-list" class="save-list"/>
+            <ui:ListView name="save-list" class="save-list" fixed-item-height="64" virtualization-method="FixedHeight" selection-type="None" show-border="false" horizontal-scrolling="false"/>
+            <ui:Label name="save-list-empty" text="" class="save-country" style="display: none;"/>
             <ui:Button name="btn-back" text="Back" class="gs-btn gs-btn--primary menu-button"/>
         </ui:VisualElement>
     </ui:VisualElement>

@@ -1,5 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/Components/Components.uss"/>
     <ui:Style src="project://database/Assets/UI/Modal/WarProgressLayout/WarProgressLayout.uss"/>
     <ui:Style src="project://database/Assets/UI/Modal/WarResultWindow/WarResultWindow.uss"/>
     <ui:VisualElement name="war-result-root" class="war-progress-root">
@@ -43,7 +44,7 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:Label name="battles-title" text="Battles" class="gs-header war-progress-section-title"/>
-                <ui:ScrollView name="battles-list" class="war-progress-battles-list war-result-battles-list" mode="Vertical" vertical-scroller-visibility="AlwaysVisible"/>
+                <ui:ListView name="battles-list" class="war-progress-battles-list war-result-battles-list" virtualization-method="DynamicHeight" fixed-item-height="40" selection-type="None" show-border="false" horizontal-scrolling="false"/>
                 <ui:Label name="battles-empty" text="No battles yet" class="war-progress-battles-empty war-result-battles-empty"/>
                 <ui:Label name="war-result-results-title" text="Results" class="gs-header war-progress-section-title war-result-section-title"/>
                 <ui:VisualElement name="war-result-results" class="war-result-results">

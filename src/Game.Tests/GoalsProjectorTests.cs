@@ -173,23 +173,21 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void converter_update_goals_projects_from_injected_config() {
+		void pull_entry_point_projects_from_completion_condition_config() {
 			var world = new World();
 			SeedCountry(world, "a");
 			SeedOrganization(world, OrgA, 40);
 			AddControl(world, OrgA, "a", 50);
 			var config = Any(Leaf("total_control", 0.5), Leaf("score_goal", 100));
-			var state = new VisualState();
-			var converter = new VisualStateConverter(state, _resources, _relations, completionCondition: config, maxControlPool: 100);
 
-			converter.UpdateGoals(world);
+			List<GoalsOrgEntryState> orgs = GoalsProjector.Project(world, config, 100, _resources);
 
-			Assert.Single(state.Goals.Organizations);
-			Assert.Equal(2, state.Goals.Organizations[0].Goals.Count);
-			Assert.Equal(50, state.Goals.Organizations[0].Goals[0].Current);
-			Assert.Equal(50, state.Goals.Organizations[0].Goals[0].Target);
-			Assert.Equal(40, state.Goals.Organizations[0].Goals[1].Current);
-			Assert.Equal(100, state.Goals.Organizations[0].Goals[1].Target);
+			Assert.Single(orgs);
+			Assert.Equal(2, orgs[0].Goals.Count);
+			Assert.Equal(50, orgs[0].Goals[0].Current);
+			Assert.Equal(50, orgs[0].Goals[0].Target);
+			Assert.Equal(40, orgs[0].Goals[1].Current);
+			Assert.Equal(100, orgs[0].Goals[1].Target);
 		}
 	}
 }
