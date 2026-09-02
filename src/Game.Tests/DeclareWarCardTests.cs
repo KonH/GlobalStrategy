@@ -44,7 +44,7 @@ namespace GS.Game.Tests {
 						OwnerType = "country",
 						Chance = 1,
 						Conditions = new List<ExpressionNode> {
-							Condition("targetRulerOrMilitaryOpinion", 50),
+							Condition("targetMilitaryOpinion", 50),
 							Condition("relationStillExists", 1),
 							Condition("neitherSideAtWar", 1)
 						},
@@ -118,7 +118,7 @@ namespace GS.Game.Tests {
 			return entity;
 		}
 
-		World BuildPlayableWorld(string roleId = "ruler", double opinion = 50, double gold = 100) {
+		World BuildPlayableWorld(string roleId = "military_advisor", double opinion = 50, double gold = 100) {
 			var world = new World();
 			AddCountry(world, AttackerId);
 			AddCountry(world, DefenderId);
@@ -157,12 +157,12 @@ namespace GS.Game.Tests {
 		[Fact]
 		void expression_nodes_read_declare_war_gate_values() {
 			var context = new ExpressionContext {
-				TargetRulerOrMilitaryOpinion = 63,
+				TargetMilitaryOpinion = 63,
 				NeitherSideAtWar = 1
 			};
 
 			Assert.Equal(63, ExpressionNode.Evaluate(
-				new ExpressionNode { Type = "targetRulerOrMilitaryOpinion" }, context));
+				new ExpressionNode { Type = "targetMilitaryOpinion" }, context));
 			Assert.Equal(1, ExpressionNode.Evaluate(
 				new ExpressionNode { Type = "neitherSideAtWar" }, context));
 		}
@@ -188,14 +188,20 @@ namespace GS.Game.Tests {
 			Assert.IsType<DeclareWarEffectParams>(config!.Find("declare_war_effect"));
 		}
 
-		[Theory]
-		[InlineData("ruler")]
-		[InlineData("military_advisor")]
-		void declare_war_is_playable_when_either_declaring_country_role_meets_opinion_gate(string roleId) {
-			var world = BuildPlayableWorld(roleId);
+		[Fact]
+		void declare_war_is_playable_when_declaring_country_military_advisor_meets_opinion_gate() {
+			var world = BuildPlayableWorld("military_advisor");
 			int card = AddDeclareWarCard(world, inHand: true);
 
 			Assert.True(ActionPlayability.Evaluate(world, BuildActionConfig(), card, "declare_war", OrgId, AttackerId, _resources, _relations));
+		}
+
+		[Fact]
+		void declare_war_is_unplayable_when_only_ruler_meets_opinion_gate() {
+			var world = BuildPlayableWorld("ruler", opinion: 100);
+			int card = AddDeclareWarCard(world, inHand: true);
+
+			Assert.False(ActionPlayability.Evaluate(world, BuildActionConfig(), card, "declare_war", OrgId, AttackerId, _resources, _relations));
 		}
 
 		[Fact]
@@ -204,8 +210,8 @@ namespace GS.Game.Tests {
 			AddCountry(world, AttackerId);
 			AddCountry(world, DefenderId);
 			AddGold(world, 100);
-			AddRoleOpinion(world, AttackerId, "ruler", 0);
-			AddRoleOpinion(world, DefenderId, "ruler", 100);
+			AddRoleOpinion(world, AttackerId, "military_advisor", 0);
+			AddRoleOpinion(world, DefenderId, "military_advisor", 100);
 			_relations.SetRelation(world, AttackerId, DefenderId, RelationKind.Rival);
 			int card = AddDeclareWarCard(world, inHand: true);
 
@@ -241,7 +247,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void draw_ignores_declaring_country_opinion_and_war_gates() {
 			var world = BuildPlayableWorld(opinion: 49);
-			int opinionResource = _resources.FindEntity(world, $"{AttackerId}_ruler", $"opinion_{OrgId}");
+			int opinionResource = _resources.FindEntity(world, $"{AttackerId}_military_advisor", $"opinion_{OrgId}");
 			int card = AddDeclareWarCard(world);
 			int deck = world.Create();
 			world.Add(deck, new CardDeck { OrgId = OrgId });
@@ -367,14 +373,14 @@ namespace GS.Game.Tests {
 			Assert.Equal("insufficient_target_opinion", entry.UnplayableReason);
 			Assert.Equal(5, entry.Conditions.Count);
 			Assert.False(entry.Conditions[0].Passed);
-			Assert.Contains("targetRulerOrMilitaryOpinion", entry.Conditions[0].Label);
+			Assert.Contains("targetMilitaryOpinion", entry.Conditions[0].Label);
 			Assert.True(entry.Conditions[1].Passed);
 			Assert.True(entry.Conditions[2].Passed);
 			Assert.All(entry.Conditions.Skip(3), condition => Assert.True(condition.Passed));
 
-			int opinionResource = _resources.FindEntity(world, $"{AttackerId}_ruler", $"opinion_{OrgId}");
+			int opinionResource = _resources.FindEntity(world, $"{AttackerId}_military_advisor", $"opinion_{OrgId}");
 			Assert.True(opinionResource >= 0);
-			_resources.TryUpdate(world, $"{AttackerId}_ruler", $"opinion_{OrgId}", 50, out _);
+			_resources.TryUpdate(world, $"{AttackerId}_military_advisor", $"opinion_{OrgId}", 50, out _);
 			Wars.DeclareWar(world, _resources, AttackerId, "Germany", CurrentTime);
 			converter.Update(0, world, gameTimeEntity, localeEntity, orgEntity);
 

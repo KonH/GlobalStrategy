@@ -12,7 +12,7 @@ namespace GS.Game.Configs {
 			= new Dictionary<string, double>(StringComparer.Ordinal);
 		public double IsInWar { get; set; }
 		public double WarProgress { get; set; }
-		public double TargetRulerOrMilitaryOpinion { get; set; }
+		public double TargetMilitaryOpinion { get; set; }
 		public double NeitherSideAtWar { get; set; }
 		public double WarFree { get; set; }
 		public double RevengeEligible { get; set; }
@@ -94,8 +94,8 @@ namespace GS.Game.Configs {
 				case "warProgress": {
 					return ctx.WarProgress;
 				}
-				case "targetRulerOrMilitaryOpinion": {
-					return ctx.TargetRulerOrMilitaryOpinion;
+				case "targetMilitaryOpinion": {
+					return ctx.TargetMilitaryOpinion;
 				}
 				case "neitherSideAtWar": {
 					return ctx.NeitherSideAtWar;

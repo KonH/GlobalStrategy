@@ -397,7 +397,7 @@
           "type": "gte",
           "members": [
             {
-              "type": "targetRulerOrMilitaryOpinion"
+              "type": "targetMilitaryOpinion"
             },
             {
               "type": "value",

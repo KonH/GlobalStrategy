@@ -72,7 +72,7 @@ namespace GS.Game.Configs {
 					return condition.Type == "lte"
 						? Entry("action.requirement.war_progress_max", "war_progress_too_high", threshold, current)
 						: Entry("action.requirement.war_progress_min", "war_progress_too_low", threshold, current);
-				case "targetRulerOrMilitaryOpinion":
+				case "targetMilitaryOpinion":
 					return Entry("action.requirement.target_opinion_min", "insufficient_target_opinion", threshold, current);
 				case "neitherSideAtWar":
 					return Entry("action.requirement.neither_at_war", "already_at_war");
@@ -128,7 +128,7 @@ namespace GS.Game.Configs {
 				|| type == "hasCountryRelation"
 				|| type == "isInWar"
 				|| type == "warProgress"
-				|| type == "targetRulerOrMilitaryOpinion"
+				|| type == "targetMilitaryOpinion"
 				|| type == "neitherSideAtWar"
 				|| type == "warFree"
 				|| type == "revengeEligible"
@@ -159,8 +159,8 @@ namespace GS.Game.Configs {
 					return $"isInWar ({FormatNumber(ctx.IsInWar)})";
 				case "warProgress":
 					return $"warProgress ({FormatNumber(ctx.WarProgress)})";
-				case "targetRulerOrMilitaryOpinion":
-					return $"targetRulerOrMilitaryOpinion ({FormatNumber(ctx.TargetRulerOrMilitaryOpinion)})";
+				case "targetMilitaryOpinion":
+					return $"targetMilitaryOpinion ({FormatNumber(ctx.TargetMilitaryOpinion)})";
 				case "neitherSideAtWar":
 					return $"neitherSideAtWar ({FormatNumber(ctx.NeitherSideAtWar)})";
 				case "warFree":

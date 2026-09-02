@@ -54,7 +54,7 @@ namespace GS.Game.Systems {
 				Triggers = triggers ?? new Dictionary<string, double>(),
 				IsInWar = isInWar,
 				WarProgress = warProgress,
-				TargetRulerOrMilitaryOpinion = 0.0,
+				TargetMilitaryOpinion = 0.0,
 				NeitherSideAtWar = 1.0,
 				WarFree = warFree,
 				RevengeEligible = 0.0

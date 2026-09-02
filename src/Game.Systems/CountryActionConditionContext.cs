@@ -79,18 +79,17 @@ namespace GS.Game.Systems {
 					? 1.0
 					: 0.0;
 			}
-			double targetRulerOrMilitaryOpinion = 0.0;
+			double targetMilitaryOpinion = 0.0;
 			double neitherSideAtWar = 1.0;
 			if (cardEntity >= 0
 				&& !string.IsNullOrEmpty(countryId)
 				&& world.Has<RelationCardTarget>(cardEntity)) {
 				RelationCardTarget target = world.Get<RelationCardTarget>(cardEntity);
 				if (includeSoft) {
-					string rulerId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "ruler");
 					string militaryAdvisorId = CharacterQuery.GetTargetCharacterByCountryAndRole(world, countryId, "military_advisor");
-					double rulerOpinion = string.IsNullOrEmpty(rulerId) ? 0.0 : resources.GetValue(world, rulerId, $"opinion_{orgId}");
-					double militaryAdvisorOpinion = string.IsNullOrEmpty(militaryAdvisorId) ? 0.0 : resources.GetValue(world, militaryAdvisorId, $"opinion_{orgId}");
-					targetRulerOrMilitaryOpinion = System.Math.Max(rulerOpinion, militaryAdvisorOpinion);
+					targetMilitaryOpinion = string.IsNullOrEmpty(militaryAdvisorId)
+						? 0.0
+						: resources.GetValue(world, militaryAdvisorId, $"opinion_{orgId}");
 				}
 				neitherSideAtWar = !IsCountryAtWar(world, snapshot, countryId)
 					&& !IsCountryAtWar(world, snapshot, target.TargetCountryId) ? 1.0 : 0.0;
@@ -103,7 +102,7 @@ namespace GS.Game.Systems {
 				CountryRelations = relationValues,
 				IsInWar = isInWar,
 				WarProgress = warProgress,
-				TargetRulerOrMilitaryOpinion = targetRulerOrMilitaryOpinion,
+				TargetMilitaryOpinion = targetMilitaryOpinion,
 				NeitherSideAtWar = neitherSideAtWar,
 				WarFree = warFree,
 				RevengeEligible = revengeEligible
