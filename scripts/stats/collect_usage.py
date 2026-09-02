@@ -4,8 +4,8 @@ sizes) from Claude Code transcripts and Codex rollouts into Docs/Specs/<dir>/usa
 
 Pure Python stdlib only (see Docs/Specs/26_07_22_17_spec-dev-stats/plan.md section 1) -
 this module must be invokable as a bare `python`/`python3` call with no third-party
-dependencies, since the SessionEnd hook runs in whatever environment the editor
-process has, not a shell the user set up by hand.
+dependencies, since it runs in whatever environment the caller has, not a shell the
+user set up by hand.
 
 Cursor has no local session-log format this module scans (--scan only ever reads Claude
 transcripts and Codex rollouts) - Cursor rows only ever arrive via the direct --record
@@ -15,7 +15,7 @@ form below, called by scripts/automation/cursor/handle_issues.py right after its
 
 Usage:
   python scripts/stats/collect_usage.py --scan
-  python scripts/stats/collect_usage.py --hook
+  python scripts/stats/collect_usage.py --hook   # retained, no longer wired - see note below
   python scripts/stats/collect_usage.py --record --provider claude --stage implement \\
       --spec-dir <dir> --mode automated --session-id <id> --model <model> --effort <effort> \\
       --start <iso> --end <iso> --input-tokens N --cached-input-tokens N --output-tokens N
@@ -24,6 +24,15 @@ Usage:
       --start <iso> --end <iso> --input-tokens N --cached-input-tokens N --output-tokens N
   python scripts/stats/collect_usage.py --record --provider codex --stage implement \\
       --spec-dir <dir> --mode automated --scan-latest-rollout-since <iso>
+
+--hook was previously wired as a SessionEnd hook in .claude/settings.json. It was
+unwired because it re-upserts the same (session_id, stage) row *after* /commit already
+committed it, leaving the working tree dirty on every session end and tripping the
+clean-tree gate in /plan, /implement and /specify. --scan, which /commit runs first,
+already covers every session including non-interactive ones (find_claude_transcripts
+globs all transcripts regardless of mode), so nothing is lost but freshness: a row is
+now finalised by the next session's scan rather than at session end. The mode is kept
+for anyone who wants to re-enable it deliberately.
 """
 
 import argparse

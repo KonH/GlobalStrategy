@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
@@ -10,20 +12,40 @@ namespace GS.Unity.UI {
 	public class EndGameWindowView {
 		readonly VisualElement _root;
 		readonly Label _header;
-		readonly ScrollView _leaderboardList;
+		readonly ListView _leaderboardList;
 		readonly Label _leaderboardEmpty;
-		readonly ScrollView _comparisonList;
+		readonly ListView _comparisonList;
 		readonly ILocalization _loc;
 		readonly OrgVisualConfig _orgVisualConfig;
+		IReadOnlyList<LeaderboardEntryState> _currentLeaderboardEntries = Array.Empty<LeaderboardEntryState>();
+		string _currentPlayerOrgId = "";
+		IReadOnlyList<EndGameComparisonRowState> _currentComparisonRows = Array.Empty<EndGameComparisonRowState>();
 
 		public EndGameWindowView(VisualElement root, ILocalization loc, OrgVisualConfig orgVisualConfig) {
 			_root = root;
 			_loc = loc;
 			_orgVisualConfig = orgVisualConfig;
 			_header = root.Q<Label>("end-game-header");
-			_leaderboardList = root.Q<ScrollView>("end-game-leaderboard-list");
+			_leaderboardList = root.Q<ListView>("end-game-leaderboard-list");
 			_leaderboardEmpty = root.Q<Label>("end-game-leaderboard-empty");
-			_comparisonList = root.Q<ScrollView>("end-game-comparison-list");
+			_comparisonList = root.Q<ListView>("end-game-comparison-list");
+
+			if (_leaderboardList != null) {
+				_leaderboardList.makeItem = () => {
+					RankRowBuilder.Elements elements = RankRowBuilder.Build();
+					elements.Row.userData = elements;
+					return elements.Row;
+				};
+				_leaderboardList.bindItem = (element, index) => BindLeaderboardRow(element, _currentLeaderboardEntries[index]);
+			}
+			if (_comparisonList != null) {
+				_comparisonList.makeItem = () => {
+					RankRowBuilder.Elements elements = RankRowBuilder.Build();
+					elements.Row.userData = elements;
+					return elements.Row;
+				};
+				_comparisonList.bindItem = (element, index) => BindComparisonRow(element, _currentComparisonRows[index]);
+			}
 		}
 
 		public void Refresh(
@@ -73,47 +95,20 @@ namespace GS.Unity.UI {
 			if (_leaderboardList == null) {
 				return;
 			}
-			_leaderboardList.Clear();
-			foreach (var entry in leaderboard.Organizations) {
-				_leaderboardList.Add(CreateLeaderboardRow(entry, entry.EntityId == playerOrgId));
-			}
+			_currentPlayerOrgId = playerOrgId ?? "";
+			_currentLeaderboardEntries = leaderboard.Organizations;
+			_leaderboardList.itemsSource = (IList)_currentLeaderboardEntries;
+			_leaderboardList.Rebuild();
 			if (_leaderboardEmpty != null) {
-				_leaderboardEmpty.style.display = leaderboard.Organizations.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
+				_leaderboardEmpty.style.display = _currentLeaderboardEntries.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
 				_leaderboardEmpty.text = _loc.Get("end_game.leaderboard.empty");
 			}
 		}
 
-		VisualElement CreateLeaderboardRow(LeaderboardEntryState entry, bool isPlayer) {
-			var row = new VisualElement();
-			row.AddToClassList("leaderboard-row");
-			if (isPlayer) {
-				row.AddToClassList("leaderboard-row--player");
-			}
-
-			var place = new Label(entry.Place.ToString(CultureInfo.InvariantCulture));
-			place.AddToClassList("leaderboard-row-place");
-			row.Add(place);
-
-			var flag = new VisualElement();
-			flag.AddToClassList("leaderboard-row-flag");
+		void BindLeaderboardRow(VisualElement element, LeaderboardEntryState entry) {
 			Sprite sprite = _orgVisualConfig?.Find(entry.EntityId)?.flag;
-			if (sprite != null) {
-				flag.style.backgroundImage = new StyleBackground(sprite);
-				flag.style.display = DisplayStyle.Flex;
-			} else {
-				flag.style.display = DisplayStyle.None;
-			}
-			row.Add(flag);
-
-			var name = new Label(entry.DisplayName);
-			name.AddToClassList("leaderboard-row-name");
-			row.Add(name);
-
-			var score = new Label(ScoreFormat.Format(entry.Score));
-			score.AddToClassList("leaderboard-row-score");
-			row.Add(score);
-
-			return row;
+			var elements = (RankRowBuilder.Elements)element.userData;
+			RankRowBuilder.Bind(elements, entry.Place, sprite, entry.DisplayName, ScoreFormat.Format(entry.Score), highlighted: entry.EntityId == _currentPlayerOrgId);
 		}
 
 		void RefreshComparison(IReadOnlyList<EndGameComparisonEntry> comparisons, PlayerOrganizationState player, LeaderboardState leaderboard) {
@@ -127,44 +122,15 @@ namespace GS.Unity.UI {
 					break;
 				}
 			}
-			_comparisonList.Clear();
-			var rows = EndGameComparisonProjector.Build(comparisons, player.OrgId, player.DisplayName, playerScore);
-			foreach (var row in rows) {
-				_comparisonList.Add(CreateComparisonRow(row));
-			}
+			_currentComparisonRows = EndGameComparisonProjector.Build(comparisons, player.OrgId, player.DisplayName, playerScore);
+			_comparisonList.itemsSource = (IList)_currentComparisonRows;
+			_comparisonList.Rebuild();
 		}
 
-		VisualElement CreateComparisonRow(EndGameComparisonRowState row) {
-			var element = new VisualElement();
-			element.AddToClassList("leaderboard-row");
-			if (row.IsPlayer) {
-				element.AddToClassList("leaderboard-row--player");
-			}
-
-			var place = new Label(row.Place.ToString(CultureInfo.InvariantCulture));
-			place.AddToClassList("leaderboard-row-place");
-			element.Add(place);
-
-			var flag = new VisualElement();
-			flag.AddToClassList("leaderboard-row-flag");
+		void BindComparisonRow(VisualElement element, EndGameComparisonRowState row) {
 			Sprite sprite = row.IsPlayer ? _orgVisualConfig?.Find(row.ComparisonElementId)?.flag : null;
-			if (sprite != null) {
-				flag.style.backgroundImage = new StyleBackground(sprite);
-				flag.style.display = DisplayStyle.Flex;
-			} else {
-				flag.style.display = DisplayStyle.None;
-			}
-			element.Add(flag);
-
-			var name = new Label(GetComparisonDisplayName(row));
-			name.AddToClassList("leaderboard-row-name");
-			element.Add(name);
-
-			var score = new Label(ScoreFormat.Format(row.Score));
-			score.AddToClassList("leaderboard-row-score");
-			element.Add(score);
-
-			return element;
+			var elements = (RankRowBuilder.Elements)element.userData;
+			RankRowBuilder.Bind(elements, row.Place, sprite, GetComparisonDisplayName(row), ScoreFormat.Format(row.Score), highlighted: row.IsPlayer);
 		}
 
 		string GetComparisonDisplayName(EndGameComparisonRowState row) {

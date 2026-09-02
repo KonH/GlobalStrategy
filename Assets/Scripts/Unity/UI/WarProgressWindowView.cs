@@ -5,7 +5,7 @@ using GS.Unity.Map;
 using UnityEngine.UIElements;
 
 namespace GS.Unity.UI {
-	class WarProgressWindowView {
+	public class WarProgressWindowView {
 		readonly WarProgressLayoutBinder _binder;
 
 		public WarProgressWindowView(

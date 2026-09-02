@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using GS.Main;
 using GS.Unity.Common;
 using GS.Unity.Map;
@@ -10,6 +9,7 @@ namespace GS.Unity.UI {
 	[RequireComponent(typeof(UIDocument))]
 	public class GoalsWindowDocument : MonoBehaviour {
 		VisualState _state;
+		GameLogic _gameLogic;
 		ILocalization _loc;
 		OrgVisualConfig _orgVisualConfig;
 		UIDocument _doc;
@@ -18,11 +18,15 @@ namespace GS.Unity.UI {
 		Button _closeButton;
 		GoalsWindowView _view;
 		ModalState _modalState;
+		readonly LeaderboardState _leaderboard = new LeaderboardState();
+		readonly GoalsState _goals = new GoalsState();
+		readonly PullRefreshTimer _refreshTimer = new PullRefreshTimer();
 		bool _subscribed;
 
 		[Inject]
-		void Construct(VisualState state, ILocalization loc, OrgVisualConfig orgVisualConfig, ModalState modalState) {
+		void Construct(VisualState state, GameLogic gameLogic, ILocalization loc, OrgVisualConfig orgVisualConfig, ModalState modalState) {
 			_state = state;
+			_gameLogic = gameLogic;
 			_loc = loc;
 			_orgVisualConfig = orgVisualConfig;
 			_modalState = modalState;
@@ -38,11 +42,7 @@ namespace GS.Unity.UI {
 			_root = _doc.rootVisualElement;
 			_title = _root.Q<Label>("goals-title");
 			_closeButton = _root.Q<Button>("btn-close");
-			_closeButton?.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && _closeButton.ContainsPoint(e.localPosition)) {
-					Hide();
-				}
-			});
+			_closeButton?.OnClick(Hide);
 			Hide();
 		}
 
@@ -60,6 +60,15 @@ namespace GS.Unity.UI {
 			Unsubscribe();
 		}
 
+		void Update() {
+			if (!IsVisible || _gameLogic == null) {
+				return;
+			}
+			if (_refreshTimer.ShouldRefresh(Time.deltaTime, _state.Time.IsPaused)) {
+				RefreshGoals();
+			}
+		}
+
 		public bool IsVisible => _root != null && _root.style.display == DisplayStyle.Flex;
 
 		public void Show() {
@@ -69,7 +78,8 @@ namespace GS.Unity.UI {
 			EnsureView();
 			RefreshTexts();
 			_view?.ResetToPlayerOrg(_state.PlayerOrganization.OrgId);
-			_view?.Refresh(_state.Leaderboard, _state.Goals);
+			_refreshTimer.RequestImmediate();
+			RefreshGoals();
 			if (IsVisible) {
 				return;
 			}
@@ -88,8 +98,6 @@ namespace GS.Unity.UI {
 			if (_subscribed || _state == null) {
 				return;
 			}
-			_state.Leaderboard.PropertyChanged += HandleLeaderboardChanged;
-			_state.Goals.PropertyChanged += HandleGoalsChanged;
 			_state.Locale.PropertyChanged += HandleLocaleChanged;
 			_state.PlayerOrganization.PropertyChanged += HandlePlayerOrganizationChanged;
 			_subscribed = true;
@@ -99,40 +107,32 @@ namespace GS.Unity.UI {
 			if (!_subscribed || _state == null) {
 				return;
 			}
-			_state.Leaderboard.PropertyChanged -= HandleLeaderboardChanged;
-			_state.Goals.PropertyChanged -= HandleGoalsChanged;
 			_state.Locale.PropertyChanged -= HandleLocaleChanged;
 			_state.PlayerOrganization.PropertyChanged -= HandlePlayerOrganizationChanged;
 			_subscribed = false;
 		}
 
-		void HandleLeaderboardChanged(object sender, PropertyChangedEventArgs e) {
-			if (!IsVisible) {
-				return;
-			}
-			_view?.Refresh(_state.Leaderboard, _state.Goals);
-		}
-
-		void HandleGoalsChanged(object sender, PropertyChangedEventArgs e) {
-			if (!IsVisible) {
-				return;
-			}
-			_view?.Refresh(_state.Leaderboard, _state.Goals);
-		}
-
-		void HandleLocaleChanged(object sender, PropertyChangedEventArgs e) {
+		void HandleLocaleChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
 			// HUD owns locale switching — only refresh bound texts/view here.
 			RefreshTexts();
 			if (IsVisible) {
-				_view?.Refresh(_state.Leaderboard, _state.Goals);
+				RefreshGoals();
 			}
 		}
 
-		void HandlePlayerOrganizationChanged(object sender, PropertyChangedEventArgs e) {
-			if (!IsVisible) {
+		void HandlePlayerOrganizationChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
+			if (IsVisible) {
+				RefreshGoals();
+			}
+		}
+
+		void RefreshGoals() {
+			if (_gameLogic == null) {
 				return;
 			}
-			_view?.Refresh(_state.Leaderboard, _state.Goals);
+			LeaderboardProjector.Project(_gameLogic.World, _leaderboard, _gameLogic.Resources, _gameLogic.CountryConfig);
+			_goals.Set(GoalsProjector.Project(_gameLogic.World, _gameLogic.GameSettings.CompletionCondition, _gameLogic.MaxControlPool, _gameLogic.Resources));
+			_view?.Refresh(_leaderboard, _goals);
 		}
 
 		void EnsureView() {

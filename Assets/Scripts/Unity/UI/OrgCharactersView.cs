@@ -7,7 +7,9 @@ using GS.Game.Configs;
 using GS.Unity.Common;
 
 namespace GS.Unity.UI {
-	class OrgCharactersView {
+	// Public so the gallery scene (GS.Unity.Gallery) can preview the org character slots
+	// (Docs/Specs/26_08_28_16_ui-refactoring phase 7 "Hand/deck and animation blocks" batch).
+	public class OrgCharactersView {
 		readonly VisualElement _container;
 		readonly ILocalization _loc;
 		readonly CharacterConfig _characterConfig;
@@ -84,18 +86,12 @@ namespace GS.Unity.UI {
 
 				string skillName = _loc.Get(skillDef.NameKey);
 				string skillDesc = _loc.Get(skillDef.DescriptionKey);
-				var chip = new VisualElement();
-				chip.AddToClassList("char-stat-chip");
-				var skillIcon = new VisualElement();
-				skillIcon.AddToClassList("char-stat-icon");
-				skillIcon.AddToClassList($"character-skill-icon--{skill.SkillId}");
-				chip.Add(skillIcon);
-				var valueLabel = new Label(skill.Value.ToString());
-				chip.Add(valueLabel);
+				StatChipBuilder.Elements chip = StatChipBuilder.Build();
+				StatChipBuilder.Bind(chip, skill.Value.ToString(), $"character-skill-icon--{skill.SkillId}");
 				string csn = skillName;
 				string csd = skillDesc;
-				_tooltip.RegisterTrigger(chip, $"skill-{skill.SkillId}-{entry.CharacterId}", _ => BuildSimpleTooltip(csn, csd), new HashSet<string>());
-				statsBlock.Add(chip);
+				_tooltip.RegisterTrigger(chip.Chip, $"skill-{skill.SkillId}-{entry.CharacterId}", _ => BuildSimpleTooltip(csn, csd), new HashSet<string>());
+				statsBlock.Add(chip.Chip);
 			}
 			infoBlock.Add(statsBlock);
 			card.Add(infoBlock);
@@ -139,14 +135,10 @@ namespace GS.Unity.UI {
 		}
 
 		VisualElement BuildSimpleTooltip(string header, string body) {
-			var root = new VisualElement();
-			var headerLabel = new Label(header);
-			headerLabel.AddToClassList("tooltip-header");
-			root.Add(headerLabel);
+			var root = TooltipBodyBuilder.NewRoot();
+			TooltipBodyBuilder.AddHeader(root, header);
 			if (!string.IsNullOrEmpty(body)) {
-				var bodyLabel = new Label(body);
-				bodyLabel.AddToClassList("tooltip-effect-name");
-				root.Add(bodyLabel);
+				TooltipBodyBuilder.AddLine(root, body);
 			}
 			return root;
 		}

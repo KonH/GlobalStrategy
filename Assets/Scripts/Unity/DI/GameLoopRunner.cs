@@ -1,4 +1,5 @@
 using System;
+using Unity.Profiling;
 using UnityEngine;
 using VContainer.Unity;
 using ECS.Viewer;
@@ -10,6 +11,11 @@ using GS.Unity.Save;
 
 namespace GS.Unity.DI {
 	public class GameLoopRunner : IStartable, ITickable {
+		// Separate scopes so the Profiler shows simulation cost apart from the VisualState
+		// projection - GameLogic.Update is deliberately not used here for that reason.
+		static readonly ProfilerMarker _updateLogicMarker = new ProfilerMarker("GameLoop.UpdateLogic");
+		static readonly ProfilerMarker _updateVisualStateMarker = new ProfilerMarker("GameLoop.UpdateVisualState");
+
 		readonly BotSession _botSession;
 		readonly PauseToken _pauseToken;
 		readonly SaveFileManager _saveFileManager;
@@ -59,7 +65,16 @@ namespace GS.Unity.DI {
 				ApplyTutorialPreferences();
 			}
 			_botSession.Logic.SetPresentationTriggers(_presentationTriggers.Values);
-			_botSession.Update(Time.deltaTime);
+			float deltaTime = Time.deltaTime;
+			bool logicRan;
+			using (_updateLogicMarker.Auto()) {
+				logicRan = _botSession.UpdateLogic(deltaTime);
+			}
+			if (logicRan) {
+				using (_updateVisualStateMarker.Auto()) {
+					_botSession.UpdateVisualState(deltaTime);
+				}
+			}
 			string activeTutorialId = _botSession.Logic.ActiveTutorialId;
 			if (activeTutorialId != _lastActiveTutorialId) {
 				_presentationTriggers.ClearTaskEdges();

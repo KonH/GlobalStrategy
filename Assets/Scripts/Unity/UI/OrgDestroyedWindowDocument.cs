@@ -32,18 +32,10 @@ namespace GS.Unity.UI {
 			_modalState.Unlocked += HandleModalUnlocked;
 
 			Button closeButton = _root.Q<Button>("btn-close");
-			closeButton?.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && closeButton.ContainsPoint(e.localPosition)) {
-					Hide();
-				}
-			});
+			closeButton?.OnClick(Hide);
 
 			Button confirmButton = _root.Q<Button>("btn-confirm");
-			confirmButton?.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && confirmButton.ContainsPoint(e.localPosition)) {
-					Hide();
-				}
-			});
+			confirmButton?.OnClick(Hide);
 
 			HideVisualOnly();
 		}

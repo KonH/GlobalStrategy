@@ -2,17 +2,17 @@
     flex-direction: column;
     align-items: flex-end;
     padding: 8px 12px;
-    background-color: rgb(26, 42, 72);
-    border-color: rgb(200, 160, 64);
+    background-color: var(--gs-panel-bg);
+    border-color: var(--gs-panel-border);
     border-width: 3px;
     border-radius: 6px;
 }
 
 #time-date {
     font-size: 22px;
-    color: rgb(200, 184, 144);
+    color: var(--gs-color-mid);
     margin-bottom: 6px;
-    -unity-font-definition: url("/Assets/UI/Fonts/IMFellEnglish-Regular SDF.asset");
+    -unity-font-definition: var(--gs-font-body);
 }
 
 #time-controls {

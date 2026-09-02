@@ -4,14 +4,14 @@
 
 .province-name-header {
     font-size: 28px;
-    color: rgb(240, 232, 208);
+    color: var(--gs-color-dark);
     -unity-font-style: bold;
     margin-bottom: 8px;
 }
 
 .province-country-name {
     font-size: 22px;
-    color: rgb(240, 232, 208);
+    color: var(--gs-color-dark);
 }
 
 .province-owner-occupant-row {

@@ -1,0 +1,147 @@
+/* Layout only - every colour and font comes from SharedStyles.uss, and the card itself is
+   styled entirely by OrgActions.uss so what the gallery shows is what the HUD shows. */
+
+.gallery-root {
+    flex-grow: 1;
+    flex-direction: column;
+    background-color: rgb(58, 52, 44);
+    padding: 12px;
+}
+
+/* Page header. Plain .gs-header - no size override, so a block header can match it exactly. */
+.gallery-header {
+    margin-bottom: 4px;
+}
+
+.gallery-scroll {
+    flex-grow: 1;
+}
+
+.gallery-blocks {
+    flex-direction: column;
+}
+
+.gallery-block {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+/* A block's foldout title is deliberately the same style as "UI Gallery" above it: the values
+   here are .gs-header's, repeated because a foldout's title is a Toggle's text element, not a
+   Label we can put a class on. */
+.gallery-block .unity-foldout__toggle .unity-toggle__text {
+    font-size: 36px;
+    color: var(--gs-color-dark);
+    -unity-font-style: bold;
+    -unity-font-definition: var(--gs-font-header);
+}
+
+.gallery-controls {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 8px 12px;
+    margin-top: 8px;
+}
+
+/* No `gap` support in 6000.4.1f1. margin-right rather than margin-left: a left margin on every
+   child would also push the first one off the container edge. */
+.gallery-dropdown {
+    margin-right: 16px;
+}
+
+/* Standard field label otherwise - only the colour and size change, so the control keeps its
+   default metrics and the labels stay legible on the dark gallery ground. */
+.gallery-dropdown .unity-base-field__label {
+    color: var(--gs-color-white);
+    font-size: 20px;
+}
+
+/* Width comes from GalleryDocument.FitDropdownToWidestChoice, which measures every choice and
+   sets a min-width on the popup's text element - no fixed width to keep in sync with content. */
+.gallery-dropdown .unity-base-popup-field__text {
+    -unity-text-align: middle-left;
+}
+
+.gallery-summary {
+    margin-left: 4px;
+}
+
+/* Inside the gallery-scroll's unbounded content, flex-grow has nothing to grow into - the
+   stage's actual height is whatever its content needs (a tall ListView, a wide card row, ...).
+   align-items stays centered (horizontal centering for single cards/atoms); justify-content
+   switches to flex-start (not center) so tall content grows downward within the scroll instead
+   of being vertically centered and overlapping the block above/below it. */
+.gallery-stage {
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 380px;
+    padding: 8px 0;
+}
+
+/* Preview button shown instead of an inline stage for a full-surface block (IsFullSurface ==
+   true) - clicking it hands the block off to GalleryDocument.EnterFocusMode. */
+.gallery-preview-button {
+    margin-left: 0;
+}
+
+/* Full-screen focus mode: windows/panels/menus/overlays are authored as position:Absolute,
+   width:100%/height:100% against a full-screen root in the real game (see uitoolkit.md's
+   "Layer Model"). A block embedded inline inside gallery-scroll's flex column can never be
+   pixel-identical to that - it loses its true ancestor chain and any fixed-size stand-in box is
+   not the same rendering context as a genuine top-level screen-space panel root. Focus mode
+   instead covers the Gallery panel's own true full size (the exact same absolute-fill shape the
+   real hud-root/window roots use against HUDPanelSettings), so percentage/absolute layout in the
+   previewed content resolves exactly as it does in the shipped game - no hardcoded 1920x1080 cap. */
+.gallery-focus-root {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: column;
+    background-color: rgb(20, 18, 15);
+}
+
+.gallery-focus-bar {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 8px 12px;
+    background-color: rgb(58, 52, 44);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--gs-color-mid);
+}
+
+.gallery-focus-back-button {
+    margin-right: 16px;
+}
+
+.gallery-focus-title {
+    margin-bottom: 0;
+}
+
+/* Real full-panel size (minus the focus bar), position:Relative - the container
+   block.Render(...) targets directly, so any width:100%/height:100%/absolute-positioned real UI
+   content dropped into it resolves against the TRUE remaining Gallery panel size rather than a
+   hardcoded stand-in.
+   flex-grow:1 (not an explicit height:100%) is deliberate: gallery-focus-root is a column flex
+   container with the focus bar as its first, flex-shrink:0 child - an explicit height:100% on
+   the main (vertical) axis here would override flex-grow's "fill what's left" behaviour and
+   make this pane 100% of the ROOT's height on top of the bar's own height, overflowing the
+   container and getting silently clipped by overflow:hidden below. flex-grow:1 alone correctly
+   sizes it to exactly the space left after the bar. */
+.gallery-focus-content {
+    position: relative;
+    flex-grow: 1;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Sized to the .action-card shell (240x360) so the preview never rescales it. */
+.gallery-card-host {
+    width: 240px;
+    height: 360px;
+    flex-direction: column;
+}

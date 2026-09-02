@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UIElements;
+using GS.Game.Configs;
+using GS.Main;
+using GS.Unity.Common;
+using GS.Unity.Map;
 
 namespace GS.Unity.UI {
 	public static class ActionCardBuilder {
@@ -72,6 +77,75 @@ namespace GS.Unity.UI {
 				return Array.AsReadOnly(copy);
 			}
 		}
+
+		/// <summary>
+		/// The single ComposeFaceData implementation. Previously duplicated as a private method in
+		/// CountryActionsView and again as GalleryDocument.ComposeFace (ported to
+		/// ActionCardGalleryBlock in phase 3 part 1) — both now call this instead of hand-building
+		/// their own CountryCardFace, so there is exactly one place that turns an ActionCardEntry
+		/// into card face data.
+		/// </summary>
+		public static CountryCardFace ComposeFace(
+			ILocalization loc,
+			ActionConfig config,
+			ActionVisualConfig visualConfig,
+			CountryVisualConfig countryVisualConfig,
+			ActionCardEntry card) {
+			ActionDefinition definition = config?.Find(card.ActionId);
+			string name;
+			if (definition == null) {
+				name = card.ActionId;
+			} else if (!string.IsNullOrEmpty(card.TargetCountryId)) {
+				name = string.Format(loc.Get(definition.NameKey), loc.Get($"country_name.{card.TargetCountryId}"));
+			} else {
+				name = loc.Get(definition.NameKey);
+			}
+
+			var requirements = new List<RequirementRow>();
+			foreach (ActionConditionDebugEntry condition in card.Conditions) {
+				if (condition.Passed) {
+					continue;
+				}
+				requirements.Add(new RequirementRow(ActionConditionText.Localize(loc, condition), condition.Passed));
+			}
+
+			var playableCountries = new List<PlayableCountryBadgeItem>(card.PlayableCountryIds.Count);
+			foreach (string countryId in card.PlayableCountryIds) {
+				Sprite flag = countryVisualConfig?.Find(countryId)?.flag;
+				playableCountries.Add(new PlayableCountryBadgeItem(countryId, flag));
+			}
+
+			return new CountryCardFace(
+				name,
+				definition != null ? loc.Get(definition.DescKey) : "",
+				GetGoldCostText(definition),
+				visualConfig?.FindFront(card.ActionId),
+				card.WarWinChancePercent,
+				card.CooldownFractionRemaining,
+				card.CooldownRemainingDays,
+				requirements,
+				playableCountries);
+		}
+
+		static double GetGoldCost(ActionDefinition definition) {
+			if (definition == null) {
+				return 0;
+			}
+			foreach (ActionCost cost in definition.Cost) {
+				if (cost.ResourceId == "gold") {
+					return cost.Amount;
+				}
+			}
+			return 0;
+		}
+
+		static string GetGoldCostText(ActionDefinition definition) {
+			double gold = GetGoldCost(definition);
+			return gold == 0 ? null : FormatNumber(gold);
+		}
+
+		static string FormatNumber(double value) =>
+			value.ToString("0.##", CultureInfo.InvariantCulture);
 
 		public struct CardResult {
 			public VisualElement Card;

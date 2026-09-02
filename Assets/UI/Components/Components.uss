@@ -1,0 +1,236 @@
+/* Shared stylesheet for every Assets/UI/Components/<Name> component. One sheet, not one per
+   component - see .claude/rules/unity/uitoolkit.md "USS scope for dynamically created elements":
+   a class used by a C#-created element resolves against the stylesheets loaded by the hosting
+   document, so one shared sheet means one <ui:Style> import per hosting document instead of one
+   per component. Component classes only, reading --gs-* tokens from SharedStyles.uss - never a
+   new raw colour or font literal here. */
+
+/* ---------- Atoms: FlagBadge ---------- */
+
+.flag-badge {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.flag-badge--small {
+    width: 20px;
+    height: 20px;
+}
+
+.flag-badge--large {
+    width: 48px;
+    height: 48px;
+}
+
+/* ---------- Atoms: ResourceChip ---------- */
+
+.resource-chip {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.resource-chip-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.resource-chip-label {
+    font-size: 22px;
+    -unity-font-style: bold;
+    margin-left: 4px;
+}
+
+/* ---------- Atoms: StatChip ---------- */
+
+.stat-chip {
+    flex-direction: row;
+    align-items: center;
+}
+
+.stat-chip-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+    margin-right: 4px;
+}
+
+.stat-chip-label {
+    color: var(--gs-color-mid);
+    font-size: 16px;
+}
+
+/* ---------- Atoms: ProgressBar ---------- */
+
+.progress-bar-track {
+    height: 10px;
+    border-radius: 5px;
+    background-color: var(--gs-bg-tooltip);
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: var(--gs-color-positive);
+}
+
+/* ---------- Rows: RankRow ---------- */
+/* Unifies the old .goals-row (GoalsWindow.uss) and .leaderboard-row (LeaderboardWindow.uss,
+   EndGameWindow.uss) shapes, which were already visually identical apart from a couple of one-off
+   differences (goals used a "selected" gold outline, end-game used a "player" gold outline+tint) -
+   accepted small visual unification per spec.md's one exception. Sizing matches what both
+   windows' own header columns already expect (Goals/LeaderboardWindow.uss ".*-header-*"). */
+
+.rank-row {
+    flex-direction: row;
+    align-items: center;
+    min-height: 54px;
+    padding: 8px 10px;
+    margin-bottom: 4px;
+    background-color: var(--gs-bg-row-overlay);
+    border-radius: 4px;
+    border-width: 2px;
+    border-color: rgba(0, 0, 0, 0);
+}
+
+.rank-row--highlighted {
+    border-color: var(--gs-color-highlight-gold);
+    background-color: rgba(240, 200, 96, 0.18);
+}
+
+.rank-row-place {
+    width: 70px;
+    color: var(--gs-color-dark);
+    font-size: 22px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.rank-row-flag {
+    width: 56px;
+    height: 36px;
+    margin-right: 14px;
+}
+
+.rank-row-name {
+    flex-grow: 1;
+    flex-shrink: 1;
+    color: var(--gs-color-dark);
+    font-size: 22px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+}
+
+.rank-row-score {
+    width: 180px;
+    color: rgb(255, 224, 128);
+    font-size: 22px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-right;
+}
+
+/* ---------- Rows: EffectRow ---------- */
+
+.effect-row {
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 8px;
+    margin-bottom: 2px;
+    color: var(--gs-color-dark);
+    font-size: 18px;
+}
+
+.effect-row-label {
+    flex-grow: 1;
+    font-size: 16px;
+    color: var(--gs-color-dark);
+}
+
+.effect-row-value {
+    font-size: 16px;
+    -unity-font-style: bold;
+}
+
+.effect-row--positive .effect-row-value {
+    color: var(--gs-color-positive);
+}
+
+.effect-row--negative .effect-row-value {
+    color: var(--gs-color-negative);
+}
+
+/* ---------- Rows: BattleRow ---------- */
+
+.battle-row {
+    padding: 6px 10px;
+    margin-bottom: 4px;
+    background-color: var(--gs-bg-row-overlay);
+    border-radius: 4px;
+    font-size: 18px;
+    color: var(--gs-color-dark);
+    white-space: normal;
+}
+
+.battle-row-label {
+    font-size: 16px;
+    color: var(--gs-color-dark);
+}
+
+.battle-row-result {
+    font-size: 16px;
+    -unity-font-style: bold;
+}
+
+/* ---------- Rows: ProvinceTransferRow ---------- */
+
+.province-transfer-row {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    align-self: stretch;
+    margin-bottom: 4px;
+}
+
+.province-transfer-row-arrow {
+    flex-shrink: 0;
+    margin-left: 6px;
+    margin-right: 6px;
+    font-size: 18px;
+}
+
+.province-transfer-row-name {
+    flex-shrink: 1;
+    margin-left: 8px;
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ---------- Composites: DrawSlot ---------- */
+
+.draw-slot {
+    width: 240px;
+    height: 360px;
+    flex-shrink: 0;
+}
+
+/* ---------- Rows: RequirementRow ---------- */
+
+.requirement-row {
+    margin-top: 2px;
+    font-size: 14px;
+}
+
+.requirement-row--passed {
+    color: var(--gs-color-positive);
+}
+
+.requirement-row--failed {
+    color: var(--gs-color-negative);
+}

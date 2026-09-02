@@ -6,7 +6,7 @@ using GS.Game.Configs;
 using GS.Unity.Map;
 
 namespace GS.Unity.UI {
-	class OrgLensCountryView {
+	public class OrgLensCountryView {
 		readonly VisualElement _root;
 		readonly Label _orgName;
 		readonly Label _orgNoDominant;

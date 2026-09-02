@@ -67,31 +67,29 @@
     padding-right: 26px;
     margin-bottom: 4px;
     border-bottom-width: 1px;
-    border-color: rgb(200, 160, 64);
+    border-color: var(--gs-panel-border);
 }
 
-.goals-header-place,
-.goals-row-place {
+/* .goals-header-*/.goals-row-* used to share width rules with the row's own place/flag/name/score
+   classes. Rows now build as the shared RankRow component (rank-row-*, Components.uss) - the
+   header keeps its own matching widths here so the columns still line up. */
+.goals-header-place {
     width: 70px;
     -unity-text-align: middle-center;
 }
 
-.goals-header-flag,
-.goals-row-flag {
+.goals-header-flag {
     width: 56px;
     height: 36px;
     margin-right: 14px;
-    -unity-background-scale-mode: scale-to-fit;
 }
 
-.goals-header-name,
-.goals-row-name {
+.goals-header-name {
     flex-grow: 1;
     flex-shrink: 1;
 }
 
-.goals-header-score,
-.goals-row-score {
+.goals-header-score {
     width: 180px;
     -unity-text-align: middle-right;
 }
@@ -105,37 +103,10 @@
     opacity: 0;
 }
 
-.goals-row {
-    flex-direction: row;
-    align-items: center;
-    min-height: 54px;
-    padding: 8px 10px;
-    margin-bottom: 4px;
-    background-color: rgba(8, 14, 30, 0.45);
-    border-radius: 4px;
-    border-width: 2px;
-    border-color: rgba(0, 0, 0, 0);
-}
-
-.goals-row--selected {
-    border-color: rgb(240, 200, 96);
-}
-
-.goals-row-place,
-.goals-row-name,
-.goals-row-score,
 .goals-table-header Label {
-    color: rgb(240, 232, 208);
+    color: var(--gs-color-dark);
     font-size: 22px;
     -unity-font-style: bold;
-}
-
-.goals-row-name {
-    -unity-text-align: middle-left;
-}
-
-.goals-row-score {
-    color: rgb(255, 224, 128);
 }
 
 .goals-progress-row {
@@ -149,7 +120,7 @@
     flex-grow: 1;
     flex-shrink: 1;
     margin-right: 16px;
-    color: rgb(240, 232, 208);
+    color: var(--gs-color-dark);
     font-size: 22px;
     -unity-font-style: bold;
     -unity-text-align: middle-left;
@@ -168,7 +139,7 @@
     background-color: rgba(20, 30, 50, 0.9);
     border-radius: 4px;
     border-width: 1px;
-    border-color: rgb(200, 160, 64);
+    border-color: var(--gs-panel-border);
     overflow: hidden;
 }
 
@@ -178,11 +149,11 @@
     top: 0;
     bottom: 0;
     width: 0%;
-    background-color: rgb(240, 200, 96);
+    background-color: var(--gs-color-highlight-gold);
 }
 
 .goals-progress-nm {
-    color: rgb(255, 255, 255);
+    color: var(--gs-color-white);
     font-size: 20px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;

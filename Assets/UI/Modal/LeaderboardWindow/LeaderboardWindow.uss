@@ -48,7 +48,7 @@
 }
 
 .leaderboard-tab--active {
-    border-color: rgb(240, 200, 96);
+    border-color: var(--gs-color-highlight-gold);
     border-width: 3px;
 }
 
@@ -60,31 +60,29 @@
     padding-right: 26px;
     margin-bottom: 4px;
     border-bottom-width: 1px;
-    border-color: rgb(200, 160, 64);
+    border-color: var(--gs-panel-border);
 }
 
-.leaderboard-header-place,
-.leaderboard-row-place {
+/* .leaderboard-header-* used to share width rules with the row's own place/flag/name/score
+   classes. Rows now build as the shared RankRow component (rank-row-*, Components.uss) - the
+   header keeps its own matching widths here so the columns still line up. */
+.leaderboard-header-place {
     width: 70px;
     -unity-text-align: middle-center;
 }
 
-.leaderboard-header-flag,
-.leaderboard-row-flag {
+.leaderboard-header-flag {
     width: 56px;
     height: 36px;
     margin-right: 14px;
-    -unity-background-scale-mode: scale-to-fit;
 }
 
-.leaderboard-header-name,
-.leaderboard-row-name {
+.leaderboard-header-name {
     flex-grow: 1;
     flex-shrink: 1;
 }
 
-.leaderboard-header-score,
-.leaderboard-row-score {
+.leaderboard-header-score {
     width: 180px;
     -unity-text-align: middle-right;
 }
@@ -94,31 +92,10 @@
     align-self: stretch;
 }
 
-.leaderboard-row {
-    flex-direction: row;
-    align-items: center;
-    min-height: 54px;
-    padding: 8px 10px;
-    margin-bottom: 4px;
-    background-color: rgba(8, 14, 30, 0.45);
-    border-radius: 4px;
-}
-
-.leaderboard-row-place,
-.leaderboard-row-name,
-.leaderboard-row-score,
 .leaderboard-table-header Label {
-    color: rgb(240, 232, 208);
+    color: var(--gs-color-dark);
     font-size: 22px;
     -unity-font-style: bold;
-}
-
-.leaderboard-row-name {
-    -unity-text-align: middle-left;
-}
-
-.leaderboard-row-score {
-    color: rgb(255, 224, 128);
 }
 
 .leaderboard-empty {
@@ -127,6 +104,6 @@
     right: 0;
     top: 50%;
     -unity-text-align: middle-center;
-    color: rgb(240, 232, 208);
+    color: var(--gs-color-dark);
     font-size: 26px;
 }

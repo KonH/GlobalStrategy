@@ -3,7 +3,7 @@ using GS.Main;
 using UnityEngine.UIElements;
 
 namespace GS.Unity.UI {
-	class OrgDestroyedWindowView {
+	public class OrgDestroyedWindowView {
 		readonly ILocalization _loc;
 		readonly Label _title;
 		readonly Label _body;
