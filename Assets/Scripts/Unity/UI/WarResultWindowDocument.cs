@@ -50,11 +50,7 @@ namespace GS.Unity.UI {
 			_tooltip = new TooltipSystem(_root);
 			_modalState.Unlocked += HandleModalUnlocked;
 			Button closeButton = _root.Q<Button>("btn-close");
-			closeButton?.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && closeButton.ContainsPoint(e.localPosition)) {
-					Hide();
-				}
-			});
+			closeButton?.OnClick(Hide);
 			HideVisualOnly();
 		}
 

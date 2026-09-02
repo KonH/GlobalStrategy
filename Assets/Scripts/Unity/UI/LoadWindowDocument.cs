@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using GS.Main;
 using GS.Unity.Common;
 using UnityEngine;
@@ -12,9 +11,7 @@ namespace GS.Unity.UI {
 		SceneLoader _sceneLoader;
 		ILocalization _loc;
 		UIDocument _doc;
-		ScrollView _saveList;
-		Label _titleLabel;
-		Button _btnBack;
+		LoadWindowView _view;
 
 		public event System.Action SavesChanged;
 
@@ -31,21 +28,10 @@ namespace GS.Unity.UI {
 
 		void Start() {
 			var root = _doc.rootVisualElement;
-			_saveList = root.Q<ScrollView>("save-list");
-			_titleLabel = root.Q<Label>("window-title");
-			_btnBack = root.Q<Button>("btn-back");
-			_btnBack.clicked += Hide;
-			RefreshTexts();
+			_view = new LoadWindowView(root, _loc, OnLoadSave, OnDeleteSave);
+			_view.BtnBack.OnClick(Hide);
+			_view.RefreshTexts();
 			Hide();
-		}
-
-		void RefreshTexts() {
-			if (_titleLabel != null) {
-				_titleLabel.text = _loc.Get("load.title");
-			}
-			if (_btnBack != null) {
-				_btnBack.text = _loc.Get("load.back");
-			}
 		}
 
 		public void Show() {
@@ -58,57 +44,17 @@ namespace GS.Unity.UI {
 		}
 
 		void BuildList() {
-			_saveList.Clear();
-			IReadOnlyList<SaveFileInfo> saves = _saveFileManager.ListSaves();
-			foreach (var save in saves) {
-				_saveList.Add(BuildRow(save));
-			}
-			if (saves.Count == 0) {
-				var empty = new Label(_loc.Get("load.no_saves"));
-				empty.AddToClassList("save-country");
-				_saveList.Add(empty);
-			}
+			_view?.Refresh(_saveFileManager.ListSaves());
 		}
 
-		VisualElement BuildRow(SaveFileInfo save) {
-			var row = new VisualElement();
-			row.AddToClassList("save-row");
+		void OnLoadSave(SaveFileInfo save) {
+			_sceneLoader.LoadGame(saveName: save.SaveName);
+		}
 
-			var info = new VisualElement();
-			info.AddToClassList("save-row-info");
-
-			var country = new Label(save.OrganizationId);
-			country.AddToClassList("gs-label");
-			country.AddToClassList("save-country");
-			info.Add(country);
-
-			var date = new Label(save.GameDate.ToString("yyyy-MM-dd"));
-			date.AddToClassList("gs-content");
-			date.AddToClassList("save-date");
-			info.Add(date);
-
-			row.Add(info);
-
-			var btnLoad = new Button(() => _sceneLoader.LoadGame(saveName: save.SaveName));
-			btnLoad.text = _loc.Get("load.btn_load");
-			btnLoad.AddToClassList("gs-btn");
-			btnLoad.AddToClassList("gs-btn--small");
-			btnLoad.AddToClassList("row-button");
-			row.Add(btnLoad);
-
-			var saveName = save.SaveName;
-			var btnDelete = new Button(() => {
-				_saveFileManager.DeleteSave(saveName);
-				SavesChanged?.Invoke();
-				BuildList();
-			});
-			btnDelete.text = _loc.Get("load.btn_delete");
-			btnDelete.AddToClassList("gs-btn");
-			btnDelete.AddToClassList("gs-btn--destructive");
-			btnDelete.AddToClassList("row-button");
-			row.Add(btnDelete);
-
-			return row;
+		void OnDeleteSave(SaveFileInfo save) {
+			_saveFileManager.DeleteSave(save.SaveName);
+			SavesChanged?.Invoke();
+			BuildList();
 		}
 	}
 }

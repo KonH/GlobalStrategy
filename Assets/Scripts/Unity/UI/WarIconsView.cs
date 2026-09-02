@@ -7,7 +7,7 @@ using GS.Main;
 using GS.Unity.Map;
 
 namespace GS.Unity.UI {
-	class WarIconsView {
+	public class WarIconsView {
 		sealed class RenderedButton {
 			public Button Button { get; }
 			public VisualElement AttackerFlag { get; }
@@ -82,10 +82,7 @@ namespace GS.Unity.UI {
 			button.AddToClassList("gs-btn");
 			button.AddToClassList("war-icon-button");
 
-			var attackerFlag = new VisualElement {
-				pickingMode = PickingMode.Ignore
-			};
-			attackerFlag.AddToClassList("war-icon-flag");
+			var attackerFlag = FlagBadgeBuilder.Build("war-icon-flag");
 			button.Add(attackerFlag);
 
 			var swords = new VisualElement {
@@ -94,18 +91,11 @@ namespace GS.Unity.UI {
 			swords.AddToClassList("war-icon-swords");
 			button.Add(swords);
 
-			var defenderFlag = new VisualElement {
-				pickingMode = PickingMode.Ignore
-			};
-			defenderFlag.AddToClassList("war-icon-flag");
+			var defenderFlag = FlagBadgeBuilder.Build("war-icon-flag");
 			button.Add(defenderFlag);
 
 			var rendered = new RenderedButton(button, attackerFlag, defenderFlag);
-			button.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && button.ContainsPoint(e.localPosition)) {
-					_openWar?.Invoke(warId);
-				}
-			});
+			button.OnClick(() => _openWar?.Invoke(warId));
 
 			_tooltip?.RegisterTrigger(
 				button,
@@ -117,16 +107,11 @@ namespace GS.Unity.UI {
 
 		void UpdateFlag(VisualElement flag, string countryId) {
 			Sprite sprite = _countryVisualConfig?.Find(countryId)?.flag;
-			if (sprite == null) {
-				flag.style.display = DisplayStyle.None;
-				return;
-			}
-			flag.style.backgroundImage = new StyleBackground(sprite);
-			flag.style.display = DisplayStyle.Flex;
+			FlagBadgeBuilder.Bind(flag, sprite);
 		}
 
 		VisualElement BuildTooltip(string warId) {
-			var content = new VisualElement();
+			var content = TooltipBodyBuilder.NewRoot();
 			if (!_entriesByWarId.TryGetValue(warId, out WarIconEntryState entry)) {
 				return content;
 			}
@@ -134,15 +119,11 @@ namespace GS.Unity.UI {
 			string attackerName = GetCountryName(entry.AttackerCountryId);
 			string defenderName = GetCountryName(entry.DefenderCountryId);
 			string titleFormat = GetLocalizedFormat("hud.war.title_format", "{0} - {1} War");
-			var title = new Label(string.Format(CultureInfo.InvariantCulture, titleFormat, attackerName, defenderName));
-			title.AddToClassList("tooltip-header");
-			content.Add(title);
+			TooltipBodyBuilder.AddHeader(content, string.Format(CultureInfo.InvariantCulture, titleFormat, attackerName, defenderName));
 
 			string progress = entry.Progress.ToString("G", CultureInfo.InvariantCulture);
 			string progressFormat = GetLocalizedFormat("hud.war.progress_format", "Progress: {0}");
-			var progressLabel = new Label(string.Format(CultureInfo.InvariantCulture, progressFormat, progress));
-			progressLabel.AddToClassList("tooltip-effect-name");
-			content.Add(progressLabel);
+			TooltipBodyBuilder.AddLine(content, string.Format(CultureInfo.InvariantCulture, progressFormat, progress));
 			return content;
 		}
 

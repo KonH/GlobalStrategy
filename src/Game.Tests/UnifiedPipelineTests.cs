@@ -207,7 +207,7 @@ namespace GS.Game.Tests {
 					new ActionDefinition {
 						ActionId = "build_influence",
 						OwnerType = "country",
-						DeckCopies = 1,
+						Chance = 1,
 						EffectIds = new List<string> { "control_gain" }
 					}
 				}
@@ -267,7 +267,7 @@ namespace GS.Game.Tests {
 						ActionId = "improve_opinion",
 						OwnerType = "country",
 						TargetRole = targetRole,
-						DeckCopies = 1,
+						Chance = 1,
 						EffectIds = new List<string> { "opinion_boost" }
 					}
 				}
@@ -374,7 +374,7 @@ namespace GS.Game.Tests {
 						ActionId = "stop_friendship",
 						OwnerType = "country",
 						TargetRole = TargetRole,
-						DeckCopies = 0,
+						Chance = 0,
 						CooldownDays = 7,
 						Conditions = new List<ExpressionNode> {
 							new ExpressionNode {

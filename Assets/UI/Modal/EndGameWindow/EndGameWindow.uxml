@@ -1,5 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/Components/Components.uss"/>
     <ui:Style src="project://database/Assets/UI/Modal/LeaderboardWindow/LeaderboardWindow.uss"/>
     <ui:Style src="project://database/Assets/UI/Modal/EndGameWindow/EndGameWindow.uss"/>
     <ui:VisualElement name="end-game-root" class="end-game-root">
@@ -7,12 +8,12 @@
         <ui:VisualElement name="end-game-columns" class="end-game-columns">
             <ui:VisualElement name="end-game-leaderboard-column" class="end-game-column">
                 <ui:Label text="Leaderboard" class="gs-header end-game-column-title"/>
-                <ui:ScrollView name="end-game-leaderboard-list" class="leaderboard-list end-game-list" mode="Vertical" vertical-scroller-visibility="AlwaysVisible"/>
+                <ui:ListView name="end-game-leaderboard-list" class="leaderboard-list end-game-list" fixed-item-height="58" virtualization-method="FixedHeight" selection-type="None" show-border="false" horizontal-scrolling="false"/>
                 <ui:Label name="end-game-leaderboard-empty" text="" class="leaderboard-empty end-game-empty"/>
             </ui:VisualElement>
             <ui:VisualElement name="end-game-comparison-column" class="end-game-column">
                 <ui:Label text="Comparison" class="gs-header end-game-column-title"/>
-                <ui:ScrollView name="end-game-comparison-list" class="leaderboard-list end-game-list" mode="Vertical" vertical-scroller-visibility="AlwaysVisible"/>
+                <ui:ListView name="end-game-comparison-list" class="leaderboard-list end-game-list" fixed-item-height="58" virtualization-method="FixedHeight" selection-type="None" show-border="false" horizontal-scrolling="false"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:Button name="btn-exit" text="Exit" class="gs-btn gs-btn--primary end-game-exit"/>

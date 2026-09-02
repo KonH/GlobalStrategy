@@ -49,6 +49,18 @@ namespace GS.Main {
 			return leaves;
 		}
 
+		// Pull entry point for callers without a VisualStateConverter instance (the converter used
+		// to flatten leaves once in its constructor and cache them in a field; a pull caller
+		// re-flattens on each call instead - cheap relative to the 250ms refresh cadence, and
+		// keeps the config->leaves rule itself in one place).
+		public static List<GoalsOrgEntryState> Project(
+			IReadOnlyWorld world,
+			CompletionConditionConfig? completionCondition,
+			int maxControlPool,
+			ResourceQuery resources) {
+			return Build(world, FlattenLeaves(completionCondition), maxControlPool, resources);
+		}
+
 		public static List<GoalsOrgEntryState> Build(
 			IReadOnlyWorld world,
 			IReadOnlyList<GoalsLeafDescriptor> leaves,

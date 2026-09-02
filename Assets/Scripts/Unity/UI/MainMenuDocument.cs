@@ -21,15 +21,7 @@ namespace GS.Unity.UI {
 		ILocalization _loc;
 		GameSettings _gameSettings;
 		UIDocument _doc;
-
-		Button _btnPlay;
-		Button _btnResume;
-		Button _btnLoad;
-		Button _btnSettings;
-		Button _btnAbout;
-		Button _btnExit;
-		Label _versionNameLabel;
-		Label _versionNumberLabel;
+		MainMenuView _view;
 
 		[Inject]
 		void Construct(SaveFileManager saveFileManager, SceneLoader sceneLoader, LoadWindowDocument loadWindow, SettingsWindowDocument settingsWindow, VisualState state, ILocalization loc, GameSettings gameSettings) {
@@ -60,33 +52,15 @@ namespace GS.Unity.UI {
 
 		void Start() {
 			var root = _doc.rootVisualElement;
+			_view = new MainMenuView(root);
+			_view.SetVersion(_versionName, $"v{_gameSettings.Version}");
 
-			_btnPlay = root.Q<Button>("btn-play");
-			_btnResume = root.Q<Button>("btn-resume");
-			_btnLoad = root.Q<Button>("btn-load");
-			_btnSettings = root.Q<Button>("btn-settings");
-			_btnAbout = root.Q<Button>("btn-about");
-			_btnExit = root.Q<Button>("btn-exit");
-			root.Q<Label>("title-label").text = "Hidden Council";
-			_versionNameLabel = root.Q<Label>("version-name");
-			if (_versionNameLabel != null) {
-				_versionNameLabel.text = _versionName;
-			}
-			_versionNumberLabel = root.Q<Label>("version-label");
-			if (_versionNumberLabel != null) {
-				_versionNumberLabel.text = $"v{_gameSettings.Version}";
-			}
-
-			_btnPlay.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnPlay.ContainsPoint(e.localPosition)) _sceneLoader.LoadSelectCountry(); });
-			_btnResume.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnResume.ContainsPoint(e.localPosition)) OnResume(); });
-			_btnLoad.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnLoad.ContainsPoint(e.localPosition)) _loadWindow?.Show(); });
-			_btnSettings.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnSettings.ContainsPoint(e.localPosition)) _settingsWindow?.Show(); });
-			_btnAbout.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && _btnAbout.ContainsPoint(e.localPosition)) {
-					Application.OpenURL(AboutUrl);
-				}
-			});
-			_btnExit.RegisterCallback<PointerUpEvent>(e => { if (e.button == 0 && _btnExit.ContainsPoint(e.localPosition)) Application.Quit(); });
+			_view.BtnPlay.OnClick(() => _sceneLoader.LoadSelectCountry());
+			_view.BtnResume.OnClick(OnResume);
+			_view.BtnLoad.OnClick(() => _loadWindow?.Show());
+			_view.BtnSettings.OnClick(() => _settingsWindow?.Show());
+			_view.BtnAbout.OnClick(() => Application.OpenURL(AboutUrl));
+			_view.BtnExit.OnClick(Application.Quit);
 
 			if (_loadWindow != null) {
 				_loadWindow.SavesChanged += RefreshSaveButtons;
@@ -102,23 +76,12 @@ namespace GS.Unity.UI {
 		}
 
 		void RefreshTexts() {
-			if (_btnPlay == null) {
-				return;
-			}
-			var root = _doc.rootVisualElement;
-			root.Q<Label>("title-label").text = _loc.Get("menu.title");
-			_btnPlay.text = _loc.Get("menu.play");
-			_btnResume.text = _loc.Get("menu.resume");
-			_btnLoad.text = _loc.Get("menu.load");
-			_btnSettings.text = _loc.Get("menu.settings");
-			_btnAbout.text = _loc.Get("menu.about");
-			_btnExit.text = _loc.Get("menu.exit");
+			_view?.RefreshTexts(_loc);
 		}
 
 		void RefreshSaveButtons() {
 			bool hasSaves = _saveFileManager?.GetLastSave() != null;
-			_btnResume.style.display = hasSaves ? DisplayStyle.Flex : DisplayStyle.None;
-			_btnLoad.style.display = hasSaves ? DisplayStyle.Flex : DisplayStyle.None;
+			_view?.Refresh(hasSaves);
 		}
 
 		void OnResume() {

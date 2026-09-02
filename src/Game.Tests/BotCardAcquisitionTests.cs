@@ -49,31 +49,31 @@ namespace GS.Game.Tests {
 					new ActionDefinition {
 						ActionId = ControlUsableActionId,
 						OwnerType = "country",
-						DeckCopies = 1,
+						Chance = 1,
 						EffectIds = new List<string> { "control_up" }
 					},
 					new ActionDefinition {
 						ActionId = ControlActionId,
 						OwnerType = "country",
-						DeckCopies = 1,
+						Chance = 1,
 						EffectIds = new List<string> { "control_up" },
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = ResourceDefinitions.Gold, Amount = 1 } }
 					},
 					new ActionDefinition {
 						ActionId = PlayableActionId,
 						OwnerType = "country",
-						DeckCopies = 1
+						Chance = 1
 					},
 					new ActionDefinition {
 						ActionId = FallbackActionId,
 						OwnerType = "country",
-						DeckCopies = 1,
+						Chance = 1,
 						Cost = new List<ActionCost> { new ActionCost { ResourceId = ResourceDefinitions.Gold, Amount = 1 } }
 					},
 					new ActionDefinition {
 						ActionId = DeclareWarActionId,
 						OwnerType = "country",
-						DeckCopies = 1
+						Chance = 1
 					}
 				}
 			};

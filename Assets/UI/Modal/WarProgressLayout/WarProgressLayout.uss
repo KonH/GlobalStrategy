@@ -50,7 +50,7 @@
     background-color: rgba(8, 14, 30, 0.65);
     border-radius: 4px;
     border-width: 1px;
-    border-color: rgb(200, 160, 64);
+    border-color: var(--gs-panel-border);
 }
 
 .war-progress-fill {
@@ -82,12 +82,7 @@
     margin-right: 0;
 }
 
-.war-progress-effect-row {
-    padding: 4px 8px;
-    margin-bottom: 2px;
-    color: rgb(240, 232, 208);
-    font-size: 18px;
-}
+/* .war-progress-effect-row moved into Components.uss as .effect-row (EffectRow component). */
 
 .war-progress-stats-row {
     flex-direction: row;
@@ -100,7 +95,7 @@
     flex-basis: 0;
     padding: 8px 12px;
     margin-right: 8px;
-    background-color: rgba(8, 14, 30, 0.45);
+    background-color: var(--gs-bg-row-overlay);
     border-radius: 4px;
 }
 
@@ -139,15 +134,7 @@
     align-self: stretch;
 }
 
-.war-progress-battle-row {
-    padding: 6px 10px;
-    margin-bottom: 4px;
-    background-color: rgba(8, 14, 30, 0.45);
-    border-radius: 4px;
-    font-size: 18px;
-    color: rgb(240, 232, 208);
-    white-space: normal;
-}
+/* .war-progress-battle-row moved into Components.uss as .battle-row (BattleRow component). */
 
 .war-progress-battles-empty {
     position: absolute;
@@ -155,6 +142,6 @@
     right: 32px;
     bottom: 80px;
     -unity-text-align: middle-center;
-    color: rgb(240, 232, 208);
+    color: var(--gs-color-dark);
     font-size: 22px;
 }

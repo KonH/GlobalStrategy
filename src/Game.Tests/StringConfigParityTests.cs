@@ -153,7 +153,7 @@ namespace GS.Game.Tests {
 				ActionDefinition action = Assert.IsType<ActionDefinition>(config.Find("sell_arms"));
 				Assert.Equal("country", action.OwnerType);
 				Assert.Equal("military_advisor", action.TargetRole);
-				Assert.Equal(9, action.DeckCopies);
+				Assert.Equal(9.0, action.Chance);
 				Assert.Equal(21, action.CooldownDays);
 				ActionCost cost = Assert.Single(action.Cost);
 				Assert.Equal("gold", cost.ResourceId);

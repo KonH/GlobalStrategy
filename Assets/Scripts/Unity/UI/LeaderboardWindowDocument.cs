@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using GS.Main;
 using GS.Unity.Common;
 using GS.Unity.Map;
@@ -10,6 +9,7 @@ namespace GS.Unity.UI {
 	[RequireComponent(typeof(UIDocument))]
 	public class LeaderboardWindowDocument : MonoBehaviour {
 		VisualState _state;
+		GameLogic _gameLogic;
 		ILocalization _loc;
 		CountryVisualConfig _countryVisualConfig;
 		OrgVisualConfig _orgVisualConfig;
@@ -22,11 +22,14 @@ namespace GS.Unity.UI {
 		Label _empty;
 		LeaderboardWindowView _view;
 		ModalState _modalState;
-		bool _subscribed;
+		readonly LeaderboardState _leaderboard = new LeaderboardState();
+		readonly PullRefreshTimer _refreshTimer = new PullRefreshTimer();
+		bool _localeSubscribed;
 
 		[Inject]
-		void Construct(VisualState state, ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, ModalState modalState) {
+		void Construct(VisualState state, GameLogic gameLogic, ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig, ModalState modalState) {
 			_state = state;
+			_gameLogic = gameLogic;
 			_loc = loc;
 			_countryVisualConfig = countryVisualConfig;
 			_orgVisualConfig = orgVisualConfig;
@@ -47,11 +50,9 @@ namespace GS.Unity.UI {
 			_tabOrganizations = _root.Q<Button>("tab-organizations");
 			_tabCountries = _root.Q<Button>("tab-countries");
 			_empty = _root.Q<Label>("leaderboard-empty");
-			_closeButton?.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && _closeButton.ContainsPoint(e.localPosition)) {
-					Hide();
-				}
-			});
+			if (_closeButton != null) {
+				_closeButton.OnClick(Hide);
+			}
 			Hide();
 		}
 
@@ -69,6 +70,15 @@ namespace GS.Unity.UI {
 			Unsubscribe();
 		}
 
+		void Update() {
+			if (!IsVisible || _gameLogic == null) {
+				return;
+			}
+			if (_refreshTimer.ShouldRefresh(Time.deltaTime, _state.Time.IsPaused)) {
+				RefreshLeaderboard();
+			}
+		}
+
 		public bool IsVisible => _root != null && _root.style.display == DisplayStyle.Flex;
 
 		public void Show() {
@@ -77,13 +87,14 @@ namespace GS.Unity.UI {
 			}
 			EnsureView();
 			RefreshTexts();
+			_refreshTimer.RequestImmediate();
 			if (IsVisible) {
-				_view?.Refresh(_state.Leaderboard);
+				RefreshLeaderboard();
 				return;
 			}
 			_modalState.Lock(this);
 			_view?.ResetToDefaultTab();
-			_view?.Refresh(_state.Leaderboard);
+			RefreshLeaderboard();
 			_root.style.display = DisplayStyle.Flex;
 		}
 
@@ -95,35 +106,34 @@ namespace GS.Unity.UI {
 		}
 
 		void Subscribe() {
-			if (_subscribed || _state == null) {
+			if (_localeSubscribed || _state == null) {
 				return;
 			}
-			_state.Leaderboard.PropertyChanged += HandleLeaderboardChanged;
 			_state.Locale.PropertyChanged += HandleLocaleChanged;
-			_subscribed = true;
+			_localeSubscribed = true;
 		}
 
 		void Unsubscribe() {
-			if (!_subscribed || _state == null) {
+			if (!_localeSubscribed || _state == null) {
 				return;
 			}
-			_state.Leaderboard.PropertyChanged -= HandleLeaderboardChanged;
 			_state.Locale.PropertyChanged -= HandleLocaleChanged;
-			_subscribed = false;
+			_localeSubscribed = false;
 		}
 
-		void HandleLeaderboardChanged(object sender, PropertyChangedEventArgs e) {
-			if (!IsVisible) {
-				return;
-			}
-			_view?.Refresh(_state.Leaderboard);
-		}
-
-		void HandleLocaleChanged(object sender, PropertyChangedEventArgs e) {
+		void HandleLocaleChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
 			RefreshTexts();
 			if (IsVisible) {
-				_view?.Refresh(_state.Leaderboard);
+				RefreshLeaderboard();
 			}
+		}
+
+		void RefreshLeaderboard() {
+			if (_gameLogic == null) {
+				return;
+			}
+			LeaderboardProjector.Project(_gameLogic.World, _leaderboard, _gameLogic.Resources, _gameLogic.CountryConfig);
+			_view?.Refresh(_leaderboard);
 		}
 
 		void EnsureView() {

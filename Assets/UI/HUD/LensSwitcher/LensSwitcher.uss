@@ -39,6 +39,6 @@
 }
 
 .lens-btn--active {
-    border-color: rgb(200, 160, 64);
+    border-color: var(--gs-panel-border);
     border-width: 2px;
 }

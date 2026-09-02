@@ -17,7 +17,7 @@
       "nameKey": "action.improve_control.name",
       "descKey": "action.improve_control.desc",
       "targetRole": "",
-      "deckCopies": 25,
+      "chance": 25,
       "cooldownDays": 3,
       "conditions": [],
       "cost": [
@@ -37,7 +37,7 @@
       "nameKey": "action.improve_diplomacy_advisor_opinion.name",
       "descKey": "action.improve_diplomacy_advisor_opinion.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 16,
+      "chance": 16,
       "cooldownDays": 21,
       "conditions": [
         {
@@ -70,7 +70,7 @@
       "nameKey": "action.improve_economic_advisor_opinion.name",
       "descKey": "action.improve_economic_advisor_opinion.desc",
       "targetRole": "economic_advisor",
-      "deckCopies": 0,
+      "chance": 0,
       "cooldownDays": 21,
       "conditions": [
         {
@@ -103,7 +103,7 @@
       "nameKey": "action.improve_military_advisor_opinion.name",
       "descKey": "action.improve_military_advisor_opinion.desc",
       "targetRole": "military_advisor",
-      "deckCopies": 16,
+      "chance": 16,
       "cooldownDays": 21,
       "conditions": [
         {
@@ -136,7 +136,7 @@
       "nameKey": "action.improve_secret_advisor_opinion.name",
       "descKey": "action.improve_secret_advisor_opinion.desc",
       "targetRole": "secret_advisor",
-      "deckCopies": 3,
+      "chance": 3,
       "cooldownDays": 21,
       "conditions": [
         {
@@ -169,7 +169,7 @@
       "nameKey": "action.improve_ruler_opinion.name",
       "descKey": "action.improve_ruler_opinion.desc",
       "targetRole": "ruler",
-      "deckCopies": 6,
+      "chance": 6,
       "cooldownDays": 30,
       "conditions": [
         {
@@ -202,7 +202,7 @@
       "nameKey": "action.make_friend.name",
       "descKey": "action.make_friend.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 1,
+      "chance": 1,
       "cooldownDays": 30,
       "conditions": [
         {
@@ -249,7 +249,7 @@
       "nameKey": "action.make_rival.name",
       "descKey": "action.make_rival.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 1,
+      "chance": 1,
       "cooldownDays": 21,
       "conditions": [
         {
@@ -296,7 +296,7 @@
       "nameKey": "action.stop_friendship.name",
       "descKey": "action.stop_friendship.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 1,
+      "chance": 1,
       "cooldownDays": 30,
       "conditions": [
         {
@@ -342,7 +342,8 @@
       "nameKey": "action.stop_rivalry.name",
       "descKey": "action.stop_rivalry.desc",
       "targetRole": "diplomacy_advisor",
-      "deckCopies": 1,
+      "chance": 1,
+      "drawWeightMultiplier": 0.5,
       "cooldownDays": 21,
       "conditions": [
         {
@@ -388,7 +389,8 @@
       "nameKey": "action.declare_war.name",
       "descKey": "action.declare_war.desc",
       "targetRole": "",
-      "deckCopies": 1,
+      "chance": 1,
+      "drawWeightMultiplier": 1.7,
       "cooldownDays": 30,
       "conditions": [
         {
@@ -446,7 +448,7 @@
       "nameKey": "action.decrease_enemy_control.name",
       "descKey": "action.decrease_enemy_control.desc",
       "targetRole": "",
-      "deckCopies": 9,
+      "chance": 9,
       "cooldownDays": 45,
       "conditions": [
         {
@@ -487,7 +489,7 @@
       "nameKey": "action.sell_arms.name",
       "descKey": "action.sell_arms.desc",
       "targetRole": "military_advisor",
-      "deckCopies": 9,
+      "chance": 9,
       "cooldownDays": 21,
       "conditions": [
         {
@@ -520,7 +522,7 @@
       "nameKey": "action.force_war_win.name",
       "descKey": "action.force_war_win.desc",
       "targetRole": "military_advisor",
-      "deckCopies": 9,
+      "chance": 9,
       "cooldownDays": 60,
       "conditions": [
         {
@@ -589,7 +591,7 @@
       "nameKey": "action.force_war_loss.name",
       "descKey": "action.force_war_loss.desc",
       "targetRole": "military_advisor",
-      "deckCopies": 9,
+      "chance": 9,
       "cooldownDays": 7,
       "conditions": [
         {
@@ -658,7 +660,7 @@
       "nameKey": "action.declare_revenge_war.name",
       "descKey": "action.declare_revenge_war.desc",
       "targetRole": "military_advisor",
-      "deckCopies": 1,
+      "chance": 1,
       "cooldownDays": 30,
       "conditions": [
         {

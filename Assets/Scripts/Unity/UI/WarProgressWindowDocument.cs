@@ -1,5 +1,3 @@
-using System.ComponentModel;
-using GS.Game.Configs;
 using GS.Main;
 using GS.Unity.Common;
 using GS.Unity.Map;
@@ -11,22 +9,23 @@ namespace GS.Unity.UI {
 	[RequireComponent(typeof(UIDocument))]
 	public class WarProgressWindowDocument : MonoBehaviour {
 		VisualState _state;
+		GameLogic _gameLogic;
 		ILocalization _loc;
 		CountryVisualConfig _countryVisualConfig;
-		EffectConfig _effectConfig;
 		UIDocument _doc;
 		VisualElement _root;
 		WarProgressWindowView _view;
 		TooltipSystem _tooltip;
 		ModalState _modalState;
-		bool _subscribed;
+		readonly PullRefreshTimer _refreshTimer = new PullRefreshTimer();
+		bool _localeSubscribed;
 
 		[Inject]
-		void Construct(VisualState state, ILocalization loc, CountryVisualConfig countryVisualConfig, EffectConfig effectConfig, ModalState modalState) {
+		void Construct(VisualState state, GameLogic gameLogic, ILocalization loc, CountryVisualConfig countryVisualConfig, ModalState modalState) {
 			_state = state;
+			_gameLogic = gameLogic;
 			_loc = loc;
 			_countryVisualConfig = countryVisualConfig;
-			_effectConfig = effectConfig;
 			_modalState = modalState;
 		}
 
@@ -38,16 +37,18 @@ namespace GS.Unity.UI {
 			_root = _doc.rootVisualElement;
 			_tooltip = new TooltipSystem(_root);
 			Button closeButton = _root.Q<Button>("btn-close");
-			closeButton?.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && closeButton.ContainsPoint(e.localPosition)) {
-					Hide();
-				}
-			});
+			closeButton?.OnClick(Hide);
 			Hide();
 		}
 
 		void Update() {
 			_tooltip?.Update(Time.deltaTime);
+			if (!IsVisible || _gameLogic == null) {
+				return;
+			}
+			if (_refreshTimer.ShouldRefresh(Time.deltaTime, _state.Time.IsPaused)) {
+				RefreshSelectedWar();
+			}
 		}
 
 		void Start() {
@@ -73,13 +74,16 @@ namespace GS.Unity.UI {
 			EnsureView();
 			_state.SelectedWar.RequestOpen(warId);
 			RefreshTexts();
+			_refreshTimer.RequestImmediate();
+			RefreshSelectedWar();
 			if (IsVisible) {
-				_view?.Refresh(_state.SelectedWar);
+				return;
+			}
+			if (!_state.SelectedWar.IsValid) {
 				return;
 			}
 			_modalState.Lock(this);
 			_root.style.display = DisplayStyle.Flex;
-			_view?.Refresh(_state.SelectedWar);
 		}
 
 		public void Hide() {
@@ -91,46 +95,45 @@ namespace GS.Unity.UI {
 		}
 
 		void Subscribe() {
-			if (_subscribed || _state == null) {
+			if (_localeSubscribed || _state == null) {
 				return;
 			}
-			_state.SelectedWar.PropertyChanged += HandleSelectedWarChanged;
 			_state.Locale.PropertyChanged += HandleLocaleChanged;
-			_subscribed = true;
+			_localeSubscribed = true;
 		}
 
 		void Unsubscribe() {
-			if (!_subscribed || _state == null) {
+			if (!_localeSubscribed || _state == null) {
 				return;
 			}
-			_state.SelectedWar.PropertyChanged -= HandleSelectedWarChanged;
 			_state.Locale.PropertyChanged -= HandleLocaleChanged;
-			_subscribed = false;
+			_localeSubscribed = false;
 		}
 
-		void HandleSelectedWarChanged(object sender, PropertyChangedEventArgs e) {
-			if (!IsVisible) {
+		void HandleLocaleChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e) {
+			RefreshTexts();
+			if (IsVisible) {
+				RefreshSelectedWar();
+			}
+		}
+
+		void RefreshSelectedWar() {
+			if (_gameLogic == null) {
 				return;
 			}
-			if (!_state.SelectedWar.IsValid) {
+			SelectedWarProjector.Project(_gameLogic.World, _state.SelectedWar, _gameLogic.Resources, _gameLogic.CountryConfig);
+			if (IsVisible && !_state.SelectedWar.IsValid) {
 				Hide();
 				return;
 			}
 			_view?.Refresh(_state.SelectedWar);
 		}
 
-		void HandleLocaleChanged(object sender, PropertyChangedEventArgs e) {
-			RefreshTexts();
-			if (IsVisible) {
-				_view?.Refresh(_state.SelectedWar);
-			}
-		}
-
 		void EnsureView() {
 			if (_view != null || _root == null) {
 				return;
 			}
-			_view = new WarProgressWindowView(_root, _loc, _countryVisualConfig, _effectConfig, _tooltip);
+			_view = new WarProgressWindowView(_root, _loc, _countryVisualConfig, _gameLogic.EffectConfig, _tooltip);
 		}
 
 		void RefreshTexts() {

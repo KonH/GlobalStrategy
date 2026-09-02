@@ -29,7 +29,7 @@ namespace GS.Game.Tests {
 					new ActionDefinition {
 						ActionId = "stop_rivalry",
 						OwnerType = "country",
-						DeckCopies = 1,
+						Chance = 1,
 						Conditions = new List<ExpressionNode> {
 							Condition("opinion", 80),
 							Condition("relationStillExists", 1)
@@ -42,7 +42,7 @@ namespace GS.Game.Tests {
 					new ActionDefinition {
 						ActionId = "declare_war",
 						OwnerType = "country",
-						DeckCopies = 1,
+						Chance = 1,
 						Conditions = new List<ExpressionNode> {
 							Condition("targetMilitaryOpinion", 50),
 							Condition("relationStillExists", 1),
@@ -316,7 +316,7 @@ namespace GS.Game.Tests {
 			_relations.SetRelation(world, AttackerId, DefenderId, RelationKind.Rival);
 
 			var config = BuildActionConfig();
-			config.Find("declare_war")!.DeckCopies = 0;
+			config.Find("declare_war")!.Chance = 0;
 			RelationCardSyncSystem.Update(world, _relations, config);
 
 			Assert.Equal(0, CountActionInstances(world, "declare_war", DefenderId));

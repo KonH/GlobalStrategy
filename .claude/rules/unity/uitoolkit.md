@@ -159,18 +159,16 @@ All shared visual styles live in `Assets/UI/Shared/SharedStyles.uss`. Every UXML
 
 ## Blocking map/world clicks through UI panels
 
-Any MonoBehaviour that reads raw mouse input (e.g. `Mouse.current.leftButton`) must guard against clicks landing on UI panels:
+Any MonoBehaviour that reads raw mouse input (e.g. `Mouse.current.leftButton`) must guard against clicks landing on UI panels using `UIPointerState`/`ModalState`, not `EventSystem.current.IsPointerOverGameObject()` — that call does not reliably detect UI Toolkit panels with the new Input System (Unity 6), per `.claude/rules/unity/localization.md` §"Click Blocking for Modal Dialogs":
 
 ```csharp
-using UnityEngine.EventSystems;
-
 void Update() {
-    if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+    if (_pointerState.IsPointerOverUI(Mouse.current.position.ReadValue())) return;
     // ... process world click
 }
 ```
 
-UI Toolkit registers with the EventSystem in Unity 6, so `IsPointerOverGameObject()` returns `true` whenever the pointer is over any panel element with default `PickingMode.Position`. Empty transparent areas of the HUD root do not block clicks.
+`UIPointerState` (`GS.Unity.Common`) is injected via VContainer and takes a screen position; `ModalState` additionally gates world clicks while a modal dialog is open (`_modalState.IsLocked()`). See `MapClickHandler`/`MapCameraController` for the existing pattern.
 
 ## USS scope for dynamically created elements
 
@@ -259,7 +257,7 @@ Do **not** use `margin` on chips — it breaks the 50% calculation. Use `padding
 
 ## Known Event Bugs (Unity 6000.4.1f1)
 
-### Button.clicked and ClickEvent silently fail
+### Button.clicked and ClickEvent silently fail — call `.OnClick()`
 
 `Button.clicked` does not reliably fire in Unity 6000.4.1f1 even when all conditions are met:
 - `PointerDownEvent` reaches the button ✓
@@ -268,7 +266,15 @@ Do **not** use `margin` on chips — it breaks the 50% calculation. Use `padding
 
 The same applies to `ClickEvent` on plain `VisualElement`s.
 
-**Workaround — use `PointerUpEvent` with a manual bounds check everywhere:**
+**The project-wide rule: call `.OnClick()`.** `VisualElementClickExtensions.OnClick(this VisualElement element, Action handler)` (`Assets/Scripts/Unity/UI/VisualElementClickExtensions.cs`, `GS.Unity.UI`) is the one call every click site uses:
+
+```csharp
+element.OnClick(DoAction);
+```
+
+Do **not** use `Button.clicked` or `ClickEvent` for any interactive element in this project, and do not hand-roll a new `PointerUpEvent` registration for a plain click — call `.OnClick()` instead.
+
+**Rationale/history — what `.OnClick()` does under the hood, and why:** it registers a `PointerUpEvent` callback and checks `evt.button == 0`, `element.enabledInHierarchy` (not `enabledSelf`, which misses a disabled *ancestor*), and `element.ContainsPoint(evt.localPosition)` before invoking the handler — the manual pattern every site used to hand-roll:
 
 ```csharp
 element.RegisterCallback<PointerUpEvent>(e => {
@@ -278,7 +284,7 @@ element.RegisterCallback<PointerUpEvent>(e => {
 });
 ```
 
-Do **not** use `Button.clicked` or `ClickEvent` for any interactive element in this project.
+A hand-rolled `PointerUpEvent` registration is still correct for a site that needs more than a plain click — pointer capture/drag gestures, multi-button checks, or `StopPropagation()` (which `.OnClick()`'s plain `Action handler` signature cannot express) — those stay as direct `RegisterCallback<PointerUpEvent>` calls.
 
 ### PickingMode.Ignore is not recursive
 

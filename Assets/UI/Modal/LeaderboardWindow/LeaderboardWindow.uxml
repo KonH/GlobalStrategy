@@ -1,5 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <ui:Style src="project://database/Assets/UI/Shared/SharedStyles.uss"/>
+    <ui:Style src="project://database/Assets/UI/Components/Components.uss"/>
     <ui:Style src="project://database/Assets/UI/Modal/LeaderboardWindow/LeaderboardWindow.uss"/>
     <ui:VisualElement name="leaderboard-root" class="leaderboard-root">
         <ui:VisualElement name="blackfade" class="gs-blackfade"/>
@@ -18,7 +19,7 @@
                 <ui:Label text="Name" class="leaderboard-header-name"/>
                 <ui:Label text="Score" class="leaderboard-header-score"/>
             </ui:VisualElement>
-            <ui:ScrollView name="leaderboard-list" class="leaderboard-list" mode="Vertical" vertical-scroller-visibility="AlwaysVisible"/>
+            <ui:ListView name="leaderboard-list" class="leaderboard-list" fixed-item-height="58" virtualization-method="FixedHeight" selection-type="None" show-border="false" horizontal-scrolling="false"/>
             <ui:Label name="leaderboard-empty" text="No leaderboard entries available" class="leaderboard-empty"/>
         </ui:VisualElement>
     </ui:VisualElement>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using GS.Game.Common;
@@ -35,7 +36,8 @@ namespace GS.Unity.UI {
 		readonly VisualElement _defenderFlag;
 		readonly ScrollView _attackerEffectsList;
 		readonly ScrollView _defenderEffectsList;
-		readonly ScrollView _battlesList;
+		readonly ListView _battlesList;
+		IReadOnlyList<WarBattleRowState> _currentBattles = Array.Empty<WarBattleRowState>();
 		readonly Label _battlesEmpty;
 		readonly Label _effectsTitle;
 		readonly Label _statsTitle;
@@ -69,7 +71,11 @@ namespace GS.Unity.UI {
 			_defenderFlag = root.Q<VisualElement>("defender-flag");
 			_attackerEffectsList = root.Q<ScrollView>("attacker-effects-list");
 			_defenderEffectsList = root.Q<ScrollView>("defender-effects-list");
-			_battlesList = root.Q<ScrollView>("battles-list");
+			_battlesList = root.Q<ListView>("battles-list");
+			if (_battlesList != null) {
+				_battlesList.makeItem = BattleRowBuilder.Build;
+				_battlesList.bindItem = (element, index) => ((Label)element).text = FormatBattleRow(_currentBattles[index]);
+			}
 			_battlesEmpty = root.Q<Label>("battles-empty");
 			_effectsTitle = root.Q<Label>("effects-title");
 			_statsTitle = root.Q<Label>("stats-title");
@@ -221,9 +227,8 @@ namespace GS.Unity.UI {
 			ScrollView list, List<GroupedEffect> groups, Dictionary<string, WarBattleRowState> battlesById, string sideKey) {
 			list.Clear();
 			foreach (GroupedEffect group in groups) {
-				var row = new Label(FormatGroupedEffect(group));
-				row.AddToClassList("war-progress-effect-row");
-				row.enableRichText = true;
+				Label row = EffectRowBuilder.BuildTextRow();
+				row.text = FormatGroupedEffect(group);
 				if (group.CategoryKey == BattleCategoryKey && group.Battles.Count > 0) {
 					GroupedEffect capturedGroup = group;
 					_tooltip?.RegisterTrigger(
@@ -248,20 +253,16 @@ namespace GS.Unity.UI {
 		}
 
 		VisualElement BuildBattleGroupTooltip(GroupedEffect group, Dictionary<string, WarBattleRowState> battlesById) {
-			var content = new VisualElement();
-			var titleLabel = new Label(GetLoc("war_progress.effect_battle_tooltip_title", "Related battles"));
-			titleLabel.AddToClassList("tooltip-header");
-			content.Add(titleLabel);
+			var content = TooltipBodyBuilder.NewRoot();
+			TooltipBodyBuilder.AddHeader(content, GetLoc("war_progress.effect_battle_tooltip_title", "Related battles"));
 			foreach ((string battleId, double delta) in group.Battles) {
 				string provinceName = battlesById.TryGetValue(battleId, out WarBattleRowState row)
 					? GetProvinceName(row.ProvinceId)
 					: battleId;
-				var rowLabel = new Label(string.Format(
+				TooltipBodyBuilder.AddLine(content, string.Format(
 					GetLoc("war_progress.effect_battle_tooltip_row_format", "{0}: {1}"),
 					provinceName,
 					FormatSigned(delta)));
-				rowLabel.AddToClassList("tooltip-effect-name");
-				content.Add(rowLabel);
 			}
 			return content;
 		}
@@ -298,19 +299,16 @@ namespace GS.Unity.UI {
 		}
 
 		VisualElement BuildDamageTooltip(WarSideStatsState stats) {
-			var root = new VisualElement();
+			var root = TooltipBodyBuilder.NewRoot();
+			TooltipBodyBuilder.AddHeader(root, _getText("war_progress.damage", "Damage"));
 
-			var header = new Label(_getText("war_progress.damage", "Damage"));
-			header.AddToClassList("tooltip-header");
-			root.Add(header);
-
-			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_base", "Country base: {0}"), FormatResourceValue(stats.DamageBase)));
-			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_ruler", "Ruler skill: {0}"), FormatSigned(stats.DamageRulerBonus)));
-			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_military_advisor", "Military advisor skill: {0}"), FormatSigned(stats.DamageAdvisorBonus)));
+			TooltipBodyBuilder.AddLine(root, string.Format(GetLoc("war_progress.stat_tooltip_base", "Country base: {0}"), FormatResourceValue(stats.DamageBase)));
+			TooltipBodyBuilder.AddLine(root, string.Format(GetLoc("war_progress.stat_tooltip_ruler", "Ruler skill: {0}"), FormatSigned(stats.DamageRulerBonus)));
+			TooltipBodyBuilder.AddLine(root, string.Format(GetLoc("war_progress.stat_tooltip_military_advisor", "Military advisor skill: {0}"), FormatSigned(stats.DamageAdvisorBonus)));
 
 			if (stats.DamageBonusEffects.Count > 0) {
 				double subtotal = stats.DamageBase + stats.DamageRulerBonus + stats.DamageAdvisorBonus;
-				AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_subtotal", "Subtotal: {0}"), FormatResourceValue(subtotal)));
+				TooltipBodyBuilder.AddLine(root, string.Format(GetLoc("war_progress.stat_tooltip_subtotal", "Subtotal: {0}"), FormatResourceValue(subtotal)));
 
 				foreach (EffectStateEntry effect in stats.DamageBonusEffects) {
 					AddGainEffectRow(root, effect);
@@ -320,30 +318,21 @@ namespace GS.Unity.UI {
 				}
 			}
 
-			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_total", "Total: {0}"), FormatResourceValue(stats.Damage)));
+			TooltipBodyBuilder.AddLine(root, string.Format(GetLoc("war_progress.stat_tooltip_total", "Total: {0}"), FormatResourceValue(stats.Damage)));
 
 			return root;
 		}
 
 		VisualElement BuildDurabilityTooltip(WarSideStatsState stats) {
-			var root = new VisualElement();
+			var root = TooltipBodyBuilder.NewRoot();
+			TooltipBodyBuilder.AddHeader(root, _getText("war_progress.durability", "Durability"));
 
-			var header = new Label(_getText("war_progress.durability", "Durability"));
-			header.AddToClassList("tooltip-header");
-			root.Add(header);
-
-			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_base", "Country base: {0}"), FormatResourceValue(stats.DurabilityBase)));
-			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_ruler", "Ruler skill: {0}"), FormatSigned(stats.DurabilityRulerBonus)));
-			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_economic_advisor", "Economic advisor skill: {0}"), FormatSigned(stats.DurabilityAdvisorBonus)));
-			AddTooltipRow(root, string.Format(GetLoc("war_progress.stat_tooltip_total", "Total: {0}"), FormatResourceValue(stats.Durability)));
+			TooltipBodyBuilder.AddLine(root, string.Format(GetLoc("war_progress.stat_tooltip_base", "Country base: {0}"), FormatResourceValue(stats.DurabilityBase)));
+			TooltipBodyBuilder.AddLine(root, string.Format(GetLoc("war_progress.stat_tooltip_ruler", "Ruler skill: {0}"), FormatSigned(stats.DurabilityRulerBonus)));
+			TooltipBodyBuilder.AddLine(root, string.Format(GetLoc("war_progress.stat_tooltip_economic_advisor", "Economic advisor skill: {0}"), FormatSigned(stats.DurabilityAdvisorBonus)));
+			TooltipBodyBuilder.AddLine(root, string.Format(GetLoc("war_progress.stat_tooltip_total", "Total: {0}"), FormatResourceValue(stats.Durability)));
 
 			return root;
-		}
-
-		static void AddTooltipRow(VisualElement root, string text) {
-			var row = new Label(text);
-			row.AddToClassList("tooltip-effect-name");
-			root.Add(row);
 		}
 
 		void AddGainEffectRow(VisualElement root, EffectStateEntry effect) {
@@ -353,7 +342,7 @@ namespace GS.Unity.UI {
 				GetLoc("war_progress.stat_tooltip_effect_gain_format", "{0} by {1}: +{2}%"),
 				effectName, effect.OrgDisplayName, FormatResourceValue(effect.MaxTotal));
 			string description = effectDef != null ? _loc.Get(effectDef.DescKey) : null;
-			AddEffectRow(root, text, description, positive: true);
+			TooltipBodyBuilder.AddEffectRow(root, text, description, TooltipBodyBuilder.LineTone.Positive);
 		}
 
 		void AddDecayEffectRow(VisualElement root, EffectStateEntry effect) {
@@ -363,25 +352,7 @@ namespace GS.Unity.UI {
 				GetLoc("war_progress.stat_tooltip_effect_decay_format", "{0} decay by {1}: {2}%/month"),
 				effectName, effect.OrgDisplayName, FormatSigned(effect.Value));
 			string description = GetLoc("war_progress.stat_tooltip_effect_decay_desc", "This bonus fades gradually over time.");
-			AddEffectRow(root, text, description, positive: false);
-		}
-
-		static void AddEffectRow(VisualElement root, string text, string description, bool positive) {
-			var effectRow = new VisualElement();
-			effectRow.AddToClassList("tooltip-effect-row");
-
-			var nameLabel = new Label(text);
-			nameLabel.AddToClassList("tooltip-effect-name");
-			nameLabel.AddToClassList(positive ? "tooltip-effect-positive" : "tooltip-effect-negative");
-			effectRow.Add(nameLabel);
-
-			if (!string.IsNullOrEmpty(description)) {
-				var descLabel = new Label(description);
-				descLabel.AddToClassList("tooltip-description");
-				effectRow.Add(descLabel);
-			}
-
-			root.Add(effectRow);
+			TooltipBodyBuilder.AddEffectRow(root, text, description, TooltipBodyBuilder.LineTone.Negative);
 		}
 
 		ActionEffectDefinition FindEffectDefinition(string dynamicEffectId) {
@@ -400,13 +371,9 @@ namespace GS.Unity.UI {
 			if (_battlesList == null) {
 				return;
 			}
-			_battlesList.Clear();
-			foreach (WarBattleRowState rowState in battles) {
-				var row = new Label(FormatBattleRow(rowState));
-				row.AddToClassList("war-progress-battle-row");
-				row.enableRichText = true;
-				_battlesList.Add(row);
-			}
+			_currentBattles = battles;
+			_battlesList.itemsSource = (IList)_currentBattles;
+			_battlesList.Rebuild();
 			if (_battlesEmpty != null) {
 				_battlesEmpty.style.display = battles.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
 			}
@@ -414,15 +381,10 @@ namespace GS.Unity.UI {
 		}
 
 		void PinBattlesToBottom() {
-			if (_battlesList == null) {
+			if (_battlesList == null || _currentBattles.Count == 0) {
 				return;
 			}
-			EventCallback<GeometryChangedEvent> callback = null;
-			callback = _ => {
-				_battlesList.UnregisterCallback(callback);
-				_battlesList.scrollOffset = new UnityEngine.Vector2(0, float.MaxValue);
-			};
-			_battlesList.RegisterCallback(callback);
+			_battlesList.schedule.Execute(() => _battlesList.ScrollToItem(_currentBattles.Count - 1));
 		}
 
 		string FormatBattleRow(WarBattleRowState row) {

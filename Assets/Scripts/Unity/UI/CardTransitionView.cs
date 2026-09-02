@@ -6,7 +6,9 @@ using GS.Main;
 using GS.Unity.Common;
 
 namespace GS.Unity.UI {
-	class CardTransitionView {
+	// Public so the gallery scene (GS.Unity.Gallery) can preview a card mid-transition
+	// (Docs/Specs/26_08_28_16_ui-refactoring phase 7 "Hand/deck and animation blocks" batch).
+	public class CardTransitionView {
 		VisualElement _overlay;
 		VisualElement _cardCopy;
 

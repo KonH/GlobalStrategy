@@ -12,6 +12,7 @@ namespace GS.Unity.UI {
 		[SerializeField] int _sortingOrder = 1100;
 
 		VisualState _state;
+		GameLogic _gameLogic;
 		GameSettings _gameSettings;
 		ILocalization _loc;
 		OrgVisualConfig _orgVisualConfig;
@@ -21,11 +22,14 @@ namespace GS.Unity.UI {
 		Button _btnExit;
 		EndGameWindowView _view;
 		ModalState _modalState;
+		readonly LeaderboardState _leaderboard = new LeaderboardState();
+		readonly PullRefreshTimer _refreshTimer = new PullRefreshTimer();
 		bool _subscribed;
 
 		[Inject]
-		void Construct(VisualState state, GameSettings gameSettings, ILocalization loc, OrgVisualConfig orgVisualConfig, SceneLoader sceneLoader, ModalState modalState) {
+		void Construct(VisualState state, GameLogic gameLogic, GameSettings gameSettings, ILocalization loc, OrgVisualConfig orgVisualConfig, SceneLoader sceneLoader, ModalState modalState) {
 			_state = state;
+			_gameLogic = gameLogic;
 			_gameSettings = gameSettings;
 			_loc = loc;
 			_orgVisualConfig = orgVisualConfig;
@@ -38,11 +42,9 @@ namespace GS.Unity.UI {
 			_doc.sortingOrder = _sortingOrder;
 			_root = _doc.rootVisualElement;
 			_btnExit = _root.Q<Button>("btn-exit");
-			_btnExit?.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && _btnExit.ContainsPoint(e.localPosition)) {
-					_sceneLoader.LoadMainMenu();
-				}
-			});
+			if (_btnExit != null) {
+				_btnExit.OnClick(() => _sceneLoader.LoadMainMenu());
+			}
 			_root.style.display = DisplayStyle.None;
 		}
 
@@ -60,12 +62,20 @@ namespace GS.Unity.UI {
 			Unsubscribe();
 		}
 
+		void Update() {
+			if (!IsVisible || _gameLogic == null) {
+				return;
+			}
+			if (_refreshTimer.ShouldRefresh(Time.deltaTime, _state.Time.IsPaused)) {
+				RefreshView();
+			}
+		}
+
 		void Subscribe() {
 			if (_subscribed || _state == null) {
 				return;
 			}
 			_state.GameCompletion.PropertyChanged += HandleStateChanged;
-			_state.Leaderboard.PropertyChanged += HandleStateChanged;
 			_state.PlayerOrganization.PropertyChanged += HandleStateChanged;
 			_state.Locale.PropertyChanged += HandleLocaleChanged;
 			_modalState.Unlocked += HandleModalUnlocked;
@@ -77,7 +87,6 @@ namespace GS.Unity.UI {
 				return;
 			}
 			_state.GameCompletion.PropertyChanged -= HandleStateChanged;
-			_state.Leaderboard.PropertyChanged -= HandleStateChanged;
 			_state.PlayerOrganization.PropertyChanged -= HandleStateChanged;
 			_state.Locale.PropertyChanged -= HandleLocaleChanged;
 			_modalState.Unlocked -= HandleModalUnlocked;
@@ -99,6 +108,7 @@ namespace GS.Unity.UI {
 				return;
 			}
 			if (IsVisible) {
+				_refreshTimer.RequestImmediate();
 				RefreshView();
 				return;
 			}
@@ -125,11 +135,15 @@ namespace GS.Unity.UI {
 		void OpenCurrent() {
 			_modalState.Lock(this);
 			_root.style.display = DisplayStyle.Flex;
+			_refreshTimer.RequestImmediate();
 			RefreshView();
 		}
 
 		void RefreshView() {
-			_view.Refresh(_state.GameCompletion, _state.Leaderboard, _state.PlayerOrganization, _gameSettings.EndGameComparisons);
+			if (_gameLogic != null) {
+				LeaderboardProjector.Project(_gameLogic.World, _leaderboard, _gameLogic.Resources, _gameLogic.CountryConfig);
+			}
+			_view.Refresh(_state.GameCompletion, _leaderboard, _state.PlayerOrganization, _gameSettings.EndGameComparisons);
 		}
 
 		void HandleModalUnlocked() {

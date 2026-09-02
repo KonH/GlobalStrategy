@@ -43,18 +43,17 @@ namespace GS.Game.Tests {
 			SeedCountry(world, "c_alpha", 20.0);
 			SeedCountry(world, "c_beta", 50.0);
 
-			var state = new VisualState();
-			var converter = new VisualStateConverter(state, _resources, _relations, countryConfig: BuildCountryConfig());
-			converter.UpdateLeaderboards(world);
+			var state = new LeaderboardState();
+			LeaderboardProjector.Project(world, state, _resources, BuildCountryConfig());
 
-			Assert.Equal("org_high", state.Leaderboard.Organizations[0].EntityId);
-			Assert.Equal(1, state.Leaderboard.Organizations[0].Place);
-			Assert.Equal("org_low", state.Leaderboard.Organizations[1].EntityId);
-			Assert.Equal(2, state.Leaderboard.Organizations[1].Place);
-			Assert.Equal("c_beta", state.Leaderboard.Countries[0].EntityId);
-			Assert.Equal(1, state.Leaderboard.Countries[0].Place);
-			Assert.Equal("c_alpha", state.Leaderboard.Countries[1].EntityId);
-			Assert.Equal(2, state.Leaderboard.Countries[1].Place);
+			Assert.Equal("org_high", state.Organizations[0].EntityId);
+			Assert.Equal(1, state.Organizations[0].Place);
+			Assert.Equal("org_low", state.Organizations[1].EntityId);
+			Assert.Equal(2, state.Organizations[1].Place);
+			Assert.Equal("c_beta", state.Countries[0].EntityId);
+			Assert.Equal(1, state.Countries[0].Place);
+			Assert.Equal("c_alpha", state.Countries[1].EntityId);
+			Assert.Equal(2, state.Countries[1].Place);
 		}
 
 		[Fact]
@@ -67,20 +66,47 @@ namespace GS.Game.Tests {
 			SeedCountry(world, "c_beta", 25.0);
 			SeedCountry(world, "c_alpha", 25.0);
 
-			var state = new VisualState();
-			var converter = new VisualStateConverter(state, _resources, _relations, countryConfig: BuildCountryConfig());
-			converter.UpdateLeaderboards(world);
+			var state = new LeaderboardState();
+			LeaderboardProjector.Project(world, state, _resources, BuildCountryConfig());
 
 			Assert.Equal(new[] { "org_b", "org_a", "org_z" }, new[] {
-				state.Leaderboard.Organizations[0].EntityId,
-				state.Leaderboard.Organizations[1].EntityId,
-				state.Leaderboard.Organizations[2].EntityId
+				state.Organizations[0].EntityId,
+				state.Organizations[1].EntityId,
+				state.Organizations[2].EntityId
 			});
 			Assert.Equal(new[] { "c_alpha", "c_beta", "c_gamma" }, new[] {
-				state.Leaderboard.Countries[0].EntityId,
-				state.Leaderboard.Countries[1].EntityId,
-				state.Leaderboard.Countries[2].EntityId
+				state.Countries[0].EntityId,
+				state.Countries[1].EntityId,
+				state.Countries[2].EntityId
 			});
+		}
+
+		[Fact]
+		void large_world_projects_every_country_and_org_with_contiguous_places() {
+			var world = new World();
+			const int countryCount = 154;
+			const int orgCount = 8;
+			for (int i = 0; i < countryCount; i++) {
+				SeedCountry(world, $"c_{i:000}", countryCount - i);
+			}
+			for (int i = 0; i < orgCount; i++) {
+				SeedOrganization(world, $"org_{i}", $"Org {i}", orgCount - i);
+			}
+
+			var state = new LeaderboardState();
+			LeaderboardProjector.Project(world, state, _resources, null);
+
+			Assert.Equal(countryCount, state.Countries.Count);
+			Assert.Equal(orgCount, state.Organizations.Count);
+			for (int i = 0; i < state.Countries.Count; i++) {
+				Assert.Equal(i + 1, state.Countries[i].Place);
+			}
+			for (int i = 0; i < state.Organizations.Count; i++) {
+				Assert.Equal(i + 1, state.Organizations[i].Place);
+			}
+			// Highest-score country/org seeded first stays first after sorting descending.
+			Assert.Equal("c_000", state.Countries[0].EntityId);
+			Assert.Equal("org_0", state.Organizations[0].EntityId);
 		}
 
 		[Fact]

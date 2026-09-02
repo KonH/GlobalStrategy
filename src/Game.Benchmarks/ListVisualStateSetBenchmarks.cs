@@ -123,7 +123,7 @@ namespace GS.Game.Benchmarks {
 			_countryActionsHasPendingDraw = _countryActions.HasPendingDraw;
 			_countryActionsCanStartDraw = _countryActions.CanStartDraw;
 
-			_leaderboard = visualState.Leaderboard;
+			_leaderboard = new LeaderboardState();
 			_leaderboardOrgsBaseline = new List<LeaderboardEntryState>(_leaderboard.Organizations);
 			_leaderboardOrgsAlt = new List<LeaderboardEntryState>(_leaderboardOrgsBaseline) {
 				new LeaderboardEntryState(99, "bench_org", "Bench Org", 0d)

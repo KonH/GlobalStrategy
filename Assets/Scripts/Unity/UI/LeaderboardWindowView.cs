@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
@@ -15,13 +17,14 @@ namespace GS.Unity.UI {
 		readonly VisualElement _root;
 		readonly Button _tabOrganizations;
 		readonly Button _tabCountries;
-		readonly ScrollView _list;
+		readonly ListView _list;
 		readonly Label _empty;
 		readonly ILocalization _loc;
 		readonly CountryVisualConfig _countryVisualConfig;
 		readonly OrgVisualConfig _orgVisualConfig;
 		Tab _selectedTab = Tab.Organizations;
 		LeaderboardState _lastState;
+		IReadOnlyList<LeaderboardEntryState> _currentEntries = Array.Empty<LeaderboardEntryState>();
 
 		public LeaderboardWindowView(VisualElement root, ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig) {
 			_root = root;
@@ -30,19 +33,24 @@ namespace GS.Unity.UI {
 			_orgVisualConfig = orgVisualConfig;
 			_tabOrganizations = root.Q<Button>("tab-organizations");
 			_tabCountries = root.Q<Button>("tab-countries");
-			_list = root.Q<ScrollView>("leaderboard-list");
+			_list = root.Q<ListView>("leaderboard-list");
 			_empty = root.Q<Label>("leaderboard-empty");
 
-			_tabOrganizations?.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && _tabOrganizations.ContainsPoint(e.localPosition)) {
-					SetTab(Tab.Organizations, true);
-				}
-			});
-			_tabCountries?.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && _tabCountries.ContainsPoint(e.localPosition)) {
-					SetTab(Tab.Countries, true);
-				}
-			});
+			if (_list != null) {
+				_list.makeItem = () => {
+					RankRowBuilder.Elements elements = RankRowBuilder.Build();
+					elements.Row.userData = elements;
+					return elements.Row;
+				};
+				_list.bindItem = (element, index) => BindRow(element, _currentEntries[index]);
+			}
+
+			if (_tabOrganizations != null) {
+				_tabOrganizations.OnClick(() => SetTab(Tab.Organizations, true));
+			}
+			if (_tabCountries != null) {
+				_tabCountries.OnClick(() => SetTab(Tab.Countries, true));
+			}
 		}
 
 		public void ResetToDefaultTab() {
@@ -55,27 +63,23 @@ namespace GS.Unity.UI {
 			}
 
 			_lastState = state;
-			Vector2 scrollOffset = _list.scrollOffset;
-			_list.Clear();
-			IReadOnlyList<LeaderboardEntryState> entries = _selectedTab == Tab.Organizations ? state.Organizations : state.Countries;
-			foreach (var entry in entries) {
-				_list.Add(CreateRow(entry));
-			}
+			_currentEntries = _selectedTab == Tab.Organizations ? state.Organizations : state.Countries;
+			_list.itemsSource = (IList)_currentEntries;
+			_list.Rebuild();
 			if (_empty != null) {
-				_empty.style.display = entries.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
+				_empty.style.display = _currentEntries.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
 			}
 			UpdateTabClasses();
-			_list.schedule.Execute(() => _list.scrollOffset = scrollOffset);
 		}
 
 		void SetTab(Tab tab, bool resetScroll) {
 			_selectedTab = tab;
 			UpdateTabClasses();
-			if (resetScroll && _list != null) {
-				_list.scrollOffset = Vector2.zero;
-			}
 			if (_lastState != null) {
 				Refresh(_lastState);
+			}
+			if (resetScroll && _list != null && _currentEntries.Count > 0) {
+				_list.ScrollToItem(0);
 			}
 		}
 
@@ -84,36 +88,12 @@ namespace GS.Unity.UI {
 			_tabCountries?.EnableInClassList("leaderboard-tab--active", _selectedTab == Tab.Countries);
 		}
 
-		VisualElement CreateRow(LeaderboardEntryState entry) {
-			var row = new VisualElement();
-			row.AddToClassList("leaderboard-row");
-
-			var place = new Label(entry.Place.ToString(CultureInfo.InvariantCulture));
-			place.AddToClassList("leaderboard-row-place");
-			row.Add(place);
-
-			var flag = new VisualElement();
-			flag.AddToClassList("leaderboard-row-flag");
+		void BindRow(VisualElement element, LeaderboardEntryState entry) {
 			Sprite sprite = _selectedTab == Tab.Organizations
 				? _orgVisualConfig?.Find(entry.EntityId)?.flag
 				: _countryVisualConfig?.Find(entry.EntityId)?.flag;
-			if (sprite != null) {
-				flag.style.backgroundImage = new StyleBackground(sprite);
-				flag.style.display = DisplayStyle.Flex;
-			} else {
-				flag.style.display = DisplayStyle.None;
-			}
-			row.Add(flag);
-
-			var name = new Label(GetDisplayName(entry));
-			name.AddToClassList("leaderboard-row-name");
-			row.Add(name);
-
-			var score = new Label(ScoreFormat.Format(entry.Score));
-			score.AddToClassList("leaderboard-row-score");
-			row.Add(score);
-
-			return row;
+			var elements = (RankRowBuilder.Elements)element.userData;
+			RankRowBuilder.Bind(elements, entry.Place, sprite, GetDisplayName(entry), ScoreFormat.Format(entry.Score));
 		}
 
 		string GetDisplayName(LeaderboardEntryState entry) {

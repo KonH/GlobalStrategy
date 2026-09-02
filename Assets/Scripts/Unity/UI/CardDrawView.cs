@@ -9,7 +9,9 @@ using GS.Main;
 using GS.Unity.Common;
 
 namespace GS.Unity.UI {
-	class CardDrawView {
+	// Public so the gallery scene (GS.Unity.Gallery) can preview the draw-choice offer screen
+	// (Docs/Specs/26_08_28_16_ui-refactoring phase 7 "Hand/deck and animation blocks" batch).
+	public class CardDrawView {
 		public const float DealDuration = 0.25f;
 		public const float FlipDuration = 0.2f;
 		public const float HoverDuration = 0.2f;

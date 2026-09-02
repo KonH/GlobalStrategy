@@ -7,7 +7,7 @@ using GS.Game.Configs;
 using GS.Game.Systems;
 
 namespace GS.Unity.UI {
-	class PlayerTasksView {
+	public class PlayerTasksView {
 		readonly VisualElement _root;
 		readonly VisualElement _list;
 		readonly ILocalization _loc;
@@ -70,12 +70,10 @@ namespace GS.Unity.UI {
 			header.AddToClassList("task-header");
 			header.focusable = true;
 			string taskId = task.TaskId;
-			header.RegisterCallback<PointerUpEvent>(e => {
-				if (e.button == 0 && header.ContainsPoint(e.localPosition)) {
-					_expandedTaskId = TaskAccordionInteraction.ApplyHeaderClick(_expandedTaskId, taskId);
-					if (_lastState != null) {
-						Refresh(_lastState);
-					}
+			header.OnClick(() => {
+				_expandedTaskId = TaskAccordionInteraction.ApplyHeaderClick(_expandedTaskId, taskId);
+				if (_lastState != null) {
+					Refresh(_lastState);
 				}
 			});
 

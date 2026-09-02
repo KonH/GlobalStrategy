@@ -4,7 +4,7 @@
     top: 0;
     right: 0;
     bottom: 0;
-    background-color: rgb(26, 42, 72);
+    background-color: var(--gs-panel-bg);
     align-items: center;
     justify-content: center;
     padding: 40px;
@@ -53,8 +53,5 @@
     margin-top: 24px;
 }
 
-.leaderboard-row--player {
-    border-width: 2px;
-    border-color: rgb(240, 200, 96);
-    background-color: rgba(240, 200, 96, 0.18);
-}
+/* .leaderboard-row--player moved into Components.uss as .rank-row--highlighted, shared with the
+   goals list's selected-org highlight. */

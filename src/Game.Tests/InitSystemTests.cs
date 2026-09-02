@@ -270,7 +270,7 @@ namespace GS.Game.Tests {
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = 8 }
 				},
 				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = "build_influence", OwnerType = "country", DeckCopies = 1 }
+					new ActionDefinition { ActionId = "build_influence", OwnerType = "country", Chance = 1 }
 				}
 			};
 			var logic = BuildLogic(actionConfigOverride: actionConfig);
@@ -294,7 +294,7 @@ namespace GS.Game.Tests {
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = 5 }
 				},
 				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = "build_influence", OwnerType = "country", DeckCopies = 1 }
+					new ActionDefinition { ActionId = "build_influence", OwnerType = "country", Chance = 1 }
 				}
 			};
 			var logic = BuildLogic(storage, serializer, actionConfigOverride: oldConfig);
@@ -560,7 +560,7 @@ namespace GS.Game.Tests {
 						ActionId = "make_friend",
 						OwnerType = "country",
 						TargetRole = targetRole,
-						DeckCopies = 3,
+						Chance = 3,
 						Conditions = new List<ExpressionNode> {
 							new ExpressionNode {
 								Type = "gte",
@@ -576,7 +576,7 @@ namespace GS.Game.Tests {
 						ActionId = "make_rival",
 						OwnerType = "country",
 						TargetRole = targetRole,
-						DeckCopies = 3,
+						Chance = 3,
 						Conditions = new List<ExpressionNode> {
 							new ExpressionNode {
 								Type = "gte",
@@ -642,7 +642,7 @@ namespace GS.Game.Tests {
 						ActionId = "make_friend",
 						OwnerType = "country",
 						TargetRole = diplomacyRole,
-						DeckCopies = 3,
+						Chance = 3,
 						Conditions = new List<ExpressionNode> {
 							new ExpressionNode {
 								Type = "gte",
@@ -658,7 +658,7 @@ namespace GS.Game.Tests {
 						ActionId = "declare_revenge_war",
 						OwnerType = "country",
 						TargetRole = militaryRole,
-						DeckCopies = 3,
+						Chance = 3,
 						Conditions = new List<ExpressionNode> {
 							new ExpressionNode {
 								Type = "gte",
@@ -723,7 +723,7 @@ namespace GS.Game.Tests {
 						ActionId = "declare_revenge_war",
 						OwnerType = "country",
 						TargetRole = militaryRole,
-						DeckCopies = 1,
+						Chance = 1,
 						// No opinion condition here: at init, opinion always starts at zero
 						// (no seeding mechanism exists), so isolating control+warFree is the only
 						// way to exercise the positive initial-hand-fill path for this card.
@@ -798,7 +798,7 @@ namespace GS.Game.Tests {
 					new ActionDefinition {
 						ActionId = "decrease_enemy_control",
 						OwnerType = "country",
-						DeckCopies = 1,
+						Chance = 1,
 						Conditions = new List<ExpressionNode> {
 							new ExpressionNode {
 								Type = "gt",
@@ -898,7 +898,7 @@ namespace GS.Game.Tests {
 						ActionId = "make_friend",
 						OwnerType = "country",
 						TargetRole = diplomacyRole,
-						DeckCopies = 1,
+						Chance = 1,
 						Conditions = new List<ExpressionNode> {
 							new ExpressionNode {
 								Type = "gte",
@@ -913,7 +913,7 @@ namespace GS.Game.Tests {
 						ActionId = "force_war_win",
 						OwnerType = "country",
 						TargetRole = militaryRole,
-						DeckCopies = 1,
+						Chance = 1,
 						Conditions = new List<ExpressionNode> {
 							new ExpressionNode {
 								Type = "gte",
@@ -1002,7 +1002,7 @@ namespace GS.Game.Tests {
 				},
 				Actions = new List<ActionDefinition> {
 					new ActionDefinition {
-						ActionId = "weighted_country_action", OwnerType = "country", DeckCopies = 5
+						ActionId = "weighted_country_action", OwnerType = "country", Chance = 5
 					}
 				}
 			};
@@ -1040,7 +1040,7 @@ namespace GS.Game.Tests {
 				},
 				Actions = new List<ActionDefinition> {
 					new ActionDefinition {
-						ActionId = "stop_friendship", OwnerType = "country", DeckCopies = 1
+						ActionId = "stop_friendship", OwnerType = "country", Chance = 1
 					}
 				}
 			};
@@ -1077,7 +1077,7 @@ namespace GS.Game.Tests {
 				},
 				Actions = new List<ActionDefinition> {
 					new ActionDefinition {
-						ActionId = actionId, OwnerType = "country", TargetRole = roleId, DeckCopies = 4
+						ActionId = actionId, OwnerType = "country", TargetRole = roleId, Chance = 4
 					}
 				}
 			};
@@ -1142,10 +1142,10 @@ namespace GS.Game.Tests {
 				},
 				Actions = new List<ActionDefinition> {
 					new ActionDefinition {
-						ActionId = "force_war_win", OwnerType = "country", TargetRole = militaryRole, DeckCopies = 1
+						ActionId = "force_war_win", OwnerType = "country", TargetRole = militaryRole, Chance = 1
 					},
 					new ActionDefinition {
-						ActionId = "force_war_loss", OwnerType = "country", TargetRole = militaryRole, DeckCopies = 1
+						ActionId = "force_war_loss", OwnerType = "country", TargetRole = militaryRole, Chance = 1
 					}
 				}
 			};
@@ -1202,7 +1202,7 @@ namespace GS.Game.Tests {
 						ActionId = "make_friend",
 						OwnerType = "country",
 						TargetRole = targetRole,
-						DeckCopies = 3
+						Chance = 3
 					}
 				}
 			};
@@ -1252,8 +1252,8 @@ namespace GS.Game.Tests {
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = 1 }
 				},
 				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = "make_friend", OwnerType = "country", TargetRole = targetRole, DeckCopies = 1 },
-					new ActionDefinition { ActionId = "make_rival", OwnerType = "country", TargetRole = targetRole, DeckCopies = 1 }
+					new ActionDefinition { ActionId = "make_friend", OwnerType = "country", TargetRole = targetRole, Chance = 1 },
+					new ActionDefinition { ActionId = "make_rival", OwnerType = "country", TargetRole = targetRole, Chance = 1 }
 				}
 			};
 

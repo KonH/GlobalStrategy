@@ -27,14 +27,15 @@ namespace GS.Game.Tests {
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = 8 }
 				},
 				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = "a", OwnerType = "country", DeckCopies = 1 },
-					new ActionDefinition { ActionId = "b", OwnerType = "country", DeckCopies = 2 },
-					new ActionDefinition { ActionId = "c", OwnerType = "country", DeckCopies = 3 },
-					new ActionDefinition { ActionId = "d", OwnerType = "country", DeckCopies = 0 },
-					new ActionDefinition { ActionId = "make_rival", OwnerType = "country", DeckCopies = 1 },
-					new ActionDefinition { ActionId = "stop_rivalry", OwnerType = "country", DeckCopies = 1 },
-					new ActionDefinition { ActionId = "declare_war", OwnerType = "country", DeckCopies = 1 },
-					new ActionDefinition { ActionId = "declare_revenge_war", OwnerType = "country", DeckCopies = 1 }
+					new ActionDefinition { ActionId = "a", OwnerType = "country", Chance = 1 },
+					new ActionDefinition { ActionId = "b", OwnerType = "country", Chance = 2 },
+					new ActionDefinition { ActionId = "c", OwnerType = "country", Chance = 3 },
+					new ActionDefinition { ActionId = "d", OwnerType = "country", Chance = 0 },
+					new ActionDefinition { ActionId = "make_rival", OwnerType = "country", Chance = 1 },
+					new ActionDefinition { ActionId = "stop_rivalry", OwnerType = "country", Chance = 1, DrawWeightMultiplier = 0.5 },
+					new ActionDefinition { ActionId = "declare_war", OwnerType = "country", Chance = 1, DrawWeightMultiplier = 1.7 },
+					new ActionDefinition { ActionId = "declare_revenge_war", OwnerType = "country", Chance = 1 },
+					new ActionDefinition { ActionId = "boosted_action", OwnerType = "country", Chance = 1, DrawWeightMultiplier = 2.0 }
 				}
 			};
 		}
@@ -444,7 +445,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void stop_rivalry_draws_at_half_weight() {
-			var config = BuildConfig(); // "stop_rivalry" and "make_rival" both have DeckCopies = 1.
+			var config = BuildConfig(); // "stop_rivalry" and "make_rival" both have Chance = 1.
 			int halvedArmWins = 0;
 			int baselineArmWins = 0;
 			const int trials = 120;
@@ -484,7 +485,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void declare_war_gains_weight_only_for_the_player_org_when_controlling_a_rival_of_the_target() {
-			var config = BuildConfig(); // "declare_war" and "a" both have DeckCopies = 1.
+			var config = BuildConfig(); // "declare_war" and "a" both have Chance = 1.
 			int playerWins = 0;
 			int nonPlayerWins = 0;
 			const int trials = 200;
@@ -529,6 +530,29 @@ namespace GS.Game.Tests {
 			IReadOnlyList<CountryCardDrawChoiceInfo> choices = CountryCardDrawQuery.GetChoices(world, "OrgA");
 			int firstChoice = choices.Count > 0 ? choices[0].Entity : -1;
 			return (declareWar, firstChoice);
+		}
+
+		[Fact]
+		void generic_draw_weight_multiplier_boosts_a_third_action_id_without_special_casing() {
+			var config = BuildConfig(); // "boosted_action" carries DrawWeightMultiplier = 2.0 - neither stop_rivalry nor declare_war.
+			int boostedArmWins = 0;
+			int baselineArmWins = 0;
+			const int trials = 120;
+
+			for (int t = 0; t < trials; t++) {
+				if (RunStopRivalryWeightTrial(config, t, competitorActionId: "boosted_action")) { boostedArmWins++; }
+				if (RunStopRivalryWeightTrial(config, t, competitorActionId: "make_rival")) { baselineArmWins++; }
+			}
+
+			// Both arms replay the exact same seed sequence and world layout; only the competing
+			// card's action id differs (boosted_action, doubled via config-driven DrawWeightMultiplier,
+			// vs make_rival, an equal-weight ordinary card with no multiplier), so the plain "a" card
+			// can never win the boosted arm more often than the baseline arm - only strictly less, for
+			// seeds landing in the extra probability band the boost opens up for its competitor. This
+			// proves AdjustWeight's config.Find(actionId)?.DrawWeightMultiplier lookup is generic and
+			// not hardcoded to just stop_rivalry/declare_war.
+			Assert.True(boostedArmWins < baselineArmWins,
+				$"expected the plain card to win the first slot less often against a generically-boosted (2x) competitor than against an equal-weight competitor, boosted-arm {boostedArmWins}/{trials} vs baseline {baselineArmWins}/{trials}");
 		}
 
 		[Fact]
@@ -603,14 +627,14 @@ namespace GS.Game.Tests {
 					new ActionOwnerDefaults { OwnerType = "country", HandSize = 8 }
 				},
 				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = "a", OwnerType = "country", DeckCopies = 5 },
-					new ActionDefinition { ActionId = "b", OwnerType = "country", DeckCopies = 5 },
-					new ActionDefinition { ActionId = "c", OwnerType = "country", DeckCopies = 5 },
-					new ActionDefinition { ActionId = "d", OwnerType = "country", DeckCopies = 5 },
+					new ActionDefinition { ActionId = "a", OwnerType = "country", Chance = 5 },
+					new ActionDefinition { ActionId = "b", OwnerType = "country", Chance = 5 },
+					new ActionDefinition { ActionId = "c", OwnerType = "country", Chance = 5 },
+					new ActionDefinition { ActionId = "d", OwnerType = "country", Chance = 5 },
 					new ActionDefinition {
 						ActionId = "improve_control",
 						OwnerType = "country",
-						DeckCopies = 1,
+						Chance = 1,
 						EffectIds = new List<string> { "improve_control_effect" }
 					}
 				}

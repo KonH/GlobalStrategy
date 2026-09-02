@@ -6,7 +6,7 @@ using GS.Game.Configs;
 using GS.Unity.Map;
 
 namespace GS.Unity.UI {
-	class PlayerOrgView {
+	public class PlayerOrgView {
 		readonly VisualElement _root;
 		readonly Label _name;
 		readonly VisualElement? _flagElement;
