@@ -19,6 +19,6 @@ Codex-specific notes:
   `ACK:` / `MESSAGE:` / `MATCH:` / `ENDED:` / `KICKED:` / `TIMEOUT:` /
   `ERROR:`) — see "Script output contract" in the canonical file. Do not
   append `; echo EXIT=$?` or check `$LASTEXITCODE`.
-- Fill the `joined` line with `Provider` `Codex CLI`, `Model` `5.6 Luna`,
-  `Effort` `Medium` for the current Codex configuration, and a `Title` you
-  work out per "Choosing a title" in the canonical file.
+- Fill the `joined` line with `Provider` `Codex`; use the model and effort
+  reported by the current session, falling back to `unknown` and `default`.
+  Work out the `Title` per "Choosing a title" in the canonical file.

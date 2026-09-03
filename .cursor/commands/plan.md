@@ -1,4 +1,4 @@
-Create a plan for the requested task, using the shared `k:plan` skill.
+Create a plan for the requested task, using the shared `cc:plan` skill.
 
 ## Synchronize with main
 
@@ -29,4 +29,4 @@ In the "User Steps" section of the plan, "requires manual interaction Claude can
 
 ## Delegate
 
-Invoke the `k:plan` skill (from the `k` plugin) with the override above. It handles index derivation, the constitution gate (`Docs/Constitution.md`), spec detection, architect sub-agent, and `plan-review` hand-off.
+Invoke the `cc:plan` skill (from the `cc` plugin) with the override above. It handles index derivation, the constitution gate (`Docs/Constitution.md`), spec detection, architect sub-agent, and `plan-review` hand-off.

@@ -23,7 +23,7 @@ The label set is the whole state machine (no local state file, no timestamps):
 
 A candidate is any open, configured-contributor-authored, `codex`-labeled issue/PR carrying none of the three
 shared `ai-*` status labels. The owner resumes a need-attention/complete item by replying and removing that
-label. See .codex/skills/codex-issue/SKILL.md for the per-item lifecycle the CLI run follows.
+label. See .agents/skills/codex-issue/SKILL.md for the bootstrap into the project-scoped plugin lifecycle.
 
 Each candidate gets its own `codex exec` invocation, started from a guaranteed-clean checkout
 of its valid branch: `main` for an issue (force-reset to origin/main, untracked files
@@ -165,7 +165,7 @@ def current_branch():
     """The branch actually checked out right now - unlike `candidate_branch()`, which is
     only the branch a run *started* from (always `main` for an issue candidate; the agent
     creates/switches to its own `feature/<name>` branch during the run per
-    `.codex/skills/codex-issue/SKILL.md`). Returns None on failure rather than raising -
+    `.agents/skills/codex-issue/SKILL.md`). Returns None on failure rather than raising -
     usage-stats attribution must never abort the automation run."""
     result = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"],
                              capture_output=True, text=True)
@@ -235,7 +235,7 @@ def build_prompt(candidate):
         header = f"[ISSUE #{candidate['number']}] {candidate['url']}"
         checkout = "'main'"
     return (
-        "Read and follow .codex/skills/codex-issue/SKILL.md.\n\n"
+        "Read and follow .agents/skills/codex-issue/SKILL.md.\n\n"
         f"The following GitHub {kind.lower()} is labeled 'codex', authored by a configured contributor, "
         "and carries no automation status label. Process it per that skill. The working tree "
         f"is already a guaranteed-clean, up-to-date checkout of {checkout}. The description "

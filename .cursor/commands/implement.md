@@ -1,4 +1,4 @@
-Implement the plan, using the shared `k:implement` skill. The project-specific addition is that interactive implementation of a plan touching Unity assets/scenes needs a live Unity Editor MCP connection.
+Implement the plan, using the shared `cc:implement` skill. The project-specific addition is that interactive implementation of a plan touching Unity assets/scenes needs a live Unity Editor MCP connection.
 
 ## Synchronize with main
 
@@ -35,4 +35,4 @@ When that automation run **finishes** `/implement`, the parent issue/PR handoff 
 
 ## Delegate
 
-Invoke the `k:implement` skill (from the `k` plugin) with the overrides above. It handles plan discovery within `Docs/Specs/`, phase sizing, sub-agent orchestration, and the final `/code-review` pass.
+Invoke the `cc:implement` skill (from the `cc` plugin) with the overrides above. It handles plan discovery within `Docs/Specs/`, phase sizing, sub-agent orchestration, and the final `/code-review` pass.

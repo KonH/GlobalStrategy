@@ -176,7 +176,7 @@ class ClaudeTranscriptTests(unittest.TestCase):
 
     def test_plugin_prefixed_skill_invocation_maps_to_stage(self):
         path = write_transcript([
-            skill_invocation_line("s1", "2026-01-01T00:00:00Z", "k:plan"),
+            skill_invocation_line("s1", "2026-01-01T00:00:00Z", "cc:plan"),
             assistant_line("s1", "2026-01-01T00:00:01Z", "end_turn"),
         ])
 
@@ -189,7 +189,7 @@ class ClaudeTranscriptTests(unittest.TestCase):
         path = write_transcript([
             skill_invocation_line("s1", "2026-01-01T00:00:00Z", "specify"),
             tool_result_line("s1", "2026-01-01T00:00:01Z"),
-            skill_invocation_line("s1", "2026-01-01T00:00:02Z", "k:specify"),
+            skill_invocation_line("s1", "2026-01-01T00:00:02Z", "cc:specify"),
             tool_result_line("s1", "2026-01-01T00:00:03Z"),
             assistant_line("s1", "2026-01-01T00:00:04Z", "end_turn"),
         ])

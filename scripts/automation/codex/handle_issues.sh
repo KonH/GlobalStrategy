@@ -4,7 +4,7 @@
 # Run this on a cron schedule from a dedicated automation checkout. It force-resets the
 # checkout to each candidate's branch (removing untracked files) before invoking Codex, so
 # do not use a development checkout or create a worktree.
-# See handle_issues.py and .codex/skills/codex-issue/SKILL.md.
+# See handle_issues.py and .agents/skills/codex-issue/SKILL.md.
 #
 # Only issues/PRs labeled 'codex' are ever considered - create the labels once per repo:
 #   gh label create codex --color 5319E7 --description "Execute this item's prompt via the Codex automation"

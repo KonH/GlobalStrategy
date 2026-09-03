@@ -41,6 +41,7 @@
 - **Flag & org image assets:** `.claude/rules/flag_assets.md`
 - **Temporary scripts:** `.claude/rules/temp_scripts.md`
 - **Learning workflow:** `.claude/commands/learn.md`
-- **Codex issue automation:** `.codex/skills/codex-issue/SKILL.md`
+- **Shared Codex workflows:** project marketplace installs `cd@codex-tools`; thin adapters under `.agents/skills/` keep GlobalStrategy policy local and delegate generic mechanics to `cd:*`
+- **Codex issue automation:** `.agents/skills/codex-issue/SKILL.md` owns the GlobalStrategy-specific lifecycle
 - **Cursor issue automation:** `.cursor/commands/cursor-issue.md` — executes owner prompts from `cursor`-labeled GitHub issues and PRs through `scripts/automation/cursor/handle_issues.py`
-- **Multi-agent meetings:** `meeting-schedule` / `meeting-join` / `meeting-start` skills — file-based (`Docs/Meetings/`) meetings between Claude, Codex, and Cursor agents on one machine/project; protocol defined in `.claude/skills/meeting-join/SKILL.md`, mirrored for Codex under `.codex/skills/meeting-*/`; Cursor uses the Claude skills directly for schedule, with thin `(CURSOR)` `cursor-meeting-join` / `cursor-meeting-start` wrappers under `.cursor/skills/` only for the session-identity override (slash commands `/meeting-*` stay in `.cursor/commands/`)
+- **Multi-agent meetings:** `meeting-schedule` / `meeting-join` / `meeting-start` skills — file-based (`Docs/Meetings/`) meetings between Claude, Codex, and Cursor agents on one machine/project; protocol defined in `.claude/skills/meeting-join/SKILL.md`, adapted for Codex under `.agents/skills/meeting-*/`; Cursor uses the Claude skill directly for schedule, with thin `(CURSOR)` `cursor-meeting-join` / `cursor-meeting-start` wrappers under `.cursor/skills/` for session identity (slash commands `/meeting-*` stay in `.cursor/commands/`)

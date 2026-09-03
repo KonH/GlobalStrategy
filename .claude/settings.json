@@ -22,7 +22,7 @@
     "deny": []
   },
   "enabledPlugins": {
-    "k@claude-tools": true
+    "cc@claude-tools": true
   },
   "extraKnownMarketplaces": {
     "claude-tools": {

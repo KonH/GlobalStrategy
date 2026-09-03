@@ -21,7 +21,7 @@ Use the local ComfyUI server and the repository's reusable scripts. This skill i
 
    ```powershell
    Start-Process -FilePath ".venv\Scripts\python.exe" `
-     -ArgumentList ".codex\skills\generate-image\scripts\setup_comfyui.py --project-root ." `
+     -ArgumentList ".agents\skills\generate-image\scripts\setup_comfyui.py --project-root ." `
      -WorkingDirectory (Get-Location) -WindowStyle Hidden `
      -RedirectStandardOutput ".tmp\comfyui_setup.log" `
      -RedirectStandardError ".tmp\comfyui_setup.err"
