@@ -10,7 +10,7 @@ meeting owner (running `meeting-start`) decides who talks when — this skill
 never writes a message without being granted the turn.
 
 This document also defines the shared log.md protocol used by `meeting-start`
-and by the other tools' meeting skills (`k:meeting-join` from the project-scoped CodexTools plugin,
+and by the other tools' meeting skills (`.agents/skills/meeting-join/`,
 `.cursor/skills/cursor-meeting-join/`); read it fully even when only the owner
 role is needed, since `meeting-start` builds on it rather than repeating it.
 

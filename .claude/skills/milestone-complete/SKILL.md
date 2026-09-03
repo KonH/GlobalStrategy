@@ -272,7 +272,7 @@ generated file by hand.
       if the close-out was run from elsewhere: `git fetch origin main`, `git checkout
       main`, `git pull --ff-only origin main`, carrying the milestone dir's untracked
       files across the switch, same as step 16's version bump below). Do not route
-      this through the `commit`/`k:commit` skill, which always branches off the
+      this through the `commit`/`cc:commit` skill, which always branches off the
       default branch first. Message e.g. `Add {major}. {name} milestone report and
       release write-ups`.
     - Stop the `npm run serve` dev server started for the preview in step 10 — it's
@@ -327,7 +327,7 @@ generated file by hand.
     - `Edit` `Assets/Scenes/MainMenu.unity`'s `_versionName:` line to the new name.
     - Stage all three files (`git add`) and commit them **directly on `main`** (same
       branch-switch procedure as step 11, if not already there) — do not route this
-      through the `commit`/`k:commit` skill: that skill (a) always branches off the
+      through the `commit`/`cc:commit` skill: that skill (a) always branches off the
       default branch first, which would strand this bump on a throwaway feature
       branch instead of starting the milestone on `main`, and (b) always bumps `YYY`
       by 1, which would fight the reset to `0` just made.

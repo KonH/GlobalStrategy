@@ -11,7 +11,7 @@ from scripts.stats.segmentation import split_into_substages
 
 COMMAND_STAGE_RE = re.compile(r"<command-name>/(specify|plan|implement)</command-name>")
 COMMAND_NAME_RE = re.compile(r"<command-name>")
-# Optional "plugin:" prefix (e.g. "k:specify"); anchored so names that merely contain a
+# Optional "plugin:" prefix (e.g. "cc:specify"); anchored so names that merely contain a
 # stage word ("implement-bot-feature") never match.
 SKILL_STAGE_RE = re.compile(r"^(?:[\w.-]+:)?(specify|plan|implement)$")
 

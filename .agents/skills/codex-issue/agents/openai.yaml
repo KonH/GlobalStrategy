@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Labeled Issues"
+  short_description: "Execute the owner's prompt from codex-labeled issues/PRs"
+  default_prompt: "Process the current codex-labeled issue or PR per the skill's lifecycle."

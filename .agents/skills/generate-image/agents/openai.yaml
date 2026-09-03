@@ -1,0 +1,4 @@
+interface:
+  display_name: "Generate Game Image"
+  short_description: "Create assets through local ComfyUI"
+  default_prompt: "Use $generate-image to create a game asset with the local ComfyUI setup."

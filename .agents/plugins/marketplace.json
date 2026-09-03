@@ -5,11 +5,11 @@
   },
   "plugins": [
     {
-      "name": "k",
+      "name": "cd",
       "source": {
         "source": "git-subdir",
         "url": "https://github.com/KonH/CodexTools.git",
-        "path": "./plugins/k",
+        "path": "./plugins/cd",
         "ref": "main"
       },
       "policy": {
