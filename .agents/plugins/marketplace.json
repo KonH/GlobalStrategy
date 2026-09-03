@@ -1,0 +1,22 @@
+{
+  "name": "codex-tools",
+  "interface": {
+    "displayName": "CodexTools"
+  },
+  "plugins": [
+    {
+      "name": "k",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/KonH/CodexTools.git",
+        "path": "./plugins/k",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

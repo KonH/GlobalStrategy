@@ -1,4 +1,0 @@
-interface:
-  display_name: "Meeting Start"
-  short_description: "Start and moderate a multi-agent meeting as owner"
-  default_prompt: "Use $meeting-start to start and own the latest multi-agent meeting."

@@ -15,7 +15,7 @@ from scripts.stats.segmentation import split_into_substages
 # first match wins. Ralph's own phases (create-prd/loop/complete-prd) are all part of
 # implementing an already-planned spec, so they all map to "implement".
 #
-# codex-issue/SKILL.md batch runs (scripts/automation/codex/handle_issues.py) are one
+# .agents/skills/codex-issue/SKILL.md batch runs (scripts/automation/codex/handle_issues.py) are one
 # CLI invocation that may internally progress through /specify, /plan, or /implement
 # with no per-stage marker in the outer prompt - there is nothing finer to segment on,
 # so the whole rollout is treated as a single "implement"-labeled segment here. This
@@ -29,7 +29,7 @@ STAGE_MATCH_TABLE = [
     ("create-prd.md", "implement"),
     ("complete-prd.md", "implement"),
     ("follow these iteration instructions exactly", "implement"),
-    ("codex-issue/SKILL.md", "implement"),
+    (".agents/skills/codex-issue/SKILL.md", "implement"),
     ("/specify", "spec"),
     ("/plan", "plan"),
     ("/implement", "implement"),

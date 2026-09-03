@@ -1,4 +1,0 @@
-interface:
-  display_name: "Meeting Schedule"
-  short_description: "Create a new multi-agent meeting under Docs/Meetings/"
-  default_prompt: "Use $meeting-schedule to set up a new multi-agent meeting."
