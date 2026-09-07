@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GS.Game.Commands;
+using GS.Game.Commands.Text;
 using GS.Game.WebClient.Services;
 
 namespace GS.Game.WebClient.Terminal.Suggestions {

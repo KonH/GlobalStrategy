@@ -7,6 +7,7 @@ using GS.Unity.Common;
 using GS.Unity.Map;
 using GS.Unity.Save;
 using GS.Unity.UI;
+using GS.Unity.E2E;
 
 namespace GS.Unity.DI {
 	public class SelectCountryLifetimeScope : LifetimeScope {
@@ -55,11 +56,12 @@ namespace GS.Unity.DI {
 			builder.Register<IWriteOnlyCommandAccessor>(
 				c => c.Resolve<SelectOrgLogic>().Commands, Lifetime.Singleton);
 
-			var storage = new PersistentStorage();
+			var storage = new PersistentStorage(E2ERunContext.StorageRootOrDefault());
 			var serializer = new NewtonsoftSnapshotSerializer();
 			builder.RegisterInstance<IPersistentStorage>(storage);
 			builder.RegisterInstance<ISnapshotSerializer>(serializer);
 			builder.Register<SaveFileManager>(Lifetime.Singleton);
+			builder.RegisterEntryPoint<E2ESessionBridge>();
 		}
 	}
 }

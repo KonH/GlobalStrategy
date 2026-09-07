@@ -12,6 +12,7 @@ using GS.Unity.UI;
 using GS.Unity.EcsViewer;
 using GS.Unity.Common;
 using GS.Unity.DebugTools;
+using GS.Unity.E2E;
 
 namespace GS.Unity.DI {
 	public class GameLifetimeScope : LifetimeScope {
@@ -33,7 +34,7 @@ namespace GS.Unity.DI {
 		[SerializeField] TextAsset _provinceConfigAsset;
 
 		protected override void Configure(IContainerBuilder builder) {
-			var storage = new PersistentStorage();
+			var storage = new PersistentStorage(E2ERunContext.StorageRootOrDefault());
 			var serializer = new NewtonsoftSnapshotSerializer();
 			var settingsStorage = new SettingsStorage(storage);
 
@@ -109,6 +110,7 @@ namespace GS.Unity.DI {
 			builder.Register<UIPointerState>(Lifetime.Singleton);
 			builder.Register<TutorialPresentationTriggers>(Lifetime.Singleton);
 			builder.RegisterEntryPoint<GameLoopRunner>();
+			builder.RegisterEntryPoint<E2ESessionBridge>();
 			builder.RegisterComponentInHierarchy<EcsViewerBridge>();
 
 			builder.RegisterComponentInHierarchy<GameMenuDocument>();

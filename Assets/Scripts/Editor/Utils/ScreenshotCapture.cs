@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using GS.Unity.Common;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,7 +16,7 @@ namespace GS.Editor.Utils {
 			string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
 			string path = Path.Combine(folder, $"screenshot_{timestamp}.png");
 
-			ScreenCapture.CaptureScreenshot(path);
+			ScreenCaptureUtil.CaptureImmediate(path);
 			Debug.Log($"[Screenshot] Saved to: {path}");
 		}
 

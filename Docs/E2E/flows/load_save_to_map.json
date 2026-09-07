@@ -1,0 +1,9 @@
+{
+	"name": "load_save_to_map",
+	"steps": [
+		{ "kind": "click", "name": "btn-load" },
+		{ "kind": "waitFor", "control": "save-list" },
+		{ "kind": "selectRow", "name": "save-list", "save": "{{save}}" },
+		{ "kind": "waitFor", "screen": "Map" }
+	]
+}

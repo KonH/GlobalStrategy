@@ -1,7 +1,7 @@
 # GlobalStrategy
 
 ## Tech Stack
-- **Engine:** Unity 6000.4.1f1
+- **Engine:** Unity 6000.5.5f1
 - **Language:** C#
 
 ## Shell
@@ -44,4 +44,5 @@
 - **Shared Codex workflows:** project marketplace installs `cd@codex-tools`; thin adapters under `.agents/skills/` keep GlobalStrategy policy local and delegate generic mechanics to `cd:*`
 - **Codex issue automation:** `.agents/skills/codex-issue/SKILL.md` owns the GlobalStrategy-specific lifecycle
 - **Cursor issue automation:** `.cursor/commands/cursor-issue.md` — executes owner prompts from `cursor`-labeled GitHub issues and PRs through `scripts/automation/cursor/handle_issues.py`
+- **Unity E2E play-step runs:** `unity-e2e-run` skill — file-handshake runner that drives the Editor in Play mode for agent verification (`.e2e/`, `Docs/E2E/flows/`)
 - **Multi-agent meetings:** `meeting-schedule` / `meeting-join` / `meeting-start` skills — file-based (`Docs/Meetings/`) meetings between Claude, Codex, and Cursor agents on one machine/project; protocol defined in `.claude/skills/meeting-join/SKILL.md`, adapted for Codex under `.agents/skills/meeting-*/`; Cursor uses the Claude skill directly for schedule, with thin `(CURSOR)` `cursor-meeting-join` / `cursor-meeting-start` wrappers under `.cursor/skills/` for session identity (slash commands `/meeting-*` stay in `.cursor/commands/`)

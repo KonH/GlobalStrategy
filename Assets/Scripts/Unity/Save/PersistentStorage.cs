@@ -6,7 +6,14 @@ using UnityEngine;
 
 namespace GS.Unity.Save {
 	public class PersistentStorage : IPersistentStorage {
-		readonly string _root = Application.persistentDataPath;
+		readonly string _root;
+
+		public PersistentStorage() : this(Application.persistentDataPath) {
+		}
+
+		public PersistentStorage(string root) {
+			_root = root;
+		}
 
 #if UNITY_WEBGL && !UNITY_EDITOR
 		// See Assets/Plugins/WebGL/PersistentStorageSync.jslib and .claude/rules/unity/webgl.md —

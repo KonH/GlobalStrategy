@@ -48,14 +48,19 @@ When Unity Editor is connected via UnityMCP, prefer MCP tools over file operatio
 
 ## Do not self-test in Play mode
 
-Never enter Play mode (`manage_editor(action="play")`) or use `execute_code` to simulate input (synthetic `PointerDownEvent`/`PointerUpEvent` dispatch, reflection-driven clicks, etc.) to verify a bug fix, unless the user directly asks for that. Synthetic input is an unreliable proxy for real interaction — it's easy to get isPrimary/coordinate-space/event-queue-flushing details subtly wrong and get a misleading pass/fail signal that doesn't match what happens when the user actually plays.
+Do not hand-roll ad-hoc synthetic input events, and never interrupt an active human play session.
 
-What's fine and expected as a normal edit-verify step:
+Agent-initiated Play-mode runs **through this project's E2E runner** (see the `unity-e2e-run` skill) are permitted for verification and debugging, with no per-run confirmation. The runner delivers device-level input through the real Input System stack, refuses to start while a session is active, and restores the editor afterwards.
+
+Ad-hoc `manage_editor(action="play")` and hand-dispatched `PointerDownEvent`/`PointerUpEvent` remain discouraged. What's fine and expected as a normal edit-verify step:
+
 - `refresh_unity` + `read_console(types=["error"])` to confirm a change compiles — this is not a Play mode test.
 - Adding targeted `Debug.Log` calls at a suspect code path to help diagnose an issue.
+- Dropping a `RunRequest` into `.e2e/requests/` and reading `.e2e/runs/<runId>/report.md`.
 
-What to avoid unless explicitly asked:
-- `manage_editor(action="play")` to reproduce or confirm a bug/fix.
+What to avoid unless explicitly asked, or unless you are driving the E2E runner:
+
+- `manage_editor(action="play")` to reproduce or confirm a bug/fix by hand.
 - `execute_code` calls that poke at live GameObjects/UI state to "confirm" behavior, or that construct/dispatch synthetic input events.
 
-After a change, describe what changed and ask the user to try it in Play mode themselves; only pull `read_console` logs afterward once they've triggered the scenario. If the user explicitly asks for Play mode testing or a specific simulated input, that overrides this default for that request only.
+After a change that the E2E runner cannot reach, describe what changed and ask the user to try it in Play mode themselves; only pull `read_console` logs afterward once they've triggered the scenario. If the user explicitly asks for Play mode testing or a specific simulated input, that overrides this default for that request only.

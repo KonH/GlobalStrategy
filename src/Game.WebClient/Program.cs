@@ -2,7 +2,7 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using GS.Game.WebClient.Services;
-using GS.Game.WebClient.Terminal;
+using GS.Game.Commands.Text;
 using GS.Game.WebClient.Terminal.Suggestions;
 using GS.Main;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;

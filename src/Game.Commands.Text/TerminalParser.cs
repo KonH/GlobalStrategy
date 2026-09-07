@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace GS.Game.WebClient.Terminal {
+namespace GS.Game.Commands.Text {
 	// Dumb, string-only parse result: "Name key=value key2=value2 ...". Coercion of the raw
 	// argument strings into actual field/property types happens later in CommandExecutor via
 	// ValueCoercion - this type never inspects command shape, only tokenizes the input.

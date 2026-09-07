@@ -1,9 +1,8 @@
-using GS.Game.Commands;
+using GS.Game.Commands.Text;
 using GS.Game.Common;
-using GS.Game.WebClient.Terminal;
 using Xunit;
 
-namespace GS.Game.WebClient.Tests {
+namespace GS.Game.Tests {
 	public class ValueCoercionTests {
 		[Fact]
 		public void TryCoerce_String_PassesThrough() {

@@ -1,0 +1,10 @@
+{
+	"name": "new_game_to_map",
+	"steps": [
+		{ "kind": "click", "name": "btn-play" },
+		{ "kind": "waitFor", "screen": "CountrySelection" },
+		{ "kind": "selectOrg", "org": "{{org}}" },
+		{ "kind": "click", "name": "btn-start" },
+		{ "kind": "waitFor", "screen": "Map" }
+	]
+}

@@ -1,7 +1,7 @@
-using GS.Game.WebClient.Terminal;
+using GS.Game.Commands.Text;
 using Xunit;
 
-namespace GS.Game.WebClient.Tests {
+namespace GS.Game.Tests {
 	public class TerminalParserTests {
 		readonly TerminalParser _parser = new();
 
