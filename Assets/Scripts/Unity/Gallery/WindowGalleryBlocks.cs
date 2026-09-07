@@ -19,9 +19,7 @@ namespace GS.Unity.Gallery {
 	/// solves - and constructs the same document-less View class the real window Document builds, fed
 	/// hand-built VisualState substates from HudSampleData. No running game, no ECS world, no save.
 	///
-	/// Per the coordinator's phase-6 status correction: the PanelRenderer go/no-go (User Step 4) is still
-	/// pending, not passed, and no panelrenderer-findings.md exists. These windows are therefore left on
-	/// UIDocument exactly as-is - only their Gallery blocks land in this batch, matching batches 1 and 2.
+	/// Window Documents now bind through PanelRenderer.RegisterUIReloadCallback (phase 6 go/no-go passed).
 	/// </summary>
 	public class LeaderboardWindowGalleryBlock : GalleryBlockBase {
 		static readonly List<string> _instances = new List<string> { "Sample leaderboard" };

@@ -5,12 +5,13 @@ using UnityEngine.UIElements;
 using VContainer;
 
 namespace GS.Unity.UI {
-	[RequireComponent(typeof(UIDocument))]
+	[RequireComponent(typeof(PanelRenderer))]
 	public class LoadWindowDocument : MonoBehaviour {
 		SaveFileManager _saveFileManager;
 		SceneLoader _sceneLoader;
 		ILocalization _loc;
-		UIDocument _doc;
+		PanelRenderer _doc;
+		VisualElement _root;
 		LoadWindowView _view;
 
 		public event System.Action SavesChanged;
@@ -23,24 +24,47 @@ namespace GS.Unity.UI {
 		}
 
 		void Awake() {
-			_doc = GetComponent<UIDocument>();
+			_doc = GetComponent<PanelRenderer>();
+			_doc.RegisterUIReloadCallback(OnUIReload);
+		}
+
+		void OnDestroy() {
+			if (_doc != null) {
+				_doc.UnregisterUIReloadCallback(OnUIReload);
+			}
+		}
+
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			bool keepVisible = _root != null && _root.style.display == DisplayStyle.Flex;
+			_root = rootElement;
+			_view = new LoadWindowView(_root, _loc, OnLoadSave, OnDeleteSave);
+			_view.BtnBack.OnClick(Hide);
+			_view.RefreshTexts();
+			if (keepVisible) {
+				Show();
+			} else {
+				Hide();
+			}
 		}
 
 		void Start() {
-			var root = _doc.rootVisualElement;
-			_view = new LoadWindowView(root, _loc, OnLoadSave, OnDeleteSave);
-			_view.BtnBack.OnClick(Hide);
-			_view.RefreshTexts();
-			Hide();
+			if (_view == null) {
+				OnUIReload(_doc, PanelRendererRoot.Get(_doc));
+			}
 		}
 
 		public void Show() {
-			_doc.rootVisualElement.style.display = DisplayStyle.Flex;
+			if (_root == null) {
+				return;
+			}
+			_root.style.display = DisplayStyle.Flex;
 			BuildList();
 		}
 
 		public void Hide() {
-			_doc.rootVisualElement.style.display = DisplayStyle.None;
+			if (_root != null) {
+				_root.style.display = DisplayStyle.None;
+			}
 		}
 
 		void BuildList() {

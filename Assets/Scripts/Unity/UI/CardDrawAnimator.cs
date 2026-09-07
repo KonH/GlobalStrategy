@@ -10,14 +10,14 @@ using GS.Unity.Common;
 
 namespace GS.Unity.UI {
 	class CardDrawAnimator {
-		const float DrawModalSortingOrder = 1050f;
+		const int DrawModalSortingOrder = 1050;
 		const float CommandTimeoutSeconds = 10f;
 		const float PauseReleaseTimeoutSeconds = 2f;
 
 		readonly VisualState _state;
 		readonly IWriteOnlyCommandAccessor _commands;
 		readonly ModalState _modalState;
-		readonly UIDocument _document;
+		readonly PanelRenderer _document;
 		readonly CountryInfoView _countryInfo;
 		readonly CountryActionsView _actionsView;
 		readonly CardDrawView _view;
@@ -25,7 +25,7 @@ namespace GS.Unity.UI {
 		UniTaskCompletionSource _flowCompletion;
 		FlowContext _activeContext;
 		object _resumeBarrierOwner;
-		float _resumePreviousSortingOrder;
+		int _resumePreviousSortingOrder;
 		int _generation;
 		bool _isPlaying;
 		bool _restorationEnabled;
@@ -65,7 +65,7 @@ namespace GS.Unity.UI {
 			VisualState state,
 			IWriteOnlyCommandAccessor commands,
 			ModalState modalState,
-			UIDocument document,
+			PanelRenderer document,
 			CountryInfoView countryInfo,
 			CountryActionsView actionsView,
 			CardDrawView view) {
@@ -483,7 +483,7 @@ namespace GS.Unity.UI {
 			public CancellationTokenSource Cancellation { get; }
 			public UniTaskCompletionSource Completion { get; }
 			public CancellationToken Token => Cancellation.Token;
-			public float PreviousSortingOrder { get; }
+			public int PreviousSortingOrder { get; }
 			public bool IssuedPause { get; }
 			public VisualElement HiddenElement { get; set; }
 
@@ -492,7 +492,7 @@ namespace GS.Unity.UI {
 				FlowOwner owner,
 				CancellationTokenSource cancellation,
 				UniTaskCompletionSource completion,
-				float previousSortingOrder,
+				int previousSortingOrder,
 				bool issuedPause) {
 				Generation = generation;
 				Owner = owner;

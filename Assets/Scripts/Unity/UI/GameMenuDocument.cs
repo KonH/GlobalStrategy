@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 using VContainer;
 
 namespace GS.Unity.UI {
-	[RequireComponent(typeof(UIDocument))]
+	[RequireComponent(typeof(PanelRenderer))]
 	public class GameMenuDocument : MonoBehaviour {
 		IWriteOnlyCommandAccessor _commands;
 		VisualState _visualState;
@@ -16,7 +16,7 @@ namespace GS.Unity.UI {
 		ILocalization _loc;
 		IFlyTextNotifier _flyText;
 		ModalState _modalState;
-		UIDocument _doc;
+		PanelRenderer _doc;
 		VisualElement _root;
 		GameMenuView _view;
 
@@ -36,8 +36,30 @@ namespace GS.Unity.UI {
 		const int SortingOrder = 990;
 
 		void Awake() {
-			_doc = GetComponent<UIDocument>();
+			_doc = GetComponent<PanelRenderer>();
 			_doc.sortingOrder = SortingOrder;
+			_doc.RegisterUIReloadCallback(OnUIReload);
+		}
+
+		void OnDestroy() {
+			if (_doc != null) {
+				_doc.UnregisterUIReloadCallback(OnUIReload);
+			}
+		}
+
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			bool keepVisible = _root != null && _root.style.display == DisplayStyle.Flex;
+			_root = rootElement;
+			_view = new GameMenuView(_root);
+			_view.BtnResume.OnClick(Hide);
+			_view.BtnSave.OnClick(OnSave);
+			_view.BtnExit.OnClick(() => _sceneLoader.LoadMainMenu());
+			if (keepVisible) {
+				RefreshTexts();
+				_root.style.display = DisplayStyle.Flex;
+			} else {
+				_root.style.display = DisplayStyle.None;
+			}
 		}
 
 		void OnEnable() {
@@ -55,17 +77,24 @@ namespace GS.Unity.UI {
 		}
 
 		void Start() {
-			_root = _doc.rootVisualElement;
-			_view = new GameMenuView(_root);
-
-			_view.BtnResume.OnClick(Hide);
-			_view.BtnSave.OnClick(OnSave);
-			_view.BtnExit.OnClick(() => _sceneLoader.LoadMainMenu());
-
-			Hide();
+			if (_root == null) {
+				OnUIReload(_doc, PanelRendererRoot.Get(_doc));
+			}
+			if (_view == null && _root != null) {
+				_view = new GameMenuView(_root);
+				_view.BtnResume.OnClick(Hide);
+				_view.BtnSave.OnClick(OnSave);
+				_view.BtnExit.OnClick(() => _sceneLoader.LoadMainMenu());
+			}
+			if (_root != null) {
+				_root.style.display = DisplayStyle.None;
+			}
 		}
 
 		void Update() {
+			if (_root == null) {
+				return;
+			}
 			var keyboard = Keyboard.current;
 			if (keyboard == null) {
 				return;

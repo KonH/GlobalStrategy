@@ -13,12 +13,13 @@ using GS.Unity.UI;
 namespace GS.Unity.DebugTools {
 	// Debug UI extraction (Docs/Specs/26_08_28_16_ui-refactoring phase 5): this document owns the
 	// in-HUD debug tooling (province/relation/control-org/character cheats, gold buttons, FPS
-	// counter, ECS viewer link) that used to live inside HUDDocument. It is its own UIDocument,
+	// counter, ECS viewer link) that used to live inside HUDDocument. It is its own PanelRenderer,
 	// sharing HUDPanelSettings with a sortingOrder placing it alongside the HUD, and subscribes to
 	// VisualState directly instead of going through HUDDocument - the two documents don't know
 	// about each other.
+	[RequireComponent(typeof(PanelRenderer))]
 	public class DebugPanelDocument : MonoBehaviour {
-		UIDocument _document;
+		PanelRenderer _document;
 		VisualElement _root;
 		VisualState _state;
 		IWriteOnlyCommandAccessor _commands;
@@ -106,12 +107,33 @@ namespace GS.Unity.DebugTools {
 		}
 
 		void Awake() {
-			_document = GetComponent<UIDocument>();
-			_root = _document.rootVisualElement;
+			_document = GetComponent<PanelRenderer>();
+			if (_document == null) {
+				Debug.LogError("[DebugPanelDocument] missing PanelRenderer.", this);
+				return;
+			}
+			_document.RegisterUIReloadCallback(OnUIReload);
+		}
+
+		void OnDestroy() {
+			if (_document != null) {
+				_document.UnregisterUIReloadCallback(OnUIReload);
+			}
+		}
+
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			_root = rootElement;
 		}
 
 		void Start() {
+			if (_root == null) {
+				_root = PanelRendererRoot.Get(_document);
+			}
 			var root = _root;
+			if (root == null) {
+				Debug.LogError("[DebugPanelDocument] PanelRenderer root is not ready.", this);
+				return;
+			}
 
 			_btnDebugToggle = root.Q<Button>("btn-debug-toggle");
 			_debugPanel = root.Q("debug-panel");

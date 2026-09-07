@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 using VContainer;
 
 namespace GS.Unity.UI {
-	[RequireComponent(typeof(UIDocument))]
+	[RequireComponent(typeof(PanelRenderer))]
 	public class FlyTextNotifierDocument : MonoBehaviour, IFlyTextNotifier {
 		[SerializeField] int _topMostSortingOrder = 1000;
 		[SerializeField] float _fadeInDuration = 0.5f;
@@ -20,7 +20,7 @@ namespace GS.Unity.UI {
 		}
 
 		ILocalization _loc;
-		UIDocument _doc;
+		PanelRenderer _doc;
 		VisualElement _root;
 		Label _label;
 
@@ -34,12 +34,19 @@ namespace GS.Unity.UI {
 		}
 
 		void Awake() {
-			_doc = GetComponent<UIDocument>();
+			_doc = GetComponent<PanelRenderer>();
 			_doc.sortingOrder = _topMostSortingOrder;
+			_doc.RegisterUIReloadCallback(OnUIReload);
 		}
 
-		void Start() {
-			_root = _doc.rootVisualElement.Q<VisualElement>("fly-text-root");
+		void OnDestroy() {
+			if (_doc != null) {
+				_doc.UnregisterUIReloadCallback(OnUIReload);
+			}
+		}
+
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			_root = rootElement.Q<VisualElement>("fly-text-root");
 			if (_root == null) {
 				return;
 			}
@@ -51,6 +58,12 @@ namespace GS.Unity.UI {
 			_label.enableRichText = true;
 			_root.style.display = DisplayStyle.None;
 			SetPickingIgnoreRecursive(_root);
+		}
+
+		void Start() {
+			if (_root == null) {
+				OnUIReload(_doc, PanelRendererRoot.Get(_doc));
+			}
 		}
 
 		public void Notify(string localizationKey, params object[] args) {

@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 using VContainer;
 
 namespace GS.Unity.UI {
-	[RequireComponent(typeof(UIDocument))]
+	[RequireComponent(typeof(PanelRenderer))]
 	public class MainMenuDocument : MonoBehaviour {
 		const string AboutUrl = "https://konh.github.io/hidden-council/";
 
@@ -20,7 +20,7 @@ namespace GS.Unity.UI {
 		VisualState _state;
 		ILocalization _loc;
 		GameSettings _gameSettings;
-		UIDocument _doc;
+		PanelRenderer _doc;
 		MainMenuView _view;
 
 		[Inject]
@@ -35,7 +35,36 @@ namespace GS.Unity.UI {
 		}
 
 		void Awake() {
-			_doc = GetComponent<UIDocument>();
+			_doc = GetComponent<PanelRenderer>();
+			_doc.RegisterUIReloadCallback(OnUIReload);
+		}
+
+		void OnDestroy() {
+			if (_doc != null) {
+				_doc.UnregisterUIReloadCallback(OnUIReload);
+			}
+		}
+
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			Bind(rootElement);
+		}
+
+		void Bind(VisualElement root) {
+			if (root == null || _loc == null) {
+				return;
+			}
+			_view = new MainMenuView(root);
+			_view.SetVersion(_versionName, $"v{_gameSettings.Version}");
+
+			_view.BtnPlay.OnClick(() => _sceneLoader.LoadSelectCountry());
+			_view.BtnResume.OnClick(OnResume);
+			_view.BtnLoad.OnClick(() => _loadWindow?.Show());
+			_view.BtnSettings.OnClick(() => _settingsWindow?.Show());
+			_view.BtnAbout.OnClick(() => Application.OpenURL(AboutUrl));
+			_view.BtnExit.OnClick(Application.Quit);
+
+			RefreshTexts();
+			RefreshSaveButtons();
 		}
 
 		void OnEnable() {
@@ -51,16 +80,9 @@ namespace GS.Unity.UI {
 		}
 
 		void Start() {
-			var root = _doc.rootVisualElement;
-			_view = new MainMenuView(root);
-			_view.SetVersion(_versionName, $"v{_gameSettings.Version}");
-
-			_view.BtnPlay.OnClick(() => _sceneLoader.LoadSelectCountry());
-			_view.BtnResume.OnClick(OnResume);
-			_view.BtnLoad.OnClick(() => _loadWindow?.Show());
-			_view.BtnSettings.OnClick(() => _settingsWindow?.Show());
-			_view.BtnAbout.OnClick(() => Application.OpenURL(AboutUrl));
-			_view.BtnExit.OnClick(Application.Quit);
+			if (_view == null) {
+				Bind(PanelRendererRoot.Get(_doc));
+			}
 
 			if (_loadWindow != null) {
 				_loadWindow.SavesChanged += RefreshSaveButtons;

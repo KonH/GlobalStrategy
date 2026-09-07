@@ -6,13 +6,13 @@ using UnityEngine.UIElements;
 using VContainer;
 
 namespace GS.Unity.UI {
-	[RequireComponent(typeof(UIDocument))]
+	[RequireComponent(typeof(PanelRenderer))]
 	public class OrgDestroyedWindowDocument : MonoBehaviour {
 		const int SortingOrder = 515;
 
 		VisualState _state;
 		ILocalization _loc;
-		UIDocument _doc;
+		PanelRenderer _doc;
 		VisualElement _root;
 		OrgDestroyedWindowView _view;
 		ModalState _modalState;
@@ -26,21 +26,33 @@ namespace GS.Unity.UI {
 		}
 
 		void Awake() {
-			_doc = GetComponent<UIDocument>();
+			_doc = GetComponent<PanelRenderer>();
 			_doc.sortingOrder = SortingOrder;
-			_root = _doc.rootVisualElement;
+			_doc.RegisterUIReloadCallback(OnUIReload);
 			_modalState.Unlocked += HandleModalUnlocked;
+		}
 
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			bool keepVisible = _root != null && _root.style.display == DisplayStyle.Flex;
+			_root = rootElement;
+			_view = null;
 			Button closeButton = _root.Q<Button>("btn-close");
 			closeButton?.OnClick(Hide);
-
 			Button confirmButton = _root.Q<Button>("btn-confirm");
 			confirmButton?.OnClick(Hide);
-
-			HideVisualOnly();
+			if (keepVisible) {
+				EnsureView();
+				RefreshTexts();
+				_root.style.display = DisplayStyle.Flex;
+			} else {
+				HideVisualOnly();
+			}
 		}
 
 		void Start() {
+			if (_root == null) {
+				OnUIReload(_doc, PanelRendererRoot.Get(_doc));
+			}
 			EnsureView();
 			Subscribe();
 			RefreshTexts();
@@ -56,6 +68,9 @@ namespace GS.Unity.UI {
 		}
 
 		void OnDestroy() {
+			if (_doc != null) {
+				_doc.UnregisterUIReloadCallback(OnUIReload);
+			}
 			if (_modalState != null) {
 				_modalState.Unlocked -= HandleModalUnlocked;
 			}

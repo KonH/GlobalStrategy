@@ -20,7 +20,7 @@ namespace GS.Unity.Gallery {
 	/// HudSampleData - no running game, no ECS world, no save.
 	///
 	/// CardPlayAnimator and CardDrawAnimator are MonoBehaviours/orchestrators with heavy DI
-	/// dependencies (VisualState, IWriteOnlyCommandAccessor, ModalState, live UIDocument) that
+	/// dependencies (VisualState, IWriteOnlyCommandAccessor, ModalState, live PanelRenderer) that
 	/// cannot be sensibly constructed outside a running game. Per the plan's own carve-out for
 	/// "genuinely can't be meaningfully previewed" targets: CardPlayAnimator's one independent
 	/// visual surface - the "card-test-overlay" mid-resolve card - is previewed directly below

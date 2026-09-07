@@ -12,8 +12,9 @@ using GS.Unity.Common;
 using GS.Unity.Map;
 
 namespace GS.Unity.UI {
+	[RequireComponent(typeof(PanelRenderer))]
 	public class HUDDocument : MonoBehaviour {
-		UIDocument _document;
+		PanelRenderer _document;
 		CountryInfoView _countryInfo;
 		ProvinceInfoView _provinceInfo;
 		PlayerOrgView _playerOrgView;
@@ -54,6 +55,7 @@ namespace GS.Unity.UI {
 		ModalState _modalState;
 		bool _viewEventsSubscribed;
 		bool _started;
+		bool _startCalled;
 		int _enableGeneration;
 		CountryConfig _countryConfig;
 		GameSettings _gameSettings;
@@ -94,8 +96,55 @@ namespace GS.Unity.UI {
 		}
 
 		void Awake() {
-			_document = GetComponent<UIDocument>();
-			_root = _document.rootVisualElement;
+			_document = GetComponent<PanelRenderer>();
+			if (_document == null) {
+				Debug.LogError("[HUDDocument] missing PanelRenderer.", this);
+				return;
+			}
+			_document.RegisterUIReloadCallback(OnUIReload);
+		}
+
+		void OnDestroy() {
+			if (_document != null) {
+				_document.UnregisterUIReloadCallback(OnUIReload);
+			}
+		}
+
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			if (_started) {
+				UnsubscribeViewEvents();
+				if (_binders != null) {
+					foreach (var binder in _binders) {
+						binder.Unsubscribe();
+					}
+				}
+				_tooltip = null;
+				_timeView = null;
+				_orgLensCountryView = null;
+				_countryInfo = null;
+				_provinceInfo = null;
+				_playerOrgView = null;
+				_playerTasksView = null;
+				_tutorialHighlightView = null;
+				_lensSwitcher = null;
+				_warIconsView = null;
+				_actionLog = null;
+				_cardDrawView = null;
+				_cardDrawAnimator = null;
+				_binders = null;
+				_started = false;
+			}
+			_root = rootElement;
+			BindEarly();
+			if (_startCalled) {
+				TryBindStart();
+			}
+		}
+
+		void BindEarly() {
+			if (_root == null || _pointerState == null || _tooltip != null) {
+				return;
+			}
 			var root = _root;
 			_pointerState.RuntimePanel = root.panel;
 
@@ -118,6 +167,25 @@ namespace GS.Unity.UI {
 		}
 
 		void Start() {
+			_startCalled = true;
+			TryBindStart();
+		}
+
+		void TryBindStart() {
+			if (_started) {
+				return;
+			}
+			if (_root == null) {
+				_root = PanelRendererRoot.Get(_document);
+			}
+			BindEarly();
+			if (_root == null || _state == null) {
+				if (_root == null) {
+					Debug.LogError("[HUDDocument] PanelRenderer root is not ready.", this);
+				}
+				return;
+			}
+
 			_countryInfoRoot = _root.Q("country-info");
 			_countryInfo = new CountryInfoView(_countryInfoRoot, _loc, _resourceConfig, _characterConfig, _tooltip, _characterVisualConfig, _actionConfig, _actionVisualConfig, _countryVisualConfig, _orgVisualConfig, _gameSettings, _countryActionsVisibility);
 			_provinceInfoRoot = _root.Q("province-info");
@@ -159,7 +227,7 @@ namespace GS.Unity.UI {
 					_countryInfo.ActionsView,
 					_cardDrawView);
 			}
-			var root = _document.rootVisualElement;
+			var root = _root;
 			_btnMenu = root.Q<Button>("btn-menu");
 			_btnLeaderboard = root.Q<Button>("btn-leaderboard");
 			_btnGoals = root.Q<Button>("btn-goals");

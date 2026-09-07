@@ -9,14 +9,14 @@ using UnityEngine.UIElements;
 using VContainer;
 
 namespace GS.Unity.UI {
-	[RequireComponent(typeof(UIDocument))]
+	[RequireComponent(typeof(PanelRenderer))]
 	public class WarResultWindowDocument : MonoBehaviour {
 		VisualState _state;
 		ILocalization _loc;
 		CountryVisualConfig _countryVisualConfig;
 		EffectConfig _effectConfig;
 		IWriteOnlyCommandAccessor _commands;
-		UIDocument _doc;
+		PanelRenderer _doc;
 		VisualElement _root;
 		WarResultWindowView _view;
 		TooltipSystem _tooltip;
@@ -44,14 +44,26 @@ namespace GS.Unity.UI {
 		const int SortingOrder = 510;
 
 		void Awake() {
-			_doc = GetComponent<UIDocument>();
+			_doc = GetComponent<PanelRenderer>();
 			_doc.sortingOrder = SortingOrder;
-			_root = _doc.rootVisualElement;
-			_tooltip = new TooltipSystem(_root);
+			_doc.RegisterUIReloadCallback(OnUIReload);
 			_modalState.Unlocked += HandleModalUnlocked;
+		}
+
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			bool keepVisible = _root != null && _root.style.display == DisplayStyle.Flex;
+			_root = rootElement;
+			_tooltip = new TooltipSystem(_root);
+			_view = null;
 			Button closeButton = _root.Q<Button>("btn-close");
 			closeButton?.OnClick(Hide);
-			HideVisualOnly();
+			if (keepVisible) {
+				EnsureView();
+				RefreshTexts();
+				_root.style.display = DisplayStyle.Flex;
+			} else {
+				HideVisualOnly();
+			}
 		}
 
 		void Update() {
@@ -59,6 +71,9 @@ namespace GS.Unity.UI {
 		}
 
 		void Start() {
+			if (_root == null) {
+				OnUIReload(_doc, PanelRendererRoot.Get(_doc));
+			}
 			EnsureView();
 			Subscribe();
 			RefreshTexts();
@@ -74,6 +89,9 @@ namespace GS.Unity.UI {
 		}
 
 		void OnDestroy() {
+			if (_doc != null) {
+				_doc.UnregisterUIReloadCallback(OnUIReload);
+			}
 			if (_modalState != null) {
 				_modalState.Unlocked -= HandleModalUnlocked;
 			}

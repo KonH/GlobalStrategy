@@ -3,22 +3,23 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UIElements;
+using GS.Unity.UI;
 
 namespace GS.Unity.E2E {
 	public readonly struct ElementResolveResult {
 		public bool Success { get; }
 		public VisualElement Element { get; }
-		public UIDocument Document { get; }
+		public PanelRenderer Document { get; }
 		public string Error { get; }
 
-		ElementResolveResult(bool success, VisualElement element, UIDocument document, string error) {
+		ElementResolveResult(bool success, VisualElement element, PanelRenderer document, string error) {
 			Success = success;
 			Element = element;
 			Document = document;
 			Error = error;
 		}
 
-		public static ElementResolveResult Ok(VisualElement element, UIDocument document) {
+		public static ElementResolveResult Ok(VisualElement element, PanelRenderer document) {
 			return new ElementResolveResult(true, element, document, null);
 		}
 
@@ -30,13 +31,13 @@ namespace GS.Unity.E2E {
 	public static class E2EElementResolver {
 		const int OfferCap = 40;
 
-		public static UIDocument[] LiveDocuments() {
-			var found = UnityEngine.Object.FindObjectsByType<UIDocument>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+		public static PanelRenderer[] LiveDocuments() {
+			var found = UnityEngine.Object.FindObjectsByType<PanelRenderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
 			Array.Sort(found, (a, b) => b.sortingOrder.CompareTo(a.sortingOrder));
 			return found;
 		}
 
-		public static UIDocument TopmostVisibleDocument() {
+		public static PanelRenderer TopmostVisibleDocument() {
 			foreach (var document in LiveDocuments()) {
 				if (IsDocumentVisible(document)) {
 					return document;
@@ -52,7 +53,7 @@ namespace GS.Unity.E2E {
 					if (!IsDocumentVisible(document)) {
 						continue;
 					}
-					var match = document.rootVisualElement.Q(name);
+					var match = Root(document).Q(name);
 					if (IsInteractive(match)) {
 						return ElementResolveResult.Ok(match, document);
 					}
@@ -61,17 +62,17 @@ namespace GS.Unity.E2E {
 
 			if (!string.IsNullOrEmpty(label)) {
 				VisualElement contains = null;
-				UIDocument containsDoc = null;
+				PanelRenderer containsDoc = null;
 				foreach (var document in documents) {
 					if (!IsDocumentVisible(document)) {
 						continue;
 					}
-					var exact = FindByLabel(document.rootVisualElement, label, exact: true);
+					var exact = FindByLabel(Root(document), label, exact: true);
 					if (IsInteractive(exact)) {
 						return ElementResolveResult.Ok(exact, document);
 					}
 					if (contains == null) {
-						var partial = FindByLabel(document.rootVisualElement, label, exact: false);
+						var partial = FindByLabel(Root(document), label, exact: false);
 						if (IsInteractive(partial)) {
 							contains = partial;
 							containsDoc = document;
@@ -138,19 +139,23 @@ namespace GS.Unity.E2E {
 			return null;
 		}
 
-		static bool IsOverlay(UIDocument document) {
+		static VisualElement Root(PanelRenderer document) {
+			return PanelRendererRoot.Get(document);
+		}
+
+		static bool IsOverlay(PanelRenderer document) {
 			return document != null && document.gameObject.name == "FlyTextUI";
 		}
 
-		// Hidden windows keep an active UIDocument and a high sortingOrder (EndGame 1100,
+		// Hidden windows keep an active PanelRenderer and a high sortingOrder (EndGame 1100,
 		// GameMenu 990, Leaderboard 500, …). LiveDocuments() therefore lists them above the HUD
 		// even when their content is display:none. "Visible" here means the panel is actually
 		// showing, matching TopmostVisibleDocument / the snapshot screen.
-		static bool IsDocumentVisible(UIDocument document) {
+		static bool IsDocumentVisible(PanelRenderer document) {
 			if (document == null || IsOverlay(document)) {
 				return false;
 			}
-			return HasVisibleContent(document.rootVisualElement);
+			return HasVisibleContent(Root(document));
 		}
 
 		static bool HasVisibleContent(VisualElement element) {
@@ -207,7 +212,7 @@ namespace GS.Unity.E2E {
 				: text.IndexOf(label, StringComparison.OrdinalIgnoreCase) >= 0;
 		}
 
-		static string DescribeFailure(string name, string label, UIDocument[] documents) {
+		static string DescribeFailure(string name, string label, PanelRenderer[] documents) {
 			var sb = new StringBuilder();
 			sb.Append("Looked for ");
 			if (!string.IsNullOrEmpty(name)) {
@@ -220,20 +225,20 @@ namespace GS.Unity.E2E {
 				sb.Append("label '").Append(label).Append("'");
 			}
 			sb.Append(". Offered on the topmost panel: ");
-			UIDocument topmost = null;
+			PanelRenderer topmost = null;
 			for (int i = 0; i < documents.Length; i++) {
 				if (IsDocumentVisible(documents[i])) {
 					topmost = documents[i];
 					break;
 				}
 			}
-			if (topmost == null || topmost.rootVisualElement == null) {
+			if (topmost == null || Root(topmost) == null) {
 				sb.Append("(none)");
 				return sb.ToString();
 			}
 
 			int count = 0;
-			CollectOffers(topmost.rootVisualElement, sb, ref count);
+			CollectOffers(Root(topmost), sb, ref count);
 			if (count == 0) {
 				sb.Append("(none)");
 			}

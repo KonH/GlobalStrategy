@@ -12,7 +12,8 @@ using GS.Unity.Common;
 
 namespace GS.Unity.UI {
 	public class CardPlayAnimator : MonoBehaviour {
-		UIDocument _hudDocument;
+		PanelRenderer _hudDocument;
+		VisualElement _root;
 		VisualState _state;
 		IWriteOnlyCommandAccessor _commands;
 		CountryConfig _domainConfig;
@@ -48,15 +49,33 @@ namespace GS.Unity.UI {
 		}
 
 		void Awake() {
-			_hudDocument = GetComponent<UIDocument>();
-			var overlay = _hudDocument.rootVisualElement.Q("card-transition-overlay");
+			_hudDocument = GetComponent<PanelRenderer>();
+			if (_hudDocument == null) {
+				Debug.LogError("[CardPlayAnimator] missing PanelRenderer.", this);
+				return;
+			}
+			_hudDocument.RegisterUIReloadCallback(OnUIReload);
+		}
+
+		void OnDestroy() {
+			if (_hudDocument != null) {
+				_hudDocument.UnregisterUIReloadCallback(OnUIReload);
+			}
+		}
+
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			_root = rootElement;
+			var overlay = _root.Q("card-transition-overlay");
 			if (overlay == null) {
-				Debug.LogError("[CardPlayAnimator] card-transition-overlay not found in UIDocument.", this);
+				Debug.LogError("[CardPlayAnimator] card-transition-overlay not found in PanelRenderer.", this);
 			}
 			_transitionView = new CardTransitionView(overlay);
 		}
 
 		void OnEnable() {
+			if (_root == null && _hudDocument != null) {
+				OnUIReload(_hudDocument, PanelRendererRoot.Get(_hudDocument));
+			}
 			if (_state != null) {
 				_state.LastFrameEffects.PropertyChanged += HandleLastFrameEffectsChanged;
 			}
@@ -161,7 +180,7 @@ namespace GS.Unity.UI {
 					_commands.Push(new PauseCommand());
 				}
 
-				var root = _hudDocument.rootVisualElement;
+				var root = _root ?? PanelRendererRoot.Get(_hudDocument);
 				var overlay = root.Q("card-test-overlay");
 				var cardTestCard = root.Q("card-test-card");
 
@@ -308,7 +327,7 @@ namespace GS.Unity.UI {
 					_commands.Push(new PauseCommand());
 				}
 
-				var root = _hudDocument.rootVisualElement;
+				var root = _root ?? PanelRendererRoot.Get(_hudDocument);
 				var overlay = root.Q("card-test-overlay");
 				var cardTestCard = root.Q("card-test-card");
 

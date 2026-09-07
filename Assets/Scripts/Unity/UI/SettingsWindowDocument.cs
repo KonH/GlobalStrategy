@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 using VContainer;
 
 namespace GS.Unity.UI {
-	[RequireComponent(typeof(UIDocument))]
+	[RequireComponent(typeof(PanelRenderer))]
 	public class SettingsWindowDocument : MonoBehaviour {
 		IWriteOnlyCommandAccessor _commands;
 		VisualState _visualState;
@@ -18,7 +18,7 @@ namespace GS.Unity.UI {
 		IFlyTextNotifier _flyText;
 		SettingsStorage _settings;
 		GameSettings _gameSettings;
-		UIDocument _doc;
+		PanelRenderer _doc;
 		VisualElement _root;
 		SettingsWindowView _view;
 
@@ -47,7 +47,36 @@ namespace GS.Unity.UI {
 		}
 
 		void Awake() {
-			_doc = GetComponent<UIDocument>();
+			_doc = GetComponent<PanelRenderer>();
+			_doc.RegisterUIReloadCallback(OnUIReload);
+		}
+
+		void OnDestroy() {
+			if (_doc != null) {
+				_doc.UnregisterUIReloadCallback(OnUIReload);
+			}
+		}
+
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			bool keepVisible = _root != null && _root.style.display == DisplayStyle.Flex;
+			_root = rootElement;
+			_view = new SettingsWindowView(_root);
+			_view.BtnLangEn.OnClick(() => SetLocale("en"));
+			_view.BtnLangRu.OnClick(() => SetLocale("ru"));
+			_view.BtnSaveDaily.OnClick(() => SetAutoSave(AutoSaveInterval.Daily));
+			_view.BtnSaveMonthly.OnClick(() => SetAutoSave(AutoSaveInterval.Monthly));
+			_view.BtnSaveYearly.OnClick(() => SetAutoSave(AutoSaveInterval.Yearly));
+			_view.BtnTutorialsOn.OnClick(() => SetTutorialsEnabled(true));
+			_view.BtnTutorialsOff.OnClick(() => SetTutorialsEnabled(false));
+			_view.BtnDeleteSaves.OnClick(DeleteAllSaves);
+			_view.BtnResetTutorials.OnClick(ResetTutorials);
+			_view.BtnResetDefaults.OnClick(ResetDefaults);
+			_view.BtnBack.OnClick(Hide);
+			if (keepVisible) {
+				Show();
+			} else {
+				Hide();
+			}
 		}
 
 		void OnEnable() {
@@ -63,25 +92,18 @@ namespace GS.Unity.UI {
 		}
 
 		void Start() {
-			_root = _doc.rootVisualElement;
-			_view = new SettingsWindowView(_root);
-
-			_view.BtnLangEn.OnClick(() => SetLocale("en"));
-			_view.BtnLangRu.OnClick(() => SetLocale("ru"));
-			_view.BtnSaveDaily.OnClick(() => SetAutoSave(AutoSaveInterval.Daily));
-			_view.BtnSaveMonthly.OnClick(() => SetAutoSave(AutoSaveInterval.Monthly));
-			_view.BtnSaveYearly.OnClick(() => SetAutoSave(AutoSaveInterval.Yearly));
-			_view.BtnTutorialsOn.OnClick(() => SetTutorialsEnabled(true));
-			_view.BtnTutorialsOff.OnClick(() => SetTutorialsEnabled(false));
-			_view.BtnDeleteSaves.OnClick(DeleteAllSaves);
-			_view.BtnResetTutorials.OnClick(ResetTutorials);
-			_view.BtnResetDefaults.OnClick(ResetDefaults);
-			_view.BtnBack.OnClick(Hide);
-
-			Hide();
+			if (_view != null) {
+				return;
+			}
+			if (_root == null) {
+				OnUIReload(_doc, PanelRendererRoot.Get(_doc));
+			}
 		}
 
 		public void Show() {
+			if (_root == null) {
+				return;
+			}
 			if (_visualState != null) {
 				_viewState.CurrentLocale = _visualState.Locale.Locale;
 			}
@@ -94,7 +116,9 @@ namespace GS.Unity.UI {
 		}
 
 		public void Hide() {
-			_root.style.display = DisplayStyle.None;
+			if (_root != null) {
+				_root.style.display = DisplayStyle.None;
+			}
 		}
 
 		void HandleLocaleChanged(object sender, PropertyChangedEventArgs e) {

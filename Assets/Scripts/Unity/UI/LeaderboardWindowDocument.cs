@@ -6,14 +6,14 @@ using UnityEngine.UIElements;
 using VContainer;
 
 namespace GS.Unity.UI {
-	[RequireComponent(typeof(UIDocument))]
+	[RequireComponent(typeof(PanelRenderer))]
 	public class LeaderboardWindowDocument : MonoBehaviour {
 		VisualState _state;
 		GameLogic _gameLogic;
 		ILocalization _loc;
 		CountryVisualConfig _countryVisualConfig;
 		OrgVisualConfig _orgVisualConfig;
-		UIDocument _doc;
+		PanelRenderer _doc;
 		VisualElement _root;
 		Label _title;
 		Button _closeButton;
@@ -42,21 +42,44 @@ namespace GS.Unity.UI {
 		const int SortingOrder = 500;
 
 		void Awake() {
-			_doc = GetComponent<UIDocument>();
+			_doc = GetComponent<PanelRenderer>();
 			_doc.sortingOrder = SortingOrder;
-			_root = _doc.rootVisualElement;
+			_doc.RegisterUIReloadCallback(OnUIReload);
+		}
+
+		void OnDestroy() {
+			if (_doc != null) {
+				_doc.UnregisterUIReloadCallback(OnUIReload);
+			}
+		}
+
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			bool keepVisible = _root != null && _root.style.display == DisplayStyle.Flex;
+			_root = rootElement;
 			_title = _root.Q<Label>("leaderboard-title");
 			_closeButton = _root.Q<Button>("btn-close");
 			_tabOrganizations = _root.Q<Button>("tab-organizations");
 			_tabCountries = _root.Q<Button>("tab-countries");
 			_empty = _root.Q<Label>("leaderboard-empty");
+			_view = null;
 			if (_closeButton != null) {
 				_closeButton.OnClick(Hide);
 			}
-			Hide();
+			if (keepVisible) {
+				EnsureView();
+				RefreshTexts();
+				_root.style.display = DisplayStyle.Flex;
+			} else {
+				if (_root != null) {
+					_root.style.display = DisplayStyle.None;
+				}
+			}
 		}
 
 		void Start() {
+			if (_root == null) {
+				OnUIReload(_doc, PanelRendererRoot.Get(_doc));
+			}
 			EnsureView();
 			Subscribe();
 			RefreshTexts();

@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 using VContainer;
 
 namespace GS.Unity.UI {
-	[RequireComponent(typeof(UIDocument))]
+	[RequireComponent(typeof(PanelRenderer))]
 	public class EndGameWindowDocument : MonoBehaviour {
 		[SerializeField] int _sortingOrder = 1100;
 
@@ -17,7 +17,7 @@ namespace GS.Unity.UI {
 		ILocalization _loc;
 		OrgVisualConfig _orgVisualConfig;
 		SceneLoader _sceneLoader;
-		UIDocument _doc;
+		PanelRenderer _doc;
 		VisualElement _root;
 		Button _btnExit;
 		EndGameWindowView _view;
@@ -38,18 +38,45 @@ namespace GS.Unity.UI {
 		}
 
 		void Awake() {
-			_doc = GetComponent<UIDocument>();
+			_doc = GetComponent<PanelRenderer>();
 			_doc.sortingOrder = _sortingOrder;
-			_root = _doc.rootVisualElement;
+			_doc.RegisterUIReloadCallback(OnUIReload);
+		}
+
+		void OnDestroy() {
+			if (_doc != null) {
+				_doc.UnregisterUIReloadCallback(OnUIReload);
+			}
+		}
+
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			bool keepVisible = _root != null && _root.style.display == DisplayStyle.Flex;
+			_root = rootElement;
 			_btnExit = _root.Q<Button>("btn-exit");
+			_view = null;
 			if (_btnExit != null) {
 				_btnExit.OnClick(() => _sceneLoader.LoadMainMenu());
 			}
-			_root.style.display = DisplayStyle.None;
+			if (keepVisible) {
+				_view = new EndGameWindowView(_root, _loc, _orgVisualConfig);
+				RefreshTexts();
+				_root.style.display = DisplayStyle.Flex;
+			} else {
+				_root.style.display = DisplayStyle.None;
+			}
 		}
 
 		void Start() {
-			_view = new EndGameWindowView(_root, _loc, _orgVisualConfig);
+			if (_root == null) {
+				OnUIReload(_doc, PanelRendererRoot.Get(_doc));
+			}
+			if (_root == null) {
+				Debug.LogError("[EndGameWindowDocument] PanelRenderer root is not ready.", this);
+				return;
+			}
+			if (_view == null) {
+				_view = new EndGameWindowView(_root, _loc, _orgVisualConfig);
+			}
 			RefreshTexts();
 			HandleStateChanged(null, null);
 		}

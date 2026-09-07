@@ -39,7 +39,7 @@ namespace GS.Unity.Gallery {
 		[SerializeField] VisualTreeAsset _hudUxml;
 		[SerializeField] VisualTreeAsset _flyTextUxml;
 		// Hand/deck and animation gallery blocks (phase 7) clone named sub-elements out of this
-		// the same way - OrgInfo.uxml is a separate UIDocument, not part of HUD.uxml's tree.
+		// the same way - OrgInfo.uxml is a separate PanelRenderer, not part of HUD.uxml's tree.
 		[SerializeField] VisualTreeAsset _orgInfoUxml;
 		// "The seven windows that already have a view" gallery blocks (phase 7) - each window's own
 		// full UXML, cloned via HudGalleryPreview.CloneNamed the same way the HUD panel blocks clone

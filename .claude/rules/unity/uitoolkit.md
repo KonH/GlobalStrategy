@@ -19,7 +19,7 @@ Assets/UI/HUD/          → HUDPanelSettings.asset  — the only PanelSettings w
 Assets/UI/Overlay/      → OverlayPanelSettings.asset — exists on disk but unused; not referenced by any scene
 ```
 
-There is no `ModalPanelSettings.asset`. Layering between documents sharing `HUDPanelSettings.asset` is controlled entirely via `UIDocument.sortingOrder` — higher values draw on top. Most existing documents use `sortingOrder: 0`. `FlyTextNotifierDocument._topMostSortingOrder` (default `1000`, serialized field) is applied in `Awake()` so the fly-text layer renders above everything else by default.
+There is no `ModalPanelSettings.asset`. Layering between surfaces sharing `HUDPanelSettings.asset` is controlled entirely via `PanelRenderer.sortingOrder` (`int`, inherited from `Renderer`) — higher values draw on top. Most existing surfaces use `sortingOrder: 0`. `FlyTextNotifierDocument._topMostSortingOrder` (default `1000`, serialized field) is applied in `Awake()` so the fly-text layer renders above everything else by default. Do not introduce fractional sorting orders; `PanelRenderer` cannot express them.
 
 If a future UI surface needs to render above fly text, pick a `sortingOrder` higher than `1000` — don't rely on scene-authoring discretion.
 
@@ -50,8 +50,8 @@ Each layer's root UXML composes sub-panels via templates:
 
 Split into two parts per layer:
 
-**Binding MonoBehaviour** (e.g. `HUDDocument`) — one per UIDocument:
-- Gets `UIDocument` in `Awake`, queries named root elements, instantiates view objects
+**Binding MonoBehaviour** (e.g. `HUDDocument`) — one per `PanelRenderer`:
+- Registers `PanelRenderer.RegisterUIReloadCallback` and queries named root elements from the callback's `VisualElement`, instantiates view objects
 - Injects `VisualState` via `[Inject] void Construct(VisualState state)`
 - Subscribes to state events and calls `view.Refresh(state.SubState)`
 

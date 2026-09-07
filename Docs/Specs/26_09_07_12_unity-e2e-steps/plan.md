@@ -130,7 +130,7 @@ Budgets: per-step default 30 s, overridable per step (`timeoutSeconds`); whole-r
 
 ### 6. Control addressing (group 5)
 
-`E2EElementResolver` searches every live `UIDocument` panel in descending `sortingOrder`:
+`E2EElementResolver` searches every live `PanelRenderer` panel in descending `sortingOrder`:
 
 1. `root.Q(name: <name>)` — stable name first. The screens the standard flows touch already have them: `btn-play`, `btn-load`, `btn-resume`, `btn-settings` (`Assets/UI/Modal/MainMenu/MainMenu.uxml`), `btn-start`, `btn-back` (`Assets/UI/Modal/SelectCountry/SelectCountry.uxml`), `save-list`, `btn-back` (`Assets/UI/Modal/LoadWindow/LoadWindow.uxml`). No blanket annotation is needed and none is done.
 2. Visible-label fallback — case-insensitive exact match on `Button.text`/`Label.text`, then contains, across the same panels.

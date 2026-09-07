@@ -12,7 +12,7 @@ Invoke `cc:unity-e2e-run`. Project specifics:
 - Scratch scripts: `.e2e/scratch/<name>.json`.
 - `protocolVersion` is `1` (`GS.Game.E2E.E2EProtocol.Version`).
 - Scenes / screens: `MainMenu`, `CountrySelection`, `Map`. Gallery is not drivable.
-- In `waitFor`, prefer those **scene names**. The runner accepts a match on either the active scene or the guessed UI document. Step snapshots use a different `screen` field: the top visible `UIDocument` GameObject when it is not named like the scene (e.g. `GameHUD` on Map, `SelectCountryUI` on CountrySelection, `LoadWindowUI` when the load window is open). Do not copy a snapshot `screen` into `waitFor` unless you mean that document.
+- In `waitFor`, prefer those **scene names**. The runner accepts a match on either the active scene or the guessed UI document. Step snapshots use a different `screen` field: the top visible `PanelRenderer` GameObject when it is not named like the scene (e.g. `GameHUD` on Map, `SelectCountryUI` on CountrySelection, `LoadWindowUI` when the load window is open). Do not copy a snapshot `screen` into `waitFor` unless you mean that document.
 - The watcher **refuses** the request if any open scene is dirty (`An open scene is dirty; refusing so restoration cannot destroy unsaved work.`). Save or discard before dropping a request.
 - Org ids come from `Assets/Configs/organizations.json` (`OrganizationId`). Default org is the first entry; name it in the report when unset.
 - Commands are the `src/Game.Commands` set, executed through `src/Game.Commands.Text` the same way as the web terminal.

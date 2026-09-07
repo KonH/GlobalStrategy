@@ -6,13 +6,13 @@ using UnityEngine.UIElements;
 using VContainer;
 
 namespace GS.Unity.UI {
-	[RequireComponent(typeof(UIDocument))]
+	[RequireComponent(typeof(PanelRenderer))]
 	public class SelectOrgDocument : MonoBehaviour {
 		SelectOrgLogic _logic;
 		SceneLoader _sceneLoader;
 		ILocalization _localization;
 		OrgVisualConfig _orgVisualConfig;
-		UIDocument _doc;
+		PanelRenderer _doc;
 		SelectOrgView _view;
 		UIPointerState _pointerState;
 
@@ -26,27 +26,44 @@ namespace GS.Unity.UI {
 		}
 
 		void Awake() {
-			_doc = GetComponent<UIDocument>();
+			_doc = GetComponent<PanelRenderer>();
+			_doc.RegisterUIReloadCallback(OnUIReload);
 		}
 
-		void Start() {
-			var root = _doc.rootVisualElement;
+		void OnDestroy() {
+			if (_doc != null) {
+				_doc.UnregisterUIReloadCallback(OnUIReload);
+			}
+		}
+
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			Bind(rootElement);
+		}
+
+		void Bind(VisualElement root) {
+			if (root == null || _logic == null) {
+				return;
+			}
 			_pointerState.RuntimePanel = root.panel;
 			_view = new SelectOrgView(root, _localization);
-
 			_view.BtnBack.OnClick(() => _sceneLoader.LoadMainMenu());
 			_view.BtnStart.OnClick(OnStartGame);
 			_view.BtnStart.SetEnabled(false);
-
 			RefreshTexts();
+			RefreshUI();
+		}
 
+		void Start() {
+			if (_view == null) {
+				Bind(PanelRendererRoot.Get(_doc));
+			}
 			_logic.VisualState.SelectedOrganization.PropertyChanged += (_, _) => RefreshUI();
 			RefreshUI();
 		}
 
 		void RefreshTexts() {
-			_view.RefreshTexts();
-			_view.RefreshGoalHint(_logic.VisualState.WinConditionHint);
+			_view?.RefreshTexts();
+			_view?.RefreshGoalHint(_logic.VisualState.WinConditionHint);
 		}
 
 		void Update() {
@@ -54,6 +71,9 @@ namespace GS.Unity.UI {
 		}
 
 		void RefreshUI() {
+			if (_view == null) {
+				return;
+			}
 			var state = _logic.VisualState.SelectedOrganization;
 			int baseControl = state.IsValid ? _logic.GetBaseControl(state.OrgId) : 0;
 			double income = state.IsValid ? _logic.ComputeBaseControlIncome(state.OrgId) : 0;

@@ -10,7 +10,8 @@ using GS.Unity.Map;
 
 namespace GS.Unity.UI {
 	public class OrgInfoDocument : MonoBehaviour {
-		UIDocument _document;
+		PanelRenderer _document;
+		VisualElement _root;
 		VisualState _state;
 		ILocalization _loc;
 		GameSettings _gameSettings;
@@ -42,13 +43,34 @@ namespace GS.Unity.UI {
 		}
 
 		void Awake() {
-			_document = GetComponent<UIDocument>();
-			var docRoot = _document.rootVisualElement;
-			_tooltip = new TooltipSystem(docRoot);
-			_document.rootVisualElement.style.display = DisplayStyle.None;
+			_document = GetComponent<PanelRenderer>();
+			_document.RegisterUIReloadCallback(OnUIReload);
+		}
+
+		void OnDestroy() {
+			if (_document != null) {
+				_document.UnregisterUIReloadCallback(OnUIReload);
+			}
+		}
+
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			bool keepVisible = _root != null && _root.style.display == DisplayStyle.Flex;
+			_root = rootElement;
+			_tooltip = new TooltipSystem(_root);
+			_view = null;
+			if (keepVisible) {
+				_root.style.display = DisplayStyle.Flex;
+				InitView();
+				Refresh();
+			} else {
+				_root.style.display = DisplayStyle.None;
+			}
 		}
 
 		void Start() {
+			if (_root == null) {
+				OnUIReload(_document, PanelRendererRoot.Get(_document));
+			}
 			InitView();
 		}
 
@@ -78,23 +100,26 @@ namespace GS.Unity.UI {
 				return;
 			}
 
-			_document.rootVisualElement.style.display = DisplayStyle.Flex;
+			if (_root != null) {
+				_root.style.display = DisplayStyle.Flex;
+			}
 		}
 
 		public void Hide() {
-			_document.rootVisualElement.style.display = DisplayStyle.None;
+			if (_root != null) {
+				_root.style.display = DisplayStyle.None;
+			}
 			_view?.SetCharsOpen(false);
 			_view?.SetActionsOpen(false);
 		}
 
-		public bool IsVisible => _document.rootVisualElement.style.display == DisplayStyle.Flex;
+		public bool IsVisible => _root != null && _root.style.display == DisplayStyle.Flex;
 
 		void InitView() {
 			if (_view != null) { return; }
-			if (_state == null || _loc == null) { return; }
-			var docRoot = _document.rootVisualElement;
+			if (_state == null || _loc == null || _root == null) { return; }
 			_view = new OrgInfoView(
-				docRoot, _loc, _resourceConfig, _characterConfig, _characterVisualConfig,
+				_root, _loc, _resourceConfig, _characterConfig, _characterVisualConfig,
 				_orgVisualConfig, _actionConfig, _actionVisualConfig, _tooltip);
 			_view.OnSubPanelOpened += open => OnSubPanelOpened?.Invoke(open);
 			if (_view.CharsToggleBtn != null) {

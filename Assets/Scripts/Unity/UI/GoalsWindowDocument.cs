@@ -6,13 +6,13 @@ using UnityEngine.UIElements;
 using VContainer;
 
 namespace GS.Unity.UI {
-	[RequireComponent(typeof(UIDocument))]
+	[RequireComponent(typeof(PanelRenderer))]
 	public class GoalsWindowDocument : MonoBehaviour {
 		VisualState _state;
 		GameLogic _gameLogic;
 		ILocalization _loc;
 		OrgVisualConfig _orgVisualConfig;
-		UIDocument _doc;
+		PanelRenderer _doc;
 		VisualElement _root;
 		Label _title;
 		Button _closeButton;
@@ -37,16 +37,37 @@ namespace GS.Unity.UI {
 		const int SortingOrder = 505;
 
 		void Awake() {
-			_doc = GetComponent<UIDocument>();
+			_doc = GetComponent<PanelRenderer>();
 			_doc.sortingOrder = SortingOrder;
-			_root = _doc.rootVisualElement;
+			_doc.RegisterUIReloadCallback(OnUIReload);
+		}
+
+		void OnDestroy() {
+			if (_doc != null) {
+				_doc.UnregisterUIReloadCallback(OnUIReload);
+			}
+		}
+
+		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+			bool keepVisible = _root != null && _root.style.display == DisplayStyle.Flex;
+			_root = rootElement;
 			_title = _root.Q<Label>("goals-title");
 			_closeButton = _root.Q<Button>("btn-close");
+			_view = null;
 			_closeButton?.OnClick(Hide);
-			Hide();
+			if (keepVisible) {
+				EnsureView();
+				RefreshTexts();
+				_root.style.display = DisplayStyle.Flex;
+			} else if (_root != null) {
+				_root.style.display = DisplayStyle.None;
+			}
 		}
 
 		void Start() {
+			if (_root == null) {
+				OnUIReload(_doc, PanelRendererRoot.Get(_doc));
+			}
 			EnsureView();
 			Subscribe();
 			RefreshTexts();
