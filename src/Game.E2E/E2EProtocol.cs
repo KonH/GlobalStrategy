@@ -27,6 +27,7 @@ namespace GS.Game.E2E {
 	public static class StepKinds {
 		public const string Click = "click";
 		public const string SelectOrg = "selectOrg";
+		public const string SelectCountry = "selectCountry";
 		public const string SelectRow = "selectRow";
 		public const string SetValue = "setValue";
 		public const string Command = "command";

@@ -185,7 +185,9 @@ namespace GS.Unity.E2E {
 		}
 
 		static bool NeedsTimeout(StepDefinition step) {
-			return step.Kind == StepKinds.WaitFor || step.Kind == StepKinds.SelectOrg;
+			return step.Kind == StepKinds.WaitFor
+				|| step.Kind == StepKinds.SelectOrg
+				|| step.Kind == StepKinds.SelectCountry;
 		}
 
 		IEnumerator Dispatch(E2EStepContext ctx) {
@@ -195,6 +197,9 @@ namespace GS.Unity.E2E {
 					break;
 				case StepKinds.SelectOrg:
 					yield return E2ESelectOrgStep.Execute(ctx);
+					break;
+				case StepKinds.SelectCountry:
+					yield return E2ESelectCountryStep.Execute(ctx);
 					break;
 				case StepKinds.SelectRow:
 					yield return E2ESelectRowStep.Execute(ctx);
@@ -486,7 +491,7 @@ namespace GS.Unity.E2E {
 		}
 
 		static string TargetOf(StepDefinition step) {
-			return step.Name ?? step.Label ?? step.Org ?? step.Save ?? step.Line ?? step.Screen ?? step.Control ?? "";
+			return step.Name ?? step.Label ?? step.Org ?? step.Country ?? step.Save ?? step.Line ?? step.Screen ?? step.Control ?? "";
 		}
 
 		string Rel(string fullPath) {

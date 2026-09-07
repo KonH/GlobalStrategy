@@ -98,6 +98,9 @@ namespace GS.Editor.E2E {
 				if (File.Exists(reportPath)) {
 					var report = RunReportSerializer.Deserialize(File.ReadAllText(reportPath));
 					if (!string.IsNullOrEmpty(report.Outcome) && report.Outcome != RunOutcomes.Running) {
+						if (report.Request != null && report.Request.LeavePlayRunning) {
+							return;
+						}
 						EditorApplication.isPlaying = false;
 						return;
 					}

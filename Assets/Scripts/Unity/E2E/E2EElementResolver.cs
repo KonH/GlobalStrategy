@@ -38,10 +38,7 @@ namespace GS.Unity.E2E {
 
 		public static UIDocument TopmostVisibleDocument() {
 			foreach (var document in LiveDocuments()) {
-				if (IsOverlay(document)) {
-					continue;
-				}
-				if (IsVisible(document.rootVisualElement)) {
+				if (IsDocumentVisible(document)) {
 					return document;
 				}
 			}
@@ -52,11 +49,10 @@ namespace GS.Unity.E2E {
 			var documents = LiveDocuments();
 			if (!string.IsNullOrEmpty(name)) {
 				foreach (var document in documents) {
-					var root = document.rootVisualElement;
-					if (root == null) {
+					if (!IsDocumentVisible(document)) {
 						continue;
 					}
-					var match = root.Q(name);
+					var match = document.rootVisualElement.Q(name);
 					if (IsInteractive(match)) {
 						return ElementResolveResult.Ok(match, document);
 					}
@@ -67,6 +63,9 @@ namespace GS.Unity.E2E {
 				VisualElement contains = null;
 				UIDocument containsDoc = null;
 				foreach (var document in documents) {
+					if (!IsDocumentVisible(document)) {
+						continue;
+					}
 					var exact = FindByLabel(document.rootVisualElement, label, exact: true);
 					if (IsInteractive(exact)) {
 						return ElementResolveResult.Ok(exact, document);
@@ -90,9 +89,7 @@ namespace GS.Unity.E2E {
 		public static bool IsInteractive(VisualElement element) {
 			return element != null
 				&& element.enabledInHierarchy
-				&& element.resolvedStyle.display != DisplayStyle.None
-				&& element.worldBound.width > 0
-				&& element.worldBound.height > 0;
+				&& IsVisible(element);
 		}
 
 		public static bool TryScreenPoint(VisualElement element, out Vector2 screenPoint, out string error) {
@@ -145,8 +142,35 @@ namespace GS.Unity.E2E {
 			return document != null && document.gameObject.name == "FlyTextUI";
 		}
 
+		// Hidden windows keep an active UIDocument and a high sortingOrder (EndGame 1100,
+		// GameMenu 990, Leaderboard 500, …). LiveDocuments() therefore lists them above the HUD
+		// even when their content is display:none. "Visible" here means the panel is actually
+		// showing, matching TopmostVisibleDocument / the snapshot screen.
+		static bool IsDocumentVisible(UIDocument document) {
+			if (document == null || IsOverlay(document)) {
+				return false;
+			}
+			return HasVisibleContent(document.rootVisualElement);
+		}
+
+		static bool HasVisibleContent(VisualElement element) {
+			if (!IsVisible(element)) {
+				return false;
+			}
+			if (element.hierarchy.childCount == 0) {
+				return true;
+			}
+			for (int i = 0; i < element.hierarchy.childCount; i++) {
+				if (HasVisibleContent(element.hierarchy[i])) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		static bool IsVisible(VisualElement element) {
 			return element != null
+				&& element.style.display != DisplayStyle.None
 				&& element.resolvedStyle.display != DisplayStyle.None
 				&& element.worldBound.width > 0
 				&& element.worldBound.height > 0;
@@ -196,13 +220,20 @@ namespace GS.Unity.E2E {
 				sb.Append("label '").Append(label).Append("'");
 			}
 			sb.Append(". Offered on the topmost panel: ");
-			if (documents.Length == 0 || documents[0].rootVisualElement == null) {
+			UIDocument topmost = null;
+			for (int i = 0; i < documents.Length; i++) {
+				if (IsDocumentVisible(documents[i])) {
+					topmost = documents[i];
+					break;
+				}
+			}
+			if (topmost == null || topmost.rootVisualElement == null) {
 				sb.Append("(none)");
 				return sb.ToString();
 			}
 
 			int count = 0;
-			CollectOffers(documents[0].rootVisualElement, sb, ref count);
+			CollectOffers(topmost.rootVisualElement, sb, ref count);
 			if (count == 0) {
 				sb.Append("(none)");
 			}
@@ -210,7 +241,7 @@ namespace GS.Unity.E2E {
 		}
 
 		static void CollectOffers(VisualElement element, StringBuilder sb, ref int count) {
-			if (element == null || count >= OfferCap) {
+			if (element == null || count >= OfferCap || !IsVisible(element)) {
 				return;
 			}
 			if (!string.IsNullOrEmpty(element.name)) {

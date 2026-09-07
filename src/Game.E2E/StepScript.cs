@@ -11,6 +11,7 @@ namespace GS.Game.E2E {
 		public string? Name { get; set; }
 		public string? Label { get; set; }
 		public string? Org { get; set; }
+		public string? Country { get; set; }
 		public string? Save { get; set; }
 		public StepRowSelector? Row { get; set; }
 		public string? Value { get; set; }

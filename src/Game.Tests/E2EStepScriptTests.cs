@@ -61,6 +61,22 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
+		public void select_country_step_missing_target_fails_validation_naming_script_and_index() {
+			var script = new StepScript {
+				Name = "broken",
+				Steps = new List<StepDefinition> {
+					new StepDefinition { Kind = StepKinds.SelectCountry }
+				}
+			};
+
+			var result = StepScriptValidator.Validate(script);
+
+			Assert.False(result.Success);
+			Assert.Contains("broken step 0", result.Error);
+			Assert.Contains("country", result.Error);
+		}
+
+		[Fact]
 		public void step_missing_required_target_fails_validation_naming_script_and_index() {
 			var script = new StepScript {
 				Name = "broken",
@@ -108,6 +124,17 @@ namespace GS.Game.Tests {
 		[Fact]
 		public void committed_load_save_to_map_flow_parses_and_validates() {
 			AssertFlowParsesAndValidates("load_save_to_map.json");
+		}
+
+		[Fact]
+		public void run_request_leave_play_running_round_trips() {
+			var request = new RunRequest { RunId = "watch", LeavePlayRunning = true };
+
+			string json = RunRequestSerializer.Serialize(request);
+			var restored = RunRequestSerializer.Deserialize(json);
+
+			Assert.True(restored.LeavePlayRunning);
+			Assert.Contains("leavePlayRunning", json);
 		}
 
 		static void AssertFlowParsesAndValidates(string fileName) {

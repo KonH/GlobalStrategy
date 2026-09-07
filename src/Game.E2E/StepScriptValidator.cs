@@ -22,6 +22,7 @@ namespace GS.Game.E2E {
 		static readonly HashSet<string> KnownKinds = new HashSet<string>(StringComparer.Ordinal) {
 			StepKinds.Click,
 			StepKinds.SelectOrg,
+			StepKinds.SelectCountry,
 			StepKinds.SelectRow,
 			StepKinds.SetValue,
 			StepKinds.Command,
@@ -64,6 +65,11 @@ namespace GS.Game.E2E {
 				case StepKinds.SelectOrg:
 					if (string.IsNullOrWhiteSpace(step.Org)) {
 						return "selectOrg step is missing an org target.";
+					}
+					return null;
+				case StepKinds.SelectCountry:
+					if (string.IsNullOrWhiteSpace(step.Country)) {
+						return "selectCountry step is missing a country target.";
 					}
 					return null;
 				case StepKinds.SelectRow:

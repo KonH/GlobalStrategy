@@ -38,6 +38,10 @@ namespace GS.Game.E2E {
 					return SubstitutionResult.Fail(error!);
 				}
 				step.Org = org;
+				if (!TrySubstitute(step.Country, inputs, clone.Name, i, out var country, out error)) {
+					return SubstitutionResult.Fail(error!);
+				}
+				step.Country = country;
 				if (!TrySubstitute(step.Save, inputs, clone.Name, i, out var save, out error)) {
 					return SubstitutionResult.Fail(error!);
 				}

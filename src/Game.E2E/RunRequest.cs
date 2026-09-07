@@ -12,6 +12,7 @@ namespace GS.Game.E2E {
 		public string ConsoleErrors { get; set; } = ConsoleErrorModes.Report;
 		public int? TimeoutSeconds { get; set; }
 		public int? IdleTimeoutSeconds { get; set; }
+		public bool LeavePlayRunning { get; set; }
 		public RunRequestSettings? Settings { get; set; }
 	}
 

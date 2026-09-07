@@ -97,6 +97,30 @@ namespace GS.Unity.E2E {
 			InputSystem.QueueStateEvent(mouse, state);
 		}
 
+		public static IEnumerator ClickScreen(Vector2 screenPointYUp, System.Action<string> setInputPath, System.Action<string> fail) {
+			var mouse = Mouse.current;
+			if (mouse == null) {
+				fail("No mouse device is available.");
+				yield break;
+			}
+
+			// MapClickHandler reads wasPressedThisFrame / wasReleasedThisFrame in Update.
+			// Calling InputSystem.Update() here would consume those edges in the coroutine
+			// (after Update) so the next player-loop Update never sees them. Queue and yield
+			// so the default input update delivers each edge before the following Update.
+			QueueMouse(mouse, screenPointYUp, pressed: false);
+			yield return null;
+			QueueMouse(mouse, screenPointYUp, pressed: true);
+			yield return null;
+			yield return null;
+			QueueMouse(mouse, screenPointYUp, pressed: false);
+			yield return null;
+			for (int i = 0; i < DeviceSettleFrames; i++) {
+				yield return null;
+			}
+			setInputPath("device");
+		}
+
 		static void SendPanelClick(VisualElement element) {
 			// mousePosition is read as a panel-space point: dispatch derives each handler's
 			// localPosition from it via WorldToLocal, so a pre-converted point lands outside.

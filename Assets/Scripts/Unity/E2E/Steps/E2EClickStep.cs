@@ -1,4 +1,5 @@
 using System.Collections;
+using UnityEngine.UIElements;
 
 namespace GS.Unity.E2E {
 	public static class E2EClickStep {
@@ -8,7 +9,15 @@ namespace GS.Unity.E2E {
 				ctx.Fail(resolved.Error);
 				yield break;
 			}
-			yield return E2EInputDriver.Click(resolved.Element, ctx.SetInputPath, ctx.Fail);
+			VisualElement target = resolved.Element;
+			while (target != null && target.pickingMode == PickingMode.Ignore) {
+				target = target.parent;
+			}
+			if (target == null) {
+				ctx.Fail("click target and its ancestors have picking disabled.");
+				yield break;
+			}
+			yield return E2EInputDriver.Click(target, ctx.SetInputPath, ctx.Fail);
 		}
 	}
 }
