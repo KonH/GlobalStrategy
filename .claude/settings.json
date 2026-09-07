@@ -22,7 +22,8 @@
     "deny": []
   },
   "enabledPlugins": {
-    "cc@claude-tools": true
+    "cc@claude-tools": true,
+    "unity@unity-agent-plugin": true
   },
   "extraKnownMarketplaces": {
     "claude-tools": {
