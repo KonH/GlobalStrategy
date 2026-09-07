@@ -1,6 +1,6 @@
 using System;
 
-namespace GS.Game.WebClient.Terminal {
+namespace GS.Game.Commands.Text {
 	// Converts one raw string argument into the CLR type a command parameter actually needs.
 	// Never throws - a bad value (e.g. "abc" for an int) is expected user-input error, not a
 	// bug, so failures come back as a bool + friendly message for the caller to display.

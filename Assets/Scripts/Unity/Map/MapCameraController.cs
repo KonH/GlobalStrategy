@@ -49,18 +49,36 @@ namespace GS.Unity.Map {
 		}
 
 		public void PanToCountry(string countryId) {
-			var renderer = _mapController?.ActiveProvinceRenderer;
-			if (renderer == null) { return; }
-			foreach (var go in renderer.FeatureObjects) {
-				if (go == null) { continue; }
-				var identifier = go.GetComponent<ProvinceIdentifier>();
-				if (identifier == null || identifier.CountryId != countryId) { continue; }
-				var mf = go.GetComponent<MeshFilter>();
-				if (mf == null || mf.mesh == null) { continue; }
-				var center = go.transform.TransformPoint(mf.mesh.bounds.center);
-				_panTarget = new Vector3(center.x, center.y, _camera.transform.position.z);
+			if (!TryGetCountryWorldPoint(countryId, out var center)) {
 				return;
 			}
+			_panTarget = new Vector3(center.x, center.y, _camera.transform.position.z);
+		}
+
+		public bool TryPrepareCountryClick(string countryId, out Vector2 screenPointYUp) {
+			screenPointYUp = default;
+			if (_camera == null || !TryGetCountryWorldPoint(countryId, out var world)) {
+				return false;
+			}
+			_panTarget = null;
+			_camera.transform.position = new Vector3(world.x, world.y, _camera.transform.position.z);
+			WrapX();
+			ClampY();
+			Vector3 screen = _camera.WorldToScreenPoint(world);
+			if (screen.z < 0f) {
+				return false;
+			}
+			screenPointYUp = new Vector2(screen.x, screen.y);
+			return true;
+		}
+
+		bool TryGetCountryWorldPoint(string countryId, out Vector3 worldPoint) {
+			worldPoint = default;
+			var renderer = _mapController?.ActiveProvinceRenderer;
+			if (renderer == null) {
+				return false;
+			}
+			return renderer.TryGetCountryWorldPoint(countryId, out worldPoint);
 		}
 
 		void UpdatePan() {

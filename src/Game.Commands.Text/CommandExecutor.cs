@@ -4,11 +4,19 @@ using System.Linq;
 using System.Reflection;
 using GS.Main;
 
-namespace GS.Game.WebClient.Terminal {
+namespace GS.Game.Commands.Text {
 	// Never throws for user-input mistakes (unknown command, malformed argument, missing
 	// required argument, bad value) - those are expected terminal input, not bugs, so they
 	// come back as ExecutionResult.Failure for Terminal.razor to display as a friendly line.
-	public readonly record struct ExecutionResult(bool Success, string Message) {
+	public readonly struct ExecutionResult {
+		public bool Success { get; }
+		public string Message { get; }
+
+		public ExecutionResult(bool success, string message) {
+			Success = success;
+			Message = message;
+		}
+
 		public static ExecutionResult Ok(string message) => new(true, message);
 		public static ExecutionResult Failure(string message) => new(false, message);
 	}

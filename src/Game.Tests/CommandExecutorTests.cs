@@ -1,12 +1,11 @@
 using System.Collections.Generic;
-using System.Linq;
 using GS.Game.Commands;
+using GS.Game.Commands.Text;
 using GS.Game.Common;
-using GS.Game.WebClient.Terminal;
 using GS.Main;
 using Xunit;
 
-namespace GS.Game.WebClient.Tests {
+namespace GS.Game.Tests {
 	// Recording fake for IWriteOnlyCommandAccessor - the generic Push<TCommand> call can't be
 	// asserted on directly (there is no single non-generic call to intercept), so this fake
 	// records the boxed command instance plus its runtime type on every invocation, letting

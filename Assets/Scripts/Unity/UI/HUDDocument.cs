@@ -176,6 +176,9 @@ namespace GS.Unity.UI {
 			}
 
 			_binders = BuildBinders();
+			foreach (var binder in _binders) {
+				binder.Subscribe();
+			}
 
 			_started = true;
 			SubscribeViewEvents();

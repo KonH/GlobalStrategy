@@ -1,5 +1,5 @@
 using System.Linq;
-using GS.Game.WebClient.Terminal;
+using GS.Game.Commands.Text;
 using GS.Game.WebClient.Terminal.Suggestions;
 using GS.Game.WebClient.Tests.TestSupport;
 using Xunit;

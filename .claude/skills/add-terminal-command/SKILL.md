@@ -5,12 +5,7 @@ description: Add or change an ICommand type so the Game.WebClient debug terminal
 
 # add-terminal-command
 
-The web client's debug terminal (`src/Game.WebClient/Terminal/`) discovers every
-`ICommand` type in `src/Game.Commands/` via reflection (`CommandRegistry`) — a new
-command ships with just a new build, no web-client code change required. Tab
-completion, however, depends on every domain-id parameter being annotated so the
-terminal knows what to suggest. This skill is the checklist for keeping that
-contract intact whenever an `ICommand` type is added or changed.
+The web client's debug terminal and the Unity E2E runner share `src/Game.Commands.Text/` (`CommandRegistry`, `TerminalParser`, `ValueCoercion`, `CommandExecutor`) to discover every `ICommand` type in `src/Game.Commands/` via reflection — a new command ships with just a new build, no web-client or runner code change required. Tab completion, however, depends on every domain-id parameter being annotated so the terminal knows what to suggest. This skill is the checklist for keeping that contract intact whenever an `ICommand` type is added or changed. Its invariants are load-bearing in both the web terminal and the Unity runner.
 
 ## When this applies
 

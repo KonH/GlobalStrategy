@@ -1,0 +1,21 @@
+{
+    "name": "GS.Editor.E2E",
+    "rootNamespace": "",
+    "references": [
+        "GUID:e2e0a1b2c3d4e5f6789012345678abcd",
+        "GUID:7e5a37e68b84aeb48bf5de2cbe39a94e",
+        "GUID:31616c5c35fcc3c418ca03ade2c0cfb9",
+        "GUID:75469ad4d38634e559750d17036d5f7c"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

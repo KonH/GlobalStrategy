@@ -72,3 +72,4 @@ BenchmarkDotNet.Artifacts/
 .venv
 ComfyUI/
 Packages/com.unity.ide.rider
+.e2e/

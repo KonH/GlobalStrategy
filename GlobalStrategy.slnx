@@ -1,4 +1,5 @@
 ﻿<Solution>
+  <Project Path="GS.Unity.E2E.csproj" />
   <Project Path="GS.Unity.UI.csproj" />
   <Project Path="GS.Unity.Common.csproj" />
   <Project Path="GS.Unity.DI.csproj" />
@@ -6,6 +7,7 @@
   <Project Path="GS.Unity.Map.csproj" />
   <Project Path="GS.Unity.Gallery.csproj" />
   <Project Path="GS.Editor.Utils.csproj" />
+  <Project Path="GS.Editor.E2E.csproj" />
   <Project Path="GS.Editor.Characters.csproj" />
   <Project Path="GS.Unity.EcsViewer.csproj" />
   <Project Path="GS.Editor.Textures.csproj" />

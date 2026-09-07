@@ -5,6 +5,7 @@ using GS.Main;
 using GS.Unity.Map;
 using GS.Unity.Save;
 using GS.Unity.UI;
+using GS.Unity.E2E;
 
 namespace GS.Unity.DI {
 	public class MainMenuLifetimeScope : LifetimeScope {
@@ -14,7 +15,7 @@ namespace GS.Unity.DI {
 		[SerializeField] CountryVisualConfig _countryVisualConfig;
 
 		protected override void Configure(IContainerBuilder builder) {
-			var storage = new PersistentStorage();
+			var storage = new PersistentStorage(E2ERunContext.StorageRootOrDefault());
 			var serializer = new NewtonsoftSnapshotSerializer();
 			builder.RegisterInstance<IPersistentStorage>(storage);
 			builder.RegisterInstance<ISnapshotSerializer>(serializer);
@@ -37,6 +38,7 @@ namespace GS.Unity.DI {
 			builder.Register<IWriteOnlyCommandAccessor>(c => c.Resolve<StaticGameLogic>().Commands, Lifetime.Singleton);
 			builder.Register(c => c.Resolve<StaticGameLogic>().VisualState, Lifetime.Singleton);
 			builder.RegisterEntryPoint<StaticGameLoopRunner>();
+			builder.RegisterEntryPoint<E2ESessionBridge>();
 
 			builder.RegisterComponentInHierarchy<LoadWindowDocument>();
 			builder.RegisterComponentInHierarchy<SettingsWindowDocument>();

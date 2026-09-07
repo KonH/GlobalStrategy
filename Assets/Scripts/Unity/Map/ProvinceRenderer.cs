@@ -309,6 +309,39 @@ namespace GS.Unity.Map {
 			return _occupationHatchTexture;
 		}
 
+		public bool TryGetCountryWorldPoint(string countryId, out Vector3 worldPoint) {
+			worldPoint = default;
+			if (string.IsNullOrEmpty(countryId)) {
+				return false;
+			}
+			foreach (var go in _featureObjects) {
+				if (go == null) {
+					continue;
+				}
+				var id = go.GetComponent<ProvinceIdentifier>();
+				if (id == null || id.CountryId != countryId) {
+					continue;
+				}
+				var meshFilter = go.GetComponent<MeshFilter>();
+				if (meshFilter == null || meshFilter.mesh == null) {
+					continue;
+				}
+				var mesh = meshFilter.mesh;
+				var triangles = mesh.triangles;
+				var vertices = mesh.vertices;
+				if (triangles.Length >= 3) {
+					var local = (vertices[triangles[0]] + vertices[triangles[1]] + vertices[triangles[2]]) / 3f;
+					worldPoint = go.transform.TransformPoint(local);
+					return true;
+				}
+				if (vertices.Length > 0) {
+					worldPoint = go.transform.TransformPoint(vertices[0]);
+					return true;
+				}
+			}
+			return false;
+		}
+
 		public ProvinceIdentifier FindFeatureAt(Vector2 worldPos) {
 			float lon = worldPos.x / CoordinateConverter.Scale;
 			float lat = worldPos.y / CoordinateConverter.Scale;

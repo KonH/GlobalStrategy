@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using GS.Game.Commands;
 
-namespace GS.Game.WebClient.Terminal {
+namespace GS.Game.Commands.Text {
 	// Describes one settable member (public field, or public-settable record positional
 	// property) of a discovered ICommand type. IsRequired is false only for a record
 	// positional property whose primary-constructor parameter carries a default value

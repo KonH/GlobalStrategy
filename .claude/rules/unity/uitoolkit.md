@@ -185,7 +185,7 @@ Rule: put a USS class in the stylesheet of the **document that owns the containe
 <ui:Style src="project://database/Assets/UI/Feature/Template.uss"/>
 ```
 
-## USS / C# limitations in Unity 6000.4.1f1
+## USS / C# limitations in Unity 6000.5.5f1
 
 **`border-style: dashed` is not supported.** Neither the USS shorthand (`border-style: dashed`), per-side USS properties (`border-top-style: dashed`), nor the C# `IStyle` API (no `borderTopStyle` property, no `BorderStyle` enum) are implemented. There is no way to achieve dashed borders in UI Toolkit on this version.
 
@@ -255,11 +255,11 @@ Behaviour:
 
 Do **not** use `margin` on chips — it breaks the 50% calculation. Use `padding` instead.
 
-## Known Event Bugs (Unity 6000.4.1f1)
+## Known Event Bugs (Unity 6000.5.5f1)
 
 ### Button.clicked and ClickEvent silently fail — call `.OnClick()`
 
-`Button.clicked` does not reliably fire in Unity 6000.4.1f1 even when all conditions are met:
+`Button.clicked` does not reliably fire in Unity 6000.5.5f1 even when all conditions are met:
 - `PointerDownEvent` reaches the button ✓
 - `PointerCapture` fires ✓
 - `PointerUpEvent` reaches the button with `ContainsPoint = true` ✓
