@@ -7,6 +7,7 @@
   <Project Path="GS.Unity.Map.csproj" />
   <Project Path="GS.Unity.Gallery.csproj" />
   <Project Path="GS.Editor.Utils.csproj" />
+  <Project Path="GS.Editor.PluginDlls.csproj" />
   <Project Path="GS.Editor.E2E.csproj" />
   <Project Path="GS.Editor.Characters.csproj" />
   <Project Path="GS.Unity.EcsViewer.csproj" />
