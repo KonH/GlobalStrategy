@@ -21,6 +21,14 @@ Running `dotnet build src/GlobalStrategy.Core.sln -c Release` then puts all DLLs
 
 **Required:** after any change under `src/`, always end the turn with `/dotnet-build Release` (see `.claude/rules/workflow.md`). Do not leave Unity on stale plugin DLLs.
 
+**Required before Unity work:** load the `unity-plugins` skill and run `python scripts/unity/ensure_plugin_dlls.py` before the first Unity Editor / MCP action in a session (see `.claude/skills/unity-plugins/SKILL.md`). Opening the Editor also regenerates missing/stale DLLs via `Assets/Scripts/Editor/PluginDlls/PluginDllRegenerator.cs`.
+
+## Not committed
+
+`Assets/Plugins/Core/*.dll`, `*.pdb`, `*.deps.json`, and `*.xml` are gitignored. They are local/CI build output — never stage or commit them. This avoids binary merge conflicts and keeps Git LFS from growing with every `src/` change.
+
+**Do commit** `Assets/Plugins/Core/*.dll.meta` (and other `.meta` sidecars). Unity GUIDs for plugin assemblies live there. When adding a new Plugins-bound `src/` project, Release-build once, keep the new `*.dll.meta` (author it if Unity has not yet imported), and commit the `.meta` only.
+
 ## What Goes to Plugins
 
 - `netstandard2.1` library projects that Unity scripts reference (ECS.Core, Game.Main, Game.Configs, etc.)

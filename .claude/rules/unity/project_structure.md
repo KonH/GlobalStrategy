@@ -9,7 +9,7 @@ paths:
 - Every feature folder under `Scripts/` has exactly one `.asmdef` file named after the folder
 - Prefabs and scenes mirror the same feature subfolder names used in Scripts
 - Do not put assets directly under `Assets/` root (except Unity-generated files)
-- `Assets/Plugins/Core/` holds the DLL built from `src/`; rebuild with `dotnet build src/GlobalStrategy.Core.sln -c Release`
+- `Assets/Plugins/Core/` holds the DLLs built from `src/` (gitignored binaries, committed `*.dll.meta`); rebuild with `dotnet build src/GlobalStrategy.Core.sln -c Release` or the `unity-plugins` skill. Opening the Editor also regenerates missing/stale DLLs.
 - Asmdefs must not reference assemblies whose source has moved to `src/`; the DLL is picked up automatically from `Plugins/`
 
 ## MCP Workflow
