@@ -22,7 +22,8 @@ permission prompts and wasted turns:
 - **solution-path** (optional): path to the `.sln`, relative to project root. Defaults to
   `src/GlobalStrategy.Core.sln` for this repo.
 - **Configuration** (optional): defaults to `Debug`. Pass `Release` explicitly when needed
-  (e.g. before copying plugin DLLs per `.claude/rules/unity/plugins.md`).
+  (e.g. after `src/` changes so Unity plugin DLLs under `Assets/Plugins/Core/` are current —
+  see `.claude/rules/unity/plugins.md`; do not commit those DLLs).
 
 Any additional flags the caller needs (e.g. `--no-restore`) should be appended to the
 command line as given — this skill only fixes *how* the command is invoked, not *what*

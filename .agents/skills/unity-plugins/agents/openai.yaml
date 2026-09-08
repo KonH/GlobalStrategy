@@ -1,0 +1,4 @@
+interface:
+  display_name: "Unity Plugins"
+  short_description: "Regenerate Assets/Plugins/Core DLLs before Unity work"
+  default_prompt: "Use $unity-plugins before starting any Unity Editor or MCP work."

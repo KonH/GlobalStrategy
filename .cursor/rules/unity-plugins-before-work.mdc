@@ -1,0 +1,15 @@
+---
+description: Run the unity-plugins skill before any Unity Editor or MCP work
+alwaysApply: true
+---
+
+# Unity plugin DLLs before Editor work
+
+`Assets/Plugins/Core/*.dll` are gitignored and must be regenerated locally.
+
+**Before the first Unity action in a session** (Unity MCP, `Assets/Scripts/`,
+scenes, prefabs, UXML/USS, play mode, or `unity-e2e-run`), read and follow
+`.claude/skills/unity-plugins/SKILL.md`.
+
+That means running `python scripts/unity/ensure_plugin_dlls.py` from the
+project root and stopping if it fails. Do not commit plugin DLLs.

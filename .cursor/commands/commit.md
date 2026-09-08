@@ -13,29 +13,39 @@ Steps:
 4. `git add ProjectSettings/ProjectSettings.asset`.
 5. Bump the displayed version to the same value. `Assets/Configs/game_settings.json` has a top-level `"version"` field — that is what the main-menu version label shows (`MainMenuDocument` reads `GameSettings.Version`, not `Application.version`, because the Web build profile embeds its own PlayerSettings snapshot and could ship a stale `bundleVersion`). Edit it to the new `X.YYY` value and `git add` it.
 
-## 2. Build Release DLLs (if src/ changed)
+## 2. Discard font-asset atlas noise
 
-Run `git diff --cached --name-only` (or use the already-known staged file list). If any staged path is under `src/` (e.g. `.cs`/`.csproj` changes), the `Assets/Plugins/Core/*.dll` files are now stale and must be rebuilt before committing:
+Unless the user explicitly asked to keep or commit a font-asset change, restore the Unity SDF font assets so atlas dirt does not land in the commit:
+
+```
+git restore --worktree --staged -- "Assets/UI/Fonts/*.asset"
+```
+
+Skip this restore only when the font `.asset` edits are the requested work (new fallback, atlas settings, adding a font).
+
+## 3. Rebuild plugin DLLs locally (if src/ changed)
+
+Run `git diff --cached --name-only` (or use the already-known staged file list). If any staged path is under `src/` (e.g. `.cs`/`.csproj` changes), regenerate `Assets/Plugins/Core/` for the local Editor:
 
 1. Run `dotnet build src/GlobalStrategy.Core.sln -c Release > .tmp/dotnet-build.log 2>&1` (never prefix with `cd` — the shell already starts in the project root). Release output goes straight into `Assets/Plugins/Core/` by convention (see `.claude/rules/unity/plugins.md`).
 2. Read `.tmp/dotnet-build.log`. If the build failed, stop and report the errors instead of committing.
-3. `git add Assets/Plugins/Core/*.dll` to stage the rebuilt DLLs.
+3. Do **not** `git add` `Assets/Plugins/Core/*.dll` (or `*.deps.json` / `*.pdb` / `*.xml`) — those binaries are gitignored. Only stage a new `*.dll.meta` if this change introduces a new plugin assembly.
 4. Delete `.tmp/dotnet-build.log` as a separate step.
 
 Skip this step entirely if no staged file is under `src/`.
 
-## 3. Usage stats catch-all scan (best-effort)
+## 4. Usage stats catch-all scan (best-effort)
 
 Run `python scripts/stats/collect_usage.py --scan` (or `scripts/stats/collect_usage.ps1 -Scan` / `collect_usage.sh --scan`) once. Never block or fail the commit on this step — if it errors, log the error and continue straight to the commit.
 
-## 4. Branch selection
+## 5. Branch selection
 
 1. `git branch --show-current`.
 2. Determine the repository's default branch (`main` or `master` — e.g. via `git symbolic-ref --short refs/remotes/origin/HEAD`, falling back to whichever of `main`/`master` exists locally).
 3. If the current branch is the default branch: create and switch to a new branch via `git checkout -b feature/<short-kebab-description>`, where `<short-kebab-description>` is a meaningful slug derived from the change being committed. Do this before staging/committing anything else.
 4. If already on a non-default branch, leave it as-is.
 
-## 5. Commit
+## 6. Commit
 
 - Subject line: short, imperative, no period.
 - Explain *why*, not *what* — the diff already shows what changed.

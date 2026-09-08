@@ -132,8 +132,8 @@ Docs/              Constitution, 45+ numbered specs & plans (the project's paper
 
 ## Running Locally
 
-- Open the project in **Unity 6000.4.x**; the core DLLs are prebuilt into `Assets/Plugins/Core/`.
-- To rebuild game logic: `dotnet build src/GlobalStrategy.Core.sln -c Release` (outputs directly into the Unity project).
+- Open the project in **Unity 6000.5.x**. Gitignored plugin DLLs under `Assets/Plugins/Core/` are regenerated automatically when the Editor opens (requires the .NET 8 SDK). Agents run the `unity-plugins` skill (`python scripts/unity/ensure_plugin_dlls.py`) before Editor work.
+- To rebuild game logic yourself: `dotnet build src/GlobalStrategy.Core.sln -c Release` (outputs directly into the Unity project). Do not commit those DLLs.
 - Tests: `dotnet test src/GlobalStrategy.Core.sln`.
 
 ## Standalone Web Client

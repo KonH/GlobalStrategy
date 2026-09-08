@@ -7,6 +7,10 @@ paths:
 
 When Unity Editor is connected via UnityMCP, prefer MCP tools over file operations.
 
+## Pre-flight: plugin DLLs
+
+Before the first MCP call (or any other Unity Editor work) in a session, load the `unity-plugins` skill and run `python scripts/unity/ensure_plugin_dlls.py`. Plugin DLLs are gitignored and Unity cannot compile against `src/` types until they exist locally. See `.claude/skills/unity-plugins/SKILL.md`.
+
 ## Scripts
 
 - DO NOT use `create_script` for new `.cs` files — just `Write`, put all required content and `refresh_unity`

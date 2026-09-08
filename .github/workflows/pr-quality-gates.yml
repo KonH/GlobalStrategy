@@ -40,23 +40,3 @@ jobs:
 
       - name: Test
         run: dotnet test src/GlobalStrategy.Core.sln -c Release
-
-  plugins-rebuilt:
-    name: Assets/Plugins DLLs up to date
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Check Assets/Plugins/Core DLLs were rebuilt for src/ changes
-        run: |
-          python scripts/ci/check_plugins_rebuilt.py \
-            --base-sha "${{ github.event.pull_request.base.sha }}" \
-            --head-sha "${{ github.event.pull_request.head.sha }}"

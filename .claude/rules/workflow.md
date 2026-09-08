@@ -9,7 +9,7 @@
 | Edit a file | `Edit` (Read first if the file already exists) |
 | Search file contents | `Grep` |
 | Find files by name/pattern | `Glob` |
-| Unity asset / scene changes | MCP tools, then `refresh_unity` + `read_console` |
+| Unity asset / scene changes | `unity-plugins` skill first, then MCP tools, then `refresh_unity` + `read_console` |
 | Delete a Unity asset | `manage_asset(action="delete")` |
 
 PowerShell is for things with no dedicated tool: `git`, `dotnet build`, image generation scripts.
@@ -18,7 +18,11 @@ Every PowerShell call requires a permission prompt and blocks the session. Dedic
 
 ### After changes under `src/` — always Release-build
 
-Whenever you edit, add, or delete anything under `src/`, finish the turn by running `/dotnet-build Release` (or the equivalent `dotnet-build` skill / `dotnet build src/GlobalStrategy.Core.sln -c Release` logged to `.tmp/dotnet-build.log`). Do this even if you already ran Debug tests earlier — Release updates `Assets/Plugins/Core/` DLLs that Unity consumes. Stop and report if the build fails.
+Whenever you edit, add, or delete anything under `src/`, finish the turn by running `/dotnet-build Release` (or the equivalent `dotnet-build` skill / `dotnet build src/GlobalStrategy.Core.sln -c Release` logged to `.tmp/dotnet-build.log`). Do this even if you already ran Debug tests earlier — Release updates `Assets/Plugins/Core/` DLLs that Unity consumes. Stop and report if the build fails. Do **not** commit those DLLs (gitignored).
+
+Before the first Unity Editor / MCP action in a session, run the `unity-plugins` skill (`python scripts/unity/ensure_plugin_dlls.py`).
+
+Unity dirties `Assets/UI/Fonts/*.asset` during Editor use. Always `git restore --worktree --staged -- "Assets/UI/Fonts/*.asset"` unless the user explicitly asked to keep a font-asset change (see `.claude/rules/unity/fonts.md`).
 
 ### Glob directory-listing gotcha (Windows)
 

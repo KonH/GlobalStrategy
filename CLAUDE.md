@@ -8,7 +8,7 @@
 
 - The shell starts in the project root — never use `cd` before git commands, run them directly
 - Never chain shell commands with `&&` — run each as a separate Bash tool call
-- After any change under `src/`, finish by running `/dotnet-build Release` (see `.claude/rules/workflow.md`)
+- After any change under `src/`, finish by running `/dotnet-build Release` (see `.claude/rules/workflow.md`). Do not commit `Assets/Plugins/Core` DLLs.
 
 ## Configuration Index
 - **Workflow & tool usage:** `.claude/rules/workflow.md`
@@ -31,11 +31,12 @@
 - **Province config generator:** `.claude/rules/unity/province_config_generator.md`
 - **UI Toolkit architecture:** `.claude/rules/unity/uitoolkit.md`
 - **VContainer / DI:** `.claude/rules/unity/vcontainer.md`
-- **Unity plugins (DLLs):** `.claude/rules/unity/plugins.md`
+- **Unity plugins (DLLs):** `.claude/rules/unity/plugins.md` — binaries are gitignored; regenerate with the `unity-plugins` skill **before** Unity Editor / MCP work (`python scripts/unity/ensure_plugin_dlls.py`). Opening the Editor also regenerates missing/stale DLLs.
 - **Unity input handling:** `.claude/rules/unity/input.md`
 - **ECS patterns:** `.claude/rules/unity/ecs_patterns.md`
 - **Unity Editor scripts:** `.claude/rules/unity/editor_scripts.md`
 - **Localization system:** `.claude/rules/unity/localization.md`
+- **Font assets:** `.claude/rules/unity/fonts.md` — always restore `Assets/UI/Fonts/*.asset` unless the user explicitly asked to keep a font-asset change
 - **Adding new locale keys (English + real Russian translation):** `localization` skill
 - **Unity WebGL gotchas:** `.claude/rules/unity/webgl.md`
 - **Game loop integration from UI:** `.claude/rules/unity/game_loop_integration.md`
@@ -46,5 +47,5 @@
 - **Learning workflow:** `.claude/commands/learn.md`
 - **GitHub issue/PR automation:** `github-issue-automation` skill — cron script (`scripts/automation/claude/handle_issues.py`) that executes the owner's prompt from `claude`-labeled issues/PRs via `.claude/commands/handle-issue.md`; labels are the whole state machine
 - **Web client terminal commands:** `add-terminal-command` skill — checklist for keeping `src/Game.WebClient`'s debug terminal Tab completion working when adding or changing an `ICommand` type in `src/Game.Commands`
-- **Unity E2E play-step runs:** `unity-e2e-run` skill — file-handshake runner that drives the Editor in Play mode for agent verification (`.e2e/`, `Docs/E2E/flows/`)
+- **Unity E2E play-step runs:** `unity-e2e-run` skill — file-handshake runner that drives the Editor in Play mode for agent verification (`.e2e/`, `Docs/E2E/flows/`). Run `unity-plugins` first.
 - **Multi-agent meetings:** `meeting-schedule` / `meeting-join` / `meeting-start` skills — file-based (`Docs/Meetings/`) meetings between Claude, Codex, and Cursor agents on one machine/project; protocol defined in `.claude/skills/meeting-join/SKILL.md`, adapted for Codex under `.agents/skills/meeting-*/`; Cursor uses the Claude skill directly for schedule, with thin `(CURSOR)` `cursor-meeting-join` / `cursor-meeting-start` wrappers under `.cursor/skills/` for session identity (slash commands `/meeting-*` stay in `.cursor/commands/`)

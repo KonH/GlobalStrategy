@@ -18,13 +18,23 @@ Steps:
 
 Always run this before committing so the version bump is included in the commit.
 
-## Pre-commit step: build Release DLLs (if src/ changed)
+## Pre-commit step: discard font-asset atlas noise
 
-Run `git diff --cached --name-only` (or check the already-known staged file list). If any staged path is under `src/` (e.g. `.cs`/`.csproj` changes), the `Assets/Plugins/Core/*.dll` files are now stale and must be rebuilt before committing:
+Unless the user explicitly asked to keep or commit a font-asset change, restore the Unity SDF font assets so atlas dirt does not land in the commit:
+
+```
+git restore --worktree --staged -- "Assets/UI/Fonts/*.asset"
+```
+
+Skip this restore only when the staged/unstaged font `.asset` edits are the requested work (new fallback, atlas settings, adding a font).
+
+## Pre-commit step: rebuild plugin DLLs locally (if src/ changed)
+
+Run `git diff --cached --name-only` (or check the already-known staged file list). If any staged path is under `src/` (e.g. `.cs`/`.csproj` changes), regenerate `Assets/Plugins/Core/` for the local Editor:
 
 1. Run `dotnet build src/GlobalStrategy.Core.sln -c Release > .tmp/dotnet-build.log 2>&1` (see the `dotnet-build` skill; no `cd`, `dangerouslyDisableSandbox: true`). Release output goes straight to `Assets/Plugins/Core/` per `.claude/rules/unity/plugins.md`.
 2. Read `.tmp/dotnet-build.log`. If the build failed, stop and report the errors instead of committing.
-3. `git add Assets/Plugins/Core/*.dll` to stage the rebuilt DLLs.
+3. Do **not** `git add` `Assets/Plugins/Core/*.dll` (or `*.deps.json` / `*.pdb` / `*.xml`) — those binaries are gitignored. Only stage a new `*.dll.meta` if this change introduces a new plugin assembly.
 4. Delete `.tmp/dotnet-build.log` as a separate Bash call.
 
 Skip this step entirely if no staged file is under `src/`.

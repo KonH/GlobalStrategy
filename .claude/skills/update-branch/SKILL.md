@@ -36,6 +36,8 @@ a human (or a follow-up review) to look at.
    - **`ProjectSettings/ProjectSettings.asset` conflicting only on the `bundleVersion:`
      line, and/or `Assets/Configs/game_settings.json` conflicting only on the
      `"version":` line** — auto-resolve per "Version conflict resolution" below.
+   - **`Assets/UI/Fonts/*.asset`** — auto-resolve per "Font asset conflict resolution"
+     below unless the user explicitly asked to keep a font-asset change.
    - **Any other conflicted file** — leave it as-is. Do not attempt to resolve
      ordinary code/content conflicts automatically; list every remaining conflicted
      file for the user and stop with the merge still in progress (do not commit a
@@ -44,9 +46,9 @@ a human (or a follow-up review) to look at.
    in `git status --porcelain`, `git add` the resolved files and `git commit --no-edit`
    to complete the merge.
 7. If `git diff HEAD^2 HEAD^1...HEAD --name-only` (i.e. what `main` brought in) touches
-   `src/`, remind the user to run `/dotnet-build Release` — `main`'s own DLLs already
-   reflect its `src/` changes, so this is precautionary, not required to complete the
-   merge itself.
+   `src/`, remind the user to run `/dotnet-build Release` (or the `unity-plugins` skill)
+   so local `Assets/Plugins/Core/` DLLs match the merged sources. Do not commit those
+   DLLs.
 
 ## Version conflict resolution
 
@@ -68,13 +70,21 @@ never treat `X.YYY` as a decimal).
    indent and no quotes for `bundleVersion:`; quoted for `"version":`).
 5. `git add` both files once resolved.
 
+## Font asset conflict resolution
+
+Unity dirties `Assets/UI/Fonts/*.asset` (dynamic SDF atlas data). Unless the user
+explicitly asked to keep a font-asset change on this branch:
+
+1. Take the incoming default-branch copy: `git checkout origin/<default-branch> -- "Assets/UI/Fonts/*.asset"`.
+2. `git add` those files.
+3. If they are merely dirty and not conflicted, `git restore --worktree --staged -- "Assets/UI/Fonts/*.asset"` instead.
+
 ## Notes
 
-- This only ever auto-resolves the version-bump lines — it never touches a conflict in
-  gameplay/config/script content, even a trivial-looking one. When in doubt, leave it
-  for the user.
-- If `Assets/Plugins/Core/*.dll` shows up as a binary conflict, that means both sides
-  changed `src/` and the built DLL bytes differ. Resolve the underlying `.cs` conflicts
-  under `src/` first, then run `/dotnet-build Release` (which overwrites
-  `Assets/Plugins/Core/`) and `git add` the regenerated DLLs — don't try to pick a side
-  on the binary directly.
+- This only ever auto-resolves the version-bump lines and font `.asset` atlas noise —
+  it never touches a conflict in gameplay/config/script content, even a trivial-looking
+  one. When in doubt, leave it for the user.
+- `Assets/Plugins/Core/*.dll` are gitignored. A merge will not conflict on them. After
+  merging `src/` changes, regenerate locally with `/dotnet-build Release` or the
+  `unity-plugins` skill — do not commit the binaries. If an old merge still lists
+  those DLLs as untracked/modified, leave them unstaged.
