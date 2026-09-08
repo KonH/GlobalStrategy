@@ -239,7 +239,7 @@ namespace GS.Unity.Gallery {
 			var fromRect = new Rect(0, 40, 240, 360);
 			// duration 0 lands the card copy immediately - the "static frame" this class has no
 			// rest state of its own beyond, since its entire purpose is the flying animation.
-			view.ShowCountry(face, fromRect, destination, 0f).Forget();
+			view.ShowCountry(face, fromRect, destination, 0f, CancellationToken.None).Forget();
 		}
 
 		string FirstCountryActionId() {

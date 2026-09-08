@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using GS.Main;
 
@@ -39,18 +40,18 @@ namespace GS.Unity.UI {
 			(_doubles.TryGetValue(key, out var doubles) && doubles.Count > 0)
 			|| (_ints.TryGetValue(key, out var ints) && ints.Count > 0);
 
-		public async UniTask Animate(string key, float duration) {
+		public async UniTask Animate(string key, float duration, CancellationToken cancellationToken) {
 			var tasks = new List<UniTask>();
 			if (_doubles.TryGetValue(key, out var doubles)) {
 				foreach (var entry in doubles) {
 					entry.Barrier.Release(duration);
-					tasks.Add(UniTask.WaitUntil(() => entry.Barrier.IsComplete));
+					tasks.Add(UniTask.WaitUntil(() => entry.Barrier.IsComplete, cancellationToken: cancellationToken));
 				}
 			}
 			if (_ints.TryGetValue(key, out var ints)) {
 				foreach (var entry in ints) {
 					entry.Barrier.Release(duration);
-					tasks.Add(UniTask.WaitUntil(() => entry.Barrier.IsComplete));
+					tasks.Add(UniTask.WaitUntil(() => entry.Barrier.IsComplete, cancellationToken: cancellationToken));
 				}
 			}
 			if (tasks.Count > 0) {

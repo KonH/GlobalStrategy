@@ -351,19 +351,20 @@ namespace GS.Unity.UI {
 			CancellationToken cancellationToken,
 			int hoverGeneration = -1) {
 			float from = copy.Scale;
-			float elapsed = 0f;
-			while (elapsed < HoverDuration) {
-				cancellationToken.ThrowIfCancellationRequested();
-				if (hoverGeneration >= 0 && hoverGeneration != copy.HoverGeneration) {
-					return;
-				}
-				elapsed += Time.unscaledDeltaTime;
-				copy.Scale = Mathf.Lerp(from, target, Mathf.Clamp01(elapsed / HoverDuration));
-				SetScale(copy.Root, copy.Scale, copy.Scale);
-				await UniTask.NextFrame(cancellationToken: cancellationToken);
-			}
-			copy.Scale = target;
-			SetScale(copy.Root, target, target);
+			// Only hover calls (hoverGeneration >= 0) may be superseded; a non-hover caller (e.g.
+			// MoveSelectedAsync/ReturnUnselectedAsync locking to 1f) always runs to completion.
+			Func<bool> isCurrent = hoverGeneration >= 0
+				? () => hoverGeneration == copy.HoverGeneration
+				: (Func<bool>)null;
+			await UiTween.RunAsync(
+				copy.Root,
+				HoverDuration,
+				t => {
+					copy.Scale = Mathf.Lerp(from, target, t);
+					SetScale(copy.Root, copy.Scale, copy.Scale);
+				},
+				cancellationToken,
+				isCurrent: isCurrent);
 		}
 
 		void RestoreCopyOrder() {
@@ -378,14 +379,11 @@ namespace GS.Unity.UI {
 			float to,
 			float duration,
 			CancellationToken cancellationToken) {
-			float elapsed = 0f;
-			while (elapsed < duration) {
-				cancellationToken.ThrowIfCancellationRequested();
-				elapsed += Time.unscaledDeltaTime;
-				SetScale(element, Mathf.Lerp(from, to, Mathf.Clamp01(elapsed / duration)), 1f);
-				await UniTask.NextFrame(cancellationToken: cancellationToken);
-			}
-			SetScale(element, to, 1f);
+			await UiTween.RunAsync(
+				element,
+				duration,
+				t => SetScale(element, Mathf.Lerp(from, to, t), 1f),
+				cancellationToken);
 		}
 
 		static async UniTask AnimatePositionAsync(
@@ -394,17 +392,7 @@ namespace GS.Unity.UI {
 			Vector2 to,
 			float duration,
 			CancellationToken cancellationToken) {
-			float elapsed = 0f;
-			while (elapsed < duration) {
-				cancellationToken.ThrowIfCancellationRequested();
-				if (element.panel == null) {
-					throw new InvalidOperationException("A card-draw element detached during animation.");
-				}
-				elapsed += Time.unscaledDeltaTime;
-				SetPosition(element, Vector2.Lerp(from, to, Mathf.Clamp01(elapsed / duration)));
-				await UniTask.NextFrame(cancellationToken: cancellationToken);
-			}
-			SetPosition(element, to);
+			await UiTween.MoveAsync(element, from, to, duration, cancellationToken);
 		}
 
 		Vector2 WorldTopLeftToOverlay(Rect worldRect) =>

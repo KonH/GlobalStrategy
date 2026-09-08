@@ -19,7 +19,7 @@ namespace GS.Unity.UI {
 		readonly ILocalization _loc;
 		readonly CountryVisualConfig _countryVisualConfig;
 		readonly OrgVisualConfig _orgVisualConfig;
-		readonly Dictionary<long, Label> _rendered = new();
+		readonly Dictionary<long, LogEntry> _rendered = new();
 
 		public ActionLogView(VisualElement hudRoot, VisualElement root, VisualElement topRightPanel,
 			ILocalization loc, CountryVisualConfig countryVisualConfig, OrgVisualConfig orgVisualConfig) {
@@ -52,22 +52,91 @@ namespace GS.Unity.UI {
 				if (_rendered.ContainsKey(entry.SequenceId)) { continue; }
 				var label = BuildLabel(entry);
 				_content.Add(label);
-				_rendered[entry.SequenceId] = label;
 				label.style.opacity = 0f;
 				label.style.transitionProperty = new List<StylePropertyName> { new StylePropertyName("opacity") };
 				label.style.transitionDuration = new List<TimeValue> { new TimeValue(FadeInSeconds, TimeUnit.Second) };
-				label.schedule.Execute(() => label.style.opacity = 1f).ExecuteLater(20);
+				var fadeInSchedule = label.schedule.Execute(() => label.style.opacity = 1f);
+				fadeInSchedule.ExecuteLater(20);
+				_rendered[entry.SequenceId] = new LogEntry(label, fadeInSchedule);
 			}
 			var toEvict = new List<long>();
 			foreach (var id in _rendered.Keys) {
 				if (!currentIds.Contains(id)) { toEvict.Add(id); }
 			}
 			foreach (var id in toEvict) {
-				var label = _rendered[id];
+				var entry = _rendered[id];
 				_rendered.Remove(id);
-				label.style.transitionDuration = new List<TimeValue> { new TimeValue(FadeOutSeconds, TimeUnit.Second) };
-				label.style.opacity = 0f;
-				label.schedule.Execute(() => label.RemoveFromHierarchy()).ExecuteLater((long)(FadeOutSeconds * 1000));
+				EvictEntry(entry);
+			}
+		}
+
+		void EvictEntry(LogEntry entry) {
+			var label = entry.Label;
+			entry.FadeInSchedule?.Pause();
+
+			// Nothing to transition from: not attached, or already fully faded — remove now.
+			if (label.panel == null || label.resolvedStyle.opacity <= 0f) {
+				label.RemoveFromHierarchy();
+				return;
+			}
+
+			bool armed = false;
+			bool cleanedUp = false;
+			EventCallback<TransitionRunEvent> onRun = null;
+			EventCallback<TransitionEndEvent> onEnd = null;
+			EventCallback<TransitionCancelEvent> onCancel = null;
+			EventCallback<DetachFromPanelEvent> onDetach = null;
+
+			void CleanUp() {
+				if (cleanedUp) { return; }
+				cleanedUp = true;
+				label.UnregisterCallback(onRun);
+				label.UnregisterCallback(onEnd);
+				label.UnregisterCallback(onCancel);
+				label.UnregisterCallback(onDetach);
+				entry.FadeInSchedule?.Pause();
+				label.RemoveFromHierarchy();
+			}
+
+			onRun = evt => {
+				if (evt.target != label || !evt.stylePropertyNames.Contains(new StylePropertyName("opacity"))) { return; }
+				armed = true;
+			};
+			onEnd = evt => {
+				if (evt.target != label || !evt.stylePropertyNames.Contains(new StylePropertyName("opacity"))) { return; }
+				if (!armed) { return; }
+				CleanUp();
+			};
+			onCancel = evt => {
+				if (evt.target != label || !evt.stylePropertyNames.Contains(new StylePropertyName("opacity"))) { return; }
+				if (!armed) { return; }
+				CleanUp();
+			};
+			onDetach = _ => CleanUp();
+
+			label.RegisterCallback(onRun);
+			label.RegisterCallback(onEnd);
+			label.RegisterCallback(onCancel);
+			label.RegisterCallback(onDetach);
+
+			label.style.transitionDuration = new List<TimeValue> { new TimeValue(FadeOutSeconds, TimeUnit.Second) };
+			label.style.opacity = 0f;
+
+			// State-based fallback: if no transition ever ran (e.g. effectively zero duration
+			// in this environment) but opacity already resolved to invisible, clean up next frame
+			// rather than waiting on an event that will never fire. Not a duration guess.
+			label.schedule.Execute(() => {
+				if (!armed && label.resolvedStyle.opacity <= 0f) { CleanUp(); }
+			}).ExecuteLater(0);
+		}
+
+		internal sealed class LogEntry {
+			public Label Label { get; }
+			public IVisualElementScheduledItem FadeInSchedule { get; set; }
+
+			public LogEntry(Label label, IVisualElementScheduledItem fadeInSchedule) {
+				Label = label;
+				FadeInSchedule = fadeInSchedule;
 			}
 		}
 

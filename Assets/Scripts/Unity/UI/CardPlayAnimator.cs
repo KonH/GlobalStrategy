@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -29,6 +30,7 @@ namespace GS.Unity.UI {
 		bool _resultReady;
 		bool _lastActionSuccess;
 		CardPlayBarriersHolder _barrierHolder;
+		FlowContext _activeContext;
 
 		public bool IsPlaying => _isPlaying;
 		public event Action OnCardPlayComplete;
@@ -54,16 +56,15 @@ namespace GS.Unity.UI {
 				Debug.LogError("[CardPlayAnimator] missing PanelRenderer.", this);
 				return;
 			}
-			_hudDocument.RegisterUIReloadCallback(OnUIReload);
 		}
 
 		void OnDestroy() {
-			if (_hudDocument != null) {
-				_hudDocument.UnregisterUIReloadCallback(OnUIReload);
-			}
+			CancelAndWaitAsync().Forget();
 		}
 
-		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+		// HUDDocument is the sole reload coordinator: it calls this only after any old play flow has
+		// been cancelled and awaited via CancelAndWaitAsync, so _activeContext is guaranteed null here.
+		internal void BindRoot(VisualElement rootElement) {
 			_root = rootElement;
 			var overlay = _root.Q("card-transition-overlay");
 			if (overlay == null) {
@@ -74,7 +75,7 @@ namespace GS.Unity.UI {
 
 		void OnEnable() {
 			if (_root == null && _hudDocument != null) {
-				OnUIReload(_hudDocument, PanelRendererRoot.Get(_hudDocument));
+				BindRoot(PanelRendererRoot.Get(_hudDocument));
 			}
 			if (_state != null) {
 				_state.LastFrameEffects.PropertyChanged += HandleLastFrameEffectsChanged;
@@ -85,6 +86,16 @@ namespace GS.Unity.UI {
 			if (_state != null) {
 				_state.LastFrameEffects.PropertyChanged -= HandleLastFrameEffectsChanged;
 			}
+			CancelAndWaitAsync().Forget();
+		}
+
+		public async UniTask CancelAndWaitAsync() {
+			FlowContext context = _activeContext;
+			if (context == null) {
+				return;
+			}
+			context.Cancellation.Cancel();
+			await context.Completion.Task;
 		}
 
 		void HandleLastFrameEffectsChanged(object sender, PropertyChangedEventArgs e) {
@@ -164,32 +175,119 @@ namespace GS.Unity.UI {
 			PlayCountrySequence(orgId, countryId, actionId, slotIndex, clickedCard, faceData, targetCountryId).Forget();
 		}
 
+		FlowContext BeginFlow(
+			VisualElement clickedCard,
+			VisualElement overlay,
+			VisualElement testCard,
+			OrgActionsView orgActionsView,
+			CountryActionsView countryActionsView,
+			bool priorSuppressRefresh) {
+			// _isPlaying already blocks StartCardPlay/StartCountryCardPlay from starting an overlapping
+			// flow, so _activeContext should never be non-null here; dispose defensively anyway,
+			// mirroring CardDrawAnimator.BeginFlow, in case that guard is ever bypassed.
+			if (_activeContext != null) {
+				_activeContext.Cancellation.Cancel();
+				_activeContext.Cancellation.Dispose();
+				_activeContext.Completion.TrySetResult();
+			}
+			var cancellation = new CancellationTokenSource();
+			var completion = new UniTaskCompletionSource();
+			var context = new FlowContext(
+				cancellation,
+				completion,
+				_transitionView,
+				clickedCard,
+				overlay,
+				testCard,
+				orgActionsView,
+				countryActionsView,
+				priorSuppressRefresh);
+			_activeContext = context;
+			return context;
+		}
+
+		// The single cleanup owner for both PlaySequence and PlayCountrySequence's finally blocks.
+		// Uses only the flow context's captured references, never the animator's live _transitionView/
+		// _actionsView/_countryActionsView fields, which may have been rebound by a reload since this
+		// flow started.
+		void FinishFlow(FlowContext context) {
+			_barrierHolder?.CancelAll();
+			_barrierHolder = null;
+
+			context.TransitionView.Hide();
+
+			// Only touch the captured test-overlay/test-card if they still belong to the flow's old
+			// root; a reload since this flow started may have torn the whole tree down already.
+			if (context.Overlay != null && context.Overlay.panel != null) {
+				context.Overlay.style.display = DisplayStyle.None;
+				context.Overlay.style.opacity = 0f;
+				if (context.TestCard != null && context.TestCard.panel != null) {
+					context.TestCard.style.opacity = 1f;
+				}
+			}
+
+			// Restore the hidden source card only if it is still attached; otherwise the authoritative
+			// refresh already rebuilt (or removed) it and there is nothing stale left to fix up.
+			if (context.ClickedCard != null && context.ClickedCard.panel != null) {
+				context.ClickedCard.style.opacity = 1f;
+			}
+
+			// Restore only the exact view instance this flow captured - never the animator's current
+			// _actionsView/_countryActionsView fields, which may differ after a rebind.
+			if (context.OrgActionsView != null) {
+				context.OrgActionsView.SuppressRefresh = context.PriorSuppressRefresh;
+			}
+			if (context.CountryActionsView != null) {
+				context.CountryActionsView.SuppressRefresh = context.PriorSuppressRefresh;
+			}
+
+			_modalState.Unlock(this);
+			if (context.IssuedPause) {
+				_commands.Push(new UnpauseCommand());
+			}
+
+			_isPlaying = false;
+			// _isPlaying already prevents a second flow from starting while this one is in flight, and
+			// BeginFlow defensively finishes any stale context before handing out a new one, so this
+			// context is always still the current one here - the ReferenceEquals check below is a
+			// defensive no-op guard rather than a real generation mechanism.
+			if (ReferenceEquals(_activeContext, context)) {
+				_activeContext = null;
+			}
+			context.Cancellation.Dispose();
+			context.Completion.TrySetResult();
+			OnCardPlayComplete?.Invoke();
+		}
+
 		async UniTaskVoid PlaySequence(string orgId, string actionId, int slotIndex, VisualElement clickedCard) {
 			_isPlaying = true;
 			_resultReady = false;
 			_lastActionSuccess = false;
 			_barrierHolder = null;
+
+			var root = _root ?? PanelRendererRoot.Get(_hudDocument);
+			var overlay = root.Q("card-test-overlay");
+			var cardTestCard = root.Q("card-test-card");
+			bool priorSuppressRefresh = _actionsView != null && _actionsView.SuppressRefresh;
+			FlowContext context = BeginFlow(clickedCard, overlay, cardTestCard, _actionsView, null, priorSuppressRefresh);
+
 			_modalState.Lock(this);
-			bool issuedPause = !_state.Time.IsPaused;
+			context.IssuedPause = !_state.Time.IsPaused;
 			if (_actionsView != null) { _actionsView.SuppressRefresh = true; }
 
 			try {
 				// Push action before pause so both are processed in the same game tick
 				_commands.Push(new PlayCardActionCommand { OrgId = orgId, ActionId = actionId, SlotIndex = slotIndex });
-				if (issuedPause) {
+				if (context.IssuedPause) {
 					_commands.Push(new PauseCommand());
 				}
 
-				var root = _root ?? PanelRendererRoot.Get(_hudDocument);
-				var overlay = root.Q("card-test-overlay");
-				var cardTestCard = root.Q("card-test-card");
-
-				if (overlay != null) {
-					PopulateTestCard(cardTestCard, actionId);
-					overlay.style.display = DisplayStyle.Flex;
-					overlay.style.opacity = 0f;
-					if (cardTestCard != null) {
-						cardTestCard.style.opacity = 0f;
+				if (context.Overlay != null) {
+					PopulateTestCard(context.TestCard, actionId);
+					context.Overlay.style.display = DisplayStyle.Flex;
+					context.Overlay.style.opacity = 0f;
+					if (context.TestCard != null) {
+						context.TestCard.style.opacity = 0f;
 					}
 				}
 
@@ -199,20 +297,21 @@ namespace GS.Unity.UI {
 				// Capture deck rect before any state change
 				var deckRect = _actionsView?.DeckPileElement?.worldBound ?? Rect.zero;
 
-				await _transitionView.Show(actionId, fromRect, cardTestCard, 0.7f, _actionConfig, _visualConfig, _loc);
+				await context.TransitionView.Show(
+					actionId, fromRect, context.TestCard, 0.7f, _actionConfig, _visualConfig, _loc, context.Token);
 
-				if (overlay != null) {
-					overlay.style.opacity = 1f;
+				if (context.Overlay != null) {
+					context.Overlay.style.opacity = 1f;
 				}
-				if (cardTestCard != null) {
-					cardTestCard.style.opacity = 1f;
+				if (context.TestCard != null) {
+					context.TestCard.style.opacity = 1f;
 				}
-				_transitionView.Hide();
+				context.TransitionView.Hide();
 
-				float startTime = Time.time;
+				float startTime = Time.realtimeSinceStartup;
 				while (!_resultReady) {
-					await UniTask.Delay(330);
-					if (Time.time - startTime > 10f) { break; }
+					await UniTask.Delay(330, DelayType.UnscaledDeltaTime, cancellationToken: context.Token);
+					if (Time.realtimeSinceStartup - startTime > 10f) { break; }
 				}
 
 				if (!_resultReady) {
@@ -224,21 +323,22 @@ namespace GS.Unity.UI {
 				// Barrier was created in HandleLastFrameEffectsChanged before SetActual fired.
 				UniTask goldTask = UniTask.CompletedTask;
 				if (success && _barrierHolder != null && _barrierHolder.Has("gold")) {
-					goldTask = _barrierHolder.Animate("gold", 0.5f);
+					goldTask = _barrierHolder.Animate("gold", 0.5f, context.Token);
 				} else {
 					_barrierHolder?.CancelAll();
 					_barrierHolder = null;
 				}
 
-				await UniTask.Delay(700);
+				await UniTask.Delay(700, DelayType.UnscaledDeltaTime, cancellationToken: context.Token);
 
 				// Start card-to-deck transition, then hide overlay concurrently before awaiting
-				var fromTestRect = cardTestCard != null ? cardTestCard.worldBound : Rect.zero;
+				var fromTestRect = context.TestCard != null ? context.TestCard.worldBound : Rect.zero;
 				var deckElement = _actionsView?.DeckPileElement;
-				var deckTransitionTask = _transitionView.Show(actionId, fromTestRect, deckElement ?? cardTestCard, 0.77f, _actionConfig, _visualConfig, _loc);
-				if (overlay != null) { overlay.style.display = DisplayStyle.None; }
+				var deckTransitionTask = context.TransitionView.Show(
+					actionId, fromTestRect, deckElement ?? context.TestCard, 0.77f, _actionConfig, _visualConfig, _loc, context.Token);
+				if (context.Overlay != null) { context.Overlay.style.display = DisplayStyle.None; }
 				await deckTransitionTask;
-				_transitionView.Hide();
+				context.TransitionView.Hide();
 
 				// Rebuild hand with the new card synchronously (bypassing SuppressRefresh just for this
 				// call) so it can be hidden again before any frame renders it at full opacity.
@@ -259,42 +359,38 @@ namespace GS.Unity.UI {
 					}
 				}
 				// Settle layout for the now-hidden card before reading its worldBound below.
-				await UniTask.NextFrame();
+				await UniTask.NextFrame(cancellationToken: context.Token);
 
 				if (newHandCard != null) {
 					string newActionId = "";
 					if (_state.PlayerOrganization.Actions.Hand.Count > 0) {
 						newActionId = _state.PlayerOrganization.Actions.Hand[_state.PlayerOrganization.Actions.Hand.Count - 1].ActionId;
 					}
-					await _transitionView.Show(newActionId, deckRect, newHandCard, 0.5f, _actionConfig, _visualConfig, _loc);
+					await context.TransitionView.Show(
+						newActionId, deckRect, newHandCard, 0.5f, _actionConfig, _visualConfig, _loc, context.Token);
 					newHandCard.style.opacity = 1f;
-					_transitionView.Hide();
+					context.TransitionView.Hide();
 				}
 				if (_actionsView != null) {
 					_actionsView.SuppressRefresh = false;
 				}
 
+				// Unlock the modal and unpause as soon as the visible sequence is done, without waiting
+				// for the gold barrier's cosmetic release animation below - FinishFlow's matching
+				// restores are guarded to no-op for what is already restored here. _isPlaying stays true
+				// until the barrier finishes so a second play can't start and race this one's
+				// _barrierHolder (see FinishFlow's cancellation of it below).
 				_modalState.Unlock(this);
-				if (issuedPause) {
+				if (context.IssuedPause) {
 					_commands.Push(new UnpauseCommand());
-					issuedPause = false;
+					context.IssuedPause = false;
 				}
+
 				await goldTask;
-				_barrierHolder = null;
-				_isPlaying = false;
+			} catch (OperationCanceledException) {
+				// Expected on cancellation/detachment; FinishFlow below owns all cleanup.
 			} finally {
-				_barrierHolder?.CancelAll();
-				_barrierHolder = null;
-				_transitionView.Hide();
-				_modalState.Unlock(this);
-				if (issuedPause) {
-					_commands.Push(new UnpauseCommand());
-				}
-				if (_actionsView != null) {
-					_actionsView.SuppressRefresh = false;
-				}
-				_isPlaying = false;
-				OnCardPlayComplete?.Invoke();
+				FinishFlow(context);
 			}
 		}
 
@@ -310,8 +406,15 @@ namespace GS.Unity.UI {
 			_resultReady = false;
 			_lastActionSuccess = false;
 			_barrierHolder = null;
+
+			var root = _root ?? PanelRendererRoot.Get(_hudDocument);
+			var overlay = root.Q("card-test-overlay");
+			var cardTestCard = root.Q("card-test-card");
+			bool priorSuppressRefresh = _countryActionsView != null && _countryActionsView.SuppressRefresh;
+			FlowContext context = BeginFlow(clickedCard, overlay, cardTestCard, null, _countryActionsView, priorSuppressRefresh);
+
 			_modalState.Lock(this);
-			bool issuedPause = !_state.Time.IsPaused;
+			context.IssuedPause = !_state.Time.IsPaused;
 
 			if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = true; }
 
@@ -323,61 +426,58 @@ namespace GS.Unity.UI {
 					TargetCountryId = targetCountryId,
 					SlotIndex = slotIndex
 				});
-				if (issuedPause) {
+				if (context.IssuedPause) {
 					_commands.Push(new PauseCommand());
 				}
 
-				var root = _root ?? PanelRendererRoot.Get(_hudDocument);
-				var overlay = root.Q("card-test-overlay");
-				var cardTestCard = root.Q("card-test-card");
-
-				if (overlay != null) {
-					PopulateCountryTestCard(cardTestCard, faceData);
-					overlay.style.display = DisplayStyle.Flex;
-					overlay.style.opacity = 0f;
-					if (cardTestCard != null) { cardTestCard.style.opacity = 0f; }
+				if (context.Overlay != null) {
+					PopulateCountryTestCard(context.TestCard, faceData);
+					context.Overlay.style.display = DisplayStyle.Flex;
+					context.Overlay.style.opacity = 0f;
+					if (context.TestCard != null) { context.TestCard.style.opacity = 0f; }
 				}
 
 				var fromRect = clickedCard.worldBound;
 				clickedCard.style.opacity = 0f;
 
-				await _transitionView.ShowCountry(faceData, fromRect, cardTestCard, 0.7f);
+				await context.TransitionView.ShowCountry(faceData, fromRect, context.TestCard, 0.7f, context.Token);
 
-				if (overlay != null) { overlay.style.opacity = 1f; }
-				if (cardTestCard != null) { cardTestCard.style.opacity = 1f; }
-				_transitionView.Hide();
+				if (context.Overlay != null) { context.Overlay.style.opacity = 1f; }
+				if (context.TestCard != null) { context.TestCard.style.opacity = 1f; }
+				context.TransitionView.Hide();
 
-				float startTime = Time.time;
+				float startTime = Time.realtimeSinceStartup;
 				while (!_resultReady) {
-					await UniTask.Delay(330);
-					if (Time.time - startTime > 10f) { break; }
+					await UniTask.Delay(330, DelayType.UnscaledDeltaTime, cancellationToken: context.Token);
+					if (Time.realtimeSinceStartup - startTime > 10f) { break; }
 				}
 
 				if (!_resultReady) { Debug.LogWarning("[CardPlayAnimator] Country action timed out waiting for result."); }
 				bool success = _lastActionSuccess;
 
-				await UniTask.Delay(700);
+				await UniTask.Delay(700, DelayType.UnscaledDeltaTime, cancellationToken: context.Token);
 
 				// Start card-to-deck transition, then hide overlay concurrently before awaiting
-				var fromTestRect = cardTestCard != null ? cardTestCard.worldBound : Rect.zero;
+				var fromTestRect = context.TestCard != null ? context.TestCard.worldBound : Rect.zero;
 				var deckElement = _countryActionsView?.DeckPileElement;
-				var deckTransitionTask = _transitionView.ShowCountry(faceData, fromTestRect, deckElement ?? cardTestCard, 0.77f);
-				if (overlay != null) { overlay.style.display = DisplayStyle.None; }
+				var deckTransitionTask = context.TransitionView.ShowCountry(
+					faceData, fromTestRect, deckElement ?? context.TestCard, 0.77f, context.Token);
+				if (context.Overlay != null) { context.Overlay.style.display = DisplayStyle.None; }
 				await deckTransitionTask;
-				_transitionView.Hide();
+				context.TransitionView.Hide();
 
 				// Release or cancel gold/control/opinion barriers based on outcome.
 				UniTask barrierTask = UniTask.CompletedTask;
 				if (success && _barrierHolder != null) {
 					var barrierTasks = new List<UniTask>();
 					if (_barrierHolder.Has("gold")) {
-						barrierTasks.Add(_barrierHolder.Animate("gold", 0.5f));
+						barrierTasks.Add(_barrierHolder.Animate("gold", 0.5f, context.Token));
 					}
 					if (_barrierHolder.Has("control")) {
-						barrierTasks.Add(_barrierHolder.Animate("control", 1.0f));
+						barrierTasks.Add(_barrierHolder.Animate("control", 1.0f, context.Token));
 					}
 					if (_barrierHolder.Has("opinion")) {
-						barrierTasks.Add(_barrierHolder.Animate("opinion", 1.0f));
+						barrierTasks.Add(_barrierHolder.Animate("opinion", 1.0f, context.Token));
 					}
 					if (barrierTasks.Count > 0) {
 						barrierTask = UniTask.WhenAll(barrierTasks);
@@ -389,30 +489,24 @@ namespace GS.Unity.UI {
 
 				// The country-card vacancy remains until the player explicitly draws.
 				if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = false; }
-				await UniTask.NextFrame();
+				await UniTask.NextFrame(cancellationToken: context.Token);
 
-				if (_countryActionsView != null) { _countryActionsView.SuppressRefresh = false; }
+				// Unlock the modal and unpause as soon as the visible sequence is done, without waiting
+				// for the barriers' cosmetic release animations below - FinishFlow's matching restores
+				// are guarded to no-op for what is already restored here. _isPlaying stays true until
+				// the barriers finish so a second play can't start and race this one's _barrierHolder
+				// (see FinishFlow's cancellation of it below).
 				_modalState.Unlock(this);
-				if (issuedPause) {
+				if (context.IssuedPause) {
 					_commands.Push(new UnpauseCommand());
-					issuedPause = false;
+					context.IssuedPause = false;
 				}
+
 				await barrierTask;
-				_barrierHolder = null;
-				_isPlaying = false;
+			} catch (OperationCanceledException) {
+				// Expected on cancellation/detachment; FinishFlow below owns all cleanup.
 			} finally {
-				_barrierHolder?.CancelAll();
-				_barrierHolder = null;
-				_transitionView.Hide();
-				_modalState.Unlock(this);
-				if (issuedPause) {
-					_commands.Push(new UnpauseCommand());
-				}
-				if (_countryActionsView != null) {
-					_countryActionsView.SuppressRefresh = false;
-				}
-				_isPlaying = false;
-				OnCardPlayComplete?.Invoke();
+				FinishFlow(context);
 			}
 		}
 
@@ -437,6 +531,46 @@ namespace GS.Unity.UI {
 				}
 			}
 			return null;
+		}
+
+		// Holds exactly what one PlaySequence/PlayCountrySequence invocation needs for cancellation and
+		// invocation-safe cleanup - the transition view active when the flow started (which _transitionView
+		// may later be replaced out from under, via OnUIReload), the real source card element, the
+		// card-test-overlay/card-test-card elements from that flow's root, and the one org/country actions
+		// view whose refresh suppression this flow changed, plus its prior value.
+		sealed class FlowContext {
+			public CancellationTokenSource Cancellation { get; }
+			public UniTaskCompletionSource Completion { get; }
+			public CancellationToken Token => Cancellation.Token;
+			public CardTransitionView TransitionView { get; }
+			public VisualElement ClickedCard { get; }
+			public VisualElement Overlay { get; }
+			public VisualElement TestCard { get; }
+			public OrgActionsView OrgActionsView { get; }
+			public CountryActionsView CountryActionsView { get; }
+			public bool PriorSuppressRefresh { get; }
+			public bool IssuedPause { get; set; }
+
+			public FlowContext(
+				CancellationTokenSource cancellation,
+				UniTaskCompletionSource completion,
+				CardTransitionView transitionView,
+				VisualElement clickedCard,
+				VisualElement overlay,
+				VisualElement testCard,
+				OrgActionsView orgActionsView,
+				CountryActionsView countryActionsView,
+				bool priorSuppressRefresh) {
+				Cancellation = cancellation;
+				Completion = completion;
+				TransitionView = transitionView;
+				ClickedCard = clickedCard;
+				Overlay = overlay;
+				TestCard = testCard;
+				OrgActionsView = orgActionsView;
+				CountryActionsView = countryActionsView;
+				PriorSuppressRefresh = priorSuppressRefresh;
+			}
 		}
 	}
 }

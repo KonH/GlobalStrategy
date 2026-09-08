@@ -57,6 +57,7 @@ namespace GS.Unity.UI {
 		bool _started;
 		bool _startCalled;
 		int _enableGeneration;
+		int _reloadGeneration;
 		CountryConfig _countryConfig;
 		GameSettings _gameSettings;
 		UIPointerState _pointerState;
@@ -111,13 +112,44 @@ namespace GS.Unity.UI {
 		}
 
 		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
-			if (_started) {
+			int generation = ++_reloadGeneration;
+			bool wasStarted = _started;
+			CardDrawAnimator oldCardDrawAnimator = _cardDrawAnimator;
+
+			// Synchronously stop new work first, before any await: unsubscribe old view events/binders,
+			// and disable the old draw animator's restoration/resume barrier - mirrors OnDisable, for the
+			// same reason (an in-flight flow must not write through stale views while cleanup is pending).
+			if (wasStarted) {
 				UnsubscribeViewEvents();
 				if (_binders != null) {
 					foreach (var binder in _binders) {
 						binder.Unsubscribe();
 					}
 				}
+				oldCardDrawAnimator?.SetRestorationEnabled(false);
+				oldCardDrawAnimator?.EndResumeBarrier();
+			}
+
+			RebindRootAfterReloadAsync(generation, rootElement, wasStarted, oldCardDrawAnimator).Forget();
+		}
+
+		async UniTaskVoid RebindRootAfterReloadAsync(
+			int generation,
+			VisualElement rootElement,
+			bool wasStarted,
+			CardDrawAnimator oldCardDrawAnimator) {
+			if (wasStarted) {
+				await UniTask.WhenAll(
+					oldCardDrawAnimator?.CancelAndWaitAsync() ?? UniTask.CompletedTask,
+					_cardPlayAnimator?.CancelAndWaitAsync() ?? UniTask.CompletedTask);
+			}
+
+			// A newer reload arrived while this one's cancellation was pending - let it own the rebind.
+			if (generation != _reloadGeneration) {
+				return;
+			}
+
+			if (wasStarted) {
 				_tooltip = null;
 				_timeView = null;
 				_orgLensCountryView = null;
@@ -211,6 +243,7 @@ namespace GS.Unity.UI {
 				warId => _warProgressWindow?.Open(warId));
 			_warIconsView.Refresh(_state.WarIcons);
 			_actionLog = new ActionLogView(_root, _root.Q("action-log"), _root.Q("top-right-panel"), _loc, _countryVisualConfig, _orgVisualConfig);
+			_cardPlayAnimator?.BindRoot(_root);
 			_cardPlayAnimator?.SetCountryActionsView(_countryInfo.ActionsView);
 			_cardDrawOverlay = _root.Q("card-draw-overlay");
 			var cardDrawRow = _root.Q("card-draw-row");
@@ -308,7 +341,10 @@ namespace GS.Unity.UI {
 			_tutorialHighlightView?.Refresh(_state.ActiveTasks);
 			RefreshCountryViews();
 			RefreshProvinceInfoView();
-			_timeView.Refresh(_state.Time);
+			// Reload's rebind (OnUIReload -> RebindRootAfterReloadAsync) can still be pending an awaited
+			// old-flow cancellation when Unity fires OnEnable, so _timeView may not be bound yet on this
+			// pass - matches the null-safe style already used for every other view refresh above/below.
+			_timeView?.Refresh(_state.Time);
 			_actionLog?.Refresh(_state.GameLog);
 			_lastNotifiedLogSequenceId = HighestSequenceId(_state.GameLog);
 			if (_started) {
@@ -571,7 +607,7 @@ namespace GS.Unity.UI {
 			RefreshCountryViews();
 			_cardDrawAnimator?.RefreshPendingOfferPresentation();
 			RefreshProvinceInfoView();
-			_timeView.Refresh(_state.Time);
+			_timeView?.Refresh(_state.Time);
 		}
 
 		void HandleCountryActionCardClicked(

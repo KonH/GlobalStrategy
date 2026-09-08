@@ -27,6 +27,7 @@ namespace GS.Unity.UI {
 		readonly Func<string, VisualElement?> _resolveTarget;
 		IVisualElementScheduledItem? _animItem;
 		float _phase;
+		double _lastTickTimestamp;
 		string? _activeTargetId;
 
 		public TutorialHighlightView(VisualElement root, Func<string, VisualElement?> resolveTarget) {
@@ -66,10 +67,18 @@ namespace GS.Unity.UI {
 			if (_animItem != null) {
 				return;
 			}
+			// Seed the timestamp here (rather than lazily on the first tick) so the very first
+			// TickAnimation() call after (re)starting sees elapsed ~= 0 instead of jumping ahead.
+			_lastTickTimestamp = Time.realtimeSinceStartupAsDouble;
 			_animItem = _root.schedule.Execute(TickAnimation).Every(AnimIntervalMs);
 		}
 
 		void TickAnimation() {
+			double now = Time.realtimeSinceStartupAsDouble;
+			double elapsed = now - _lastTickTimestamp;
+			// Update the timestamp unconditionally, including when the target is temporarily
+			// unresolved, so reattachment doesn't accumulate an artificial elapsed-time jump.
+			_lastTickTimestamp = now;
 			if (string.IsNullOrEmpty(_activeTargetId)) {
 				Hide();
 				return;
@@ -80,7 +89,7 @@ namespace GS.Unity.UI {
 				return;
 			}
 			_arrow.style.display = DisplayStyle.Flex;
-			_phase = Mathf.Repeat(_phase + (AnimIntervalMs / CycleDurationMs), 1f);
+			_phase = Mathf.Repeat(_phase + (float)(elapsed / (CycleDurationMs / 1000.0)), 1f);
 			float travel = BounceEase(_phase) * TravelAmplitude;
 			PositionAt(target, travel);
 		}
@@ -180,6 +189,8 @@ namespace GS.Unity.UI {
 				_animItem = null;
 			}
 			_phase = 0f;
+			// Reset so EnsureAnimating() re-seeds a fresh "first callback" baseline next time.
+			_lastTickTimestamp = 0;
 		}
 	}
 }
