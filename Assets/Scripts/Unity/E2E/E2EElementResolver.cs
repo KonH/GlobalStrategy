@@ -32,7 +32,7 @@ namespace GS.Unity.E2E {
 		const int OfferCap = 40;
 
 		public static PanelRenderer[] LiveDocuments() {
-			var found = UnityEngine.Object.FindObjectsByType<PanelRenderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+			var found = UnityEngine.Object.FindObjectsByType<PanelRenderer>(FindObjectsInactive.Exclude);
 			Array.Sort(found, (a, b) => b.sortingOrder.CompareTo(a.sortingOrder));
 			return found;
 		}

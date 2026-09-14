@@ -37,7 +37,7 @@ namespace GS.Unity.UI {
 				if (_container.childCount > 0) {
 					chip.Chip.AddToClassList("resource-row--spaced");
 				}
-				string iconClass = resourceDefinition != null && !string.IsNullOrEmpty(resourceDefinition.Icon)
+				string? iconClass = resourceDefinition != null && !string.IsNullOrEmpty(resourceDefinition.Icon)
 					? $"resource-icon--{resourceDefinition.Icon}"
 					: null;
 				ResourceChipBuilder.Bind(chip, iconClass, FormatResourceValue(resource.Value.Display));
@@ -188,7 +188,7 @@ namespace GS.Unity.UI {
 				TooltipBodyBuilder.LineTone tone = effect.Value > 0
 					? TooltipBodyBuilder.LineTone.Positive
 					: effect.Value < 0 ? TooltipBodyBuilder.LineTone.Negative : TooltipBodyBuilder.LineTone.Neutral;
-				string description = effectDef != null ? _loc.Get(effectDef.DescriptionKey) : null;
+				string? description = effectDef != null ? _loc.Get(effectDef.DescriptionKey) : null;
 				TooltipBodyBuilder.AddEffectRow(root, $"{effectName}: {sign}{effect.Value:F1}/month", description, tone);
 			}
 
@@ -229,7 +229,7 @@ namespace GS.Unity.UI {
 				TooltipBodyBuilder.LineTone tone = effect.Value > 0
 					? TooltipBodyBuilder.LineTone.Positive
 					: effect.Value < 0 ? TooltipBodyBuilder.LineTone.Negative : TooltipBodyBuilder.LineTone.Neutral;
-				string description = effectDef != null ? _loc.Get(effectDef.DescriptionKey) : null;
+				string? description = effectDef != null ? _loc.Get(effectDef.DescriptionKey) : null;
 				TooltipBodyBuilder.AddEffectRow(root, $"{effectName}: {sign}{effect.Value:F1} instant", description, tone);
 			}
 

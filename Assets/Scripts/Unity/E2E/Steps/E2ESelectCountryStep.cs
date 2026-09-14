@@ -11,7 +11,7 @@ namespace GS.Unity.E2E {
 				yield break;
 			}
 
-			var cameras = Object.FindObjectsByType<MapCameraController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+			var cameras = Object.FindObjectsByType<MapCameraController>(FindObjectsInactive.Exclude);
 			MapCameraController camera = null;
 			for (int i = 0; i < cameras.Length; i++) {
 				if (cameras[i] != null && cameras[i].isActiveAndEnabled) {

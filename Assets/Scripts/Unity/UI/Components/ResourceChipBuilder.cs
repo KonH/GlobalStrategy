@@ -1,3 +1,4 @@
+#nullable enable
 using UnityEngine.UIElements;
 
 namespace GS.Unity.UI {
@@ -27,7 +28,7 @@ namespace GS.Unity.UI {
 			return new Elements { Chip = chip, Icon = icon, Label = label };
 		}
 
-		public static void Bind(Elements elements, string iconClass, string text) {
+		public static void Bind(Elements elements, string? iconClass, string text) {
 			elements.Icon.ClearClassList();
 			elements.Icon.AddToClassList("resource-chip-icon");
 			if (!string.IsNullOrEmpty(iconClass)) {

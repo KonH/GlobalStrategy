@@ -1,3 +1,4 @@
+#nullable enable
 using UnityEngine.UIElements;
 
 namespace GS.Unity.UI {
@@ -46,7 +47,7 @@ namespace GS.Unity.UI {
 		}
 
 		/// <summary>A tinted name line plus an optional description line underneath, both wrapped in tooltip-effect-row.</summary>
-		public static VisualElement AddEffectRow(VisualElement root, string text, string description, LineTone tone = LineTone.Neutral) {
+		public static VisualElement AddEffectRow(VisualElement root, string text, string? description, LineTone tone = LineTone.Neutral) {
 			var row = new VisualElement();
 			row.AddToClassList("tooltip-effect-row");
 

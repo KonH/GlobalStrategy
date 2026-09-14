@@ -70,9 +70,8 @@
     border-color: var(--gs-panel-border);
 }
 
-/* .goals-header-*/.goals-row-* used to share width rules with the row's own place/flag/name/score
-   classes. Rows now build as the shared RankRow component (rank-row-*, Components.uss) - the
-   header keeps its own matching widths here so the columns still line up. */
+/* Header place/flag/name/score widths match RankRow (rank-row-* in Components.uss)
+   so the columns still line up. */
 .goals-header-place {
     width: 70px;
     -unity-text-align: middle-center;
