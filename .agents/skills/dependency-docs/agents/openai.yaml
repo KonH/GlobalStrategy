@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dependency Docs"
+  short_description: "Find version-matched Unity and library docs"
+  default_prompt: "Use $dependency-docs to verify this API against the dependency version installed by the project."

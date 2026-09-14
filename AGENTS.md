@@ -42,6 +42,7 @@
 - **Flag & org image assets:** `.claude/rules/flag_assets.md`
 - **Temporary scripts:** `.claude/rules/temp_scripts.md`
 - **Learning workflow:** `.claude/commands/learn.md`
+- **External dependency documentation:** `dependency-docs` skill — resolve installed Unity/package versions, inspect exact local package docs first, then use official web documentation or the optional Context7 CLI
 - **Shared Codex workflows:** project marketplace installs `cd@codex-tools`; thin adapters under `.agents/skills/` keep GlobalStrategy policy local and delegate generic mechanics to `cd:*`
 - **Codex issue automation:** `.agents/skills/codex-issue/SKILL.md` owns the GlobalStrategy-specific lifecycle
 - **Cursor issue automation:** `.cursor/commands/cursor-issue.md` — executes owner prompts from `cursor`-labeled GitHub issues and PRs through `scripts/automation/cursor/handle_issues.py`
