@@ -11,8 +11,8 @@ namespace GS.Unity.Gallery {
 	/// phase 7): MainMenuDocument, GameMenuDocument, SettingsWindowDocument, LoadWindowDocument,
 	/// SelectOrgDocument. (OrgInfoDocument's block, OrgInfoGalleryBlock, already landed in the
 	/// "Hand/deck and animation blocks" batch, in HandDeckGalleryBlocks.cs.) Same approach as the
-	/// other window blocks: clone the real named root out of its own UXML via
-	/// HudGalleryPreview.CloneNamed, construct the plain view class the real document now uses, and
+	/// other window blocks: preserve the full UXML tree and stylesheets via
+	/// HudGalleryPreview.CloneSurface, construct the plain view class the real document now uses, and
 	/// feed it hand-built sample data — no running game, no ECS world, no save.
 	/// </summary>
 	public class MainMenuGalleryBlock : GalleryBlockBase {
@@ -34,7 +34,7 @@ namespace GS.Unity.Gallery {
 		}
 
 		protected override void Render(VisualElement stage, string instanceId, int stateIndex) {
-			VisualElement root = HudGalleryPreview.CloneNamed(_mainMenuUxml, "main-menu-root", resetToRelative: false);
+			VisualElement root = HudGalleryPreview.CloneSurface(_mainMenuUxml, "main-menu-root");
 			if (root == null) {
 				return;
 			}
@@ -65,7 +65,7 @@ namespace GS.Unity.Gallery {
 		}
 
 		protected override void Render(VisualElement stage, string instanceId, int stateIndex) {
-			VisualElement root = HudGalleryPreview.CloneNamed(_gameMenuUxml, "game-menu-root", resetToRelative: false);
+			VisualElement root = HudGalleryPreview.CloneSurface(_gameMenuUxml, "game-menu-root");
 			if (root == null) {
 				return;
 			}
@@ -94,7 +94,7 @@ namespace GS.Unity.Gallery {
 		}
 
 		protected override void Render(VisualElement stage, string instanceId, int stateIndex) {
-			VisualElement root = HudGalleryPreview.CloneNamed(_settingsWindowUxml, "settings-window-root", resetToRelative: false);
+			VisualElement root = HudGalleryPreview.CloneSurface(_settingsWindowUxml, "settings-window-root");
 			if (root == null) {
 				return;
 			}
@@ -127,7 +127,7 @@ namespace GS.Unity.Gallery {
 		}
 
 		protected override void Render(VisualElement stage, string instanceId, int stateIndex) {
-			VisualElement root = HudGalleryPreview.CloneNamed(_loadWindowUxml, "load-window-root", resetToRelative: false);
+			VisualElement root = HudGalleryPreview.CloneSurface(_loadWindowUxml, "load-window-root");
 			if (root == null) {
 				return;
 			}
@@ -164,7 +164,7 @@ namespace GS.Unity.Gallery {
 		}
 
 		protected override void Render(VisualElement stage, string instanceId, int stateIndex) {
-			VisualElement root = HudGalleryPreview.CloneNamed(_selectCountryUxml, "select-country-root", resetToRelative: false);
+			VisualElement root = HudGalleryPreview.CloneSurface(_selectCountryUxml, "select-country-root");
 			if (root == null) {
 				return;
 			}

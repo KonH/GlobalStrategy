@@ -14,6 +14,26 @@ namespace GS.Unity.Gallery {
 	/// gives it real dimensions to be absolute/percentage-relative against, matching production.
 	/// </summary>
 	static class HudGalleryPreview {
+		// Keep the document container: UXML-level stylesheets live on it, not on the
+		// named window root. Detaching that root loses the window's layout and sizing.
+		public static VisualElement CloneSurface(VisualTreeAsset sourceUxml, string name) {
+			if (sourceUxml == null) {
+				return null;
+			}
+			VisualElement document = sourceUxml.CloneTree();
+			VisualElement window = document.Q(name);
+			if (window == null) {
+				return null;
+			}
+			window.style.display = DisplayStyle.Flex;
+			document.style.position = Position.Absolute;
+			document.style.left = 0;
+			document.style.right = 0;
+			document.style.top = 0;
+			document.style.bottom = 0;
+			return document;
+		}
+
 		public static VisualElement CloneNamed(VisualTreeAsset sourceUxml, string name, bool resetToRelative = true) {
 			if (sourceUxml == null) {
 				return null;

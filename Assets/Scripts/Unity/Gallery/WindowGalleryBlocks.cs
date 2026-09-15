@@ -13,10 +13,8 @@ namespace GS.Unity.Gallery {
 	/// phase 7): LeaderboardWindow, GoalsWindow, WarProgressWindow (+ its WarProgressLayout subtree,
 	/// authored inline in both WarProgressWindow.uxml and WarResultWindow.uxml per the plan's spec-correction
 	/// note), WarResultWindow, EndGameWindow, CountryDestroyedWindow, OrgDestroyedWindow. Each clones its own
-	/// window's full root out of its own UXML via HudGalleryPreview.CloneNamed - the same helper the HUD panel
-	/// blocks use, since these window roots are the same shape of "absolutely-positioned full-screen overlay
-	/// that needs position:Relative to preview inside a small gallery-stage" problem HudGalleryPreview already
-	/// solves - and constructs the same document-less View class the real window Document builds, fed
+	/// complete UXML via HudGalleryPreview.CloneSurface, preserving its stylesheet container and authored
+	/// full-screen layout, and constructs the same document-less View class the real window Document builds, fed
 	/// hand-built VisualState substates from HudSampleData. No running game, no ECS world, no save.
 	///
 	/// Window Documents now bind through PanelRenderer.RegisterUIReloadCallback (phase 6 go/no-go passed).
@@ -48,7 +46,7 @@ namespace GS.Unity.Gallery {
 		}
 
 		protected override void Render(VisualElement stage, string instanceId, int stateIndex) {
-			VisualElement root = HudGalleryPreview.CloneNamed(_windowUxml, "leaderboard-root", resetToRelative: false);
+			VisualElement root = HudGalleryPreview.CloneSurface(_windowUxml, "leaderboard-root");
 			if (root == null) {
 				return;
 			}
@@ -80,7 +78,7 @@ namespace GS.Unity.Gallery {
 		}
 
 		protected override void Render(VisualElement stage, string instanceId, int stateIndex) {
-			VisualElement root = HudGalleryPreview.CloneNamed(_windowUxml, "goals-root", resetToRelative: false);
+			VisualElement root = HudGalleryPreview.CloneSurface(_windowUxml, "goals-root");
 			if (root == null) {
 				return;
 			}
@@ -117,7 +115,7 @@ namespace GS.Unity.Gallery {
 		}
 
 		protected override void Render(VisualElement stage, string instanceId, int stateIndex) {
-			VisualElement root = HudGalleryPreview.CloneNamed(_windowUxml, "war-progress-root", resetToRelative: false);
+			VisualElement root = HudGalleryPreview.CloneSurface(_windowUxml, "war-progress-root");
 			if (root == null) {
 				return;
 			}
@@ -159,7 +157,7 @@ namespace GS.Unity.Gallery {
 		}
 
 		protected override void Render(VisualElement stage, string instanceId, int stateIndex) {
-			VisualElement root = HudGalleryPreview.CloneNamed(_windowUxml, "war-result-root", resetToRelative: false);
+			VisualElement root = HudGalleryPreview.CloneSurface(_windowUxml, "war-result-root");
 			if (root == null) {
 				return;
 			}
@@ -197,7 +195,7 @@ namespace GS.Unity.Gallery {
 		}
 
 		protected override void Render(VisualElement stage, string instanceId, int stateIndex) {
-			VisualElement root = HudGalleryPreview.CloneNamed(_windowUxml, "end-game-root", resetToRelative: false);
+			VisualElement root = HudGalleryPreview.CloneSurface(_windowUxml, "end-game-root");
 			if (root == null) {
 				return;
 			}
@@ -258,7 +256,7 @@ namespace GS.Unity.Gallery {
 		}
 
 		protected override void Render(VisualElement stage, string countryId, int stateIndex) {
-			VisualElement root = HudGalleryPreview.CloneNamed(_windowUxml, "country-destroyed-root", resetToRelative: false);
+			VisualElement root = HudGalleryPreview.CloneSurface(_windowUxml, "country-destroyed-root");
 			if (root == null) {
 				return;
 			}
@@ -299,7 +297,7 @@ namespace GS.Unity.Gallery {
 		}
 
 		protected override void Render(VisualElement stage, string orgId, int stateIndex) {
-			VisualElement root = HudGalleryPreview.CloneNamed(_windowUxml, "org-destroyed-root", resetToRelative: false);
+			VisualElement root = HudGalleryPreview.CloneSurface(_windowUxml, "org-destroyed-root");
 			if (root == null) {
 				return;
 			}

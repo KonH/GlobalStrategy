@@ -42,8 +42,7 @@ namespace GS.Unity.Gallery {
 		// the same way - OrgInfo.uxml is a separate PanelRenderer, not part of HUD.uxml's tree.
 		[SerializeField] VisualTreeAsset _orgInfoUxml;
 		// "The seven windows that already have a view" gallery blocks (phase 7) - each window's own
-		// full UXML, cloned via HudGalleryPreview.CloneNamed the same way the HUD panel blocks clone
-		// out of HUD.uxml (these window roots are the same "absolute full-screen overlay" shape).
+		// full UXML, preserved with its stylesheet container via HudGalleryPreview.CloneSurface.
 		[SerializeField] VisualTreeAsset _leaderboardWindowUxml;
 		[SerializeField] VisualTreeAsset _goalsWindowUxml;
 		[SerializeField] VisualTreeAsset _warProgressWindowUxml;
@@ -185,7 +184,7 @@ namespace GS.Unity.Gallery {
 		/// <summary>
 		/// Switches the whole Gallery view into full-screen focus mode, showing `block` rendered into
 		/// the shared _focusContent container instead of gallery-scroll's small inline stage.
-		/// _focusContent is a true full-panel-size, position:Relative sibling of gallery-scroll (see
+		/// _focusContent fills the viewport beneath the overlaid navigation bar (see
 		/// Gallery.uss ".gallery-focus-content"), so real UI content dropped into it resolves
 		/// width:100%/height:100%/absolute layout against the TRUE full Gallery panel size - the same
 		/// rendering context production windows get against hud-root, not a clone nested inside

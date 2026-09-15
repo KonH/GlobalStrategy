@@ -236,10 +236,29 @@ namespace GS.Unity.Gallery {
 				_loc, _actionConfig, _actionVisualConfig, _countryVisualConfig, entry);
 
 			var view = new CardTransitionView(overlay);
-			var fromRect = new Rect(0, 40, 240, 360);
-			// duration 0 lands the card copy immediately - the "static frame" this class has no
-			// rest state of its own beyond, since its entire purpose is the flying animation.
-			view.ShowCountry(face, fromRect, destination, 0f, CancellationToken.None).Forget();
+			// Collapsed foldouts are built at startup but have no layout. Wait for the
+			// destination to be laid out before starting the transition's geometry timeout.
+			bool started = false;
+			EventCallback<GeometryChangedEvent> onReady = null;
+			void BeginWhenReady() {
+				if (started || destination.panel == null ||
+					!(destination.worldBound.width > 0f && destination.worldBound.height > 0f)) {
+					return;
+				}
+				started = true;
+				destination.UnregisterCallback(onReady);
+				Vector2 fromWorld = overlay.LocalToWorld(new Vector2(0f, 40f));
+				var fromRect = new Rect(fromWorld.x, fromWorld.y, 240f, 360f);
+				// Duration zero leaves a static copy at the destination for inspection.
+				view.ShowCountry(face, fromRect, destination, 0f, CancellationToken.None).Forget();
+			}
+			onReady = _ => BeginWhenReady();
+			destination.RegisterCallback(onReady);
+			overlay.RegisterCallback<DetachFromPanelEvent>(_ => {
+				destination.UnregisterCallback(onReady);
+				view.Hide();
+			});
+			BeginWhenReady();
 		}
 
 		string FirstCountryActionId() {
@@ -528,7 +547,7 @@ namespace GS.Unity.Gallery {
 		}
 
 		protected override void Render(VisualElement stage, string instanceId, int stateIndex) {
-			VisualElement root = HudGalleryPreview.CloneNamed(_orgInfoUxml, "org-info-root", resetToRelative: false);
+			VisualElement root = HudGalleryPreview.CloneSurface(_orgInfoUxml, "org-info-root");
 			if (root == null || _resourceConfig == null || _characterConfig == null) {
 				return;
 			}

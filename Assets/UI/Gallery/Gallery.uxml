@@ -21,11 +21,11 @@
             <ui:VisualElement name="gallery-blocks" class="gallery-blocks" />
         </ui:ScrollView>
         <ui:VisualElement name="gallery-focus-root" class="gallery-focus-root">
+            <ui:VisualElement name="gallery-focus-content" class="gallery-focus-content" />
             <ui:VisualElement name="gallery-focus-bar" class="gallery-focus-bar">
                 <ui:Button text="Back to Gallery" name="gallery-focus-back-button" class="gs-btn gs-btn--small gallery-focus-back-button" />
                 <ui:Label text="" name="gallery-focus-title" class="gs-header gallery-focus-title" />
             </ui:VisualElement>
-            <ui:VisualElement name="gallery-focus-content" class="gallery-focus-content" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
