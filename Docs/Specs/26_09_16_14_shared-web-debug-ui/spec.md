@@ -1,0 +1,183 @@
+# Spec: Shared Web Debug UI
+
+## Feature Intent
+
+As the game's developer, I want one shared Blazor debug UI — ECS inspector, time controls, game event log, command terminal, and freeze-tick — used by the standalone browser client, the Unity Editor, and ConsoleRunner, so that I can inspect and drive a live simulation from every host without maintaining two inspector frontends, while the standalone client keeps its existing menu, org-select, settings, and in-game pause-menu behaviour.
+
+## Acceptance Criteria
+
+Legend: `Precondition => Action => Outcome`, grouped under a shared precondition where one applies to several rows.
+
+- The standalone browser client is opened (screen A — main menu).
+  - The main menu renders => NEW GAME, CONTINUE, and SETTINGS entries are visible.
+  - No save exists in this browser => CONTINUE is not available (hidden or disabled); NEW GAME and SETTINGS still work.
+  - At least one save (manual or auto) exists => CONTINUE is available.
+  - CONTINUE is activated => the most recent save loads directly into the shared game view (screen C) with its organization, game date, and game state restored — no save-picker appears; language and auto-save interval still follow the app's own settings, not values stored in the save.
+  - NEW GAME is activated => the organization selection screen (screen B) opens.
+  - SETTINGS is activated => the settings screen opens.
+- The settings screen is open.
+  - A language (English / Russian) is chosen => all currently visible UI text switches to that language immediately, and the choice survives a page reload.
+  - An auto-save interval (daily / monthly / yearly) is chosen => the choice survives a page reload and is applied to every session started afterwards, whether via NEW GAME or CONTINUE.
+  - Settings are changed and a game is later loaded via CONTINUE => the session uses the app settings; nothing stored inside the save overrides them.
+  - Back is activated => the main menu (screen A) is shown again with the chosen language applied.
+- The organization selection screen (screen B) is shown.
+  - The screen renders => a dropdown lists every playable organization by its display name.
+  - An organization is selected and confirmed => a new game starts in the shared game view (screen C) as that organization, at the configured start date, running unpaused at normal (x1) speed.
+- Any standalone menu or game screen of the app is shown (A, B, C, or D).
+  - The page header renders => a warning is visible stating this is an experimental version, with a link to the full client; activating the link opens the full client.
+  - The page footer renders => a copyright note and a link to the project's GitHub repository are visible; activating the link opens the repository.
+  - The language is switched => the header warning and footer text follow the selected language.
+- A game is running in the standalone shared game view (screen C).
+  - The view renders => MENU, Play/Pause, x1/x2/x3 speed buttons, the current game date, a freeze-tick control, the actions log, the terminal, and the ECS inspector are all visible; the active speed button is visually highlighted; there is no map.
+  - MENU is visible and can be opened => the in-game pause menu (screen D) appears with the current standalone save/exit behaviour.
+  - Play/Pause, speed, date, log, terminal, freeze-tick, and the ECS inspector all remain usable from this same view.
+- A game is running in the standalone shared game view and MENU is used to open the in-game pause menu (screen D).
+  - The menu renders => SAVE and EXIT entries are visible; the game behind it is unaffected until one is chosen (aside from the existing in-game time pause that opening MENU already applies).
+  - SAVE is activated (running or time-paused) => the game is saved in this browser's storage and a success/failure notice is shown.
+  - EXIT is activated => the app returns to the main menu (screen A) without saving implicitly.
+  - The player saves, exits, then activates CONTINUE => the game view reopens with exactly the saved organization, game date, and state.
+  - The player makes progress after the last save and exits without saving => CONTINUE returns to the last saved state; the unsaved progress is lost (accepted debug behaviour).
+- The Unity Editor is running a game (not a WebGL build; desktop player builds are not a deliverable).
+  - The ECS viewer debug button is activated => the system browser opens the shared game view (`?host=remote`) against the live Unity simulation (not an in-editor embedded browser).
+  - The shared view renders => Play/Pause, x1/x2/x3, the current game date, freeze-tick, the actions log, the terminal, and the ECS inspector are visible.
+  - The shared view is inspected for a MENU / pause-menu control => none is present; Unity's own native pause/save UI is unchanged and remains the way to save or exit.
+  - Freeze-tick is present and distinct from Play/Pause.
+- A Unity WebGL build is running.
+  - The HUD debug panel is shown => the ECS viewer debug button stays hidden; this web UI is not offered.
+- ConsoleRunner is started in interactive mode (not a headless/war/calibration verb).
+  - Startup completes => a localhost URL is printed, as today.
+  - That URL is opened in a system browser => the shared game view loads against the live ConsoleRunner simulation, with Play/Pause, speed, date, freeze-tick, log, terminal, and ECS inspector, and with no MENU / pause-menu / org-select / settings screens added to ConsoleRunner.
+  - The process is left running without pressing Enter => game date, log, terminal commands, and time controls still advance and respond (wall-clock loop; Enter-to-step is gone).
+  - Freeze-tick is turned on => that wall-clock loop stops advancing the simulation until freeze is cleared.
+- A shared game view is showing on any host (standalone, Unity, or ConsoleRunner).
+  - Play is pressed while time is paused => in-game time resumes from the same date; the simulation host keeps running so commands, saves, and HUD/log updates still occur.
+  - Pause is pressed while time is playing => the game date stops advancing; commands, saves, and HUD/log updates still occur.
+  - x2 or x3 is pressed => the game date advances proportionally faster; x1 returns to normal speed; the highlighted button follows the selection.
+  - Freeze-tick is turned on => the host simulation loop stops; the game date, log, and terminal output stop updating until freeze is cleared; Play/Pause is not this control and is not labelled freeze (or vice versa).
+  - Freeze-tick is on and an inspector field is edited => the edit still applies to the frozen world and is visible in the inspector; unfreezing then continues from that edited state.
+  - Freeze-tick is on and a terminal command is submitted => the terminal does not keep applying/simulating that command until freeze is cleared (the host loop is stopped); the command is not lost on a racy background thread.
+  - The win/lose objective is reached (standalone) => the simulation freezes in the existing completion sense, a plain completion status (win or lose, and the winning organization) is shown, and further speed/gameplay input has no effect; saving still works.
+- The actions log is visible in the shared game view.
+  - A loggable event occurs (country discovered, control increased, opinion increased, new character in a role) => a new line appears at the bottom of the log with the same wording, line formats, and number formatting as the Unity action log, in the current language.
+  - The log reaches its configured maximum entry count => the oldest line is removed so the cap is never exceeded, newest entries stay visible at the bottom.
+  - A standalone game is loaded via CONTINUE => the log starts empty for that session; no historical events replay from the save.
+- The terminal is focused in the shared game view (any host).
+  - The input is empty and Tab is pressed => a list of all available commands is shown; picking one fills the input with that command's name.
+  - A partial command name is typed and Tab is pressed => the list filters to matching commands; a single remaining match completes inline.
+  - A complete command name is entered and Tab is pressed => the command's argument names are suggested and the picked one is inserted as `argName=`.
+  - The cursor sits after `argName=` (with or without a partial value) and Tab is pressed => labeled value suggestions from live game data appear (e.g. `CountryName1 (CountryId1)`); picking one inserts the underlying id value.
+  - An argument's type is a fixed set of choices (e.g. an enum) => its possible values are suggested without any extra setup.
+  - The input matches no command, argument, or value and Tab is pressed => nothing is suggested and nothing breaks.
+  - A valid command with valid arguments is submitted while the host is not freeze-ticked => it takes effect in the running game on the next update, observable in the UI (e.g. pausing in-game time, changing gold, switching language).
+  - An unknown command, a malformed argument, or a missing required argument is submitted => a friendly error line is printed in the terminal and the game is unaffected.
+  - A new command type is added to the game code and a new web build is published => the command, its arguments, and its value auto-complete appear in the terminal with zero extra web-client UI code.
+- The ECS inspector is visible in the shared game view and an entity is selected.
+  - A component field whose type is an enum (e.g. owner kind on a resource owner) is shown => the current member is displayed by readable name, not a raw integer, and the editor is a dropdown of those names.
+  - A string field that stores a domain id (country, org, province, action, role, locale, resource, character, war, battle, effect, task, collector, or owner id) is shown => it behaves as a dropdown, not a free-text box.
+  - That domain-id dropdown is opened => options include the relevant config catalog plus live values currently present in the world (including generated ids such as per-country control resources, per-org opinion resources, character skill resource ids, and generated effect/war ids).
+  - An owner-id field that sits beside an owner-kind enum is shown => the dropdown follows that sibling kind when it is present; if not, it offers the live union of matching ids.
+  - An owner-id field that can be either a country or an org (character slot owner) is shown => the dropdown is the country-or-org union.
+  - A domain-id field that allows empty (character org id; character-slot character id) is shown => the dropdown includes an empty option.
+  - A numeric field is shown => it is an HTML number input.
+  - A component that has a large nested blob (proximity distances, resource-change history, war-resolved snapshot lists, bot action-log lines) is listed on the entity => the component name is still present; those nested blob fields are absent from the inspector (no nested editors).
+  - The inspector is used on current game data => no entity-id hyperlink / entity-ref editor appears, because game components do not store entity ids.
+- The ECS inspector filter bar is visible.
+  - Existing +/- component-type require/exclude chips are used => entities are kept or dropped by presence/absence of those component types, as today.
+  - An entity-id filter is left empty => it imposes no id constraint.
+  - Digits are typed into the entity-id filter (e.g. `12`) => only entities whose decimal id contains those digits remain (so `12` matches 12, 120, and 512).
+  - One or more field-filter rows are added => each row picks a required component type, then one of that type's fields, then a required value.
+  - A field-filter row targets an enum => the value editor is a dropdown of member names.
+  - A field-filter row targets a number => the row can be set to exact value, or to min/max bounds.
+  - A field-filter row targets a string (including domain ids) => the row can be set to exact, contains, or regex.
+  - Several field-filter rows are completed, together with +/- component filters and/or the entity-id filter => a visible entity must satisfy every completed constraint (they AND together).
+  - A field-filter row is empty or incomplete (missing type, field, or value) => that row is ignored; other filters still apply.
+  - A regex field-filter row has an invalid pattern => a visible error is shown on that row, and that row does not filter until the pattern is valid.
+- The standalone WASM site is published and opened without a remote-host flag.
+  - Menu routes work as today => main menu, org select, settings, then the shared view after start/continue.
+- The same published WASM is opened from Unity or ConsoleRunner as the remote debug UI.
+  - Menu / org-select / settings routes are not used as the landing UI => the shared game view loads against the remote simulation.
+- Vanilla inspector assets are considered after this feature.
+  - Unity or ConsoleRunner is used to inspect a live game => the shared Blazor UI is what appears; the old single-page inspector HTML/JS is no longer the frontend for those hosts.
+
+## Tech Notes
+
+- Shared Blazor surface and host facade:
+  - One `src/Game.WebClient/` Blazor WASM app (existing `.NET 8` project, `PublishTrimmed=false`) serves every host. Do not split thin/fat publishes. Pages deploy of standalone WASM (`.github/workflows/deploy-web-client.yml`, `dotnet publish src/Game.WebClient`) stays; this feature is the unified debug UI, not a second site.
+  - Extract shared Razor used by the in-game view from `src/Game.WebClient/Pages/Game.razor` into reusable pieces: toolbar (Play/Pause, x1/x2/x3, date), freeze-tick control, `src/Game.WebClient/Components/ActionsLog.razor`, `src/Game.WebClient/Components/Terminal.razor`, and a new ECS inspector panel (replacing `src/ECS.Viewer.Server/Web/index.html` + `app.js`). Keep `Game.razor` as the standalone composition of those pieces plus MENU.
+  - Introduce an `IGameClient` (or equivalent) facade in the web client:
+    - **In-process** implementation wraps the existing `src/Game.WebClient/Services/GameSession.cs` (`StartNew` / `ContinueLatest`, ~30 Hz `PeriodicTimer` loop calling `BotSession.Update`, `Ticked` for `StateHasChanged`).
+    - **Remote** implementation talks HTTP to Unity / ConsoleRunner (HUD, snapshot, command, suggest, freeze).
+  - Host capability flags on that facade: `ShowPauseMenu` is **true only for standalone WASM**; Unity and ConsoleRunner remote sessions set it false so MENU and screen D are not rendered. Other flags as needed (e.g. whether in-process saves exist).
+  - Remote landing: Unity Editor and ConsoleRunner serve published Blazor from `.tmp/web-debug-ui` (plugin-regen publishes it; never `StreamingAssets`). Every remote URL includes `?host=remote`. `src/Game.WebClient/App.razor` / the game page skip menu routes (`/` `MainMenu.razor`, `/org-select`, `/settings`) and open the shared view bound to the remote client. Standalone without that flag keeps `Game.razor`'s existing `GameSession.Logic == null => NavigateTo("/")` guard; that redirect must not run when `host=remote`.
+  - `src/Game.WebClient/Layout/MainLayout.razor` header/footer remain the standalone chrome; remote mode may keep them (same WASM) but must not grow a ConsoleRunner/Unity main menu.
+- Standalone screens preserved (screens A/B/D, settings, header/footer):
+  - `Pages/MainMenu.razor`, `Pages/OrgSelect.razor`, `Pages/Settings.razor`, `Services/AppPreferences.cs`, `Services/BrowserStorage.cs`, `Services/GameSession.cs` CONTINUE/`SaveFileManager.GetLastSave()` behaviour is unchanged.
+  - MENU on `Game.razor` still pushes `PauseCommand`, opens the overlay with `game_menu.save` / `game_menu.exit`, `SaveGameCommand` + `VisualState.SaveResult`, and `GameSession.Dispose()` + `NavigateTo("/")` on exit.
+- Two pause concepts — must stay distinct in the UI and in the APIs:
+  - **Play/Pause** on the toolbar = in-game time pause: `PauseCommand` / `UnpauseCommand` via `IWriteOnlyCommandAccessor`, same as `Game.razor` `OnPauseToggle`. `GameLogic.Update` / `BotSession.Update` **keep running** so `ProcessSaveCommands`, terminal `CommandExecutor`, and HUD stay live. Button state and the date label read `VisualState.Time` (`CurrentTime`, `IsPaused`, `MultiplierIndex`). Speed buttons push `ChangeTimeMultiplierCommand(index)` indexing `GameSettings.SpeedMultipliers`.
+  - **Freeze-tick** = `src/ECS.Viewer/PauseToken.cs` (`IsPaused`). Label it freeze, never as the same Pause button. The vanilla inspector's `#pauseBtn` (`Pause` / `Resume` in `src/ECS.Viewer.Server/Web/app.js`) is this token today and must be renamed/replaced so it is not confused with Play/Pause.
+  - Freeze stops the **host loop**, not `GameTime.IsPaused`: `Assets/Scripts/Unity/DI/GameLoopRunner.cs` already `return`s from `Tick()` when `_pauseToken.IsPaused` (skipping `_botSession.UpdateLogic` / `UpdateVisualState`). ConsoleRunner's new wall-clock loop must do the same. Standalone `GameSession.RunLoopAsync` gains the same `PauseToken` early-out so freeze exists on WASM too.
+  - While frozen, HUD/log/terminal output freeze because `GameLogic` is not ticking. The marshal queue (below) still runs on the simulation thread so inspector **PATCH** can edit the frozen `World`. Terminal `POST /command` may enqueue through `CommandAccessor.Push` but is not consumed until unfrozen (`GameLogic.Update` is the consumer).
+- Unity host:
+  - `Assets/Scripts/Unity/DebugTools/DebugPanelDocument.cs` `OpenEcsViewer` already `Application.OpenURL(EcsViewerBridge.CurrentUrl)` — keep **external system browser**, no in-Editor/in-player WebView.
+  - `#if UNITY_WEBGL && !UNITY_EDITOR` continues to hide `btn-ecs-viewer`. `EcsViewerBridge` already compiles the listener out on WebGL (`#if !UNITY_WEBGL || UNITY_EDITOR`). HttpListener is unavailable in WebGL; that remains unsupported.
+  - `EcsViewerBridge` stops serving `StreamingAssets/EcsViewer/index.html` + `app.js`. It serves published Blazor from `.tmp/web-debug-ui` plus the unified HTTP API. URL logged as `[ECS Viewer] http://localhost:{port}?host=remote`.
+  - Unity's native HUD / pause menu is unchanged except that this debug button opens the new UI.
+- ConsoleRunner interactive host:
+  - `src/Game.ConsoleRunner/Program.cs` `RunInteractive` today Enter-to-steps `logic.Update(1f)` while `ViewerServer` serves vanilla HTML. Replace that with a wall-clock loop equivalent to `GameSession` (~30 Hz elapsed seconds into `BotSession`/`GameLogic.Update`) so Play/Pause, speed, terminal, and the log actually work. `PauseToken` still skips that loop. Print `http://localhost:{port}?host=remote`. Serve Blazor from `.tmp/web-debug-ui`. Do not add main menu / org-select / settings. Headless / `war-scenarios` / `war-idea` / `calibrate-end-game` verbs are untouched.
+- Unified HTTP API and one request handler:
+  - Today `src/ECS.Viewer.Server/ViewerServer.cs` (net8.0, `System.Text.Json`, embedded `Web/index.html` + `app.js`) and `Assets/Scripts/Unity/EcsViewer/EcsViewerBridge.cs` (Unity `HttpListener` + Newtonsoft, files from `Application.streamingAssetsPath/EcsViewer`) duplicate `GET /`, `GET /app.js`, `GET /snapshot`, `GET|POST /pause`, `PATCH /entity/{id}/component/{typeName}`. After this feature both listeners serve `.tmp/web-debug-ui` through the shared handler.
+  - Extract one **netstandard2.1** request handler (path/method dispatch + JSON bodies) so endpoints are not copied twice. Unity still uses `HttpListener` (available on Editor/desktop); ConsoleRunner hosts the same handler (its current `ViewerServer` listener loop can remain as a net8 host wrapper). Static Blazor files replace the embedded vanilla resources.
+  - Expand the API:
+    - `GET /hud` — cheap: `VisualState.Time` (date, `IsPaused`, `MultiplierIndex`), `VisualState.GameLog.Entries`, `VisualState.GameCompletion` (`IsCompleted`, `WinnerOrganizationId`, `Result`).
+    - `GET /snapshot` — heavy typed ECS snapshot (thousands of province entities). Poll HUD on a short interval; poll snapshot on a longer interval / on demand, not the vanilla 500 ms full-world refresh in `app.js`.
+    - `PATCH /entity/{id}/component/{typeName}` — keep writeback via `WorldObserver.TrySetField`.
+    - `POST /command` — body is the terminal line; server runs `GS.Game.Commands.Text.CommandExecutor.Execute` against `GameLogic.Commands`.
+    - `GET /suggest` — query string = current input; server runs `SuggestionEngine.GetSuggestions` (moved to netstandard) and returns items/kind.
+    - `GET|POST /pause` — **PauseToken freeze only** (`{"paused": bool}` as today). Do not overload this with `PauseCommand`.
+  - Typed snapshot: extend `src/ECS.Viewer/Snapshot.cs` / `WorldObserver.Capture` so each field carries enough metadata for generic UI (CLR kind: enum / number / bool / string; enum member names; domain-id attribute kind when present; omit-from-snapshot). Existing `EntityRefValue` / `{ "__entityRef": id }` serialization in `WorldObserver`, `ViewerServer.EntityRefValueConverter`, and `EcsViewerBridge.EntityRefValueJsonConverter` may remain for the unused core `ECS.EntityRef` type (`src/ECS.Core/EntityRef.cs`); it will not appear in `Game.Components` data. No `[EntityId]` attributes and no EntityRef migration — `Docs/Plans/12_ecs-web-viewer.md` step 7 was planned and is unused; audit of `src/Game.Components` confirms no field stores an entity id.
+- Simulation-thread marshalling:
+  - `HttpListener` `HandleInner` today captures snapshots, PATCHes `World`, and (after this feature) would `CommandAccessor.Push` on thread-pool tasks (`Task.Run(() => Handle(ctx))` in both servers). Generated `CommandAccessor` buffers are unsynchronized `List<T>.Add` (`src/Game.SourceGenerators/CommandGenerator.cs` `BuildBuffers`). Marshal snapshot capture, HUD read, PATCH `TrySetField`, and `Push` onto the simulation thread (Unity main thread / ConsoleRunner loop thread / `GameSession` loop). Drain that queue even while freeze-tick is on so inspector edits still apply.
+- Inspector: generic reflection, no per-component UI:
+  - Keep `WorldObserver` reflection over public fields and record properties (`CaptureFields`). Roslyn codegen is optional, not required. No extra per-component viewer types.
+  - Enums: serialize/display `Enum.GetNames` (e.g. `OwnerType` on `src/Game.Components/ResourceOwner.cs` / `OwnerType.cs`; also `RelationKind`, `PayType`, `BattleState`, `WarParticipantKind`, `AutoSaveInterval`, `OrganizationGameResult`, `CardOwnerType`, `MapLens`). Editors and field-filters use dropdowns of those names. `TrySetField` already `Enum.Parse`s.
+  - Numbers: HTML `input type="number"`; `TrySetField` already converts `int`/`float`/`double`.
+  - Omit nested blobs from the snapshot (component still listed; fields absent): `ProximityMapData.Distances` (`src/Game.Components/ProximityMapData.cs`), `ResourceHistory.History` (`ResourceHistory.cs` / `ResourceChangeEntry` lists), `WarResolvedApplied` snapshot lists (`GoldRecipients`, `ControlDeltas`, `TransferredProvinces`, `History`, `Battles` in `GameLogEffects.cs`), nested `WarSideStatsSnapshot.DamageBonusEffects` (`WarResolvedSnapshots.cs`), `BotActionLog.Entries`. No nested field editors for omitted blobs.
+- Domain-id attributes: move, extend, annotate every existing string id field:
+  - Move `ParamSuggestionAttribute` and subclasses from `src/Game.Commands/ParamSuggestion.cs` to `src/Game.Common/` (`Game.Common` is already netstandard2.1 with no game-logic deps; `Game.Components.csproj` already references it; `Game.Commands.csproj` already references `Game.Common`). `Game.Components` must not reference `Game.Commands`.
+  - Keep existing: `CountryId`, `OrgId`, `ProvinceId`, `ActionId`, `RoleId`, `LocaleId`, `CharacterOwnerId`, `OneOf`. Add at least: `ResourceId`, `CharacterId`, `WarId`, `BattleId`, `EffectId`, `TaskId`, `CollectorId`, `OwnerId`.
+  - Reuse existing attributes on obvious `Game.Components` fields, including: `TargetCountryId` / `LeftCountryId` / `RightCountryId` / `DefenderCountryId` / `AttackerCountryId` / `WinnerCountryId` / `LoserCountryId` / `OldOwnerCountryId` / `NewOwnerCountryId` / `OccupierId` / `ProvinceOwnership.OwnerId` → `[CountryId]`; `OrganizationId` / `WinnerOrganizationId` / `OrgContext.OrgId` → `[OrgId]`; `Locale.Value` / `AppSettings.Locale` → `[LocaleId]`; `TaskId.Value` → `[TaskId]`; `GameAction.ActionId` → `[ActionId]`; role fields → `[RoleId]`; `TargetProvinceId` / ownership province ids → `[ProvinceId]`.
+  - New attributes on: `Resource.ResourceId` / `ResourceLink.ResourceId` / `ResourceChange.ResourceId` → `[ResourceId]` (**do not** convert `ResourceId` to a C# enum — live ids such as `control_{country}` and `opinion_{org}` would break; catalogs are `src/Game.Configs/ResourceDefinitions.cs` constants **plus** live `Resource` ids in the world, including `CharacterConfig` skill ids stored as resources); `Character.CharacterId` / `CharacterSlot.CharacterId` / opinion targets → `[CharacterId]`; `War.WarId` / `WarParticipant.WarId` / `Battle.WarId` → `[WarId]`; `Battle.BattleId` / `BattleForce.BattleId` → `[BattleId]`; `EffectId` fields (`ControlEffect`, `ResourceEffect`, `ResourceChange`, `SetCountryRelationEffect`, `ClearCountryRelationEffect`, `ResourceChangeEntry`, war history snapshots) → `[EffectId]`; `ResourceCollector.CollectorId` → `[CollectorId]`.
+  - `OwnerId` tagging: `ResourceOwner.OwnerId` and `WarGoldRecipientSnapshot.OwnerId` → `[OwnerId]` (sibling `OwnerType`). `ResourceChange.OwnerId` → `[OwnerId]` with no sibling (live union). `CharacterSlot.OwnerId` is country-or-org — `[CharacterOwnerId]` only.
+  - Empty-allowed: `Character.OrgId` (empty = country character) and `CharacterSlot.CharacterId` (`""` if unassigned) include an empty dropdown option. Other empty-meaning fields that are already `""` in comments (`RoleChangeApplied.CountryId`/`OrgId`) follow the same empty-option rule where the field is a domain id.
+  - Non-id strings stay unannotated free text (e.g. `Organization.DisplayName`, `WarEffectSnapshot.OrgDisplayName`, `Character.NamePartKeys` locale-key array). Display-name / format-key arrays are not domain-id dropdowns.
+  - Dropdown option sources for inspector **and** terminal suggestions: config catalogs (`CountryConfig`, `OrganizationConfig`, `ProvinceConfig`, `ActionConfig`, `CharacterConfig` roles/skills, `TasksConfig`, collector registry ids) + `ResourceDefinitions` + **live/dynamic values currently in the world**.
+  - No build analyzer that errors on missing attributes. Annotate all existing fields in this feature. Document the required annotation convention in `CLAUDE.md` / `AGENTS.md` and extend `.claude/skills/add-terminal-command/SKILL.md` (and a small rule/skill note if needed) so new id fields on components **and** new `ICommand` parameters get an attribute; a genuinely new id kind adds the attribute plus its suggestion provider in the same change.
+- Suggestion engine / command execution shared with Unity:
+  - Move `SuggestionEngine`, `SuggestionValueResolver`, providers under `src/Game.WebClient/Terminal/Suggestions/`, and `CommandExecutor` usage (`src/Game.Commands.Text/` is already netstandard2.1) into a netstandard library both WASM and Unity/ConsoleRunner can reference. Remote `GET /suggest` / `POST /command` then use the same pipeline as `Terminal.razor` (which injects `CommandExecutor` + `SuggestionEngine` today via `src/Game.WebClient/Program.cs`).
+  - Tab-complete behaviour of `Terminal.razor` (`HandleTab` / `SuggestionEngine.GetSuggestions`) is unchanged on all hosts.
+- Inspector filters (client-side on the typed snapshot, generic):
+  - Keep +/- component type require/exclude from `app.js` `filters` / `passesFilter`.
+  - New entity-id filter: empty = no constraint; non-empty substring match on the decimal `EntitySnapshot.Id`.
+  - New field filters: component type → field → value; enum dropdown; numbers exact **or** min/max; strings (including domain ids) exact / contains / regex. Multiple field filters AND with each other and with +/- and the entity-id filter. Empty/incomplete rows ignored. Invalid regex: visible per-row error; that row does not filter until valid.
+- Constitution alignment:
+  - The web UI remains presentation/input glue: it pushes `ICommand`s, PATCHes debug fields through the existing observer, and reads `VisualState` / snapshots. No game rules move into Razor. Unity UI Toolkit / VContainer / URP principles stay Unity-scoped; this Blazor surface is the debug web client, not a replacement for `Assets/Scripts/Unity/UI`.
+
+## Out of Scope
+
+- Unity WebGL hosting of this UI (HttpListener unavailable; existing hide of the ECS viewer button stays).
+- Unity desktop/standalone **player** builds hosting this UI (Editor + ConsoleRunner only; no StreamingAssets copy).
+- In-Editor or in-player WebView embedding; Unity continues to open a system browser via `OpenURL`.
+- Map rendering or any map view in the web client.
+- Making `ResourceId` a C# enum.
+- Adopting `EntityRef` on `Game.Components` (or adding `[EntityId]` attributes); game data has no entity-id fields.
+- A build analyzer that errors on unannotated id fields.
+- Nested field editors for omitted blobs (proximity distances, history/snapshot lists).
+- Save compatibility between browser WASM and Unity; web saves remain per-browser.
+- Polished production visual parity with Unity UI Toolkit.
+- Changing Unity's native HUD / pause menu except that the ECS viewer debug button opens the new UI.
+- Adding a main menu, org-select, or settings flow to ConsoleRunner.
+- Multiplayer, accounts, or server-side persistence.
+- A save-slot picker or save-management UI; standalone CONTINUE still takes the latest save.
+- WASM AOT compilation, trimming, or a split thin/fat Blazor publish.
+- Headless ConsoleRunner / war-scenario / calibration verbs.
