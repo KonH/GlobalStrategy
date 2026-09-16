@@ -56,7 +56,7 @@
 
 	protected override async Task OnInitializedAsync() {
 		if (HostMode.ShouldRedirectToMenu(Navigation.Uri, GameSession.Logic != null)) {
-			Navigation.NavigateTo("/");
+			AppNavigation.NavigateTo(Navigation, "");
 			return;
 		}
 
@@ -149,7 +149,7 @@
 
 	void OnExit() {
 		GameSession.Dispose();
-		Navigation.NavigateTo("/");
+		AppNavigation.NavigateTo(Navigation, "");
 	}
 
 	public void Dispose() {
