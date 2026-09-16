@@ -13,11 +13,11 @@ Dependencies (install into .venv):
     final simplify pass (see .claude/rules/unity/province_config_generator.md).
 
 Pipeline summary:
-    1. Reconstruct each 1880 country's unioned polygon from Assets/Configs/country_config.json
+    1. Reconstruct each 1880 country's unioned polygon from Assets/Configs/countries.json
        (mainMapFeatureIds/secondaryMapFeatureIds, colonial-parent merges already applied) and the
        raw feature geometries in Assets/Map/world_1880.json. The mapFeatureId for each raw feature
        is recomputed locally using the same NAME-priority + ASCII-normalize + slug algorithm as
-       Program.cs's ToMapFeatureId, so no round-trip through geojson_world.json/map_entry_config.json
+       Program.cs's ToMapFeatureId, so no round-trip through geojson_world.json/map_entries.json
        is required — the raw basemap is the single source of truth for geometry.
     2. Reproject to EPSG:6933 (equal-area) purely for km^2 math; all emitted geometry stays WGS84.
     3. Download & cache (skip if present) Natural Earth ne_10m_admin_1_states_provinces and
@@ -66,7 +66,7 @@ from scipy.spatial import Voronoi
 # ---------------------------------------------------------------------------
 # Config / constants
 # ---------------------------------------------------------------------------
-COUNTRY_CONFIG_PATH = "Assets/Configs/country_config.json"
+COUNTRY_CONFIG_PATH = "Assets/Configs/countries.json"
 WORLD_GEOJSON_PATH = "Assets/Map/world_1880.json"
 CACHE_DIR = ".tmp/naturalearth"
 INTERMEDIATE_PATH = ".tmp/provinces_intermediate.geojson"
@@ -189,7 +189,7 @@ COUNTRY_REGION = {
 # target_population / population_generated_with_multiplier_1.0, so re-running the
 # pipeline reproduces the calibrated totals instead of the original uncalibrated
 # region-band estimates. Only covers countries with isAvailable=true in
-# country_config.json as of this calibration; the remaining countries still use the
+# countries.json as of this calibration; the remaining countries still use the
 # uncalibrated region bands below.
 COUNTRY_POPULATION_CALIBRATION_1880 = {
     "Argentina": 0.116069,
@@ -890,7 +890,7 @@ def update_province_locales(all_features):
 # Main pipeline
 # ---------------------------------------------------------------------------
 def run(force_download=False):
-    print("Loading country polygons from country_config.json + world_1880.json ...")
+    print("Loading country polygons from countries.json + world_1880.json ...")
     countries = load_country_polygons()
     print(f"Reconstructed {len(countries)} country polygons")
 

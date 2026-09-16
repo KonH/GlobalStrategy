@@ -23,7 +23,7 @@ namespace GS.Game.ConsoleRunner.WarSim {
 			public T Load() => _value;
 		}
 
-		// Real countries and their real province graphs (Assets/Configs/province_config.json), used
+		// Real countries and their real province graphs (Assets/Configs/provinces.json), used
 		// as-is instead of a synthetic map — a flat 1:1 border (every province touching the enemy)
 		// let the whole loser's territory be occupied turn one, which isn't how actual multi-province
 		// countries with deep interiors are laid out. France (65 provinces) and Germany (50) share a
@@ -33,7 +33,7 @@ namespace GS.Game.ConsoleRunner.WarSim {
 		public const string AttackerCountryId = "France";
 		public const string DefenderCountryId = "Germany";
 		const string OrgId = "Illuminati";
-		const string RealProvinceConfigPath = "Assets/Configs/province_config.json";
+		const string RealProvinceConfigPath = "Assets/Configs/provinces.json";
 		const double HoursPerTick = 24;
 		// Must match GameSettings.RecruitsInitialPercent in BuildSettings below.
 		const double RecruitsInitialPercent = 5;
@@ -224,7 +224,7 @@ namespace GS.Game.ConsoleRunner.WarSim {
 		}
 
 		// Real France/Russian_Empire province ids, centroids and neighbor graphs, straight from
-		// Assets/Configs/province_config.json — only Population is overridden per scenario (spread
+		// Assets/Configs/provinces.json — only Population is overridden per scenario (spread
 		// evenly across that side's real province count) so the 7 cases still isolate one variable.
 		// Neighbor ids pointing outside {France, Russian_Empire} are dropped since those countries
 		// don't exist in this simulated world.

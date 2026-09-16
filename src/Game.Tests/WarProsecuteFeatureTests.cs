@@ -295,7 +295,7 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void resolve_sell_arms_bonus_from_effect_config() {
+		void resolve_sell_arms_bonus_from_effects_config() {
 			var config = new EffectConfig {
 				Effects = new List<ActionEffectDefinition> {
 					new CountryResourceModifierEffectParams {

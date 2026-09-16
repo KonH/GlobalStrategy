@@ -78,8 +78,8 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void country_population_collector_benchmark_country_owns_at_least_one_province() {
-			var provinceConfig = new FileConfig<ProvinceConfig>(FindRepoRootConfigPath("province_config.json")).Load();
-			Assert.True(provinceConfig.Provinces.Count > 0, "province_config.json has no provinces - cannot pick a fixture country.");
+			var provinceConfig = new FileConfig<ProvinceConfig>(FindRepoRootConfigPath("provinces.json")).Load();
+			Assert.True(provinceConfig.Provinces.Count > 0, "provinces.json has no provinces - cannot pick a fixture country.");
 
 			// Mirrors GameWorldFixture.Build()'s own FirstCountryId derivation exactly.
 			string countryId = provinceConfig.Provinces[0].CountryId;

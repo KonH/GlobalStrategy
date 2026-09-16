@@ -29,8 +29,8 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void map_entry_config_parity() {
-			string path = FindRepoRootConfigPath("map_entry_config.json");
+		void map_entries_parity() {
+			string path = FindRepoRootConfigPath("map_entries.json");
 			var fromFile = new FileConfig<MapEntryConfig>(path).Load();
 			var fromString = new StringConfig<MapEntryConfig>(File.ReadAllText(path)).Load();
 			Assert.Equal(fromFile.Features.Count, fromString.Features.Count);
@@ -38,8 +38,8 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void country_config_parity() {
-			string path = FindRepoRootConfigPath("country_config.json");
+		void countries_parity() {
+			string path = FindRepoRootConfigPath("countries.json");
 			var fromFile = new FileConfig<CountryConfig>(path).Load();
 			var fromString = new StringConfig<CountryConfig>(File.ReadAllText(path)).Load();
 			Assert.Equal(fromFile.Countries.Count, fromString.Countries.Count);
@@ -74,8 +74,8 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void resource_config_parity() {
-			string path = FindRepoRootConfigPath("resource_config.json");
+		void resources_parity() {
+			string path = FindRepoRootConfigPath("resources.json");
 			var fromFile = new FileConfig<ResourceConfig>(path).Load();
 			var fromString = new StringConfig<ResourceConfig>(File.ReadAllText(path)).Load();
 			Assert.Equal(fromFile.Resources.Count, fromString.Resources.Count);
@@ -114,7 +114,7 @@ namespace GS.Game.Tests {
 			Assert.Equal(750.0, blackHand.InitialGold);
 			Assert.Equal(3, blackHand.InitialAgentSlots);
 
-			var characters = new FileConfig<CharacterConfig>(FindRepoRootConfigPath("character_config.json")).Load();
+			var characters = new FileConfig<CharacterConfig>(FindRepoRootConfigPath("characters.json")).Load();
 			OrgCharacterPool? pool = characters.FindOrgPool("BlackHand");
 			Assert.NotNull(pool);
 			Assert.Equal(3, pool.Slots["master"].Count);
@@ -123,8 +123,8 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void character_config_parity() {
-			string path = FindRepoRootConfigPath("character_config.json");
+		void characters_parity() {
+			string path = FindRepoRootConfigPath("characters.json");
 			var fromFile = new FileConfig<CharacterConfig>(path).Load();
 			var fromString = new StringConfig<CharacterConfig>(File.ReadAllText(path)).Load();
 			Assert.Equal(fromFile.Roles.Count, fromString.Roles.Count);
@@ -132,8 +132,8 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void action_config_parity() {
-			string path = FindRepoRootConfigPath("action_config.json");
+		void actions_parity() {
+			string path = FindRepoRootConfigPath("actions.json");
 			var fromFile = new FileConfig<ActionConfig>(path).Load();
 			var fromString = new StringConfig<ActionConfig>(File.ReadAllText(path)).Load();
 			Assert.Equal(fromFile.Actions.Count, fromString.Actions.Count);
@@ -145,7 +145,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void sell_arms_action_deserializes_with_required_conditions_and_effects() {
-			string path = FindRepoRootConfigPath("action_config.json");
+			string path = FindRepoRootConfigPath("actions.json");
 			var fromFile = new FileConfig<ActionConfig>(path).Load();
 			var fromString = new StringConfig<ActionConfig>(File.ReadAllText(path)).Load();
 
@@ -172,8 +172,8 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void effect_config_parity() {
-			string path = FindRepoRootConfigPath("effect_config.json");
+		void effects_parity() {
+			string path = FindRepoRootConfigPath("effects.json");
 			var fromFile = new FileConfig<EffectConfig>(path).Load();
 			var fromString = new StringConfig<EffectConfig>(File.ReadAllText(path)).Load();
 			Assert.Equal(fromFile.Effects.Count, fromString.Effects.Count);
@@ -182,8 +182,8 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void effect_config_set_country_relation_entries_deserialize_with_correct_kind_through_both_sources() {
-			string path = FindRepoRootConfigPath("effect_config.json");
+		void effects_set_country_relation_entries_deserialize_with_correct_kind_through_both_sources() {
+			string path = FindRepoRootConfigPath("effects.json");
 			var fromFile = new FileConfig<EffectConfig>(path).Load();
 			var fromString = new StringConfig<EffectConfig>(File.ReadAllText(path)).Load();
 
@@ -199,8 +199,8 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void effect_config_resolve_war_entries_deserialize_with_correct_outcome_through_both_sources() {
-			string path = FindRepoRootConfigPath("effect_config.json");
+		void effects_resolve_war_entries_deserialize_with_correct_outcome_through_both_sources() {
+			string path = FindRepoRootConfigPath("effects.json");
 			var fromFile = new FileConfig<EffectConfig>(path).Load();
 			var fromString = new StringConfig<EffectConfig>(File.ReadAllText(path)).Load();
 
@@ -217,7 +217,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void sell_arms_effect_entries_deserialize_with_configured_values_through_both_sources() {
-			string path = FindRepoRootConfigPath("effect_config.json");
+			string path = FindRepoRootConfigPath("effects.json");
 			var fromFile = new FileConfig<EffectConfig>(path).Load();
 			var fromString = new StringConfig<EffectConfig>(File.ReadAllText(path)).Load();
 
@@ -234,8 +234,8 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void province_config_parity() {
-			string path = FindRepoRootConfigPath("province_config.json");
+		void provinces_parity() {
+			string path = FindRepoRootConfigPath("provinces.json");
 			var fromFile = new FileConfig<ProvinceConfig>(path).Load();
 			var fromString = new StringConfig<ProvinceConfig>(File.ReadAllText(path)).Load();
 			Assert.Equal(fromFile.Provinces.Count, fromString.Provinces.Count);
@@ -244,8 +244,8 @@ namespace GS.Game.Tests {
 		}
 
 		[Fact]
-		void tasks_config_parity() {
-			string path = FindRepoRootConfigPath("tasks_config.json");
+		void tasks_parity() {
+			string path = FindRepoRootConfigPath("tasks.json");
 			var fromFile = new FileConfig<TasksConfig>(path).Load();
 			var fromString = new StringConfig<TasksConfig>(File.ReadAllText(path)).Load();
 			Assert.Equal(fromFile.Tasks.Count, fromString.Tasks.Count);

@@ -33,7 +33,7 @@ This skill is the sanctioned autonomous path for **bot features only**: `IBotFea
    }
    ```
    - Leave every field at its default unless the description says otherwise.
-   - `targetActions`: infer action ids from `Assets/Configs/action_config.json` that the description implies the feature should play (e.g. a "prioritize discovery" description → the discovery action's id). Leave `[]` if nothing concrete is named.
+   - `targetActions`: infer action ids from `Assets/Configs/actions.json` that the description implies the feature should play (e.g. a "prioritize discovery" description → the discovery action's id). Leave `[]` if nothing concrete is named.
    - `parameterSearch`: only populate if the description names a tunable (e.g. "with a configurable minimum gold reserve") — declare a `grid` or `random` search over that parameter's plausible range. Otherwise leave `null` (no search).
 
 4. **Write `.ralph/prd.md` directly** — no `/specify`, no `/plan`, no `/create-prd`. Reset `.ralph/activity.md` to its header only (`# Ralph Activity Journal` + intro line + `---`). Use the standard task shape `{ "category", "description", "steps", "gate", "passes" }`. Four tasks, in order:

@@ -41,16 +41,16 @@
   <Target Name="CopyConfigsToWwwroot" BeforeTargets="BeforeBuild">
     <ItemGroup>
       <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/geojson_world.json" />
-      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/map_entry_config.json" />
-      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/country_config.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/map_entries.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/countries.json" />
       <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/game_settings.json" />
-      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/resource_config.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/resources.json" />
       <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/organizations.json" />
-      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/character_config.json" />
-      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/action_config.json" />
-      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/effect_config.json" />
-      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/tasks_config.json" />
-      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/province_config.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/characters.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/actions.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/effects.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/tasks.json" />
+      <ConfigSourceFiles Include="$(MSBuildThisFileDirectory)../../Assets/Configs/provinces.json" />
     </ItemGroup>
     <MakeDir Directories="$(MSBuildThisFileDirectory)wwwroot/configs/" />
     <Copy SourceFiles="@(ConfigSourceFiles)" DestinationFolder="$(MSBuildThisFileDirectory)wwwroot/configs/" SkipUnchangedFiles="true" />

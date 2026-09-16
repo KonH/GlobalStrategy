@@ -54,4 +54,4 @@ Regional style examples: `Argentine, Latin American, Spanish heritage` / `Japane
 
 Role descriptions: ruler → `statesman, ruler, head of state` · military → `military general, military officer` · diplomacy → `diplomat, foreign minister` · economic → `financier, economist, businessman` · secret → `politician, statesman, advisor`
 
-Names and country pools come from `character_config.json` + `Assets/Localization/en.asset` (key prefix `character.name.part.*`).
+Names and country pools come from `characters.json` + `Assets/Localization/en.asset` (key prefix `character.name.part.*`).

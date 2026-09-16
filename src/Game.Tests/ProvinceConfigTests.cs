@@ -70,7 +70,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void committed_config_has_finite_symmetric_ordinal_topology() {
-			string path = FindRepositoryFile("Assets/Configs/province_config.json");
+			string path = FindRepositoryFile("Assets/Configs/provinces.json");
 			ProvinceConfig config = new FileConfig<ProvinceConfig>(path).Load();
 			var byId = config.Provinces.ToDictionary(
 				entry => entry.ProvinceId, StringComparer.Ordinal);

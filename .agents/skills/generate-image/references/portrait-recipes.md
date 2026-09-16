@@ -15,4 +15,4 @@ Regional style examples: Argentine, Latin American, Spanish heritage; Japanese, 
 
 Role descriptions: ruler — statesman, ruler, head of state; military — military general, military officer; diplomacy — diplomat, foreign minister; economic — financier, economist, businessman; secret — politician, statesman, advisor.
 
-Read `character_config.json` and `Assets/Localization/en.asset` (`character.name.part.*`) for character names and country pools.
+Read `characters.json` and `Assets/Localization/en.asset` (`character.name.part.*`) for character names and country pools.

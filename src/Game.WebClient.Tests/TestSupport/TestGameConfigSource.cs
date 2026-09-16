@@ -29,16 +29,16 @@ namespace GS.Game.WebClient.Tests.TestSupport {
 		public TestGameConfigSource() {
 			string geoJsonPath = FindRepoRootConfigPath("geojson_world.json");
 			GeoJson = new FileConfig<GeoJsonConfig>(geoJsonPath);
-			MapEntry = new FileConfig<MapEntryConfig>(FindRepoRootConfigPath("map_entry_config.json"));
-			Country = new FileConfig<CountryConfig>(FindRepoRootConfigPath("country_config.json"));
+			MapEntry = new FileConfig<MapEntryConfig>(FindRepoRootConfigPath("map_entries.json"));
+			Country = new FileConfig<CountryConfig>(FindRepoRootConfigPath("countries.json"));
 			GameSettings = new FileConfig<GameSettings>(FindRepoRootConfigPath("game_settings.json"));
-			Resource = new FileConfig<ResourceConfig>(FindRepoRootConfigPath("resource_config.json"));
+			Resource = new FileConfig<ResourceConfig>(FindRepoRootConfigPath("resources.json"));
 			Organization = new FileConfig<OrganizationConfig>(FindRepoRootConfigPath("organizations.json"));
-			Character = new FileConfig<CharacterConfig>(FindRepoRootConfigPath("character_config.json"));
-			Action = new FileConfig<ActionConfig>(FindRepoRootConfigPath("action_config.json"));
-			Effect = new FileConfig<EffectConfig>(FindRepoRootConfigPath("effect_config.json"));
-			Tasks = new FileConfig<TasksConfig>(FindRepoRootConfigPath("tasks_config.json"));
-			Province = new FileConfig<ProvinceConfig>(FindRepoRootConfigPath("province_config.json"));
+			Character = new FileConfig<CharacterConfig>(FindRepoRootConfigPath("characters.json"));
+			Action = new FileConfig<ActionConfig>(FindRepoRootConfigPath("actions.json"));
+			Effect = new FileConfig<EffectConfig>(FindRepoRootConfigPath("effects.json"));
+			Tasks = new FileConfig<TasksConfig>(FindRepoRootConfigPath("tasks.json"));
+			Province = new FileConfig<ProvinceConfig>(FindRepoRootConfigPath("provinces.json"));
 			MapGeometry = GeoJsonParser.Parse(File.ReadAllText(geoJsonPath));
 		}
 

@@ -127,7 +127,7 @@ namespace GS.Game.ConsoleRunner.WarSim {
 				$"`Assets/Configs/game_settings.json` war-balance values, {SeedsPerScenario} rng seeds " +
 				$"per scenario (averaged below), {MaxDays}-day (10 in-game year) timeout cap. " +
 				$"Attacker role = France's real 65-province graph, defender role = Germany's real " +
-				$"50-province graph (`Assets/Configs/province_config.json`, real shared border); only " +
+				$"50-province graph (`Assets/Configs/provinces.json`, real shared border); only " +
 				$"each side's total population/damage/durability are overridden per scenario, spread " +
 				$"evenly across its real provinces.");
 			sb.AppendLine();

@@ -31,16 +31,16 @@ namespace GS.Game.WebClient.Services {
 			string geoJsonText = await FetchAsync("configs/geojson_world.json");
 			GeoJson = new StringConfig<GeoJsonConfig>(geoJsonText);
 			MapGeometry = GeoJsonParser.Parse(geoJsonText);
-			MapEntry = new StringConfig<MapEntryConfig>(await FetchAsync("configs/map_entry_config.json"));
-			Country = new StringConfig<CountryConfig>(await FetchAsync("configs/country_config.json"));
+			MapEntry = new StringConfig<MapEntryConfig>(await FetchAsync("configs/map_entries.json"));
+			Country = new StringConfig<CountryConfig>(await FetchAsync("configs/countries.json"));
 			GameSettings = new StringConfig<GameSettings>(await FetchAsync("configs/game_settings.json"));
-			Resource = new StringConfig<ResourceConfig>(await FetchAsync("configs/resource_config.json"));
+			Resource = new StringConfig<ResourceConfig>(await FetchAsync("configs/resources.json"));
 			Organization = new StringConfig<OrganizationConfig>(await FetchAsync("configs/organizations.json"));
-			Character = new StringConfig<CharacterConfig>(await FetchAsync("configs/character_config.json"));
-			Action = new StringConfig<ActionConfig>(await FetchAsync("configs/action_config.json"));
-			Effect = new StringConfig<EffectConfig>(await FetchAsync("configs/effect_config.json"));
-			Tasks = new StringConfig<TasksConfig>(await FetchAsync("configs/tasks_config.json"));
-			Province = new StringConfig<ProvinceConfig>(await FetchAsync("configs/province_config.json"));
+			Character = new StringConfig<CharacterConfig>(await FetchAsync("configs/characters.json"));
+			Action = new StringConfig<ActionConfig>(await FetchAsync("configs/actions.json"));
+			Effect = new StringConfig<EffectConfig>(await FetchAsync("configs/effects.json"));
+			Tasks = new StringConfig<TasksConfig>(await FetchAsync("configs/tasks.json"));
+			Province = new StringConfig<ProvinceConfig>(await FetchAsync("configs/provinces.json"));
 		}
 
 		async Task<string> FetchAsync(string relativePath) {

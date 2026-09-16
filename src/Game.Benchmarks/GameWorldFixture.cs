@@ -80,7 +80,7 @@ namespace GS.Game.Benchmarks {
 			// already read, so this standalone registry matches production values exactly without
 			// needing any new GameLogic API.
 			var settings = new FileConfig<GameSettings>(Path.Combine(ConfigDir, "game_settings.json")).Load();
-			var countryConfig = new FileConfig<CountryConfig>(Path.Combine(ConfigDir, "country_config.json")).Load();
+			var countryConfig = new FileConfig<CountryConfig>(Path.Combine(ConfigDir, "countries.json")).Load();
 			var combatBasesByCountryId = new Dictionary<string, CountryCombatBases>();
 			foreach (var entry in countryConfig.Countries) {
 				combatBasesByCountryId[entry.CountryId] = new CountryCombatBases(entry.BaseDamage, entry.BaseDurability);

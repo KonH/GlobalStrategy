@@ -37,7 +37,7 @@ Optional flags (defaults match `HeadlessOptions`'s pattern): `--max-ticks` (defa
    for `lose`), and builds a `GameLogicContext` via `Program.BuildContext` with all organizations
    participating, `initialOrganizationId = --org`.
 2. Runs one `GameLogic.Update(0f)` to initialize, then pushes a `ChangeControlCommand` giving the
-   winner org `MaxControlPool` control of every country in `country_config.json` (the same pattern
+   winner org `MaxControlPool` control of every country in `countries.json` (the same pattern
    `GameCompletionLogicTests.GiveTotalControl` uses in `src/Game.Tests`).
 3. Calls `GameLogic.Update(deltaTime)` once per tick until `GameLogic.IsCompleted`, or until it hits
    `--max-ticks` or `--timeout-seconds` (checked every 256 ticks, same cadence as `HeadlessRunner`).
@@ -68,7 +68,7 @@ This produces nine ascending thresholds spanning 5% to 120% of the calibration m
 
 Re-run both scenarios (and update `references/calibration_results.md`) whenever `game_settings.json`'s
 score-affecting fields (`CountryScoreCoefficient`, `MaxControlPool`, `CompletionCondition`, resource
-collector coefficients) or `country_config.json`'s country list change — any of those can shift the
+collector coefficients) or `countries.json`'s country list change — any of those can shift the
 calibration maximum:
 
 ```

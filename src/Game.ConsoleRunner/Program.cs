@@ -72,19 +72,19 @@ namespace GS.Game.ConsoleRunner {
 			string initialOrganizationId = "", IGameLogger? logger = null) {
 			return new GameLogicContext(
 				new FileConfig<GeoJsonConfig>(Path.Combine(configDir, "geojson_world.json")),
-				new FileConfig<MapEntryConfig>(Path.Combine(configDir, "map_entry_config.json")),
-				new FileConfig<CountryConfig>(Path.Combine(configDir, "country_config.json")),
+				new FileConfig<MapEntryConfig>(Path.Combine(configDir, "map_entries.json")),
+				new FileConfig<CountryConfig>(Path.Combine(configDir, "countries.json")),
 				new FileConfig<GameSettings>(Path.Combine(configDir, "game_settings.json")),
-				new FileConfig<ResourceConfig>(Path.Combine(configDir, "resource_config.json")),
+				new FileConfig<ResourceConfig>(Path.Combine(configDir, "resources.json")),
 				new FileConfig<OrganizationConfig>(Path.Combine(configDir, "organizations.json")),
 				logger: logger,
 				initialOrganizationId: initialOrganizationId,
-				character: new FileConfig<CharacterConfig>(Path.Combine(configDir, "character_config.json")),
-				action: new FileConfig<ActionConfig>(Path.Combine(configDir, "action_config.json")),
-				effect: new FileConfig<EffectConfig>(Path.Combine(configDir, "effect_config.json")),
-				tasks: new FileConfig<TasksConfig>(Path.Combine(configDir, "tasks_config.json")),
+				character: new FileConfig<CharacterConfig>(Path.Combine(configDir, "characters.json")),
+				action: new FileConfig<ActionConfig>(Path.Combine(configDir, "actions.json")),
+				effect: new FileConfig<EffectConfig>(Path.Combine(configDir, "effects.json")),
+				tasks: new FileConfig<TasksConfig>(Path.Combine(configDir, "tasks.json")),
 				mapGeometry: new MapGeometryFileConfig(Path.Combine(configDir, "geojson_world.json")),
-				province: new FileConfig<ProvinceConfig>(Path.Combine(configDir, "province_config.json")),
+				province: new FileConfig<ProvinceConfig>(Path.Combine(configDir, "provinces.json")),
 				rngSeed: rngSeed,
 				participatingOrganizationIds: participatingOrganizationIds);
 		}

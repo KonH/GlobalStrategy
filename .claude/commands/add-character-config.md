@@ -1,4 +1,4 @@
-Add a new character entry to `Assets/Configs/character_config.json` and matching locale keys to `Assets/Localization/en.asset` and `Assets/Localization/ru.asset`.
+Add a new character entry to `Assets/Configs/characters.json` and matching locale keys to `Assets/Localization/en.asset` and `Assets/Localization/ru.asset`.
 
 ## Arguments
 
@@ -11,7 +11,7 @@ Examples:
 
 Role IDs: `ruler`, `military_advisor`, `diplomacy_advisor`, `economic_advisor`, `secret_advisor`
 
-Country IDs must exactly match entries in `Assets/Configs/country_config.json`.
+Country IDs must exactly match entries in `Assets/Configs/countries.json`.
 
 If `$ARGUMENTS` is empty or incomplete, ask the user for the missing parts before continuing.
 
@@ -29,7 +29,7 @@ If the Russian name is missing, ask for it before proceeding — word count pari
 
 ### 2. Validate inputs
 
-- Read `Assets/Configs/character_config.json`
+- Read `Assets/Configs/characters.json`
 - Confirm `countryId` exists in `countryPools`
 - Confirm `roleId` exists in the country's `slots`
 - Confirm EN and RU names have the same number of space-separated words; if not, stop and ask the user to fix the mismatch (suggest hyphenating compound words, e.g. `Crown-Prince` / `Кронпринц`)

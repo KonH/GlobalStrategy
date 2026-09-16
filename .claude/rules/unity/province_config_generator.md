@@ -30,12 +30,12 @@ re-run this script.
 
 ### What it does
 
-1. Reconstructs each 1880 country's unioned polygon from `Assets/Configs/country_config.json`
+1. Reconstructs each 1880 country's unioned polygon from `Assets/Configs/countries.json`
    (`mainMapFeatureIds`/`secondaryMapFeatureIds`, colonial-parent merges already applied)
    plus the raw feature geometries in `Assets/Map/world_1880.json`. `mapFeatureId` is
    recomputed locally from each raw feature's name property using the same
    ASCII-normalize + slug algorithm as `Program.cs`'s `ToMapFeatureId`, so there's no
-   need to round-trip through `geojson_world.json`/`map_entry_config.json` for geometry.
+   need to round-trip through `geojson_world.json`/`map_entries.json` for geometry.
 2. Reprojects to `EPSG:6933` (equal-area) purely for km² math; all emitted geometry
    stays in WGS84 lon/lat to match `world_1880.json`'s convention.
 3. Downloads and caches (skip if present) two Natural Earth datasets into the gitignored
@@ -116,10 +116,10 @@ Cache locations:
 in-memory `CountryConfig` already built in the same `Program.cs` run, cross-validates
 every province's `countryId` against `CountryConfig` (per
 `.claude/rules/config_validation.md` — a mismatch throws rather than silently
-proceeding), and writes `Assets/Configs/province_config.json` (lightweight metadata:
+proceeding), and writes `Assets/Configs/provinces.json` (lightweight metadata:
 `provinceId`, `countryId`, `generationMethod`, `population`, `centroidX`, `centroidY`,
 `isMainTerritory`, and `neighborProvinceIds` — no `displayName`; province names are
-localization-only, see `province_name.*` keys above) and `Assets/Configs/provinces_1880.json`
+localization-only, see `province_name.*` keys above) and `Assets/Configs/province_map_features_1880.json`
 (passthrough geometry `FeatureCollection`).
 
 Re-run order: Stage 1 (Python) must be run before Stage 2 (C# loader), since Stage 2
@@ -128,13 +128,13 @@ consumes Stage 1's intermediate file via `loaderConfig.ProvinceGeoJsonSourcePath
 ## `countryId` is seed data, not the permanent owner
 
 Since the Province Ownership feature (`Docs/Specs/45_province-ownership/`),
-`province_config.json`'s `countryId` is consumed exactly once: `ProvinceOwnershipSystem.Seed`
+`provinces.json`'s `countryId` is consumed exactly once: `ProvinceOwnershipSystem.Seed`
 uses it to initialize the mutable runtime `ProvinceOwnership` component the first time a
 game starts (gated by `InitSystem`'s `IsInitialized` guard). After that, the actual owner
 is runtime state — persisted via `[Savable]` `ProvinceOwnership` — and can change (currently
 only via the `DebugChangeProvinceOwnerCommand` cheat). Rendering, territory aggregation, and
 any "who owns this province" query must read `VisualState.ProvinceOwnership`/
-`ProvinceOwnershipSystem.GetOwner`, not `province_config.json`, after the first init.
+`ProvinceOwnershipSystem.GetOwner`, not `provinces.json`, after the first init.
 
 This is a consumption-side clarification only — the Python/C# generation pipeline described
 above is completely unchanged by this.

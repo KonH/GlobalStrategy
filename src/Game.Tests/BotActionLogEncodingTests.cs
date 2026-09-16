@@ -55,14 +55,14 @@ namespace GS.Game.Tests {
 		[Fact]
 		void action_ids_never_contain_the_bot_action_log_delimiter() {
 			string root = FindRepoRoot();
-			string json = File.ReadAllText(Path.Combine(root, "Assets", "Configs", "action_config.json"));
+			string json = File.ReadAllText(Path.Combine(root, "Assets", "Configs", "actions.json"));
 			Assert.DoesNotContain(" | ", json);
 		}
 
 		[Fact]
 		void country_ids_never_contain_the_bot_action_log_delimiter() {
 			string root = FindRepoRoot();
-			string json = File.ReadAllText(Path.Combine(root, "Assets", "Configs", "country_config.json"));
+			string json = File.ReadAllText(Path.Combine(root, "Assets", "Configs", "countries.json"));
 			Assert.DoesNotContain(" | ", json);
 		}
 	}

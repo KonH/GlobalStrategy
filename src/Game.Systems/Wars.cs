@@ -604,7 +604,7 @@ namespace GS.Game.Systems {
 		// A winner's overseas colonies (owned provinces generated from the country's
 		// secondaryMapFeatureIds) would otherwise pull the centroid away from its home territory,
 		// making transferred provinces prefer proximity to a colony over the country the winner
-		// actually lives in. Average only owned provinces flagged isMainTerritory (province_config.json,
+		// actually lives in. Average only owned provinces flagged isMainTerritory (provinces.json,
 		// derived from mainMapFeatureIds at generation time); fall back to every owned province if the
 		// winner holds no main territory at all (e.g. it lost its homeland but kept colonies).
 		static bool TryComputeWinnerCentroid(

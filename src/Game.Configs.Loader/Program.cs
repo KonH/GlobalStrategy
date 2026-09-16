@@ -42,7 +42,7 @@ namespace GS.Game.Loader {
 			string outputDir = loaderConfig.OutputPath;
 			Directory.CreateDirectory(outputDir);
 
-			string countryConfigPath = Path.Combine(outputDir, "country_config.json");
+			string countryConfigPath = Path.Combine(outputDir, "countries.json");
 			CountryConfig? existingCountryConfig = null;
 			if (File.Exists(countryConfigPath)) {
 				existingCountryConfig = JsonSerializer.Deserialize<CountryConfig>(
@@ -55,7 +55,7 @@ namespace GS.Game.Loader {
 				JsonSerializer.Serialize(geoJsonConfig, _writeOptions));
 
 			File.WriteAllText(
-				Path.Combine(outputDir, "map_entry_config.json"),
+				Path.Combine(outputDir, "map_entries.json"),
 				JsonSerializer.Serialize(mapEntries, _writeOptions));
 
 			File.WriteAllText(
@@ -76,11 +76,11 @@ namespace GS.Game.Loader {
 				}
 
 				File.WriteAllText(
-					Path.Combine(outputDir, "province_config.json"),
+					Path.Combine(outputDir, "provinces.json"),
 					JsonSerializer.Serialize(provinceConfig, _writeOptions));
 
 				File.WriteAllText(
-					Path.Combine(outputDir, "provinces_1880.json"),
+					Path.Combine(outputDir, "province_map_features_1880.json"),
 					geometry.ToJsonString(_writeOptions));
 
 				Console.WriteLine($"Wrote {provinceConfig.Provinces.Count} provinces to {outputDir}");
@@ -90,8 +90,8 @@ namespace GS.Game.Loader {
 		}
 
 		// Copies user/generator-set fields that ProcessGeoJson never sets (IsAvailable, InitialResources)
-		// from an existing country_config.json onto the freshly-rebuilt entries, so re-running the loader
-		// against the live Assets/Configs/country_config.json doesn't wipe them back to defaults.
+		// from an existing countries.json onto the freshly-rebuilt entries, so re-running the loader
+		// against the live Assets/Configs/countries.json doesn't wipe them back to defaults.
 		public static void ApplyPreservedFields(List<CountryEntry> rebuilt, CountryConfig? existing) {
 			if (existing == null) {
 				return;
