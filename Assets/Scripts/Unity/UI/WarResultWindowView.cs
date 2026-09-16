@@ -154,7 +154,7 @@ namespace GS.Unity.UI {
 
 			var icon = new VisualElement();
 			icon.AddToClassList("resource-chip-icon");
-			icon.AddToClassList("resource-icon--coin");
+			icon.AddToClassList(ResourceDisplayNaming.IconClass(ResourceDefinitions.Gold));
 			icon.AddToClassList("war-result-gold-icon");
 
 			var label = new Label(GetLoc("war_result.gold_title", "Gold"));

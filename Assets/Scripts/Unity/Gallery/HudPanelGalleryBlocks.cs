@@ -248,17 +248,15 @@ namespace GS.Unity.Gallery {
 
 		readonly ILocalization _loc;
 		readonly VisualTreeAsset _hudUxml;
-		readonly ResourceConfig _resourceConfig;
 
 		public override string Id => "hud-player-tasks";
 		public override string Title => "HUD: PlayerTasks";
 		protected override IReadOnlyList<string> InstanceChoices => _instances;
 		protected override IReadOnlyList<string> StateChoices => _states;
 
-		public HudPlayerTasksGalleryBlock(ILocalization loc, VisualTreeAsset hudUxml, TextAsset resourceConfigAsset) {
+		public HudPlayerTasksGalleryBlock(ILocalization loc, VisualTreeAsset hudUxml) {
 			_loc = loc;
 			_hudUxml = hudUxml;
-			_resourceConfig = HudConfigLoader.LoadResourceConfig(resourceConfigAsset);
 		}
 
 		protected override void Render(VisualElement stage, string instanceId, int stateIndex) {
@@ -266,7 +264,7 @@ namespace GS.Unity.Gallery {
 			if (root == null) {
 				return;
 			}
-			var view = new PlayerTasksView(root, _loc, _resourceConfig);
+			var view = new PlayerTasksView(root, _loc);
 			view.Refresh(HudSampleData.BuildActiveTasks());
 			stage.Add(root);
 		}

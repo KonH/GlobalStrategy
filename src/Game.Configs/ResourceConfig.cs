@@ -24,9 +24,6 @@ namespace GS.Game.Configs {
 	public class ResourceDefinition {
 		public string ResourceId { get; set; } = "";
 		public ResourceSeedTarget SeedTarget { get; set; } = ResourceSeedTarget.Country;
-		public string NameKey { get; set; } = "";
-		public string DescriptionKey { get; set; } = "";
-		public string Icon { get; set; } = "";
 		public double DefaultInitialValue { get; set; } = 100.0;
 		public bool RecordHistory { get; set; } = false;
 		public double? MinValue { get; set; }
@@ -51,8 +48,6 @@ namespace GS.Game.Configs {
 
 	public class EffectDefinition {
 		public string EffectId { get; set; } = "";
-		public string NameKey { get; set; } = "";
-		public string DescriptionKey { get; set; } = "";
 		public double Value { get; set; } = 0;
 		public string PayType { get; set; } = "Monthly";
 		public string CollectorId { get; set; } = "";
