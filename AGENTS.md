@@ -24,7 +24,7 @@
 - **Unity prefabs:** `.claude/rules/unity/prefabs.md`
 - **Unity UI implementation:** `.claude/rules/unity/ui_implementation.md`
 - **Unity scenes:** `.claude/rules/unity/scenes.md`
-- **Unity MCP usage:** `.claude/rules/unity/mcp_usage.md`
+- **Unity MCP usage:** `.claude/rules/unity/mcp_usage.md` — pin MCP to this checkout once per session before any Editor call (`unity-plugins` skill)
 - **Map system architecture:** `.claude/rules/unity/map_system.md`
 - **Map config generator:** `.claude/rules/unity/map_config_generator.md`
 - **Province config generator:** `.claude/rules/unity/province_config_generator.md`

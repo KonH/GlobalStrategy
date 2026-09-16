@@ -7,7 +7,9 @@ description: Drive GlobalStrategy through a live Unity Editor play session via t
 
 Before dropping a request, run the `unity-plugins` skill
 (`python scripts/unity/ensure_plugin_dlls.py`) so gitignored
-`Assets/Plugins/Core/` DLLs exist. Then invoke `cc:unity-e2e-run`. Project specifics:
+`Assets/Plugins/Core/` DLLs exist, and so Unity MCP is pinned to this
+checkout. Another GlobalStrategy Editor will not pick up this `.e2e/`
+handshake. Then invoke `cc:unity-e2e-run`. Project specifics:
 
 - Handshake root: `.e2e/` (gitignored). Drop a `RunRequest` at `.e2e/requests/<runId>.json`.
 - Committed flows: `Docs/E2E/flows/new_game_to_map.json` and `Docs/E2E/flows/load_save_to_map.json`. Pass `"script": "new_game_to_map"` or `"script": "load_save_to_map"`.

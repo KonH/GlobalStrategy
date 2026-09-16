@@ -7,9 +7,11 @@ paths:
 
 When Unity Editor is connected via UnityMCP, prefer MCP tools over file operations.
 
-## Pre-flight: plugin DLLs
+## Pre-flight: plugin DLLs and project identity
 
 Before the first MCP call (or any other Unity Editor work) in a session, load the `unity-plugins` skill and run `python scripts/unity/ensure_plugin_dlls.py`. Plugin DLLs are gitignored and Unity cannot compile against `src/` types until they exist locally. See `.claude/skills/unity-plugins/SKILL.md`.
+
+That skill also **pins Unity MCP to this checkout once per session**. A connected instance named `GlobalStrategy` may be a different clone or git worktree. Compare the Editor project root (parent of `Application.dataPath` / `assetsPath`) to this workspace; `set_active_instance` on the match. If none match, stop and ask the user to open this checkout — do not `refresh_unity` or otherwise interact with the wrong Editor. The identity probe is the only MCP call allowed before that match.
 
 ## Scripts
 

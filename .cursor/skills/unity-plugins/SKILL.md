@@ -11,4 +11,6 @@ description: >-
 
 Follow `.claude/skills/unity-plugins/SKILL.md` exactly. Run
 `python scripts/unity/ensure_plugin_dlls.py` from the project root before the
-first Unity action in the session. Do not commit plugin DLLs.
+first Unity action in the session. Pin Unity MCP to this checkout once
+before the first MCP call (other clones/worktrees are not this project).
+Do not commit plugin DLLs.

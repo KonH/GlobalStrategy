@@ -12,4 +12,6 @@ scenes, prefabs, UXML/USS, play mode, or `unity-e2e-run`), read and follow
 `.claude/skills/unity-plugins/SKILL.md`.
 
 That means running `python scripts/unity/ensure_plugin_dlls.py` from the
-project root and stopping if it fails. Do not commit plugin DLLs.
+project root and stopping if it fails. Before the first Unity MCP call,
+pin the connected Editor to this checkout (see that skill). Do not commit
+plugin DLLs.
