@@ -11,13 +11,13 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 - A resource is defined in the resource configuration
   - designer inspects the entry => the entry contains no separate fields naming the resource's display text or its icon; those are derived from the resource identifier
   - designer inspects the entry => the entry still carries the resource's behavioural data (where it is seeded, its starting value, its bounds, whether its history is recorded, and its default recurring effects)
-  - designer writes an entry in the old shape with display-text or icon fields => the configuration is rejected rather than silently tolerated; there is no compatibility path and no per-entry override
+  - designer writes an entry in the old shape with display-text or icon fields => those fields are simply ignored; there is no compatibility path, no per-entry override, and no dedicated validation machinery to detect them
 
 - A recurring effect is defined alongside a resource
   - designer inspects the effect => it carries no display-text fields; its name and description are derived from the effect identifier by the same convention used for resources
   - player opens the resource breakdown tooltip => each contributing effect shows its derived translated name and description
   - player views the war progress screen => each listed effect shows its derived translated name and description
-  - an effect has no translated text => the raw effect identifier is shown in its place and the effect is listed in the startup report of missing text; display is never blocked
+  - an effect has no translated text => the raw effect identifier is shown in its place; display is never blocked
 
 - A resource that is shown to the player and has translated text and artwork available
   - player views the resource display => the resource shows the same name, description, and icon it showed before this change
@@ -27,7 +27,7 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 - A resource that is shown to the player but is missing translated text or artwork
   - resource has no translated text => the raw internal identifier is shown in its place, exactly as today; display is never blocked
   - resource has no matching artwork => the icon renders blank in a correctly-sized slot rather than as a broken or missing image
-  - developer starts the game => the missing text and the missing artwork each appear once in a startup report, not as a repeated per-frame warning
+  - developer builds the project => the missing text and the missing artwork are each reported once, as a build-time failure naming the gap, never as a repeated warning during play
 
 - A resource that is never shown to the player (internal bookkeeping values such as war progress, war initiative, combat bonus percentages, character skills, and the combat damage and durability values)
   - developer starts the game => no missing-text or missing-artwork report is produced for it, because the report is scoped to the resources the game already lists as player-visible
@@ -40,8 +40,9 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
   - designer replaces a resource's artwork => only the artwork asset changes; no configuration entry needs editing
 
 - A resource identifier contains more than one word
-  - the display layer derives its icon name => the identifier's word separators are rendered in the hyphenated style already used by the project's presentation naming, not the underscored style used by identifiers
-  - existing artwork that does not already match that derived name => it is renamed outright in this change, with every reference updated; no duplicate under the old name is kept
+  - the display layer derives its icon name => the identifier is used verbatim, with no case or separator transformation of any kind; the identifier's own spelling is the single spelling used for its text keys, its icon name, and its artwork file
+  - the presentation layer's own naming style differs from the identifier's => the identifier still wins; this is a deliberate, documented exception so that no rule has to be applied when moving between the two
+  - existing artwork that does not already match the identifier => it is renamed outright in this change, with every reference updated; no duplicate under the old name is kept
 
 - The province-scoped population resource is displayed
   - player views it => it shows its own translated name and description, and its own artwork, rather than borrowing the country-level population resource's
@@ -49,7 +50,7 @@ Legend: `Precondition => Action => Outcome`, grouped under a shared precondition
 
 - A designer adds a brand-new resource
   - designer adds the entry and supplies translated text and artwork under the naming convention => the resource displays correctly with no further configuration
-  - designer adds the entry without supplying text or artwork => the game still runs and the resource behaves correctly; the name falls back to the raw identifier, the icon renders blank, and both gaps appear in the startup report
+  - designer adds the entry without supplying text or artwork => the game still runs and the resource behaves correctly; the name falls back to the raw identifier, the icon renders blank, and both gaps are named by a failing build-time check
 
 ## Success Criteria
 
@@ -60,7 +61,7 @@ Measurable, technology-agnostic outcomes.
 - The currency resource shows the same icon in the live display and in the component gallery, where previously they differed.
 - No icon reference anywhere in the game still uses a pre-change name, including references that select an icon directly instead of through the configuration.
 - Renaming or replacing a resource's artwork requires changing exactly one thing (the artwork asset) and zero configuration edits.
-- Starting a new game produces a single startup report of missing text and artwork, covering only player-visible resources plus all effects, and produces no repeated per-frame warnings caused by this change.
+- A player-visible resource added without text or artwork is caught by a check that runs on every build, naming the specific gap, and no repeated per-frame warnings are introduced by this change.
 - Every newly added translated text entry exists in both supported languages with a real translation, not a copy of the English text.
 - No translated text entry remains in the catalogue that nothing reads.
 
@@ -69,9 +70,9 @@ Measurable, technology-agnostic outcomes.
 Three options were considered for unifying how resource icons are presented. All three produce the same end result for the player; they differ in how much artwork has to exist before a resource can be displayed.
 
 **Decided — Option B: one icon per resource, named after the resource identifier, with a graceful fallback.**
-Each resource's icon is found by its identifier alone, rendered in the project's hyphenated presentation naming style. A resource with no matching artwork renders a blank, correctly-sized icon slot rather than a broken image, and the gap is reported once at startup. The report is scoped by the game's existing list of player-visible resources, so internal resources cost nothing and never appear in it. This gives the trustworthy report that Option C aimed for without adding any field back into the configuration. Where two resources legitimately share a picture, the artwork is duplicated under each derived name.
+Each resource's icon is found by its identifier alone, spelled exactly as the identifier is spelled — no case or separator transformation, even where the presentation layer's own naming style differs. A resource with no matching artwork renders a blank, correctly-sized icon slot rather than a broken image, and the gap is caught once by a check that runs on every build. The check is scoped by the game's existing list of player-visible resources, so internal resources cost nothing and never appear in it. This gives the trustworthy report that Option C aimed for without adding any field back into the configuration. Where two resources legitimately share a picture, the artwork is duplicated under each derived name.
 
-**Rejected — Option A: artwork required for every displayed resource, no fallback.** Rejected because it makes a missing artwork asset a hard blocker on adding or testing a new resource, with no benefit over B once the startup report exists.
+**Rejected — Option A: artwork required for every displayed resource, no fallback.** Rejected because it makes a missing artwork asset a hard blocker on adding or testing a new resource, with no benefit over B once the build-time coverage check exists.
 
 **Rejected — Option C: Option B plus an explicit per-resource "never displayed" marker.** Rejected because the existing player-visible resource list already expresses exactly what the marker would, and adding the field would reintroduce presentation data into the configuration this feature exists to slim down.
 
