@@ -225,7 +225,7 @@ namespace GS.Unity.UI {
 			_playerOrgView = new PlayerOrgView(_root.Q("player-country"), _loc, _resourceConfig, _tooltip, _orgVisualConfig);
 			var playerTasksRoot = _root.Q("player-tasks");
 			if (playerTasksRoot != null) {
-				_playerTasksView = new PlayerTasksView(playerTasksRoot, _loc, _resourceConfig);
+				_playerTasksView = new PlayerTasksView(playerTasksRoot, _loc);
 				_playerTasksView.Refresh(_state.ActiveTasks);
 			}
 			var tutorialHighlightRoot = _root.Q("tutorial-highlight");
