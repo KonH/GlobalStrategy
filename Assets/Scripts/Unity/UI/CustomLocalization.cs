@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using GS.Unity.Save;
 using UnityEngine;
 
@@ -5,6 +6,7 @@ namespace GS.Unity.UI {
 	public class CustomLocalization : ILocalization {
 		readonly LocalizationConfig _config;
 		readonly SettingsStorage _settings;
+		readonly HashSet<string> _warned = new HashSet<string>();
 		LocaleConfig _active;
 
 		public CustomLocalization(LocalizationConfig config, SettingsStorage settings) {
@@ -29,8 +31,22 @@ namespace GS.Unity.UI {
 					}
 				}
 			}
-			Debug.LogWarning($"[Localization] Key not found: '{key}' (locale: {_active?.Locale ?? "null"})");
+			if (_warned.Add(key)) {
+				Debug.LogWarning($"[Localization] Key not found: '{key}' (locale: {_active?.Locale ?? "null"})");
+			}
 			return key;
+		}
+
+		public bool Has(string key) {
+			if (_active == null) {
+				return false;
+			}
+			foreach (var e in _active.Entries) {
+				if (e.Key == key) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		public void SetLocale(string locale) {
@@ -41,6 +57,9 @@ namespace GS.Unity.UI {
 			}
 			_active = found;
 			_settings.Locale = locale;
+			// A key present in one locale but missing in another (e.g. en has it, ru doesn't) is
+			// the most likely real gap - clear so switching locales can still surface it.
+			_warned.Clear();
 			Debug.Log($"[Localization] Switched to locale '{locale}'");
 		}
 

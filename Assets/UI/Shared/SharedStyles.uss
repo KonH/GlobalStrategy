@@ -276,30 +276,40 @@
 /* .resource-row/.resource-icon/.resource-label moved into Components.uss as .resource-chip /
    .resource-chip-icon / .resource-chip-label (ResourceChip component). .resource-row--spaced and
    the .resource-icon--* tint variants stay here - still layout/asset references, not colour
-   literals, and .resource-icon--coin is also used standalone (WarResultWindowView). */
+   literals, and .resource-icon--gold is also used standalone (WarResultWindowView). Six variants
+   now exist (gold, country_population, recruits, country_score, org_score, population).
+   INTENTIONAL: these are the only USS class selectors in the project containing an underscore -
+   the name after "resource-icon--" is a resource id (ResourceDisplayNaming.IconClass) generated
+   verbatim from [Savable] resource ids, which are snake_case (e.g. country_population). Do not
+   "fix" the underscores to kebab-case; that would break the icon class the resource views derive
+   at runtime. */
 
 .resource-row--spaced {
     margin-left: 12px;
 }
 
-.resource-icon--coin {
-    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/coin.png");
+.resource-icon--gold {
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/gold.png");
 }
 
-.resource-icon--country-population {
-    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-country-population.png");
+.resource-icon--country_population {
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/country_population.png");
 }
 
-.resource-icon--country-recruits {
-    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-country-recruits.png");
+.resource-icon--recruits {
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/recruits.png");
 }
 
-.resource-icon--country-score {
-    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-country-score.png");
+.resource-icon--country_score {
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/country_score.png");
 }
 
-.resource-icon--org-score {
-    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/resource-org-score.png");
+.resource-icon--org_score {
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/org_score.png");
+}
+
+.resource-icon--population {
+    background-image: url("project://database/Assets/Textures/Icons/ResourceRow/population.png");
 }
 
 /* ===== Tooltips ===== */

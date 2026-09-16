@@ -10,16 +10,11 @@
   "resources": [
     {
       "resourceId": "gold",
-      "nameKey": "resource.gold.name",
-      "descriptionKey": "resource.gold.description",
-      "icon": "coin",
       "seedTarget": "Country",
       "defaultInitialValue": 100.0,
       "defaultEffects": [
         {
           "effectId": "base_income",
-          "nameKey": "effect.base_income.name",
-          "descriptionKey": "effect.base_income.description",
           "value": 10.0,
           "payType": "Monthly",
           "collectorId": "base_income_formula"
@@ -28,27 +23,18 @@
     },
     {
       "resourceId": "country_population",
-      "nameKey": "resource.country_population.name",
-      "descriptionKey": "resource.country_population.description",
-      "icon": "country-population",
       "seedTarget": "Country",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
     },
     {
       "resourceId": "country_score",
-      "nameKey": "resource.country_score.name",
-      "descriptionKey": "resource.country_score.description",
-      "icon": "country-score",
       "seedTarget": "Country",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
     },
     {
       "resourceId": "recruits",
-      "nameKey": "resource.recruits.name",
-      "descriptionKey": "resource.recruits.description",
-      "icon": "country-recruits",
       "seedTarget": "Country",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
@@ -61,18 +47,12 @@
     },
     {
       "resourceId": "population",
-      "nameKey": "resource.country_population.name",
-      "descriptionKey": "resource.country_population.description",
-      "icon": "country-population",
       "seedTarget": "Province",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
     },
     {
       "resourceId": "org_score",
-      "nameKey": "resource.org_score.name",
-      "descriptionKey": "resource.org_score.description",
-      "icon": "org-score",
       "seedTarget": "Org",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
@@ -95,18 +75,12 @@
     },
     {
       "resourceId": "damage",
-      "nameKey": "resource.damage.name",
-      "descriptionKey": "resource.damage.description",
-      "icon": "damage",
       "seedTarget": "Country",
       "defaultInitialValue": 0.0,
       "defaultEffects": []
     },
     {
       "resourceId": "durability",
-      "nameKey": "resource.durability.name",
-      "descriptionKey": "resource.durability.description",
-      "icon": "durability",
       "seedTarget": "Country",
       "defaultInitialValue": 0.0,
       "defaultEffects": []

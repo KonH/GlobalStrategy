@@ -11,7 +11,6 @@ namespace GS.Unity.UI {
 		readonly VisualElement _root;
 		readonly VisualElement _list;
 		readonly ILocalization _loc;
-		readonly ResourceConfig _resourceConfig;
 		string? _expandedTaskId;
 		ActiveTasksState? _lastState;
 		// Snapshot of task ids as of the previous Refresh call. ActiveTasksState.Tasks is
@@ -21,11 +20,10 @@ namespace GS.Unity.UI {
 		// snapshot is the only way to tell which task ids are actually new.
 		List<string> _lastTaskIds = new();
 
-		public PlayerTasksView(VisualElement root, ILocalization loc, ResourceConfig resourceConfig) {
+		public PlayerTasksView(VisualElement root, ILocalization loc) {
 			_root = root;
 			_list = root.Q("tasks-list") ?? root;
 			_loc = loc;
-			_resourceConfig = resourceConfig;
 		}
 
 		public void Refresh(ActiveTasksState state) {
@@ -97,7 +95,8 @@ namespace GS.Unity.UI {
 				foreach (var reward in task.Rewards) {
 					var rewardRow = new VisualElement();
 					rewardRow.AddToClassList("task-reward-row");
-					string resourceNameKey = _resourceConfig.FindResource(reward.ResourceId)?.NameKey ?? reward.ResourceId;
+					string nameKey = ResourceDisplayNaming.NameKey(reward.ResourceId);
+					string resourceNameKey = _loc.Has(nameKey) ? nameKey : reward.ResourceId;
 					string amountText = reward.Amount.ToString("F1", CultureInfo.InvariantCulture);
 					var rewardLabel = new Label($"{Localize(resourceNameKey)}: {amountText}");
 					rewardLabel.AddToClassList("gs-label");
