@@ -80,11 +80,12 @@ namespace GS.Unity.UI {
 
 			var resDef = _config.FindResource(resource.ResourceId);
 			string nameKey = ResourceDisplayNaming.NameKey(resource.ResourceId);
-			TooltipBodyBuilder.AddHeader(root, _loc.Has(nameKey) ? _loc.Get(nameKey) : resource.ResourceId);
+			TooltipBodyBuilder.AddHeader(root, _loc.TryGet(nameKey, resource.ResourceId));
 
 			string descriptionKey = ResourceDisplayNaming.DescriptionKey(resource.ResourceId);
-			if (_loc.Has(descriptionKey)) {
-				TooltipBodyBuilder.AddDescription(root, _loc.Get(descriptionKey));
+			string? description = _loc.TryGet(descriptionKey, null);
+			if (description != null) {
+				TooltipBodyBuilder.AddDescription(root, description);
 			}
 
 			double plusTotal = 0;
@@ -183,13 +184,13 @@ namespace GS.Unity.UI {
 
 				var effectDef = resDef?.FindEffect(effect.EffectId);
 				string effectNameKey = ResourceDisplayNaming.EffectNameKey(effect.EffectId);
-				string effectName = effectDef != null && _loc.Has(effectNameKey) ? _loc.Get(effectNameKey) : effect.EffectId;
+				string effectName = effectDef != null ? _loc.TryGet(effectNameKey, effect.EffectId) : effect.EffectId;
 				string sign = effect.Value >= 0 ? "+" : "";
 				TooltipBodyBuilder.LineTone tone = effect.Value > 0
 					? TooltipBodyBuilder.LineTone.Positive
 					: effect.Value < 0 ? TooltipBodyBuilder.LineTone.Negative : TooltipBodyBuilder.LineTone.Neutral;
 				string effectDescriptionKey = ResourceDisplayNaming.EffectDescriptionKey(effect.EffectId);
-				string? description = effectDef != null && _loc.Has(effectDescriptionKey) ? _loc.Get(effectDescriptionKey) : null;
+				string? description = effectDef != null ? _loc.TryGet(effectDescriptionKey, null) : null;
 				TooltipBodyBuilder.AddEffectRow(root, $"{effectName}: {sign}{effect.Value:F1}/month", description, tone);
 			}
 
@@ -226,13 +227,13 @@ namespace GS.Unity.UI {
 
 				var effectDef = resDef?.FindEffect(effect.EffectId);
 				string effectNameKey = ResourceDisplayNaming.EffectNameKey(effect.EffectId);
-				string effectName = effectDef != null && _loc.Has(effectNameKey) ? _loc.Get(effectNameKey) : effect.EffectId;
+				string effectName = effectDef != null ? _loc.TryGet(effectNameKey, effect.EffectId) : effect.EffectId;
 				string sign = effect.Value >= 0 ? "+" : "";
 				TooltipBodyBuilder.LineTone tone = effect.Value > 0
 					? TooltipBodyBuilder.LineTone.Positive
 					: effect.Value < 0 ? TooltipBodyBuilder.LineTone.Negative : TooltipBodyBuilder.LineTone.Neutral;
 				string effectDescriptionKey = ResourceDisplayNaming.EffectDescriptionKey(effect.EffectId);
-				string? description = effectDef != null && _loc.Has(effectDescriptionKey) ? _loc.Get(effectDescriptionKey) : null;
+				string? description = effectDef != null ? _loc.TryGet(effectDescriptionKey, null) : null;
 				TooltipBodyBuilder.AddEffectRow(root, $"{effectName}: {sign}{effect.Value:F1} instant", description, tone);
 			}
 

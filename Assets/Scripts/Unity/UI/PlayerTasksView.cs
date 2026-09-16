@@ -96,9 +96,9 @@ namespace GS.Unity.UI {
 					var rewardRow = new VisualElement();
 					rewardRow.AddToClassList("task-reward-row");
 					string nameKey = ResourceDisplayNaming.NameKey(reward.ResourceId);
-					string resourceNameKey = _loc.Has(nameKey) ? nameKey : reward.ResourceId;
+					string resourceName = _loc.TryGet(nameKey, reward.ResourceId);
 					string amountText = reward.Amount.ToString("F1", CultureInfo.InvariantCulture);
-					var rewardLabel = new Label($"{Localize(resourceNameKey)}: {amountText}");
+					var rewardLabel = new Label($"{resourceName}: {amountText}");
 					rewardLabel.AddToClassList("gs-label");
 					rewardLabel.AddToClassList("task-reward-label");
 					rewardLabel.pickingMode = PickingMode.Ignore;

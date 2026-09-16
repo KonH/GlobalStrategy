@@ -49,6 +49,17 @@ namespace GS.Unity.UI {
 			return false;
 		}
 
+		public string TryGet(string key, string fallback) {
+			if (_active != null) {
+				foreach (var e in _active.Entries) {
+					if (e.Key == key) {
+						return e.Value;
+					}
+				}
+			}
+			return fallback;
+		}
+
 		public void SetLocale(string locale) {
 			var found = FindLocale(locale);
 			if (found == null) {
