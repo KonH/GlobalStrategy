@@ -1,30 +1,17 @@
 using System;
 using System.IO;
 using System.Net;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading;
 using System.Threading.Tasks;
-using ECS.Viewer;
+using ECS.Viewer.Host;
 
 namespace ECS.Viewer.Server {
 	public class ViewerServer {
-		readonly WorldObserver _observer;
-		readonly PauseToken _pauseToken;
-		readonly Func<World> _worldAccessor;
+		readonly ViewerRequestHandler _handler;
 		HttpListener? _listener;
 		public int Port { get; private set; }
 
-		static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions {
-			WriteIndented = false,
-			Converters = { new EntityRefValueConverter() }
-		};
-
-		public ViewerServer(WorldObserver observer, PauseToken pauseToken, Func<World> worldAccessor) {
-			_observer = observer;
-			_pauseToken = pauseToken;
-			_worldAccessor = worldAccessor;
+		public ViewerServer(ViewerRequestHandler handler) {
+			_handler = handler ?? throw new ArgumentNullException(nameof(handler));
 		}
 
 		public void Start() {
@@ -32,7 +19,7 @@ namespace ECS.Viewer.Server {
 			_listener = new HttpListener();
 			_listener.Prefixes.Add($"http://localhost:{Port}/");
 			_listener.Start();
-			Console.WriteLine($"[ECS Viewer] http://localhost:{Port}");
+			Console.WriteLine($"[ECS Viewer] http://localhost:{Port}?host=remote");
 			Task.Run(Loop);
 		}
 
@@ -54,105 +41,39 @@ namespace ECS.Viewer.Server {
 
 		void Handle(HttpListenerContext ctx) {
 			try {
-				HandleInner(ctx);
+				string method = ctx.Request.HttpMethod;
+				string path = ctx.Request.Url?.AbsolutePath ?? "/";
+				string query = ctx.Request.Url?.Query ?? "";
+				string body = ReadBody(ctx.Request);
+				ViewerHttpResult result = _handler.Handle(method, path, query, body);
+				Write(ctx.Response, result);
 			} catch (Exception ex) {
 				try {
-					Respond(ctx.Response, 500, $"{{\"error\":\"{ex.Message}\"}}");
-				} catch { }
+					byte[] bytes = System.Text.Encoding.UTF8.GetBytes($"{{\"error\":\"{ex.Message}\"}}");
+					ctx.Response.StatusCode = 500;
+					ctx.Response.ContentType = "application/json";
+					ctx.Response.Headers["Access-Control-Allow-Origin"] = "*";
+					ctx.Response.ContentLength64 = bytes.Length;
+					ctx.Response.OutputStream.Write(bytes, 0, bytes.Length);
+					ctx.Response.OutputStream.Close();
+				} catch {
+				}
 			}
 		}
 
-		void HandleInner(HttpListenerContext ctx) {
-			string method = ctx.Request.HttpMethod.ToUpperInvariant();
-			string path = ctx.Request.Url?.AbsolutePath.TrimEnd('/') ?? "/";
-
-			if (method == "GET" && (path == "" || path == "/")) {
-				ServeEmbedded(ctx.Response, "ECS.Viewer.Server.Web.index.html", "text/html");
-				return;
-			}
-			if (method == "GET" && path == "/app.js") {
-				ServeEmbedded(ctx.Response, "ECS.Viewer.Server.Web.app.js", "application/javascript");
-				return;
-			}
-			if (method == "GET" && path == "/snapshot") {
-				WorldSnapshot snap = _observer.Capture(_worldAccessor());
-				string json = JsonSerializer.Serialize(snap, _jsonOptions);
-				Respond(ctx.Response, 200, json);
-				return;
-			}
-			if (path == "/pause") {
-				if (method == "GET") {
-					Respond(ctx.Response, 200, $"{{\"paused\":{(_pauseToken.IsPaused ? "true" : "false")}}}");
-					return;
-				}
-				if (method == "POST") {
-					string body = ReadBody(ctx.Request);
-					using var doc = JsonDocument.Parse(body);
-					if (doc.RootElement.TryGetProperty("paused", out var el)) {
-						_pauseToken.IsPaused = el.GetBoolean();
-					}
-					Respond(ctx.Response, 200, "{}");
-					return;
-				}
-			}
-			// PATCH /entity/{id}/component/{typeName}
-			if (method == "PATCH") {
-				var parts = path.Split('/');
-				// parts: ["", "entity", "{id}", "component", "{typeName}"]
-				if (parts.Length == 5 && parts[1] == "entity" && parts[3] == "component") {
-					if (!int.TryParse(parts[2], out int entityId)) {
-						Respond(ctx.Response, 400, "{\"error\":\"invalid entity id\"}");
-						return;
-					}
-					string typeName = Uri.UnescapeDataString(parts[4]);
-					string body = ReadBody(ctx.Request);
-					using var doc = JsonDocument.Parse(body);
-					World world = _worldAccessor();
-					bool anyUpdated = false;
-					foreach (var prop in doc.RootElement.EnumerateObject()) {
-						string raw = prop.Value.ToString();
-						if (_observer.TrySetField(world, entityId, typeName, prop.Name, raw)) {
-							anyUpdated = true;
-						}
-					}
-					if (!anyUpdated) {
-						Respond(ctx.Response, 404, "{\"error\":\"entity or component or field not found\"}");
-						return;
-					}
-					Respond(ctx.Response, 200, "{}");
-					return;
-				}
-			}
-			Respond(ctx.Response, 404, "{\"error\":\"not found\"}");
-		}
-
-		static void ServeEmbedded(HttpListenerResponse resp, string resourceName, string contentType) {
-			var asm = typeof(ViewerServer).Assembly;
-			using Stream? stream = asm.GetManifestResourceStream(resourceName);
-			if (stream == null) {
-				Respond(resp, 404, "resource not found");
-				return;
-			}
-			byte[] bytes = new byte[stream.Length];
-			stream.Read(bytes, 0, bytes.Length);
-			resp.ContentType = contentType;
-			resp.ContentLength64 = bytes.Length;
-			resp.OutputStream.Write(bytes, 0, bytes.Length);
-			resp.OutputStream.Close();
-		}
-
-		static void Respond(HttpListenerResponse resp, int status, string body) {
-			byte[] bytes = Encoding.UTF8.GetBytes(body);
-			resp.StatusCode = status;
-			resp.ContentType = "application/json";
+		static void Write(HttpListenerResponse resp, ViewerHttpResult result) {
+			resp.StatusCode = result.StatusCode;
+			resp.ContentType = result.ContentType;
 			resp.Headers["Access-Control-Allow-Origin"] = "*";
-			resp.ContentLength64 = bytes.Length;
-			resp.OutputStream.Write(bytes, 0, bytes.Length);
+			resp.Headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, OPTIONS";
+			resp.Headers["Access-Control-Allow-Headers"] = "Content-Type";
+			resp.ContentLength64 = result.Body.Length;
+			resp.OutputStream.Write(result.Body, 0, result.Body.Length);
 			resp.OutputStream.Close();
 		}
 
 		static string ReadBody(HttpListenerRequest req) {
-			using var reader = new StreamReader(req.InputStream, req.ContentEncoding ?? Encoding.UTF8);
+			using var reader = new StreamReader(req.InputStream, req.ContentEncoding ?? System.Text.Encoding.UTF8);
 			return reader.ReadToEnd();
 		}
 
@@ -162,18 +83,6 @@ namespace ECS.Viewer.Server {
 			int port = ((IPEndPoint)listener.LocalEndpoint).Port;
 			listener.Stop();
 			return port;
-		}
-	}
-
-	// Serializes EntityRefValue as { "__entityRef": id }
-	class EntityRefValueConverter : JsonConverter<EntityRefValue> {
-		public override EntityRefValue Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) {
-			throw new NotSupportedException();
-		}
-		public override void Write(Utf8JsonWriter writer, EntityRefValue value, JsonSerializerOptions options) {
-			writer.WriteStartObject();
-			writer.WriteNumber("__entityRef", value.EntityId);
-			writer.WriteEndObject();
 		}
 	}
 }

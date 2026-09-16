@@ -2,13 +2,12 @@
 using System;
 using System.IO;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using ECS;
 using ECS.Viewer;
+using ECS.Viewer.Host;
+using GS.Game.Commands.Text;
+using GS.Game.Commands.Text.Suggestions;
 using GS.Main;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using UnityEngine;
 using VContainer;
 
@@ -22,35 +21,53 @@ namespace GS.Unity.EcsViewer {
 
 		GameLogic _logic = null!;
 		PauseToken _pauseToken = null!;
-		HttpListener _listener = null!;
+		SimulationMarshal _marshal = null!;
 #if !UNITY_WEBGL || UNITY_EDITOR
-		WorldObserver _observer = null!;
+		HttpListener _listener = null!;
+		ViewerRequestHandler _handler = null!;
 #endif
 
 		[Inject]
-		void Construct(GameLogic logic, PauseToken pauseToken) {
+		void Construct(GameLogic logic, PauseToken pauseToken, SimulationMarshal marshal) {
 			_logic = logic;
 			_pauseToken = pauseToken;
+			_marshal = marshal;
 		}
 
-		void Awake() {
+		void Start() {
 #if !UNITY_WEBGL || UNITY_EDITOR
 			if (!_enabled) {
 				return;
 			}
-			_observer = new WorldObserver();
+			string webRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".tmp", "web-debug-ui"));
+			var registry = new CommandRegistry();
+			var executor = new CommandExecutor(registry);
+			var source = new GameLogicSuggestionSource(_logic);
+			var engine = new SuggestionEngine(registry, new SuggestionValueResolver(source, new DisplayNameSuggestionLabels()));
+			_handler = new ViewerRequestHandler(
+				webRoot,
+				_marshal,
+				_pauseToken,
+				new WorldObserver(),
+				() => _logic.World,
+				_logic,
+				executor,
+				engine,
+				msg => Debug.LogError(msg));
 			int port = FindFreePort();
 			_listener = new HttpListener();
 			_listener.Prefixes.Add($"http://localhost:{port}/");
 			_listener.Start();
-			CurrentUrl = $"http://localhost:{port}";
+			CurrentUrl = $"http://localhost:{port}?host=remote";
 			Debug.Log($"[ECS Viewer] {CurrentUrl}");
 			Task.Run(Loop);
 #endif
 		}
 
 		void OnDestroy() {
+#if !UNITY_WEBGL || UNITY_EDITOR
 			_listener?.Stop();
+#endif
 			CurrentUrl = null;
 		}
 
@@ -69,104 +86,35 @@ namespace GS.Unity.EcsViewer {
 
 		void Handle(HttpListenerContext ctx) {
 			try {
-				HandleInner(ctx);
+				string method = ctx.Request.HttpMethod;
+				string path = ctx.Request.Url?.AbsolutePath ?? "/";
+				string query = ctx.Request.Url?.Query ?? "";
+				string body = ReadBody(ctx.Request);
+				ViewerHttpResult result = _handler.Handle(method, path, query, body);
+				ctx.Response.StatusCode = result.StatusCode;
+				ctx.Response.ContentType = result.ContentType;
+				ctx.Response.Headers["Access-Control-Allow-Origin"] = "*";
+				ctx.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, OPTIONS";
+				ctx.Response.Headers["Access-Control-Allow-Headers"] = "Content-Type";
+				ctx.Response.ContentLength64 = result.Body.Length;
+				ctx.Response.OutputStream.Write(result.Body, 0, result.Body.Length);
+				ctx.Response.OutputStream.Close();
 			} catch (Exception ex) {
-				try { Respond(ctx.Response, 500, $"{{\"error\":\"{ex.Message}\"}}"); } catch { }
-			}
-		}
-
-		void HandleInner(HttpListenerContext ctx) {
-			string method = ctx.Request.HttpMethod.ToUpperInvariant();
-			string path = ctx.Request.Url?.AbsolutePath.TrimEnd('/') ?? "/";
-
-			if (method == "GET" && (path == "" || path == "/")) {
-				ServeFile(ctx.Response, "index.html", "text/html");
-				return;
-			}
-			if (method == "GET" && path == "/app.js") {
-				ServeFile(ctx.Response, "app.js", "application/javascript");
-				return;
-			}
-			if (method == "GET" && path == "/snapshot") {
-				ECS.Viewer.WorldSnapshot snap = _observer.Capture(_logic.World);
-				string json = SerializeSnapshot(snap);
-				Respond(ctx.Response, 200, json);
-				return;
-			}
-			if (path == "/pause") {
-				if (method == "GET") {
-					Respond(ctx.Response, 200, $"{{\"paused\":{(_pauseToken.IsPaused ? "true" : "false")}}}");
-					return;
-				}
-				if (method == "POST") {
-					string body = ReadBody(ctx.Request);
-					var obj = JObject.Parse(body);
-					if (obj.TryGetValue("paused", out var val)) {
-						_pauseToken.IsPaused = val.Value<bool>();
-					}
-					Respond(ctx.Response, 200, "{}");
-					return;
+				try {
+					byte[] bytes = System.Text.Encoding.UTF8.GetBytes($"{{\"error\":\"{ex.Message}\"}}");
+					ctx.Response.StatusCode = 500;
+					ctx.Response.ContentType = "application/json";
+					ctx.Response.Headers["Access-Control-Allow-Origin"] = "*";
+					ctx.Response.ContentLength64 = bytes.Length;
+					ctx.Response.OutputStream.Write(bytes, 0, bytes.Length);
+					ctx.Response.OutputStream.Close();
+				} catch {
 				}
 			}
-			if (method == "PATCH") {
-				var parts = path.Split('/');
-				if (parts.Length == 5 && parts[1] == "entity" && parts[3] == "component") {
-					if (!int.TryParse(parts[2], out int entityId)) {
-						Respond(ctx.Response, 400, "{\"error\":\"invalid entity id\"}");
-						return;
-					}
-					string typeName = Uri.UnescapeDataString(parts[4]);
-					string body = ReadBody(ctx.Request);
-					var obj = JObject.Parse(body);
-					bool any = false;
-					foreach (var prop in obj.Properties()) {
-						if (_observer.TrySetField(_logic.World, entityId, typeName, prop.Name, prop.Value.ToString())) {
-							any = true;
-						}
-					}
-					if (!any) {
-						Respond(ctx.Response, 404, "{\"error\":\"entity or component or field not found\"}");
-						return;
-					}
-					Respond(ctx.Response, 200, "{}");
-					return;
-				}
-			}
-			Respond(ctx.Response, 404, "{\"error\":\"not found\"}");
-		}
-
-		// Serve static files from StreamingAssets/EcsViewer/
-		static void ServeFile(HttpListenerResponse resp, string filename, string contentType) {
-			string path = System.IO.Path.Combine(Application.streamingAssetsPath, "EcsViewer", filename);
-			if (!File.Exists(path)) {
-				Respond(resp, 404, "not found");
-				return;
-			}
-			byte[] bytes = File.ReadAllBytes(path);
-			resp.ContentType = contentType;
-			resp.ContentLength64 = bytes.Length;
-			resp.OutputStream.Write(bytes, 0, bytes.Length);
-			resp.OutputStream.Close();
-		}
-
-		static string SerializeSnapshot(ECS.Viewer.WorldSnapshot snap) {
-			var settings = new JsonSerializerSettings();
-			settings.Converters.Add(new EntityRefValueJsonConverter());
-			return JsonConvert.SerializeObject(snap, settings);
-		}
-
-		static void Respond(HttpListenerResponse resp, int status, string body) {
-			byte[] bytes = Encoding.UTF8.GetBytes(body);
-			resp.StatusCode = status;
-			resp.ContentType = "application/json";
-			resp.Headers["Access-Control-Allow-Origin"] = "*";
-			resp.ContentLength64 = bytes.Length;
-			resp.OutputStream.Write(bytes, 0, bytes.Length);
-			resp.OutputStream.Close();
 		}
 
 		static string ReadBody(HttpListenerRequest req) {
-			using var reader = new StreamReader(req.InputStream, req.ContentEncoding ?? Encoding.UTF8);
+			using var reader = new StreamReader(req.InputStream, req.ContentEncoding ?? System.Text.Encoding.UTF8);
 			return reader.ReadToEnd();
 		}
 
@@ -178,18 +126,5 @@ namespace GS.Unity.EcsViewer {
 			return port;
 		}
 #endif
-	}
-
-	class EntityRefValueJsonConverter : JsonConverter<EntityRefValue> {
-		public override EntityRefValue ReadJson(JsonReader reader, Type objectType, EntityRefValue? existingValue, bool hasExistingValue, JsonSerializer serializer) {
-			throw new NotSupportedException();
-		}
-		public override void WriteJson(JsonWriter writer, EntityRefValue? value, JsonSerializer serializer) {
-			if (value == null) { writer.WriteNull(); return; }
-			writer.WriteStartObject();
-			writer.WritePropertyName("__entityRef");
-			writer.WriteValue(value.EntityId);
-			writer.WriteEndObject();
-		}
 	}
 }

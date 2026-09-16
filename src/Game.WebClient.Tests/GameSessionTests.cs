@@ -10,6 +10,7 @@ using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.WebClient.Services;
 using GS.Main;
+using ECS.Viewer;
 using Xunit;
 
 namespace GS.Game.WebClient.Tests {
@@ -128,6 +129,34 @@ namespace GS.Game.WebClient.Tests {
 
 			session.Tick(2); // > 1 in-game hour at x1 speed - no background loop running to race with
 
+			Assert.True(session.Logic!.VisualState.Time.CurrentTime > initialTime);
+
+			session.Dispose();
+		}
+
+		[Fact]
+		void freeze_skips_update_but_drains_marshal() {
+			var configSource = new FileGameConfigSource();
+			var storage = new InMemoryStorage();
+			var preferences = new AppPreferences(new FakePreferencesStore());
+			preferences.SetTutorialsEnabled(false);
+			var session = CreateSession(configSource, storage, preferences);
+
+			session.StartNew(FirstOrganizationId(configSource), autoStart: false);
+			session.Tick(1);
+			var initialTime = session.Logic!.VisualState.Time.CurrentTime;
+
+			session.PauseToken.IsPaused = true;
+			bool drained = false;
+			session.Marshal.Enqueue(() => drained = true);
+			session.Tick(2);
+
+			Assert.True(drained);
+			Assert.Equal(initialTime, session.Logic!.VisualState.Time.CurrentTime);
+
+			session.PauseToken.IsPaused = false;
+			session.Logic.Commands.Push(new UnpauseCommand());
+			session.Tick(2);
 			Assert.True(session.Logic!.VisualState.Time.CurrentTime > initialTime);
 
 			session.Dispose();

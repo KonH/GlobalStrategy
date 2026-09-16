@@ -11,11 +11,15 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.6.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4" PrivateAssets="all" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../ECS.Viewer/ECS.Viewer.csproj" />
+    <ProjectReference Include="../ECS.Viewer.Host/ECS.Viewer.Host.csproj" />
     <ProjectReference Include="../ECS.Viewer.Server/ECS.Viewer.Server.csproj" />
+    <ProjectReference Include="../Game.Common/Game.Common.csproj" />
+    <ProjectReference Include="../Game.Components/Game.Components.csproj" />
   </ItemGroup>
 
 </Project>

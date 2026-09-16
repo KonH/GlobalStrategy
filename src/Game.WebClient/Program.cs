@@ -2,9 +2,11 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using GS.Game.WebClient.Services;
-using GS.Game.Commands.Text;
 using GS.Game.WebClient.Terminal.Suggestions;
+using GS.Game.Commands.Text;
+using GS.Game.Commands.Text.Suggestions;
 using GS.Main;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
@@ -17,10 +19,6 @@ namespace GS.Game.WebClient {
 			var builder = WebAssemblyHostBuilder.CreateDefault(args);
 			builder.RootComponents.Add<App>("#app");
 
-			// Blazor WASM runs the whole app in a single DI scope, so AddScoped here just
-			// adds unnecessary scope-validation friction against the rest of this file's
-			// singletons (ConfigProvider et al. depend on HttpClient directly) - AddSingleton
-			// matches how every other service in this file is registered.
 			builder.Services.AddSingleton(sp => new HttpClient {
 				BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
 			});
@@ -28,22 +26,39 @@ namespace GS.Game.WebClient {
 			builder.Services.AddSingleton<IGameConfigSource>(sp => sp.GetRequiredService<ConfigProvider>());
 			builder.Services.AddSingleton<Localization>();
 			builder.Services.AddSingleton<ILocalization>(sp => sp.GetRequiredService<Localization>());
+			builder.Services.AddSingleton<ISuggestionLabels, LocalizationSuggestionLabels>();
 			builder.Services.AddSingleton<IGameLogger, ConsoleGameLogger>();
 			builder.Services.AddSingleton<IStoragePersistence, IndexedDbPersistence>();
 			builder.Services.AddSingleton<BrowserStorage>();
 			builder.Services.AddSingleton<IPersistentStorage>(sp => sp.GetRequiredService<BrowserStorage>());
 			builder.Services.AddSingleton<ISnapshotSerializer, WebSnapshotSerializer>();
-			// WebAssemblyHostBuilder only registers the JS interop runtime under IJSRuntime -
-			// its concrete DefaultWebAssemblyJSRuntime also implements IJSInProcessRuntime, but
-			// nothing exposes it under that interface unless we do it ourselves here.
 			builder.Services.AddSingleton(sp => (IJSInProcessRuntime)sp.GetRequiredService<IJSRuntime>());
 			builder.Services.AddSingleton<IPreferencesStore, LocalStoragePreferencesStore>();
 			builder.Services.AddSingleton<AppPreferences>();
 			builder.Services.AddSingleton<GameSession>();
 			builder.Services.AddSingleton<CommandRegistry>();
 			builder.Services.AddSingleton<CommandExecutor>();
+			builder.Services.AddSingleton<ISuggestionSource>(sp => {
+				var session = sp.GetRequiredService<GameSession>();
+				var configs = sp.GetRequiredService<IGameConfigSource>();
+				ISuggestionSource fallback = WebConfigSuggestionCatalog.From(configs);
+				return new DelegatingSuggestionSource(() => session.Logic != null
+					? new GameLogicSuggestionSource(session.Logic)
+					: fallback);
+			});
 			builder.Services.AddSingleton<SuggestionValueResolver>();
 			builder.Services.AddSingleton<SuggestionEngine>();
+			builder.Services.AddSingleton<IGameClient>(sp => {
+				var nav = sp.GetRequiredService<NavigationManager>();
+				if (HostMode.IsRemote(nav.Uri)) {
+					return new RemoteGameClient(sp.GetRequiredService<HttpClient>());
+				}
+				return new InProcessGameClient(
+					sp.GetRequiredService<GameSession>(),
+					sp.GetRequiredService<CommandExecutor>(),
+					sp.GetRequiredService<SuggestionEngine>(),
+					sp.GetRequiredService<ISuggestionSource>());
+			});
 
 			var host = builder.Build();
 

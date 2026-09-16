@@ -8,6 +8,14 @@ namespace GS.Game.Systems {
 
 		public void Register(string collectorId, IResourceCollector collector) => _collectors[collectorId] = collector;
 
+		public IReadOnlyList<string> Ids {
+			get {
+				var ids = new List<string>(_collectors.Keys);
+				ids.Sort(StringComparer.Ordinal);
+				return ids;
+			}
+		}
+
 		public IResourceCollector Resolve(string collectorId) {
 			if (!_collectors.TryGetValue(collectorId, out var collector)) {
 				throw new InvalidOperationException($"Unknown resource collector id: {collectorId}");

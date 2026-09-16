@@ -1,7 +1,9 @@
+using GS.Game.Common;
+
 namespace GS.Game.Components {
 	[Savable]
 	public struct ProvinceOccupation {
-		public string ProvinceId;
-		public string OccupierId;
+		[ProvinceId] public string ProvinceId;
+		[CountryId] public string OccupierId;
 	}
 }

@@ -52,6 +52,7 @@ namespace GS.Main {
 		public CountryRelations Relations => _relations;
 		public ResourceConfig ResourceConfig { get; private set; } = null!;
 		public CountryConfig CountryConfig { get; private set; } = null!;
+		public OrganizationConfig OrganizationConfig { get; private set; } = null!;
 		public CharacterConfig CharacterConfig { get; private set; } = null!;
 		public ActionConfig ActionConfig { get; private set; } = null!;
 		public EffectConfig EffectConfig { get; private set; } = null!;
@@ -60,6 +61,7 @@ namespace GS.Main {
 		public GameSettings GameSettings { get; private set; } = null!;
 		public IReadOnlyList<BotFeatureConfigEntry> BotFeatures { get; private set; } = null!;
 		public IReadOnlyDictionary<string, string> HqCountryByOrgId => _hqCountryByOrgId;
+		public IReadOnlyList<string> CollectorIds => _resourceCollectorRegistry.Ids;
 		public int MaxControlPool { get; private set; }
 		public CountryActionsVisibility CountryActionsVisibility { get; } = new CountryActionsVisibility();
 		public bool IsCompleted => _gameCompletionEntity >= 0
@@ -70,8 +72,9 @@ namespace GS.Main {
 			Commands = (IWriteOnlyCommandAccessor)_commandAccessor;
 			_rng = context.RngSeed.HasValue ? new Random(context.RngSeed.Value) : new Random();
 
+			OrganizationConfig = context.Organization.Load();
 			_hqCountryByOrgId = new Dictionary<string, string>();
-			foreach (var orgEntry in context.Organization.Load().Organizations) {
+			foreach (var orgEntry in OrganizationConfig.Organizations) {
 				_hqCountryByOrgId[orgEntry.OrganizationId] = orgEntry.HqCountryId;
 			}
 

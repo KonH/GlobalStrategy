@@ -4,10 +4,8 @@
 @using Microsoft.AspNetCore.Components
 @using GS.Game.WebClient.Services
 @using GS.Game.Commands.Text
-@using GS.Game.WebClient.Terminal.Suggestions
-@inject GameSession GameSession
-@inject CommandExecutor CommandExecutor
-@inject SuggestionEngine SuggestionEngine
+@using GS.Game.Commands.Text.Suggestions
+@inject IGameClient Client
 
 <div class="gs-terminal">
 	<div class="gs-terminal-output">
@@ -38,6 +36,7 @@
 @code {
 	readonly List<(bool Success, string Text)> _history = new();
 	List<SuggestionItem> _suggestions = new();
+	SuggestionResult? _lastResult;
 	string _input = "";
 	bool _preventKeyDownDefault;
 	ElementReference _inputRef;
@@ -45,30 +44,26 @@
 	void OnInput(ChangeEventArgs e) {
 		_input = e.Value?.ToString() ?? "";
 		_suggestions = new List<SuggestionItem>();
+		_lastResult = null;
 	}
 
 	async Task OnKeyDown(KeyboardEventArgs e) {
-		// Only Tab needs its native default (moving focus to the next control) suppressed -
-		// preventing default unconditionally would also block normal character typing.
 		_preventKeyDownDefault = e.Key == "Tab";
 
 		if (e.Key == "Tab") {
-			HandleTab();
-			// Blazor applies @onkeydown:preventDefault using the flag's value as of the
-			// previous render, so it never suppresses the native default on the very
-			// keystroke that sets it - reclaiming focus explicitly here is what actually
-			// keeps it in the input regardless of that timing quirk.
+			await HandleTab();
 			await _inputRef.FocusAsync();
 			return;
 		}
 
 		if (e.Key == "Enter") {
-			Execute();
+			await Execute();
 		}
 	}
 
-	void HandleTab() {
-		var result = SuggestionEngine.GetSuggestions(_input);
+	async Task HandleTab() {
+		var result = await Client.SuggestAsync(_input);
+		_lastResult = result;
 		if (result.IsSingleMatch) {
 			_input = result.Complete(_input, result.Items[0].Value);
 			_suggestions = new List<SuggestionItem>();
@@ -77,15 +72,13 @@
 		_suggestions = result.Items.ToList();
 	}
 
-	void PickSuggestion(SuggestionItem item) {
-		// Re-classify against the current input (unchanged since the suggestion list was built)
-		// to recover how to insert the chosen value - e.g. argument names get a trailing '='.
-		var result = SuggestionEngine.GetSuggestions(_input);
+	async Task PickSuggestion(SuggestionItem item) {
+		var result = _lastResult ?? await Client.SuggestAsync(_input);
 		_input = result.Complete(_input, item.Value);
 		_suggestions = new List<SuggestionItem>();
 	}
 
-	void Execute() {
+	async Task Execute() {
 		string input = _input;
 		_input = "";
 		_suggestions = new List<SuggestionItem>();
@@ -93,13 +86,7 @@
 			return;
 		}
 
-		if (GameSession.Logic == null) {
-			_history.Add((false, $"> {input}"));
-			_history.Add((false, "No running game session."));
-			return;
-		}
-
-		var result = CommandExecutor.Execute(input, GameSession.Logic.Commands);
+		var result = await Client.ExecuteAsync(input);
 		_history.Add((true, $"> {input}"));
 		_history.Add((result.Success, result.Message));
 	}

@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using GS.Game.Commands;
+using GS.Game.Common;
 using Xunit;
 
 namespace GS.Game.Tests {
@@ -15,6 +16,14 @@ namespace GS.Game.Tests {
 		[InlineData(typeof(CharacterOwnerIdAttribute))]
 		[InlineData(typeof(LocaleIdAttribute))]
 		[InlineData(typeof(OneOfAttribute))]
+		[InlineData(typeof(ResourceIdAttribute))]
+		[InlineData(typeof(CharacterIdAttribute))]
+		[InlineData(typeof(WarIdAttribute))]
+		[InlineData(typeof(BattleIdAttribute))]
+		[InlineData(typeof(EffectIdAttribute))]
+		[InlineData(typeof(TaskIdAttribute))]
+		[InlineData(typeof(CollectorIdAttribute))]
+		[InlineData(typeof(OwnerIdAttribute))]
 		public void SuggestionAttribute_TargetsFieldAndProperty(Type attributeType) {
 			var usage = attributeType.GetCustomAttribute<AttributeUsageAttribute>();
 
@@ -31,6 +40,14 @@ namespace GS.Game.Tests {
 		[InlineData(typeof(CharacterOwnerIdAttribute))]
 		[InlineData(typeof(LocaleIdAttribute))]
 		[InlineData(typeof(OneOfAttribute))]
+		[InlineData(typeof(ResourceIdAttribute))]
+		[InlineData(typeof(CharacterIdAttribute))]
+		[InlineData(typeof(WarIdAttribute))]
+		[InlineData(typeof(BattleIdAttribute))]
+		[InlineData(typeof(EffectIdAttribute))]
+		[InlineData(typeof(TaskIdAttribute))]
+		[InlineData(typeof(CollectorIdAttribute))]
+		[InlineData(typeof(OwnerIdAttribute))]
 		public void SuggestionAttribute_DerivesFromParamSuggestionAttribute(Type attributeType) {
 			Assert.True(typeof(ParamSuggestionAttribute).IsAssignableFrom(attributeType));
 		}
@@ -40,6 +57,30 @@ namespace GS.Game.Tests {
 			var attribute = new OneOfAttribute("a", "b");
 
 			Assert.Equal(new[] { "a", "b" }, attribute.Values);
+		}
+
+		[Fact]
+		public void ParamSuggestionAttribute_AllowEmpty_DefaultsFalse() {
+			Assert.False(new CountryIdAttribute().AllowEmpty);
+		}
+
+		[Fact]
+		public void OwnerIdAttribute_OwnerTypeSibling_DefaultsToOwnerType() {
+			Assert.Equal("OwnerType", new OwnerIdAttribute().OwnerTypeSibling);
+		}
+
+		[Fact]
+		public void OwnerIdAttribute_OwnerTypeSibling_CanBeNull() {
+			Assert.Null(new OwnerIdAttribute { OwnerTypeSibling = null }.OwnerTypeSibling);
+		}
+
+		[Fact]
+		public void OmitFromSnapshotAttribute_TargetsFieldAndProperty() {
+			var usage = typeof(OmitFromSnapshotAttribute).GetCustomAttribute<AttributeUsageAttribute>();
+
+			Assert.NotNull(usage);
+			Assert.Equal(AttributeTargets.Field | AttributeTargets.Property, usage!.ValidOn);
+			Assert.False(typeof(ParamSuggestionAttribute).IsAssignableFrom(typeof(OmitFromSnapshotAttribute)));
 		}
 
 		// Every public string field/property named "*Id" (plus the known "Locale"/"Interval"

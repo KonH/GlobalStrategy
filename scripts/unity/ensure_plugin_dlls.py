@@ -27,6 +27,7 @@ WATCH_PREFIXES = [
     "src/ECS.Core/",
     "src/ECS.Core.Extensions/",
     "src/ECS.Viewer/",
+    "src/ECS.Viewer.Host/",
     "src/Game.Bots/",
     "src/Game.Commands/",
     "src/Game.Commands.Text/",
@@ -39,6 +40,9 @@ WATCH_PREFIXES = [
     "src/Directory.Build.props",
 ]
 
+WEB_CLIENT_DIR = Path("src/Game.WebClient")
+WEB_PUBLISH_DIR = Path(".tmp/web-debug-ui")
+WEB_WATCH_SUFFIXES = {".cs", ".razor", ".csproj"}
 SKIP_DIR_NAMES = {"bin", "obj"}
 
 
@@ -138,34 +142,113 @@ def main(argv: list[str] | None = None) -> int:
     repo_root = Path.cwd()
     plugins_dir = repo_root / PLUGINS_DIR
     rebuild, reason = needs_rebuild(repo_root, plugins_dir)
+    web_stale, web_reason = needs_web_publish(repo_root)
 
     if args.check:
-        print(reason)
-        return 1 if rebuild else 0
-
-    if not args.force and not rebuild:
-        print(f"UP_TO_DATE: {reason}")
+        if rebuild or web_stale:
+            print(f"{reason}; {web_reason}")
+            return 1
+        print(f"{reason}; {web_reason}")
         return 0
 
-    print(f"REBUILDING: {reason}")
-    code = run_release_build(repo_root)
+    if args.force or rebuild:
+        print(f"REBUILDING: {reason}")
+        code = run_release_build(repo_root)
+        if code != 0:
+            print(
+                f"Release build failed (exit {code}); see {LOG_PATH.as_posix()}",
+                file=sys.stderr,
+            )
+            return code
+
+        still_missing = missing_dlls(expected_dlls(plugins_dir))
+        if still_missing:
+            names = ", ".join(dll.name for dll in still_missing)
+            print(
+                f"Release build succeeded but plugin DLL(s) still missing: {names}",
+                file=sys.stderr,
+            )
+            return 1
+
+        print("REBUILT: Assets/Plugins/Core plugin DLLs are ready")
+    else:
+        print(f"UP_TO_DATE: {reason}")
+
+    return ensure_web_publish(repo_root)
+
+
+def newest_webclient_mtime(repo_root: Path) -> float | None:
+    newest: float | None = None
+    target = repo_root / WEB_CLIENT_DIR
+    if not target.is_dir():
+        return None
+    wwwroot = target / "wwwroot"
+    for path in target.rglob("*"):
+        if not path.is_file():
+            continue
+        if _is_skipped_dir(path, target):
+            continue
+        suffix = path.suffix.lower()
+        in_wwwroot = wwwroot in path.parents or path.parent == wwwroot
+        if suffix not in WEB_WATCH_SUFFIXES and not in_wwwroot:
+            continue
+        mtime = path.stat().st_mtime
+        newest = mtime if newest is None else max(newest, mtime)
+    return newest
+
+
+def needs_web_publish(repo_root: Path) -> tuple[bool, str]:
+    publish_dir = repo_root / WEB_PUBLISH_DIR
+    index = publish_dir / "index.html"
+    framework = publish_dir / "_framework"
+    if not index.is_file() or not framework.is_dir():
+        return True, "published Blazor UI is missing"
+
+    src_mtime = newest_webclient_mtime(repo_root)
+    if src_mtime is None:
+        return False, "no Game.WebClient sources"
+
+    published_mtime = index.stat().st_mtime
+    if src_mtime > published_mtime:
+        return True, "src/Game.WebClient is newer than .tmp/web-debug-ui"
+    return False, "published Blazor UI is up to date"
+
+
+def run_web_publish(repo_root: Path) -> int:
+    out_dir = repo_root / WEB_PUBLISH_DIR
+    out_dir.mkdir(parents=True, exist_ok=True)
+    log_path = repo_root / Path(".tmp/web-debug-ui-publish.log")
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with log_path.open("w", encoding="utf-8") as log_file:
+        result = subprocess.run(
+            [
+                "dotnet",
+                "publish",
+                str(repo_root / WEB_CLIENT_DIR),
+                "-c",
+                "Release",
+                "-o",
+                str(out_dir),
+            ],
+            cwd=repo_root,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+    return result.returncode
+
+
+def ensure_web_publish(repo_root: Path) -> int:
+    publish, reason = needs_web_publish(repo_root)
+    if not publish:
+        print(f"WEB_UI_UP_TO_DATE: {reason}")
+        return 0
+    print(f"PUBLISHING_WEB_UI: {reason}")
+    code = run_web_publish(repo_root)
     if code != 0:
-        print(
-            f"Release build failed (exit {code}); see {LOG_PATH.as_posix()}",
-            file=sys.stderr,
-        )
+        print("dotnet publish src/Game.WebClient failed; see .tmp/web-debug-ui-publish.log", file=sys.stderr)
         return code
-
-    still_missing = missing_dlls(expected_dlls(plugins_dir))
-    if still_missing:
-        names = ", ".join(dll.name for dll in still_missing)
-        print(
-            f"Release build succeeded but plugin DLL(s) still missing: {names}",
-            file=sys.stderr,
-        )
-        return 1
-
-    print("REBUILT: Assets/Plugins/Core plugin DLLs are ready")
+    print("PUBLISHED: .tmp/web-debug-ui")
     return 0
 
 

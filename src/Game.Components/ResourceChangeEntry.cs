@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
+using GS.Game.Common;
+
 namespace GS.Game.Components {
 	public struct ResourceChangeEntry {
-		public string EffectId;
+		[EffectId] public string EffectId;
 		public double AppliedDelta;
 		public DateTime Timestamp;
 

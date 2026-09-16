@@ -19,6 +19,9 @@ namespace GS.Editor.PluginDlls {
 		const string PluginsRelativeDir = "Assets/Plugins/Core";
 		const string SolutionRelativePath = "src/GlobalStrategy.Core.sln";
 		const string LogRelativePath = ".tmp/plugin-dll-regenerate.log";
+		const string WebClientRelativeDir = "src/Game.WebClient";
+		const string WebPublishRelativeDir = ".tmp/web-debug-ui";
+		const string WebPublishLogRelativePath = ".tmp/web-debug-ui-publish.log";
 		const int BuildTimeoutMs = 10 * 60 * 1000;
 
 		static readonly string[] WatchPrefixes = {
@@ -27,6 +30,7 @@ namespace GS.Editor.PluginDlls {
 			"src/ECS.Core",
 			"src/ECS.Core.Extensions",
 			"src/ECS.Viewer",
+			"src/ECS.Viewer.Host",
 			"src/Game.Bots",
 			"src/Game.Commands",
 			"src/Game.Commands.Text",
@@ -80,6 +84,7 @@ namespace GS.Editor.PluginDlls {
 			}
 
 			if (!NeedsRebuild(out string reason)) {
+				EnsureWebPublish();
 				return;
 			}
 
@@ -207,6 +212,7 @@ namespace GS.Editor.PluginDlls {
 			}
 
 			Debug.Log("[PluginDlls] Core DLLs regenerated.");
+			EnsureWebPublish();
 			if (refresh && !_refreshQueued) {
 				_refreshQueued = true;
 				AssetDatabase.Refresh();
@@ -386,6 +392,103 @@ namespace GS.Editor.PluginDlls {
 
 		static string PluginsDir() {
 			return Path.Combine(ProjectRoot(), PluginsRelativeDir.Replace('/', Path.DirectorySeparatorChar));
+		}
+
+		static bool NeedsWebPublish(out string reason) {
+			string publishDir = Path.Combine(ProjectRoot(), WebPublishRelativeDir.Replace('/', Path.DirectorySeparatorChar));
+			string index = Path.Combine(publishDir, "index.html");
+			string framework = Path.Combine(publishDir, "_framework");
+			if (!File.Exists(index) || !Directory.Exists(framework)) {
+				reason = "published Blazor UI is missing";
+				return true;
+			}
+
+			DateTime? srcMtime = NewestWebClientMtime();
+			if (srcMtime == null) {
+				reason = "no Game.WebClient sources";
+				return false;
+			}
+
+			if (srcMtime.Value > File.GetLastWriteTimeUtc(index)) {
+				reason = "src/Game.WebClient is newer than .tmp/web-debug-ui";
+				return true;
+			}
+
+			reason = "published Blazor UI is up to date";
+			return false;
+		}
+
+		static DateTime? NewestWebClientMtime() {
+			string target = Path.Combine(ProjectRoot(), WebClientRelativeDir.Replace('/', Path.DirectorySeparatorChar));
+			if (!Directory.Exists(target)) {
+				return null;
+			}
+
+			string wwwroot = Path.Combine(target, "wwwroot");
+			DateTime? newest = null;
+			foreach (string path in Directory.EnumerateFiles(target, "*", SearchOption.AllDirectories)) {
+				if (IsSkippedPath(path, target)) {
+					continue;
+				}
+
+				string ext = Path.GetExtension(path);
+				bool inWwwroot = path.StartsWith(wwwroot, StringComparison.OrdinalIgnoreCase);
+				if (!ext.Equals(".cs", StringComparison.OrdinalIgnoreCase)
+					&& !ext.Equals(".razor", StringComparison.OrdinalIgnoreCase)
+					&& !ext.Equals(".csproj", StringComparison.OrdinalIgnoreCase)
+					&& !inWwwroot) {
+					continue;
+				}
+
+				Consider(File.GetLastWriteTimeUtc(path), ref newest);
+			}
+
+			return newest;
+		}
+
+		static void EnsureWebPublish() {
+			if (!NeedsWebPublish(out string reason)) {
+				return;
+			}
+
+			string projectRoot = ProjectRoot();
+			string dotnet = ResolveDotnet();
+			if (dotnet == null) {
+				Debug.LogError("[PluginDlls] Cannot publish Game.WebClient: dotnet SDK not found.");
+				return;
+			}
+
+			string logPath = Path.Combine(projectRoot, WebPublishLogRelativePath.Replace('/', Path.DirectorySeparatorChar));
+			string logDir = Path.GetDirectoryName(logPath);
+			if (!string.IsNullOrEmpty(logDir)) {
+				Directory.CreateDirectory(logDir);
+			}
+
+			string outDir = Path.Combine(projectRoot, WebPublishRelativeDir.Replace('/', Path.DirectorySeparatorChar));
+			Directory.CreateDirectory(outDir);
+
+			var startInfo = new ProcessStartInfo {
+				FileName = dotnet,
+				Arguments = $"publish \"{WebClientRelativeDir}\" -c Release -o \"{outDir}\" -flp:LogFile=\"{logPath}\";Verbosity=minimal",
+				WorkingDirectory = projectRoot,
+				UseShellExecute = false,
+				CreateNoWindow = true,
+			};
+
+			Debug.Log($"[PluginDlls] Publishing Game.WebClient ({reason})");
+			try {
+				using var process = Process.Start(startInfo);
+				if (process == null) {
+					Debug.LogError("[PluginDlls] failed to start `dotnet publish` for Game.WebClient.");
+					return;
+				}
+
+				if (!process.WaitForExit(BuildTimeoutMs) || process.ExitCode != 0) {
+					Debug.LogError($"[PluginDlls] `dotnet publish src/Game.WebClient` failed. See {WebPublishLogRelativePath}.");
+				}
+			} catch (Exception ex) {
+				Debug.LogError($"[PluginDlls] `dotnet publish` failed: {ex.Message}");
+			}
 		}
 	}
 }

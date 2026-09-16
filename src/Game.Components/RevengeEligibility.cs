@@ -6,7 +6,7 @@ namespace GS.Game.Components {
 	// that same opponent (which clears the entry).
 	[Savable]
 	public struct RevengeEligibility {
-		public string CountryId;
-		public string TargetCountryId;
+		[CountryId] public string CountryId;
+		[CountryId] public string TargetCountryId;
 	}
 }

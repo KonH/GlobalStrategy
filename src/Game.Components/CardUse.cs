@@ -1,5 +1,7 @@
+using GS.Game.Common;
+
 namespace GS.Game.Components {
 	public struct CardUse {
-		public string CountryId;
+		[CountryId] public string CountryId;
 	}
 }

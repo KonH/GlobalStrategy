@@ -8,11 +8,11 @@
 
   <ItemGroup>
     <ProjectReference Include="../ECS.Viewer/ECS.Viewer.csproj" />
+    <ProjectReference Include="../ECS.Viewer.Host/ECS.Viewer.Host.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Web\index.html" />
-    <EmbeddedResource Include="Web\app.js" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
 </Project>

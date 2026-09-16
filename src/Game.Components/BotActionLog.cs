@@ -1,6 +1,8 @@
+using GS.Game.Common;
+
 namespace GS.Game.Components {
 	[Savable]
 	public struct BotActionLog {
-		public string[] Entries;
+		[OmitFromSnapshot] public string[] Entries;
 	}
 }

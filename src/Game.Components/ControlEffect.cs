@@ -1,9 +1,11 @@
+using GS.Game.Common;
+
 namespace GS.Game.Components {
 	[Savable]
 	public struct ControlEffect {
-		public string OrgId;
-		public string CountryId;
+		[OrgId] public string OrgId;
+		[CountryId] public string CountryId;
 		public int Value;
-		public string EffectId;
+		[EffectId] public string EffectId;
 	}
 }

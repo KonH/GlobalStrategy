@@ -1,10 +1,12 @@
+using GS.Game.Common;
+
 namespace GS.Game.Components {
 	[Savable]
 	public struct Character {
-		public string CharacterId;
-		public string CountryId;
-		public string OrgId;       // empty string = country character
-		public string RoleId;
+		[CharacterId] public string CharacterId;
+		[CountryId] public string CountryId;
+		[OrgId(AllowEmpty = true)] public string OrgId;       // empty string = country character
+		[RoleId] public string RoleId;
 		public string[] NamePartKeys;
 	}
 }

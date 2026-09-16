@@ -4,13 +4,13 @@ using GS.Game.Common;
 
 namespace GS.Game.Components {
 	public struct WarProgressHistorySnapshot {
-		public string EffectId;
+		[EffectId] public string EffectId;
 		public double AppliedDelta;
 		public DateTime Timestamp;
 	}
 
 	public struct WarEffectSnapshot {
-		public string EffectId;
+		[EffectId] public string EffectId;
 		public double Value;
 		public PayType PayType;
 		public double MaxTotal;
@@ -18,7 +18,7 @@ namespace GS.Game.Components {
 	}
 
 	public struct WarSideStatsSnapshot {
-		public string CountryId;
+		[CountryId] public string CountryId;
 		public double Recruits;
 		public double TroopsInBattles;
 		public double Casualties;
@@ -28,17 +28,17 @@ namespace GS.Game.Components {
 		public double DamageRulerBonus;
 		public double DamageAdvisorBonus;
 		public double DamageBonusPercent;
-		public List<WarEffectSnapshot> DamageBonusEffects;
+		[OmitFromSnapshot] public List<WarEffectSnapshot> DamageBonusEffects;
 		public double DurabilityBase;
 		public double DurabilityRulerBonus;
 		public double DurabilityAdvisorBonus;
 	}
 
 	public struct WarBattleRowSnapshot {
-		public string BattleId;
-		public string ProvinceId;
+		[BattleId] public string BattleId;
+		[ProvinceId] public string ProvinceId;
 		public bool IsFinished;
-		public string WinnerCountryId;
+		[CountryId] public string WinnerCountryId;
 		public WarParticipantKind WinnerSide;
 		public double AttackerCasualties;
 		public double DefenderCasualties;
@@ -49,20 +49,20 @@ namespace GS.Game.Components {
 
 	public struct WarGoldRecipientSnapshot {
 		public OwnerType OwnerType;
-		public string OwnerId;
+		[OwnerId] public string OwnerId;
 		public double Amount;
 	}
 
 	public struct WarControlDeltaSnapshot {
-		public string CountryId;
-		public string OrgId;
+		[CountryId] public string CountryId;
+		[OrgId] public string OrgId;
 		public int Delta;
 		public int TotalAfter;
 	}
 
 	public struct WarProvinceTransferSnapshot {
-		public string ProvinceId;
-		public string OldOwnerCountryId;
-		public string NewOwnerCountryId;
+		[ProvinceId] public string ProvinceId;
+		[CountryId] public string OldOwnerCountryId;
+		[CountryId] public string NewOwnerCountryId;
 	}
 }

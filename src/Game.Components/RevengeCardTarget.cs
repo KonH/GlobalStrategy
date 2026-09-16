@@ -5,6 +5,6 @@ namespace GS.Game.Components {
 	// CountryContext is the country seeking revenge.
 	[Savable]
 	public struct RevengeCardTarget {
-		public string TargetCountryId;
+		[CountryId] public string TargetCountryId;
 	}
 }

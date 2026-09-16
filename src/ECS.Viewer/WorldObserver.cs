@@ -1,10 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 
 namespace ECS.Viewer {
 	public class WorldObserver {
-		public WorldSnapshot Capture(World world) {
+		public WorldSnapshot Capture(World world, CaptureFieldCallback? fieldCallback = null) {
 			var snapshot = new WorldSnapshot();
 			foreach (Archetype arch in world.GetMatchingArchetypes(Array.Empty<int>(), null)) {
 				int count = arch.Count;
@@ -21,7 +23,7 @@ namespace ECS.Viewer {
 						object? value = column.GetValue(i);
 						var compSnap = new ComponentSnapshot { TypeName = compType.Name };
 						if (value != null) {
-							CaptureFields(compSnap, value, compType);
+							CaptureFields(compSnap, value, compType, fieldCallback);
 						}
 						entitySnap.Components.Add(compSnap);
 					}
@@ -31,32 +33,97 @@ namespace ECS.Viewer {
 			return snapshot;
 		}
 
-		static void CaptureFields(ComponentSnapshot snap, object value, Type type) {
+		static void CaptureFields(ComponentSnapshot snap, object value, Type type, CaptureFieldCallback? fieldCallback) {
 			FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
 			foreach (FieldInfo field in fields) {
-				object? fieldVal = field.GetValue(value);
-				if (field.FieldType == typeof(EntityRef)) {
-					snap.Fields[field.Name] = new EntityRefValue(((EntityRef)(fieldVal ?? default(EntityRef))).Id);
-				} else {
-					snap.Fields[field.Name] = fieldVal;
-				}
+				TryAddField(snap, type, field, field.FieldType, field.GetValue(value), fieldCallback);
 			}
-			// Also capture record struct properties (get-only, compiler-generated backing fields start with <Name>)
 			PropertyInfo[] props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 			foreach (PropertyInfo prop in props) {
 				if (!prop.CanRead || prop.GetIndexParameters().Length > 0) {
 					continue;
 				}
-				if (snap.Fields.ContainsKey(prop.Name)) {
+				if (snap.Fields.Exists(f => f.Name == prop.Name)) {
 					continue;
 				}
-				object? propVal = prop.GetValue(value);
-				if (prop.PropertyType == typeof(EntityRef)) {
-					snap.Fields[prop.Name] = new EntityRefValue(((EntityRef)(propVal ?? default(EntityRef))).Id);
-				} else {
-					snap.Fields[prop.Name] = propVal;
-				}
+				TryAddField(snap, type, prop, prop.PropertyType, prop.GetValue(value), fieldCallback);
 			}
+		}
+
+		static void TryAddField(
+			ComponentSnapshot snap,
+			Type componentType,
+			MemberInfo member,
+			Type memberType,
+			object? memberValue,
+			CaptureFieldCallback? fieldCallback
+		) {
+			if (memberType == typeof(EntityRef)) {
+				var field = new FieldSnapshot {
+					Name = member.Name,
+					Kind = FieldSnapshotKind.Number,
+					Value = new EntityRefValue(((EntityRef)(memberValue ?? default(EntityRef))).Id)
+				};
+				if (fieldCallback != null && !fieldCallback(componentType, member, field)) {
+					return;
+				}
+				snap.Fields.Add(field);
+				return;
+			}
+
+			if (!TryCreateScalarSnapshot(member.Name, memberType, memberValue, out FieldSnapshot snapshot)) {
+				return;
+			}
+			if (fieldCallback != null && !fieldCallback(componentType, member, snapshot)) {
+				return;
+			}
+			snap.Fields.Add(snapshot);
+		}
+
+		static bool TryCreateScalarSnapshot(string name, Type memberType, object? memberValue, out FieldSnapshot snapshot) {
+			snapshot = new FieldSnapshot { Name = name };
+			if (memberType == typeof(string)) {
+				snapshot.Kind = FieldSnapshotKind.String;
+				snapshot.Value = memberValue;
+				return true;
+			}
+			if (memberType == typeof(bool)) {
+				snapshot.Kind = FieldSnapshotKind.Bool;
+				snapshot.Value = memberValue;
+				return true;
+			}
+			if (memberType == typeof(DateTime)) {
+				snapshot.Kind = FieldSnapshotKind.String;
+				snapshot.Value = ((DateTime)(memberValue ?? default(DateTime))).ToString("O", CultureInfo.InvariantCulture);
+				return true;
+			}
+			if (memberType.IsEnum) {
+				snapshot.Kind = FieldSnapshotKind.Enum;
+				snapshot.Value = memberValue == null ? null : Enum.GetName(memberType, memberValue);
+				snapshot.EnumNames = Enum.GetNames(memberType);
+				return true;
+			}
+			if (IsNumeric(memberType)) {
+				snapshot.Kind = FieldSnapshotKind.Number;
+				snapshot.Value = memberValue;
+				return true;
+			}
+			if (memberType != typeof(string) && typeof(IEnumerable).IsAssignableFrom(memberType)) {
+				return false;
+			}
+			if (memberType.IsClass || (memberType.IsValueType && !memberType.IsPrimitive && !memberType.IsEnum)) {
+				return false;
+			}
+			return false;
+		}
+
+		static bool IsNumeric(Type type) {
+			return type == typeof(byte) || type == typeof(sbyte)
+				|| type == typeof(short) || type == typeof(ushort)
+				|| type == typeof(int) || type == typeof(uint)
+				|| type == typeof(long) || type == typeof(ulong)
+				|| type == typeof(float) || type == typeof(double)
+				|| type == typeof(decimal);
 		}
 
 		/// <summary>
@@ -108,12 +175,10 @@ namespace ECS.Viewer {
 				return int.TryParse(raw, out int v) ? (object)v : null;
 			}
 			if (targetType == typeof(float)) {
-				return float.TryParse(raw, System.Globalization.NumberStyles.Float,
-					System.Globalization.CultureInfo.InvariantCulture, out float v) ? (object)v : null;
+				return float.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out float v) ? (object)v : null;
 			}
 			if (targetType == typeof(double)) {
-				return double.TryParse(raw, System.Globalization.NumberStyles.Float,
-					System.Globalization.CultureInfo.InvariantCulture, out double v) ? (object)v : null;
+				return double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double v) ? (object)v : null;
 			}
 			if (targetType == typeof(bool)) {
 				return bool.TryParse(raw, out bool v) ? (object)v : null;

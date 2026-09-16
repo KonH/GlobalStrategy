@@ -1,0 +1,14 @@
+@using GS.Game.WebClient.Services
+@inject IGameClient Client
+
+<label class="gs-freeze-tick">
+	<input type="checkbox" checked="@Client.IsFrozen" @onchange="OnChange" />
+	Freeze
+</label>
+
+@code {
+	async Task OnChange(ChangeEventArgs e) {
+		bool frozen = e.Value is bool b && b;
+		await Client.SetFrozenAsync(frozen);
+	}
+}
