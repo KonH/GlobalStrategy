@@ -1,4 +1,4 @@
 interface:
   display_name: "Unity Plugins"
-  short_description: "Regenerate Assets/Plugins/Core DLLs before Unity work"
-  default_prompt: "Use $unity-plugins before starting any Unity Editor or MCP work."
+  short_description: "Regenerate Core DLLs and pin Unity MCP to this checkout before Editor work"
+  default_prompt: "Use $unity-plugins before starting any Unity Editor or MCP work. Pin MCP to this checkout's project path once before the first MCP call."

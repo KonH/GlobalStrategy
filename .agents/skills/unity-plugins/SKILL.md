@@ -11,5 +11,7 @@ description: >-
 
 Read and follow `.claude/skills/unity-plugins/SKILL.md`. That file is the
 source of truth for when to run `python scripts/unity/ensure_plugin_dlls.py`,
-what to do on `UP_TO_DATE` / `REBUILT` / failure, and the rule that plugin
-DLLs are never committed.
+what to do on `UP_TO_DATE` / `REBUILT` / failure, the once-per-session Unity
+MCP project pin (the connected Editor must be this checkout — other clones
+and worktrees share the instance name `GlobalStrategy` and are not safe to
+drive), and the rule that plugin DLLs are never committed.

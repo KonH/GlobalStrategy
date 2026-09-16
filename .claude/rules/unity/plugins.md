@@ -21,7 +21,7 @@ Running `dotnet build src/GlobalStrategy.Core.sln -c Release` then puts all DLLs
 
 **Required:** after any change under `src/`, always end the turn with `/dotnet-build Release` (see `.claude/rules/workflow.md`). Do not leave Unity on stale plugin DLLs.
 
-**Required before Unity work:** load the `unity-plugins` skill and run `python scripts/unity/ensure_plugin_dlls.py` before the first Unity Editor / MCP action in a session (see `.claude/skills/unity-plugins/SKILL.md`). Opening the Editor also regenerates missing/stale DLLs via `Assets/Scripts/Editor/PluginDlls/PluginDllRegenerator.cs`.
+**Required before Unity work:** load the `unity-plugins` skill and run `python scripts/unity/ensure_plugin_dlls.py` before the first Unity Editor / MCP action in a session (see `.claude/skills/unity-plugins/SKILL.md`). That skill also pins Unity MCP to this checkout once — do not drive a different clone or worktree. Opening the Editor also regenerates missing/stale DLLs via `Assets/Scripts/Editor/PluginDlls/PluginDllRegenerator.cs`.
 
 ## Not committed
 

@@ -26,8 +26,8 @@ When that automation run **finishes** `/implement`, the parent issue/PR handoff 
 
 ## Unity MCP pre-flight override
 
-- Before any Unity Editor work in an interactive session (including MCP), run the `unity-plugins` skill (`python scripts/unity/ensure_plugin_dlls.py`). Plugin DLLs are gitignored; do not start MCP on missing plugins.
-- In an interactive session, if the plan touches Unity assets or scenes: verify Unity Editor is connected via MCP (`mcpforunity://instances`) before starting. If not available, stop and ask the user to open Unity Editor and reconnect MCP.
+- Before any Unity Editor work in an interactive session (including MCP), run the `unity-plugins` skill (`python scripts/unity/ensure_plugin_dlls.py`). Plugin DLLs are gitignored; do not start MCP on missing plugins. The skill also pins MCP once to this checkout — instance name `GlobalStrategy` is not enough (worktrees and extra clones share it).
+- In an interactive session, if the plan touches Unity assets or scenes: verify Unity Editor is connected via MCP (`mcpforunity://instances`) **and** that the pinned instance's project root is this workspace before starting. If none match, stop and ask the user to open **this** checkout in Unity and reconnect MCP.
 - In an unattended automation run (including issue automation and Ralph runs carrying an automation environment marker): skip the Unity MCP connection check and never block the implementation stage waiting for it. Follow that automation's existing headless rules for excluding, skipping, or reporting Editor-only work.
 - If the plan only touches `src/` (plain C# project): skip the MCP check entirely.
 - Brief each developer sub-agent on Unity MCP usage and `asmdef` format alongside the general code-style rules the skill already asks for.
