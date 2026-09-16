@@ -28,15 +28,15 @@
 	}
 
 	void OnNewGame() {
-		Navigation.NavigateTo("/org-select");
+		AppNavigation.NavigateTo(Navigation, "org-select");
 	}
 
 	void OnContinue() {
 		Session.ContinueLatest();
-		Navigation.NavigateTo("/game");
+		AppNavigation.NavigateTo(Navigation, "game");
 	}
 
 	void OnSettings() {
-		Navigation.NavigateTo("/settings");
+		AppNavigation.NavigateTo(Navigation, "settings");
 	}
 }

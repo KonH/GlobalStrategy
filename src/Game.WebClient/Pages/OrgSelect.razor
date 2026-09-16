@@ -34,10 +34,10 @@
 			return;
 		}
 		Session.StartNew(_selectedOrganizationId);
-		Navigation.NavigateTo("/game");
+		AppNavigation.NavigateTo(Navigation, "game");
 	}
 
 	void OnBack() {
-		Navigation.NavigateTo("/");
+		AppNavigation.NavigateTo(Navigation, "");
 	}
 }

@@ -17,8 +17,8 @@
 	protected override void OnInitialized() {
 		if (HostMode.IsRemote(Navigation.Uri)) {
 			var uri = new Uri(Navigation.Uri);
-			if (!string.Equals(uri.AbsolutePath.TrimEnd('/'), "/game", StringComparison.OrdinalIgnoreCase)) {
-				Navigation.NavigateTo("/game" + uri.Query);
+			if (!string.Equals(AppNavigation.CurrentBaseRelativePath(Navigation), "game", StringComparison.OrdinalIgnoreCase)) {
+				AppNavigation.NavigateTo(Navigation, "game" + uri.Query);
 			}
 		}
 	}

@@ -27,6 +27,28 @@ namespace GS.Game.WebClient.Tests {
 		}
 	}
 
+	public class AppNavigationTests {
+		[Fact]
+		void leading_slash_targets_resolve_against_host_root_without_helper() {
+			var resolved = new Uri(new Uri("https://konh.github.io/GlobalStrategy/"), "/org-select");
+			Assert.Equal("https://konh.github.io/org-select", resolved.AbsoluteUri);
+		}
+
+		[Fact]
+		void base_relative_targets_keep_github_pages_prefix() {
+			Assert.Equal("org-select", AppNavigation.ToBaseRelativeTarget("/org-select"));
+			Assert.Equal("game", AppNavigation.ToBaseRelativeTarget("/game"));
+			Assert.Equal("game?host=remote", AppNavigation.ToBaseRelativeTarget("/game?host=remote"));
+			Assert.Equal("", AppNavigation.ToBaseRelativeTarget("/"));
+			Assert.Equal("", AppNavigation.ToBaseRelativeTarget(""));
+
+			var resolved = new Uri(
+				new Uri("https://konh.github.io/GlobalStrategy/"),
+				AppNavigation.ToBaseRelativeTarget("/org-select"));
+			Assert.Equal("https://konh.github.io/GlobalStrategy/org-select", resolved.AbsoluteUri);
+		}
+	}
+
 	public class EcsSnapshotFilterTests {
 		static ECS.Viewer.EntitySnapshot Entity(int id, params ECS.Viewer.ComponentSnapshot[] components) {
 			return new ECS.Viewer.EntitySnapshot { Id = id, Components = new List<ECS.Viewer.ComponentSnapshot>(components) };
