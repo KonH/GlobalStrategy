@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using GS.Game.Commands;
+using GS.Game.Common;
 
 namespace GS.Game.Commands.Text {
 	// Describes one settable member (public field, or public-settable record positional

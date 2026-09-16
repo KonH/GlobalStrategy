@@ -38,7 +38,7 @@ This repository is both a game and a case study in **structured AI-driven softwa
 | Codegen | Roslyn source generators for ECS queries and command handling |
 | DI | VContainer as the single composition root |
 | Async/UI | UniTask, UXML/USS with a shared style kit |
-| Tooling | .NET 8 console runner, web-based live ECS state viewer, Python geo/asset pipelines |
+| Tooling | .NET 8 console runner, Blazor WASM web client (play + shared ECS inspector), Python geo/asset pipelines |
 
 Architecture is enforced by a written [Constitution](Docs/Constitution.md) — ECS-only game logic, MonoBehaviours as presentation glue only, UI Toolkit only, DI-only wiring — and every plan is checked against it before implementation starts.
 
@@ -122,7 +122,7 @@ This setup demonstrates AI adoption as an **engineering discipline**, not autoco
 ```
 Assets/            Unity project (scenes, prefabs, UI Toolkit assets, configs, generated art)
 src/               Engine-independent C# solution: custom ECS, game systems, source
-                   generators, tests, console runner, live web-based ECS viewer
+                   generators, tests, console runner, Blazor WASM web client
 scripts/           automation/ (Ralph loop + GitHub issue automation, common + per-provider),
                    utils/ (province geo-generation, flag download, image generation)
 Docs/              Constitution, 45+ numbered specs & plans (the project's paper trail)
@@ -138,7 +138,9 @@ Docs/              Constitution, 45+ numbered specs & plans (the project's paper
 
 ## Standalone Web Client
 
-[`src/Game.WebClient/`](src/Game.WebClient/) is a Blazor WebAssembly (.NET 8) standalone build of the same `src/` simulation — no Unity, no map, a text terminal for actions instead. It's the client deployed at [konh.github.io/GlobalStrategy](https://konh.github.io/GlobalStrategy/).
+[`src/Game.WebClient/`](src/Game.WebClient/) is a Blazor WebAssembly (.NET 8) build of the same `src/` simulation — no Unity, no map. The live site is [konh.github.io/GlobalStrategy](https://konh.github.io/GlobalStrategy/).
+
+Standalone play keeps the main menu, organization select, settings, and in-game MENU (save/exit). The running game view is Play/Pause, speed, date, freeze-tick, the actions log, a command terminal, and an ECS inspector (component +/- filters, entity-id and field filters, typed field editors). The same game view is reused as the debug UI for the Unity Editor and ConsoleRunner (`?host=remote`): no menus, simulation hosted by that process.
 
 To run it locally:
 
@@ -147,6 +149,14 @@ dotnet run --project src/Game.WebClient
 ```
 
 Then open the URL printed in the console (e.g. `http://localhost:5000`) in a browser. Saves are stored per-browser (IndexedDB); no Unity Editor is required.
+
+GitHub Pages deploy is the manual workflow [Deploy Web Client](.github/workflows/deploy-web-client.yml) (`workflow_dispatch`). It tests the solution, publishes `src/Game.WebClient`, rewrites `<base href>` to `/GlobalStrategy/`, and deploys the `wwwroot` artifact. After this branch is on GitHub, run it from the Actions tab or:
+
+```
+gh workflow run "Deploy Web Client" --ref <branch-or-tag>
+```
+
+Pages serves `https://konh.github.io/GlobalStrategy/` from that publish; it does not run on every push to `main`.
 
 ## License
 

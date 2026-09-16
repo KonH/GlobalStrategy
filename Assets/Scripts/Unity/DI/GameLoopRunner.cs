@@ -18,6 +18,7 @@ namespace GS.Unity.DI {
 
 		readonly BotSession _botSession;
 		readonly PauseToken _pauseToken;
+		readonly SimulationMarshal _marshal;
 		readonly SaveFileManager _saveFileManager;
 		readonly TutorialPresentationTriggers _presentationTriggers;
 		readonly SettingsStorage _settings;
@@ -27,11 +28,13 @@ namespace GS.Unity.DI {
 		public GameLoopRunner(
 			BotSession botSession,
 			PauseToken pauseToken,
+			SimulationMarshal marshal,
 			SaveFileManager saveFileManager,
 			TutorialPresentationTriggers presentationTriggers,
 			SettingsStorage settings) {
 			_botSession = botSession;
 			_pauseToken = pauseToken;
+			_marshal = marshal;
 			_saveFileManager = saveFileManager;
 			_presentationTriggers = presentationTriggers;
 			_settings = settings;
@@ -58,6 +61,7 @@ namespace GS.Unity.DI {
 		}
 
 		public void Tick() {
+			_marshal.Drain();
 			if (_pauseToken.IsPaused) {
 				return;
 			}

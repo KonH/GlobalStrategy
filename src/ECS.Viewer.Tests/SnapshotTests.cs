@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using ECS;
 using ECS.Viewer;
@@ -45,8 +46,8 @@ namespace ECS.Viewer.Tests {
 			EntitySnapshot es = snap.Entities.Single(x => x.Id == owner);
 			ComponentSnapshot cs = es.Components.Single(c => c.TypeName == nameof(LinkComp));
 
-			Assert.True(cs.Fields.ContainsKey(nameof(LinkComp.Target)));
-			var refVal = cs.Fields[nameof(LinkComp.Target)] as EntityRefValue;
+			FieldSnapshot field = cs.Fields.Single(f => f.Name == nameof(LinkComp.Target));
+			var refVal = field.Value as EntityRefValue;
 			Assert.NotNull(refVal);
 			Assert.Equal(target, refVal!.EntityId);
 		}
@@ -131,6 +132,62 @@ namespace ECS.Viewer.Tests {
 		}
 
 		[Fact]
+		public void Capture_Enum_UsesNameAndEnumNames() {
+			var world = new World();
+			int e = world.Create();
+			world.Add(e, new StateComp { State = SimpleState.On });
+
+			WorldSnapshot snap = Observer.Capture(world);
+			ComponentSnapshot cs = snap.Entities.Single(x => x.Id == e).Components.Single(c => c.TypeName == nameof(StateComp));
+			FieldSnapshot field = cs.Fields.Single(f => f.Name == nameof(StateComp.State));
+
+			Assert.Equal(FieldSnapshotKind.Enum, field.Kind);
+			Assert.Equal(nameof(SimpleState.On), field.Value);
+			Assert.Equal(new[] { nameof(SimpleState.Off), nameof(SimpleState.On) }, field.EnumNames);
+		}
+
+		[Fact]
+		public void Capture_CallbackOmittedField_AbsentWhileComponentRemains() {
+			var world = new World();
+			int e = world.Create();
+			world.Add(e, new NameComp { Value = "keep-type" });
+
+			WorldSnapshot snap = Observer.Capture(world, (_, member, _) => member.Name != nameof(NameComp.Value));
+			ComponentSnapshot cs = snap.Entities.Single(x => x.Id == e).Components.Single(c => c.TypeName == nameof(NameComp));
+
+			Assert.Empty(cs.Fields);
+		}
+
+		[Fact]
+		public void Capture_SkipsNestedEnumerable() {
+			var world = new World();
+			int e = world.Create();
+			world.Add(e, new NestedComp { Label = "ok", Items = new[] { "a" } });
+
+			WorldSnapshot snap = Observer.Capture(world);
+			ComponentSnapshot cs = snap.Entities.Single(x => x.Id == e).Components.Single(c => c.TypeName == nameof(NestedComp));
+
+			Assert.Contains(cs.Fields, f => f.Name == nameof(NestedComp.Label));
+			Assert.DoesNotContain(cs.Fields, f => f.Name == nameof(NestedComp.Items));
+		}
+
+		[Fact]
+		public void Capture_DateTime_IsIsoStringKind() {
+			var world = new World();
+			int e = world.Create();
+			var stamp = new DateTime(1914, 7, 28, 0, 0, 0, DateTimeKind.Utc);
+			world.Add(e, new TimeComp { At = stamp });
+
+			WorldSnapshot snap = Observer.Capture(world);
+			FieldSnapshot field = snap.Entities.Single(x => x.Id == e)
+				.Components.Single(c => c.TypeName == nameof(TimeComp))
+				.Fields.Single(f => f.Name == nameof(TimeComp.At));
+
+			Assert.Equal(FieldSnapshotKind.String, field.Kind);
+			Assert.Equal(stamp.ToString("O"), field.Value);
+		}
+
+		[Fact]
 		public void TrySetField_UnknownType_ReturnsFalse() {
 			var world = new World();
 			int e = world.Create();
@@ -147,6 +204,8 @@ namespace ECS.Viewer.Tests {
 		struct BoolComp { public bool Flag; }
 		struct LinkComp { public EntityRef Target; }
 		struct StateComp { public SimpleState State; }
+		struct NestedComp { public string Label; public string[] Items; }
+		struct TimeComp { public DateTime At; }
 		enum SimpleState { Off, On }
 	}
 }

@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../Game.Common/Game.Common.csproj" />
     <ProjectReference Include="../Game.Commands/Game.Commands.csproj" />
     <ProjectReference Include="../Game.Main/Game.Main.csproj" />
   </ItemGroup>

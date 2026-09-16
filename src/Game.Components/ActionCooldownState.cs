@@ -1,10 +1,11 @@
 using System;
+using GS.Game.Common;
 
 namespace GS.Game.Components {
 	[Savable]
 	public struct ActionCooldownState {
-		public string OrgId;
-		public string ActionId;
+		[OrgId] public string OrgId;
+		[ActionId] public string ActionId;
 		public DateTime EndTime;
 	}
 }

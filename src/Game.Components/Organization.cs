@@ -1,7 +1,9 @@
+using GS.Game.Common;
+
 namespace GS.Game.Components {
 	[Savable]
 	public struct Organization {
-		public string OrganizationId;
+		[OrgId] public string OrganizationId;
 		public string DisplayName;
 	}
 }

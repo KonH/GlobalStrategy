@@ -5,6 +5,7 @@ using GS.Game.Configs;
 using GS.Game.Commands;
 using GS.Main;
 using ECS.Viewer;
+using ECS.Viewer.Host;
 using ECS.Viewer.Server;
 
 using GS.Game.Systems;
@@ -92,22 +93,47 @@ namespace GS.Game.ConsoleRunner {
 		static void RunInteractive(string configDir) {
 			var ctx = BuildContext(configDir, logger: new ConsoleLogger());
 			var logic = new GameLogic(ctx);
+			var session = GS.Game.Bots.BotSession.Create(logic, rngSeed: unchecked((int)DateTime.UtcNow.Ticks), logger: new ConsoleLogger());
 
 			var pauseToken = new PauseToken();
+			var marshal = new SimulationMarshal();
 			var observer = new WorldObserver();
-			var server = new ViewerServer(observer, pauseToken, () => logic.World);
+			var registry = new GS.Game.Commands.Text.CommandRegistry();
+			var executor = new GS.Game.Commands.Text.CommandExecutor(registry);
+			var source = new GS.Game.Commands.Text.Suggestions.GameLogicSuggestionSource(logic);
+			var engine = new GS.Game.Commands.Text.Suggestions.SuggestionEngine(
+				registry,
+				new GS.Game.Commands.Text.Suggestions.SuggestionValueResolver(
+					source,
+					new GS.Game.Commands.Text.Suggestions.DisplayNameSuggestionLabels()));
+			string webRoot = FindWebDebugUi();
+			var handler = new ECS.Viewer.Host.ViewerRequestHandler(
+				webRoot,
+				marshal,
+				pauseToken,
+				observer,
+				() => logic.World,
+				logic,
+				executor,
+				engine,
+				msg => Console.Error.WriteLine(msg));
+			var server = new ViewerServer(handler);
 			server.Start();
+			Console.WriteLine($"http://localhost:{server.Port}?host=remote");
 
-			Console.WriteLine("Press Enter to step the game loop, Ctrl+C to exit.");
-			while (true) {
-				Console.ReadLine();
-				if (!pauseToken.IsPaused) {
-					logic.Update(1f);
-					Console.WriteLine($"Time: {logic.VisualState.Time.CurrentTime:yyyy-MM-dd}");
-				} else {
-					Console.WriteLine("(paused — use the viewer to resume)");
+			new WallClockSimLoop().Run(session, marshal, pauseToken);
+		}
+
+		static string FindWebDebugUi() {
+			var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
+			while (dir != null) {
+				string candidate = Path.Combine(dir.FullName, ".tmp", "web-debug-ui");
+				if (WebDebugUiRoot.LooksPublished(WebDebugUiRoot.FromPublishDirectory(candidate))) {
+					return candidate;
 				}
+				dir = dir.Parent;
 			}
+			return Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), ".tmp", "web-debug-ui"));
 		}
 	}
 }

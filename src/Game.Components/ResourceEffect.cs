@@ -1,12 +1,14 @@
+using GS.Game.Common;
+
 namespace GS.Game.Components {
 	[Savable]
 	public struct ResourceEffect {
-		public string EffectId;
+		[EffectId] public string EffectId;
 		public double Value;
 		public PayType PayType;
 		public double AccumulatedTotal;
 		public double MaxTotal;
 		public bool ClampToZero;
-		public string OrgId;
+		[OrgId] public string OrgId;
 	}
 }

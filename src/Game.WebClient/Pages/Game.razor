@@ -1,25 +1,23 @@
 @page "/game"
+@using System
+@using System.Collections.Generic
+@using System.Threading
 @using GS.Main
 @using GS.Game.WebClient.Services
 @implements IDisposable
 @inject GameSession GameSession
+@inject IGameClient Client
 @inject Localization Localization
 @inject NavigationManager Navigation
 
-@if (_time != null) {
+@if (Client.HasSession || HostMode.IsRemote(Navigation.Uri)) {
 	<div class="gs-game-view">
-		<div class="gs-game-toolbar">
-			<button @onclick="OnMenu">@Localization.Get("game_menu.title")</button>
-			<button class="@(_time.IsPaused ? "gs-active" : "")" @onclick="OnPauseToggle">@(_time.IsPaused ? "Play" : "Pause")</button>
-			<button class="@SpeedClass(0)" @onclick='() => OnSpeedChange(0)'>x1</button>
-			<button class="@SpeedClass(1)" @onclick='() => OnSpeedChange(1)'>x2</button>
-			<button class="@SpeedClass(2)" @onclick='() => OnSpeedChange(2)'>x3</button>
-			<span class="gs-game-date">@_time.CurrentTime.ToString("HH:00 dd/MM/yyyy")</span>
-		</div>
+		<GameToolbar ShowMenu="Client.ShowPauseMenu" MenuLabel="@Localization.Get("game_menu.title")" OnMenu="OnMenu" Time="Client.Time" />
+		<FreezeTick />
 
-		@if (_completion != null && _completion.IsCompleted) {
+		@if (Client.Completion != null && Client.Completion.IsCompleted) {
 			<div class="gs-completion-banner">
-				@if (_completion.Result == GameResult.Win) {
+				@if (Client.Completion.Result == GameResult.Win) {
 					<span>You won! Winner: @WinnerDisplayName()</span>
 				} else {
 					<span>You lost. Winner: @WinnerDisplayName()</span>
@@ -28,12 +26,13 @@
 		}
 
 		<div class="gs-game-content">
-			<ActionsLog GameLog="GameSession.Logic!.VisualState.GameLog" />
+			<ActionsLog GameLog="ResolveLog()" />
+			<EcsInspector Snapshot="Client.Snapshot" />
 		</div>
 
 		<Terminal />
 
-		@if (_menuOpen) {
+		@if (_menuOpen && Client.ShowPauseMenu) {
 			<div class="gs-modal-overlay">
 				<div class="gs-modal-panel">
 					<h2>@Localization.Get("game_menu.title")</h2>
@@ -52,53 +51,68 @@
 @code {
 	bool _menuOpen;
 	string? _saveMessage;
-	TimeState? _time;
-	GameCompletionState? _completion;
 	bool _subscribed;
+	CancellationTokenSource? _pollCts;
 
-	protected override void OnInitialized() {
-		if (GameSession.Logic == null) {
+	protected override async Task OnInitializedAsync() {
+		if (HostMode.ShouldRedirectToMenu(Navigation.Uri, GameSession.Logic != null)) {
 			Navigation.NavigateTo("/");
 			return;
 		}
 
-		_time = GameSession.Logic.VisualState.Time;
-		_completion = GameSession.Logic.VisualState.GameCompletion;
-		GameSession.Ticked += OnTicked;
+		Client.Changed += OnChanged;
 		_subscribed = true;
+		if (HostMode.IsRemote(Navigation.Uri)) {
+			_pollCts = new CancellationTokenSource();
+			_ = PollLoop(_pollCts.Token);
+			await Client.RefreshHudAsync();
+			await Client.RefreshSnapshotAsync();
+		} else {
+			await Client.RefreshHudAsync();
+			await Client.RefreshSnapshotAsync();
+		}
 	}
 
-	void OnTicked() {
+	async Task PollLoop(CancellationToken token) {
+		int ticks = 0;
+		using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(400));
+		try {
+			while (await timer.WaitForNextTickAsync(token)) {
+				await Client.RefreshHudAsync();
+				ticks++;
+				if (ticks % 10 == 0 || Client.Snapshot == null || Client.Snapshot.Entities.Count == 0) {
+					try {
+						await Client.RefreshSnapshotAsync();
+					} catch (Exception) {
+						// HUD polling must continue if a snapshot request fails.
+					}
+				}
+			}
+		} catch (OperationCanceledException) {
+		}
+	}
+
+	void OnChanged() {
 		InvokeAsync(StateHasChanged);
 	}
 
-	string SpeedClass(int index) {
-		if (_time == null) {
-			return "";
+	readonly GameLogState _remoteLog = new GameLogState();
+
+	GameLogState ResolveLog() {
+		if (GameSession.Logic != null) {
+			return GameSession.Logic.VisualState.GameLog;
 		}
-		return (!_time.IsPaused && _time.MultiplierIndex == index) ? "gs-active" : "";
+		if (Client.LogEntries != null) {
+			_remoteLog.Set(Client.LogEntries is List<GameLogEntry> list ? list : new List<GameLogEntry>(Client.LogEntries));
+		}
+		return _remoteLog;
 	}
 
 	string WinnerDisplayName() {
-		if (_completion == null || string.IsNullOrEmpty(_completion.WinnerOrganizationId)) {
+		if (Client.Completion == null || string.IsNullOrEmpty(Client.Completion.WinnerOrganizationId)) {
 			return "";
 		}
-		return Localization.Get($"organization_name.{_completion.WinnerOrganizationId}");
-	}
-
-	void OnPauseToggle() {
-		if (_time == null || GameSession.Logic == null) {
-			return;
-		}
-		if (_time.IsPaused) {
-			GameSession.Logic.Commands.Push(new GS.Game.Commands.UnpauseCommand());
-		} else {
-			GameSession.Logic.Commands.Push(new GS.Game.Commands.PauseCommand());
-		}
-	}
-
-	void OnSpeedChange(int index) {
-		GameSession.Logic?.Commands.Push(new GS.Game.Commands.ChangeTimeMultiplierCommand(index));
+		return Localization.Get($"organization_name.{Client.Completion.WinnerOrganizationId}");
 	}
 
 	void OnMenu() {
@@ -139,8 +153,10 @@
 	}
 
 	public void Dispose() {
+		_pollCts?.Cancel();
+		_pollCts?.Dispose();
 		if (_subscribed) {
-			GameSession.Ticked -= OnTicked;
+			Client.Changed -= OnChanged;
 			_subscribed = false;
 		}
 		if (GameSession.Logic != null) {

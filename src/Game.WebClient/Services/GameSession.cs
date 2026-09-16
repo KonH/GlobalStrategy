@@ -7,6 +7,7 @@ using GS.Core.Map;
 using GS.Game.Bots;
 using GS.Game.Commands;
 using GS.Main;
+using ECS.Viewer;
 
 namespace GS.Game.WebClient.Services {
 	// Owns one running GameLogic/BotSession "session" for the lifetime of the app,
@@ -30,6 +31,8 @@ namespace GS.Game.WebClient.Services {
 
 		public GameLogic? Logic { get; private set; }
 		public BotSession? Session { get; private set; }
+		public PauseToken PauseToken { get; } = new PauseToken();
+		public SimulationMarshal Marshal { get; } = new SimulationMarshal();
 
 		// Raised after every tick (manual or from the timer loop) so a Blazor component
 		// can call StateHasChanged().
@@ -107,7 +110,10 @@ namespace GS.Game.WebClient.Services {
 				_firstTickPending = false;
 			}
 
-			Session.Update((float)elapsedSeconds);
+			Marshal.Drain();
+			if (!PauseToken.IsPaused) {
+				Session.Update((float)elapsedSeconds);
+			}
 			Ticked?.Invoke();
 		}
 

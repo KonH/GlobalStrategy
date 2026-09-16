@@ -1,0 +1,35 @@
+@using GS.Game.WebClient.Services
+@inject IGameClient Client
+
+<div class="gs-game-toolbar">
+	@if (ShowMenu) {
+		<button @onclick="OnMenu">@MenuLabel</button>
+	}
+	<button class="@(Time != null && Time.IsPaused ? "gs-active" : "")" @onclick="OnPauseToggle">@(Time != null && Time.IsPaused ? "Play" : "Pause")</button>
+	<button class="@SpeedClass(0)" @onclick='() => OnSpeed(0)'>x1</button>
+	<button class="@SpeedClass(1)" @onclick='() => OnSpeed(1)'>x2</button>
+	<button class="@SpeedClass(2)" @onclick='() => OnSpeed(2)'>x3</button>
+	<span class="gs-game-date">@(Time?.CurrentTime.ToString("HH:00 dd/MM/yyyy") ?? "")</span>
+</div>
+
+@code {
+	[Parameter] public bool ShowMenu { get; set; }
+	[Parameter] public string MenuLabel { get; set; } = "MENU";
+	[Parameter] public EventCallback OnMenu { get; set; }
+	[Parameter] public TimeHud? Time { get; set; }
+
+	string SpeedClass(int index) {
+		if (Time == null) {
+			return "";
+		}
+		return (!Time.IsPaused && Time.MultiplierIndex == index) ? "gs-active" : "";
+	}
+
+	async Task OnPauseToggle() {
+		await Client.TogglePlayPauseAsync();
+	}
+
+	async Task OnSpeed(int index) {
+		await Client.SetSpeedAsync(index);
+	}
+}

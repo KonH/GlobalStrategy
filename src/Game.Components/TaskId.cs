@@ -1,6 +1,8 @@
+using GS.Game.Common;
+
 namespace GS.Game.Components {
 	[Savable]
 	public struct TaskId {
-		public string Value;
+		[TaskIdAttribute] public string Value;
 	}
 }

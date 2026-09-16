@@ -1,6 +1,8 @@
+using GS.Game.Common;
+
 namespace GS.Game.Components {
 	[Savable]
 	public struct CardDeck {
-		public string OrgId;
+		[OrgId] public string OrgId;
 	}
 }

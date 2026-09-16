@@ -14,7 +14,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../ECS.Viewer/ECS.Viewer.csproj" />
     <ProjectReference Include="../Game.WebClient/Game.WebClient.csproj" />
+    <ProjectReference Include="../Game.Common/Game.Common.csproj" />
     <ProjectReference Include="../Game.WebClient.LocaleTool/Game.WebClient.LocaleTool.csproj" />
   </ItemGroup>
 
