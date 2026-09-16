@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ECS.Viewer;
 using GS.Game.Commands.Text;
 using GS.Game.Commands.Text.Suggestions;
+using GS.Game.WebClient.Ecs;
 using GS.Main;
 using Newtonsoft.Json;
 using EcsWorldSnapshot = ECS.Viewer.WorldSnapshot;
@@ -34,31 +35,36 @@ namespace GS.Game.WebClient.Services {
 		public event Action? Changed;
 
 		public async Task RefreshHudAsync() {
-			string json = await _http.GetStringAsync("hud");
+			string json = await _http.GetStringAsync("/hud");
 			JObject obj = JObject.Parse(json);
 			Time = new TimeHud {
-				CurrentTime = obj.Value<DateTime?>("CurrentTime") ?? DateTime.MinValue,
-				IsPaused = obj.Value<bool?>("IsPaused") ?? false,
-				MultiplierIndex = obj.Value<int?>("MultiplierIndex") ?? 0
+				CurrentTime = obj.GetValue("CurrentTime", StringComparison.OrdinalIgnoreCase)?.Value<DateTime?>() ?? DateTime.MinValue,
+				IsPaused = obj.GetValue("IsPaused", StringComparison.OrdinalIgnoreCase)?.Value<bool?>() ?? false,
+				MultiplierIndex = obj.GetValue("MultiplierIndex", StringComparison.OrdinalIgnoreCase)?.Value<int?>() ?? 0
 			};
 			var completion = new GameCompletionState();
-			string winner = obj.Value<string>("WinnerOrganizationId") ?? "";
-			bool completed = obj.Value<bool?>("IsCompleted") ?? false;
-			GameResult result = ParseResult(obj["Result"]);
+			string winner = obj.GetValue("WinnerOrganizationId", StringComparison.OrdinalIgnoreCase)?.Value<string>() ?? "";
+			bool completed = obj.GetValue("IsCompleted", StringComparison.OrdinalIgnoreCase)?.Value<bool?>() ?? false;
+			GameResult result = ParseResult(obj.GetValue("Result", StringComparison.OrdinalIgnoreCase) ?? obj["Result"]);
 			completion.Set(completed, winner, result);
 			Completion = completion;
-			LogEntries = obj["Entries"]?.ToObject<List<GameLogEntry>>(JsonSerializer.Create(JsonSettings))
+			LogEntries = (obj.GetValue("Entries", StringComparison.OrdinalIgnoreCase)
+				?? obj.GetValue("entries", StringComparison.OrdinalIgnoreCase))
+				?.ToObject<List<GameLogEntry>>(JsonSerializer.Create(JsonSettings))
 				?? (IReadOnlyList<GameLogEntry>)Array.Empty<GameLogEntry>();
 
-			string pauseJson = await _http.GetStringAsync("pause");
+			string pauseJson = await _http.GetStringAsync("/pause");
 			JObject pause = JObject.Parse(pauseJson);
 			IsFrozen = pause.Value<bool?>("paused") ?? false;
 			Changed?.Invoke();
 		}
 
 		public async Task RefreshSnapshotAsync() {
-			string json = await _http.GetStringAsync("snapshot");
-			Snapshot = JsonConvert.DeserializeObject<EcsWorldSnapshot>(json, JsonSettings);
+			string json = await _http.GetStringAsync("/snapshot");
+			EcsWorldSnapshot? parsed = EcsWorldSnapshotJson.Parse(json);
+			if (parsed != null) {
+				Snapshot = parsed;
+			}
 			await RefreshDomainIdsAsync();
 			Changed?.Invoke();
 		}
@@ -79,14 +85,14 @@ namespace GS.Game.WebClient.Services {
 
 		public async Task SetFrozenAsync(bool frozen) {
 			var content = new StringContent($"{{\"paused\":{(frozen ? "true" : "false")}}}", Encoding.UTF8, "application/json");
-			await _http.PostAsync("pause", content);
+			await _http.PostAsync("/pause", content);
 			IsFrozen = frozen;
 			Changed?.Invoke();
 		}
 
 		public async Task<ExecutionResult> ExecuteAsync(string line) {
 			var content = new StringContent(line ?? "", Encoding.UTF8, "text/plain");
-			HttpResponseMessage resp = await _http.PostAsync("command", content);
+			HttpResponseMessage resp = await _http.PostAsync("/command", content);
 			string json = await resp.Content.ReadAsStringAsync();
 			JObject obj = JObject.Parse(json);
 			bool success = obj.Value<bool?>("success") ?? false;
@@ -96,7 +102,7 @@ namespace GS.Game.WebClient.Services {
 
 		public async Task<SuggestionResult> SuggestAsync(string input) {
 			string q = Uri.EscapeDataString(input ?? "");
-			string json = await _http.GetStringAsync("suggest?q=" + q);
+			string json = await _http.GetStringAsync("/suggest?q=" + q);
 			JObject obj = JObject.Parse(json);
 			var kind = Enum.TryParse(obj.Value<string>("kind"), out SuggestionKind parsed) ? parsed : SuggestionKind.None;
 			int tokenStart = obj.Value<int?>("tokenStart") ?? (input?.Length ?? 0);
@@ -112,7 +118,7 @@ namespace GS.Game.WebClient.Services {
 		}
 
 		public async Task PatchFieldAsync(int entityId, string typeName, string fieldName, string rawValue) {
-			string path = $"entity/{entityId}/component/{Uri.EscapeDataString(typeName)}";
+			string path = $"/entity/{entityId}/component/{Uri.EscapeDataString(typeName)}";
 			var content = new StringContent($"{{\"{fieldName}\":{JsonConvert.SerializeObject(rawValue)}}}", Encoding.UTF8, "application/json");
 			var req = new HttpRequestMessage(new HttpMethod("PATCH"), path) { Content = content };
 			await _http.SendAsync(req);
@@ -131,7 +137,7 @@ namespace GS.Game.WebClient.Services {
 		}
 
 		async Task RefreshDomainIdsAsync() {
-			string json = await _http.GetStringAsync("ids");
+			string json = await _http.GetStringAsync("/ids");
 			JObject obj = JObject.Parse(json);
 			var next = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
 			foreach (JProperty prop in obj.Properties()) {

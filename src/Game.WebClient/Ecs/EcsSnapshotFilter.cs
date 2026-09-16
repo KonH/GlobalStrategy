@@ -43,7 +43,7 @@ namespace GS.Game.WebClient.Ecs {
 			IReadOnlyList<FieldFilterRow> fieldRows
 		) {
 			var result = new List<EntitySnapshot>();
-			if (snapshot == null) {
+			if (snapshot == null || snapshot.Entities == null) {
 				return result;
 			}
 
@@ -67,8 +67,10 @@ namespace GS.Game.WebClient.Ecs {
 				return true;
 			}
 			var names = new HashSet<string>(StringComparer.Ordinal);
-			foreach (ComponentSnapshot component in entity.Components) {
-				names.Add(component.TypeName);
+			if (entity.Components != null) {
+				foreach (ComponentSnapshot component in entity.Components) {
+					names.Add(component.TypeName);
+				}
 			}
 			foreach (KeyValuePair<string, ComponentFilterMode> pair in chips) {
 				if (pair.Value == ComponentFilterMode.Require && !names.Contains(pair.Key)) {

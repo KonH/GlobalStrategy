@@ -394,10 +394,26 @@ namespace GS.Editor.PluginDlls {
 			return Path.Combine(ProjectRoot(), PluginsRelativeDir.Replace('/', Path.DirectorySeparatorChar));
 		}
 
+		static string PublishedWebIndex(string publishDir) {
+			string nested = Path.Combine(publishDir, "wwwroot", "index.html");
+			if (File.Exists(nested)) {
+				return nested;
+			}
+			return Path.Combine(publishDir, "index.html");
+		}
+
+		static string PublishedWebFramework(string publishDir) {
+			string nested = Path.Combine(publishDir, "wwwroot", "_framework");
+			if (Directory.Exists(nested)) {
+				return nested;
+			}
+			return Path.Combine(publishDir, "_framework");
+		}
+
 		static bool NeedsWebPublish(out string reason) {
 			string publishDir = Path.Combine(ProjectRoot(), WebPublishRelativeDir.Replace('/', Path.DirectorySeparatorChar));
-			string index = Path.Combine(publishDir, "index.html");
-			string framework = Path.Combine(publishDir, "_framework");
+			string index = PublishedWebIndex(publishDir);
+			string framework = PublishedWebFramework(publishDir);
 			if (!File.Exists(index) || !Directory.Exists(framework)) {
 				reason = "published Blazor UI is missing";
 				return true;

@@ -1,4 +1,5 @@
 @page "/game"
+@using System
 @using System.Collections.Generic
 @using System.Threading
 @using GS.Main
@@ -26,7 +27,7 @@
 
 		<div class="gs-game-content">
 			<ActionsLog GameLog="ResolveLog()" />
-			<EcsInspector />
+			<EcsInspector Snapshot="Client.Snapshot" />
 		</div>
 
 		<Terminal />
@@ -79,8 +80,12 @@
 			while (await timer.WaitForNextTickAsync(token)) {
 				await Client.RefreshHudAsync();
 				ticks++;
-				if (ticks % 10 == 0) {
-					await Client.RefreshSnapshotAsync();
+				if (ticks % 10 == 0 || Client.Snapshot == null || Client.Snapshot.Entities.Count == 0) {
+					try {
+						await Client.RefreshSnapshotAsync();
+					} catch (Exception) {
+						// HUD polling must continue if a snapshot request fails.
+					}
 				}
 			}
 		} catch (OperationCanceledException) {

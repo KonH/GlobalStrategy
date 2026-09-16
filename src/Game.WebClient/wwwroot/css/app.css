@@ -222,39 +222,168 @@ body {
 
 .gs-ecs-inspector {
 	display: flex;
-	flex-direction: column;
-	gap: 0.5rem;
+	flex-direction: row;
+	align-items: stretch;
+	gap: 0.75rem;
 	min-height: 16rem;
+	flex: 1;
+	min-width: 0;
 }
 
-.gs-ecs-chip-row, .gs-field-filter-row, .gs-ecs-field {
+.gs-ecs-sidebar {
+	width: 16rem;
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	max-height: 36rem;
+}
+
+.gs-ecs-sidebar-title {
+	font-size: 0.8rem;
+	color: #aaa;
+	margin-bottom: 0.35rem;
+	flex-shrink: 0;
+}
+
+.gs-ecs-chip-list {
+	flex: 1;
+	overflow: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	min-height: 0;
+}
+
+.gs-filter-chip {
+	display: flex;
+	flex-direction: row;
+	gap: 0.25rem;
+	align-items: center;
+	padding: 0.15rem 0.25rem;
+	font-size: 0.85rem;
+}
+
+.gs-filter-chip.gs-filter-require {
+	background: rgba(26, 127, 58, 0.18);
+}
+
+.gs-filter-chip.gs-filter-exclude {
+	background: rgba(163, 51, 51, 0.18);
+}
+
+.gs-filter-chip button.gs-chip-on {
+	font-weight: bold;
+	color: #fff;
+}
+
+.gs-filter-require button.gs-chip-on {
+	background: #1a7f3a;
+}
+
+.gs-filter-exclude button.gs-chip-on {
+	background: #a33333;
+}
+
+.gs-ecs-main {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.gs-ecs-query {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	flex-shrink: 0;
+}
+
+.gs-ecs-query-row, .gs-field-filter-row {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.35rem;
 	align-items: center;
 }
 
-.gs-ecs-split {
+.gs-ecs-count {
+	color: #888;
+	font-size: 0.85rem;
+}
+
+.gs-ecs-selected {
 	display: flex;
 	gap: 0.75rem;
-	min-height: 12rem;
+	flex: 1;
+	min-height: 16rem;
 }
 
 .gs-ecs-list {
-	width: 12rem;
+	width: 14rem;
+	flex-shrink: 0;
+	max-height: 28rem;
 	overflow: auto;
 	display: flex;
 	flex-direction: column;
 	gap: 0.15rem;
 }
 
+.gs-ecs-list button {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	text-align: left;
+	gap: 0.1rem;
+}
+
+.gs-ecs-entity-id {
+	font-variant-numeric: tabular-nums;
+}
+
+.gs-ecs-tags {
+	color: #888;
+	font-size: 0.75rem;
+	word-break: break-word;
+}
+
 .gs-ecs-detail {
 	flex: 1;
 	overflow: auto;
+	max-height: 28rem;
 }
 
 .gs-ecs-component {
+	display: flex;
+	flex-direction: column;
 	margin-bottom: 0.75rem;
+}
+
+.gs-ecs-component > strong {
+	margin-bottom: 0.35em;
+}
+
+.gs-ecs-field {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	align-items: baseline;
+	margin: 0;
+}
+
+.gs-ecs-field + .gs-ecs-field {
+	margin-top: 0.5em;
+}
+
+.gs-ecs-field label {
+	font-size: 1em;
+	line-height: 1;
+}
+
+.gs-ecs-list button.gs-active {
+	font-weight: bold;
+	background: #444;
+	color: #fff;
 }
 
 .gs-filter-error {

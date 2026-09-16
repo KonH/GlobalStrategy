@@ -1,150 +1,162 @@
-@using System.Globalization
 @using ECS.Viewer
 @using GS.Game.WebClient.Ecs
 @using GS.Game.WebClient.Services
 @inject IGameClient Client
 
 <div class="gs-ecs-inspector">
-	<div class="gs-ecs-filters">
-		<div class="gs-ecs-chip-row">
-			<span>Filter:</span>
-			@foreach (string typeName in TypeNames()) {
-				<div class="gs-filter-chip">
-					<button type="button" class="@ChipClass(typeName, ComponentFilterMode.Require)" @onclick="() => ToggleChip(typeName, ComponentFilterMode.Require)">+</button>
+	<div class="gs-ecs-sidebar">
+		<div class="gs-ecs-sidebar-title">Components</div>
+		<div class="gs-ecs-chip-list">
+			@foreach (string typeName in OrderedTypeNames()) {
+				<div class="@ChipRowClass(typeName)">
+					<button type="button" class="@ChipClass(typeName, ComponentFilterMode.Require)" title="Require" @onclick="() => ToggleChip(typeName, ComponentFilterMode.Require)">+</button>
+					<button type="button" class="@ChipClass(typeName, ComponentFilterMode.Exclude)" title="Exclude" @onclick="() => ToggleChip(typeName, ComponentFilterMode.Exclude)">−</button>
 					<span>@typeName</span>
-					<button type="button" class="@ChipClass(typeName, ComponentFilterMode.Exclude)" @onclick="() => ToggleChip(typeName, ComponentFilterMode.Exclude)">−</button>
 				</div>
 			}
 		</div>
-		<label>Entity id <input value="@_entityIdFilter" @oninput="OnEntityId" /></label>
-		<button type="button" @onclick="AddFieldRow">Add field filter</button>
-		@foreach (FieldFilterRow row in _fieldRows) {
-			<div class="gs-field-filter-row">
-				<select value="@row.ComponentType" @onchange="e => OnRowType(row, e)">
-					<option value=""></option>
-					@foreach (string typeName in TypeNames()) {
-						<option value="@typeName">@typeName</option>
-					}
-				</select>
-				<select value="@row.FieldName" @onchange="e => OnRowField(row, e)">
-					<option value=""></option>
-					@foreach (FieldSnapshot field in FieldsFor(row.ComponentType)) {
-						<option value="@field.Name">@field.Name</option>
-					}
-				</select>
-				@if (row.Kind == FieldSnapshotKind.Enum) {
-					<select value="@row.Value" @onchange="e => SetRowValue(row, e)">
+	</div>
+	<div class="gs-ecs-main">
+		<div class="gs-ecs-query">
+			<div class="gs-ecs-query-row">
+				<label>Entity id <input value="@_entityIdFilter" @oninput="OnEntityId" /></label>
+				<button type="button" @onclick="AddFieldRow">Add field filter</button>
+				<span class="gs-ecs-count">@Visible().Count entities</span>
+			</div>
+			@foreach (FieldFilterRow row in _fieldRows) {
+				<div class="gs-field-filter-row">
+					<select value="@row.ComponentType" @onchange="e => OnRowType(row, e)">
 						<option value=""></option>
-						@foreach (string name in EnumNamesFor(row)) {
-							<option value="@name">@name</option>
+						@foreach (string typeName in TypeNames()) {
+							<option value="@typeName">@typeName</option>
 						}
 					</select>
-				} else if (row.Kind == FieldSnapshotKind.Number) {
-					<select value="@row.NumberMode.ToString()" @onchange="e => row.NumberMode = e.Value?.ToString() == nameof(NumberFilterMode.MinMax) ? NumberFilterMode.MinMax : NumberFilterMode.Exact">
-						<option value="@nameof(NumberFilterMode.Exact)">exact</option>
-						<option value="@nameof(NumberFilterMode.MinMax)">min/max</option>
-					</select>
-					@if (row.NumberMode == NumberFilterMode.Exact) {
-						<input type="number" value="@row.Value" @oninput="e => row.Value = e.Value?.ToString() ?? string.Empty" />
-					} else {
-						<input type="number" placeholder="min" value="@row.Min" @oninput="e => row.Min = e.Value?.ToString() ?? string.Empty" />
-						<input type="number" placeholder="max" value="@row.Max" @oninput="e => row.Max = e.Value?.ToString() ?? string.Empty" />
-					}
-				} else if (row.Kind == FieldSnapshotKind.Bool) {
-					<select value="@row.Value" @onchange="e => row.Value = e.Value?.ToString() ?? string.Empty">
+					<select value="@row.FieldName" @onchange="e => OnRowField(row, e)">
 						<option value=""></option>
-						<option value="True">true</option>
-						<option value="False">false</option>
+						@foreach (FieldSnapshot field in EcsInspectorCatalog.FieldsFor(CurrentSnapshot, row.ComponentType)) {
+							<option value="@field.Name">@field.Name</option>
+						}
 					</select>
-				} else {
-					<select value="@row.StringMode.ToString()" @onchange="e => OnStringMode(row, e)">
-						<option value="@nameof(StringFilterMode.Exact)">exact</option>
-						<option value="@nameof(StringFilterMode.Contains)">contains</option>
-						<option value="@nameof(StringFilterMode.Regex)">regex</option>
-					</select>
-					<input value="@row.Value" @oninput="e => row.Value = e.Value?.ToString() ?? string.Empty" />
-					@if (row.RegexError != null) {
-						<span class="gs-filter-error">@row.RegexError</span>
+					@if (row.Kind == FieldSnapshotKind.Enum) {
+						<select value="@row.Value" @onchange="e => SetRowValue(row, e)">
+							<option value=""></option>
+							@foreach (string name in EnumNamesFor(row)) {
+								<option value="@name">@name</option>
+							}
+						</select>
+					} else if (row.Kind == FieldSnapshotKind.Number) {
+						<select value="@row.NumberMode.ToString()" @onchange="e => row.NumberMode = e.Value?.ToString() == nameof(NumberFilterMode.MinMax) ? NumberFilterMode.MinMax : NumberFilterMode.Exact">
+							<option value="@nameof(NumberFilterMode.Exact)">exact</option>
+							<option value="@nameof(NumberFilterMode.MinMax)">min/max</option>
+						</select>
+						@if (row.NumberMode == NumberFilterMode.Exact) {
+							<input type="number" value="@row.Value" @oninput="e => row.Value = e.Value?.ToString() ?? string.Empty" />
+						} else {
+							<input type="number" placeholder="min" value="@row.Min" @oninput="e => row.Min = e.Value?.ToString() ?? string.Empty" />
+							<input type="number" placeholder="max" value="@row.Max" @oninput="e => row.Max = e.Value?.ToString() ?? string.Empty" />
+						}
+					} else if (row.Kind == FieldSnapshotKind.Bool) {
+						<select value="@row.Value" @onchange="e => row.Value = e.Value?.ToString() ?? string.Empty">
+							<option value=""></option>
+							<option value="True">true</option>
+							<option value="False">false</option>
+						</select>
+					} else {
+						<select value="@row.StringMode.ToString()" @onchange="e => OnStringMode(row, e)">
+							<option value="@nameof(StringFilterMode.Exact)">exact</option>
+							<option value="@nameof(StringFilterMode.Contains)">contains</option>
+							<option value="@nameof(StringFilterMode.Regex)">regex</option>
+						</select>
+						<input value="@row.Value" @oninput="e => row.Value = e.Value?.ToString() ?? string.Empty" />
+						@if (row.RegexError != null) {
+							<span class="gs-filter-error">@row.RegexError</span>
+						}
+					}
+					<button type="button" title="Remove field filter" @onclick="() => RemoveFieldRow(row)">Remove</button>
+				</div>
+			}
+		</div>
+		<div class="gs-ecs-selected">
+			<div class="gs-ecs-list">
+				@foreach (EntitySnapshot entity in Visible()) {
+					<button type="button" class="@(_selectedId == entity.Id ? "gs-active" : "")" @onclick="() => SelectEntity(entity.Id)">
+						<span class="gs-ecs-entity-id">#@entity.Id</span>
+						<span class="gs-ecs-tags">@EcsInspectorCatalog.ComponentTags(entity)</span>
+					</button>
+				}
+			</div>
+			<div class="gs-ecs-detail">
+				@if (Selected() is EntitySnapshot selected) {
+					<h2>Entity #@selected.Id</h2>
+					@foreach (ComponentSnapshot component in selected.Components) {
+						<div class="gs-ecs-component">
+							<strong>@component.TypeName</strong>
+							@foreach (FieldSnapshot field in component.Fields) {
+								<div class="gs-ecs-field">
+									<label>@field.Name:</label>
+									@if (field.Kind == FieldSnapshotKind.Enum && field.EnumNames != null) {
+										<select value="@(field.Value?.ToString() ?? string.Empty)" @onchange="e => OnPatch(selected.Id, component.TypeName, field.Name, e)">
+											@if (field.AllowEmpty == true) {
+												<option value=""></option>
+											}
+											@foreach (string name in field.EnumNames) {
+												<option value="@name">@name</option>
+											}
+										</select>
+									} else if (!string.IsNullOrEmpty(field.DomainIdKind)) {
+										<select value="@(field.Value?.ToString() ?? string.Empty)" @onchange="e => OnPatch(selected.Id, component.TypeName, field.Name, e)">
+											@if (field.AllowEmpty == true) {
+												<option value=""></option>
+											}
+											@foreach (string option in DomainOptions(component, field)) {
+												<option value="@option">@option</option>
+											}
+										</select>
+									} else if (field.Kind == FieldSnapshotKind.Number) {
+										<input type="number" value="@(field.Value?.ToString() ?? string.Empty)" @onchange="e => OnPatch(selected.Id, component.TypeName, field.Name, e)" />
+									} else if (field.Kind == FieldSnapshotKind.Bool) {
+										<select value="@(field.Value?.ToString() ?? string.Empty)" @onchange="e => OnPatch(selected.Id, component.TypeName, field.Name, e)">
+											<option value="True">true</option>
+											<option value="False">false</option>
+										</select>
+									} else {
+										<input value="@(field.Value?.ToString() ?? string.Empty)" @onchange="e => OnPatch(selected.Id, component.TypeName, field.Name, e)" />
+									}
+								</div>
+							}
+						</div>
 					}
 				}
 			</div>
-		}
-	</div>
-	<div class="gs-ecs-split">
-		<div class="gs-ecs-list">
-			@foreach (EntitySnapshot entity in Visible()) {
-				<button type="button" class="@(_selectedId == entity.Id ? "gs-active" : "")" @onclick="() => _selectedId = entity.Id">#@entity.Id</button>
-			}
-		</div>
-		<div class="gs-ecs-detail">
-			@if (Selected() is EntitySnapshot selected) {
-				@foreach (ComponentSnapshot component in selected.Components) {
-					<div class="gs-ecs-component">
-						<strong>@component.TypeName</strong>
-						@foreach (FieldSnapshot field in component.Fields) {
-							<div class="gs-ecs-field">
-								<label>@field.Name</label>
-								@if (field.Kind == FieldSnapshotKind.Enum && field.EnumNames != null) {
-									<select value="@(field.Value?.ToString() ?? string.Empty)" @onchange="e => OnPatch(selected.Id, component.TypeName, field.Name, e)">
-										@if (field.AllowEmpty == true) {
-											<option value=""></option>
-										}
-										@foreach (string name in field.EnumNames) {
-											<option value="@name">@name</option>
-										}
-									</select>
-								} else if (!string.IsNullOrEmpty(field.DomainIdKind)) {
-									<select value="@(field.Value?.ToString() ?? string.Empty)" @onchange="e => OnPatch(selected.Id, component.TypeName, field.Name, e)">
-										@if (field.AllowEmpty == true) {
-											<option value=""></option>
-										}
-										@foreach (string option in DomainOptions(component, field)) {
-											<option value="@option">@option</option>
-										}
-									</select>
-								} else if (field.Kind == FieldSnapshotKind.Number) {
-									<input type="number" value="@(field.Value?.ToString() ?? string.Empty)" @onchange="e => OnPatch(selected.Id, component.TypeName, field.Name, e)" />
-								} else if (field.Kind == FieldSnapshotKind.Bool) {
-									<select value="@(field.Value?.ToString() ?? string.Empty)" @onchange="e => OnPatch(selected.Id, component.TypeName, field.Name, e)">
-										<option value="True">true</option>
-										<option value="False">false</option>
-									</select>
-								} else {
-									<input value="@(field.Value?.ToString() ?? string.Empty)" @onchange="e => OnPatch(selected.Id, component.TypeName, field.Name, e)" />
-								}
-							</div>
-						}
-					</div>
-				}
-			}
 		</div>
 	</div>
 </div>
 
 @code {
+	[Parameter] public WorldSnapshot? Snapshot { get; set; }
+
 	readonly Dictionary<string, ComponentFilterMode> _chips = new();
+	readonly List<string> _activeOrder = new();
 	readonly List<FieldFilterRow> _fieldRows = new();
 	string _entityIdFilter = "";
 	int? _selectedId;
 
-	IEnumerable<string> TypeNames() {
-		var names = new SortedSet<string>(StringComparer.Ordinal);
-		if (Client.Snapshot == null) {
-			return names;
-		}
-		foreach (EntitySnapshot entity in Client.Snapshot.Entities) {
-			foreach (ComponentSnapshot component in entity.Components) {
-				names.Add(component.TypeName);
-				if (!_chips.ContainsKey(component.TypeName)) {
-					_chips[component.TypeName] = ComponentFilterMode.Off;
-				}
-			}
-		}
-		return names;
+	WorldSnapshot? CurrentSnapshot => Snapshot ?? Client.Snapshot;
+
+	IReadOnlyList<string> TypeNames() {
+		return EcsInspectorCatalog.TypeNames(CurrentSnapshot);
+	}
+
+	IReadOnlyList<string> OrderedTypeNames() {
+		return EcsInspectorCatalog.OrderedTypeNames(TypeNames(), _chips, _activeOrder);
+	}
+
+	protected override void OnParametersSet() {
+		EnsureSelection();
 	}
 
 	IReadOnlyList<EntitySnapshot> Visible() {
-		return EcsSnapshotFilter.Apply(Client.Snapshot, _chips, _entityIdFilter, _fieldRows);
+		return EcsSnapshotFilter.Apply(CurrentSnapshot, _chips, _entityIdFilter, _fieldRows);
 	}
 
 	EntitySnapshot? Selected() {
@@ -159,42 +171,68 @@
 		return null;
 	}
 
+	void EnsureSelection() {
+		IReadOnlyList<EntitySnapshot> visible = Visible();
+		if (visible.Count == 0) {
+			_selectedId = null;
+			return;
+		}
+		if (_selectedId != null) {
+			foreach (EntitySnapshot entity in visible) {
+				if (entity.Id == _selectedId) {
+					return;
+				}
+			}
+		}
+		_selectedId = visible[0].Id;
+	}
+
+	void SelectEntity(int id) {
+		_selectedId = id;
+	}
+
+	ComponentFilterMode ChipMode(string typeName) {
+		return _chips.TryGetValue(typeName, out ComponentFilterMode current) ? current : ComponentFilterMode.Off;
+	}
+
+	string ChipRowClass(string typeName) {
+		ComponentFilterMode mode = ChipMode(typeName);
+		if (mode == ComponentFilterMode.Require) {
+			return "gs-filter-chip gs-filter-require";
+		}
+		if (mode == ComponentFilterMode.Exclude) {
+			return "gs-filter-chip gs-filter-exclude";
+		}
+		return "gs-filter-chip";
+	}
+
 	string ChipClass(string typeName, ComponentFilterMode mode) {
-		return _chips.TryGetValue(typeName, out ComponentFilterMode current) && current == mode ? "gs-active" : "";
+		return ChipMode(typeName) == mode ? "gs-chip-on" : "";
 	}
 
 	void ToggleChip(string typeName, ComponentFilterMode mode) {
-		if (!_chips.TryGetValue(typeName, out ComponentFilterMode current)) {
-			current = ComponentFilterMode.Off;
+		ComponentFilterMode current = ChipMode(typeName);
+		ComponentFilterMode next = current == mode ? ComponentFilterMode.Off : mode;
+		_chips[typeName] = next;
+		_activeOrder.Remove(typeName);
+		if (next != ComponentFilterMode.Off) {
+			_activeOrder.Insert(0, typeName);
 		}
-		_chips[typeName] = current == mode ? ComponentFilterMode.Off : mode;
+		EnsureSelection();
 	}
 
 	void OnEntityId(ChangeEventArgs e) {
 		_entityIdFilter = e.Value?.ToString() ?? "";
+		EnsureSelection();
 	}
 
 	void AddFieldRow() {
 		_fieldRows.Add(new FieldFilterRow());
 	}
 
-	IEnumerable<FieldSnapshot> FieldsFor(string typeName) {
-		if (Client.Snapshot == null || string.IsNullOrEmpty(typeName)) {
-			yield break;
-		}
-		var seen = new HashSet<string>(StringComparer.Ordinal);
-		foreach (EntitySnapshot entity in Client.Snapshot.Entities) {
-			foreach (ComponentSnapshot component in entity.Components) {
-				if (component.TypeName != typeName) {
-					continue;
-				}
-				foreach (FieldSnapshot field in component.Fields) {
-					if (seen.Add(field.Name)) {
-						yield return field;
-					}
-				}
-			}
-		}
+	void RemoveFieldRow(FieldFilterRow row) {
+		_fieldRows.Remove(row);
+		EnsureSelection();
 	}
 
 	void OnRowType(FieldFilterRow row, ChangeEventArgs e) {
@@ -204,7 +242,7 @@
 
 	void OnRowField(FieldFilterRow row, ChangeEventArgs e) {
 		row.FieldName = e.Value?.ToString() ?? "";
-		foreach (FieldSnapshot field in FieldsFor(row.ComponentType)) {
+		foreach (FieldSnapshot field in EcsInspectorCatalog.FieldsFor(CurrentSnapshot, row.ComponentType)) {
 			if (field.Name == row.FieldName) {
 				row.Kind = field.Kind;
 				break;
@@ -213,7 +251,7 @@
 	}
 
 	IEnumerable<string> EnumNamesFor(FieldFilterRow row) {
-		foreach (FieldSnapshot field in FieldsFor(row.ComponentType)) {
+		foreach (FieldSnapshot field in EcsInspectorCatalog.FieldsFor(CurrentSnapshot, row.ComponentType)) {
 			if (field.Name == row.FieldName && field.EnumNames != null) {
 				return field.EnumNames;
 			}

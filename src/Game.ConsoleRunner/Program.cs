@@ -5,6 +5,7 @@ using GS.Game.Configs;
 using GS.Game.Commands;
 using GS.Main;
 using ECS.Viewer;
+using ECS.Viewer.Host;
 using ECS.Viewer.Server;
 
 using GS.Game.Systems;
@@ -127,7 +128,7 @@ namespace GS.Game.ConsoleRunner {
 			var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
 			while (dir != null) {
 				string candidate = Path.Combine(dir.FullName, ".tmp", "web-debug-ui");
-				if (File.Exists(Path.Combine(candidate, "index.html"))) {
+				if (WebDebugUiRoot.LooksPublished(WebDebugUiRoot.FromPublishDirectory(candidate))) {
 					return candidate;
 				}
 				dir = dir.Parent;

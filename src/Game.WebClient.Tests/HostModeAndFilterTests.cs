@@ -116,6 +116,67 @@ namespace GS.Game.WebClient.Tests {
 		}
 	}
 
+	public class EcsInspectorCatalogTests {
+		[Fact]
+		void type_names_and_fields_come_from_snapshot_components() {
+			var snapshot = new EcsWorldSnapshot {
+				Entities = {
+					new ECS.Viewer.EntitySnapshot {
+						Id = 1,
+						Components = {
+							new ECS.Viewer.ComponentSnapshot {
+								TypeName = "Hp",
+								Fields = { new ECS.Viewer.FieldSnapshot { Name = "Value", Kind = FieldSnapshotKind.Number, Value = 3 } }
+							},
+							new ECS.Viewer.ComponentSnapshot { TypeName = "Name" }
+						}
+					}
+				}
+			};
+
+			Assert.Equal(new[] { "Hp", "Name" }, EcsInspectorCatalog.TypeNames(snapshot));
+			IReadOnlyList<ECS.Viewer.FieldSnapshot> fields = EcsInspectorCatalog.FieldsFor(snapshot, "Hp");
+			Assert.Single(fields);
+			Assert.Equal("Value", fields[0].Name);
+			Assert.Equal("Hp, Name", EcsInspectorCatalog.ComponentTags(snapshot.Entities[0]));
+		}
+
+		[Fact]
+		void ordered_type_names_put_active_filters_first_in_click_order() {
+			var names = new[] { "Alpha", "Hp", "Name", "Zed" };
+			var chips = new Dictionary<string, ComponentFilterMode> {
+				["Name"] = ComponentFilterMode.Exclude,
+				["Hp"] = ComponentFilterMode.Require
+			};
+			var order = new[] { "Hp", "Name" };
+			Assert.Equal(new[] { "Hp", "Name", "Alpha", "Zed" }, EcsInspectorCatalog.OrderedTypeNames(names, chips, order));
+		}
+	}
+
+	public class EcsWorldSnapshotJsonTests {
+		[Fact]
+		void parse_accepts_pascal_or_camel_entities() {
+			EcsWorldSnapshot? pascal = EcsWorldSnapshotJson.Parse(
+				"{\"Entities\":[{\"Id\":7,\"Components\":[{\"TypeName\":\"Hp\",\"Fields\":[]}]}]}");
+			Assert.NotNull(pascal);
+			Assert.Single(pascal!.Entities);
+			Assert.Equal(7, pascal.Entities[0].Id);
+			Assert.Equal("Hp", pascal.Entities[0].Components[0].TypeName);
+
+			EcsWorldSnapshot? camel = EcsWorldSnapshotJson.Parse(
+				"{\"entities\":[{\"id\":8,\"components\":[{\"typeName\":\"Gold\",\"fields\":[]}]}]}");
+			Assert.NotNull(camel);
+			Assert.Single(camel!.Entities);
+			Assert.Equal(8, camel.Entities[0].Id);
+			Assert.Equal("Gold", camel.Entities[0].Components[0].TypeName);
+		}
+
+		[Fact]
+		void parse_rejects_html() {
+			Assert.Null(EcsWorldSnapshotJson.Parse("<html>index</html>"));
+		}
+	}
+
 	public class GameClientFakeTests {
 		sealed class FakeClient : IGameClient {
 			public bool ShowPauseMenu { get; set; }

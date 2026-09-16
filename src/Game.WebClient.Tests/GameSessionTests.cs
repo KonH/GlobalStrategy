@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO;
 using ECS;
@@ -11,6 +12,9 @@ using GS.Game.Configs;
 using GS.Game.WebClient.Services;
 using GS.Main;
 using ECS.Viewer;
+using GS.Game.Commands.Text;
+using GS.Game.Commands.Text.Suggestions;
+using GS.Game.WebClient.Ecs;
 using Xunit;
 
 namespace GS.Game.WebClient.Tests {
@@ -115,6 +119,34 @@ namespace GS.Game.WebClient.Tests {
 
 		static GameSession CreateSession(IGameConfigSource configSource, IPersistentStorage storage, AppPreferences preferences, CapturingLogger? logger = null) {
 			return new GameSession(configSource, storage, new WebSnapshotSerializer(), preferences, logger ?? new CapturingLogger());
+		}
+
+		[Fact]
+		async Task inspector_snapshot_fills_after_first_tick() {
+			var configSource = new FileGameConfigSource();
+			var storage = new InMemoryStorage();
+			var preferences = new AppPreferences(new FakePreferencesStore());
+			preferences.SetTutorialsEnabled(false);
+			var session = CreateSession(configSource, storage, preferences);
+			session.StartNew(FirstOrganizationId(configSource), autoStart: false);
+
+			var registry = new CommandRegistry();
+			var source = new GameLogicSuggestionSource(session.Logic!);
+			var client = new InProcessGameClient(
+				session,
+				new CommandExecutor(registry),
+				new SuggestionEngine(registry, new SuggestionValueResolver(source, new DisplayNameSuggestionLabels())),
+				source);
+
+			await client.RefreshSnapshotAsync();
+			Assert.True(client.Snapshot == null || client.Snapshot.Entities.Count == 0);
+
+			session.Tick(1);
+			Assert.NotNull(client.Snapshot);
+			Assert.True(client.Snapshot!.Entities.Count > 0);
+			Assert.Contains("Country", EcsInspectorCatalog.TypeNames(client.Snapshot));
+
+			session.Dispose();
 		}
 
 		[Fact]

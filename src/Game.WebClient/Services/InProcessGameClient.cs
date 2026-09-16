@@ -16,12 +16,14 @@ namespace GS.Game.WebClient.Services {
 		readonly SuggestionEngine _engine;
 		readonly ISuggestionSource _source;
 
+		int _ticksSinceSnapshot;
+
 		public InProcessGameClient(GameSession session, CommandExecutor executor, SuggestionEngine engine, ISuggestionSource source) {
 			_session = session;
 			_executor = executor;
 			_engine = engine;
 			_source = source;
-			_session.Ticked += () => Changed?.Invoke();
+			_session.Ticked += OnTicked;
 		}
 
 		public bool ShowPauseMenu => true;
@@ -39,11 +41,7 @@ namespace GS.Game.WebClient.Services {
 		}
 
 		public Task RefreshSnapshotAsync() {
-			if (_session.Logic == null) {
-				return Task.CompletedTask;
-			}
-			var observer = new WorldObserver();
-			Snapshot = observer.Capture(_session.Logic.World, ECS.Viewer.Host.SnapshotFieldMetadata.Apply);
+			Capture();
 			Changed?.Invoke();
 			return Task.CompletedTask;
 		}
@@ -107,6 +105,23 @@ namespace GS.Game.WebClient.Services {
 				IsPaused = t.IsPaused,
 				MultiplierIndex = t.MultiplierIndex
 			};
+		}
+
+		void OnTicked() {
+			bool empty = Snapshot == null || Snapshot.Entities == null || Snapshot.Entities.Count == 0;
+			_ticksSinceSnapshot++;
+			if (empty || _ticksSinceSnapshot >= 30) {
+				Capture();
+			}
+			Changed?.Invoke();
+		}
+
+		void Capture() {
+			_ticksSinceSnapshot = 0;
+			if (_session.Logic == null) {
+				return;
+			}
+			Snapshot = new WorldObserver().Capture(_session.Logic.World, ECS.Viewer.Host.SnapshotFieldMetadata.Apply);
 		}
 	}
 }

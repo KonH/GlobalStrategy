@@ -197,10 +197,24 @@ def newest_webclient_mtime(repo_root: Path) -> float | None:
     return newest
 
 
+def published_web_index(publish_dir: Path) -> Path:
+    nested = publish_dir / "wwwroot" / "index.html"
+    if nested.is_file():
+        return nested
+    return publish_dir / "index.html"
+
+
+def published_web_framework(publish_dir: Path) -> Path:
+    nested = publish_dir / "wwwroot" / "_framework"
+    if nested.is_dir():
+        return nested
+    return publish_dir / "_framework"
+
+
 def needs_web_publish(repo_root: Path) -> tuple[bool, str]:
     publish_dir = repo_root / WEB_PUBLISH_DIR
-    index = publish_dir / "index.html"
-    framework = publish_dir / "_framework"
+    index = published_web_index(publish_dir)
+    framework = published_web_framework(publish_dir)
     if not index.is_file() or not framework.is_dir():
         return True, "published Blazor UI is missing"
 

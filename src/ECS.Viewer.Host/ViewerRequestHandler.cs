@@ -11,6 +11,7 @@ using GS.Main;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 namespace ECS.Viewer.Host {
 	public sealed class ViewerRequestHandler {
@@ -41,7 +42,7 @@ namespace ECS.Viewer.Host {
 			SuggestionEngine? suggestionEngine = null,
 			Action<string>? logError = null
 		) {
-			_staticRoot = staticRoot ?? "";
+			_staticRoot = WebDebugUiRoot.FromPublishDirectory(staticRoot ?? "");
 			_marshal = marshal ?? throw new ArgumentNullException(nameof(marshal));
 			_pauseToken = pauseToken ?? throw new ArgumentNullException(nameof(pauseToken));
 			_observer = observer ?? throw new ArgumentNullException(nameof(observer));
@@ -320,6 +321,7 @@ namespace ECS.Viewer.Host {
 
 		static JsonSerializerSettings CreateJsonSettings() {
 			var settings = new JsonSerializerSettings();
+			settings.ContractResolver = new DefaultContractResolver();
 			settings.Converters.Add(new EntityRefValueJsonConverter());
 			settings.Converters.Add(new StringEnumConverter());
 			return settings;
