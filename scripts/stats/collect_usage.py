@@ -63,11 +63,34 @@ def project_slug(root):
     return str(Path(root).resolve()).replace(":", "-").replace("\\", "-").replace("/", "-")
 
 
+def find_repo_worktree_roots(root):
+    """Every checkout (main + `git worktree add`) of this repo. Claude Code keys its
+    transcript directory off the exact cwd a session was started in
+    (~/.claude/projects/<slugified-path>), so a session run inside a worktree writes
+    to a *different* project directory than the main checkout's. A --scan run from
+    the main checkout alone would silently never see that worktree's sessions."""
+    try:
+        result = subprocess.run(
+            ["git", "worktree", "list", "--porcelain"], cwd=root, capture_output=True, text=True,
+        )
+    except OSError:
+        return [Path(root)]
+    if result.returncode != 0:
+        return [Path(root)]
+    roots = []
+    for line in result.stdout.splitlines():
+        if line.startswith("worktree "):
+            roots.append(Path(line[len("worktree "):].strip()))
+    return roots or [Path(root)]
+
+
 def find_claude_transcripts(root, since_ts):
-    project_dir = Path.home() / ".claude" / "projects" / project_slug(root)
-    if not project_dir.is_dir():
-        return []
-    paths = sorted(project_dir.glob("*.jsonl"))
+    paths = []
+    for worktree_root in find_repo_worktree_roots(root):
+        project_dir = Path.home() / ".claude" / "projects" / project_slug(worktree_root)
+        if project_dir.is_dir():
+            paths.extend(project_dir.glob("*.jsonl"))
+    paths = sorted(set(paths))
     if since_ts is None:
         return paths
     return [p for p in paths if p.stat().st_mtime > since_ts]

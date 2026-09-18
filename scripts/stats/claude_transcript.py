@@ -7,6 +7,7 @@ import json
 import re
 from pathlib import Path
 
+from scripts.stats.attribution import SPEC_DIR_RE
 from scripts.stats.segmentation import split_into_substages
 
 COMMAND_STAGE_RE = re.compile(r"<command-name>/(specify|plan|implement)</command-name>")
@@ -69,6 +70,26 @@ def _write_paths_from_assistant(message):
     return paths
 
 
+def _implicit_stage_from_write_paths(paths):
+    """Fallback stage marker for sessions that authored spec.md/plan.md without ever
+    invoking /specify, /plan, or their Skill wrappers (e.g. ad hoc prompting, or a
+    session cut short by a session-limit interruption before it could run a slash
+    command). Only used to start the very first stage of a session - never to
+    override or interrupt a stage already started by an explicit marker, since a
+    plan.md checkbox edit during /implement must not be mistaken for a new /plan
+    stage."""
+    for path in paths:
+        match = SPEC_DIR_RE.search(path)
+        if not match:
+            continue
+        name = Path(path).name
+        if name == "spec.md":
+            return "spec"
+        if name == "plan.md":
+            return "plan"
+    return None
+
+
 def parse_claude_transcript(path):
     """Returns a list of row dicts, one per stage/sub-stage segment found in the
     transcript, each carrying session_id/provider/model/effort/token sums/write_paths/
@@ -76,7 +97,12 @@ def parse_claude_transcript(path):
     /implement command marker (typed slash command) OR a Skill tool invocation of
     those skills (remote/skill-driven sessions, where no marker is injected); a
     repeated Skill invocation of the already-current stage (e.g. a retry) does not
-    restart it. Sessions with neither produce an empty list (nothing to attribute).
+    restart it. If the session never uses either (ad hoc prompting, or a session cut
+    short by a session-limit interruption before a slash command ran), the first
+    Write/Edit of a Docs/Specs/<dir>/spec.md or plan.md implicitly starts that stage
+    instead - this only fires for the very first stage of a session, never to
+    reclassify a stage already underway. Sessions with none of the above produce an
+    empty list (nothing to attribute).
     """
     path = Path(path)
     lines = path.read_text(encoding="utf-8").splitlines()
@@ -129,13 +155,17 @@ def parse_claude_transcript(path):
             })
         elif line_type == "assistant":
             message = obj.get("message", {})
+            write_paths = _write_paths_from_assistant(message)
             skill_stage = _stage_from_skill(message)
-            if skill_stage is not None and (current is None or current[0] != skill_stage):
+            new_stage = skill_stage
+            if new_stage is None and current is None:
+                new_stage = _implicit_stage_from_write_paths(write_paths)
+            if new_stage is not None and (current is None or current[0] != new_stage):
                 if current is not None:
                     stages.append(current)
                 context = "continued" if any_stage_started else "fresh"
                 any_stage_started = True
-                current = (skill_stage, context, [])
+                current = (new_stage, context, [])
             if current is None:
                 continue
             usage = message.get("usage") or {}
@@ -149,7 +179,7 @@ def parse_claude_transcript(path):
                     "cached_input_tokens": usage.get("cache_read_input_tokens", 0),
                     "output_tokens": usage.get("output_tokens", 0),
                 },
-                "write_paths": _write_paths_from_assistant(message),
+                "write_paths": write_paths,
                 "git_branch": git_branch,
             })
 

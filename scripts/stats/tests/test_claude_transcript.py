@@ -69,6 +69,14 @@ def skill_invocation_line(session_id, timestamp, skill, branch="main",
     return line
 
 
+def write_tool_line(session_id, timestamp, file_path, branch="main",
+                     input_tokens=10, cached=5, output_tokens=20):
+    line = assistant_line(session_id, timestamp, "tool_use", branch=branch,
+                          input_tokens=input_tokens, cached=cached, output_tokens=output_tokens)
+    line["message"]["content"] = [{"type": "tool_use", "name": "Write", "input": {"file_path": file_path}}]
+    return line
+
+
 def write_transcript(lines):
     tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False, encoding="utf-8")
     for line in lines:
@@ -219,6 +227,43 @@ class ClaudeTranscriptTests(unittest.TestCase):
         rows = parse_claude_transcript(path)
 
         self.assertEqual("outer-session", rows[0]["session_id"])
+
+    def test_implicit_stage_starts_from_spec_md_write_with_no_command_marker(self):
+        path = write_transcript([
+            user_line("s1", "write a spec for org destroy ui please", "2026-01-01T00:00:00Z"),
+            write_tool_line("s1", "2026-01-01T00:00:01Z", "Docs/Specs/26_08_11_09_org-destroy-ui/spec.md"),
+            tool_result_line("s1", "2026-01-01T00:00:02Z"),
+            assistant_line("s1", "2026-01-01T00:00:03Z", "end_turn"),
+        ])
+
+        rows = parse_claude_transcript(path)
+
+        self.assertEqual(1, len(rows))
+        self.assertEqual("spec", rows[0]["stage"])
+
+    def test_implicit_stage_starts_from_plan_md_write_with_no_command_marker(self):
+        path = write_transcript([
+            user_line("s1", "resolve ambiguities and write the plan", "2026-01-01T00:00:00Z"),
+            write_tool_line("s1", "2026-01-01T00:00:01Z", "Docs/Specs/26_08_11_09_org-destroy-ui/plan.md"),
+            assistant_line("s1", "2026-01-01T00:00:02Z", "end_turn"),
+        ])
+
+        rows = parse_claude_transcript(path)
+
+        self.assertEqual(1, len(rows))
+        self.assertEqual("plan", rows[0]["stage"])
+
+    def test_implicit_stage_does_not_reclassify_a_stage_already_in_progress(self):
+        path = write_transcript([
+            user_line("s1", "<command-name>/implement</command-name>", "2026-01-01T00:00:00Z"),
+            write_tool_line("s1", "2026-01-01T00:00:01Z", "Docs/Specs/26_08_11_09_org-destroy-ui/plan.md"),
+            assistant_line("s1", "2026-01-01T00:00:02Z", "end_turn"),
+        ])
+
+        rows = parse_claude_transcript(path)
+
+        self.assertEqual(1, len(rows))
+        self.assertEqual("implement", rows[0]["stage"])
 
     def test_effort_is_captured_from_assistant_line(self):
         path = write_transcript([
