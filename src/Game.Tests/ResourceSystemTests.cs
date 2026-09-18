@@ -2,6 +2,7 @@ using System;
 using ECS;
 using GS.Game.Components;
 using GS.Game.Systems;
+using GS.Game.Tests.Helpers;
 using Xunit;
 
 namespace GS.Game.Tests {
@@ -37,52 +38,32 @@ namespace GS.Game.Tests {
 			}
 		}
 
-		static World CreateWorldWithResource(string countryId, string resourceId, double initialValue,
+		static TestWorld CreateWorldWithResource(string countryId, string resourceId, double initialValue,
 			out int resourceEntity) {
-			var world = new World();
-			resourceEntity = world.Create();
-			world.Add(resourceEntity, new ResourceOwner(countryId));
-			world.Add(resourceEntity, new Resource { ResourceId = resourceId, Value = initialValue });
+			var world = TestWorld.Create().Resource(countryId, resourceId, initialValue);
+			resourceEntity = world.Last;
 			return world;
 		}
 
-		static int AddMonthlyEffect(World world, string countryId, string resourceId,
-			string effectId, double value) {
-			int effectEntity = world.Create();
-			world.Add(effectEntity, new ResourceOwner(countryId));
-			world.Add(effectEntity, new ResourceLink(resourceId));
-			world.Add(effectEntity, new ResourceEffect {
-				EffectId = effectId,
-				Value = value,
-				PayType = PayType.Monthly
-			});
-			return effectEntity;
+		static int AddEffect(TestWorld world, string countryId, string resourceId,
+			string effectId, double value, PayType payType) {
+			return world.ResourceEffect(
+				countryId, resourceId, value, effectId, OwnerType.Org, payType).Last;
 		}
 
-		static int AddInstantEffect(World world, string countryId, string resourceId,
+		static int AddMonthlyEffect(TestWorld world, string countryId, string resourceId,
 			string effectId, double value) {
-			int effectEntity = world.Create();
-			world.Add(effectEntity, new ResourceOwner(countryId));
-			world.Add(effectEntity, new ResourceLink(resourceId));
-			world.Add(effectEntity, new ResourceEffect {
-				EffectId = effectId,
-				Value = value,
-				PayType = PayType.Instant
-			});
-			return effectEntity;
+			return AddEffect(world, countryId, resourceId, effectId, value, PayType.Monthly);
 		}
 
-		static int AddDailyEffect(World world, string countryId, string resourceId,
+		static int AddInstantEffect(TestWorld world, string countryId, string resourceId,
 			string effectId, double value) {
-			int effectEntity = world.Create();
-			world.Add(effectEntity, new ResourceOwner(countryId));
-			world.Add(effectEntity, new ResourceLink(resourceId));
-			world.Add(effectEntity, new ResourceEffect {
-				EffectId = effectId,
-				Value = value,
-				PayType = PayType.Daily
-			});
-			return effectEntity;
+			return AddEffect(world, countryId, resourceId, effectId, value, PayType.Instant);
+		}
+
+		static int AddDailyEffect(TestWorld world, string countryId, string resourceId,
+			string effectId, double value) {
+			return AddEffect(world, countryId, resourceId, effectId, value, PayType.Daily);
 		}
 
 		[Fact]
@@ -128,12 +109,12 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void effect_only_applies_to_matching_country_and_resource() {
-			var world = new World();
-			int re1 = world.Create();
+			var world = TestWorld.Create();
+			int re1 = world.Entity().Last;
 			world.Add(re1, new ResourceOwner("Russia"));
 			world.Add(re1, new Resource { ResourceId = "gold", Value = 100.0 });
 
-			int re2 = world.Create();
+			int re2 = world.Entity().Last;
 			world.Add(re2, new ResourceOwner("France"));
 			world.Add(re2, new Resource { ResourceId = "gold", Value = 100.0 });
 
@@ -164,7 +145,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void collector_tagged_effect_value_recomputed_before_apply() {
 			var world = CreateWorldWithResource("Russia", "test_resource", 100.0, out int re);
-			int effectEntity = world.Create();
+			int effectEntity = world.Entity().Last;
 			world.Add(effectEntity, new ResourceOwner("Russia"));
 			world.Add(effectEntity, new ResourceLink("test_resource"));
 			world.Add(effectEntity, new ResourceEffect {
@@ -185,7 +166,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void force_resource_recompute_marker_bypasses_daily_gate_and_is_consumed_once() {
 			var world = CreateWorldWithResource("Russia", "test_resource", 100.0, out int re);
-			int effectEntity = world.Create();
+			int effectEntity = world.Entity().Last;
 			world.Add(effectEntity, new ResourceOwner("Russia"));
 			world.Add(effectEntity, new ResourceLink("test_resource"));
 			world.Add(effectEntity, new ResourceEffect {
@@ -213,22 +194,22 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void resourceid_update_order_resolves_dependency_before_dependent() {
-			var world = new World();
-			int reA = world.Create();
+			var world = TestWorld.Create();
+			int reA = world.Entity().Last;
 			world.Add(reA, new ResourceOwner("Russia"));
 			world.Add(reA, new Resource { ResourceId = "a", Value = 100.0 });
 
-			int reB = world.Create();
+			int reB = world.Entity().Last;
 			world.Add(reB, new ResourceOwner("Russia"));
 			world.Add(reB, new Resource { ResourceId = "b", Value = 0.0 });
 
-			int effectA = world.Create();
+			int effectA = world.Entity().Last;
 			world.Add(effectA, new ResourceOwner("Russia"));
 			world.Add(effectA, new ResourceLink("a"));
 			world.Add(effectA, new ResourceEffect { EffectId = "grow_a", Value = 0.0, PayType = PayType.Monthly });
 			world.Add(effectA, new ResourceCollector { CollectorId = "add_fixed" });
 
-			int effectB = world.Create();
+			int effectB = world.Entity().Last;
 			world.Add(effectB, new ResourceOwner("Russia"));
 			world.Add(effectB, new ResourceLink("b"));
 			world.Add(effectB, new ResourceEffect { EffectId = "mirror_a", Value = 0.0, PayType = PayType.Monthly });

@@ -7,6 +7,7 @@ using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
+using GS.Game.Tests.Helpers;
 using GS.Main;
 using Newtonsoft.Json;
 using Xunit;
@@ -21,122 +22,63 @@ namespace GS.Game.Tests {
 		static readonly DateTime CurrentTime = new DateTime(1880, 1, 1);
 
 		static ActionConfig BuildActionConfig() {
-			return new ActionConfig {
-				Defaults = new List<ActionOwnerDefaults> {
-					new ActionOwnerDefaults { OwnerType = "country", HandSize = 3 }
-				},
-				Actions = new List<ActionDefinition> {
-					new ActionDefinition {
-						ActionId = "stop_rivalry",
-						OwnerType = "country",
-						Chance = 1,
-						Conditions = new List<ExpressionNode> {
-							Condition("opinion", 80),
-							Condition("relationStillExists", 1)
-						},
-						Cost = new List<ActionCost> {
-							new ActionCost { ResourceId = "gold", Amount = 100 }
-						},
-						EffectIds = new List<string> { "clear_rivalry_effect" }
-					},
-					new ActionDefinition {
-						ActionId = "declare_war",
-						OwnerType = "country",
-						Chance = 1,
-						Conditions = new List<ExpressionNode> {
-							Condition("targetMilitaryOpinion", 50),
-							Condition("relationStillExists", 1),
-							Condition("neitherSideAtWar", 1)
-						},
-						Cost = new List<ActionCost> {
-							new ActionCost { ResourceId = "gold", Amount = 100 }
-						},
-						EffectIds = new List<string> { "declare_war_effect" }
-					}
-				}
-			};
+			return TestActionConfig.Create()
+				.HandSize("country", 3)
+				.Action("stop_rivalry", chance: 1,
+					cost: Gold(100),
+					effectIds: new[] { "clear_rivalry_effect" },
+					conditions: new[] { Expr.Gte("opinion", 80), RelationStillExists() })
+				.Action("declare_war", chance: 1,
+					cost: Gold(100),
+					effectIds: new[] { "declare_war_effect" },
+					conditions: new[] {
+						Expr.Gte("targetMilitaryOpinion", 50),
+						RelationStillExists(),
+						Expr.Gte("neitherSideAtWar", 1)
+					})
+				.Build();
 		}
 
-		static ExpressionNode Condition(string fieldType, double value) {
-			ExpressionNode operand = fieldType == "relationStillExists"
-				? new ExpressionNode { Type = "hasCountryRelation", RelationKind = "rival" }
-				: new ExpressionNode { Type = fieldType };
-			return new ExpressionNode {
-				Type = "gte",
-				Members = new List<ExpressionNode> {
-					operand,
-					new ExpressionNode { Type = "value", Value = value }
-				}
-			};
+		static ActionCost[] Gold(double amount) {
+			return new[] { new ActionCost { ResourceId = "gold", Amount = amount } };
 		}
 
-		static int AddCountry(World world, string countryId, bool selected = false) {
-			int entity = world.Create();
-			world.Add(entity, new Country(countryId));
-			if (selected) {
-				world.Add(entity, new IsSelected());
-			}
-			return entity;
+		/// <summary>The rivalry these cards were created for must still exist when they are played.</summary>
+		static ExpressionNode RelationStillExists() {
+			return Expr.HasRelation("rival");
 		}
 
-		static int AddRoleOpinion(World world, string countryId, string roleId, double opinion) {
+		static int AddCountry(TestWorld world, string countryId, bool selected = false) {
+			return world.Country(countryId, selected).Last;
+		}
+
+		static int AddRoleOpinion(TestWorld world, string countryId, string roleId, double opinion) {
 			string characterId = $"{countryId}_{roleId}";
-			int characterEntity = world.Create();
-			world.Add(characterEntity, new Character {
-				CharacterId = characterId,
-				CountryId = countryId,
-				OrgId = "",
-				RoleId = roleId,
-				NamePartKeys = Array.Empty<string>()
-			});
-			int resourceEntity = world.Create();
-			world.Add(resourceEntity, new ResourceOwner(characterId, OwnerType.Character));
-			world.Add(resourceEntity, new Resource { ResourceId = $"opinion_{OrgId}", Value = opinion });
-			return resourceEntity;
+			return world
+				.Character(characterId, countryId, roleId)
+				.Opinion(characterId, opinion, OrgId)
+				.Last;
 		}
 
-		static void AddGold(World world, double amount) {
-			int entity = world.Create();
-			world.Add(entity, new ResourceOwner(OrgId));
-			world.Add(entity, new Resource { ResourceId = "gold", Value = amount });
+		static void AddGold(TestWorld world, double amount) {
+			world.Resource(OrgId, "gold", amount);
 		}
 
-		static int AddDeclareWarCard(World world, bool inHand = false, bool readyToResolve = false) {
-			int entity = world.Create();
-			world.Add(entity, new GameAction { ActionId = "declare_war" });
-			world.Add(entity, new OrgContext { OrgId = OrgId });
-			world.Add(entity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(entity, new CountryContext { CountryId = AttackerId });
-			world.Add(entity, new RelationCardTarget { TargetCountryId = DefenderId, Kind = RelationKind.Rival });
-			if (inHand) {
-				world.Add(entity, new CardInHand { SlotIndex = 0 });
-			}
+		static int AddDeclareWarCard(TestWorld world, bool inHand = false, bool readyToResolve = false) {
+			world.Card("declare_war", slotIndex: inHand ? 0 : (int?)null, orgId: OrgId, countryId: AttackerId)
+				.With(new RelationCardTarget { TargetCountryId = DefenderId, Kind = RelationKind.Rival });
 			if (readyToResolve) {
-				world.Add(entity, new CardUse { CountryId = AttackerId });
-				world.Add(entity, new ActionSucceeded());
+				world.With(new CardUse { CountryId = AttackerId }).With(new ActionSucceeded());
 			}
-			return entity;
+			return world.Last;
 		}
 
-		World BuildPlayableWorld(string roleId = "military_advisor", double opinion = 50, double gold = 100) {
-			var world = new World();
-			AddCountry(world, AttackerId);
-			AddCountry(world, DefenderId);
-			AddCountry(world, "Germany");
+		TestWorld BuildPlayableWorld(string roleId = "military_advisor", double opinion = 50, double gold = 100) {
+			var world = TestWorld.Create().Countries(AttackerId, DefenderId, "Germany");
 			AddGold(world, gold);
 			AddRoleOpinion(world, AttackerId, roleId, opinion);
 			_relations.SetRelation(world, AttackerId, DefenderId, RelationKind.Rival);
 			return world;
-		}
-
-		static bool HasComponent<T>(World world) where T : struct {
-			int[] required = { TypeId<T>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
-				if (arch.Count > 0) {
-					return true;
-				}
-			}
-			return false;
 		}
 
 		static int CountActionInstances(World world, string actionId, string targetCountryId) {
@@ -206,7 +148,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void declare_war_ignores_rival_country_character_opinion() {
-			var world = new World();
+			var world = TestWorld.Create();
 			AddCountry(world, AttackerId);
 			AddCountry(world, DefenderId);
 			AddGold(world, 100);
@@ -249,10 +191,7 @@ namespace GS.Game.Tests {
 			var world = BuildPlayableWorld(opinion: 49);
 			int opinionResource = _resources.FindEntity(world, $"{AttackerId}_military_advisor", $"opinion_{OrgId}");
 			int card = AddDeclareWarCard(world);
-			int deck = world.Create();
-			world.Add(deck, new CardDeck { OrgId = OrgId });
-			world.Add(deck, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deck, new CardHand { HandSize = 1 });
+			world.Deck(OrgId, handSize: 1);
 
 			DrawAndReceive(world);
 			Assert.True(world.Has<CardInHand>(card));
@@ -287,13 +226,13 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void relation_sync_creates_stop_rivalry_and_declare_war_instances_per_rival() {
-			var world = new World();
+			var world = TestWorld.Create();
 			AddCountry(world, AttackerId);
 			AddCountry(world, DefenderId);
 			AddCountry(world, "Spain");
-			int deck = world.Create();
-			world.Add(deck, new CardDeck { OrgId = OrgId });
-			world.Add(deck, new CardOwnerType(CardOwnerKind.Country));
+			world.Entity()
+				.With(new CardDeck { OrgId = OrgId })
+				.With(new CardOwnerType(CardOwnerKind.Country));
 			_relations.SetRelation(world, AttackerId, DefenderId, RelationKind.Rival);
 			_relations.SetRelation(world, AttackerId, "Spain", RelationKind.Rival);
 
@@ -307,12 +246,12 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void relation_sync_skips_declare_war_when_deck_copies_is_zero() {
-			var world = new World();
+			var world = TestWorld.Create();
 			AddCountry(world, AttackerId);
 			AddCountry(world, DefenderId);
-			int deck = world.Create();
-			world.Add(deck, new CardDeck { OrgId = OrgId });
-			world.Add(deck, new CardOwnerType(CardOwnerKind.Country));
+			world.Entity()
+				.With(new CardDeck { OrgId = OrgId })
+				.With(new CardOwnerType(CardOwnerKind.Country));
 			_relations.SetRelation(world, AttackerId, DefenderId, RelationKind.Rival);
 
 			var config = BuildActionConfig();
@@ -337,10 +276,10 @@ namespace GS.Game.Tests {
 
 			Assert.True(Wars.IsInWar(world, AttackerId));
 			Assert.True(Wars.IsInWar(world, DefenderId));
-			Assert.True(HasComponent<WarDeclaredApplied>(world));
+			Assert.True(world.Count<WarDeclaredApplied>() > 0);
 
 			CleanupEffectNotificationsSystem.UpdateActionEffects(world);
-			Assert.False(HasComponent<WarDeclaredApplied>(world));
+			Assert.False(world.Count<WarDeclaredApplied>() > 0);
 
 			var blockedWorld = BuildPlayableWorld();
 			Wars.DeclareWar(blockedWorld, _resources, DefenderId, "Germany", CurrentTime);
@@ -349,25 +288,18 @@ namespace GS.Game.Tests {
 			CreateActionEffectSystem.Update(blockedWorld, actionConfig, effectConfig, CurrentTime.AddDays(1), new Random(1), new GameSettings(), new ProvinceTopology(new ProvinceConfig()), new Dictionary<string, (double Lon, double Lat)>(), 100, _resources);
 
 			Assert.False(Wars.IsInWar(blockedWorld, AttackerId));
-			Assert.False(HasComponent<WarDeclaredApplied>(blockedWorld));
+			Assert.False(blockedWorld.Count<WarDeclaredApplied>() > 0);
 		}
 
 		[Fact]
 		void visual_state_reports_distinct_opinion_and_already_at_war_reasons() {
 			var world = BuildPlayableWorld(opinion: 49);
-			int attackerEntity = FindCountryEntity(world, AttackerId);
-			world.Add(attackerEntity, new IsSelected());
+			world.Add(FindCountryEntity(world, AttackerId), new IsSelected());
 			int card = AddDeclareWarCard(world, inHand: true);
-			int gameTimeEntity = world.Create();
-			world.Add(gameTimeEntity, new GameTime { CurrentTime = CurrentTime });
-			int localeEntity = world.Create();
-			world.Add(localeEntity, new Locale { Value = "en" });
-			int orgEntity = world.Create();
-			world.Add(orgEntity, new Organization { OrganizationId = OrgId, DisplayName = OrgId });
-			var state = new VisualState();
-			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
+			world.GameTime(CurrentTime).Locale().Org(OrgId);
+			var probe = new VisualStateProbe(BuildActionConfig(), _resources, _relations);
 
-			converter.Update(0, world, gameTimeEntity, localeEntity, orgEntity);
+			VisualState state = probe.Update(world).State;
 
 			ActionCardEntry entry = Assert.Single(state.SelectedCountry.CountryActions.Hand.Where(e => e.ActionId == "declare_war"));
 			Assert.Equal("insufficient_target_opinion", entry.UnplayableReason);
@@ -382,7 +314,7 @@ namespace GS.Game.Tests {
 			Assert.True(opinionResource >= 0);
 			_resources.TryUpdate(world, $"{AttackerId}_military_advisor", $"opinion_{OrgId}", 50, out _);
 			Wars.DeclareWar(world, _resources, AttackerId, "Germany", CurrentTime);
-			converter.Update(0, world, gameTimeEntity, localeEntity, orgEntity);
+			probe.Update(world);
 
 			entry = Assert.Single(state.SelectedCountry.CountryActions.Hand.Where(e => e.ActionId == "declare_war"));
 			Assert.Equal("already_at_war", entry.UnplayableReason);
@@ -395,25 +327,19 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void war_event_produces_one_game_log_entry_with_attacker_and_defender() {
-			var world = new World();
-			AddCountry(world, AttackerId);
-			AddCountry(world, DefenderId);
-			int gameTimeEntity = world.Create();
-			world.Add(gameTimeEntity, new GameTime { CurrentTime = CurrentTime });
-			int localeEntity = world.Create();
-			world.Add(localeEntity, new Locale { Value = "en" });
-			int orgEntity = world.Create();
-			world.Add(orgEntity, new Organization { OrganizationId = OrgId, DisplayName = OrgId });
-			int eventEntity = world.Create();
-			world.Add(eventEntity, new WarDeclaredApplied {
-				OrgId = OrgId,
-				CountryId = AttackerId,
-				DefenderCountryId = DefenderId
-			});
-			var state = new VisualState();
-			var converter = new VisualStateConverter(state, _resources, _relations);
+			TestWorld world = TestWorld.Create()
+				.Countries(AttackerId, DefenderId)
+				.GameTime(CurrentTime)
+				.Locale()
+				.Org(OrgId)
+				.Entity().With(new WarDeclaredApplied {
+					OrgId = OrgId,
+					CountryId = AttackerId,
+					DefenderCountryId = DefenderId
+				});
+			var probe = new VisualStateProbe(resources: _resources, relations: _relations);
 
-			converter.Update(0, world, gameTimeEntity, localeEntity, orgEntity);
+			VisualState state = probe.Update(world).State;
 
 			GameLogEntry entry = Assert.Single(state.GameLog.Entries);
 			Assert.Equal(GameLogEntryKind.War, entry.Kind);
@@ -422,11 +348,11 @@ namespace GS.Game.Tests {
 			Assert.Equal(DefenderId, entry.TargetCountryId);
 
 			CleanupEffectNotificationsSystem.UpdateActionEffects(world);
-			converter.Update(0, world, gameTimeEntity, localeEntity, orgEntity);
+			probe.Update(world);
 			Assert.Single(state.GameLog.Entries);
 		}
 
-		static int FindCountryEntity(World world, string countryId) {
+		static int FindCountryEntity(TestWorld world, string countryId) {
 			int[] required = { TypeId<Country>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				Country[] countries = arch.GetColumn<Country>();

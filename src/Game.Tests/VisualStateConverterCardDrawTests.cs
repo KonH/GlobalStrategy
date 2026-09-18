@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
-using ECS;
 using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
+using GS.Game.Tests.Helpers;
 using GS.Main;
 using Xunit;
 
@@ -14,66 +13,37 @@ namespace GS.Game.Tests {
 		readonly CountryRelations _relations = new CountryRelations();
 
 		static ActionConfig BuildActionConfig() {
-			return new ActionConfig {
-				Defaults = new List<ActionOwnerDefaults> {
-					new ActionOwnerDefaults { OwnerType = "country", HandSize = 3 }
-				},
-				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = "hand_card", OwnerType = "country", Chance = 1 },
-					new ActionDefinition {
-						ActionId = "offered_card",
-						OwnerType = "country",
-						Chance = 1,
-						Cost = new List<ActionCost> {
-							new ActionCost { ResourceId = ResourceDefinitions.Gold, Amount = 10 }
-						}
-					},
-					new ActionDefinition { ActionId = "offered_card_two", OwnerType = "country", Chance = 1 },
-					new ActionDefinition { ActionId = "deck_card", OwnerType = "country", Chance = 1 }
-				}
-			};
+			return TestActionConfig.Create()
+				.HandSize("country", 3)
+				.Action("hand_card", chance: 1)
+				.Action("offered_card", chance: 1, cost: new[] {
+					new ActionCost { ResourceId = ResourceDefinitions.Gold, Amount = 10 }
+				})
+				.Action("offered_card_two", chance: 1)
+				.Action("deck_card", chance: 1)
+				.Build();
 		}
 
-		static World BuildWorld(
-			out int gameTimeEntity,
-			out int localeEntity,
-			out int orgEntity,
-			out int deckEntity) {
-			var world = new World();
-			int countryEntity = world.Create();
-			world.Add(countryEntity, new Country("Prussia"));
-			world.Add(countryEntity, new IsSelected());
-
-			orgEntity = world.Create();
-			world.Add(orgEntity, new Organization { OrganizationId = "OrgA", DisplayName = "OrgA" });
-
-			gameTimeEntity = world.Create();
-			world.Add(gameTimeEntity, new GameTime { CurrentTime = new DateTime(1880, 1, 1) });
-
-			localeEntity = world.Create();
-			world.Add(localeEntity, new Locale { Value = "en" });
-
-			deckEntity = world.Create();
-			world.Add(deckEntity, new CardDeck { OrgId = "OrgA" });
-			world.Add(deckEntity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(deckEntity, new CardHand { HandSize = 8 });
-			return world;
+		/// <summary>Selected Prussia plus an eight-card country deck; the deck entity is <c>"deck"</c>.</summary>
+		static TestWorld BuildWorld() {
+			return TestWorld.CreateWithSelectedCountry()
+				.Deck(handSize: 8)
+				.As("deck");
 		}
 
-		static int AddCard(World world, string actionId, string primaryCountryId) {
-			int entity = world.Create();
-			world.Add(entity, new GameAction { ActionId = actionId });
-			world.Add(entity, new OrgContext { OrgId = "OrgA" });
-			world.Add(entity, new CardOwnerType(CardOwnerKind.Country));
-			world.Add(entity, new CountryContext { CountryId = primaryCountryId });
-			return entity;
+		/// <summary>A deck card (no <see cref="CardInHand"/>) targeted at <paramref name="primaryCountryId"/>.</summary>
+		static int AddCard(TestWorld world, string actionId, string primaryCountryId) {
+			return world.Card(actionId, slotIndex: null, countryId: primaryCountryId).Last;
+		}
+
+		VisualStateProbe Probe(CountryConfig? countryConfig = null) {
+			return new VisualStateProbe(BuildActionConfig(), _resources, _relations, countryConfig: countryConfig);
 		}
 
 		[Fact]
 		void pending_offer_is_projected_in_choice_order_and_excluded_from_deck() {
-			World world = BuildWorld(
-				out int gameTimeEntity, out int localeEntity, out int orgEntity, out int deckEntity);
-			world.Add(deckEntity, new PendingCardDraw { OptionCount = 2 });
+			TestWorld world = BuildWorld();
+			world.Add(world.Id("deck"), new PendingCardDraw { OptionCount = 2 });
 			int handCard = AddCard(world, "hand_card", "Prussia");
 			world.Add(handCard, new CardInHand { SlotIndex = 0 });
 			int secondOfferedCard = AddCard(world, "offered_card_two", "Prussia");
@@ -82,20 +52,16 @@ namespace GS.Game.Tests {
 			world.Add(offeredCard, new RelationCardTarget { TargetCountryId = "France", Kind = RelationKind.Friend });
 			world.Add(offeredCard, new CardDrawChoice { ChoiceIndex = 0 });
 			AddCard(world, "deck_card", "Prussia");
-
-			var state = new VisualState();
 			var countryConfig = new CountryConfig {
 				Countries = new List<CountryEntry> {
 					new CountryEntry { CountryId = "Austria", IsAvailable = true },
 					new CountryEntry { CountryId = "Prussia", IsAvailable = true }
 				}
 			};
-			var converter = new VisualStateConverter(
-				state, _resources, _relations, BuildActionConfig(), countryConfig: countryConfig);
 
-			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
+			VisualStateProbe probe = Probe(countryConfig).Update(world);
 
-			CountryActionsState actions = state.SelectedCountry.CountryActions;
+			CountryActionsState actions = probe.State.SelectedCountry.CountryActions;
 			Assert.Equal(8, actions.HandSize);
 			Assert.True(actions.HasPendingDraw);
 			Assert.False(actions.CanStartDraw);
@@ -123,16 +89,12 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void available_draw_uses_authoritative_deck_cap_instead_of_config_default() {
-			World world = BuildWorld(
-				out int gameTimeEntity, out int localeEntity, out int orgEntity, out _);
+			TestWorld world = BuildWorld();
 			AddCard(world, "deck_card", "Prussia");
 
-			var state = new VisualState();
-			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
+			VisualStateProbe probe = Probe().Update(world);
 
-			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
-
-			CountryActionsState actions = state.SelectedCountry.CountryActions;
+			CountryActionsState actions = probe.State.SelectedCountry.CountryActions;
 			Assert.Equal(8, actions.HandSize);
 			Assert.False(actions.HasPendingDraw);
 			Assert.True(actions.CanStartDraw);
@@ -141,19 +103,15 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void malformed_offer_markers_are_not_projected_as_pending_choices() {
-			World world = BuildWorld(
-				out int gameTimeEntity, out int localeEntity, out int orgEntity, out int deckEntity);
-			world.Add(deckEntity, new PendingCardDraw { OptionCount = 2 });
+			TestWorld world = BuildWorld();
+			world.Add(world.Id("deck"), new PendingCardDraw { OptionCount = 2 });
 			int orphanChoice = AddCard(world, "offered_card", "Prussia");
 			world.Add(orphanChoice, new CardDrawChoice { ChoiceIndex = 0 });
 			AddCard(world, "deck_card", "Prussia");
 
-			var state = new VisualState();
-			var converter = new VisualStateConverter(state, _resources, _relations, BuildActionConfig());
+			VisualStateProbe probe = Probe().Update(world);
 
-			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
-
-			CountryActionsState actions = state.SelectedCountry.CountryActions;
+			CountryActionsState actions = probe.State.SelectedCountry.CountryActions;
 			Assert.False(actions.HasPendingDraw);
 			Assert.False(actions.CanStartDraw);
 			Assert.Empty(actions.DrawChoices);

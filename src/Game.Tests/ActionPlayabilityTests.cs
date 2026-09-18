@@ -5,6 +5,7 @@ using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
+using GS.Game.Tests.Helpers;
 using Xunit;
 
 namespace GS.Game.Tests {
@@ -12,196 +13,63 @@ namespace GS.Game.Tests {
 		readonly ResourceQuery _resources = new ResourceQuery();
 		readonly CountryRelations _relations = new CountryRelations();
 		static ActionConfig BuildActionConfig() {
-			return new ActionConfig {
-				Actions = new List<ActionDefinition> {
-					new ActionDefinition {
-						ActionId = "org_card",
-						OwnerType = "org",
-						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } }
-					},
-					new ActionDefinition {
-						ActionId = "country_card",
-						OwnerType = "country",
-						Conditions = new List<ExpressionNode> {
-							new ExpressionNode {
-								Type = "gte",
-								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "control" },
-									new ExpressionNode { Type = "value", Value = 10 }
-								}
-							}
-						},
-						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 20.0 } }
-					},
-					new ActionDefinition {
-						ActionId = "make_friend",
-						OwnerType = "country",
-						TargetRole = "diplomacy_advisor",
-						Conditions = new List<ExpressionNode> {
-							new ExpressionNode {
-								Type = "gte",
-								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "opinion" },
-									new ExpressionNode { Type = "value", Value = 30 }
-								}
-							},
-							new ExpressionNode {
-								Type = "gte",
-								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "hasCountryRelation", RelationKind = "none", DesiredRelationKind = "friend" },
-									new ExpressionNode { Type = "value", Value = 1 }
-								}
-							}
-						},
-						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } }
-					},
-					new ActionDefinition {
-						ActionId = "stop_friendship",
-						OwnerType = "country",
-						TargetRole = "diplomacy_advisor",
-						Conditions = new List<ExpressionNode> {
-							new ExpressionNode {
-								Type = "gte",
-								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "opinion" },
-									new ExpressionNode { Type = "value", Value = 80 }
-								}
-							},
-							new ExpressionNode {
-								Type = "gte",
-								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "hasCountryRelation", RelationKind = "friend" },
-									new ExpressionNode { Type = "value", Value = 1 }
-								}
-							}
-						},
-						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 100.0 } }
-					},
-					new ActionDefinition {
-						ActionId = "decrease_enemy_control",
-						OwnerType = "country",
-						Conditions = new List<ExpressionNode> {
-							new ExpressionNode {
-								Type = "gt",
-								Members = new List<ExpressionNode> {
-									new ExpressionNode {
-										Type = "sub",
-										Members = new List<ExpressionNode> {
-											new ExpressionNode { Type = "totalCountryControl" },
-											new ExpressionNode { Type = "control" }
-										}
-									},
-									new ExpressionNode { Type = "value", Value = 0 }
-								}
-							}
-						},
-						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 250.0 } }
-					},
-					new ActionDefinition {
-						ActionId = "force_war_win",
-						OwnerType = "country",
-						TargetRole = "military_advisor",
-						Conditions = new List<ExpressionNode> {
-							Gte("control", 10),
-							Gte("opinion", 50),
-							Gte("isInWar", 1),
-							Gte("warProgress", 50)
-						},
-						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 300.0 } }
-					},
-					new ActionDefinition {
-						ActionId = "force_war_loss",
-						OwnerType = "country",
-						TargetRole = "military_advisor",
-						Conditions = new List<ExpressionNode> {
-							Gte("control", 20),
-							Gte("opinion", 80),
-							Gte("isInWar", 1),
-							Lte("warProgress", 0)
-						},
-						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 500.0 } }
-					},
-					new ActionDefinition {
-						ActionId = "sell_arms",
-						OwnerType = "country",
-						TargetRole = "military_advisor",
-						Conditions = new List<ExpressionNode> {
-							new ExpressionNode {
-								Type = "gte",
-								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "opinion" },
-									new ExpressionNode { Type = "value", Value = 80 }
-								}
-							}
-						}
-					},
-					new ActionDefinition {
-						ActionId = "declare_revenge_war",
-						OwnerType = "country",
-						TargetRole = "military_advisor",
-						Conditions = new List<ExpressionNode> {
-							Gte("control", 20),
-							Gte("opinion", 25),
-							Gte("warFree", 1),
-							Gte("revengeEligible", 1)
-						},
-						Cost = new List<ActionCost> { new ActionCost { ResourceId = "gold", Amount = 50.0 } }
-					}
-				}
-			};
+			return TestActionConfig.Create()
+				.Action("org_card", ownerType: "org", cost: Gold(50))
+				.Action("country_card", conditions: new[] { Expr.Gte("control", 10) }, cost: Gold(20))
+				.Action("make_friend", targetRole: "diplomacy_advisor", cost: Gold(50), conditions: new[] {
+					Expr.Gte("opinion", 30),
+					Expr.HasRelation("none", "friend")
+				})
+				.Action("stop_friendship", targetRole: "diplomacy_advisor", cost: Gold(100), conditions: new[] {
+					Expr.Gte("opinion", 80),
+					Expr.HasRelation("friend")
+				})
+				.Action("decrease_enemy_control", cost: Gold(250), conditions: new[] {
+					Expr.Gt(Expr.Sub(Expr.Field("totalCountryControl"), Expr.Field("control")), Expr.Value(0))
+				})
+				.Action("force_war_win", targetRole: "military_advisor", cost: Gold(300), conditions: new[] {
+					Expr.Gte("control", 10),
+					Expr.Gte("opinion", 50),
+					Expr.Gte("isInWar", 1),
+					Expr.Gte("warProgress", 50)
+				})
+				.Action("force_war_loss", targetRole: "military_advisor", cost: Gold(500), conditions: new[] {
+					Expr.Gte("control", 20),
+					Expr.Gte("opinion", 80),
+					Expr.Gte("isInWar", 1),
+					Expr.Lte("warProgress", 0)
+				})
+				.Action("sell_arms", targetRole: "military_advisor", conditions: new[] {
+					Expr.Gte("opinion", 80)
+				})
+				.Action("declare_revenge_war", targetRole: "military_advisor", cost: Gold(50), conditions: new[] {
+					Expr.Gte("control", 20),
+					Expr.Gte("opinion", 25),
+					Expr.Gte("warFree", 1),
+					Expr.Gte("revengeEligible", 1)
+				})
+				.Build();
 		}
 
-		static ExpressionNode Gte(string fieldType, double value) {
-			return new ExpressionNode {
-				Type = "gte",
-				Members = new List<ExpressionNode> {
-					new ExpressionNode { Type = fieldType },
-					new ExpressionNode { Type = "value", Value = value }
-				}
-			};
+		static ActionCost[] Gold(double amount) {
+			return new[] { new ActionCost { ResourceId = "gold", Amount = amount } };
 		}
 
-		static ExpressionNode Lte(string fieldType, double value) {
-			return new ExpressionNode {
-				Type = "lte",
-				Members = new List<ExpressionNode> {
-					new ExpressionNode { Type = fieldType },
-					new ExpressionNode { Type = "value", Value = value }
-				}
-			};
+		static int AddCountry(TestWorld world, string countryId) {
+			return world.Country(countryId).Last;
 		}
 
-		static int AddCountry(World world, string countryId) {
-			int e = world.Create();
-			world.Add(e, new Country(countryId));
-			return e;
-		}
-
-		static int AddAdvisor(World world, string countryId, string charId, string orgId, string roleId, int opinion) {
-			int charEntity = world.Create();
-			world.Add(charEntity, new Character {
-				CharacterId = charId, CountryId = countryId, OrgId = "", RoleId = roleId,
-				NamePartKeys = System.Array.Empty<string>()
-			});
-			int resEntity = world.Create();
-			world.Add(resEntity, new ResourceOwner(charId, OwnerType.Character));
-			world.Add(resEntity, new Resource { ResourceId = $"opinion_{orgId}", Value = opinion });
+		static int AddAdvisor(TestWorld world, string countryId, string charId, string orgId, string roleId, int opinion) {
+			int charEntity = world.Character(charId, countryId, roleId).Last;
+			world.Opinion(charId, opinion, orgId);
 			return charEntity;
 		}
 
-		static int AddMilitaryAdvisor(World world, string countryId, string charId, string orgId, int opinion) {
-			int charEntity = world.Create();
-			world.Add(charEntity, new Character {
-				CharacterId = charId, CountryId = countryId, OrgId = "", RoleId = "military_advisor",
-				NamePartKeys = System.Array.Empty<string>()
-			});
-			int resEntity = world.Create();
-			world.Add(resEntity, new ResourceOwner(charId, OwnerType.Character));
-			world.Add(resEntity, new Resource { ResourceId = $"opinion_{orgId}", Value = opinion });
-			return charEntity;
+		static int AddMilitaryAdvisor(TestWorld world, string countryId, string charId, string orgId, int opinion) {
+			return AddAdvisor(world, countryId, charId, orgId, "military_advisor", opinion);
 		}
 
-		static void SetWarProgress(World world, ResourceQuery resources, double value) {
+		static void SetWarProgress(TestWorld world, ResourceQuery resources, double value) {
 			int[] required = { TypeId<War>.Value };
 			foreach (var arch in world.GetMatchingArchetypes(required, null)) {
 				var wars = arch.GetColumn<War>();
@@ -211,42 +79,36 @@ namespace GS.Game.Tests {
 			}
 		}
 
-		static int AddDiplomacyAdvisor(World world, string countryId, string charId, string orgId, int opinion) {
+		static int AddDiplomacyAdvisor(TestWorld world, string countryId, string charId, string orgId, int opinion) {
 			return AddAdvisor(world, countryId, charId, orgId, "diplomacy_advisor", opinion);
 		}
 
-		static int AddGold(World world, string orgId, double amount) {
-			int e = world.Create();
-			world.Add(e, new ResourceOwner(orgId));
-			world.Add(e, new Resource { ResourceId = "gold", Value = amount });
-			return e;
+		static int AddGold(TestWorld world, string orgId, double amount) {
+			return world.Resource(orgId, "gold", amount).Last;
 		}
 
-		static void AddControl(World world, string orgId, string countryId, int value) {
-			int e = world.Create();
-			world.Add(e, new ControlEffect { OrgId = orgId, CountryId = countryId, Value = value, EffectId = "test_control" });
+		static void AddControl(TestWorld world, string orgId, string countryId, int value) {
+			world.Control(countryId, value, orgId, "test_control");
 		}
 
-		static int AddCard(World world, string orgId, string actionId, string? countryId) {
-			int e = world.Create();
-			world.Add(e, new GameAction { ActionId = actionId });
-			world.Add(e, new OrgContext { OrgId = orgId });
-			world.Add(e, new CardOwnerType(countryId == null ? CardOwnerKind.Org : CardOwnerKind.Country));
-			if (countryId != null) {
-				world.Add(e, new CountryContext { CountryId = countryId });
-			}
-			world.Add(e, new CardInHand { SlotIndex = 0 });
-			world.Add(e, new CardUse { CountryId = countryId ?? "" });
-			return e;
+		/// <summary>A card already in hand and marked for use this tick; org-owned when countryId is null.</summary>
+		static int AddCard(TestWorld world, string orgId, string actionId, string? countryId) {
+			return world
+				.Card(actionId,
+					orgId: orgId,
+					countryId: countryId,
+					kind: countryId == null ? CardOwnerKind.Org : CardOwnerKind.Country)
+				.With(new CardUse { CountryId = countryId ?? "" })
+				.Last;
 		}
 
-		static int AddRelationCard(World world, string orgId, string actionId, string countryId, string targetCountryId, RelationKind kind) {
+		static int AddRelationCard(TestWorld world, string orgId, string actionId, string countryId, string targetCountryId, RelationKind kind) {
 			int e = AddCard(world, orgId, actionId, countryId);
 			world.Add(e, new RelationCardTarget { TargetCountryId = targetCountryId, Kind = kind });
 			return e;
 		}
 
-		static bool? RunPipeline(World world, ActionConfig config, ResourceQuery resources, CountryRelations relations, int entity, DateTime currentTime = default) {
+		static bool? RunPipeline(TestWorld world, ActionConfig config, ResourceQuery resources, CountryRelations relations, int entity, DateTime currentTime = default) {
 			CheckActionConditionSystem.Update(world, config, resources, relations, null, currentTime);
 			DeductActionCostSystem.Update(world, config, resources);
 			ActionSucceededSystem.Update(world, config);
@@ -255,10 +117,10 @@ namespace GS.Game.Tests {
 			return null;
 		}
 
-		static int AddCooldown(World world, string orgId, string actionId, DateTime endTime) {
-			int e = world.Create();
-			world.Add(e, new ActionCooldownState { OrgId = orgId, ActionId = actionId, EndTime = endTime });
-			return e;
+		static int AddCooldown(TestWorld world, string orgId, string actionId, DateTime endTime) {
+			return world.Entity()
+				.With(new ActionCooldownState { OrgId = orgId, ActionId = actionId, EndTime = endTime })
+				.Last;
 		}
 
 		[Fact]
@@ -266,7 +128,7 @@ namespace GS.Game.Tests {
 			var config = BuildActionConfig();
 
 			// org card, no country, affordable -> playable.
-			var worldA = new World();
+			var worldA = TestWorld.Create();
 			AddGold(worldA, "OrgA", 100.0);
 			int cardA = AddCard(worldA, "OrgA", "org_card", null);
 			bool expectedA = ActionPlayability.Evaluate(worldA, config, -1, "org_card", "OrgA", null, _resources, _relations);
@@ -274,7 +136,7 @@ namespace GS.Game.Tests {
 			Assert.True(expectedA);
 
 			// org card, unaffordable -> unplayable.
-			var worldB = new World();
+			var worldB = TestWorld.Create();
 			AddGold(worldB, "OrgA", 10.0);
 			int cardB = AddCard(worldB, "OrgA", "org_card", null);
 			bool expectedB = ActionPlayability.Evaluate(worldB, config, -1, "org_card", "OrgA", null, _resources, _relations);
@@ -282,7 +144,7 @@ namespace GS.Game.Tests {
 			Assert.False(expectedB);
 
 			// country card, control-threshold condition met and affordable -> playable.
-			var worldC = new World();
+			var worldC = TestWorld.Create();
 			AddGold(worldC, "OrgA", 100.0);
 			AddControl(worldC, "OrgA", "Prussia", 10);
 			int cardC = AddCard(worldC, "OrgA", "country_card", "Prussia");
@@ -291,7 +153,7 @@ namespace GS.Game.Tests {
 			Assert.True(expectedC);
 
 			// country card, control-threshold condition unmet -> unplayable.
-			var worldD = new World();
+			var worldD = TestWorld.Create();
 			AddGold(worldD, "OrgA", 100.0);
 			AddControl(worldD, "OrgA", "Prussia", 5);
 			int cardD = AddCard(worldD, "OrgA", "country_card", "Prussia");
@@ -306,7 +168,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void unaffordable_play_still_discards_card_and_deducts_nothing() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			int goldEntity = AddGold(world, "OrgA", 5.0);
 			AddControl(world, "OrgA", "Prussia", 10);
 			int card = AddCard(world, "OrgA", "country_card", "Prussia");
@@ -329,7 +191,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void deduct_uses_same_resource_entity_lookup_as_affordability() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			int goldA = AddGold(world, "OrgA", 100.0);
 			int goldB = AddGold(world, "OrgB", 100.0);
 			AddCard(world, "OrgA", "org_card", null);
@@ -346,7 +208,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void make_friend_unplayable_when_opinion_below_threshold_even_with_suitable_target() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
@@ -358,7 +220,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void make_friend_unplayable_when_no_suitable_target_even_with_high_opinion() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
@@ -371,7 +233,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void make_friend_playable_when_opinion_at_threshold_and_suitable_target_exists() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
@@ -383,7 +245,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void make_friend_unaffordable_despite_gates_satisfied_is_unplayable() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 10.0);
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
@@ -395,7 +257,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void existing_control_gated_card_unaffected_by_opinion_wiring() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddControl(world, "OrgA", "Prussia", 10);
 
@@ -407,7 +269,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void stop_friendship_unplayable_when_named_relation_no_longer_holds() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
@@ -421,7 +283,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void stop_friendship_playable_when_named_relation_still_holds_opinion_and_cost_met() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
@@ -435,7 +297,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void stop_friendship_unplayable_when_opinion_below_threshold_even_if_relation_still_holds() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
@@ -449,7 +311,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void stop_friendship_unplayable_when_unaffordable_even_if_gates_satisfied() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 99.0);
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
@@ -463,7 +325,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void stop_friendship_dead_instance_stays_unplayable_even_when_a_different_relation_of_same_kind_exists() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
@@ -479,7 +341,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void entity_negative_one_with_relation_agnostic_conditions_does_not_throw() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddControl(world, "OrgA", "Prussia", 10);
 
@@ -493,7 +355,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void decrease_enemy_control_unplayable_when_no_other_org_holds_control() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 250.0);
 			AddControl(world, "OrgA", "Prussia", 50);
 
@@ -503,7 +365,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void decrease_enemy_control_playable_when_another_org_holds_control_and_affordable() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 250.0);
 			AddControl(world, "OrgB", "Prussia", 10);
 
@@ -513,7 +375,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void decrease_enemy_control_unplayable_when_unaffordable_even_with_enemy_control_present() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 249.0);
 			AddControl(world, "OrgB", "Prussia", 10);
 
@@ -523,7 +385,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void ultimatum_unplayable_when_not_in_any_war() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 300.0);
 			AddControl(world, "OrgA", "Prussia", 10);
 			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
@@ -534,7 +396,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void ultimatum_playable_when_in_war_and_thresholds_met_and_affordable() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 300.0);
 			AddControl(world, "OrgA", "Prussia", 10);
 			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
@@ -547,7 +409,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void ultimatum_unplayable_when_control_one_below_gate() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 300.0);
 			AddControl(world, "OrgA", "Prussia", 9);
 			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
@@ -560,7 +422,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void ultimatum_unplayable_when_opinion_one_below_gate() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 300.0);
 			AddControl(world, "OrgA", "Prussia", 10);
 			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 49);
@@ -573,7 +435,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void ultimatum_unplayable_when_own_war_progress_one_below_gate() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 300.0);
 			AddControl(world, "OrgA", "Prussia", 10);
 			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
@@ -588,7 +450,7 @@ namespace GS.Game.Tests {
 			var config = BuildActionConfig();
 
 			// Prussia is the defender: raw WarProgress.Value = -60 -> own progress = 60 -> playable.
-			var defenderWorld = new World();
+			var defenderWorld = TestWorld.Create();
 			AddGold(defenderWorld, "OrgA", 300.0);
 			AddControl(defenderWorld, "OrgA", "Prussia", 10);
 			AddMilitaryAdvisor(defenderWorld, "Prussia", "char1", "OrgA", opinion: 50);
@@ -597,7 +459,7 @@ namespace GS.Game.Tests {
 			Assert.True(ActionPlayability.Evaluate(defenderWorld, config, -1, "force_war_win", "OrgA", "Prussia", _resources, _relations));
 
 			// Prussia is the attacker with the same raw value: own progress = -60 -> not playable.
-			var attackerWorld = new World();
+			var attackerWorld = TestWorld.Create();
 			AddGold(attackerWorld, "OrgA", 300.0);
 			AddControl(attackerWorld, "OrgA", "Prussia", 10);
 			AddMilitaryAdvisor(attackerWorld, "Prussia", "char1", "OrgA", opinion: 50);
@@ -609,7 +471,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void ultimatum_is_playable_and_surrender_is_not_when_winning() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 500.0);
 			AddControl(world, "OrgA", "Prussia", 25);
 			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 90);
@@ -623,7 +485,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void surrender_is_playable_and_ultimatum_is_not_when_losing() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 500.0);
 			AddControl(world, "OrgA", "Prussia", 25);
 			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 90);
@@ -637,7 +499,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void ultimatum_and_diplomacy_gated_card_evaluate_opinion_independently_per_role() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 300.0);
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
@@ -655,7 +517,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void sell_arms_requires_military_advisor_opinion_regardless_of_war() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddAdvisor(world, "Prussia", "diplomat", "OrgA", "diplomacy_advisor", 100);
 			AddAdvisor(world, "Prussia", "general", "OrgA", "military_advisor", 79);
 
@@ -668,7 +530,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void sell_arms_is_playable_at_exact_opinion_threshold_in_peacetime_without_gold() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddAdvisor(world, "Prussia", "general", "OrgA", "military_advisor", 80);
 
 			Assert.True(ActionPlayability.Evaluate(world, config, -1, "sell_arms", "OrgA", "Prussia", _resources, _relations));
@@ -677,7 +539,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void held_sell_arms_card_stays_in_hand_and_stays_playable_across_war_transitions() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddAdvisor(world, "Prussia", "general", "OrgA", "military_advisor", 80);
 			int card = AddCard(world, "OrgA", "sell_arms", "Prussia");
 
@@ -704,7 +566,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void held_sell_arms_card_stays_unplayable_for_opinion_after_war_ends() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddAdvisor(world, "Prussia", "general", "OrgA", "military_advisor", 79);
 			int card = AddCard(world, "OrgA", "sell_arms", "Prussia");
 			Wars.DeclareWar(world, _resources, "Prussia", "Austria", new System.DateTime(1880, 1, 1));
@@ -728,7 +590,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void sell_arms_playability_matches_condition_pipeline() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddAdvisor(world, "Prussia", "general", "OrgA", "military_advisor", 80);
 			int card = AddCard(world, "OrgA", "sell_arms", "Prussia");
 
@@ -741,7 +603,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void revenge_unplayable_when_control_below_threshold() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddControl(world, "OrgA", "Prussia", 19);
 			AddMilitaryAdvisor(world, "Prussia", "char1", "OrgA", opinion: 50);
@@ -754,7 +616,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void revenge_unplayable_when_opinion_below_threshold_at_military_advisor_even_with_high_diplomacy_advisor_opinion() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddControl(world, "OrgA", "Prussia", 20);
 			AddDiplomacyAdvisor(world, "Prussia", "diplo1", "OrgA", opinion: 90);
@@ -768,7 +630,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void revenge_unplayable_when_the_selected_country_is_at_war() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddControl(world, "OrgA", "Prussia", 20);
 			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 50);
@@ -782,7 +644,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void revenge_unplayable_when_the_orgs_hq_country_is_at_war() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddControl(world, "OrgA", "Prussia", 20);
 			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 50);
@@ -796,7 +658,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void revenge_unplayable_when_no_prior_war_loss_against_the_country() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddControl(world, "OrgA", "Great_Britain", 20);
 			AddMilitaryAdvisor(world, "Great_Britain", "mil1", "OrgA", opinion: 25);
@@ -808,7 +670,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void revenge_playable_when_all_conditions_hold_and_affordable() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddControl(world, "OrgA", "Great_Britain", 20);
 			AddMilitaryAdvisor(world, "Great_Britain", "mil1", "OrgA", opinion: 25);
@@ -823,7 +685,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void revenge_unplayable_again_once_the_loss_has_been_avenged() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddControl(world, "OrgA", "Prussia", 20);
 			AddMilitaryAdvisor(world, "Prussia", "mil1", "OrgA", opinion: 25);
@@ -838,7 +700,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void country_card_cycles_playable_unplayable_playable_again_across_a_seeded_cooldown() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddControl(world, "OrgA", "Prussia", 10);
 			var start = new DateTime(1880, 1, 1);
@@ -861,7 +723,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void org_owned_card_unaffected_by_country_action_cooldown_seeded_for_same_org() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			var start = new DateTime(1880, 1, 1);
 
@@ -874,7 +736,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void evaluate_verdict_matches_pipeline_action_valid_outcome_when_on_cooldown() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100.0);
 			AddControl(world, "OrgA", "Prussia", 10);
 			var start = new DateTime(1880, 1, 1);
@@ -889,31 +751,16 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void canonical_result_orders_authored_capacity_cooldown_and_aggregated_gold_once() {
-			var config = new ActionConfig {
-				Actions = new List<ActionDefinition> {
-					new ActionDefinition {
-						ActionId = "improve_control",
-						OwnerType = "country",
-						Conditions = new List<ExpressionNode> {
-							Gte("control", 10),
-							new ExpressionNode {
-								Type = "gte",
-								Members = new List<ExpressionNode> {
-									new ExpressionNode {
-										Type = "hasCountryRelation", RelationKind = "none", DesiredRelationKind = "friend"
-									},
-									new ExpressionNode { Type = "value", Value = 1 }
-								}
-							}
-						},
-						Cost = new List<ActionCost> {
-							new ActionCost { ResourceId = "gold", Amount = 50 },
-							new ActionCost { ResourceId = "gold", Amount = 25 }
-						}
-					}
-				}
-			};
-			var world = new World();
+			// Two separate gold costs on purpose - they must aggregate into a single entry.
+			ActionConfig config = TestActionConfig.Create()
+				.Action("improve_control",
+					conditions: new[] { Expr.Gte("control", 10), Expr.HasRelation("none", "friend") },
+					cost: new[] {
+						new ActionCost { ResourceId = "gold", Amount = 50 },
+						new ActionCost { ResourceId = "gold", Amount = 25 }
+					})
+				.Build();
+			var world = TestWorld.Create();
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
 			AddControl(world, "OrgA", "Prussia", 10);
@@ -938,7 +785,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void relation_card_is_playable_for_any_selected_country_that_still_holds_the_relation() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100);
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
@@ -961,7 +808,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void evaluate_false_when_direct_country_target_is_destroyed() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100);
 			AddControl(world, "OrgA", "Prussia", 10);
 			int dead = AddCountry(world, "Prussia");
@@ -978,7 +825,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void evaluate_false_when_relation_card_target_is_destroyed() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 100);
 			AddCountry(world, "Prussia");
 			int dead = AddCountry(world, "France");
@@ -996,7 +843,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void evaluate_false_when_revenge_card_target_is_destroyed() {
 			var config = BuildActionConfig();
-			var world = new World();
+			var world = TestWorld.Create();
 			AddGold(world, "OrgA", 1000);
 			AddCountry(world, "Prussia");
 			int dead = AddCountry(world, "Austria");
