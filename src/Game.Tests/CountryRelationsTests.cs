@@ -6,6 +6,7 @@ using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
+using GS.Game.Tests.Helpers;
 using GS.Main;
 using Xunit;
 
@@ -53,19 +54,10 @@ namespace GS.Game.Tests {
 			return new GameLogic(ctx);
 		}
 
-		static int CountEntities<T>(World world) {
-			int count = 0;
-			int[] req = { TypeId<T>.Value };
-			foreach (var arch in world.GetMatchingArchetypes(req, null)) {
-				count += arch.Count;
-			}
-			return count;
-		}
-
 		[Fact]
 		void set_relation_creates_bidirectionally_queryable_friend_relation() {
 			var relations = new CountryRelations();
-			var world = new World();
+			var world = TestWorld.Create();
 
 			bool result = relations.SetRelation(world, "Great_Britain", "France", RelationKind.Friend);
 
@@ -77,33 +69,33 @@ namespace GS.Game.Tests {
 		[Fact]
 		void set_relation_with_opposite_kind_replaces_existing_pair() {
 			var relations = new CountryRelations();
-			var world = new World();
+			var world = TestWorld.Create();
 			relations.SetRelation(world, "Great_Britain", "France", RelationKind.Friend);
 
 			bool result = relations.SetRelation(world, "Great_Britain", "France", RelationKind.Rival);
 
 			Assert.True(result);
 			Assert.Equal(RelationKind.Rival, relations.GetRelation(world, "Great_Britain", "France"));
-			Assert.Equal(1, CountEntities<CountryRelation>(world));
+			Assert.Equal(1, world.Count<CountryRelation>());
 		}
 
 		[Fact]
 		void remove_relation_clears_pair_from_both_directions() {
 			var relations = new CountryRelations();
-			var world = new World();
+			var world = TestWorld.Create();
 			relations.SetRelation(world, "Great_Britain", "France", RelationKind.Friend);
 
 			bool removed = relations.RemoveRelation(world, "France", "Great_Britain");
 
 			Assert.True(removed);
 			Assert.Null(relations.GetRelation(world, "Great_Britain", "France"));
-			Assert.Equal(0, CountEntities<CountryRelation>(world));
+			Assert.Equal(0, world.Count<CountryRelation>());
 		}
 
 		[Fact]
 		void remove_relation_returns_false_when_no_pair_exists() {
 			var relations = new CountryRelations();
-			var world = new World();
+			var world = TestWorld.Create();
 
 			bool removed = relations.RemoveRelation(world, "Great_Britain", "France");
 
@@ -113,18 +105,18 @@ namespace GS.Game.Tests {
 		[Fact]
 		void set_relation_rejects_self_relation() {
 			var relations = new CountryRelations();
-			var world = new World();
+			var world = TestWorld.Create();
 
 			bool result = relations.SetRelation(world, "Great_Britain", "Great_Britain", RelationKind.Friend);
 
 			Assert.False(result);
-			Assert.Equal(0, CountEntities<CountryRelation>(world));
+			Assert.Equal(0, world.Count<CountryRelation>());
 		}
 
 		[Fact]
 		void get_relation_returns_null_for_self_relation() {
 			var relations = new CountryRelations();
-			var world = new World();
+			var world = TestWorld.Create();
 
 			Assert.Null(relations.GetRelation(world, "Great_Britain", "Great_Britain"));
 		}
@@ -132,7 +124,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void get_relations_by_country_id_returns_independent_friend_and_rival_lists() {
 			var relations = new CountryRelations();
-			var world = new World();
+			var world = TestWorld.Create();
 			relations.SetRelation(world, "Great_Britain", "France", RelationKind.Friend);
 			relations.SetRelation(world, "Germany", "Great_Britain", RelationKind.Rival);
 			relations.SetRelation(world, "France", "Germany", RelationKind.Friend);
@@ -145,16 +137,14 @@ namespace GS.Game.Tests {
 			Assert.Contains("Germany", rivals);
 		}
 
-		static int SeedVersionEntity(World world, int initialValue) {
-			int e = world.Create();
-			world.Add(e, new CountryRelationsVersion { Value = initialValue });
-			return e;
+		static int SeedVersionEntity(TestWorld world, int initialValue) {
+			return world.Entity().With(new CountryRelationsVersion { Value = initialValue }).Last;
 		}
 
 		[Fact]
 		void set_relation_bumps_country_relations_version() {
 			var relations = new CountryRelations();
-			var world = new World();
+			var world = TestWorld.Create();
 			int versionEntity = SeedVersionEntity(world, 0);
 
 			relations.SetRelation(world, "Great_Britain", "France", RelationKind.Friend);
@@ -165,7 +155,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void remove_relation_bumps_country_relations_version() {
 			var relations = new CountryRelations();
-			var world = new World();
+			var world = TestWorld.Create();
 			relations.SetRelation(world, "Great_Britain", "France", RelationKind.Friend);
 			int versionEntity = SeedVersionEntity(world, 5);
 
@@ -178,7 +168,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void remove_relation_without_match_does_not_bump_version() {
 			var relations = new CountryRelations();
-			var world = new World();
+			var world = TestWorld.Create();
 			int versionEntity = SeedVersionEntity(world, 3);
 
 			bool removed = relations.RemoveRelation(world, "Great_Britain", "France");
@@ -190,7 +180,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void set_relation_without_seeded_version_singleton_does_not_throw() {
 			var relations = new CountryRelations();
-			var world = new World();
+			var world = TestWorld.Create();
 
 			bool result = relations.SetRelation(world, "Great_Britain", "France", RelationKind.Friend);
 
@@ -200,7 +190,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void get_relation_caches_known_absence_without_warning() {
 			var relations = new CountryRelations();
-			var world = new World();
+			var world = TestWorld.Create();
 			int warnings = 0;
 			relations.OnCacheMissWarning = _ => warnings++;
 
@@ -214,9 +204,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void get_relation_warns_only_when_existing_relation_was_missing_from_cache() {
 			var relations = new CountryRelations();
-			var world = new World();
-			int entity = world.Create();
-			world.Add(entity, new CountryRelation {
+			var world = TestWorld.Create().Entity().With(new CountryRelation {
 				Kind = RelationKind.Friend,
 				LeftCountryId = "Great_Britain",
 				RightCountryId = "France"
@@ -234,9 +222,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void has_suitable_relation_target_uses_cache_and_invalidates_on_mutation() {
 			var relations = new CountryRelations();
-			var world = new World();
-			world.Add(world.Create(), new Country("Great_Britain"));
-			world.Add(world.Create(), new Country("France"));
+			var world = TestWorld.Create().Countries("Great_Britain", "France");
 			int warnings = 0;
 			relations.OnCacheMissWarning = message => {
 				if (message.Contains("HasSuitableRelationTarget")) {
@@ -301,7 +287,7 @@ namespace GS.Game.Tests {
 		[Fact]
 		void remove_all_referencing_clears_both_sides_and_leaves_unrelated_pairs() {
 			var relations = new CountryRelations();
-			var world = new World();
+			var world = TestWorld.Create();
 			relations.SetRelation(world, "Great_Britain", "France", RelationKind.Friend);
 			relations.SetRelation(world, "Great_Britain", "Germany", RelationKind.Rival);
 			relations.SetRelation(world, "France", "Germany", RelationKind.Friend);
@@ -312,18 +298,15 @@ namespace GS.Game.Tests {
 			Assert.Null(relations.GetRelation(world, "Great_Britain", "France"));
 			Assert.Null(relations.GetRelation(world, "Great_Britain", "Germany"));
 			Assert.Equal(RelationKind.Friend, relations.GetRelation(world, "France", "Germany"));
-			Assert.Equal(1, CountEntities<CountryRelation>(world));
+			Assert.Equal(1, world.Count<CountryRelation>());
 		}
 
 		[Fact]
 		void suitable_relation_candidates_exclude_destroyed_countries() {
 			var relations = new CountryRelations();
-			var world = new World();
-			world.Add(world.Create(), new Country("Great_Britain"));
-			world.Add(world.Create(), new Country("France"));
-			int dead = world.Create();
-			world.Add(dead, new Country("Germany"));
-			world.Add(dead, new IsDestroyed());
+			var world = TestWorld.Create()
+				.Countries("Great_Britain", "France")
+				.Country("Germany", destroyed: true);
 
 			List<string> candidates = relations.GetSuitableRelationCandidates(world, "Great_Britain");
 

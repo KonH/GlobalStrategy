@@ -1,10 +1,8 @@
-using System;
-using ECS;
 using GS.Game.Components;
+using GS.Game.Systems;
+using GS.Game.Tests.Helpers;
 using GS.Main;
 using Xunit;
-
-using GS.Game.Systems;
 
 namespace GS.Game.Tests {
 	// Phase 2 acceptance test ("nothing between two frames is missed"): a single
@@ -17,53 +15,30 @@ namespace GS.Game.Tests {
 		readonly ResourceQuery _resources = new ResourceQuery();
 		readonly CountryRelations _relations = new CountryRelations();
 
-		static int SeedGameTime(World world) {
-			int entity = world.Create();
-			world.Add(entity, new GameTime { CurrentTime = new DateTime(1880, 1, 1) });
-			return entity;
-		}
-
-		static int SeedLocale(World world) {
-			int entity = world.Create();
-			world.Add(entity, new Locale { Value = "en" });
-			return entity;
-		}
-
 		[Fact]
 		void single_update_with_no_window_open_still_fires_every_edge_triggered_path() {
-			var world = new World();
-			int gameTimeEntity = SeedGameTime(world);
-			int localeEntity = SeedLocale(world);
-			const int orgEntity = -1;
+			TestWorld world = TestWorld.Create()
+				.GameTime()
+				.Locale()
+				// UpdateLastFrameEffects - transient ResourceChange archetype, swept next tick.
+				.Entity().With(new ResourceChange {
+					EffectId = "test_effect", ResourceId = "gold", OwnerId = "Prussia", Amount = 5
+				})
+				// UpdateGameLog (control branch) - transient ControlEffectApplied archetype.
+				.Entity().With(new ControlEffectApplied {
+					OrgId = "OrgA", CountryId = "Prussia", Delta = 10, Total = 10
+				})
+				// UpdateProvinceOwnership - version-gated, always fires on the first tick it observes.
+				.Province("Prussia__west", "Prussia")
+				// UpdateOrgDestroyedResults - Enqueue/AcknowledgeCurrent queue.
+				.Entity().With(new OrgDestroyedApplied { OrganizationId = "OrgDead" })
+				// UpdateGameLog (country-destroyed queue) - Enqueue/AcknowledgeCurrent queue.
+				.Entity().With(new CountryDestroyedApplied { CountryId = "CountryDead" });
+			// No org is created, so OrgEntity stays at its -1 "no player organization" sentinel.
 
-			// UpdateLastFrameEffects - transient ResourceChange archetype, swept next tick.
-			int effectEntity = world.Create();
-			world.Add(effectEntity, new ResourceChange {
-				EffectId = "test_effect", ResourceId = "gold", OwnerId = "Prussia", Amount = 5
-			});
-
-			// UpdateGameLog (control branch) - transient ControlEffectApplied archetype.
-			int controlAppliedEntity = world.Create();
-			world.Add(controlAppliedEntity, new ControlEffectApplied {
-				OrgId = "OrgA", CountryId = "Prussia", Delta = 10, Total = 10
-			});
-
-			// UpdateProvinceOwnership - version-gated, always fires on the first tick it observes.
-			int ownershipEntity = world.Create();
-			world.Add(ownershipEntity, new ProvinceOwnership { ProvinceId = "Prussia__west", OwnerId = "Prussia" });
-
-			// UpdateOrgDestroyedResults - Enqueue/AcknowledgeCurrent queue.
-			int orgDestroyedEntity = world.Create();
-			world.Add(orgDestroyedEntity, new OrgDestroyedApplied { OrganizationId = "OrgDead" });
-
-			// UpdateGameLog (country-destroyed queue) - Enqueue/AcknowledgeCurrent queue.
-			int countryDestroyedEntity = world.Create();
-			world.Add(countryDestroyedEntity, new CountryDestroyedApplied { CountryId = "CountryDead" });
-
-			var state = new VisualState();
-			var converter = new VisualStateConverter(state, _resources, _relations);
-
-			converter.Update(0f, world, gameTimeEntity, localeEntity, orgEntity);
+			VisualState state = new VisualStateProbe(resources: _resources, relations: _relations)
+				.Update(world)
+				.State;
 
 			Assert.Single(state.LastFrameEffects.Effects);
 			Assert.Equal("test_effect", state.LastFrameEffects.Effects[0].EffectId);

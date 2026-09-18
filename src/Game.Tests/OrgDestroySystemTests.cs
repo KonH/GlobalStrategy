@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using ECS;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
+using GS.Game.Tests.Helpers;
 using GS.Main;
 using Xunit;
 
@@ -14,120 +14,104 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void positive_control_is_a_hard_destroy_gate() {
-			var world = BuildWorld(out int orgEntity);
+			TestWorld world = BuildWorld();
 			AddControl(world, 1);
 
-			bool destroyed = TryDestroy(world, orgEntity, new ActionConfig(), new EffectConfig());
+			bool destroyed = TryDestroy(world, new ActionConfig(), new EffectConfig());
 
 			Assert.False(destroyed);
-			Assert.False(world.Has<IsOrgDestroyed>(orgEntity));
+			Assert.False(world.Has<IsOrgDestroyed>(world.OrgEntity));
 		}
 
 		[Fact]
 		void affordable_discard_and_non_full_hand_each_prevent_destroy() {
-			var affordableWorld = BuildWorld(out int affordableOrg);
+			TestWorld affordableWorld = BuildWorld();
 			AddGold(affordableWorld, 50);
-			Assert.False(TryDestroy(affordableWorld, affordableOrg, new ActionConfig(), new EffectConfig()));
+			Assert.False(TryDestroy(affordableWorld, new ActionConfig(), new EffectConfig()));
 
-			var nonFullWorld = BuildWorld(out int nonFullOrg);
+			TestWorld nonFullWorld = BuildWorld();
 			AddDeck(nonFullWorld, CardOwnerKind.Country, handSize: 1);
-			Assert.False(TryDestroy(nonFullWorld, nonFullOrg, new ActionConfig(), new EffectConfig()));
+			Assert.False(TryDestroy(nonFullWorld, new ActionConfig(), new EffectConfig()));
 		}
 
 		[Fact]
 		void a_control_raising_card_in_either_pool_prevents_destroy() {
 			foreach (CardOwnerKind ownerKind in new[] { CardOwnerKind.Country, CardOwnerKind.Org }) {
-				var world = BuildWorld(out int orgEntity);
+				TestWorld world = BuildWorld();
 				AddDeck(world, ownerKind, handSize: 1);
 				AddCard(world, ownerKind, "raise-control");
-				var actions = new ActionConfig {
-					Actions = new List<ActionDefinition> {
-						new ActionDefinition {
-							ActionId = "raise-control",
-							EffectIds = new List<string> { "raise" }
-						}
-					}
-				};
+				ActionConfig actions = TestActionConfig.Create()
+					.Action("raise-control", ownerType: "", effectIds: new[] { "raise" })
+					.Build();
 				var effects = new EffectConfig {
 					Effects = new List<ActionEffectDefinition> {
 						new ControlChangeEffectParams { EffectId = "raise", Amount = 1 }
 					}
 				};
 
-				Assert.False(TryDestroy(world, orgEntity, actions, effects));
+				Assert.False(TryDestroy(world, actions, effects));
 			}
 		}
 
 		[Fact]
 		void all_conditions_add_one_flag_and_event_flip_outcome_and_purge_residual_control() {
-			var world = BuildWorld(out int orgEntity);
+			TestWorld world = BuildWorld();
 			AddDeck(world, CardOwnerKind.Country, handSize: 1);
 			AddCard(world, CardOwnerKind.Country, "too-expensive");
 			AddControl(world, -1);
-			var actions = new ActionConfig {
-				Actions = new List<ActionDefinition> {
-					new ActionDefinition {
-						ActionId = "too-expensive",
-						Cost = new List<ActionCost> {
-							new ActionCost { ResourceId = ResourceDefinitions.Gold, Amount = 100 }
-						}
-					}
-				}
-			};
+			ActionConfig actions = TestActionConfig.Create()
+				.Action("too-expensive", ownerType: "", cost: new[] {
+					new ActionCost { ResourceId = ResourceDefinitions.Gold, Amount = 100 }
+				})
+				.Build();
 
-			Assert.True(TryDestroy(world, orgEntity, actions, new EffectConfig()));
-			Assert.True(world.Has<IsOrgDestroyed>(orgEntity));
-			Assert.Equal(OrganizationGameResult.Loser, world.Get<OrganizationGameOutcome>(orgEntity).Result);
-			Assert.Equal(0, Count<ControlEffect>(world));
-			Assert.Equal(1, Count<OrgDestroyedApplied>(world));
+			Assert.True(TryDestroy(world, actions, new EffectConfig()));
+			Assert.True(world.Has<IsOrgDestroyed>(world.OrgEntity));
+			Assert.Equal(OrganizationGameResult.Loser, world.Get<OrganizationGameOutcome>(world.OrgEntity).Result);
+			Assert.Equal(0, world.Count<ControlEffect>());
+			Assert.Equal(1, world.Count<OrgDestroyedApplied>());
 
-			Assert.False(TryDestroy(world, orgEntity, actions, new EffectConfig()));
-			Assert.Equal(1, Count<OrgDestroyedApplied>(world));
+			Assert.False(TryDestroy(world, actions, new EffectConfig()));
+			Assert.Equal(1, world.Count<OrgDestroyedApplied>());
 		}
 
 		[Fact]
 		void cooldown_as_the_only_failure_counts_as_playable_and_prevents_destroy() {
-			var world = BuildWorld(out int orgEntity);
+			TestWorld world = BuildWorld();
 			AddDeck(world, CardOwnerKind.Org, handSize: 1);
 			AddCard(world, CardOwnerKind.Org, "cooldown-card");
-			int cooldown = world.Create();
-			world.Add(cooldown, new ActionCooldownState {
+			world.Entity().With(new ActionCooldownState {
 				OrgId = OrgId,
 				ActionId = "cooldown-card",
 				EndTime = new System.DateTime(2100, 1, 1)
 			});
-			var actions = new ActionConfig {
-				Actions = new List<ActionDefinition> {
-					new ActionDefinition { ActionId = "cooldown-card" }
-				}
-			};
+			ActionConfig actions = TestActionConfig.Create()
+				.Action("cooldown-card", ownerType: "")
+				.Build();
 
-			Assert.False(TryDestroy(world, orgEntity, actions, new EffectConfig()));
+			Assert.False(TryDestroy(world, actions, new EffectConfig()));
 		}
 
 		[Fact]
 		void country_card_playable_in_any_available_country_prevents_destroy() {
-			var world = BuildWorld(out int orgEntity);
-			AddCountry(world, "country-b");
+			TestWorld world = BuildWorld();
+			world.Country("country-b");
 			AddDeck(world, CardOwnerKind.Country, handSize: 1);
 			AddCard(world, CardOwnerKind.Country, "needs-country-control");
 			AddControl(world, "other-org", "country-b", 1);
 
-			Assert.False(TryDestroy(
-				world, orgEntity, CountryControlActionConfig(), new EffectConfig()));
+			Assert.False(TryDestroy(world, CountryControlActionConfig(), new EffectConfig()));
 		}
 
 		[Fact]
 		void destroyed_countries_are_not_country_card_playability_contexts() {
-			var world = BuildWorld(out int orgEntity);
-			int destroyedCountry = AddCountry(world, "country-b");
-			world.Add(destroyedCountry, new IsDestroyed());
+			TestWorld world = BuildWorld();
+			world.Country("country-b", destroyed: true);
 			AddDeck(world, CardOwnerKind.Country, handSize: 1);
 			AddCard(world, CardOwnerKind.Country, "needs-country-control");
 			AddControl(world, "other-org", "country-b", 1);
 
-			Assert.True(TryDestroy(
-				world, orgEntity, CountryControlActionConfig(), new EffectConfig()));
+			Assert.True(TryDestroy(world, CountryControlActionConfig(), new EffectConfig()));
 		}
 
 		[Fact]
@@ -147,120 +131,69 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void converter_projects_destroy_fifo_and_player_flag_before_completion() {
-			var world = BuildWorld(out int orgEntity);
-			world.Add(orgEntity, new IsOrgDestroyed());
-			int eventEntity = world.Create();
-			world.Add(eventEntity, new OrgDestroyedApplied { OrganizationId = OrgId });
-			int completionEntity = world.Create();
-			world.Add(completionEntity, new GameCompletion {
-				IsCompleted = true,
-				WinnerOrganizationId = "other"
-			});
-			int gameTimeEntity = world.Create();
-			world.Add(gameTimeEntity, new GameTime());
-			int localeEntity = world.Create();
-			world.Add(localeEntity, new Locale { Value = "en" });
-			var state = new VisualState();
+			TestWorld world = BuildWorld();
+			world.Add(world.OrgEntity, new IsOrgDestroyed())
+				.Entity().With(new OrgDestroyedApplied { OrganizationId = OrgId })
+				.Entity().With(new GameCompletion { IsCompleted = true, WinnerOrganizationId = "other" })
+				.GameTime()
+				.Locale();
+			var probe = new VisualStateProbe(resources: _resources, relations: _relations);
 			var order = new List<string>();
-			state.OrgDestroyedResults.PropertyChanged += (_, __) => order.Add("destroy");
-			state.GameCompletion.PropertyChanged += (_, __) => order.Add("completion");
+			probe.State.OrgDestroyedResults.PropertyChanged += (_, __) => order.Add("destroy");
+			probe.State.GameCompletion.PropertyChanged += (_, __) => order.Add("completion");
 
-			new VisualStateConverter(state, _resources, _relations).Update(
-				0, world, gameTimeEntity, localeEntity, orgEntity);
+			probe.Update(world);
 
-			OrgDestroyedSnapshotState snapshot = Assert.Single(state.OrgDestroyedResults.Entries);
+			OrgDestroyedSnapshotState snapshot = Assert.Single(probe.State.OrgDestroyedResults.Entries);
 			Assert.Equal(OrgId, snapshot.OrganizationId);
-			Assert.True(state.PlayerOrganization.IsDestroyed);
+			Assert.True(probe.State.PlayerOrganization.IsDestroyed);
 			Assert.Equal(new[] { "destroy", "completion" }, order);
 			CleanupEffectNotificationsSystem.UpdateOrgDestroyed(world);
-			Assert.Equal(0, Count<OrgDestroyedApplied>(world));
+			Assert.Equal(0, world.Count<OrgDestroyedApplied>());
 		}
 
-		bool TryDestroy(World world, int orgEntity, ActionConfig actions, EffectConfig effects) {
+		bool TryDestroy(TestWorld world, ActionConfig actions, EffectConfig effects) {
 			return OrgDestroySystem.TryDestroyIfConditionsMet(
-				world, orgEntity, actions, effects, _resources, _relations,
+				world, world.OrgEntity, actions, effects, _resources, _relations,
 				new GameSettings { DiscardGoldCost = 50 }, 100);
 		}
 
-		static World BuildWorld(out int orgEntity) {
-			var world = new World();
-			orgEntity = world.Create();
-			world.Add(orgEntity, new Organization { OrganizationId = OrgId });
-			world.Add(orgEntity, new OrganizationGameOutcome {
-				ParticipationOrder = 0,
-				Result = OrganizationGameResult.InProgress
-			});
-			AddCountry(world, "country-a");
-			return world;
+		/// <summary>The org under test (as <see cref="TestWorld.OrgEntity"/>) plus one country.</summary>
+		static TestWorld BuildWorld() {
+			return TestWorld.Create()
+				.Org(OrgId, displayName: "")
+				.With(new OrganizationGameOutcome {
+					ParticipationOrder = 0,
+					Result = OrganizationGameResult.InProgress
+				})
+				.Country("country-a");
 		}
 
-		static int AddCountry(World world, string countryId) {
-			int country = world.Create();
-			world.Add(country, new Country { CountryId = countryId });
-			return country;
+		static void AddDeck(TestWorld world, CardOwnerKind ownerKind, int handSize) {
+			world.Deck(OrgId, ownerKind, handSize);
 		}
 
-		static void AddDeck(World world, CardOwnerKind ownerKind, int handSize) {
-			int entity = world.Create();
-			world.Add(entity, new CardDeck { OrgId = OrgId });
-			world.Add(entity, new CardOwnerType(ownerKind));
-			world.Add(entity, new CardHand { HandSize = handSize });
+		static void AddCard(TestWorld world, CardOwnerKind ownerKind, string actionId) {
+			world.Card(actionId, orgId: OrgId, countryId: null, kind: ownerKind);
 		}
 
-		static void AddCard(World world, CardOwnerKind ownerKind, string actionId) {
-			int entity = world.Create();
-			world.Add(entity, new GameAction { ActionId = actionId });
-			world.Add(entity, new OrgContext { OrgId = OrgId });
-			world.Add(entity, new CardOwnerType(ownerKind));
-			world.Add(entity, new CardInHand { SlotIndex = 0 });
+		static void AddGold(TestWorld world, double value) {
+			world.Resource(OrgId, ResourceDefinitions.Gold, value);
 		}
 
-		static void AddGold(World world, double value) {
-			int entity = world.Create();
-			world.Add(entity, new ResourceOwner(OrgId, OwnerType.Org));
-			world.Add(entity, new Resource { ResourceId = ResourceDefinitions.Gold, Value = value });
-		}
-
-		static void AddControl(World world, int value) {
+		static void AddControl(TestWorld world, int value) {
 			AddControl(world, OrgId, "country-a", value);
 		}
 
-		static void AddControl(World world, string orgId, string countryId, int value) {
-			int entity = world.Create();
-			world.Add(entity, new ControlEffect {
-				OrgId = orgId,
-				CountryId = countryId,
-				Value = value,
-				EffectId = $"test-control-{orgId}-{countryId}"
-			});
+		static void AddControl(TestWorld world, string orgId, string countryId, int value) {
+			world.Control(countryId, value, orgId, $"test-control-{orgId}-{countryId}");
 		}
 
 		static ActionConfig CountryControlActionConfig() {
-			return new ActionConfig {
-				Actions = new List<ActionDefinition> {
-					new ActionDefinition {
-						ActionId = "needs-country-control",
-						Conditions = new List<ExpressionNode> {
-							new ExpressionNode {
-								Type = "gte",
-								Members = new List<ExpressionNode> {
-									new ExpressionNode { Type = "totalCountryControl" },
-									new ExpressionNode { Type = "value", Value = 1 }
-								}
-							}
-						}
-					}
-				}
-			};
-		}
-
-		static int Count<T>(IReadOnlyWorld world) where T : struct {
-			int count = 0;
-			int[] required = { TypeId<T>.Value };
-			foreach (Archetype archetype in world.GetMatchingArchetypes(required, null)) {
-				count += archetype.Count;
-			}
-			return count;
+			return TestActionConfig.Create()
+				.Action("needs-country-control", ownerType: "",
+					conditions: new[] { Expr.Gte("totalCountryControl", 1) })
+				.Build();
 		}
 	}
 }

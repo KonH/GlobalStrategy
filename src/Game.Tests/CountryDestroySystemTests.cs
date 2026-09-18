@@ -6,6 +6,7 @@ using GS.Game.Common;
 using GS.Game.Components;
 using GS.Game.Configs;
 using GS.Game.Systems;
+using GS.Game.Tests.Helpers;
 using GS.Main;
 using Xunit;
 
@@ -14,54 +15,25 @@ namespace GS.Game.Tests {
 		readonly CountryRelations _relations = new CountryRelations();
 		readonly ResourceQuery _resources = new ResourceQuery();
 
-		static int AddCountry(World world, string countryId, bool selected = false) {
-			int entity = world.Create();
-			world.Add(entity, new Country(countryId));
-			if (selected) {
-				world.Add(entity, new IsSelected());
-			}
-			return entity;
+		static int AddCountry(TestWorld world, string countryId, bool selected = false) {
+			return world.Country(countryId, selected).Last;
 		}
 
-		static void AddProvince(World world, string provinceId, string ownerId) {
-			int entity = world.Create();
-			world.Add(entity, new ProvinceOwnership { ProvinceId = provinceId, OwnerId = ownerId });
+		static void AddProvince(TestWorld world, string provinceId, string ownerId) {
+			world.Province(provinceId, ownerId);
 		}
 
-		static void AddControl(World world, string orgId, string countryId, int value, string effectId) {
-			int entity = world.Create();
-			world.Add(entity, new ControlEffect {
-				OrgId = orgId,
-				CountryId = countryId,
-				Value = value,
-				EffectId = effectId
-			});
+		static void AddControl(TestWorld world, string orgId, string countryId, int value, string effectId) {
+			world.Control(countryId, value, orgId, effectId);
 		}
 
-		static int CountDestroyedApplied(World world) {
-			int count = 0;
-			int[] required = { TypeId<CountryDestroyedApplied>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
-				count += arch.Count;
-			}
-			return count;
-		}
-
-		static List<CountryDestroyedApplied> GetDestroyedApplied(World world) {
-			var result = new List<CountryDestroyedApplied>();
-			int[] required = { TypeId<CountryDestroyedApplied>.Value };
-			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
-				CountryDestroyedApplied[] applied = arch.GetColumn<CountryDestroyedApplied>();
-				for (int i = 0; i < arch.Count; i++) {
-					result.Add(applied[i]);
-				}
-			}
-			return result;
+		static List<CountryDestroyedApplied> GetDestroyedApplied(TestWorld world) {
+			return world.AllComponents<CountryDestroyedApplied>();
 		}
 
 		[Fact]
 		void country_with_provinces_is_not_destroyed() {
-			var world = new World();
+			var world = TestWorld.Create();
 			int country = AddCountry(world, "Prussia");
 			AddProvince(world, "prov_1", "Prussia");
 
@@ -72,7 +44,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void last_province_lost_destroys_country_emits_event_and_clears_selection_control_relations() {
-			var world = new World();
+			var world = TestWorld.Create();
 			int destroyedCountry = AddCountry(world, "Prussia", selected: true);
 			AddCountry(world, "Austria");
 			AddCountry(world, "France");
@@ -99,17 +71,17 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void second_destroy_call_is_idempotent() {
-			var world = new World();
+			var world = TestWorld.Create();
 			AddCountry(world, "Prussia");
 
 			Assert.True(CountryDestroySystem.TryDestroyIfNoProvinces(world, _relations, "Prussia"));
 			Assert.False(CountryDestroySystem.TryDestroyIfNoProvinces(world, _relations, "Prussia"));
-			Assert.Equal(1, CountDestroyedApplied(world));
+			Assert.Equal(1, world.Count<CountryDestroyedApplied>());
 		}
 
 		[Fact]
 		void destroy_all_zero_province_countries_destroys_only_empty_owners() {
-			var world = new World();
+			var world = TestWorld.Create();
 			AddCountry(world, "Empty");
 			AddCountry(world, "HasLand");
 			AddProvince(world, "prov_1", "HasLand");
@@ -123,10 +95,9 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void select_destroyed_country_does_not_add_is_selected() {
-			var world = new World();
+			var world = TestWorld.Create();
 			int alive = AddCountry(world, "Alive", selected: true);
-			int dead = AddCountry(world, "Dead");
-			world.Add(dead, new IsDestroyed());
+			int dead = world.Country("Dead", destroyed: true).Last;
 
 			SelectCountrySystem.Update(world, new ReadCommands<SelectCountryCommand>(
 				new[] { new SelectCountryCommand("Dead") }));
@@ -137,7 +108,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void select_alive_country_still_works_and_empty_id_clears() {
-			var world = new World();
+			var world = TestWorld.Create();
 			int first = AddCountry(world, "First", selected: true);
 			int second = AddCountry(world, "Second");
 
@@ -154,13 +125,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void country_destroyed_event_survives_until_next_tick_cleanup_and_fifo_projects() {
-			var world = new World();
-			int gameTimeEntity = world.Create();
-			world.Add(gameTimeEntity, new GameTime { CurrentTime = new DateTime(1880, 1, 1) });
-			int localeEntity = world.Create();
-			world.Add(localeEntity, new Locale { Value = "en" });
-			int orgEntity = world.Create();
-			world.Add(orgEntity, new Organization { OrganizationId = "Org", DisplayName = "Org" });
+			var world = TestWorld.Create().GameTime().Locale().Org("Org");
 			AddCountry(world, "Prussia");
 			AddCountry(world, "Austria");
 			AddProvince(world, "prov_a", "Austria");
@@ -171,9 +136,9 @@ namespace GS.Game.Tests {
 			CleanupEffectNotificationsSystem.UpdateActionEffects(world);
 			Assert.Single(GetDestroyedApplied(world));
 
-			var state = new VisualState();
-			var converter = new VisualStateConverter(state, _resources, _relations);
-			converter.Update(0, world, gameTimeEntity, localeEntity, orgEntity);
+			VisualState state = new VisualStateProbe(resources: _resources, relations: _relations)
+				.Update(world)
+				.State;
 
 			CountryDestroyedSnapshotState snapshot = Assert.Single(state.CountryDestroyedResults.Entries);
 			Assert.Equal("Prussia", snapshot.CountryId);
@@ -192,15 +157,14 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void peace_transfer_emptying_loser_destroys_loser_once() {
-			var world = new World();
+			var world = TestWorld.Create();
 			AddCountry(world, "Winner");
 			AddCountry(world, "Loser");
 			AddProvince(world, "prov_1", "Loser");
 			Wars.DeclareWar(world, _resources, "Winner", "Loser", new DateTime(1880, 1, 1));
 			string warId = GetOnlyWarId(world);
 			ResourceMutations.TrySetValue(_resources, world, warId, ResourceDefinitions.WarProgress, 50, out _);
-			int occupation = world.Create();
-			world.Add(occupation, new ProvinceOccupation { ProvinceId = "prov_1", OccupierId = "Winner" });
+			world.Entity().With(new ProvinceOccupation { ProvinceId = "prov_1", OccupierId = "Winner" });
 
 			var settings = new GameSettings {
 				PeaceProvinceTransferMinPercent = 100,
@@ -219,13 +183,13 @@ namespace GS.Game.Tests {
 			Assert.True(CountryDestroySystem.TryDestroyIfNoProvinces(world, _relations, "Loser"));
 			Assert.False(CountryDestroySystem.TryDestroyIfNoProvinces(world, _relations, "Loser"));
 			Assert.True(CountryDestroySystem.IsCountryDestroyed(world, "Loser"));
-			Assert.Equal(1, CountDestroyedApplied(world));
+			Assert.Equal(1, world.Count<CountryDestroyedApplied>());
 			Assert.False(CountryDestroySystem.IsCountryDestroyed(world, "Winner"));
 		}
 
 		[Fact]
 		void change_owner_stripping_last_province_destroys_old_owner_only() {
-			var world = new World();
+			var world = TestWorld.Create();
 			AddCountry(world, "Old");
 			AddCountry(world, "New");
 			AddProvince(world, "prov_1", "Old");
@@ -240,7 +204,7 @@ namespace GS.Game.Tests {
 			Assert.False(CountryDestroySystem.IsCountryDestroyed(world, "New"));
 		}
 
-		static string GetOnlyWarId(World world) {
+		static string GetOnlyWarId(TestWorld world) {
 			int[] required = { TypeId<War>.Value };
 			foreach (Archetype arch in world.GetMatchingArchetypes(required, null)) {
 				if (arch.Count > 0) {

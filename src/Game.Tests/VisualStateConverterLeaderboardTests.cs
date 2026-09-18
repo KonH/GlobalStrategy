@@ -1,30 +1,28 @@
 using System.Collections.Generic;
-using ECS;
 using GS.Game.Components;
 using GS.Game.Configs;
+using GS.Game.Systems;
+using GS.Game.Tests.Helpers;
 using GS.Main;
 using Xunit;
-
-using GS.Game.Systems;
 
 namespace GS.Game.Tests {
 	public class VisualStateConverterLeaderboardTests {
 		readonly ResourceQuery _resources = new ResourceQuery();
 		readonly CountryRelations _relations = new CountryRelations();
-		static int SeedCountry(World world, string countryId, double score) {
-			int entity = world.Create();
-			world.Add(entity, new Country(countryId));
-			world.Add(entity, new ResourceOwner(countryId, OwnerType.Country));
-			world.Add(entity, new Resource { ResourceId = ResourceDefinitions.CountryScore, Value = score });
-			return entity;
+
+		/// <summary>A country entity that also owns its own <c>country_score</c> resource.</summary>
+		static TestWorld SeedCountry(TestWorld world, string countryId, double score) {
+			return world.Country(countryId)
+				.With(new ResourceOwner(countryId, OwnerType.Country))
+				.With(new Resource { ResourceId = ResourceDefinitions.CountryScore, Value = score });
 		}
 
-		static int SeedOrganization(World world, string orgId, string displayName, double score) {
-			int entity = world.Create();
-			world.Add(entity, new Organization { OrganizationId = orgId, DisplayName = displayName });
-			world.Add(entity, new ResourceOwner(orgId, OwnerType.Org));
-			world.Add(entity, new Resource { ResourceId = ResourceDefinitions.OrgScore, Value = score });
-			return entity;
+		/// <summary>An org entity that also owns its own <c>org_score</c> resource.</summary>
+		static TestWorld SeedOrganization(TestWorld world, string orgId, string displayName, double score) {
+			return world.Org(orgId, displayName)
+				.With(new ResourceOwner(orgId, OwnerType.Org))
+				.With(new Resource { ResourceId = ResourceDefinitions.OrgScore, Value = score });
 		}
 
 		static CountryConfig BuildCountryConfig() => new CountryConfig {
@@ -37,7 +35,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void leaderboards_are_sorted_by_score_descending_and_place_numbered() {
-			var world = new World();
+			var world = TestWorld.Create();
 			SeedOrganization(world, "org_low", "Low", 10.0);
 			SeedOrganization(world, "org_high", "High", 30.0);
 			SeedCountry(world, "c_alpha", 20.0);
@@ -58,7 +56,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void leaderboards_break_ties_by_display_name_then_id() {
-			var world = new World();
+			var world = TestWorld.Create();
 			SeedOrganization(world, "org_z", "Same", 10.0);
 			SeedOrganization(world, "org_a", "Same", 10.0);
 			SeedOrganization(world, "org_b", "Alpha", 10.0);
@@ -83,7 +81,7 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void large_world_projects_every_country_and_org_with_contiguous_places() {
-			var world = new World();
+			var world = TestWorld.Create();
 			const int countryCount = 154;
 			const int orgCount = 8;
 			for (int i = 0; i < countryCount; i++) {
@@ -111,16 +109,16 @@ namespace GS.Game.Tests {
 
 		[Fact]
 		void country_score_state_uses_country_score_query_for_all_country_entities() {
-			var world = new World();
+			var world = TestWorld.Create();
 			SeedCountry(world, "c_alpha", 20.0);
 			SeedCountry(world, "c_beta", 50.0);
 
-			var state = new VisualState();
-			var converter = new VisualStateConverter(state, _resources, _relations, countryConfig: BuildCountryConfig());
-			converter.UpdateCountryScore(world);
+			var probe = new VisualStateProbe(
+				resources: _resources, relations: _relations, countryConfig: BuildCountryConfig());
+			probe.Converter.UpdateCountryScore(world);
 
-			Assert.Equal(20.0, state.CountryScore.ScoreByCountryId["c_alpha"]);
-			Assert.Equal(50.0, state.CountryScore.ScoreByCountryId["c_beta"]);
+			Assert.Equal(20.0, probe.State.CountryScore.ScoreByCountryId["c_alpha"]);
+			Assert.Equal(50.0, probe.State.CountryScore.ScoreByCountryId["c_beta"]);
 		}
 	}
 }
