@@ -1,7 +1,14 @@
 ---
-paths:
-  - "**/*.unity"
+name: unity-scenes
+description: >-
+  Authoring reference for Unity scene files (.unity YAML) — the MCP tool
+  workflow, the hand-edit fallback (fileID generation, PrefabInstance blocks,
+  SceneRoots), build registration in EditorBuildSettings.asset, and the
+  silent-null gotcha when a new [SerializeField] is added to a MonoBehaviour
+  already placed in a scene. Load before creating, editing, registering, or
+  debugging any .unity scene file.
 ---
+
 
 # Scene Format and Registration
 

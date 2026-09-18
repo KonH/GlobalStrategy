@@ -12,7 +12,7 @@
 
 ## Configuration Index
 - **Workflow & tool usage:** `.claude/rules/workflow.md`
-- **Issue clarification questions:** `.claude/rules/issue_clarification_questions.md` — full numbered questions in handoff comments
+- **Issue clarification questions:** `.claude/commands/handle-issue.md` — "Clarification questions in the summary comment"; full numbered questions in handoff comments
 - **Commit rules:** `.claude/commands/commit.md`
 - **Specify command:** `.claude/commands/specify.md` — creates `Docs/Specs/<YY_MM_DD_HH>_<name>/spec.md` before planning; feature work starts here
 - **Plan command:** `.claude/commands/plan.md` — saves plans to `Docs/Specs/<YY_MM_DD_HH>_<name>/plan.md`, whether or not a `spec.md` accompanies them (technical-only plans use the same subdirectory format, just without a spec); `Docs/Plans/<index>_<name>.md` is legacy, kept only for existing entries
@@ -21,13 +21,13 @@
 - **C# code style:** `.claude/rules/csharp/code_style.md`
 - **Unity project structure:** `.claude/rules/unity/project_structure.md`
 - **Unity asmdef format:** `.claude/rules/unity/asmdef.md`
-- **Unity prefabs:** `.claude/rules/unity/prefabs.md`
+- **Unity prefabs:** `unity-prefabs` skill — `.prefab`/variant YAML format + MCP and hand-edit workflows
 - **Unity UI implementation:** `.claude/rules/unity/ui_implementation.md`
-- **Unity scenes:** `.claude/rules/unity/scenes.md`
+- **Unity scenes:** `unity-scenes` skill — `.unity` YAML format, MCP and hand-edit workflows, build registration
 - **Unity MCP usage:** `.claude/rules/unity/mcp_usage.md` — pin MCP to this checkout once per session before any Editor call (`unity-plugins` skill)
 - **Map system architecture:** `.claude/rules/unity/map_system.md`
 - **Map config generator:** `.claude/rules/unity/map_config_generator.md`
-- **Province config generator:** `.claude/rules/unity/province_config_generator.md`
+- **Province config generator:** `province-config-generator` skill — two-stage Python + `Game.Configs.Loader` pipeline
 - **UI Toolkit architecture:** `.claude/rules/unity/uitoolkit.md`
 - **VContainer / DI:** `.claude/rules/unity/vcontainer.md`
 - **Unity plugins (DLLs):** `.claude/rules/unity/plugins.md` — binaries are gitignored; regenerate with the `unity-plugins` skill **before** Unity Editor / MCP work (`python scripts/unity/ensure_plugin_dlls.py`). Opening the Editor also regenerates missing/stale DLLs.

@@ -51,3 +51,9 @@ Two checks, both required for any new hardware-polling input handler in this fol
 **Never use `EventSystem.current.IsPointerOverGameObject()`** for this — it does not reliably detect UI Toolkit panels under the New Input System in this Unity version (see `.claude/rules/unity/uitoolkit.md`'s "Click Blocking for Modal Dialogs").
 
 For a **drag gesture** (e.g. map pan-by-drag), only gate the *start* of the gesture — check once at the down→held transition, the same way `MapClickHandler.BeginPress` does. Don't re-check every frame while already dragging: if the cursor crosses over a UI element mid-drag, a continuous check would abruptly cut the gesture short mid-motion.
+
+## `provinces.json`'s `countryId` is seed data, not the permanent owner
+
+Since the Province Ownership feature (`Docs/Specs/45_province-ownership/`), `provinces.json`'s `countryId` is consumed exactly once: `ProvinceOwnershipSystem.Seed` uses it to initialize the mutable runtime `ProvinceOwnership` component the first time a game starts (gated by `InitSystem`'s `IsInitialized` guard). After that, the actual owner is runtime state — persisted via `[Savable]` `ProvinceOwnership` — and can change (currently only via the `DebugChangeProvinceOwnerCommand` cheat). Rendering, territory aggregation, and any "who owns this province" query must read `VisualState.ProvinceOwnership`/`ProvinceOwnershipSystem.GetOwner`, not `provinces.json`, after the first init.
+
+This is a consumption-side constraint only — the generation pipeline (`province-config-generator` skill) is unaffected by it.
