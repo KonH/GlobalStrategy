@@ -1,0 +1,4 @@
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
+26_09_16_14_shared-web-debug-ui,2.36,spec,automated,,2026-09-16T15:41:37+02:00,2026-09-16T15:41:37+02:00,cursor,cursor-grok-4.6,,,,,,29.31,7503,24.77,6341,,269,backfilled
+26_09_16_14_shared-web-debug-ui,2.36,plan,automated,,2026-09-16T15:41:37+02:00,2026-09-16T15:41:37+02:00,cursor,cursor-grok-4.6,,,,,,29.31,7503,24.77,6341,,269,backfilled
+26_09_16_14_shared-web-debug-ui,2.37,implement,automated,,2026-09-16T16:58:45+02:00,2026-09-16T16:58:45+02:00,cursor,cursor-grok-4.6,,,,,,29.31,7503,24.77,6341,0.03,5745,backfilled

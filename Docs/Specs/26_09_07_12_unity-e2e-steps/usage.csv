@@ -1,0 +1,4 @@
+spec_id,version,stage,mode,context,start,end,provider,model,effort,cost_usd,input_tokens,cached_input_tokens,output_tokens,spec_size_kb,spec_size_tokens,plan_size_kb,plan_size_tokens,prd_size_kb,diff_lines,session_id
+26_09_07_12_unity-e2e-steps,2.21,spec,automated,,2026-09-07T14:21:39+02:00,2026-09-07T14:21:39+02:00,claude,claude-opus-5,,,,,,13.52,3462,70.22,17976,,466,backfilled
+26_09_07_12_unity-e2e-steps,2.21,plan,automated,,2026-09-07T14:21:39+02:00,2026-09-07T14:21:39+02:00,claude,claude-opus-5,,,,,,13.52,3462,70.22,17976,,466,backfilled
+26_09_07_12_unity-e2e-steps,2.23,implement,automated,,2026-09-07T16:03:23+02:00,2026-09-07T16:03:23+02:00,cursor,cursor-grok-4.6,,,,,,13.52,3462,70.22,17976,0.03,3533,backfilled
