@@ -47,7 +47,7 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+		void OnUIReload(PanelRenderer _, VisualElement rootElement, int version) {
 			bool keepVisible = _root != null && _root.style.display == DisplayStyle.Flex;
 			_root = rootElement;
 			_view = new GameMenuView(_root);
@@ -78,7 +78,7 @@ namespace GS.Unity.UI {
 
 		void Start() {
 			if (_root == null) {
-				OnUIReload(_doc, PanelRendererRoot.Get(_doc));
+				OnUIReload(_doc, PanelRendererRoot.Get(_doc), 0);
 			}
 			if (_view == null && _root != null) {
 				_view = new GameMenuView(_root);

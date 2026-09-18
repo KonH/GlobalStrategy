@@ -135,7 +135,7 @@ namespace GS.Unity.Gallery {
 			}
 		}
 
-		void OnUIReload(PanelRenderer panelRenderer, VisualElement rootElement) {
+		void OnUIReload(PanelRenderer panelRenderer, VisualElement rootElement, int version) {
 			_root = rootElement;
 			if (_loc == null) {
 				// Injection hasn't run yet - Start() binds once it has.

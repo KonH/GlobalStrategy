@@ -45,7 +45,7 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+		void OnUIReload(PanelRenderer _, VisualElement rootElement, int version) {
 			_root = rootElement.Q<VisualElement>("fly-text-root");
 			if (_root == null) {
 				return;
@@ -62,7 +62,7 @@ namespace GS.Unity.UI {
 
 		void Start() {
 			if (_root == null) {
-				OnUIReload(_doc, PanelRendererRoot.Get(_doc));
+				OnUIReload(_doc, PanelRendererRoot.Get(_doc), 0);
 			}
 		}
 

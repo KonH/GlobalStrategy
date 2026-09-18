@@ -111,7 +111,7 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+		void OnUIReload(PanelRenderer _, VisualElement rootElement, int version) {
 			int generation = ++_reloadGeneration;
 			bool wasStarted = _started;
 			CardDrawAnimator oldCardDrawAnimator = _cardDrawAnimator;

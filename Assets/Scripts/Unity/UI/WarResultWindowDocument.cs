@@ -50,7 +50,7 @@ namespace GS.Unity.UI {
 			_modalState.Unlocked += HandleModalUnlocked;
 		}
 
-		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+		void OnUIReload(PanelRenderer _, VisualElement rootElement, int version) {
 			bool keepVisible = _root != null && _root.style.display == DisplayStyle.Flex;
 			_root = rootElement;
 			_tooltip = new TooltipSystem(_root);
@@ -72,7 +72,7 @@ namespace GS.Unity.UI {
 
 		void Start() {
 			if (_root == null) {
-				OnUIReload(_doc, PanelRendererRoot.Get(_doc));
+				OnUIReload(_doc, PanelRendererRoot.Get(_doc), 0);
 			}
 			EnsureView();
 			Subscribe();

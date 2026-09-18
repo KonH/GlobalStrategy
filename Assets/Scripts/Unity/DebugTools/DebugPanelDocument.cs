@@ -121,7 +121,7 @@ namespace GS.Unity.DebugTools {
 			}
 		}
 
-		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+		void OnUIReload(PanelRenderer _, VisualElement rootElement, int version) {
 			_root = rootElement;
 		}
 

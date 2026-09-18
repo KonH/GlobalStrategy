@@ -20,7 +20,7 @@ namespace GS.Unity.UI {
 			}
 
 			VisualElement captured = null;
-			void Capture(PanelRenderer _, VisualElement root) {
+			void Capture(PanelRenderer _, VisualElement root, int version) {
 				captured = root;
 			}
 			renderer.RegisterUIReloadCallback(Capture);

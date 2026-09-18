@@ -53,7 +53,7 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+		void OnUIReload(PanelRenderer _, VisualElement rootElement, int version) {
 			bool keepVisible = _root != null && _root.style.display == DisplayStyle.Flex;
 			_root = rootElement;
 			_tooltip = new TooltipSystem(_root);
@@ -69,7 +69,7 @@ namespace GS.Unity.UI {
 
 		void Start() {
 			if (_root == null) {
-				OnUIReload(_document, PanelRendererRoot.Get(_document));
+				OnUIReload(_document, PanelRendererRoot.Get(_document), 0);
 			}
 			InitView();
 		}

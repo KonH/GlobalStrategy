@@ -45,7 +45,7 @@ namespace GS.Unity.UI {
 			}
 		}
 
-		void OnUIReload(PanelRenderer _, VisualElement rootElement) {
+		void OnUIReload(PanelRenderer _, VisualElement rootElement, int version) {
 			Bind(rootElement);
 		}
 
