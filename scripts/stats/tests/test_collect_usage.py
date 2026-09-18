@@ -4,7 +4,12 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from scripts.stats.collect_usage import find_claude_transcripts, find_repo_worktree_roots, project_slug
+from scripts.stats.collect_usage import (
+    _scan_watermark_cap,
+    find_claude_transcripts,
+    find_repo_worktree_roots,
+    project_slug,
+)
 
 
 def run_git(args, cwd):
@@ -71,6 +76,52 @@ class FindClaudeTranscriptsTests(unittest.TestCase):
 
                 names = {p.name for p in found}
                 self.assertEqual({"main-session.jsonl", "wt-session.jsonl"}, names)
+
+
+class ScanWatermarkCapTests(unittest.TestCase):
+    def test_returns_none_when_every_file_parses_cleanly(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "a.jsonl"
+            path.write_text("{}", encoding="utf-8")
+
+            rows, cap = _scan_watermark_cap([path], lambda p: [{"path": str(p)}])
+
+            self.assertEqual([{"path": str(path)}], rows)
+            self.assertIsNone(cap)
+
+    def test_a_failed_file_caps_the_watermark_at_its_own_mtime_so_it_is_retried(self):
+        with tempfile.TemporaryDirectory() as d:
+            good = Path(d) / "good.jsonl"
+            bad = Path(d) / "bad.jsonl"
+            good.write_text("{}", encoding="utf-8")
+            bad.write_text("{}", encoding="utf-8")
+
+            def parse(path):
+                if path == bad:
+                    raise UnicodeDecodeError("utf-8", b"", 0, 1, "boom")
+                return [{"path": str(path)}]
+
+            rows, cap = _scan_watermark_cap([good, bad], parse)
+
+            self.assertEqual([{"path": str(good)}], rows)
+            self.assertAlmostEqual(bad.stat().st_mtime, cap, delta=2)
+
+    def test_cap_is_the_earlier_of_two_failed_files(self):
+        with tempfile.TemporaryDirectory() as d:
+            older = Path(d) / "older.jsonl"
+            newer = Path(d) / "newer.jsonl"
+            older.write_text("{}", encoding="utf-8")
+            newer.write_text("{}", encoding="utf-8")
+            older_mtime = newer.stat().st_mtime - 100
+            import os
+            os.utime(older, (older_mtime, older_mtime))
+
+            def parse(path):
+                raise OSError("boom")
+
+            _, cap = _scan_watermark_cap([newer, older], parse)
+
+            self.assertAlmostEqual(older.stat().st_mtime, cap, delta=2)
 
 
 if __name__ == "__main__":

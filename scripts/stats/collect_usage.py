@@ -244,29 +244,51 @@ def record_usage_row_codex(spec_dir, stage, mode, since_iso, diff_lines=None, ro
     upsert_row(Path(root) / "Docs" / "Specs" / spec_dir, record)
 
 
+def _scan_watermark_cap(paths, parse):
+    """Runs `parse` over every path, returning (rows, cap) where `cap` is the earliest
+    mtime among files that failed to parse - or None if every file parsed cleanly.
+
+    advance_watermark must never move past a file we failed to read: a stage that
+    silently produces zero attributable rows (an unrecognised transcript shape, a
+    future parser bug) still counts as "parsed cleanly" here and its mtime is fine to
+    advance past, since that is a data problem, not a scan problem, and re-scanning it
+    forever wouldn't fix it. Only an actual read/decode failure - the corrupt or
+    still-being-written file might parse fine next time - withholds the watermark, so
+    the file is retried on the next scan instead of being silently skipped forever."""
+    rows = []
+    fail_mtime = None
+    for path in paths:
+        try:
+            rows.extend(parse(path))
+        except (OSError, UnicodeDecodeError) as error:
+            print(f"warning: failed to parse {path}: {error} - will retry next scan", file=sys.stderr)
+            mtime = path.stat().st_mtime
+            if fail_mtime is None or mtime < fail_mtime:
+                fail_mtime = mtime
+    return rows, fail_mtime
+
+
 def run_scan(root):
     claude_since = get_last_scanned("claude")
     codex_since = get_last_scanned("codex")
 
-    claude_rows = []
-    for transcript in find_claude_transcripts(root, claude_since):
-        try:
-            claude_rows.extend(parse_claude_transcript(transcript))
-        except (OSError, UnicodeDecodeError) as error:
-            # A corrupt/partially-written transcript must not block the watermark
-            # advance for every other, perfectly-parseable file in this scan.
-            print(f"warning: failed to parse {transcript}: {error} - skipping this file", file=sys.stderr)
+    claude_rows, claude_cap = _scan_watermark_cap(
+        find_claude_transcripts(root, claude_since), parse_claude_transcript,
+    )
     process_rows(claude_rows, mode="interactive", root=root)
-    advance_watermark("claude")
+    if claude_cap is None:
+        advance_watermark("claude")
+    else:
+        advance_watermark("claude", when=datetime.fromtimestamp(claude_cap, tz=timezone.utc))
 
-    codex_rows = []
-    for rollout in find_codex_rollouts(codex_since):
-        try:
-            codex_rows.extend(parse_codex_rollout(rollout))
-        except (OSError, UnicodeDecodeError) as error:
-            print(f"warning: failed to parse {rollout}: {error} - skipping this file", file=sys.stderr)
+    codex_rows, codex_cap = _scan_watermark_cap(
+        find_codex_rollouts(codex_since), parse_codex_rollout,
+    )
     process_rows(codex_rows, mode="interactive", root=root)
-    advance_watermark("codex")
+    if codex_cap is None:
+        advance_watermark("codex")
+    else:
+        advance_watermark("codex", when=datetime.fromtimestamp(codex_cap, tz=timezone.utc))
 
 
 def run_hook(root):
