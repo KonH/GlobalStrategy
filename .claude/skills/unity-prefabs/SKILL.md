@@ -1,7 +1,13 @@
 ---
-paths:
-  - "**/*.prefab"
+name: unity-prefabs
+description: >-
+  Authoring reference for Unity prefabs and prefab variants (.prefab YAML) —
+  the MCP tool workflow and the hand-written YAML fallback (fileID anchors,
+  m_Modifications overrides, .prefab.meta GUIDs). Load before creating,
+  editing, or debugging any .prefab or prefab variant file, especially when
+  the Unity Editor / MCP is unavailable and the YAML must be written by hand.
 ---
+
 
 # Prefab and Prefab Variant Format
 

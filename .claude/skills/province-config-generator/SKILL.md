@@ -1,8 +1,15 @@
 ---
-paths:
-  - "scripts/utils/generate_provinces.py"
-  - "src/Game.Configs.Loader/**"
+name: province-config-generator
+description: >-
+  Run or modify the two-stage province generation pipeline — Stage 1
+  scripts/utils/generate_provinces.py (geopandas/Voronoi/mapshaper geometry,
+  Natural Earth downloads, province_name.* locale writes) and Stage 2
+  src/Game.Configs.Loader ProvinceProcessor, which emits
+  Assets/Configs/provinces.json and province_map_features_1880.json. Load when
+  regenerating province data, changing generation constants/calibration, or
+  debugging province ids, names, population, or neighbours.
 ---
+
 
 # Province Config Generator (Two-Stage Pipeline)
 
@@ -20,7 +27,7 @@ Run from the project root:
 ```
 
 Dependencies (installed into `.venv`): `geopandas`, `shapely`, `scipy`, `pyproj`, `requests`
-(same venv as the flag-asset tooling — see `.claude/rules/flag_assets.md`).
+(same venv as the flag-asset tooling — see the `flag-assets` skill).
 
 **New toolchain dependency: Node.js/`npx`.** The final simplify step shells out to
 `npx mapshaper` (auto-installed from the npm registry on first run if not already
@@ -124,17 +131,3 @@ localization-only, see `province_name.*` keys above) and `Assets/Configs/provinc
 
 Re-run order: Stage 1 (Python) must be run before Stage 2 (C# loader), since Stage 2
 consumes Stage 1's intermediate file via `loaderConfig.ProvinceGeoJsonSourcePath`.
-
-## `countryId` is seed data, not the permanent owner
-
-Since the Province Ownership feature (`Docs/Specs/45_province-ownership/`),
-`provinces.json`'s `countryId` is consumed exactly once: `ProvinceOwnershipSystem.Seed`
-uses it to initialize the mutable runtime `ProvinceOwnership` component the first time a
-game starts (gated by `InitSystem`'s `IsInitialized` guard). After that, the actual owner
-is runtime state — persisted via `[Savable]` `ProvinceOwnership` — and can change (currently
-only via the `DebugChangeProvinceOwnerCommand` cheat). Rendering, territory aggregation, and
-any "who owns this province" query must read `VisualState.ProvinceOwnership`/
-`ProvinceOwnershipSystem.GetOwner`, not `provinces.json`, after the first init.
-
-This is a consumption-side clarification only — the Python/C# generation pipeline described
-above is completely unchanged by this.

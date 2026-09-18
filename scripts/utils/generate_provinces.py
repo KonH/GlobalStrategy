@@ -10,7 +10,7 @@ Options:
 Dependencies (install into .venv):
     .venv\\Scripts\\pip.exe install geopandas shapely scipy pyproj requests
     Node.js/npx must be on PATH — this script shells out to `npx mapshaper` for the
-    final simplify pass (see .claude/rules/unity/province_config_generator.md).
+    final simplify pass (see the province-config-generator skill).
 
 Pipeline summary:
     1. Reconstruct each 1880 country's unioned polygon from Assets/Configs/countries.json
@@ -40,7 +40,7 @@ Output:
         the province's post-simplify polygon area)
 
 See Docs/Specs/26_07_10_18_province-division/plan.md for the full design and
-.claude/rules/unity/province_config_generator.md for the rule-doc summary.
+the province-config-generator skill for the pipeline summary.
 """
 
 import hashlib

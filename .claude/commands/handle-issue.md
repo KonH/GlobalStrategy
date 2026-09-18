@@ -31,12 +31,30 @@ The wrapper already claimed the item (`ai-in-progress` via `claim_candidate`) be
    - **Stage labels:** when the prompt leads you to run `/specify`, `/plan`, or `/implement`, **at the start of that command** add the matching stage label (`ai-specify` / `ai-plan` / `ai-implement`) and remove the other two.
 3. **Always commit and push** whatever artifacts exist — even partial or incomplete work — following `.claude/commands/commit.md` (version bump included), then `git push -u origin <branch>`. Never leave work unpushed and never discard partial work: the pushed branch is the next run's starting point.
 4. **Ensure a PR exists** (issue candidates with pushed commits only) — if no PR has this head branch (`gh pr list --repo KonH/GlobalStrategy --head <branch> --state all`), create one: `gh pr create --repo KonH/GlobalStrategy --title "<issue title>" --base main --head <branch> --body "Closes #<N>\n\n<brief summary>"`. **Never merge anything** — PRs, branches, or otherwise; merging is always the owner's action.
-5. **Answer** — post exactly one comment on the item: first line `<!-- claude-automation -->`, then what was done, what's on the branch/PR, what (if anything) remains open, and any questions for the owner. This comment is the handoff for both the owner and the next run. If the work wrote or updated a `spec.md` (or any doc the owner needs to review directly), include a direct blob link to it on the feature branch (e.g. `https://github.com/KonH/GlobalStrategy/blob/<branch>/Docs/Specs/<folder>/spec.md`) alongside the PR link — the PR link alone forces an extra click to find the file.
+5. **Answer** — post exactly one comment on the item: first line `<!-- claude-automation -->`, then what was done, what's on the branch/PR, what (if anything) remains open, and any questions for the owner. This comment is the handoff for both the owner and the next run. When the comment asks the owner for decisions, follow the **Clarification questions** section below. If the work wrote or updated a `spec.md` (or any doc the owner needs to review directly), include a direct blob link to it on the feature branch (e.g. `https://github.com/KonH/GlobalStrategy/blob/<branch>/Docs/Specs/<folder>/spec.md`) alongside the PR link — the PR link alone forces an extra click to find the file.
 6. **Hand off the state** — apply exactly one outcome label:
    - After finishing `/implement` → add `ai-complete` only. Do **not** add `ai-need-attention` for implement completion (including when Editor-only verification was skipped; note skips in the summary comment).
    - Otherwise: prompt fully done → add `ai-complete`; anything else (question asked, blocked, partial work, `/specify` or `/plan` approval stop, missing environment) → add `ai-need-attention`.
 
 Every candidate must end the run carrying exactly one of the two outcome labels. Do **not** add or remove `ai-in-progress` — the wrapper owns that label.
+
+## Clarification questions in the summary comment
+
+When step 5's comment needs owner decisions, put the questions **in the comment itself** — not only as a mention that questions exist elsewhere (spec Ambiguities, plan notes).
+
+1. **Always write the questions in the comment.** Do not say "see Ambiguities in the spec" or "open clarifications remain" without listing them.
+2. **Number them `0`–`9`** (then continue `10+` if needed) so the owner can answer with short replies like `0: yes`, `3: FIFO`, `7: ignore`.
+3. **Show the full question text** for each item — not a short paraphrase. Include enough context that the owner can decide without opening another file. Assumed defaults may follow the question in parentheses.
+
+```markdown
+**Clarification questions** (reply with `N: answer`, then remove `ai-need-attention` to resume):
+
+0. Exact definition of "player has influence" — any player-org control > 0 in a participant country, or must the country also be discovered, or does HQ country alone count? (assumed: control > 0)
+1. Sibling `WarResultWindow` vs extending `WarProgressWindow` in place? (recommended: sibling)
+2. Should the result window still show the final progress slider, effects list, side stats, and battles list, or only header chrome plus the new winner label and results block?
+```
+
+Anti-patterns: listing only abbreviated titles ("influence definition", "FIFO vs merge") without the full question; saying the questions are in `spec.md` without repeating them; using bullets without stable numbers the owner can cite.
 
 ## Environment limits
 
